@@ -127,12 +127,12 @@ export const META_TEXT = [
     ['th, kbd, time', 'column headers, key caps and timestamps are captions'],
     ['.u-text-xs, .u-text-sm', 'the utilities that set the meta size'],
     ['.cv-meta, .cv-meta *, .cv-notice', 'the code explorer: line numbers, file meta, notices and console rows (modules/code-explorer)'],
-    ['.gx-icon, .gx-icon *, .gx-box *, .gx-z *', 'gallery demo swatches: an icon grid, a box-model and a z-index sample, where the text is a caption for the thing shown'],
+    ['.gx-box *, .gx-z *', 'gallery demo swatches: a box-model and a z-index sample, where the text is a caption for the thing shown'],
 ];
 export const TEXT_TIERS = {
     readingPx: 14,
     metaPx: 12,
-    demoSelectors: '.gx-effect *, .gx-demo *',
+    demoSelectors: '.gx-effect *',
     metaSelectors: META_TEXT.map(([selector]) => selector).join(', '),
 };
 // Phone touch targets that are exempt, each with its reason (the scorecard lists these; a target not matching one is a defect).

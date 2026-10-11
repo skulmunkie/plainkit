@@ -4,10 +4,6 @@
 [hidden]:is(pk-button, pk-menu-item, pk-dropdown, pk-drawer, .gx-group) { display: none; }
 
 /* ---- entries, frames, foundations ---- */
-.gx-entry { margin-bottom: var(--space-4); scroll-margin-top: var(--space-2); }
-
-.gx-entry h4 { margin: var(--space-3) 0 var(--space-2); font-size: var(--text-base); }
-
 .gx-frame { display: block; max-width: 100%; margin: 0 auto var(--space-3); border: var(--_gx-border-w) solid var(--color-border); border-radius: var(--radius-md); background: var(--color-bg); }
 
 .gx-slot { min-width: 0; }
@@ -32,18 +28,13 @@
 
 .gx-effect { padding: var(--space-1); }
 
-.gx-icons { display: grid; grid-template-columns: repeat(auto-fill, minmax(var(--_gx-icon-min-w), 1fr)); gap: var(--space-2); }
 
-.gx-icon { display: flex; flex-direction: column; align-items: center; gap: var(--space-1); padding: var(--space-2); background: var(--color-surface-alt); border-radius: var(--radius-md); font-size: var(--text-xs); }
 
 .gx-pair { display: grid; grid-template-columns: minmax(0, 2fr) auto; gap: var(--space-3); align-items: start; }
 
 
 .gx-stage { height: calc(100dvh - var(--_gx-stage-reserve)); min-height: var(--_gx-stage-min-h); margin-inline: auto; }
 
-.gx-find { margin-bottom: var(--space-4); }
-
-.gx-head { --pk-page-header-title-size: calc(var(--text-lg) * 1.4); margin-bottom: var(--gap-section); }
 
 .gx-page { inline-size: 100%; max-inline-size: var(--_gx-page-max-w); margin-inline: auto; }
 
@@ -161,7 +152,6 @@
 @media (--phone) {
     /* Samples get the width: tighter gutters, and the desktop half of a desktop/phone pair is dropped (the phone frame IS the screen). */
     .gx-view, .gx-view.gx-view--inspecting { padding: var(--space-3) var(--space-2); }
-    .gx-view .gx-entry { --pk-card-padding: var(--space-2); }
     .gx-pair > div:first-child { display: none; }
 
     /* API tables become one card per row: the header row is hidden, each cell shows its column name beside its value. */
