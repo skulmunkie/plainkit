@@ -160,6 +160,14 @@ export const galleryCases = [
     }],
 ];
 
+async function openApp(t, hash, width = 1280) {
+    const host = t.stage(''), f = document.createElement('iframe');
+    f.title = 'Site app'; f.style.cssText = `width:${width}px;height:900px;border:0;display:block`;
+    const loaded = new Promise(r => f.addEventListener('load', r, { once: true }));
+    f.src = new URL(`../../app.html${hash}`, import.meta.url).href; host.append(f); await loaded;
+    return { win: f.contentWindow, d: f.contentDocument };
+}
+
 // The Gallery as a lazy module of the site app (#355, step 4): core/app.html#/gallery/..., the same views under one kept route, the app's own nav and row marking.
 export const galleryAppCases = [
     ['gallery module (app): a deep link opens the element page, the nav marks the section and no gallery nav column is drawn, a click in the views keeps the app address, and the page is kept (not remounted) while the address changes', async t => {
@@ -171,11 +179,48 @@ export const galleryAppCases = [
         await until(() => d.querySelector('#gx-view pk-page-header')?.getAttribute('heading') === 'Button', 'the Button page');
         const shell = d.querySelector('#gx-shell');
         t.ok(getComputedStyle(d.querySelector('#gx-nav')).display === 'none', 'the gallery draws no nav column of its own');
-        await until(() => d.querySelector('#pk-nav pk-nav-item[current]')?.textContent.includes('Elements'), 'the Elements row to be current');
+        await until(() => d.querySelector('#pk-nav pk-nav-item[current]')?.getAttribute('href') === '#/gallery/elements/pk-button', 'the Button row to be current');
         for (const a of d.querySelectorAll('#gx-view [href^="#/"]')) t.ok(a.getAttribute('href').startsWith('#/gallery/'), 'every link in the views is under #/gallery');
         win.location.hash = '#/gallery/foundations/typography'; await wait(300);
         await until(() => d.querySelector('#gx-view pk-page-header')?.getAttribute('heading') === 'Typography', 'the Typography page');
         t.ok(d.querySelector('#gx-shell') === shell, 'the gallery was kept, not mounted again');
         await until(() => /Typography/.test(d.querySelector('#pk-nav pk-nav-item[current]')?.textContent ?? ''), 'the Typography row to be current');
+    }],
+    ['gallery module (app): the nav lists the foundations and the element categories folded, a category opens to its elements, and a deep link to an element opens its page with that row marked and its category open', async t => {
+        const { d, win } = await openApp(t, '#/gallery');
+        const nav = () => [...d.querySelectorAll('#pk-nav pk-nav-item')];
+        await until(() => nav().some(i => i.textContent.trim().startsWith('Foundations')), 'the Foundations row');
+        const row = text => nav().find(i => i.firstChild?.textContent.trim() === text);
+        t.ok(row('Typography') && row('Navigation') && row('Page types') && row('Templates'), 'foundation pages, element categories and the sample lists are all in the nav');
+        t.ok(!row('Navigation').hasAttribute('expanded'), 'a category is folded until it is opened');
+        t.ok(!row('Navigation').querySelector('[current]'), 'no element row is marked before one is open');
+        row('Navigation').toggleAttribute('expanded', true);
+        t.ok(row('Navigation').querySelectorAll('pk-nav-item').length >= 10, 'the opened category lists its elements');
+        win.location.hash = '#/gallery/elements/pk-button'; await wait(200);
+        await until(() => d.querySelector('#gx-view pk-page-header')?.getAttribute('heading') === 'Button', 'the Button page');
+        await until(() => d.querySelector('#pk-nav pk-nav-item[current]')?.getAttribute('href') === '#/gallery/elements/pk-button', 'the Button row to be current');
+        t.ok(d.querySelector('#pk-nav pk-nav-item[current]').closest('pk-nav-item[expanded]'), 'the category of the current row is open');
+        win.location.hash = '#/gallery/foundations/typography'; await until(() => d.querySelector('#gx-view pk-page-header')?.getAttribute('heading') === 'Typography', 'Typography');
+        win.history.back(); await until(() => d.querySelector('#pk-nav pk-nav-item[current]')?.getAttribute('href') === '#/gallery/elements/pk-button', 'back to the Button row');
+        const link = d.querySelector('#pk-nav pk-nav-item[href="#/gallery/elements/pk-badge"]');
+        link?.focus(); t.ok(link && d.querySelector('#pk-nav').contains(link), 'element rows are links, reachable by keyboard');
+    }],
+    ['gallery module (app): on a phone the drawer holds the same tree and an element row opens its page', async t => {
+        const { d, win } = await openApp(t, '#/gallery/elements/pk-button', 375);
+        await until(() => d.querySelector('#gx-view pk-page-header')?.getAttribute('heading') === 'Button', 'the Button page');
+        d.querySelector('pk-button[data-nav-toggle]').click(); await wait(500);
+        const cur = await until(() => d.querySelector('#pk-nav pk-nav-item[current][href$="pk-button"]'), 'the current row in the drawer');
+        t.eq(cur.getAttribute('href'), '#/gallery/elements/pk-button', 'the drawer marks the Button row');
+        win.location.hash = '#/gallery/elements/pk-badge';
+        await until(() => d.querySelector('#gx-view pk-page-header')?.getAttribute('heading') === 'Badge', 'the Badge page');
+    }],
+    ['gallery module (app): an element deep link with the whole nav tree drawn shifts the layout less than 0.1 (#355)', async t => {
+        const { d, win } = await openApp(t, '#/gallery/elements/pk-button');
+        await until(() => d.querySelector('#gx-view pk-page-header')?.getAttribute('heading') === 'Button', 'the Button page');
+        await wait(1500);
+        const seen = type => new Promise(r => { const o = new win.PerformanceObserver(l => r(l.getEntries())); try { o.observe({ type, buffered: true }); } catch { r([]); } setTimeout(() => r(o.takeRecords()), 300); });
+        const entries = await seen('layout-shift'), cls = entries.filter(e => !e.hadRecentInput).reduce((n, e) => n + e.value, 0);
+        t.ok(d.querySelectorAll('#pk-nav pk-nav-item').length > 150, 'the nav tree is in the page');
+        t.ok(cls < 0.1, `layout shift ${cls.toFixed(4)} over ${entries.length} entries`);
     }],
 ];
