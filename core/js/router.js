@@ -45,7 +45,7 @@ export { flattenRoutes, matchRoute, buildCrumbs, fillPath, navRoutes, buildNavCr
 const log = createLogger('router');
 
 // Options: routes (the tree), intercept (path mode only, default false), base (path prefix the app is served under, default ''),
-// mode ('path' | 'hash', default 'path'), guard, aliases, notFound (see the header).
+// mode ('path' | 'hash', default 'path'; in hash mode base is the path prefix inside the hash: '/gallery' reads and writes #/gallery/x as /x), guard, aliases, notFound (see the header).
 export function mountRouter(container, { routes = [], intercept = false, base = '', mode = 'path', guard, aliases, notFound } = {}) {
     if (mode !== 'path' && mode !== 'hash') throw new TypeError(`mountRouter: mode must be 'hash' or 'path', not ${JSON.stringify(mode)}`);
     const hash = mode === 'hash';
@@ -55,11 +55,10 @@ export function mountRouter(container, { routes = [], intercept = false, base = 
     let dead = false;
 
     const read = () => {
-        if (hash) return parseHash(win.location?.hash);
-        const p = win.location?.pathname ?? '/';
-        return { path: base && p.startsWith(base) ? p.slice(base.length) || '/' : p, query: Object.fromEntries(new URLSearchParams(win.location?.search ?? '')) };
+        const r = hash ? parseHash(win.location?.hash) : { path: win.location?.pathname ?? '/', query: Object.fromEntries(new URLSearchParams(win.location?.search ?? '')) };
+        return r.path.startsWith(base) ? { ...r, path: r.path.slice(base.length) || '/' } : r;
     };
-    const write = (to, replace) => win.history[replace ? 'replaceState' : 'pushState'](null, '', hash ? '#' + to : base + to);
+    const write = (to, replace) => win.history[replace ? 'replaceState' : 'pushState'](null, '', (hash ? '#' : '') + base + to);
     const verdict = route => {
         try {
             const r = guard(route);
@@ -137,7 +136,7 @@ export function mountRouter(container, { routes = [], intercept = false, base = 
             return match ? { path: match.node.path, url: route.path, params: { ...match.params }, query: { ...route.query }, label: labelOf(match.node, match.params), status } : null;
         },
         crumbs: () => (state.match ? buildCrumbs(state.match) : []),
-        href: (path, params, query) => (hash ? buildHash(fillPath(path, params), query) : base + fillPath(path, params)),
+        href: (path, params, query) => (hash ? buildHash(base + fillPath(path, params), query) : base + fillPath(path, params)),
         navigate,
         // fn(handle) runs on every route change; returns the unsubscribe function.
         subscribe(fn) { listeners.add(fn); return () => listeners.delete(fn); },

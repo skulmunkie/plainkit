@@ -46,6 +46,8 @@
 /* The chrome fills whatever box the host gives it (a fixed-height container scrolls the contents and the view inside; an auto-height one grows with the page). */
 .gx-mount { display: flex; flex-direction: column; min-height: 0; }
 .gx-mount > .gx-shell { flex: 1; min-height: 0; }
+/* inside the site app (modules/gallery.js, data-gx-app) the app owns the nav: the gallery keeps its toolbar, views and Details drawer */
+[data-gx-app] .gx-shell > .gx-nav, [data-gx-app] .gx-bar .gx-contents { display: none; }
 
 /* display+width apply before pk-side-nav is defined too (the FOUC guard only hides it, it does not reserve its box), so .gx-main does not
    start full width and then jump left once the nav renders (#135). Below the element's own off-canvas breakpoint (side-nav.css) an UNDEFINED
