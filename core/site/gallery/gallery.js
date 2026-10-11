@@ -86,6 +86,7 @@ const ALIASES = {
     '/templates/:id': '/samples/templates/:id', '/templates': '/samples/templates',
 };
 let router = null;
+const query = () => router?.current()?.query ?? {}; // the address's query (#/path?q=..&nav=..), from the router
 let mounted = null; // the gallery on show: { destroy() }, so a second mount ends the first instead of stacking on it
 
 // Where the gallery is: the section and up to two more segments of the address (#/samples/templates/page).
@@ -178,7 +179,7 @@ function slot(sample, control, fixed) {
 }
 
 // The views get what they need of the gallery through this: nothing else of its state.
-const { viewFoundation, overviewHtml, samplesView } = createViews({ opts: () => opts, css: () => css, scope, scopeGroup, keeps, slot, state });
+const { viewFoundation, overviewHtml, samplesView } = createViews({ opts: () => opts, css: () => css, scope, scopeGroup, keeps, slot, state, query });
 
 function refreshFrames(changes) {
     for (const f of frames) applyToFrame(f, f.dataset.fixed ? { ...changes, width: undefined } : changes);
@@ -202,7 +203,7 @@ function fullPage() {
     return null;
 }
 
-const navVariant = () => (new URLSearchParams(location.hash.split('?')[1] ?? '').get('nav') === 'top' ? 'top' : 'side');
+const navVariant = () => (query().nav === 'top' ? 'top' : 'side');
 
 function pageUrl(fp, extra = {}) {
     const q = new URLSearchParams();
