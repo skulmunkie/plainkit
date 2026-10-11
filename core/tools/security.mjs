@@ -80,7 +80,8 @@ export function scan(opts = {}) {
             for (const id of ids) { if (seen.has(id)) findings.push({ severity: 'medium', rule: 'duplicate-id', file: r, line: 1, message: `duplicate id "${id}"` }); seen.add(id); }
             for (const m of text.matchAll(/aria-(?:labelledby|controls|describedby)="([^"]+)"/g)) for (const ref of m[1].split(/\s+/)) if (!seen.has(ref) && !/\$\{/.test(ref)) findings.push({ severity: 'low', rule: 'aria-reference-unresolved', file: r, line: text.slice(0, m.index).split('\n').length, message: `aria reference "${ref}" has no matching id in this file` });
         }
-        if (/\.css$/.test(r) && !r.startsWith('dist/')) {
+        // plainkit.css is generated: the page layer's files concatenated (issue 1076); each source is scanned itself, so the copy would count its !important twice.
+        if (/\.css$/.test(r) && !r.startsWith('dist/') && r !== 'plainkit.css') {
             const important = (text.match(/!important/g) ?? []).length;
             if (important) findings.push({ severity: 'low', rule: 'css-important', file: r, line: 1, message: `${important} !important`, count: important });
         }

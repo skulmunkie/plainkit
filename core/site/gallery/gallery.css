@@ -98,6 +98,16 @@
 .gx-nav-title:hover { color: var(--color-text); }
 .gx-nav-title:focus-visible { outline: var(--focus-ring); outline-offset: var(--_gx-focus-offset); }
 
+/* First load (#1076): the rows and tiles below keep their box while their elements are still undefined, so nothing under them moves when they upgrade.
+   A nav row is the element's own height; a collapsed branch's children show nothing yet; a tile is the height of a card with a heading and one line; a page header the height of a title and one lead line; the
+   overview grid is pk-grid's own template (min 14rem, gap --space-4). Each rule applies only until the element is defined. */
+.gx-nav:not(:defined) { flex-direction: column; }
+.gx-nav > pk-nav-item:not(:defined) { display: block; min-height: calc(var(--space-8) + var(--space-1)); }
+.gx-nav > pk-nav-item > pk-nav-item:not(:defined) { display: none; }
+.gx-tiles:not(:defined) { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(var(--_gx-el-group-min-w), 100%), 1fr)); gap: var(--space-4); }
+.gx-tile:not(:defined) { display: block; min-height: calc(var(--space-12) * 3 + var(--space-1)); }
+.gx-head:not(:defined) { display: block; min-height: calc(var(--space-12) + var(--space-4)); }
+
 /* min-height reserves the row's height before its buttons are defined (a row of plain light-DOM text is shorter than a row of real controls: #135). */
 .gx-bar { display: flex; flex-wrap: wrap; align-items: center; gap: var(--gap-control) var(--space-3); flex: none; min-height: calc(var(--ctl-h) + var(--space-2) * 2); padding: var(--space-2) var(--space-4); background: var(--color-panel); border-bottom: var(--_gx-border-w) solid var(--color-border); }
 

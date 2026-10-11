@@ -138,4 +138,24 @@ export const galleryCases = [
         t.eq(h(raw), h(bar), `the preview bar is ${h(raw)}px high before its elements upgrade and ${h(bar)}px after`);
         t.ok(top.getBoundingClientRect().height <= parseFloat(getComputedStyle(p.doc.documentElement).fontSize) * 3.5 + 1.5, 'the top bar is one row high');
     }],
+    ['gallery: the overview, the page header and the side-nav titles keep their box while their elements upgrade (#1076)', async t => {
+        const p = await open(t, '#/overview');
+        await Promise.all(['pk-page-header', 'pk-card', 'pk-grid', 'pk-side-nav', 'pk-nav-item'].map(tag => p.win.customElements.whenDefined(tag)));
+        await wait(100);
+        const shell = p.doc.querySelector('.gx-shell');
+        // The same markup with no script: every pk-* element stays undefined, the state a slow connection paints first.
+        const base = new URL('../../', import.meta.url).href;
+        const f = document.createElement('iframe'); f.title = 'Undefined state'; f.style.cssText = 'width:1280px;height:900px;border:0';
+        f.srcdoc = `<!doctype html><html data-theme="dark"><head><link rel="stylesheet" href="${base}plainkit.css"><link rel="stylesheet" href="${base}site/site.css"><link rel="stylesheet" href="${base}site/gallery/gallery.css"></head>`
+            + `<body class="site"><div class="gx-mount site-body">${shell.outerHTML}</div></body></html>`;
+        const loaded = new Promise(r => f.addEventListener('load', r, { once: true })); p.win.frameElement.parentElement.append(f); await loaded; await wait(100);
+        const raw = f.contentDocument;
+        const box = (d, sel, i = 0) => d.querySelectorAll(sel)[i].getBoundingClientRect();
+        const near = (sel, what, i = 0) => t.ok(Math.abs(box(raw, sel, i).height - box(p.doc, sel, i).height) <= 3, `${what} is ${Math.round(box(raw, sel, i).height)}px high before upgrade and ${Math.round(box(p.doc, sel, i).height)}px after`);
+        near('.gx-head', 'the page header'); near('.gx-tile', 'an overview tile'); near('main pk-grid', 'the overview grid');
+        // Titles sit between nav rows. The nav's own header is hidden until its element is defined, so compare the distance between two titles (the rows
+        // between them are what must keep their height while pk-nav-item is undefined: the 0.0015 shift), not the position of the first.
+        const gap = (d, i) => box(d, '.gx-nav-title', i + 1).top - box(d, '.gx-nav-title', i).top;
+        for (let i = 0; i < 2; i++) t.ok(Math.abs(gap(raw, i) - gap(p.doc, i)) <= 3, `the rows under nav title ${i} take ${Math.round(gap(raw, i))}px before upgrade and ${Math.round(gap(p.doc, i))}px after`);
+    }],
 ];
