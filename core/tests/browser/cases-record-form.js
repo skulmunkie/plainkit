@@ -121,6 +121,27 @@ export const recordFormCases = [
         } finally { history.replaceState(null, '', before); }
     }],
 
+    // #342: tabs as data - the element draws the strip, with a count badge and per-tab visibility.
+    ['record-form: tabs array draws the strip (count badge, visible:false left out), tags show one tab at a time, a hidden active tab falls back, and a slotted pk-tabs wins (#342)', async t => {
+        const body = '<form><pk-stack><pk-card id="a" tab="main">A</pk-card><pk-card id="b" tab="pricing">B</pk-card></pk-stack></form>';
+        const data = [{ value: 'main', label: 'Main' }, { value: 'pricing', label: 'Pricing', count: 3 }, { value: 'audit', label: 'Audit', visible: false }];
+        const el = await t.mount(`<pk-record-form tabs-from="always">${body}</pk-record-form>`); await t.load(el.shadowRoot); await t.settle();
+        t.ok(el.part('tabs').hidden, 'no tabs: the row is hidden');
+        el.tabs = data; await t.settle(); await t.settle();
+        const strip = el.part('strip'), tabs = [...strip.querySelectorAll('pk-tab')];
+        t.eq(tabs.map(x => x.getAttribute('value')).join(), 'main,pricing', 'the visible tabs are drawn, the other is left out');
+        t.eq(tabs[1].getAttribute('count'), '3', 'the count is the badge'); t.ok(!el.part('tabs').hidden && strip.getBoundingClientRect().height > 0, 'the strip shows');
+        t.ok(!el.querySelector('#a').hidden && el.querySelector('#b').hidden, 'the first tab\'s section shows');
+        strip.value = 'pricing'; strip.dispatchEvent(new CustomEvent('pk-tab-change', { bubbles: true, composed: true, detail: { value: 'pricing', previous: 'main' } })); await t.settle();
+        t.ok(el.querySelector('#a').hidden && !el.querySelector('#b').hidden, 'choosing a tab shows its sections');
+        el.tabs = data.map(d => d.value === 'pricing' ? { ...d, visible: false } : d); await t.settle(); await t.settle();
+        t.eq(strip.value, 'main', 'the chosen tab went: back to the first'); t.ok(!el.querySelector('#a').hidden && el.querySelector('#b').hidden, 'and its sections follow');
+        const attr = await t.mount(`<pk-record-form tabs-from="always" tabs='${JSON.stringify(data)}'>${body}</pk-record-form>`); await t.load(attr.shadowRoot); await t.settle(); await t.settle();
+        t.eq(attr.part('strip').querySelectorAll('pk-tab').length, 2, 'a tabs attribute draws the strip as well'); t.ok(!attr.part('tabs').hidden && attr.part('strip').getBoundingClientRect().height > 0, 'and it shows');
+        const own = await t.mount(`<pk-record-form tabs-from="always"><pk-tabs slot="tabs" value="pricing"><pk-tab value="main">Main</pk-tab><pk-tab value="pricing">Pricing</pk-tab></pk-tabs>${body}</pk-record-form>`); await t.load(own.shadowRoot); own.tabs = data; await t.settle(); await t.settle();
+        t.eq(own.part('strip').children.length, 0, 'a slotted pk-tabs wins: nothing is drawn'); t.ok(own.querySelector('#a').hidden && !own.querySelector('#b').hidden, 'and it decides what shows');
+    }],
+
     // #1000: what the Blazor wrapper relies on - a property set after the page connected, then refresh().
     ['list-page: clickable without rowHref makes rows clickable and a click raises pk-row-click with the row id (#1000)', async t => {
         const el = await t.mount(`<pk-list-page config='{"columns":[{"key":"sku","label":"SKU"}]}'></pk-list-page>`);

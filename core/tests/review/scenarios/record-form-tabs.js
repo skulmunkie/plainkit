@@ -4,8 +4,7 @@ export default {
     name: 'record-form-tabs',
     issue: [342],
     elements: ['record-form', 'form', 'field', 'input', 'tabs', 'card', 'badge'],
-    html: `<div id="stage"><pk-record-form id="rf" tab-param="tab">
-<pk-tabs slot="tabs" value="details" label="Record"><pk-tab value="details">Details</pk-tab><pk-tab value="pricing">Pricing</pk-tab></pk-tabs>
+    html: `<div id="stage"><pk-record-form id="rf" tab-param="tab" tabs='[{"value":"details","label":"Details"},{"value":"pricing","label":"Pricing","count":3},{"value":"audit","label":"Audit","visible":false}]'>
 <form id="form"><pk-stack>
 <pk-card id="details" tab="details" heading="Details"><pk-field label="Name"><pk-input name="name"></pk-input></pk-field></pk-card>
 <pk-card id="pricing" tab="pricing" heading="Pricing"><pk-field label="Price"><pk-input name="price"></pk-input></pk-field></pk-card>
@@ -15,7 +14,7 @@ export default {
     setup(frame) { frame.querySelector('#form').addEventListener('submit', e => e.preventDefault()); },
     steps: [
         { wait: 700 }, { shot: 'resting' },
-        { click: 'pk-tab[value=pricing]', on: ['phone'] }, { wait: 400 }, { shot: 'pricing', on: ['phone'] },
+        { click: '#rf >>> pk-tab[value=pricing]', on: ['phone'] }, { wait: 400 }, { shot: 'pricing', on: ['phone'] },
     ],
     expect(t) {
         const phone = t.viewport.name === 'phone';
@@ -25,7 +24,7 @@ export default {
             for (const id of ['details', 'pricing', 'status']) t.ok(!hidden(`#${id}`), `desktop shows the ${id} section`);
             t.ok(hidden('#rf >>> [part=tabs]'), 'the tab strip is hidden on desktop', 'pk-record-form hides the tabs row above tabs-from');
         } else if (t.shot === 'resting') {
-            t.visible('pk-tabs', 'the tab strip on a phone');
+            t.visible('#rf >>> pk-tabs', 'the tab strip on a phone'); t.ok(t.attr('#rf >>> pk-tab[value=pricing]', 'count') === '3', 'the count badge shows'); t.absent('#rf >>> pk-tab[value=audit]');
             t.visible('#details', 'the first tab\'s section'); t.visible('#status', 'the first tab\'s sidebar card');
             t.ok(hidden('#pricing'), 'the Pricing section is hidden until its tab is chosen');
         } else if (t.shot === 'pricing') {
