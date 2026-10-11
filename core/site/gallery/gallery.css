@@ -101,6 +101,15 @@
 /* min-height reserves the row's height before its buttons are defined (a row of plain light-DOM text is shorter than a row of real controls: #135). */
 .gx-bar { display: flex; flex-wrap: wrap; align-items: center; gap: var(--gap-control) var(--space-3); flex: none; min-height: calc(var(--ctl-h) + var(--space-2) * 2); padding: var(--space-2) var(--space-4); background: var(--color-panel); border-bottom: var(--_gx-border-w) solid var(--color-border); }
 
+/* The main bar never wraps: before its buttons upgrade the row is wider than after, and a wrap pushes the whole view down once they do (#1076). */
+.gx-bar.gx-bar-main { flex-wrap: nowrap; }
+
+/* An undefined button group or field is a block that stacks its buttons: lay them out as the defined element does so the bar keeps one row's height. */
+.gx-group :is(pk-button-group, pk-field):not(:defined) { display: flex; align-items: center; gap: var(--space-1); min-height: var(--ctl-h); }
+
+/* An undefined pk-select shows its option text as stacked lines; the defined select draws one control. */
+.gx-group pk-select:not(:defined) > option { display: none; }
+
 .gx-group { display: flex; align-items: center; gap: var(--space-2); }
 
 .gx-group-label { font-size: var(--text-md); color: var(--color-muted); }
