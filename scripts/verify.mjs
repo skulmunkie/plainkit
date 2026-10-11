@@ -7,7 +7,7 @@
 //   node scripts/verify.mjs --pack           also dotnet pack + node scripts/check-package.mjs
 //   node scripts/verify.mjs --scorecard      also the SDK Scorecard quality run (node scripts/scorecard-sweep.mjs --only quality, needs Chrome or Edge, under a minute)
 //   node scripts/verify.mjs --only node      one CI job: a group (lint, node, dotnet, browser, pack, scorecard) or a check id (see --list); what it needs runs too
-//   node scripts/verify.mjs --changed        the inner loop for a small change: only the checks that cover the files changed versus --base (default origin/next-0.13, else origin/main), with what was chosen and why;
+//   node scripts/verify.mjs --changed        the inner loop for a small change: only the checks that cover the files changed versus --base (default origin/main, else origin/next-0.13), with what was chosen and why;
 //                                            an unmapped file falls back to the full node job. With --browser also the element's browser cases and UI review. scripts/verify-changed.mjs has the mapping.
 //   node scripts/verify.mjs --list           the checks, their groups and what each fix is
 //   --base <ref>   the pull request's base (default: origin/main when it exists; CI passes GITHUB_BASE_REF). Without one the checks that compare
@@ -135,7 +135,7 @@ export function parseArgs(argv) {
     for (const o of opts.only) if (!known.has(o)) errors.push(`--only ${o}: not a group or check (groups: ${GROUPS.join(', ')}; checks: ${CHECKS.map(c => c.id).join(', ')})`);
     if (opts.budget && !JOBS[opts.budget]) errors.push(`--budget ${opts.budget}: not a group (${GROUPS.join(', ')})`);
     if (opts.fast && opts.only.length) errors.push('use either --fast or --only, not both');
-    if (opts.changed && (opts.fast || opts.only.length || opts.noDotnet || opts.pack || opts.scorecard)) errors.push('--changed chooses its own checks: combine it only with --browser, --base and --verbose');
+    if (opts.changed && (opts.fast || opts.noDotnet || opts.pack || opts.scorecard)) errors.push('--changed chooses its own checks: combine it only with --browser, --base, --verbose and --only (which keeps just those groups of the plan, as CI jobs do)');
     return { opts, errors };
 }
 
@@ -429,13 +429,15 @@ export async function main(argv, env = process.env) {
     let selected, base;
     if (opts.changed) {
         base = defaultBase(opts.base, root);
-        if (!base) { console.error('verify: --changed needs a base: neither origin/next-0.13 nor origin/main exists; pass --base <ref>'); return 2; }
+        if (!base) { console.error('verify: --changed needs a base: neither origin/main nor origin/next-0.13 exists; pass --base <ref>'); return 2; }
         const files = changedSince(base, root);
         if (files === null) { console.log(`verify: could not list the files changed versus ${base}; running the default checks instead (never skipping when unsure)`); selected = selectChecks(opts); }
         else {
             const plan = planChanged(files, gatherContext(root));
             console.log(describePlan(plan, { base, browser: opts.browser }));
             selected = buildChecks(plan, { CHECKS, NODE, browser: opts.browser });
+            // CI runs one job per group: `--changed --only node` keeps that group's part of the plan (and the bootstrap it needs).
+            if (opts.only.length) selected = selected.filter(c => c.group === 'setup' || opts.only.includes(c.group) || opts.only.includes(c.id));
         }
     } else { selected = selectChecks(opts); base = resolveBase({ opts, env }); }
     const dirtyBefore = git(['status', '--porcelain', '--untracked-files=no']).stdout.split('\n').filter(Boolean);

@@ -25,9 +25,9 @@ Agents follow [AGENTS.md](AGENTS.md), which has the same flow as commands and ru
 ## Definition of done
 
 Checks come in two tiers, so a small change reaches a pull request quickly. During development run the **targeted** ones: `node scripts/verify.mjs --changed` runs only the checks that cover the files
-you changed versus `origin/next-0.13` (else `origin/main`; `--base <ref>`) and prints what it chose and why; a file it cannot map falls back to the full node job, never to a skip. `--changed --browser` adds the element's
+you changed versus `origin/main` (`--base <ref>`) and prints what it chose and why; a file it cannot map falls back to the full node job, never to a skip. `--changed --browser` adds the element's
 browser cases (`node scripts/attest-browser.mjs --elements a,b` or `--filter text`, "N of M cases selected", exit 1 when nothing matches) and its UI review. The **full** `node scripts/verify.mjs --pack`, the whole browser suite,
-the full UI review and the Node 22 job run once per integration batch and in CI before a release. A failing check is never ignored or weakened in either tier.
+the full UI review and the Node 22 job run nightly on `main`, on a release pull request, on the version tag (the release workflow runs the full verify before it publishes anything) and on any pull request labelled `full-ci`. An ordinary pull request into `main` runs only the targeted checks in CI too. A failing check is never ignored or weakened in either tier.
 
 A change is done when, on its pull request:
 

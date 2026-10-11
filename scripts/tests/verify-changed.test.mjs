@@ -210,12 +210,12 @@ test('describePlan says what was chosen and why, and where the full run stays', 
     assert.match(text, /element: core\/elements\/button\/button\.css/);
     assert.match(text, /-> node-tests/);
     assert.match(text, /add --browser/);
-    assert.match(text, /integration batch and CI/);
+    assert.match(text, /nightly run, release pull requests, the version tag/);
 });
 
 test('--changed combines only with --browser, --base and --verbose', () => {
     assert.equal(parseArgs(['--changed', '--browser', '--base', 'origin/main']).errors.length, 0);
     assert.equal(parseArgs(['--changed']).opts.changed, true);
     for (const bad of ['--fast', '--pack', '--no-dotnet', '--scorecard']) assert.match(parseArgs(['--changed', bad]).errors.join(), /--changed chooses its own checks/);
-    assert.match(parseArgs(['--changed', '--only', 'lint']).errors.join(), /--changed chooses/);
+    assert.deepEqual(parseArgs(['--changed', '--only', 'node']).errors, [], '--only narrows the plan to one CI job');
 });

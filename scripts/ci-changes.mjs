@@ -19,7 +19,7 @@ export const AREAS = ['node', 'dotnet', 'browser', 'pack', 'ui-review'];
 // Root markdown files that a generator or a test reads: not "just docs".
 const ROOT_DOCS_THAT_ARE_INPUTS = new Set(['AGENTS.md', 'README.md', 'PUBLISHING.md', 'CHANGELOG.md']);
 // Workflow and settings files that scripts/tests/ci-*.test.mjs read.
-const TESTED_GITHUB_FILES = new Set(['.github/workflows/ci.yml', '.github/REPO-SETTINGS.md', '.github/pull_request_template.md']);
+const TESTED_GITHUB_FILES = new Set(['.github/workflows/ci.yml', '.github/workflows/release.yml', '.github/workflows/nightly-full.yml', '.github/workflows/browser-nightly.yml', '.github/workflows/ui-review-sweep.yml', '.github/REPO-SETTINGS.md', '.github/pull_request_template.md']);
 
 /** Changelog fragments, .github files, the license and root markdown that nothing reads (for the node tests: minus what ci-*.test.mjs read). */
 export const isDocsOnly = (file, { forNode = false } = {}) => {
@@ -42,9 +42,11 @@ const UI_REVIEW_BASE_PATHS = [/^core\/(base|tokens|layouts)\//];
 const NODE_ONLY_TESTS = [/^core\/tests\//, /^scripts\/tests\//];
 
 /** { run, reason } for one area. `event` is GITHUB_EVENT_NAME; `files` the changed paths (null: unknown). */
-export function decide(area, { event, files, full = false }) {
+export function decide(area, { event, files, full = false, fullCi = false }) {
     if (!AREAS.includes(area)) throw new Error(`unknown area ${area} (${AREAS.join(', ')})`);
     if (event === 'workflow_dispatch') return { run: true, reason: 'manual run' };
+    // The label full-ci, or a release pull request (CI_FULL=true): everything runs, whatever changed. The UI review keeps its own rule below (UI_REVIEW_FULL).
+    if (fullCi && event === 'pull_request' && area !== 'ui-review') return { run: true, reason: 'full-ci label or release pull request: the full suite' };
     if (event !== 'pull_request') return area === 'browser' || area === 'ui-review' ? { run: false, reason: 'the browser suite and the UI review run on pull requests' } : { run: true, reason: `${event || 'local'} run` };
     if (!files) return { run: true, reason: 'could not list the changed files, running to be safe' };
     if (files.length === 0) return { run: true, reason: 'no changed files found, running to be safe' };
@@ -73,7 +75,7 @@ if (process.argv[1] && path.resolve(process.argv[1]) === fileURLToPath(import.me
     if (!AREAS.includes(area)) { console.error(`usage: node scripts/ci-changes.mjs <${AREAS.join('|')}>`); process.exit(2); }
     const event = process.env.GITHUB_EVENT_NAME;
     const files = event === 'pull_request' ? changedFiles(path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..')) : null;
-    const d = decide(area, { event, files, full: process.env.UI_REVIEW_FULL === 'true' });
+    const d = decide(area, { event, files, full: process.env.UI_REVIEW_FULL === 'true', fullCi: process.env.CI_FULL === 'true' });
     console.log(`${area}: ${d.run ? 'running' : 'skipped'} (${d.reason})${files ? `; ${files.length} changed file(s)` : ''}`);
     if (process.env.GITHUB_OUTPUT) fs.appendFileSync(process.env.GITHUB_OUTPUT, `run=${d.run}\nreason=${d.reason}\n`);
     if (!d.run && process.env.GITHUB_STEP_SUMMARY) fs.appendFileSync(process.env.GITHUB_STEP_SUMMARY, `Skipped: ${d.reason}.\n`);

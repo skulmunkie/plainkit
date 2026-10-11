@@ -1,0 +1,91 @@
+name: Full verify (nightly)
+
+# The full suite on main, every night and on demand: node scripts/verify.mjs --pack --scorecard (changelog, version, generated tree, every node test, the audits,
+# the whole dotnet test, the package check and the SDK Scorecard quality run). Ordinary pull requests only run the targeted checks for the files they change
+# (ci.yml), so this is what catches a break that no single pull request could see. Its siblings: browser-nightly.yml (the in-browser suite) and
+# ui-review-sweep.yml (the full UI review). Not required, not a pull request gate. On a failure it opens or updates ONE tracking issue titled
+# "Full verify failing on main" (run URL and the failed checks); on a later green run it comments that it is green again. It never closes the issue: the owner does.
+on:
+  schedule:
+    - cron: '47 3 * * *'
+  workflow_dispatch:
+
+concurrency:
+  group: nightly-full
+  cancel-in-progress: false
+
+permissions:
+  contents: read
+
+jobs:
+  full:
+    name: Full verify (nightly)
+    # The schedule always runs on the default branch; a manual run on another branch would report to the main tracking issue, so it is kept to main.
+    if: github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    permissions:
+      contents: read
+      issues: write
+    env:
+      PK_CHROME: /usr/bin/google-chrome
+      PK_CHROME_FLAGS: --no-sandbox
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          fetch-depth: 1
+          persist-credentials: false
+
+      - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
+        with:
+          node-version: '22'
+
+      - uses: actions/setup-dotnet@a98b56852c35b8e3190ac28c8c2271da59106c68 # v6.0.0
+        with:
+          global-json-file: global.json
+          cache: true
+          cache-dependency-path: |
+            Directory.Packages.props
+            **/*.csproj
+
+      - name: Install build dependencies (esbuild)
+        run: npm ci
+
+      # continue-on-error: the issue is filed or updated below whatever happened here; the last step then fails the run.
+      - name: Everything (node scripts/verify.mjs --pack --scorecard)
+        id: suite
+        continue-on-error: true
+        run: node scripts/verify.mjs --pack --scorecard
+
+      - name: Open or update the tracking issue
+        if: always()
+        uses: actions/github-script@3a2844b7e9c422d3c10d287c895573f7108da1b3 # v9.0.0
+        env:
+          SUITE_OUTCOME: ${{ steps.suite.outcome }}
+        with:
+          script: |
+            const TITLE = 'Full verify failing on main';
+            const GREEN = '<!-- full-verify: green -->';
+            const FAIL = '<!-- full-verify: failing -->';
+            const { owner, repo } = context.repo;
+            const sha = context.sha.slice(0, 8);
+            const runUrl = `${context.serverUrl}/${owner}/${repo}/actions/runs/${context.runId}`;
+            const failed = process.env.SUITE_OUTCOME !== 'success';
+            const issues = await github.paginate(github.rest.issues.listForRepo, { owner, repo, state: 'open', per_page: 100 });
+            const existing = issues.find(i => !i.pull_request && i.title === TITLE);
+            if (failed) {
+              const body = [FAIL, `The full verify (node scripts/verify.mjs --pack --scorecard) failed on \`main\` (${sha}). Run: ${runUrl}`, '',
+                'The failing check and its FIX line are in the step log and the job summary. Reproduce: `node scripts/verify.mjs --pack --scorecard`. This issue is closed by the owner, not automatically.'].join('\n');
+              if (existing) { await github.rest.issues.createComment({ owner, repo, issue_number: existing.number, body }); core.info(`commented on #${existing.number}`); }
+              else { const made = await github.rest.issues.create({ owner, repo, title: TITLE, body }); core.info(`opened #${made.data.number}`); }
+            } else if (existing) {
+              const comments = await github.paginate(github.rest.issues.listComments, { owner, repo, issue_number: existing.number, per_page: 100 });
+              if (comments.length && String(comments[comments.length - 1].body ?? '').includes(GREEN)) { core.info('green, the issue already says so'); return; }
+              await github.rest.issues.createComment({ owner, repo, issue_number: existing.number, body: [GREEN, `The full verify is green again on \`main\` (${sha}). Run: ${runUrl}`, '', 'Close this issue when you are satisfied it stays green.'].join('\n') });
+            } else core.info('green, and no open tracking issue');
+
+      - name: Fail the run when the full verify failed
+        if: steps.suite.outcome != 'success'
+        run: |
+          echo "the full verify did not pass (see the tracking issue and the verify step's log)"
+          exit 1
