@@ -40,6 +40,25 @@ export const auditDashboardCases = [
         await wait(150);
         t.ok(host.querySelector('[slot=properties]').textContent.includes('FIX: allow the text to wrap'), 'the Properties panel shows the selected finding\'s FIX line');
     }]),
+    ...['baseline', 'review'].map(tabName => [`audit dashboard (375px): the ${tabName} tab's header paragraph and status line stay inside the host and the review cards show every column (#1142)`, async t => {
+        const { host, panel } = await mount(t, 375, MANIFEST);
+        if (tabName === 'baseline') {
+            const tab = [...host.querySelector('pk-dock').shadowRoot.querySelectorAll('pk-tab')].find(x => /Module baseline/.test(x.textContent));
+            tab.click(); await t.settle(); await wait(200);
+        }
+        const pane = host.querySelector(`[slot=${tabName}]`);
+        const box = rect(host);
+        for (const sel of ['.ad-header', '.ad-status']) {
+            const el = pane.querySelector(sel); const r = rect(el);
+            t.ok(r.width > 0 && r.left >= box.left - 1 && r.right <= box.right + 1, `${sel} of the ${tabName} tab stays inside the host (left ${Math.round(r.left)}, right ${Math.round(r.right)} of ${Math.round(box.left)}..${Math.round(box.right)})`);
+            t.ok(el.scrollWidth <= el.clientWidth + 1, `${sel} does not clip its own text (${el.scrollWidth} of ${el.clientWidth})`);
+        }
+        if (tabName === 'review') {
+            const table = panel.querySelector('pk-table');
+            await until(() => table.shadowRoot?.querySelector('[part=card], tbody tr'), 'the review rows');
+            t.ok(table.shadowRoot.textContent.includes('Seen in'), 'the cards show the Seen in column');
+        }
+    }]),
     ['audit dashboard: a missing review manifest shows a clear empty state naming the command, not a blank table (#717)', async t => {
         const { panel } = await mount(t, 1280, '/_audit/definitely-not-there.json');
         const empty = panel.querySelector('pk-empty-state');

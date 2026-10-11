@@ -1,0 +1,3 @@
+/* Audit dashboard: dock panels inherit white-space: nowrap from the tab strip, which kept the header paragraph and status line on one line, clipped at a phone's edge (#1142). */
+
+.ad-panel { white-space: normal; overflow-wrap: anywhere; }

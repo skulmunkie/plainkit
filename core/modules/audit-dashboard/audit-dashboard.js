@@ -25,13 +25,14 @@ const log = createLogger('audit-dashboard');
 const STYLES = ['../../plainkit.css'];
 export const DEFAULT_BASELINE_URL = '/_audit/module-baseline.json';
 export const DEFAULT_REVIEW_URL = '/_audit/ui-review-manifest.json';
+const OWN_STYLES = ['./audit-dashboard.css'];
 const COLUMNS = [{ key: 'file', label: 'File' }, { key: 'rule', label: 'Rule' }, { key: 'count', label: 'Count' }];
 const REGEN_COMMAND = 'node scripts/audit-modules.mjs';
 
 export async function mountAuditDashboard(container, options = {}) {
     const { baselineUrl = DEFAULT_BASELINE_URL, reviewUrl = DEFAULT_REVIEW_URL, theme, height, persistKey } = options;
     const doc = container.ownerDocument;
-    await ensureStyles(styleUrls(STYLES, import.meta.url), doc);
+    await ensureStyles([...styleUrls(STYLES, import.meta.url), ...styleUrls(OWN_STYLES, import.meta.url)], doc);
 
     let entries = [];
     let rows = [];
