@@ -569,16 +569,6 @@
     {
       "rule": "S3",
       "file": "core/site/gallery/gallery.js",
-      "fingerprint": "217f93327ca89a02"
-    },
-    {
-      "rule": "S3",
-      "file": "core/site/gallery/gallery.js",
-      "fingerprint": "1409daba11df2b67"
-    },
-    {
-      "rule": "S3",
-      "file": "core/site/gallery/gallery.js",
       "fingerprint": "b64c4ab3869a414a"
     },
     {
@@ -735,16 +725,6 @@
       "rule": "S3",
       "file": "core/site/gallery/gallery.js",
       "fingerprint": "b64c4ab3869a414a"
-    },
-    {
-      "rule": "S5",
-      "file": "core/site/gallery/gallery.js",
-      "fingerprint": "379a4ef36f53d9a5"
-    },
-    {
-      "rule": "S5",
-      "file": "core/site/gallery/gallery.js",
-      "fingerprint": "379a4ef36f53d9a5"
     },
     {
       "rule": "S7",
@@ -760,6 +740,11 @@
       "rule": "S7",
       "file": "core/site/gallery/gallery.js",
       "fingerprint": "ad731324cc7c5c5a"
+    },
+    {
+      "rule": "S7",
+      "file": "core/site/gallery/gallery.js",
+      "fingerprint": "8383d2a151e611f6"
     },
     {
       "rule": "S7",
@@ -922,39 +907,9 @@
       "fingerprint": "1215229800249cf4"
     },
     {
-      "rule": "S3",
-      "file": "core/site/gallery/preview.js",
-      "fingerprint": "b9c628dfc77031ec"
-    },
-    {
-      "rule": "S3",
-      "file": "core/site/gallery/preview.js",
-      "fingerprint": "6f2931bf82fbc961"
-    },
-    {
-      "rule": "S3",
-      "file": "core/site/gallery/preview.js",
-      "fingerprint": "b9c628dfc77031ec"
-    },
-    {
-      "rule": "S3",
-      "file": "core/site/gallery/preview.js",
-      "fingerprint": "6f2931bf82fbc961"
-    },
-    {
-      "rule": "S5",
-      "file": "core/site/gallery/preview.js",
-      "fingerprint": "60bbff63d0c16309"
-    },
-    {
       "rule": "S7",
       "file": "core/site/gallery/preview.js",
       "fingerprint": "1994bf40d7b77d6e"
-    },
-    {
-      "rule": "S7",
-      "file": "core/site/gallery/preview.js",
-      "fingerprint": "40466c9aed1de3cf"
     },
     {
       "rule": "S7",

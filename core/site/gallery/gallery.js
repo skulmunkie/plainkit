@@ -21,6 +21,7 @@ import { currentTheme, setTheme } from '../../js/theme.js';
 
 import { applyDynamic } from '../../js/dynamic.js';
 import { initPlainkit } from '../../js/plainkit.js';
+import { fillSanitizedHtml } from '../../js/sanitized-html.js';
 import { renderElement } from './elements-view.js';
 import { createElementInspector, sectionFromData } from '../../js/element-inspector.js';
 import { normalizeSections, sectionsFor } from '../../js/gallery-sections.js';
@@ -277,13 +278,15 @@ function view() {
     full = fullPage();
     if (full) { releaseFrames(); return fullView(full); }
     const { section: sec, a, b } = route();
-    const out = document.createElement('pk-stack'); out.className = 'gx-page';
+    // The page column: a pk-container (centred, capped), the views' content in a pk-stack inside it.
+    const out = document.createElement('pk-container'); out.setAttribute('size', 'lg'); out.setAttribute('padding', 'none');
+    const stack = document.createElement('pk-stack'); out.append(stack);
     watchFrames();
-    const put = html => { out.innerHTML = html; applyDynamic(out); return out; };
+    const put = html => { fillSanitizedHtml(stack, html); applyDynamic(out); return out; };
     if (collection()) {
         const shown = filterLeaves(leaves(tree()), opts.filter).filter(l => l.section.id === 'elements');
         if (!shown.length) return put(nothing());
-        for (const l of shown) out.append(elementSlot(l.id));
+        for (const l of shown) stack.append(elementSlot(l.id));
         return out;
     }
     // An overview the mount's scope or filter leaves empty says so instead of listing what the embedder cut.
@@ -294,8 +297,8 @@ function view() {
     }
     if (sec === 'overview') return put(overviewHtml());
     if (sec === 'elements') {
-        if (ELEMENTS.some(m => m.tag === a)) { out.append(elementSlot(a, true)); return out; }
-        return put(heading('Elements', 'Custom elements with Shadow DOM: declared props, slots, events and parts. Each page below is generated from the element\'s API data, with a live playground.') + scope('elements').groups.map(g => `<section class="gx-el-group"><h2>${esc(g.title)} <pk-text inline tone="muted">${g.items.length}</pk-text></h2>${grid(g.items.map(i => { const m = ELEMENTS.find(x => x.tag === i.id); return cardLink(i.hash, `<${m.tag}>`, m.summary.split('. ')[0].replace(/\.$/, '') + '.'); }).join(''))}</section>`).join(''));
+        if (ELEMENTS.some(m => m.tag === a)) { stack.append(elementSlot(a, true)); return out; }
+        return put(heading('Elements', 'Custom elements with Shadow DOM: declared props, slots, events and parts. Each page below is generated from the element\'s API data, with a live playground.') + scope('elements').groups.map(g => `<pk-stack gap="sm"><pk-heading level="2" variant="h4">${esc(g.title)} <pk-text inline tone="muted">${g.items.length}</pk-text></pk-heading>${grid(g.items.map(i => { const m = ELEMENTS.find(x => x.tag === i.id); return cardLink(i.hash, `<${m.tag}>`, m.summary.split('. ')[0].replace(/\.$/, '') + '.'); }).join(''))}</pk-stack>`).join(''));
     }
     if (sec === 'samples') return samplesView(out, put, a, b);
     return put(notFound('Not found'));
@@ -438,7 +441,7 @@ export async function mountGallery(container, options = {}) {
     if (first) history.replaceState(null, '', first);
     router?.destroy();
     router = mountRouter(null, { routes: [], mode: 'hash', aliases: ALIASES });
-    container.innerHTML = bare ? BARE_HTML : CHROME_HTML;
+    fillSanitizedHtml(container, bare ? BARE_HTML : CHROME_HTML);
     if (!bare) container.classList.add('gx-mount');
     css = { tokens: await text(TOKENS_CSS), utilities: await text(UTILITIES_CSS), spacing: await text(SPACING_CSS), icons: await text(ICONS) };
     if (!bare) buildNav();
