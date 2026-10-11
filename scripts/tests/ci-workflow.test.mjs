@@ -105,3 +105,13 @@ test('the pull request template and CONTRIBUTING.md point at verify.mjs', () => 
     assert.ok(read('CONTRIBUTING.md').includes('node scripts/verify.mjs'));
     assert.ok(read('AGENTS.md').includes('gh run view <run-id> --log-failed'));
 });
+
+test('the UI review jobs restore a content-addressed render cache and pass --cache (#749)', () => {
+    const sweep = read('.github/workflows/ui-review-sweep.yml');
+    for (const [name, text] of [['ci.yml', job('ui-review')], ['ui-review-sweep.yml', sweep]]) {
+        assert.match(text, /uses: actions\/cache@[0-9a-f]{40} # v\d/, `${name} pins actions/cache by SHA`);
+        assert.match(text, /path: review-cache\n/, `${name} caches review-cache`);
+        assert.match(text, /restore-keys:/, `${name} has restore keys`);
+        assert.match(text, /node scripts\/ui-review\.mjs --cache /, `${name} runs ui-review with --cache`);
+    }
+});

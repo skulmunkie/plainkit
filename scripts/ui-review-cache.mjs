@@ -1,7 +1,7 @@
 // The opt-in cache of `node scripts/ui-review.mjs --cache` (issue #749): a unit of work (one element's gallery examples, or one scenario, in one viewport and theme) is
 // rendered once per distinct set of inputs. Its key is a hash of EVERYTHING that can reach the page: the render-wide sources (core/js, tokens, base, layouts, icons, the
 // review harness, the gallery frame, the runner itself), the unit's own files (the element folders it loads, transitively, and their gallery data; for a scenario the file
-// and its static import closure), the viewport, the theme and the browser's version string. A hit restores the PNGs and the findings; a miss renders and stores. Never used in CI.
+// and its static import closure), the viewport, the theme and the browser's version string. A hit restores the PNGs and the findings; a miss renders and stores. Used in CI under actions/cache (#749); a unit with an error is never stored.
 // Rule: hash too much, not too little. What cannot be enumerated (a tag built at run time, a scenario importing modules or samples) widens the unit to every element.
 import { createHash } from 'node:crypto';
 import fs from 'node:fs';
