@@ -44,6 +44,7 @@ export default Base => class extends Base {
         const dlg = this.part('panel');
         if (!this.$w) {
             this.$w = true;
+            for (const n of ['footer', 'actions']) this.watchSlot(n, () => { this.part(n).hidden = !this.slotted(n).length; });
             wireDialog(this, dlg, { backdrop: () => !this.persistent });
             dlg.addEventListener('pointerdown', e => this.down(e));
             dlg.addEventListener('pointermove', e => this.move(e));
