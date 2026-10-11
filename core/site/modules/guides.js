@@ -19,7 +19,7 @@ const search = query => {
 const doc = {
     items: GUIDES.map(({ id, title, summary }) => ({ id, title, summary })), search: true, embedded: true, navLabel: 'Guides', pagerLabel: 'Guide navigation', searchLabel: 'Search guides',
     home: { title: 'Guides', summary: 'Getting started, theming and logging, written from what the repository does today.', cards: true },
-    loadItem: id => { const g = find(id); return g ? { title: g.title, summary: g.summary, html: g.html } : null; },
+    loadItem: (id, ctx) => { const g = find(id); if (!g) { ctx.log.warn(`no guide named "${id}"`, { known: GUIDES.map(x => x.id) }); return null; } return { title: g.title, summary: g.summary, html: g.html }; }, // an unknown guide is a not-found page and a logged warning
     href: (id, anchor) => (id == null ? '/' : `/${id}${anchor ? `?anchor=${encodeURIComponent(anchor)}` : ''}`),
     searchItems: search,
 };

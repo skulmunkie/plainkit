@@ -38,7 +38,7 @@
 //   settings           what the app passed as `settings`, or null.
 //   theme              { name, set(name), toggle(), subscribe(fn) } for data-theme (js/theme.js); subscribe is a tracked MutationObserver, on demand.
 //   route              { path, params, query } now, module-relative; params and query are untrusted text (textContent only).
-//   navigate(path, { replace }) / href(path, params, query)   module-relative router links; navigate returns false without one.
+//   navigate(path, { replace }) / href(path, params, query)   module-relative router links; navigate keeps the path's own ?query; it returns false without a router.
 //   log                createLogger('app:<id>').
 //   on/observe/after   listeners, observers and one-shot timers core removes at that end; each call returns a stop-early fn; called after, they warn and no-op.
 //   tasks              { run(spec) } (js/tasks.js): long work as progress toasts; null without a manager. Ends with this ctx: cancellables cancel, others continue.

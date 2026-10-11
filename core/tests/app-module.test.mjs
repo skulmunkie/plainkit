@@ -483,7 +483,8 @@ test('ctx: route, theme, store, settings, auth, log, page, and module-relative n
     assert.equal(painted, 1); assert.equal(store.listeners(), 1);
     assert.equal(ctx.navigate('/8', { replace: true }), true);
     assert.equal(ctx.navigate('/'), true);
-    assert.deepEqual(navigated, [['/orders/8', { replace: true }], ['/orders', undefined]]);
+    assert.equal(ctx.navigate('/8?anchor=x%20y#frag'), true); // the query is kept (a doc page's heading anchor), the hash is not
+    assert.deepEqual(navigated, [['/orders/8', { replace: true }], ['/orders', undefined], ['/orders/8?anchor=x%20y', undefined]]);
     assert.equal(ctx.href('/7', {}, { a: 1 }), '#/orders/7?{"a":1}');
     assert.equal(ctx.theme.name, 'dark'); ctx.theme.set('light'); assert.equal(doc.documentElement.getAttribute('data-theme'), 'light'); assert.equal(ctx.theme.toggle(), 'dark');
     assert.equal(typeof ctx.page.busy, 'function');
