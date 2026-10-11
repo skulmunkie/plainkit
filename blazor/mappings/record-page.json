@@ -25,6 +25,24 @@
       "doc": "Value templates by field name (the config field name): each replaces the text of that field in view mode (the main list and the sidebar cards). A field without one shows its value. The content is yours, so it reads the record from your own state."
     },
     {
+      "name": "MainBefore",
+      "map": "slot",
+      "slot": "main-before",
+      "type": "RenderFragment?"
+    },
+    {
+      "name": "MainAfter",
+      "map": "slot",
+      "slot": "main-after",
+      "type": "RenderFragment?"
+    },
+    {
+      "name": "SideAfter",
+      "map": "slot",
+      "slot": "side-after",
+      "type": "RenderFragment?"
+    },
+    {
       "name": "Load",
       "callback": "load",
       "type": "Func<string, Task<IReadOnlyDictionary<string, object?>?>>?",
@@ -43,5 +61,5 @@
       "doc": "Saves the form's values, keyed by field name (read text with GetString(), a number with GetDecimal()). Having it shows Edit and Save. Throwing keeps the edits and shows the exception message; returning switches to view mode."
     }
   ],
-  "notes": "New component: App framework step 7 (issue #353). Load(id) and Save(values) are callback properties (business logic), set from script, so the generated component hands the element a .NET reference (PkCallbackSlot) that calls the Load and Save parameters, as PkSettingsPage does for Save (issue #1000). Blazor already has the same page concept as PkRecordForm (a PkForm with a toolbar, error alert and a PkDetailLayout sidebar, with the state kept by the page or PkRecordEditor, and ActionsInHeader for the sticky title bar); PkRecordPage is the config-driven element, PkRecordForm stays the composable Razor template. Fields (field name to a RenderFragment) fills the field-<name> value slots of the view mode (issue 1000); section slots and an edit-mode template stay open on the issue."
+  "notes": "New component: App framework step 7 (issue #353). Load(id) and Save(values) are callback properties (business logic), set from script, so the generated component hands the element a .NET reference (PkCallbackSlot) that calls the Load and Save parameters, as PkSettingsPage does for Save (issue #1000). Blazor already has the same page concept as PkRecordForm (a PkForm with a toolbar, error alert and a PkDetailLayout sidebar, with the state kept by the page or PkRecordEditor, and ActionsInHeader for the sticky title bar); PkRecordPage is the config-driven element, PkRecordForm stays the composable Razor template. Fields (field name to a RenderFragment) fills the field-<name> value slots of the view mode (issue 1000); MainBefore, MainAfter and SideAfter fill the main-before, main-after and side-after slots (PkCard sections around the field list or form and after the sidebar cards, issue 1000); an edit-mode template stays open on the issue."
 }

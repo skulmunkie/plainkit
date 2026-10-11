@@ -29,7 +29,11 @@
       "description": "The form differs from the last loaded or saved values. Read it; the element sets it."
     }
   ],
-  "slots": [],
+  "slots": [
+    { "name": "main-before", "description": "Content placed above the field list or form in the main column (a PkCard section, a banner). Shown in view and edit mode." },
+    { "name": "main-after", "description": "Content placed below the field list or form in the main column (more PkCard sections). Shown in view and edit mode." },
+    { "name": "side-after", "description": "Content placed after the sidebar cards." }
+  ],
   "events": [
     { "name": "pk-action", "detail": "{ key }", "detailProps": { "key": "string" }, "description": "A title-bar action (config.actions entry without an href) was clicked." },
     {
@@ -54,6 +58,8 @@
   "parts": [
     { "name": "header", "description": "The shared title bar: a pk-page-header with the breadcrumb and actions from config. Hidden when config sets none of them." },
     { "name": "layout", "description": "The pk-detail-layout holding the main column and the sidebar." },
+    { "name": "column", "description": "The main column: the main-before slot, main, then the main-after slot." },
+    { "name": "aside", "description": "The sidebar column: side, then the side-after slot." },
     { "name": "main", "description": "The field list or the form." },
     { "name": "side", "description": "The sidebar cards." },
     { "name": "bar", "description": "Wraps the Edit, Cancel and Save buttons." },
@@ -73,6 +79,10 @@
     {
       "title": "Product record (set config, load and save from script: an inline script cannot run under this site's CSP)",
       "html": "<pk-record-page id=\"product\"></pk-record-page>"
+    },
+    {
+      "title": "Sections around the fields (main-before, main-after, side-after)",
+      "html": "<pk-record-page id=\"product-sections\"><pk-card slot=\"main-after\" heading=\"Activity\">Created by the import on 3 March.</pk-card><pk-card slot=\"side-after\" heading=\"Related\">Two open orders.</pk-card></pk-record-page>"
     }
   ],
   "methods": [{ "name": "refresh()", "description": "Loads the record again by config.id through load(id); called when the load callback is set after the page connected (the Blazor wrapper does)." }]
