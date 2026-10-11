@@ -353,6 +353,8 @@ export const layoutCases = [
         // pk-sortable in the page: the window scrolls down near its bottom edge and back up near its top edge.
         host = t.stage(`<pk-sortable label="Rows">${rows(80)}</pk-sortable>`); await t.load(host); await t.settle();
         el = host.firstElementChild; window.scrollTo(0, 0);
+        // The harness stage sits at left:-10000px, and Chrome leaves content wholly off the start edge out of the scrollable overflow, so the page only scrolled when the long results list above it did (#1163). Bring the stage into the page for this part, so the case behaves the same alone and in the full suite.
+        const stageBox = host.parentElement, stageLeft = stageBox.style.left; stageBox.style.left = '0';
         try {
             t.ok(document.scrollingElement.scrollHeight > innerHeight + 300, 'the page is taller than the window');
             h = el.querySelector('pk-sortable-item').part('handle'); hr = h.getBoundingClientRect(); p = drag(h, 32);
@@ -365,7 +367,7 @@ export const layoutCases = [
             p('pointerup', hr.left + 5, 4); await t.settle();
             const y = window.scrollY; await wait(200);
             t.eq(window.scrollY, y, 'after the drop the window stays put');
-        } finally { window.scrollTo(0, 0); }
+        } finally { stageBox.style.left = stageLeft; window.scrollTo(0, 0); }
 
         // pk-kanban inside a scrolling box: the column is taller than the box, so the box scrolls.
         const cards = n => Array.from({ length: n }, (_, i) => `<pk-sortable-item value="c${i}"><pk-card heading="Task ${i + 1}" level="3">Something to do.</pk-card></pk-sortable-item>`).join('');
