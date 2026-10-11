@@ -161,6 +161,12 @@ test('siblings that cross overlap; nesting and out-of-flow boxes do not', () => 
     assert.equal(summarize(auditFacts(facts([a, crossing]))).ok, true, 'a warning alone does not fail');
 });
 
+test('boxes that touch are not overlap: 0.1px of rounding across a wide row is not 96px2 (#1121), 2px is', () => {
+    const row = box({ id: 1, rect: [249.5, 1689.7, 961, 19.3] });
+    assert.deepEqual(rules(facts([row, box({ id: 2, rect: [249.5, 1708.9, 961, 38] })])), []);
+    assert.deepEqual(rules(facts([row, box({ id: 2, rect: [249.5, 1707, 961, 38] })])), ['overlap']);
+});
+
 test('findings seen in several combinations are one line', () => {
     const f = { rule: 'overlap', severity: 'warn', path: 'a', message: 'm', fix: 'x' };
     const g = groupFindings(['dark', 'light'].map(theme => ({ tag: 'pk-x', example: 1, title: 't', viewport: 'phone', theme, findings: [f] })));

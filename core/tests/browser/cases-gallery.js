@@ -282,4 +282,15 @@ export const galleryAppCases = [
             t.ok(d.documentElement.scrollWidth <= width, `no horizontal page scroll at ${width}px`);
         }
     }],
+    ['scorecard module (app, 1280px and 375px): in every section card the badge row ends above the note under it (#1121)', async t => {
+        for (const width of [1280, 375]) {
+            const { d } = await openApp(t, '#/scorecard', width);
+            await until(() => d.querySelector('#pk-main [data-sc-run]'), `the Run button at ${width}px`);
+            const notes = await until(() => { const n = [...d.querySelectorAll('#pk-main pk-card p.muted')].filter(p => p.previousElementSibling?.localName === 'pk-cluster'); return n.some(p => p.textContent.startsWith("Elements per composition")) ? n : null; }, "the section notes", 400).catch(e => { throw new Error(`${e.message}: cards ${d.querySelectorAll("pk-card").length}, muted ${[...d.querySelectorAll("p.muted")].map(p => p.previousElementSibling?.localName + ":" + p.closest("pk-card")?.localName).join()}, hash ${d.location.hash}`); });
+            for (const p of notes) {
+                const above = [...p.previousElementSibling.children].reduce((r, e) => ({ top: Math.min(r.top, e.getBoundingClientRect().top), bottom: Math.max(r.bottom, e.getBoundingClientRect().bottom) }), p.previousElementSibling.getBoundingClientRect()), box = p.getBoundingClientRect();
+                t.ok(above.bottom <= box.top + 0.01, `the badge row (${above.top}-${above.bottom}) ends above the note (${box.top}) in '${p.textContent.slice(0, 30)}' at ${width}px`);
+            }
+        }
+    }],
 ];

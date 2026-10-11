@@ -19,7 +19,12 @@ export function contrastRatio(a, b) {
 /** Lays an [r, g, b, a] colour over an opaque [r, g, b] one. */
 export const over = ([r, g, b, a = 1], [br, bg, bb]) => [r * a + br * (1 - a), g * a + bg * (1 - a), b * a + bb * (1 - a)];
 
-const intersect = (a, b) => Math.max(0, Math.min(a[0] + a[2], b[0] + b[2]) - Math.max(a[0], b[0])) * Math.max(0, Math.min(a[1] + a[3], b[1] + b[3]) - Math.max(a[1], b[1]));
+// review.js rounds x, y, width and height to 0.1 px each, so two boxes that touch can appear to cross by up to 0.2 px (a 961px row 0.1px deep is 96px2, #1121): a crossing under 0.5 px on either axis is rounding, not overlap.
+const ROUNDING = 0.5;
+const intersect = (a, b) => {
+    const w = Math.min(a[0] + a[2], b[0] + b[2]) - Math.max(a[0], b[0]), h = Math.min(a[1] + a[3], b[1] + b[3]) - Math.max(a[1], b[1]);
+    return w > ROUNDING && h > ROUNDING ? w * h : 0;
+};
 const inside = (a, b) => a[0] >= b[0] - 1 && a[1] >= b[1] - 1 && a[0] + a[2] <= b[0] + b[2] + 1 && a[1] + a[3] <= b[1] + b[3] + 1;
 
 // Does a computed `content` value draw something? ("none", "normal" and empty strings do not.)
