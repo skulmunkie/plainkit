@@ -1,6 +1,8 @@
 import { loadElements } from '../../js/loader.js';
+import { mediaBelow } from '../../js/breakpoints.js';
 // Sticky sidebar: measure it so a sidebar taller than the viewport docks by its bottom edge instead of its top (issue 281).
 // Phone tabs (issue 272): elements carrying data-pk-section are grouped into tabs when the layout has collapsed to one column and names two or more sections.
+// tabsFrom (issue 342) moves that point: 'collapse' (default, the container query), 'phone' or 'tablet' (the viewport at or below it), or 'always' (the two-column layout keeps its tabs).
 export default Base => class extends Base {
     connected() {
         const side = this.part('sidebar');
@@ -19,8 +21,8 @@ export default Base => class extends Base {
         this.$mo.observe(this, { childList: true, subtree: true, attributes: true, attributeFilter: ['data-pk-section', 'data-pk-section-label'] });
         this.sync();
     }
-    disconnected() { this.$ro?.disconnect(); this.$mo?.disconnect(); }
-    changed(name) { if (name === 'section' || name === 'nextLabel') this.sync(); }
+    disconnected() { this.$ro?.disconnect(); this.$mo?.disconnect(); this.$mq?.removeEventListener('change', this.$sync); this.$mq = null; }
+    changed(name) { if (name === 'section' || name === 'nextLabel' || name === 'tabsFrom') this.sync(); }
     pick(name) {
         const previous = this.$active;
         if (!name || name === previous) return;
@@ -34,6 +36,9 @@ export default Base => class extends Base {
         const tabs = this.part('tabs'), next = this.part('next');
         const on = names.length > 1;
         tabs.hidden = !on;
+        const from = this.tabsFrom;
+        if (this.$from !== from) { this.$mq?.removeEventListener('change', this.$sync); this.$from = from; this.$mq = from === 'phone' || from === 'tablet' ? mediaBelow(from) : null; this.$sync ??= () => this.sync(); this.$mq?.addEventListener('change', this.$sync); }
+        tabs.toggleAttribute('data-on', on && (from === 'always' || !!this.$mq?.matches));
         const collapsed = on && getComputedStyle(tabs).display !== 'none';
         if (this.section && on && !names.includes(this.section)) this.warnOnce('section:' + this.section, `section="${this.section}" matches no data-pk-section: showing the first`, { section: this.section, sections: names });
         const active = this.$active = names.includes(this.section) ? this.section : names[0];

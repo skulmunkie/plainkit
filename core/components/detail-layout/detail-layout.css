@@ -7,10 +7,11 @@
    one-card-per-slot="sidebar" pattern. */
 [part="sidebar"] ::slotted(*) { display: grid; gap: var(--space-6); }
 [part="tabs"] { display: none; }
+[part="tabs"][data-on]:not([hidden]) { display: block; position: sticky; top: 0; background: var(--color-bg); }
 [part="next"] { display: none; margin-top: var(--space-4); }
+[part="next"]:not([hidden]) { display: inline-block; }
 @container (max-width: 48rem) {
-    [part="tabs"]:not([hidden]) { display: block; position: sticky; top: 0; background: var(--color-bg); }
-    [part="next"]:not([hidden]) { display: inline-block; }
+    :host(:not([tabs-from])) [part="tabs"]:not([hidden]), :host([tabs-from="collapse"]) [part="tabs"]:not([hidden]) { display: block; position: sticky; top: 0; background: var(--color-bg); }
     [part="grid"] { grid-template-columns: 1fr; }
     [part="sidebar"] { position: static; }
     :host([sidebar-first]) [part="sidebar"] { order: -1; }

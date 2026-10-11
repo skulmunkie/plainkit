@@ -16,6 +16,11 @@
       "prop": "section"
     },
     {
+      "name": "TabsFrom",
+      "prop": "tabsFrom",
+      "type": "string"
+    },
+    {
       "name": "NextLabel",
       "prop": "nextLabel"
     },

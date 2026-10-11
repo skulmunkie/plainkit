@@ -225,6 +225,21 @@ export const layoutCases = [
         size(el, rem(60)); await settle(); t.ok(shown(a) && shown(b) && shown(c) && !b.hasAttribute('data-pk-section-hidden'), 'widening shows everything again');
     }],
 
+    ['detail-layout: tabs-from=always shows the strip and one section at a time in the two-column layout; tabs-from=phone shows every section on a wide viewport (#342)', async t => {
+        const el = await t.mount('<pk-detail-layout tabs-from="always"><pk-card id="a" heading="A" data-pk-section="details">a</pk-card><pk-card id="b" heading="B" data-pk-section="pricing">b</pk-card><div slot="sidebar"><pk-card id="c" heading="C" data-pk-section="pricing">c</pk-card></div></pk-detail-layout>');
+        const shown = id => getComputedStyle(el.querySelector('#' + id)).display !== 'none';
+        const settle = async () => { await t.settle(); await new Promise(r => requestAnimationFrame(() => setTimeout(r, 50))); };
+        size(el, rem(60)); await settle();
+        t.ok(getComputedStyle(el.part('tabs')).display !== 'none', 'wide: the strip shows');
+        t.ok(shown('a') && !shown('b') && !shown('c'), 'wide: only the first section shows');
+        t.ok(el.part('sidebar').getBoundingClientRect().left >= el.part('main').getBoundingClientRect().right, 'wide: the two-column layout is kept');
+        t.ok(getComputedStyle(el.part('next')).display !== 'none', 'wide: Next moves on');
+        el.part('next').click(); await settle();
+        t.ok(!shown('a') && shown('b') && shown('c'), 'Next selects the pricing section, sidebar card included');
+        el.tabsFrom = 'phone'; await settle();
+        t.ok(shown('a') && shown('b') && shown('c') && getComputedStyle(el.part('tabs')).display === 'none', 'tabs-from=phone: a wide viewport shows every section and no strip');
+    }],
+
     ['detail-layout: sidebarFirst reorders the sidebar before the main content once collapsed; sidebarTwoUp lays its own cards two per row', async t => {
         const el = await t.mount('<pk-detail-layout sidebar-first sidebar-two-up><p>Main</p><div slot="sidebar"><p>A</p><p>B</p></div></pk-detail-layout>');
         size(el, rem(30)); await t.settle();
