@@ -201,6 +201,10 @@ A consumer's theme and breakpoint widths are two independent choices, both made 
 
 Several always-visible per-row or per-card icon buttons competing for space is the signal: wrap the region in one `pk-context-menu` (opens on right-click, Shift+F10 or a touch long-press) instead of a button row. Its `pk-open` detail names what was targeted (`context`, the nearest ancestor's `data-pk-context`; `pk-table` sets one per row already), so the handler rebuilds the `menu` slot before it paints: `references/elements-overlays.md`.
 
+### Use the npm package with a bundler
+
+Import by the package's `exports` map, not by filesystem path: `import "plainkit"` (init, loader), `import "plainkit/elements/button"` (registers `pk-button`; bundlers keep it because `sideEffects` names the element modules), `import "plainkit/css"` (`plainkit.min.css`), `plainkit/app`, `plainkit/skills/*`. `plainkit/dist/*` still works for one release; move off it.
+
 ### Check your work
 
 {{conformanceChecklist}}
