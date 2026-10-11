@@ -30,7 +30,7 @@ export default {
         // The sidebar is about 1800px tall in a 900px window: it starts to dock once its bottom edge would come into view, well past the first screen.
         { scroll: BODY, to: 1300, on: ['desktop'] }, { shot: 'docked', on: ['desktop'] },
         { scroll: BODY, to: 100000, on: ['desktop'] }, { shot: 'end', on: ['desktop'] },
-        { click: '#dl >>> pk-tab:nth-of-type(2)', on: ['phone'] }, { wait: 300, on: ['phone'] }, { shot: 'second-tab', on: ['phone'] },
+        { click: '#dl >>> pk-tab:nth-of-type(2)', on: ['phone'] }, { shot: 'second-tab', on: ['phone'] },
     ],
     expect(t) {
         const desktop = t.viewport.name === 'desktop';

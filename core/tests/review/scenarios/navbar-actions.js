@@ -22,7 +22,7 @@ export default {
 <main><h1>Page</h1><pk-card heading="Content">The bar above is one row at every width.</pk-card></main>
 <span slot="footer">Footer</span>
 </pk-app-shell>`,
-    steps: WIDTHS.flatMap(w => [{ resize: w }, { wait: 500 }, { shot: `w${w}` }]),
+    steps: WIDTHS.flatMap(w => [{ resize: w }, { shot: `w${w}` }]),
     expect(t) {
         const w = window.innerWidth;
         t.ok(t.shot === `w${w}`, `the viewport is ${w}px wide, the shot is ${t.shot}`);

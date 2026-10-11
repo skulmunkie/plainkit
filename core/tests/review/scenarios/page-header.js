@@ -38,10 +38,10 @@ export default {
 </pk-app-shell>`,
     steps: [
         { shot: 'record' }, { shot: 'strip-data' },
-        { click: TRIGGER }, { wait: 300 }, { shot: 'popover-open' },
-        { key: 'Escape' }, { wait: 200 },
+        { click: TRIGGER }, { shot: 'popover-open' },
+        { key: 'Escape' }, 
         { focus: CLOSE }, { shot: 'tab-close-focus' },
-        { scroll: BODY, to: 800 }, { wait: 200 }, { shot: 'scrolled' },
+        { scroll: BODY, to: 800 }, { shot: 'scrolled' },
     ],
     expect(t) {
         const phone = t.viewport.name === 'phone';

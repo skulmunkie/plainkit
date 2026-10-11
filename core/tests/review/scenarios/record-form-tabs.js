@@ -14,7 +14,7 @@ export default {
     setup(frame) { frame.querySelector('#form').addEventListener('submit', e => e.preventDefault()); },
     steps: [
         { wait: 700 }, { shot: 'resting' },
-        { click: '#rf >>> pk-tab[value=pricing]', on: ['phone'] }, { wait: 400 }, { shot: 'pricing', on: ['phone'] },
+        { click: '#rf >>> pk-tab[value=pricing]', on: ['phone'] }, { shot: 'pricing', on: ['phone'] },
     ],
     expect(t) {
         const phone = t.viewport.name === 'phone';

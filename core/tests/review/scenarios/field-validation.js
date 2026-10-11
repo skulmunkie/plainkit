@@ -19,8 +19,8 @@ export default {
     steps: [
         { shot: 'rest' },
         { focus: '#i1 >>> input' }, { shot: 'error-focus' },
-        { focus: '#i3 >>> input' }, { type: ' collection for 2026' }, { wait: 200 }, { shot: 'counter-over' },
-        { set: '#f6', attr: 'error', value: 'A barcode has no spaces.' }, { wait: 300 }, { shot: 'error-added' },
+        { focus: '#i3 >>> input' }, { type: ' collection for 2026' }, { shot: 'counter-over' },
+        { set: '#f6', attr: 'error', value: 'A barcode has no spaces.' }, { shot: 'error-added' },
     ],
     expect(t) {
         t.ok(t.metric('html', 'scrollWidth') <= t.metric('html', 'clientWidth') + 1, 'the page scrolls sideways (a long label or message runs out of the form)');

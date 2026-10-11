@@ -10,7 +10,7 @@ export default {
         Object.assign(el, { columns: [{ key: 'po', label: 'PO' }], caption: 'Orders', filters: [{ key: 'status', type: 'multiselect', label: 'Status', options: ['Open', 'Paid', 'Void', 'Refunded'] }] });
         el.load = () => ({ rows: [{ po: 'PO 1042' }], total: 1 });
     },
-    steps: [{ wait: 300 }, { click: '#dt >>> [part=filters] >>> [part=trigger]' }, { wait: 200 }, { click: `${BOX}:nth-of-type(1)` }, { click: `${BOX}:nth-of-type(3)` }, { wait: 300 }, { shot: 'two-ticked' }],
+    steps: [{ click: '#dt >>> [part=filters] >>> [part=trigger]' }, { click: `${BOX}:nth-of-type(1)` }, { click: `${BOX}:nth-of-type(3)` }, { shot: 'two-ticked' }],
     expect(t) {
         t.visible(BOX, 'the checklist');
     },

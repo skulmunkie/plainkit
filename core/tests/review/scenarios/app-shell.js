@@ -51,8 +51,8 @@ export default {
         { click: 'pk-dropdown[slot=actions] pk-button' }, { shot: 'settings-menu' },
         { key: 'Escape' }, 
         { click: 'pk-button[data-nav-toggle]', on: ['phone'] }, 
-        { click: '#pk-nav > pk-nav-item:first-child', on: ['phone'] }, { wait: 300, on: ['phone'] }, { click: 'pk-nav-item[data-module=overview]', on: ['phone'] },
-        { click: 'pk-navbar pk-dropdown:not([slot=actions]) [slot=trigger]', on: ['desktop'] }, { wait: 300, on: ['desktop'] }, { shot: 'picker-open', on: ['desktop'] }, { click: 'pk-navbar pk-menu-item[data-module=overview]', on: ['desktop'] },
+        { click: '#pk-nav > pk-nav-item:first-child', on: ['phone'] }, { click: 'pk-nav-item[data-module=overview]', on: ['phone'] },
+        { click: 'pk-navbar pk-dropdown:not([slot=actions]) [slot=trigger]', on: ['desktop'] }, { shot: 'picker-open', on: ['desktop'] }, { click: 'pk-navbar pk-menu-item[data-module=overview]', on: ['desktop'] },
         { shot: 'module-chosen' },
     ],
     expect(t) {

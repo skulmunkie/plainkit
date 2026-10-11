@@ -15,7 +15,7 @@ export default {
             mountPage(at('c'), { type: 'tool', config: { heading: 'Tax calculator', input: [{ key: 'amount', type: 'number', label: 'Amount' }], runLabel: 'Add tax' } }),
         ];
     },
-    steps: [{ wait: 'settle' }, { wait: 300 }, { shot: 'pages' }],
+    steps: [{ wait: 'settle' }, { shot: 'pages' }],
     expect(t) {
         for (const id of ['a', 'b', 'c']) {
             const titles = document.querySelectorAll(`#${id} pk-heading[level="1"]`);

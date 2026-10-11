@@ -20,8 +20,8 @@ export default {
         frame.querySelector('#fail').addEventListener('click', () => { failing = true; el.config = { ...el.config }; });
     },
     steps: [
-        { wait: 400 }, { shot: 'panes' },
-        { click: '#fail' }, { wait: 400 }, { shot: 'error' },
+        { shot: 'panes' },
+        { click: '#fail' }, { shot: 'error' },
     ],
     expect(t) {
         t.inViewport(WS);

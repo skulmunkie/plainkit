@@ -16,9 +16,9 @@ export default {
 </pk-table></div>`,
     steps: [
         { shot: 'rest' },
-        { click: '#t >>> [data-select-all]' }, { wait: 200 }, { shot: 'page' },
+        { click: '#t >>> [data-select-all]' }, { shot: 'page' },
         { focus: BTN }, { shot: 'page-focus' },
-        { click: BTN }, { wait: 200 }, { shot: 'all' },
+        { click: BTN }, { shot: 'all' },
         { focus: BTN }, { shot: 'all-focus' },
     ],
     expect(t) {

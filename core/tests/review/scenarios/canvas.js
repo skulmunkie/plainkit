@@ -15,10 +15,10 @@ export default {
     steps: [
         { shot: 'resting' },
         { focus: F }, { shot: 'focus' },
-        { click: IN }, { click: IN }, { wait: 200 }, { shot: 'zoomed-in' },
-        { focus: F }, { key: 'ArrowRight', times: 2 }, { key: 'ArrowDown' }, { wait: 200 }, { shot: 'panned' },
-        { click: OUT }, { wait: 200 }, { shot: 'zoomed-out' },
-        { click: RESET }, { wait: 200 }, { shot: 'reset' },
+        { click: IN }, { click: IN }, { shot: 'zoomed-in' },
+        { focus: F }, { key: 'ArrowRight', times: 2 }, { key: 'ArrowDown' }, { shot: 'panned' },
+        { click: OUT }, { shot: 'zoomed-out' },
+        { click: RESET }, { shot: 'reset' },
     ],
     expect(t) {
         t.visible(F, 'the surface'); t.visible(TB, 'the toolbar');

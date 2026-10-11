@@ -14,12 +14,12 @@ export default {
 </pk-stack></div>`,
     steps: [
         { shot: 'closed' },
-        { click: '#c1 >>> [part=control]' }, { wait: 300 }, { shot: 'open-list' },
-        { key: 'ArrowDown', times: 3 }, { wait: 200 }, { shot: 'active' },
-        { key: 'End' }, { key: 'ArrowDown', times: 12 }, { wait: 300 }, { shot: 'scrolled' },
-        { type: 'zzz' }, { wait: 300 }, { shot: 'empty' },
-        { key: 'Escape' }, { wait: 200 },
-        { click: '#c2 >>> [part=trigger]' }, { wait: 300 }, { shot: 'select-open' },
+        { click: '#c1 >>> [part=control]' }, { shot: 'open-list' },
+        { key: 'ArrowDown', times: 3 }, { shot: 'active' },
+        { key: 'End' }, { key: 'ArrowDown', times: 12 }, { shot: 'scrolled' },
+        { type: 'zzz' }, { shot: 'empty' },
+        { key: 'Escape' }, 
+        { click: '#c2 >>> [part=trigger]' }, { shot: 'select-open' },
     ],
     expect(t) {
         const one = ['open-list', 'active', 'scrolled', 'empty'].includes(t.shot);

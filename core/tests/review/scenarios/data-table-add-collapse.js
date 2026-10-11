@@ -10,7 +10,7 @@ export default {
         Object.assign(el, { columns: [{ key: 'po', label: 'PO' }], caption: 'Orders', addLabel: 'Add order' });
         el.load = () => ({ rows: [{ po: 'PO 1042' }], total: 1 });
     },
-    steps: [{ wait: 200 }, { shot: 'rest' }],
+    steps: [{ shot: 'rest' }],
     expect(t) {
         t.visible(ADD, 'the add button');
         const r = t.rect(ADD);

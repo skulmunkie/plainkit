@@ -33,7 +33,7 @@ export default {
         { shot: 'rest' },
         { set: '#board', prop: 'demoDrag', value: true }, { shot: 'dragging' },
         { set: '#board', prop: 'demoDrag', value: false },
-        { focus: '#todo pk-sortable-item' }, { key: 'Alt+ArrowRight' }, { wait: 100 },
+        { focus: '#todo pk-sortable-item' }, { key: 'Alt+ArrowRight' }, 
         { shot: 'moved' },
         { scroll: '#long >>> [part=list]', to: 600 }, { shot: 'scrolled' },
     ],

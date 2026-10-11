@@ -27,14 +27,14 @@ export default {
     },
     steps: [
         { shot: 'closed' },
-        { click: L }, { wait: 500 }, { shot: 'open-medium' },
-        { click: '#dock >>> pk-button[value=small]' }, { wait: 300 }, { shot: 'open-small' },
-        { click: '#dock >>> pk-button[value=large]' }, { wait: 300 }, { shot: 'open-large' },
-        { click: '#dock pk-tab[value=logs]' }, { wait: 300 }, { shot: 'second-tab' },
-        { click: '#dock pk-tab[value=console]' }, { wait: 200 },
-        { scroll: B, to: 9000 }, { wait: 200 }, { shot: 'scrolled-end' },
-        { click: '#dock >>> [part=close]' }, { wait: 300 }, { shot: 'closed-by-close' },
-        { click: L }, { wait: 400 }, { key: 'Escape' }, { wait: 300 }, { shot: 'closed-by-escape' },
+        { click: L }, { shot: 'open-medium' },
+        { click: '#dock >>> pk-button[value=small]' }, { shot: 'open-small' },
+        { click: '#dock >>> pk-button[value=large]' }, { shot: 'open-large' },
+        { click: '#dock pk-tab[value=logs]' }, { shot: 'second-tab' },
+        { click: '#dock pk-tab[value=console]' }, 
+        { scroll: B, to: 9000 }, { shot: 'scrolled-end' },
+        { click: '#dock >>> [part=close]' }, { shot: 'closed-by-close' },
+        { click: L }, { key: 'Escape' }, { shot: 'closed-by-escape' },
     ],
     expect(t) {
         const v = t.viewport;

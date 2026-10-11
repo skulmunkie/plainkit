@@ -33,9 +33,9 @@ export default {
         };
     },
     steps: [
-        { wait: 500 }, { shot: 'overview' },
-        { click: `${CARD('broken')} pk-button` }, { wait: 400 }, { shot: 'retried' },
-        { click: `${DP} >>> pk-tab[value=sales]` }, { wait: 500 }, { shot: 'sales' },
+        { shot: 'overview' },
+        { click: `${CARD('broken')} pk-button` }, { shot: 'retried' },
+        { click: `${DP} >>> pk-tab[value=sales]` }, { shot: 'sales' },
     ],
     expect(t) {
         // The page grows taller than a phone screen (stacked widgets), so only the top of it must be on screen; every card stays inside the page's width.

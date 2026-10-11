@@ -36,7 +36,7 @@ export default {
         { click: ROWS('single') + ':nth-child(2)' }, { wait: 'settle' }, { shot: 'picked' },
         { click: CTL('multi') }, { wait: 'settle' }, { shot: 'multi-open' },
         { key: 'Escape' },
-        { click: CTL('loading') }, { wait: 300 }, { shot: 'loading' },
+        { click: CTL('loading') }, { shot: 'loading' },
         { key: 'Escape' },
         { click: CTL('fail') }, { wait: 'settle' }, { shot: 'error' },
         { key: 'Escape' },

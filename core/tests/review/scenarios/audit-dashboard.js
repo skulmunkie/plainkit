@@ -23,9 +23,9 @@ export default {
         await mountAuditDashboard(el, { baselineUrl: FIXTURE, height: 'fill' });
     },
     steps: [
-        { wait: 'settle' }, { wait: 500 },
+        { wait: 'settle' }, 
         { shot: 'rest' },
-        { click: '#mount pk-table >>> tbody tr:first-child', on: ['desktop'] }, { wait: 150, on: ['desktop'] },
+        { click: '#mount pk-table >>> tbody tr:first-child', on: ['desktop'] }, 
         { shot: 'selected', on: ['desktop'] },
     ],
     expect(t) {

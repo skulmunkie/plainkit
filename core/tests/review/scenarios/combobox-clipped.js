@@ -13,9 +13,9 @@ export default {
 <pk-combobox id="k2" mode="select" label="Channel" placeholder="Choose"><option value="web">Web</option><option value="market">Market</option><option value="live">Live</option><option value="other">Other</option></pk-combobox>
 </pk-stack></form></pk-card></div>`,
     steps: [
-        { click: '#k1 >>> [part=control]' }, { wait: 300 }, { shot: 'autocomplete-open' },
-        { key: 'Escape' }, { wait: 200 },
-        { click: '#k2 >>> [part=trigger]' }, { wait: 300 }, { shot: 'select-open' },
+        { click: '#k1 >>> [part=control]' }, { shot: 'autocomplete-open' },
+        { key: 'Escape' }, 
+        { click: '#k2 >>> [part=trigger]' }, { shot: 'select-open' },
     ],
     expect(t) {
         const id = t.shot === 'autocomplete-open' ? 'k1' : 'k2';

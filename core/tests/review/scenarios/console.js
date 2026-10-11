@@ -17,7 +17,7 @@ export default {
         api.log('error', 'Something failed');
     },
     steps: [
-        { wait: 500 }, { shot: 'console' },
+        { shot: 'console' },
     ],
     expect(t) {
         t.ok(t.metric('html', 'scrollWidth') <= t.metric('html', 'clientWidth') + 1, 'the page scrolls sideways');
