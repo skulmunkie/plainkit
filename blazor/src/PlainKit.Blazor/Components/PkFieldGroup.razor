@@ -6,7 +6,7 @@
 
 @* Hand-written (mapping "existing"): a typed wrapper over pk-field-group, which owns the controls, the conditional rendering, the form value, the validation and pk-form's summary (#222, #226).
    It only turns PkFieldSpec<TItem> items and a model into the element's fields and values, and the element's pk-field-change back into each spec's Set. The funcs of a spec (When, Disabled,
-   ReadOnly, HelpWhen, OptionsSource) are read on every render and sent as data; a field whose When is false is not sent at all. LabelAction is slotted for its field; Search is the element's
+   ReadOnly, HelpWhen, LabelWhen, OptionsSource) are read on every render and sent as data; a field whose When is false is not sent at all. LabelAction is slotted for its field; Search is the element's
    search callback. *@
 <pk-field-group fields="@PkAttr.Json(Defs())"
                 values="@Values()"
@@ -41,10 +41,10 @@
         // PkSelect and PkCheckbox have no read-only state, so there it disables the control.
         var text = f.Kind is not (PkFieldKind.Select or PkFieldKind.Checkbox or PkFieldKind.Combobox);
         var readOnly = f.ReadOnly?.Invoke(Model) ?? false;
-        var help = f.HelpWhen?.Invoke(Model);
+        string? Pick(Func<TItem, string?>? when, string? fallback) => when?.Invoke(Model) is { Length: > 0 } s ? s : fallback;
         return new PkFieldDef
         {
-            Key = f.Key, Label = f.Label, Kind = f.Kind.ToString().ToLowerInvariant(), Hint = f.Hint, Help = string.IsNullOrEmpty(help) ? f.Help : help, Required = f.Required,
+            Key = f.Key, Label = Pick(f.LabelWhen, f.Label)!, Kind = f.Kind.ToString().ToLowerInvariant(), Hint = f.Hint, Help = Pick(f.HelpWhen, f.Help), Required = f.Required,
             Disabled = (f.Disabled?.Invoke(Model) ?? false) || (readOnly && !text), Readonly = readOnly && text, HideLabel = f.HideLabel, Span = f.Span, Placeholder = f.Placeholder,
             Min = f.Min, Max = f.Max, Step = f.Step, MaxLength = f.MaxLength, Pattern = f.Pattern, Rows = f.Rows, Options = f.OptionsSource?.Invoke() ?? f.Options, Free = f.Free,
         };
