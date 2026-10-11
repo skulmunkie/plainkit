@@ -23,7 +23,7 @@ Only things that exist today are listed. A dash means there is no ready-made pie
 
 | Page type or job | Start from | In an app (SDK) | In Blazor |
 |---|---|---|---|
-| Whole app frame: side nav, header, body | Template `overlays-nav` for the composition; element `pk-app-shell` with `pk-side-nav` or `pk-navbar` | `mountApp` with modules (see [Build an app](build-an-app.md)) | `PkAppShell`, `PkSideNav` |
+| Whole app frame: side nav, header, body | Template `app` (a runnable app); template `overlays-nav` for the composition; element `pk-app-shell` with `pk-side-nav` or `pk-navbar` | `mountApp` with modules (see [Build an app](build-an-app.md)) | `PkAppShell`, `PkSideNav` |
 | A plain content page: breadcrumbs, title, actions, content, footer | Template `page`; element `pk-page-header` | `mountPage` with `custom`, or `doc` for long-form text | `PkPageHeader`, or `PageBase` for its state |
 | Static informational page: a heading and a block of prose, no data | Template `page`; elements `pk-heading`, `pk-card` | Page type `note` | `PkNotePage` |
 | List page (search, table, rows open a record) | Template `routed-pair`; layout `list`; element `pk-data-table` | Page type `list` | `PkTable`, or `PkDataTable` when the server pages, searches and sorts |

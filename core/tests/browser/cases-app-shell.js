@@ -406,6 +406,24 @@ export const appShellCases = [
         t.eq(d.activeElement, h1(), 'focus is on the list heading again'); await until(() => bodyRows().length > 1, 'the list rows again');
         t.ok([...bodyRows()].some(r => r.textContent.includes('Renamed thing')), 'the saved name shows in the list');
     }],
+    // #354, #363: the app shell template. The overview is a dashboard; the inbox is a master-detail route whose deep link opens a message beside the list (wide) and fits 1280 and 375.
+    ['app template (#354, #363): the overview dashboard renders, an inbox deep link shows the list and the open message, and neither overflows at 1280 or 375', async t => {
+        const host = t.stage('');
+        for (const width of [1280, 375]) {
+            const f = document.createElement('iframe');
+            f.title = 'app template'; f.style.cssText = `width:${width}px;height:800px;border:0;display:block`;
+            f.src = new URL('../../samples/templates/app/app.html#/overview', import.meta.url).href;
+            await new Promise(resolve => { f.addEventListener('load', resolve, { once: true }); host.append(f); });
+            const win = f.contentWindow, d = win.document;
+            const deep = (root, sel) => { const hit = root.querySelector?.(sel); if (hit) return hit; for (const el of root.querySelectorAll?.('*') ?? []) if (el.shadowRoot) { const h = deep(el.shadowRoot, sel); if (h) return h; } return null; };
+            await until(() => deep(d, 'pk-dashboard-page'), 'the overview dashboard'); await wait(200);
+            t.ok(d.documentElement.scrollWidth <= width, `the overview fits ${width}px`);
+            win.location.hash = '#/inbox/3';
+            const page = await until(() => deep(d, 'pk-master-detail-page'), 'the master-detail page'); await until(() => page.part('record')?.textContent.includes('Message 3'), 'the open message'); await wait(200);
+            t.ok(d.documentElement.scrollWidth <= width, `the inbox fits ${width}px`);
+            f.remove();
+        }
+    }],
     // #872: the record page asks before an in-app leave with unsaved edits. A link and back are asked; Stay keeps the edits, the address and the page; Leave goes; Save then navigating is not asked.
     ['routed-pair template (#872): unsaved edits ask before an in-app link or back; Stay keeps the edits and the address, Leave goes, Save does not ask', async t => {
         const host = t.stage(''), f = document.createElement('iframe');

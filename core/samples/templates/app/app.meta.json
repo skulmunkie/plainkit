@@ -1,0 +1,9 @@
+{
+  "id": "app",
+  "title": "App shell",
+  "summary": "A whole app from one config: mountApp builds the chrome and each module supplies routes of built-in page types: an overview (dashboard) and an inbox (master-detail).",
+  "slots": "brand, modules (nav, routes), dashboard widgets, master-detail list and detail callback",
+  "notes": "Start here for an app with several areas: `mountApp(el, { brand, modules })`, each module a `defineModule({ id, title, nav, routes })`, each route a page type with its config. `master-detail` shows a list and the open record on one route; it is not the default for a list and its record (two routes, `routed-pair`). `rowHref` and `listHref` only navigate; `mountDetail(pane, id, ctx)` returns a handle with `destroy()`.",
+  "used": [],
+  "order": 2
+}
