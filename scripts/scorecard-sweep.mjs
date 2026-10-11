@@ -313,11 +313,11 @@ async function pagesStage(cdp, port, widths, deadline) {
     // the theme editor) are loaded once each too, undecorated, so a CLS regression in core/site/shell.js or a page's own late content shows up
     // here instead of only in the ad hoc node scripts/bench/pages.mjs run (#135).
     const shellPages = [
-        { label: 'gallery', url: `http://localhost:${port}/site/gallery/index.html?theme=dark` },
+        { label: 'gallery', url: `http://localhost:${port}/app.html?theme=dark#/gallery` },
         { label: 'scorecard', url: `http://localhost:${port}/app.html#/scorecard` },
         { label: 'theme editor', url: `http://localhost:${port}/app.html?theme=dark#/theme` },
     ];
-    const urls = [...shellPages, ...routes.map(r => ({ label: `gallery ${r}`, url: `http://localhost:${port}/site/gallery/index.html?theme=dark${r}` }))];
+    const urls = [...shellPages, ...routes.map(r => ({ label: `gallery ${r}`, url: `http://localhost:${port}/app.html?theme=dark#/gallery${r.slice(1)}` }))];
     let n = 0;
     for (const width of widths) {
         await cdp.send('Emulation.setDeviceMetricsOverride', { width, height: width <= 640 ? 812 : 900, deviceScaleFactor: 1, mobile: false });
