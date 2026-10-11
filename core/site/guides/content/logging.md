@@ -23,7 +23,7 @@ A scope says where an entry came from: `loader`, `invokers`, the tag name for an
 
 ## Turn it up
 
-You do not need to change any code. Add `?pk-log=debug` to the page address, or put `data-pk-log="debug"` on `<html>`. From the browser console, `PkLog.setLogLevel('debug')` does it for the current page. To keep a setting, use the [Settings](../settings/index.html) page or `configureLogging(settings, { persist: true })`, which survive a reload.
+You do not need to change any code. Add `?pk-log=debug` to the page address, or put `data-pk-log="debug"` on `<html>`. From the browser console, `PkLog.setLogLevel('debug')` does it for the current page. To keep a setting, use the [Settings](../../app.html#/settings) page or `configureLogging(settings, { persist: true })`, which survive a reload.
 
 In code, set the global level, a level for one scope, and where each level goes:
 
@@ -80,7 +80,7 @@ The SDK itself makes no request to another origin, so anything you send is your 
 
 ## See the log
 
-The [Dev tools](../devtools/index.html) page has a Logs tab, and the same viewer is a module you can put in your own page:
+The [Dev tools](../../app.html#/devtools) page has a Logs tab, and the same viewer is a module you can put in your own page:
 
 ```js
 import { mountLogs } from './plainkit/modules/logs/logs.js';
