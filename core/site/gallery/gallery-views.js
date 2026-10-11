@@ -43,7 +43,12 @@ export const grid = html => `<pk-grid class="gx-tiles" min="14rem">${html}</pk-g
 export const notFound = (title, lead, back) => `<pk-empty-state heading="${esc(title)}"${lead ? ` description="${esc(lead)}"` : ''}>${back ? `<a slot="actions" href="${back[1]}">${esc(back[0])}</a>` : ''}</pk-empty-state>`;
 export const nothing = () => '<pk-empty-state tone="compact" heading="Nothing in the gallery matches."></pk-empty-state>';
 // A data table: the raw table goes inside pk-table (frame, scrolling), each cell labelled so a phone can lay a row out as a card (gallery.css).
-export const dataTable = (label, cols, rows, numeric = []) => `<pk-table label="${esc(label)}"><table class="gx-table"><thead><tr>${cols.map((c, i) => `<th${numeric.includes(i) ? ' class="num"' : ''}>${c}</th>`).join('')}</tr></thead><tbody>${rows.map(r => `<tr>${r.map((c, i) => `<td${numeric.includes(i) ? ' class="num"' : ''} data-label="${esc(String(cols[i]).replace(/<[^>]*>/g, ''))}">${c}</td>`).join('')}</tr>`).join('')}</tbody></table></pk-table>`;
+export const dataTable = (label, cols, rows, numeric = []) => {
+    const plain = c => String(c).replace(/<[^>]*>/g, '');
+    const columns = cols.map((c, i) => ({ key: `c${i}`, label: plain(c), ...(numeric.includes(i) ? { align: 'end' } : {}) }));
+    const data = rows.map((r, n) => ({ id: n, ...Object.fromEntries(r.map((_, i) => [`c${i}`, ''])) }));
+    return `<pk-table label="${esc(label)}" cards columns="${esc(JSON.stringify(columns))}" rows="${esc(JSON.stringify(data))}">${rows.map((r, n) => r.map((c, i) => `<span slot="cell-${n}-c${i}">${c}</span>`).join('')).join('')}</pk-table>`;
+};
 export const codeBlock = (code, label = '') => `<pk-code-block${label ? ` label="${esc(label)}"` : ''} wrap>${esc(code)}</pk-code-block>`;
 
 function probe(theme) {
