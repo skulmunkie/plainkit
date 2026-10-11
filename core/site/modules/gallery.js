@@ -1,15 +1,21 @@
-// The Gallery as a module of the site app (#355, step 4 of the one-app plan): the nav is the gallery's tree at section level, and ONE route ('*', kept alive) mounts the
-// existing gallery code unchanged inside the app body. The gallery follows #/gallery/<its own address> (router base '/gallery'); the app owns the bar, the theme, the title and the
-// side nav, so the gallery's own nav column is hidden here (gallery.css, [data-gx-app]). 130 elements are too many for the app nav (it advises 40): the Elements row opens the grouped
-// overview, and the header search finds one element by name.
+// The Gallery as a module of the site app (#355): the nav is the gallery's whole tree (foundations, the element categories with their elements, samples) as collapsed groups, and ONE
+// route ('*', kept alive) mounts the gallery's views inside the app body. The views write their addresses under #/gallery themselves (B() in gallery-views.js), the route's context names
+// the current row (the branch opens, the row is marked), and the app owns the bar, the theme, the title and the side nav (the gallery's own nav column is hidden, gallery.css, [data-gx-app]).
+// The Elements branch holds 131 rows, over the nav's 40-entry advice: the one deliberate exception, a tree of collapsed groups; the header search still finds an element by name.
 import { defineModule } from '../../js/app.js';
 import { mountGallery } from '../gallery/gallery.js';
 import { ELEMENTS } from '../gallery/gallery.data.js';
 import { FOUNDATIONS } from '../gallery/gallery-views.js';
 
 const sample = (kind, title) => ({ id: kind, title, route: `/samples/${kind}` });
-// the current nav row for the gallery's own address: its section, and the foundation or sample list under it
-const rows = ({ path }) => { const [sec = 'overview', a] = path.split('/').filter(Boolean); return { ids: sec === 'foundations' && a ? [sec, `f-${a}`] : sec === 'samples' && a ? [sec, a] : [sec] }; };
+const slug = t => t.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '');
+const groups = () => { const by = new Map(); for (const m of ELEMENTS) { const g = m.group || 'Other'; if (!by.has(g)) by.set(g, []); by.get(g).push(m); } return by; };
+// the current nav rows for the gallery's own address: the section, the branch under it, the row itself
+const rows = ({ path }) => {
+    const [sec = 'overview', a] = path.split('/').filter(Boolean);
+    if (sec === 'elements' && a) { const g = [...groups()].find(([, ms]) => ms.some(m => m.tag === a)); return { ids: g ? [sec, `g-${slug(g[0])}`, `e-${a}`] : [sec] }; }
+    return { ids: sec === 'foundations' && a ? [sec, `f-${a}`] : sec === 'samples' && a ? [sec, a] : [sec] };
+};
 const mount = (host, ctx) => {
     const css = Object.assign(host.ownerDocument.createElement('link'), { rel: 'stylesheet', href: new URL('../gallery/gallery.css', import.meta.url).href });
     host.ownerDocument.head.append(css);
@@ -24,7 +30,7 @@ export default defineModule({
     nav: () => [
         { id: 'overview', title: 'Overview', route: '/' },
         { id: 'foundations', title: 'Foundations', route: '/foundations', children: FOUNDATIONS.map(([id, title]) => ({ id: `f-${id}`, title, route: `/foundations/${id}` })) },
-        { id: 'elements', title: 'Elements', route: '/elements', badge: ELEMENTS.length },
+        { id: 'elements', title: 'Elements', route: '/elements', badge: ELEMENTS.length, children: [...groups()].map(([title, ms]) => ({ id: `g-${slug(title)}`, title, badge: ms.length, children: ms.map(m => ({ id: `e-${m.tag}`, title: m.title, route: `/elements/${m.tag}` })) })) },
         { id: 'samples', title: 'Samples', route: '/samples', children: [sample('templates', 'Templates'), sample('patterns', 'Patterns'), sample('layouts', 'Layouts')] },
     ],
     search: query => {

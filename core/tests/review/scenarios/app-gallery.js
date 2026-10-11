@@ -20,11 +20,13 @@ export default {
         { key: 'Escape', on: ['phone'] }, { wait: 400, on: ['phone'] },
         { click: '.gx-view [href="#/gallery/elements"]' }, { wait: 1200 },
         { click: '.gx-view [href="#/gallery/elements/pk-button"]' }, { wait: 2000 }, { shot: 'element' },
+        { click: 'pk-button[data-nav-toggle]', on: ['phone'] }, { wait: 600, on: ['phone'] }, { shot: 'element-drawer', on: ['phone'] },
     ],
     expect(t) {
         t.noOverlap('pk-navbar', '#pk-main');
         t.exists('#gx-view');
         if (t.shot === 'overview') t.ok(/^#\/gallery(\/|$)/.test(location.hash), `the address is ${location.hash}`);
         if (t.shot === 'element') t.ok(location.hash === '#/gallery/elements/pk-button', `the address is ${location.hash}`);
+        if (t.shot === 'element') t.ok(document.querySelector('#pk-nav pk-nav-item[current][href="#/gallery/elements/pk-button"]'), 'the Button row is the current row of the nav tree');
     },
 };

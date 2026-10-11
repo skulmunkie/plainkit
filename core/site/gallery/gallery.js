@@ -29,7 +29,7 @@ import { mediaBelow } from '../../js/breakpoints.js';
 import { clampSize, keySize, pointerSize } from '../../js/size.js';
 import { on, later, loadText } from '../../js/mount-support.js';
 import { mountRouter } from '../../js/router.js';
-import { esc, FOUNDATIONS, LAYOUT_ITEMS, TEMPLATE_PAGES, KIND_LABEL, createViews, heading, grid, cardLink, notFound, nothing } from './gallery-views.js';
+import { esc, FOUNDATIONS, LAYOUT_ITEMS, TEMPLATE_PAGES, KIND_LABEL, createViews, B, where, heading, grid, cardLink, notFound, nothing } from './gallery-views.js';
 
 const $ = (s, r = document) => r.querySelector(s);
 const slug = s => s.replace(/\W+/g, '-').replace(/^-|-$/g, '').toLowerCase();
@@ -58,18 +58,18 @@ const keeps = (sec, grp, id) => Boolean(scopeGroup(sec, grp)?.items.some(i => i.
 // 77 elements in one flat list is a wall on a phone: the nav folds them by the group their meta declares (the section title still opens the overview).
 function elementGroups() {
     const by = new Map();
-    for (const m of ELEMENTS) { const g = m.group || 'Other'; if (!by.has(g)) by.set(g, []); by.get(g).push({ id: m.tag, title: m.title, hash: `#/elements/${m.tag}`, aliases: m.aliases }); }
-    return [...by].map(([title, items]) => ({ id: `el-${slug(title)}`, title, hash: '#/elements', items }));
+    for (const m of ELEMENTS) { const g = m.group || 'Other'; if (!by.has(g)) by.set(g, []); by.get(g).push({ id: m.tag, title: m.title, hash: `${B()}/elements/${m.tag}`, aliases: m.aliases }); }
+    return [...by].map(([title, items]) => ({ id: `el-${slug(title)}`, title, hash: `${B()}/elements`, items }));
 }
 
 function allSections() {
     return [
-        { id: 'foundations', title: 'Foundations', items: FOUNDATIONS.map(([id, t]) => ({ id, title: t, hash: `#/foundations/${id}` })) },
+        { id: 'foundations', title: 'Foundations', items: FOUNDATIONS.map(([id, t]) => ({ id, title: t, hash: `${B()}/foundations/${id}` })) },
         { id: 'elements', title: 'Elements', groups: elementGroups() },
         { id: 'samples', title: 'Samples', groups: [
-            { id: 'templates', title: 'Templates', hash: '#/samples/templates', items: [{ id: 'overview', title: 'Overview', hash: '#/samples/templates' }, ...TEMPLATE_PAGES.map(([id, title]) => ({ id, title, hash: `#/samples/templates/${id}` }))] },
-            { id: 'patterns', title: 'Patterns', hash: '#/samples/patterns', items: [{ id: 'overview', title: 'Overview', hash: '#/samples/patterns' }, ...PATTERNS.map(p => ({ id: p.id, title: p.title, hash: `#/samples/patterns/${p.id}` }))] },
-            { id: 'layouts', title: 'Layouts', hash: '#/samples/layouts', items: [{ id: 'overview', title: 'Overview', hash: '#/samples/layouts' }, ...LAYOUT_ITEMS().map(([id, t]) => ({ id, title: t, hash: `#/samples/layouts/${id}` }))] },
+            { id: 'templates', title: 'Templates', hash: `${B()}/samples/templates`, items: [{ id: 'overview', title: 'Overview', hash: `${B()}/samples/templates` }, ...TEMPLATE_PAGES.map(([id, title]) => ({ id, title, hash: `${B()}/samples/templates/${id}` }))] },
+            { id: 'patterns', title: 'Patterns', hash: `${B()}/samples/patterns`, items: [{ id: 'overview', title: 'Overview', hash: `${B()}/samples/patterns` }, ...PATTERNS.map(p => ({ id: p.id, title: p.title, hash: `${B()}/samples/patterns/${p.id}` }))] },
+            { id: 'layouts', title: 'Layouts', hash: `${B()}/samples/layouts`, items: [{ id: 'overview', title: 'Overview', hash: `${B()}/samples/layouts` }, ...LAYOUT_ITEMS().map(([id, t]) => ({ id, title: t, hash: `${B()}/samples/layouts/${id}` }))] },
         ] },
     ];
 }
@@ -113,9 +113,9 @@ function el(tag, attrs = {}, ...kids) {
 function buildNav() {
     const nav = navEl(); if (!nav) return;
     const item = (it, slotName) => el('pk-nav-item', { href: it.hash, slot: slotName }, it.title);
-    const home = isScoped(opts) ? initialHash(tree()) || '#/overview' : '#/overview';
+    const home = isScoped(opts) ? initialHash(tree()) || `${B()}/overview` : `${B()}/overview`;
     nav.replaceChildren(el('a', { slot: 'brand', href: home }, 'Gallery'), ...tree().flatMap(sec => [
-        el('a', { class: 'gx-nav-title', href: `#/${sec.id}` }, sec.title),
+        el('a', { class: 'gx-nav-title', href: `${B()}/${sec.id}` }, sec.title),
         ...(sec.items ? sec.items.map(i => item(i)) : sec.groups.map(g => el('pk-nav-item', { 'data-branch': g.id }, g.title, el('span', { slot: 'badge' }, String(g.items.length)), ...g.items.map(i => item(i, 'children'))))),
     ]));
     syncNav();
@@ -125,7 +125,7 @@ function buildNav() {
 function syncNav() {
     const nav = navEl(); if (!nav) return;
     const r = route();
-    for (const i of nav.querySelectorAll('pk-nav-item[href]')) setAttr(i, 'current', location.hash === i.getAttribute('href') || (Boolean(r.section) && i.getAttribute('href') === `#/${r.section}/${r.a}/${r.b}`));
+    for (const i of nav.querySelectorAll('pk-nav-item[href]')) setAttr(i, 'current', location.hash === i.getAttribute('href') || (Boolean(r.section) && i.getAttribute('href') === `${B()}/${r.section}/${r.a}/${r.b}`));
     if (state.filter) return;
     for (const b of nav.querySelectorAll('pk-nav-item[data-branch]')) setAttr(b, 'expanded', state.open.has(b.dataset.branch) || Boolean(b.querySelector('pk-nav-item[current]')) || (r.section !== 'samples' && r.a === b.dataset.branch));
 }
@@ -248,11 +248,11 @@ function paintPagebar() {
     if (!full) return;
     const label = KIND_LABEL[full.kind];
     $('#gx-title').textContent = full.title;
-    const back = $('#gx-back'); back.href = `#/samples/${full.kind}`; back.setAttribute('label', `Back to ${label}`);
+    const back = $('#gx-back'); back.href = `${B()}/samples/${full.kind}`; back.setAttribute('label', `Back to ${label}`);
     $('#gx-back-label').textContent = label;
     $('#gx-open').href = pageUrl(full, { width: state.width });
     for (const n of document.querySelectorAll('#gx-pagebar [data-nav-scope]')) n.hidden = full.kind !== 'templates';
-    for (const a of document.querySelectorAll('#gx-pagebar [data-nav]')) { a.dataset.goto = `#/samples/templates/${full.id}?nav=${a.dataset.nav}`; setAttr(a, a.localName === 'pk-menu-item' ? 'checked' : 'pressed', a.dataset.nav === navVariant()); }
+    for (const a of document.querySelectorAll('#gx-pagebar [data-nav]')) { a.dataset.goto = `${B()}/samples/templates/${full.id}?nav=${a.dataset.nav}`; setAttr(a, a.localName === 'pk-menu-item' ? 'checked' : 'pressed', a.dataset.nav === navVariant()); }
     const th = $('#gx-theme'); th.textContent = state.theme === 'dark' ? 'Dark' : 'Light';
     th.setAttribute('label', `Theme: ${state.theme}. Switch to ${state.theme === 'dark' ? 'light' : 'dark'}`);
 }
@@ -293,7 +293,7 @@ function view() {
     // An overview the mount's scope or filter leaves empty says so instead of listing what the embedder cut.
     if (!a && ['foundations', 'elements', 'samples'].includes(sec) && !scope(sec)) return put(nothing());
     if (sec === 'foundations') {
-        if (!a) return put(heading('Foundations', 'The tokens every control reads.') + grid(FOUNDATIONS.filter(([id]) => scope('foundations')?.items.some(i => i.id === id)).map(([id, t, d]) => cardLink(`#/foundations/${id}`, t, d)).join('')));
+        if (!a) return put(heading('Foundations', 'The tokens every control reads.') + grid(FOUNDATIONS.filter(([id]) => scope('foundations')?.items.some(i => i.id === id)).map(([id, t, d]) => cardLink(`${B()}/foundations/${id}`, t, d)).join('')));
         return put(viewFoundation(a));
     }
     if (sec === 'overview') return put(overviewHtml());
@@ -303,19 +303,6 @@ function view() {
     }
     if (sec === 'samples') return samplesView(out, put, a, b);
     return put(notFound('Not found'));
-}
-
-// Inside the site app the gallery's own addresses (#/elements/pk-button, in links, data-goto, data-find and data-base) are written without the app's path; a MutationObserver
-// gives each one the prefix as it appears, so the views keep writing the addresses they always did. Returns the stop function.
-const ADDRESS_ATTRS = ['href', 'data-goto', 'data-find', 'data-base'];
-function addressPrefixer(root, path) {
-    const head = `#${path}/`, found = ADDRESS_ATTRS.map(a => `[${a}^="#/"]`).join();
-    const fix = n => { for (const a of ADDRESS_ATTRS) { const v = n.getAttribute?.(a); if (v?.startsWith('#/') && !v.startsWith(head)) n.setAttribute(a, `#${path}${v.slice(1)}`); } };
-    const all = n => { fix(n); n.querySelectorAll?.(found).forEach(fix); };
-    const mo = new MutationObserver(list => { for (const r of list) { if (r.type === 'attributes') fix(r.target); else r.addedNodes.forEach(all); } });
-    mo.observe(root, { childList: true, subtree: true, attributes: true, attributeFilter: ADDRESS_ATTRS });
-    all(root);
-    return () => mo.disconnect();
 }
 
 // ---- assembly ------------------------------------------------------------------------------------------------------------
@@ -397,7 +384,7 @@ const viewportSwitch = () => '<pk-button-group label="Viewport" mode="single"><p
 const scaleSelect = () => `<pk-field label="Text size" layout="inline" size="sm"><pk-select class="gx-scale" value="1">${SCALES.map(([v, l]) => `<option value="${v}">${l}</option>`).join('')}</pk-select></pk-field>`;
 const scaleItems = () => `<pk-menu-item type="header">Text size</pk-menu-item>${SCALES.map(([v, l]) => `<pk-menu-item type="radio" data-scale="${v}">${l}</pk-menu-item>`).join('')}`;
 
-const CHROME_HTML = `
+const chromeHtml = () => `
     <div class="gx-shell" id="gx-shell">
         <pk-side-nav id="gx-nav" class="gx-nav" label="Gallery contents" filterable></pk-side-nav>
         <main class="gx-main">
@@ -409,14 +396,14 @@ const CHROME_HTML = `
                 <pk-button variant="ghost" toggle class="gx-inspect" id="gx-inspect" aria-controls="gx-inspector" hidden>Details</pk-button>
             </div>
             <div class="gx-bar gx-pagebar" id="gx-pagebar" role="toolbar" aria-label="Page preview">
-                <pk-button variant="ghost" class="gx-back" id="gx-back" href="#/samples" icon-name="chevron-left"><span class="gx-wide-only" id="gx-back-label">Back</span></pk-button>
+                <pk-button variant="ghost" class="gx-back" id="gx-back" href="${B()}/samples" icon-name="chevron-left"><span class="gx-wide-only" id="gx-back-label">Back</span></pk-button>
                 <strong class="gx-title" id="gx-title"></strong>
                 <div class="gx-group gx-wide-only" data-nav-scope hidden><pk-button-group label="Navigation variant" mode="single"><pk-button variant="ghost" toggle data-nav="side">Side</pk-button><pk-button variant="ghost" toggle data-nav="top">Top</pk-button></pk-button-group></div>
                 <div class="gx-group gx-desktop-only">${viewportSwitch()}</div>
                 <div class="gx-group gx-wide-only">${scaleSelect()}</div>
                 <pk-dropdown placement="bottom-end" class="gx-compact-only"><pk-button slot="trigger" variant="ghost" icon label="Display options"><pk-icon name="settings"></pk-icon></pk-button><pk-menu-item type="header" data-nav-scope hidden>Navigation</pk-menu-item><pk-menu-item type="radio" data-nav="side" data-nav-scope hidden>Side</pk-menu-item><pk-menu-item type="radio" data-nav="top" data-nav-scope hidden>Top</pk-menu-item>${scaleItems()}</pk-dropdown>
                 <pk-button variant="ghost" class="gx-theme" id="gx-theme" data-toggle-theme></pk-button>
-                <pk-button variant="ghost" class="gx-open" id="gx-open" href="#/samples" target="_blank" rel="noopener"><span class="gx-wide-only">Open in new page</span><span class="gx-compact-only">Open</span></pk-button>
+                <pk-button variant="ghost" class="gx-open" id="gx-open" href="${B()}/samples" target="_blank" rel="noopener"><span class="gx-wide-only">Open in new page</span><span class="gx-compact-only">Open</span></pk-button>
             </div>
             <div class="gx-body">
                 <div class="gx-view" id="gx-view"></div>
@@ -443,7 +430,7 @@ export async function mountGallery(container, options = {}) {
     hostSections = normalizeSections(options.sections);
     baseTitle = document.title || baseTitle;
     bare = opts.chrome === 'none';
-    prefix = options.base ?? '';
+    prefix = where.prefix = options.base ?? '';
     state.theme = opts.theme ?? currentTheme(document.documentElement);
     state.width = opts.width ?? (readSetting('pk-gallery-width') === 'phone' ? 'phone' : 'desktop');
     state.scale = bare ? 1 : Number(readSetting('pk-gallery-scale')) || 1;
@@ -456,7 +443,7 @@ export async function mountGallery(container, options = {}) {
     if (first) history.replaceState(null, '', first);
     router?.destroy();
     router = mountRouter(null, { routes: [], mode: 'hash', aliases: ALIASES, base: prefix });
-    fillSanitizedHtml(container, bare ? BARE_HTML : CHROME_HTML);
+    fillSanitizedHtml(container, bare ? BARE_HTML : chromeHtml());
     if (!bare) container.classList.add('gx-mount');
     container.toggleAttribute('data-gx-app', Boolean(prefix)); // hosted by the site app: it owns the nav (gallery.css)
     css = { tokens: await text(TOKENS_CSS), utilities: await text(UTILITIES_CSS), spacing: await text(SPACING_CSS), icons: await text(ICONS) };
@@ -506,19 +493,17 @@ export async function mountGallery(container, options = {}) {
         form._cancel = later(window, () => { const p = new URLSearchParams([...new FormData(form)].filter(([, v]) => v && v !== 'all')); location.hash = `${form.dataset.find}${p.toString() ? '?' + p : ''}`; later(window, () => { const n = $('form[data-find] pk-input[type=search]', view); n?.focus(); const c = n?.shadowRoot?.querySelector('[part="control"]'); c?.setSelectionRange(c.value.length, c.value.length); }, 30); }, 250);
     });
     on(view, 'change', e => { const form = e.target.closest('form[data-find]'); if (form) form.dispatchEvent(new Event('input', { bubbles: true })); });
-    const unprefix = prefix ? addressPrefixer(container, prefix) : null;
     const handle = {
         destroy() {
             if (mounted !== handle) return;
             mounted = null;
-            unprefix?.();
             for (const off of offs) off();
             for (const form of container.querySelectorAll('form[data-find]')) form._cancel?.();
             router?.destroy(); router = null;
             lazy?.disconnect(); lazy = null;
             releaseFrames();
             full = stage = inspecting = inspector = null;
-            container.replaceChildren(); container.classList.remove('gx-mount'); container.removeAttribute('data-gx-app');
+            where.prefix = ''; container.replaceChildren(); container.classList.remove('gx-mount'); container.removeAttribute('data-gx-app');
         },
     };
     mounted = handle;
