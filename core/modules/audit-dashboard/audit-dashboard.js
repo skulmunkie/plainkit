@@ -1,6 +1,6 @@
 // The audit dashboard as a module: mountAuditDashboard(container, options) is a read-only viewer over audit/test artifacts already on
 // disk (docs/superpowers/specs/2026-09-30-audit-dashboard-design.md) -- module-ruleset baseline debt today; UI review and conformance-audit
-// findings are follow-up panels, not yet built (see the module's header comment in the spec for why). It NEVER shells out or triggers a
+// plus the UI-review findings panel (review-panel.js, a lazy chunk imported at mount); the conformance-audit panel is a follow-up (#717). It NEVER shells out or triggers a
 // script: it only fetch()es a JSON file a build/audit step already wrote, and a refresh only re-reads that same file. Laid out as a pk-dock
 // workspace (module baseline | Properties), matching the dockable-panel pattern other devtools surfaces use (core/components/dock); the
 // module-baseline panel itself is a flat, client-side-filterable list rather than nested dock groups -- pk-dock's tree groups are a
@@ -12,7 +12,7 @@
 //
 // Options: baselineUrl (where to fetch the module baseline JSON from; default '/_audit/module-baseline.json', served by core/tools/serve.mjs
 // from the repo-root plainkit.audit.modules.baseline.json), theme, height (any CSS length; default 32rem), persistKey (pk-dock layout
-// persistence, see pk-dock's own persistKey).
+// persistence, see pk-dock's own persistKey), reviewUrl (review-output/manifest.json; default '/_audit/ui-review-manifest.json'; absent = empty state).
 // Returns { refresh(), selectBaseline(id), destroy() }.
 
 import { ensureStyles, styleUrls, loadJson, h, on } from '../../js/mount-support.js';
@@ -24,11 +24,12 @@ import { parseBaseline, filterBaseline, baselineRows, describeStaleness, baselin
 const log = createLogger('audit-dashboard');
 const STYLES = ['../../plainkit.css'];
 export const DEFAULT_BASELINE_URL = '/_audit/module-baseline.json';
+export const DEFAULT_REVIEW_URL = '/_audit/ui-review-manifest.json';
 const COLUMNS = [{ key: 'file', label: 'File' }, { key: 'rule', label: 'Rule' }, { key: 'count', label: 'Count' }];
 const REGEN_COMMAND = 'node scripts/audit-modules.mjs';
 
 export async function mountAuditDashboard(container, options = {}) {
-    const { baselineUrl = DEFAULT_BASELINE_URL, theme, height, persistKey } = options;
+    const { baselineUrl = DEFAULT_BASELINE_URL, reviewUrl = DEFAULT_REVIEW_URL, theme, height, persistKey } = options;
     const doc = container.ownerDocument;
     await ensureStyles(styleUrls(STYLES, import.meta.url), doc);
 
@@ -55,7 +56,10 @@ export async function mountAuditDashboard(container, options = {}) {
     const propertiesBody = h(doc, 'div', { class: 'ad-properties' }, h(doc, 'pk-empty-state', { tone: 'compact', heading: 'Nothing selected', description: 'Choose a finding to see its detail here.' }));
     const propertiesPanel = h(doc, 'div', { slot: 'properties', 'data-heading': 'Properties', 'data-group': 'right', class: 'ad-panel' }, propertiesBody);
 
-    const dock = h(doc, 'pk-dock', { label: 'Audit dashboard', fill: true }, baselinePanel, propertiesPanel);
+    // The UI-review panel is its own chunk: fetched here, at mount, never as part of the app entry graph.
+    const { createReviewPanel } = await import('./review-panel.js');
+    const review = createReviewPanel(doc, { reviewUrl, onSelect: finding => showDetail(review.detail(finding)) });
+    const dock = h(doc, 'pk-dock', { label: 'Audit dashboard', fill: true }, baselinePanel, review.panel, propertiesPanel);
     if (persistKey) dock.setAttribute('persist-key', persistKey);
     const root = h(doc, 'div', { class: 'ad-module' }, dock);
     if (theme) root.setAttribute('data-theme', theme);
@@ -73,8 +77,10 @@ export async function mountAuditDashboard(container, options = {}) {
     }
 
     function drawProperties() {
-        const row = rows.find(r => r.id === selectedId) ?? null;
-        const detail = baselineDetail(row);
+        showDetail(baselineDetail(rows.find(r => r.id === selectedId) ?? null));
+    }
+
+    function showDetail(detail) {
         if (!detail) { propertiesBody.replaceChildren(h(doc, 'pk-empty-state', { tone: 'compact', heading: 'Nothing selected', description: 'Choose a finding to see its detail here.' })); return; }
         const card = h(doc, 'pk-card', { heading: detail.heading, level: 4 },
             h(doc, 'pk-stack', { gap: 'xs' },
@@ -108,9 +114,9 @@ export async function mountAuditDashboard(container, options = {}) {
     on(refreshBtn, 'click', () => load());
     on(table, 'pk-row-click', e => { selectedId = e.detail?.id ?? null; drawProperties(); });
 
-    await load();
+    await Promise.all([load(), review.load()]);
     return {
-        refresh: () => load(),
+        refresh: () => Promise.all([load(), review.load()]),
         selectBaseline(id) { selectedId = rows.some(r => r.id === id) ? id : null; drawProperties(); },
         destroy() { root.remove(); },
     };

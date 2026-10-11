@@ -324,6 +324,7 @@ import { lookupPickerCases } from './cases-lookup-picker.js'; cases.push(...look
 import { fieldGroupCases } from './cases-field-group.js'; cases.push(...fieldGroupCases);
 import { recordFormCases } from './cases-record-form.js'; cases.push(...recordFormCases);
 import { moduleMountCases } from './cases-modules-mount.js'; cases.push(...moduleMountCases);
+import { auditDashboardCases } from './cases-audit-dashboard.js'; cases.push(...auditDashboardCases);
 import { dockCases } from './cases-dock.js'; cases.push(...dockCases);
 import { trayCases } from './cases-tray.js'; cases.push(...trayCases);
 import { designSurfaceCases } from './cases-design-surface.js'; cases.push(...designSurfaceCases);
