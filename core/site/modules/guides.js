@@ -17,7 +17,7 @@ const search = query => {
     };
 };
 const doc = {
-    items: GUIDES.map(({ id, title, summary }) => ({ id, title, summary })), search: true, breadcrumb: true, navLabel: 'Guides', pagerLabel: 'Guide navigation', searchLabel: 'Search guides',
+    items: GUIDES.map(({ id, title, summary }) => ({ id, title, summary })), search: true, embedded: true, navLabel: 'Guides', pagerLabel: 'Guide navigation', searchLabel: 'Search guides',
     home: { title: 'Guides', summary: 'Getting started, theming and logging, written from what the repository does today.', cards: true },
     loadItem: id => { const g = find(id); return g ? { title: g.title, summary: g.summary, html: g.html } : null; },
     href: (id, anchor) => (id == null ? '/' : `/${id}${anchor ? `?anchor=${encodeURIComponent(anchor)}` : ''}`),
@@ -26,5 +26,6 @@ const doc = {
 
 export default defineModule({
     id: 'guides', title: 'Guides', icon: 'docs',
-    routes: [{ path: '/', page: { type: 'doc', config: doc }, label: 'Guides', children: [{ path: '/:id', page: { type: 'doc', config: doc }, label: p => find(p.id)?.title ?? 'Guide not found' }] }],
+    nav: () => GUIDES.map(g => ({ id: g.id, title: g.title, route: `/${g.id}` })),
+    routes: [{ path: '/', page: { type: 'doc', config: doc } }, { path: '/:id', page: { type: 'doc', config: doc }, label: p => find(p.id)?.title ?? 'Guide not found' }],
 });

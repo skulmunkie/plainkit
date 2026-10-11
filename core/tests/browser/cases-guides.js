@@ -186,7 +186,7 @@ async function openApp(t, hash, width = 1280) {
     await until(() => d.querySelector('#pk-main pk-doc-page .doc-page-title, #pk-main pk-doc-page pk-card'), 'the guides page');
     await t.settle(); await wait(300);
     const go = async to => { win.location.hash = to; await wait(150); };
-    return { win, d, go, doc: () => d.querySelector('#pk-main pk-doc-page'), items: () => [...d.querySelectorAll('#pk-main pk-doc-page pk-side-nav pk-nav-item')] };
+    return { win, d, go, doc: () => d.querySelector('#pk-main pk-doc-page'), items: () => [...d.querySelectorAll('#pk-nav pk-nav-item')] };
 }
 export const guidesAppCases = [
     ['guides module (app, 1280px): the guide list is the nav, a deep link opens a guide with crumbs, and a heading anchor in the address scrolls to it', async t => {
@@ -203,10 +203,11 @@ export const guidesAppCases = [
     }],
     ['guides module (app, 375px): the list route draws the guide cards and a body word finds the guides that mention it', async t => {
         const p = await openApp(t, '#/guides', 375);
-        const input = await until(() => p.doc().querySelector('pk-side-nav pk-input'), 'the search box');
+        const input = await until(() => p.doc().querySelector(':scope > pk-container pk-input'), 'the search box above the article');
+        t.ok(p.doc().querySelector('pk-side-nav').hidden && !p.doc().querySelector('pk-breadcrumb:not([hidden])'), 'the doc page draws neither its own nav nor a breadcrumb');
         t.ok(p.doc().querySelectorAll('pk-card').length >= 9, 'a card per guide on the list');
         input.value = 'logger'; input.dispatchEvent(new Event('input', { bubbles: true })); await wait(400);
-        const shownItems = p.items().filter(i => !i.hidden);
-        t.ok(shownItems.length >= 1 && shownItems.length < 9, 'the nav keeps only the guides that match');
+        const status = p.doc().querySelector(':scope > pk-container pk-text').textContent;
+        t.ok(/mentioned in|titled/.test(status), `the status line names the guides that match: ${status}`);
     }],
 ];

@@ -15,8 +15,9 @@ export default {
     },
     steps: [
         { wait: 'settle' }, { wait: 1200 }, { shot: 'list' },
+        { click: 'pk-button[data-nav-toggle]', on: ['phone'] }, { wait: 600, on: ['phone'] }, { shot: 'drawer', on: ['phone'] },
         { click: 'pk-doc-page pk-card[href]', on: ['desktop'] }, { wait: 1200, on: ['desktop'] }, { shot: 'guide', on: ['desktop'] },
-        { focus: 'pk-doc-page pk-side-nav pk-input', on: ['desktop'] }, { type: 'logger', on: ['desktop'] }, { wait: 600, on: ['desktop'] }, { shot: 'search', on: ['desktop'] },
+        { focus: 'pk-doc-page pk-input', on: ['desktop'] }, { type: 'logger', on: ['desktop'] }, { wait: 600, on: ['desktop'] }, { shot: 'search', on: ['desktop'] },
     ],
     expect(t) {
         t.noOverlap('pk-navbar', '#pk-main');
