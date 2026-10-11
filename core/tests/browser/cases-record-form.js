@@ -68,6 +68,7 @@ export const recordFormCases = [
         const side = '<pk-card slot="sidebar" heading="Status"><pk-badge>Active</pk-badge></pk-card>';
         const bare = await mount(t);
         t.ok(bare.part('layout').hasAttribute('data-bare'), 'no sidebar content marks the layout bare');
+        t.ok(rect(bare.part('layout')).right <= rect(bare).right + 1, `the bare layout does not stick out past the host (${rect(bare.part('layout')).right} vs ${rect(bare).right})`);
         t.ok(Math.abs(rect(bare.part('form')).right - rect(bare).right) <= 2, `the form reaches the right edge (${rect(bare.part('form')).right} vs ${rect(bare).right})`);
         const el = await mount(t, '', side);
         t.ok(!el.part('layout').hasAttribute('data-bare'), 'a sidebar card clears it');
