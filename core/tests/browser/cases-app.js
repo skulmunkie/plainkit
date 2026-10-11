@@ -251,6 +251,7 @@ export const appCases = [
 
     ['workspace page type (#353): mounted and destroyed 100 times leaves no listener, observer, timer or element behind, and every consumer handle is destroyed exactly once', async t => {
         const { mountPage } = await dist('js/app.js');
+        await t.load(t.stage('<pk-workspace-page></pk-workspace-page><pk-heading></pk-heading>')); // mountPage waits for these, loaded on demand: define them first, so the case also passes on its own (#1156)
         const box = document.createElement('div'); t.stage('').append(box);
         let mounts = 0, destroys = 0;
         const config = { panes: ['nav', 'aside'], mount: (panes, ctx) => {
@@ -283,6 +284,7 @@ export const appCases = [
 
     ['workspace page type (#353): the loading state shows while mount() is pending, a rejection shows the danger alert with a working Retry, and the panes are untouched by the state', async t => {
         const { mountPage } = await dist('js/app.js');
+        await t.load(t.stage('<pk-workspace-page></pk-workspace-page><pk-heading></pk-heading>')); // see above (#1156)
         const box = document.createElement('div'); t.stage('').append(box);
         let attempts = 0, release;
         const page = await mountPage(box, { type: 'workspace', config: { mount: (panes, ctx) => {
@@ -527,6 +529,7 @@ export const appCases = [
 
     ['master-detail page type (#353): mounted and destroyed 100 times, opening and closing a record each time, leaves no listener, observer, timer or element behind, and every record handle is destroyed exactly once', async t => {
         const { mountPage } = await dist('js/app.js');
+        await t.load(t.stage('<pk-master-detail-page></pk-master-detail-page><pk-heading></pk-heading>')); // mountPage waits for these, loaded on demand: define them first, so the case also passes on its own (#1156)
         const box = document.createElement('div'); t.stage('').append(box);
         let mounts = 0, destroys = 0;
         const config = { list: { columns: [{ key: 'name', label: 'Name' }] }, load: () => ({ rows: [{ id: '1', name: 'A' }] }), mountDetail: (pane, id, ctx) => {
@@ -561,6 +564,7 @@ export const appCases = [
 
     ['master-detail page type (#353): a failing list shows its error state, a pending record shows loading, a rejected record shows the danger alert and Retry recovers it', async t => {
         const { mountPage } = await dist('js/app.js');
+        await t.load(t.stage('<pk-master-detail-page></pk-master-detail-page><pk-heading></pk-heading>')); // see above (#1156)
         const box = document.createElement('div'); t.stage('').append(box);
         let attempts = 0, release;
         const page = await mountPage(box, { type: 'master-detail', config: { list: { columns: [{ key: 'name', label: 'Name' }] }, load: () => { throw new Error('list down'); }, mountDetail: (pane, id) => {
