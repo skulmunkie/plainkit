@@ -2156,6 +2156,7 @@
   "pk-design-surface:slot:chip",
   "pk-design-surface:slot:empty",
   "pk-detail-layout",
+  "pk-detail-layout:css:--pk-detail-layout-gap",
   "pk-detail-layout:css:--pk-detail-layout-height",
   "pk-detail-layout:css:--pk-detail-layout-main-max",
   "pk-detail-layout:css:--pk-detail-layout-sidebar",

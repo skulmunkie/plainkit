@@ -107,6 +107,8 @@ The format follows [Keep a Changelog](https://keepachangelog.com/) and the proje
 - The scorecard module's section cards and the theme editor's token rows no longer touch the block above them: the scorecard's section hosts are stacks with a small gap and the token list has a gap between its rows. (#1161)
 - The site root no longer flashes an unstyled bulleted list of links for a moment on first load before it redirects to the gallery.
 - The detail layout and the doc page space their stacked parts evenly: the detail layout's sidebar uses the same gap as its main column and drops a slotted child's own margin, and the doc page puts one gap (--space-4) between the breadcrumb, title, summary, body and pager, so the SDK Scorecard no longer reports inconsistent gaps for them. (#402)
+- The gallery page header keeps the same height before and after its element upgrades on every platform: it now has a fixed line height and one height floor in both states, instead of the platform font's own line height. (#1076)
+- pk-print-page now spaces the blocks inside its sheet, and a pk-record-form without a sidebar no longer sticks out 24px past its container (new `--pk-detail-layout-gap` hook on pk-detail-layout). (#1174)
 
 ### Notes
 
