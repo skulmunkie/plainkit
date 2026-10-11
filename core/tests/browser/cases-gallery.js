@@ -120,4 +120,22 @@ export const galleryCases = [
         t.ok([...p.doc.querySelectorAll('pk-nav-item[href]')].every(i => i.getAttribute('href').startsWith('#/foundations')), 'the nav holds only the scope');
         const q = await open(t, '#/foundations/spacing', '?kind=foundations'); await q.shows('Spacing');
     }],
+
+    ['gallery: the preview bar and the top bar keep their box while their elements upgrade, so the view does not jump on first load (#1076)', async t => {
+        const p = await open(t, '#/overview');
+        await Promise.all(['pk-button-group', 'pk-select', 'pk-field', 'pk-navbar'].map(tag => p.win.customElements.whenDefined(tag)));
+        await wait(100);
+        const bar = p.doc.querySelector('.gx-bar-main'), top = p.doc.querySelector('pk-navbar');
+        // The same markup with no script at all: every pk-* element stays undefined, which is the state a slow connection paints first.
+        const base = new URL('../../', import.meta.url).href;
+        const f = document.createElement('iframe'); f.title = 'Undefined state'; f.style.cssText = 'width:1280px;height:900px;border:0';
+        f.srcdoc = `<!doctype html><html data-theme="dark"><head><link rel="stylesheet" href="${base}plainkit.css"><link rel="stylesheet" href="${base}site/site.css"><link rel="stylesheet" href="${base}site/gallery/gallery.css"></head>`
+            + `<body class="site"><div class="gx-mount site-body"><div class="gx-shell"><main class="gx-main">${bar.outerHTML}</main></div></div></body></html>`;
+        const loaded = new Promise(r => f.addEventListener('load', r, { once: true })); p.win.frameElement.parentElement.append(f); await loaded; await wait(100);
+        const raw = f.contentDocument.querySelector('.gx-bar-main');
+        t.ok(bar.getClientRects().length > 0, `the live preview bar is drawn (display ${p.win.getComputedStyle(bar).display}, ${p.doc.documentElement.className}, ${bar.parentElement?.className})`);
+        const h = el =>Math.round(el.getBoundingClientRect().height * 2) / 2;
+        t.eq(h(raw), h(bar), `the preview bar is ${h(raw)}px high before its elements upgrade and ${h(bar)}px after`);
+        t.ok(top.getBoundingClientRect().height <= parseFloat(getComputedStyle(p.doc.documentElement).fontSize) * 3.5 + 1.5, 'the top bar is one row high');
+    }],
 ];
