@@ -66,6 +66,8 @@ export function createViews(ctx) {
     function viewFoundation(id) {
         const tokens = parseTokenBlocks(ctx.css().tokens);
         const val = (node, name) => getComputedStyle(node).getPropertyValue(name).trim();
+        // A length wider than the specimen's sample box (8rem) cannot be drawn to scale; it is listed as text rather than as a clamped bar showing a wrong width.
+        const sized = (n, v) => parseFloat(v) * (/rem$/.test(v) ? 16 : 1) <= 128 ? `<pk-specimen token="${n}" kind="size"></pk-specimen>` : `<pk-text tone="muted"><code>${n}</code> ${esc(v)}</pk-text>`;
         const scale = prefix => Object.entries(tokens.root).filter(([n]) => n.startsWith(prefix));
         const dark = probe('dark'); const light = probe('light');
         try {
@@ -85,14 +87,14 @@ export function createViews(ctx) {
                 case 'spacing': {
                     const roles = Object.entries(tokens.root).filter(([n]) => /^--(gap|pad|flow)-/.test(n));
                     return heading('Spacing', 'One scale, and named roles built on it. Components and utilities read the roles, never a literal, so a density mode moves the whole rhythm.')
-                        + section('The scale', scale('--space-').map(([n, v]) => `<div class="gx-space-row"><code>${n}</code><pk-text inline tone="muted">${esc(v)}</pk-text><span class="gx-space-bar" data-dyn="width:var(${n})"></span></div>`).join(''))
+                        + section('The scale', scale('--space-').map(([n]) => `<pk-specimen token="${n}"></pk-specimen>`).join(''))
                         + section('Roles', `${dataTable('Spacing roles', ['Role', 'Value'], roles.map(([n, v]) => [`<code>${n}</code>`, `<code>${esc(v)}</code>`]))}<pk-text tone="muted">Compact density overrides these on any element with <code>data-density="compact"</code>. See the <a href="../spacing/index.html">spacing page</a> for the rhythm in use.</pk-text>`);
                 }
                 case 'radii-shadows':
                     return heading('Radii and shadows', 'Corner radii, shadows, layers and touch targets.')
-                        + section('Radii', `<pk-cluster gap="md">${scale('--radius-').map(([n, v]) => `<span class="gx-box" data-dyn="border-radius:var(${n})"><code>${n}</code><pk-text inline tone="muted" size="meta">${esc(v)}</pk-text></span>`).join('')}</pk-cluster>`)
-                        + section('Shadows', `<pk-cluster gap="md">${[...scale('--shadow-'), ...Object.entries(tokens.dark).filter(([n]) => /shadow/.test(n) && !n.startsWith('--shadow-'))].slice(0, 8).map(([n]) => `<span class="gx-box" data-dyn="box-shadow:var(${n})"><code>${n}</code></span>`).join('')}</pk-cluster>`)
-                        + section('Layers and targets', `<pk-cluster gap="md">${[...scale('--z-'), ...scale('--touch'), ...scale('--app-'), ...scale('--shell-')].map(([n, v]) => `<span class="gx-z"><code>${n}</code> <pk-text inline tone="muted" size="meta">${esc(v)}</pk-text></span>`).join('')}</pk-cluster>`);
+                        + section('Radii', `<pk-cluster gap="md">${scale('--radius-').map(([n]) => `<pk-specimen token="${n}"></pk-specimen>`).join('')}</pk-cluster>`)
+                        + section('Shadows', `<pk-cluster gap="md">${[...scale('--shadow-'), ...Object.entries(tokens.dark).filter(([n]) => /shadow/.test(n) && !n.startsWith('--shadow-'))].slice(0, 8).map(([n]) => `<pk-specimen token="${n}" kind="shadow"></pk-specimen>`).join('')}</pk-cluster>`)
+                        + section('Layers and targets', `<pk-cluster gap="md">${[...scale('--z-'), ...scale('--touch'), ...scale('--app-'), ...scale('--shell-')].map(([n, v]) => n.startsWith('--z-') || n.startsWith('--touch') ? `<pk-specimen token="${n}"></pk-specimen>` : sized(n, v)).join('')}</pk-cluster>`);
                 case 'breakpoints':
                     return heading('Breakpoints', 'Media queries cannot read a variable, so the three steps are literals. Use the Phone width switch to see 640px apply in every sample.')
                         + section('Steps', dataTable('Breakpoints', ['Name', 'max-width', 'What changes'], BREAKPOINTS.map(b => [b.name, `<code>${b.px}px</code>`, esc(b.meaning)]), [1]));

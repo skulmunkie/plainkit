@@ -127,7 +127,6 @@ export const META_TEXT = [
     ['th, kbd, time', 'column headers, key caps and timestamps are captions'],
     ['.u-text-xs, .u-text-sm', 'the utilities that set the meta size'],
     ['.cv-meta, .cv-meta *, .cv-notice', 'the code explorer: line numbers, file meta, notices and console rows (modules/code-explorer)'],
-    ['.gx-box *, .gx-z *', 'gallery demo swatches: a box-model and a z-index sample, where the text is a caption for the thing shown'],
 ];
 export const TEXT_TIERS = {
     readingPx: 14,
