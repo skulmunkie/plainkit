@@ -2,6 +2,8 @@
 [part="list"] { display: flex; flex-wrap: nowrap; align-items: center; gap: var(--space-1); border-bottom: 1px solid var(--color-border); margin-bottom: var(--space-4); overflow-x: auto; overscroll-behavior-x: contain; scroll-padding-inline: 1.75rem; padding-inline-end: 1px; scrollbar-width: none; }
 [part="list"]::-webkit-scrollbar { display: none; }
 ::slotted(*) { flex: none; white-space: nowrap; }
+/* A panel is slotted like a tab but its content is ordinary text: it must wrap, not inherit the tab's nowrap (#1142). */
+::slotted(pk-tab-panel) { white-space: normal; }
 /* wrap (overflow="wrap"): the explicit opt-in for the old default, more rows instead of one sliding or collapsing row. */
 :host([overflow="wrap"]) [part="list"] { flex-wrap: wrap; overflow-x: visible; scroll-padding-inline: 0; }
 :host([overflow="wrap"]) ::slotted(*) { flex: initial; white-space: normal; }
