@@ -12,7 +12,7 @@ import { fillSanitizedHtml } from '../../js/sanitized-html.js';
 // Callback properties (business logic, never JSON - STANDARDS.md): loadItem(id) -> { title, summary, html } | Promise<...>; href(id, anchor?) ->
 // string, used for nav items, the pager and the home list's links. (The element's own load(id) method drives loadItem; do not confuse the two.)
 // Options (config): navLabel ('Contents'), pagerLabel ('Page navigation'), breadcrumb: true (a pk-breadcrumb above the title: the home title, then the item),
-// embedded: true (the host draws the item nav and the breadcrumb itself, so neither is drawn here; the search box moves above the article and its status line names the matches), home.cards: true (the home list as a grid of pk-cards), scroller (a selector: the host's own scrolling box, which the table of contents follows instead of the window). Host search (a callback property): searchItems(query) -> { ids, status? } replaces the nav's title filter with a search
+// embedded: true (the host draws the item nav and the breadcrumb itself, so neither is drawn here; the search box sits in the article header under the title and its status line names the matches; the host filters its own nav from searchItems), home.cards: true (the home list as a grid of pk-cards), scroller (a selector: the host's own scrolling box, which the table of contents follows instead of the window). Host search (a callback property): searchItems(query) -> { ids, status? } replaces the nav's title filter with a search
 // box that shows only the items whose id is in `ids` and says `status` in a polite line under it (the host decides what matches, for example the text of the documents).
 // Event: pk-navigate { id, anchor, replace: false } - a same-page link inside the article was followed; the host rewrites the address
 // (history.pushState/replaceState) and keeps `anchor` in the next config it sets. The element never touches history or the document itself.
@@ -105,7 +105,7 @@ export default Base => class extends Base {
             this.$status = el(doc, 'pk-text', { size: 'meta', tone: 'muted', 'aria-live': 'polite' });
             this.$search = el(doc, 'pk-container', { padding: 'sm' }, el(doc, 'pk-stack', { gap: 'xs' }, this.$input, this.$status));
             this.$input.addEventListener('input', () => this.runSearch());
-            (this.config?.embedded ? this : this.$nav).prepend(this.$search);
+            if (this.config?.embedded) this.$summary.after(this.$search); else this.$nav.prepend(this.$search); // embedded: in the article's header, under the title (the host's own nav is what it filters)
             loadElements(this.$search);
         }
         const label = this.config?.searchLabel || 'Search';

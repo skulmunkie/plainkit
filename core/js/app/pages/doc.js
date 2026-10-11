@@ -17,10 +17,15 @@ export default (host, config = {}, ctx) => {
     data.anchor = data.anchor ?? ctx?.route?.query?.[anchorParam] ?? null;
     el.config = data;
     if (loadItem) el.loadItem = id => loadItem(id, ctx);
-    if (searchItems) el.searchItems = q => searchItems(q, ctx);
+    // The app's side nav is the item list (embedded): it is filtered here, in the page type, by the same search that fills the status line. Rows are told apart by their address.
+    const rows = () => [...host.ownerDocument.querySelectorAll('#pk-nav pk-nav-item[href]:not([data-module])')];
+    const only = ids => { const keep = ids && new Set(ids.map(id => el.href?.(id) ?? `#${id}`)); for (const n of rows()) n.hidden = !!keep && !keep.has(n.getAttribute('href')); };
+    const clear = e => { if (!String(e.target.value ?? '').trim()) only(null); };
+    if (searchItems) el.searchItems = q => { const r = searchItems(q, ctx); if (data.embedded) only(r?.ids); return r; };
+    if (data.embedded) el.addEventListener('input', clear);
     if (href) el.href = (id, anchor) => { const p = href(id, anchor, ctx); return ctx?.href?.(p) ?? p; }; // the element's links are router addresses (#/module/path), navigate() takes the path
     const go = e => { if (href && ctx?.navigate) ctx.navigate(href(e.detail.id, e.detail.anchor, ctx), { replace: !!e.detail.replace }); };
     el.addEventListener('pk-navigate', go);
     host.append(el);
-    return () => { el.removeEventListener('pk-navigate', go); el.remove(); };
+    return () => { el.removeEventListener('pk-navigate', go); el.removeEventListener('input', clear); if (data.embedded) only(null); el.remove(); };
 };

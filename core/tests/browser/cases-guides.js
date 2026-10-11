@@ -210,4 +210,21 @@ export const guidesAppCases = [
         const status = p.doc().querySelector(':scope > pk-container pk-text').textContent;
         t.ok(/mentioned in|titled/.test(status), `the status line names the guides that match: ${status}`);
     }],
+    ['guides module (app, 1280px and 375px): typing a body word filters the app side nav to the matching guides, clearing restores it, the deep link survives, and the search box sits under the title, not between the contents and the title (#1101)', async t => {
+        for (const width of [1280, 375]) {
+            const p = await openApp(t, '#/guides/theming', width);
+            const input = await until(() => p.doc().querySelector(':scope > pk-container pk-input'), 'the search box');
+            const shown = () => p.items().filter(i => !i.hidden && /\/guides\/[a-z-]+$/.test(i.getAttribute('href') ?? '')).map(i => i.getAttribute('href').split('/').pop());
+            t.eq(shown().length, 9, `${width}: every guide in the nav`);
+            const title = p.d.querySelector('.doc-page-title').getBoundingClientRect(), box = input.getBoundingClientRect();
+            t.ok(box.top >= title.bottom - 1, `${width}: the search box sits under the title (${box.top} vs ${title.bottom})`);
+            input.value = 'logger'; input.dispatchEvent(new Event('input', { bubbles: true, composed: true }));
+            await until(() => shown().length > 0 && shown().length < 9, `${width}: the nav to filter`);
+            t.ok(shown().length < 9 && p.items().filter(i => i.hidden).length > 0, `${width}: only the matching guides stay (${shown().join()})`);
+            t.ok(/logg/i.test(p.doc().querySelector(':scope > pk-container pk-text').textContent), `${width}: the status line still names them`);
+            t.eq(p.win.location.hash, '#/guides/theming', `${width}: the deep link is untouched`);
+            input.value = ''; input.dispatchEvent(new Event('input', { bubbles: true, composed: true }));
+            await until(() => shown().length === 9, `${width}: every guide again`);
+        }
+    }],
 ];
