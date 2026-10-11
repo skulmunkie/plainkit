@@ -208,7 +208,17 @@ export class Cdp {
 
 // ---- what runs inside the page (each is one async expression; the SDK's own modules are imported from the served origin) ----
 
+// Injected into every document the sweep tabs open, so the app inside a sweep frame (app.html) gets its gallery view's elements: the app scans for undefined pk-* elements when it paints
+// its shell and on a route change, and a view drawn after that (cold load of a #/gallery route) is left unstyled until something scans again. Frames cannot run code of the sweep's
+// own (no injected scripts, no eval under the site's CSP), so the runner does it here, once the view is drawn, until nothing is undefined.
+const FRAME_LOADER = `(() => { if (window === window.top) return;
+    const timer = setInterval(async () => { if (!location.pathname.endsWith('/app.html') || !document.querySelector('#gx-view > *')) return; const m = await import(location.origin + '/js/loader.js'); await m.loadElements(document);
+        if (!document.querySelector(':not(:defined)')) clearInterval(timer); }, 300); })()`;
+
 const IN_PAGE = {
+    // After a gallery route has loaded in the app: load the toolkit elements still undefined, until none is left (at most 5 s), then let the layout rest.
+    upgraded: `(async () => { const m = await import(location.origin + '/js/loader.js'); const open = () => document.querySelector('#gx-view > *') && [...document.querySelectorAll(':not(:defined)')].some(e => e.localName.startsWith('pk-'));
+        for (let i = 0; i < 20 && (i === 0 || open()); i++) { await m.loadElements(document); await new Promise(r => setTimeout(r, 250)); } })()`,
     // One tab's share of the sweep (options and shard are JSON); progress is read from window.__pk while it runs.
     sweep: options => `(async () => { const m = await import(location.origin + '/site/scorecard/sweep.js'); window.__pk = { done: 0, total: 0 };
         const r = await m.sweep({ ...${JSON.stringify(options)}, progress: (d, n) => { window.__pk = { done: d, total: n }; } }); return { checked: r.checked, failures: r.failures }; })()`,
@@ -275,7 +285,7 @@ async function sweepStage(cdp, options, deadline) {
         tabs.push(await new Cdp(t.webSocketDebuggerUrl).open());
     }
     try {
-        for (const t of tabs) { await t.send('Page.enable'); await t.send('Page.navigate', { url: `http://localhost:${options.port}/site/scorecard/sweep.js` }); }
+        for (const t of tabs) { await t.send('Page.enable'); await t.send('Page.addScriptToEvaluateOnNewDocument', { source: FRAME_LOADER }); await t.send('Page.navigate', { url: `http://localhost:${options.port}/site/scorecard/sweep.js` }); }
         await sleep(1000);
         for (const t of tabs) { await t.send('Page.bringToFront').catch(() => null); await t.send('Emulation.setFocusEmulationEnabled', { enabled: true }).catch(() => null); }
         const share = { kinds: options.kinds ?? SWEEP_KINDS, filter: options.filter, widths, themes, size: options.frames, fresh: options.fresh };
@@ -313,11 +323,11 @@ async function pagesStage(cdp, port, widths, deadline) {
     // the theme editor) are loaded once each too, undecorated, so a CLS regression in core/site/shell.js or a page's own late content shows up
     // here instead of only in the ad hoc node scripts/bench/pages.mjs run (#135).
     const shellPages = [
-        { label: 'gallery', url: `http://localhost:${port}/site/gallery/index.html?theme=dark` },
+        { label: 'gallery', url: `http://localhost:${port}/app.html?theme=dark#/gallery` },
         { label: 'scorecard', url: `http://localhost:${port}/app.html#/scorecard` },
         { label: 'theme editor', url: `http://localhost:${port}/app.html?theme=dark#/theme` },
     ];
-    const urls = [...shellPages, ...routes.map(r => ({ label: `gallery ${r}`, url: `http://localhost:${port}/site/gallery/index.html?theme=dark${r}` }))];
+    const urls = [...shellPages, ...routes.map(r => ({ label: `gallery ${r}`, url: `http://localhost:${port}/app.html?theme=dark#/gallery${r.slice(1)}` }))];
     let n = 0;
     for (const width of widths) {
         await cdp.send('Emulation.setDeviceMetricsOverride', { width, height: width <= 640 ? 812 : 900, deviceScaleFactor: 1, mobile: false });
@@ -327,6 +337,8 @@ async function pagesStage(cdp, port, widths, deadline) {
             await cdp.send('Page.navigate', { url: 'about:blank' }); await sleep(50);
             await cdp.send('Page.navigate', { url: u.url });
             await sleep(1800); // load, first paint and the elements' own first render
+            // The app draws a gallery view after its own element scan, so the view's pk-* elements can still be undefined (unstyled) here: ask the loader for them before the probe.
+            if (u.label.startsWith('gallery')) await cdp.eval(IN_PAGE.upgraded).catch(() => null);
             const probe = await cdp.eval(IN_PAGE.pageProbe(width <= 640)).catch(e => ({ findings: [{ check: 'probe-failed', severity: 'error', selector: 'document', message: e.message }], longTasks: [], cls: 0 }));
             const metrics = Object.fromEntries((await cdp.send('Performance.getMetrics').catch(() => ({ metrics: [] }))).metrics.map(x => [x.name, x.value]));
             const c = current; current = null;

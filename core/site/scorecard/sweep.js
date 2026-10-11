@@ -118,23 +118,23 @@ const sleep = ms => new Promise(r => later(globalThis, r, ms));
 // What a document looks like right now: deep node count (shadow trees included), scroll size and font state as one string (`text`), and `ready`:
 // loaded, every stylesheet applied, no toolkit element left undefined, the gallery's boot notice gone (it removes it when its shell is drawn).
 // Two equal readings in a row while ready mean nothing will change without new input. Reading it forces layout, so a resize or a late render shows up.
-export function signature(doc) {
+export function signature(doc, until = null) {
     if (!doc.documentElement || !doc.defaultView) return { text: '', ready: false }; // mid-navigation: no document yet
     const win = doc.defaultView; let nodes = 0; let undef = 0;
     const walk = scope => { for (const el of scope.querySelectorAll('*')) { nodes++; if (KNOWN_TAGS.has(el.localName) && !win.customElements.get(el.localName)) undef++; if (el.shadowRoot) walk(el.shadowRoot); } };
     if (doc.body) walk(doc.body);
     const styled = [...doc.querySelectorAll('link[rel=stylesheet]')].every(l => l.sheet);
     const de = doc.documentElement;
-    return { text: [nodes, de.scrollWidth, de.scrollHeight, doc.fonts?.status].join('|'), ready: doc.readyState === 'complete' && !!doc.body && nodes > 0 && undef === 0 && styled && !doc.getElementById('boot-notice') };
+    return { text: [nodes, de.scrollWidth, de.scrollHeight, doc.fonts?.status].join('|'), ready: doc.readyState === 'complete' && !!doc.body && nodes > 0 && undef === 0 && styled && !doc.getElementById('boot-notice') && (!until || !!doc.querySelector(until)) };
 }
 
 // Resolves when the frame's document has been ready and unchanged for QUIET_POLLS polls in a row: a condition, not a fixed sleep. Rejects at the
 // timeout, so a page that never settles is reported as an error cell and not measured half-drawn.
-export async function settled(f, { timeout = SETTLE_TIMEOUT_MS } = {}) {
+export async function settled(f, { timeout = SETTLE_TIMEOUT_MS, until = null } = {}) {
     const started = Date.now(); let last = null; let quiet = 0;
     for (;;) {
         const d = f.contentDocument;
-        const s = d ? signature(d) : { text: '', ready: false };
+        const s = d ? signature(d, until) : { text: '', ready: false };
         quiet = s.ready && s.text === last ? quiet + 1 : 0; last = s.text;
         if (quiet >= QUIET_POLLS) return f;
         if (Date.now() - started > timeout) throw new Error(`the frame did not settle within ${timeout / 1000} s (${s.ready ? 'still changing' : 'not ready'}: ${s.text})`);
@@ -162,7 +162,7 @@ const KINDS = ['views', 'templates', 'samples'];
 // filter: a list of substrings, an item is kept when its name contains one of them.
 export function items({ kinds = KINDS, filter = null } = {}) {
     const out = [];
-    if (kinds.includes('views')) for (const r of routes()) out.push({ name: `gallery ${r}`, kind: 'views', checkH1: true, src: theme => new URL(`../gallery/index.html?theme=${theme}${r}`, import.meta.url).href });
+    if (kinds.includes('views')) for (const r of routes()) out.push({ name: `gallery ${r}`, kind: 'views', checkH1: true, until: '#gx-view > *', src: theme => new URL(`../../app.html?theme=${theme}#/gallery${r.slice(1)}`, import.meta.url).href });
     if (kinds.includes('templates')) for (const t of TEMPLATE_FILES) for (const nav of ['side', 'top']) out.push({ name: `template ${t} (${nav} nav)`, kind: 'templates', checkH1: true, src: theme => new URL(`../../samples/templates/${t}?nav=${nav}&theme=${theme}`, import.meta.url).href });
     if (kinds.includes('samples')) for (const m of ELEMENTS) m.examples.forEach((x, i) => out.push({ name: `sample ${m.tag}#${i + 1}`, kind: 'samples', checkH1: false, doc: theme => sampleDoc(x.html, { theme }) }));
     return filter?.length ? out.filter(i => filter.some(x => i.name.includes(x))) : out;
@@ -181,7 +181,7 @@ async function sweepItem(item, { widths, themes, fresh }, out) {
             try {
                 if (fresh || !f) { f?.remove(); f = makeFrame(item, width, theme); }
                 else { f.dataset.dyn = `width:${width}px`; applyDynamic(f); f.contentDocument.documentElement.setAttribute('data-theme', theme); }
-                await settled(f);
+                await settled(f, { until: item.until });
                 cell(theme, width, measure(f.contentDocument, width, { checkH1: item.checkH1 }));
             } catch (e) {
                 cell(theme, width, { error: String(e.message ?? e), overflow: 0, smallTargets: 0, nestedScrollers: 0, smallText: 0, h1: null });
