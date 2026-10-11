@@ -21,7 +21,7 @@
 [part="action"] { flex: 1 1 auto; }
 
 [part="add-tile"] { position: relative; display: grid; align-self: start; aspect-ratio: 1; min-inline-size: 0; }
-[part="add"] { position: relative; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: var(--space-1); padding: var(--space-2); border: 1px dashed var(--color-border); border-radius: var(--pk-image-gallery-radius, var(--radius-lg)); background: var(--color-surface-alt); color: var(--color-muted); text-align: center; cursor: pointer; touch-action: manipulation; }
+[part="add"] { position: relative; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: var(--space-1); padding: var(--space-2); border: 1px dashed var(--color-border); border-radius: var(--pk-image-gallery-radius, var(--radius-lg)); background: var(--color-surface-alt); color: var(--color-muted-strong); text-align: center; cursor: pointer; touch-action: manipulation; }
 [part="add"]:hover { border-color: var(--color-accent); color: var(--color-text); }
 [part="add"]:focus-within { outline: var(--focus-ring); outline-offset: 2px; }
 [part="add-icon"] { font-size: var(--text-lg); line-height: 1; }
