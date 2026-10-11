@@ -34,6 +34,19 @@ export const galleryCases = [
         t.eq(log.filter(e => e.level === 'warn' || e.level === 'error').map(e => `${e.scope}: ${e.message}`).join('; '), '', 'nothing was logged as a problem');
     }],
 
+    ['gallery: the content of a card in a view is stacked with a gap, not flush (sections of tokens, spacing and the layout samples; #1161)', async t => {
+        const p = await open(t, '#/foundations/tokens', '', 375);
+        for (const hash of ['#/foundations/tokens', '#/foundations/spacing', '#/samples/layouts/responsive']) {
+            await p.go(hash); await until(() => p.view().querySelector('pk-card > pk-stack > *:nth-child(2)'), `a card with stacked content on ${hash}`); await wait(300);
+            const flush = [];
+            for (const card of p.view().querySelectorAll('pk-card')) {
+                const kids = [...card.children].filter(k => k.getBoundingClientRect().height > 0 && !k.slot);
+                for (let i = 1; i < kids.length; i++) if (kids[i].getBoundingClientRect().top - kids[i - 1].getBoundingClientRect().bottom < 1) flush.push(`${kids[i - 1].localName} -> ${kids[i].localName}`);
+            }
+            t.eq(flush.slice(0, 5).join('; '), '', `${hash}: no two blocks inside a card touch`);
+        }
+    }],
+
     ['gallery: mounting again ends the gallery on show, and destroy() leaves no listener, observer or timer behind and empties its container (#401)', async t => {
         const { mountGallery } = await import(new URL('../../site/gallery/gallery.js', import.meta.url).href);
         const inst = instrument();

@@ -410,7 +410,7 @@ const chromeHtml = () => {
             <div id="gx-resize" role="separator" aria-orientation="vertical" aria-label="Resize the inspector" tabindex="0" hidden></div>
             <pk-drawer docked id="gx-inspector" heading="Inspector" aria-label="Inspector"><div id="gx-inspector-body"></div></pk-drawer>
         </pk-stack>`;
-    return hosted ? `<pk-stack fill gap="none" id="gx-shell">${parts}</pk-stack>` : `<pk-app-shell flush id="gx-shell">${parts}</pk-app-shell>`;
+    return hosted ? `<pk-stack fill gap="none" data-flush id="gx-shell">${parts}</pk-stack>` : `<pk-app-shell flush id="gx-shell">${parts}</pk-app-shell>`;
 };
 
 const BARE_HTML = '<pk-stack gap="none" id="gx-shell"><div id="gx-view"></div></pk-stack>';
