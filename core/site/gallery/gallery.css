@@ -66,7 +66,8 @@ pk-app-shell:not(:defined) > .gx-nav { grid-column: 1; grid-row: 1 / span 6; }
 .gx-nav > pk-nav-item > pk-nav-item:not(:defined) { display: none; }
 .gx-tiles:not(:defined) { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(var(--_gx-el-group-min-w), 100%), 1fr)); gap: var(--space-4); }
 .gx-tile:not(:defined) { display: block; min-height: calc(var(--space-12) * 3 + var(--space-1)); }
-.gx-head:not(:defined) { display: block; min-height: calc(var(--space-12) + var(--space-3)); }
+.gx-head { line-height: 1.25; min-block-size: calc(var(--space-12) + var(--space-3)); } /* one box source in both states: a fixed line height (the platform font's "normal" gave 45px on Linux, 53px on Windows) and a floor the defined header honours too */
+.gx-head:not(:defined) { display: block; }
 
 /* The preview bar and the slim page bar are pk-toolbar rows in the shell's header, which draws the row's padding, border and background. The row's box is
    reserved before pk-toolbar and its buttons are defined (#135, #1076): an undefined toolbar is laid out as one nowrap row of the control height, and the Display menu's items stay out of it. */
