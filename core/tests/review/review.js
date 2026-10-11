@@ -4,6 +4,7 @@
 // screenshots each rect. The rules that judge the facts are in audit.js (pure, tested in Node).
 import { loadElement } from '../../site/gallery/gallery.data.js';
 import { loadElements, observeElements } from '../../js/loader.js';
+import { whenUpgraded } from './ready.js';
 import { applyDynamic } from '../../js/dynamic.js';
 import { createLogger } from '../../js/log.js';
 
@@ -159,8 +160,11 @@ function measure(stage) {
         // The standard "visually hidden" technique (u-sr-only, pk-skip-link before focus): shrunk to ~1px and clipped on purpose, off-screen but
         // still reachable by assistive tech, not a broken tap target or clipped content (issue 387).
         const hiddenVisually = ['absolute', 'fixed'].includes(cs.position) && r.width <= 1.5 && r.height <= 1.5 && (cs.overflow === 'hidden' || cs.overflowX === 'hidden' || cs.overflowY === 'hidden') && ((cs.clipPath && cs.clipPath !== 'none') || (cs.clip && cs.clip !== 'auto' && cs.clip !== ''));
+        // A control wrapped by a label (or labelled by one with `for`) is activated by clicking the label, so the label is its hit area (WCAG 2.2 SC 2.5.8).
+        let hitRect = null;
+        if (inter && el.labels?.length) { const l = [...el.labels].map(x => x.getBoundingClientRect()).sort((a, b) => b.width * b.height - a.width * a.height)[0]; if (l.width && l.height) hitRect = [l.width, l.height].map(v => Math.round(v * 10) / 10); }
         boxes.push({
-            id, parent, path: pathOf(el, stage), rect: [r.x + ox, r.y + oy, r.width, r.height].map(v => Math.round(v * 10) / 10),
+            id, parent, hitRect, path: pathOf(el, stage), rect: [r.x + ox, r.y + oy, r.width, r.height].map(v => Math.round(v * 10) / 10),
             inFlow: !['absolute', 'fixed'].includes(cs.position) && cs.float === 'none' && !el.hasAttribute('popover'),
             clipX, clipY, interactive: inter, inlineLink: el.localName === 'a' && cs.display === 'inline', name: inter ? nameOf(el) : '',
             textColor: ownText && bg && Number(cs.opacity) === 1 ? rgba(cs.color) : null, bg, fontSize: parseFloat(cs.fontSize), bold: Number(cs.fontWeight) >= 700,
@@ -187,7 +191,7 @@ try {
         root.append(title, stage);
         applyDynamic(stage);
         await loadElements(stage, { registry });
-        await Promise.all([...new Set([...stage.querySelectorAll('*')].map(e => e.localName).filter(n => n.includes('-')))].map(n => customElements.whenDefined(n).catch(e => log.warn(`${n} never defined`, e))));
+        await whenUpgraded(stage, { load: n => loadElements(n, { registry }), log }); // shadow trees included (ready.js)
         await idle();
     }
     await idle();

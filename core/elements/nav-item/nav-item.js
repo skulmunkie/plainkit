@@ -9,6 +9,7 @@ export default Base => class extends Base {
     setup() {
         if (this.$w) return;
         this.$w = true;
+        for (const n of ['icon', 'badge']) this.watchSlot(n, () => { this.part(n).hidden = this.slotted(n).length === 0; });
         this.shadowRoot.addEventListener('click', e => { if (!this.href && e.target.closest?.('[part="link"]')) this.branch(); });
         this.shadowRoot.addEventListener('keydown', e => { if (!this.href && isActivateKey(e)) { e.preventDefault(); this.branch(); } });
         this.addEventListener('pointerover', e => { if (e.pointerType === 'mouse' && this.rail && !this.href && !this.flyout && this.children.length) this.flyout = true; });

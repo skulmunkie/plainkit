@@ -222,4 +222,21 @@ export const P_RULES = [
             return hits;
         },
     },
+    {
+        id: 'P10',
+        category: 'P',
+        detects: 'a page factory that hand-rolls an AbortController, a busy/loading flag and its own dispose instead of createLifecycle',
+        severity: { normal: 'warn', strict: 'warn' },
+        docs: 'docs/superpowers/specs/2026-10-11-page-base-design.md#34-audit',
+        fixTemplate: 'FIX: {file}:{line} hand-rolls an AbortController with a busy flag and its own teardown. Use createLifecycle({ page, signal }) from plainkit/page-lifecycle.js: it cancels a superseded load, tracks busy and error, and releases on destroy. [P10]',
+        applies: isScript,
+        scan(file) {
+            const t = file.text;
+            if (/\bcreateLifecycle\b/.test(t)) return [];
+            const ac = /\bnew\s+AbortController\s*\(/.exec(t);
+            if (!ac || !/\b(?:let|var)\s+(?:busy|isBusy|loading|isLoading)\b|\b(?:busy|isBusy|loading|isLoading)\s*=\s*(?:true|false)\b/.test(t)) return [];
+            if (!/\b(?:destroy|dispose|disconnectedCallback)\b/.test(t)) return [];
+            return [hitAt(t, ac.index, 'AbortController')];
+        },
+    },
 ];

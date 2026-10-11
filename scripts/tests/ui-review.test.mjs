@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { changedFromFiles, dependentsFromIndex, metaRenders, parseArgs, selectElements, shardOf, shotName, groupFindings, sumPhases, mergeManifests, jobArgs } from '../ui-review.mjs';
+import { changedFromFiles, dependentsFromIndex, metaRenders, parseArgs, selectElements, shardOf, balancedShardOf, shotName, groupFindings, sumPhases, phasesOf, mergeManifests, jobArgs } from '../ui-review.mjs';
 import { auditFacts, contrastRatio, summarize } from '../../core/tests/review/audit.js';
 
 const known = new Set(['page-header', 'breadcrumb']);
@@ -45,6 +45,26 @@ test('arguments: names or tags, --all excludes --elements, unknown flags are ref
     assert.throws(() => parseArgs(['--out']), /needs a value/);
 });
 
+test('balanced shards (--jobs): disjoint, cover the list, deterministic, near the mean cost, every-nth without weights', () => {
+    const list = Array.from({ length: 20 }, (_, i) => ({ name: `s${i}` }));
+    const weights = Object.fromEntries(list.map((s, i) => [s.name, i === 0 ? 50 : (i * 7) % 13 + 1]));
+    const parts = n => Array.from({ length: n }, (_, i) => balancedShardOf(list, i + 1, n, weights));
+    for (const n of [1, 3, 4]) {
+        const p = parts(n);
+        assert.deepEqual(p.flat().map(s => s.name).sort(), list.map(s => s.name).sort());
+        assert.deepEqual(p, parts(n));
+        const load = p.map(x => x.reduce((a, s) => a + weights[s.name], 0));
+        assert.ok(Math.max(...load) <= load.reduce((a, b) => a + b, 0) / n + 50, `heaviest shard ${Math.max(...load)} exceeds mean + largest item`);
+        p.forEach(x => assert.deepEqual(x, list.filter(s => x.includes(s))));
+    }
+    const even = shardOf(list, 1, 4).map(s => s.name).join();
+    assert.equal(balancedShardOf(list, 1, 4, null).map(s => s.name).join(), even);
+    assert.equal(balancedShardOf(list, 1, 4, {}).map(s => s.name).join(), even);
+    assert.equal(balancedShardOf(list, 1, 4, { s3: 5 }, s => s.name).length > 0, true); // unknown items weigh the mean
+    assert.deepEqual(jobArgs(['--jobs', '2'], 1, 2, '/o', '/w.json'), ['--shard', '1/2', '--out', '/o', '--weights', '/w.json']);
+    assert.equal(parseArgs(['--weights', 'w.json']).weights, 'w.json');
+});
+
 test('shards are disjoint, cover the selection, and 1/1 is the whole run', () => {
     const list = Array.from({ length: 10 }, (_, i) => `e${i}`);
     for (const n of [1, 3, 4, 12]) {
@@ -55,6 +75,14 @@ test('shards are disjoint, cover the selection, and 1/1 is the whole run', () =>
     assert.deepEqual(shardOf(list, 1, 1), list);
     assert.deepEqual(parseArgs(['--shard', '2/4']).shard, { k: 2, n: 4 });
     for (const bad of ['0/4', '5/4', 'a/b', '2']) assert.throws(() => parseArgs(['--shard', bad]), /--shard needs/);
+});
+
+test('a scenario\'s phases add up to its time within rounding, the unmeasured rest named steps', () => {
+    const p = phasesOf({ open: 1234, wait: 3050, settle: 2210, audit: 480, screenshot: 391 }, 9000);
+    assert.equal(p.steps, 1.6);
+    const sum = Object.values(p).reduce((a, b) => a + b, 0);
+    assert.ok(Math.abs(sum - 9) <= 0.05 * Object.keys(p).length, `${sum} vs 9`);
+    assert.equal(phasesOf({ wait: 500 }, 400).steps, 0, 'never negative');
 });
 
 test('phase times add up across scenarios', () => {
@@ -99,6 +127,13 @@ test('tap targets count on the phone only, and inline links are exempt', () => {
     assert.deepEqual(rules(facts([{ ...small, inlineLink: true }], phone)), []);
 });
 
+test('a small control inside a big enough label is not a tap-target finding; a bare small input still is (issue 1003, WCAG 2.2 SC 2.5.8)', () => {
+    const input = box({ interactive: true, name: 'Agree', rect: [0, 0, 16, 16] });
+    assert.deepEqual(rules(facts([{ ...input, hitRect: [200, 44] }], phone)), []);
+    assert.deepEqual(rules(facts([{ ...input, hitRect: [200, 20] }], phone)), ['tap-target'], 'a label that is itself too small does not help');
+    assert.deepEqual(rules(facts([input], phone)), ['tap-target']);
+});
+
 test('a standard visually-hidden element (pk-skip-link before focus, a u-sr-only live region) is not a clipped-content or tap-target finding', () => {
     const skipLink = box({ interactive: true, name: 'Skip to content', rect: [0, 0, 1, 1], clipX: true, hiddenVisually: true });
     assert.deepEqual(rules(facts([skipLink], phone)), []);
@@ -124,6 +159,12 @@ test('siblings that cross overlap; nesting and out-of-flow boxes do not', () => 
     assert.deepEqual(rules(facts([a, { ...crossing, parent: 9 }])), []);
     assert.equal(summarize(auditFacts(facts([a, crossing])), { strict: true }).ok, false);
     assert.equal(summarize(auditFacts(facts([a, crossing]))).ok, true, 'a warning alone does not fail');
+});
+
+test('boxes that touch are not overlap: 0.1px of rounding across a wide row is not 96px2 (#1121), 2px is', () => {
+    const row = box({ id: 1, rect: [249.5, 1689.7, 961, 19.3] });
+    assert.deepEqual(rules(facts([row, box({ id: 2, rect: [249.5, 1708.9, 961, 38] })])), []);
+    assert.deepEqual(rules(facts([row, box({ id: 2, rect: [249.5, 1707, 961, 38] })])), ['overlap']);
 });
 
 test('findings seen in several combinations are one line', () => {

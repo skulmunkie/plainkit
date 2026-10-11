@@ -8,7 +8,7 @@ import { applyDynamic } from '../../js/dynamic.js';
 // Render and lay out a pk-table of n product rows off-screen, in ms. The status cell is plain text: the test times the table, not n badge elements.
 export function timeRows(doc, n) {
     const host = doc.createElement('div');
-    host.dataset.dyn = 'position:absolute; left:var(--sc-frames-offscreen); top:0; width:var(--sc-measure-host-w)';
+    host.dataset.dyn = 'position:absolute; left:var(--_sc-frames-offscreen); top:0; width:var(--_sc-measure-host-w)';
     doc.body.append(host);
     applyDynamic(doc);
     const el = (tag, text, ...kids) => { const e = doc.createElement(tag); if (text !== undefined) e.textContent = text; e.append(...kids); return e; };

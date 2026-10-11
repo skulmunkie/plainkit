@@ -11,9 +11,9 @@
 //
 //   header         ONE menu control (the hamburger: the drawer on a phone or tablet, hide and show the column on a wide screen), the brand, the header search and the settings menu
 //                  (the theme switch and the modules marked menu: 'settings'); the bar's own fold toggle is off (pk-navbar no-fold)
-//   side nav       layout 'side' (the default): the modules are the top-level sections, the ACTIVE one open and holding its own nav (def.nav); on a narrow screen the same list is the drawer.
-//                  layout 'top' (the exception, for a tiny app): the module links are in the bar and the nav holds only the active module's entries; narrow, the drawer starts with the
-//                  module list. Both render ONE menu tree (js/app/nav.js menuTree)
+//   side nav       the ACTIVE module's own nav (def.nav), in full, and nothing else; a module without one leaves the column empty (no reflow), and no drawer body narrow. On a narrow screen the same tree is the drawer.
+//   module picker  the one way to switch modules (#388): a dropdown in the bar showing the active module's title (the settings menu's popover shape); narrow, the drawer's first row instead.
+//                  Absent with one module. Its title is the ONE value the breadcrumb, the document title and the menu label read
 //   breadcrumbs    App > Module > the nav entry the route belongs to > the route labels (a record route sits under its list in the route tree); the document title is the last crumb and the app title
 //   search         pk-app-bar-search; results come from the active module's def.search(query, ctx), else from its nav; ctx.search = { query, subscribe(fn) }
 //   theme          ?theme= wins over the stored choice, which wins over config.theme.default; kept in the store ('<prefix>.app'), whoever changes data-theme
@@ -43,10 +43,11 @@ import { createModuleHost } from './host.js';
 import { lazyServices } from './lazy.js';
 import { readConfig, readFooter } from './config.js';
 import { buildShell, footerNodes } from './shell.js';
-import { navOf, absolute, menuTree, paintNav, paintLinks, pageContext, routeContext, markCurrent, searchNav } from './nav.js';
+import { navOf, absolute, paintNav, pageContext, routeContext, markCurrent, searchNav } from './nav.js';
 
 const log = createLogger('app');
-const LABELS = { 'not-found': 'Not found', forbidden: 'Not allowed', error: 'Something went wrong' }; // the last crumb of a page that is not a page
+// the last crumb of a page that is not a page
+const LABELS = { 'not-found': 'Not found', forbidden: 'Not allowed', error: 'Something went wrong' };
 
 export function mountApp(container, config) {
     const cfg = readConfig(config);
@@ -89,37 +90,39 @@ export function mountApp(container, config) {
     ui.themeItem.addEventListener('pk-select', () => toggleTheme(root));
 
     // ---- what the reader sees for the module that is mounted ----
-    // side (the default): the one nav is the module list, the active module a section holding its own entries. top: the bar holds the module links and the nav only the active
-    // module's entries; below the bar's fold point the bar has no links and the drawer starts with the module list. Either way a narrow screen has ONE menu, the drawer.
-    const side = cfg.layout === 'side', narrow = mediaBelow('tablet');
+    // The side nav is the active module's own tree. The module picker (#388) switches modules: in the bar when wide, the drawer's first row when narrow (ONE menu on a phone, the drawer).
+    // `modTitle` is its value; the breadcrumb and the menu label read it too.
+    const narrow = mediaBelow('tablet'), mods = cfg.modules.filter(m => !m.menu), pick = mods.length > 1;
+    let modTitle = '';
     function drawNav() {
-        const a = host.current(), small = !side && narrow.matches;
+        const a = host.current(), inDrawer = pick && narrow.matches;
         nav = a ? navOf(a.def, a.ctx) : [];
         routes = navRoutes(nav);
         rows = null;
-        const shown = absolute(nav, path => moduleHref(a.id, path)), tree = menuTree(cfg.modules, hrefOf, a?.id, shown), title = nav.length ? entries.get(a.id).title : '';
-        for (const link of ui.navbar.querySelectorAll('a[data-module]')) link.remove();
-        if (!side) ui.actions.before(...paintLinks(doc, tree));
-        if (!side && !nav.length && !small) { ui.sideNav.remove(); ui.toggle.remove(); ui.skipNav.remove(); return; }
-        ui.sideNav.setAttribute('label', side || small ? 'Menu' : `${title} menu`);
-        rows = paintNav(doc, ui.sideNav, side ? [{ items: tree }] : [...(small ? [{ heading: 'Modules', items: tree.map(({ children, ...it }) => it) }] : []), { heading: small && nav.length ? title : '', items: shown }]);
+        modTitle = a ? entries.get(a.id).title : '';
+        ui.picker.toggleAttribute('hidden', !pick || inDrawer);
+        ui.picker.firstChild.firstChild.textContent = modTitle || 'Modules';
+        if (a && !nav.length && !inDrawer && narrow.matches) { ui.sideNav.remove(); ui.toggle.remove(); ui.skipNav.remove(); return; }
+        ui.sideNav.setAttribute('label', modTitle && !inDrawer ? `${modTitle} menu` : 'Menu');
+        const list = mods.map(m => ({ id: `module:${m.id}`, title: m.title, icon: m.icon, module: m.id, href: hrefOf(`/${m.id}`), active: m.id === a?.id }));
+        rows = paintNav(doc, ui.sideNav, [{ items: [...(inDrawer ? [{ id: 'module:picker', title: modTitle || 'Modules', children: list }] : []), ...absolute(nav, path => moduleHref(a.id, path))] }]);
         ui.shell.append(ui.sideNav, ui.toggle);
         ui.skip.after(ui.skipNav);
         loadElements(container);
     }
     const here = a => pageContext(a.def, routes, a.route.path, routeContext(a.def, a.route));
     const mark = () => { const a = host.current(); if (rows && a && status === 'ok') markCurrent(rows, here(a).ids); };
-    const relayout = () => { drawNav(); mark(); };
-    if (!side) narrow.addEventListener('change', relayout);
-    // A wide side layout has the side nav's own collapse chevron (icon rail): a second hamburger hiding the same nav would duplicate it (#448), so there the menu control only opens the drawer.
-    const syncToggle = () => ui.toggle.toggleAttribute('hidden', side && !narrow.matches);
-    narrow.addEventListener('change', syncToggle);
+    // A wide screen has the side nav's own collapse chevron (icon rail): a second hamburger hiding the same nav would duplicate it (#448), so there the menu control only opens the drawer.
+    const syncToggle = () => ui.toggle.toggleAttribute('hidden', !narrow.matches);
+    const onNarrow = () => { drawNav(); mark(); syncToggle(); };
+    narrow.addEventListener('change', onNarrow);
     syncToggle();
-    drawNav(); // the menu is in the page from the first paint: nothing moves when the first module arrives
+    // the menu is in the page from the first paint: nothing moves when the first module arrives
+    drawNav();
 
     function trail(a) {
         const inner = status === 'ok' && a.route.path !== '/' ? here(a).crumbs.filter(c => c.href !== '/').map(c => ({ label: c.label, href: c.href && moduleHref(a.id, c.href) })) : [];
-        return [{ label: cfg.brand.text, href: hrefOf('/') }, ...(a ? [{ label: entries.get(a.id).title, href: moduleHref(a.id) }] : []), ...inner, ...(LABELS[status] ? [{ label: LABELS[status] }] : [])];
+        return [{ label: cfg.brand.text, href: hrefOf('/') }, ...(a ? [{ label: modTitle, href: moduleHref(a.id) }] : []), ...inner, ...(LABELS[status] ? [{ label: LABELS[status] }] : [])];
     }
 
     // A module's own `footer` ({ text, links }, or false for none) replaces the app's while it is active; a bad one is logged and the app footer stays.
@@ -132,7 +135,8 @@ export function mountApp(container, config) {
 
     function settle(result) {
         const a = host.current();
-        status = result === 'error' && a ? 'ok' : result; // a page that failed leaves the module (and its trail) as it was; nothing mounted shows the error crumb
+        // a page that failed leaves the module (and its trail) as it was; nothing mounted shows the error crumb
+        status = result === 'error' && a ? 'ok' : result;
         if (a?.id !== active) { active = a?.id ?? null; drawNav(); if (a?.def.footer !== undefined || footerCustom) drawFooter(a); footerCustom = a?.def.footer !== undefined; }
         mark();
         const crumbs = trail(a).map((c, i, all) => (i === all.length - 1 ? { label: c.label } : c));
@@ -152,8 +156,10 @@ export function mountApp(container, config) {
 
     async function render() {
         const cur = router.current(), n = ++seq;
-        if (ui.sideNav.open) ui.sideNav.hide(); // a chosen page closes the drawer at once, not after it has loaded
-        if (cur.url.split('/')[1] !== active) subs.clear(); // ctx.search subscribers end with their module, before the next one mounts and subscribes
+        // a chosen page closes the drawer at once, not after it has loaded
+        if (ui.sideNav.open) { ui.sideNav.hide(); if (pick) ui.sideNav.firstElementChild?.removeAttribute('expanded'); }
+        // ctx.search subscribers end with their module, before the next one mounts and subscribes
+        if (cur.url.split('/')[1] !== active) subs.clear();
         const result = await host.open(cur.url, cur.query);
         if (n === seq && !dead && result !== 'superseded') settle(result);
     }
@@ -190,7 +196,8 @@ export function mountApp(container, config) {
         clearTimeout(timer);
         const entry = id && MODULE_ID.test(id) && entries.get(id);
         if (!entry || warm.has(id) || globalThis.navigator?.connection?.saveData) return;
-        timer = setTimeout(() => { warm.add(id); Promise.resolve().then(entry.load).catch(e => log.warn(`prefetch failed: "${id}"`, e)); }, 100); // ms: the prefetch delay
+        // ms: the prefetch delay
+        timer = setTimeout(() => { warm.add(id); Promise.resolve().then(entry.load).catch(e => log.warn(`prefetch failed: "${id}"`, e)); }, 100);
     }
 
     return {
@@ -203,12 +210,9 @@ export function mountApp(container, config) {
             stopRoute();
             router.destroy();
             themeWatch.disconnect();
-            narrow.removeEventListener('change', relayout);
-            narrow.removeEventListener('change', syncToggle);
+            narrow.removeEventListener('change', onNarrow);
             await host.destroy();
-            tasks.destroy();
-            notify.destroy();
-            dialogs.destroy();
+            for (const svc of [tasks, notify, dialogs]) svc.destroy();
             page.destroy();
             store.destroy();
             container.replaceChildren();

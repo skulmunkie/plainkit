@@ -20,7 +20,7 @@ export default {
     steps: [
         { shot: 'rest' },
         { set: '#list', prop: 'demoDrag', value: true }, { wait: 700 }, { shot: 'scrolled-while-dragging' },
-        { set: '#list', prop: 'demoDrag', value: false }, { wait: 100 },
+        { set: '#list', prop: 'demoDrag', value: false }, 
     ],
     expect(t) {
         const first = t.rect('#list pk-sortable-item');

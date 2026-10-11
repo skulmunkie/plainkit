@@ -11,12 +11,12 @@ import { on } from '../js/mount-support.js';
 const PK_ROOT = new URL('../', import.meta.url).href;
 export const PAGES = [
     { key: 'gallery', title: 'Gallery', href: '../gallery/index.html' },
-    { key: 'files', title: 'Files', href: '../files/index.html' },
-    { key: 'scorecard', title: 'Scorecard', href: '../scorecard/index.html' },
-    { key: 'theme', title: 'Theme editor', href: '../theme/index.html' },
-    { key: 'layout-builder', title: 'Layout builder', href: '../layout-builder/index.html' },
+    { key: 'files', title: 'Files', href: '../../app.html#/files' },
+    { key: 'scorecard', title: 'Scorecard', href: '../../app.html#/scorecard' },
+    { key: 'theme', title: 'Theme editor', href: '../../app.html#/theme' },
+    { key: 'layout-builder', title: 'Layout builder', href: '../../app.html#/layout-builder' },
     { key: 'guides', title: 'Guides', href: '../guides/index.html' },
-    { key: 'devtools', title: 'Dev tools', href: '../devtools/index.html' },
+    { key: 'devtools', title: 'Dev tools', href: '../../app.html#/devtools' },
 ];
 
 const THEME_KEY = 'pk-site-theme';
@@ -52,7 +52,7 @@ export function mountShell({ page, title, search = null }) {
             h('pk-dropdown', { placement: 'bottom-end' },
                 h('pk-button', { slot: 'trigger', variant: 'ghost', icon: true, label: 'Settings menu' }, h('pk-icon', { name: 'settings' })),
                 themeItem,
-                h('pk-menu-item', { href: '../settings/index.html', 'aria-current': page === 'settings' ? 'page' : false }, 'Settings'))));
+                h('pk-menu-item', { href: '../../app.html#/settings', 'aria-current': page === 'settings' ? 'page' : false }, 'Settings'))));
     // A page that reserves the bar's space with a .site-boot-bar placeholder (site.css) gets it swapped in place, so the swap itself never
     // shifts anything (#135); a page without one falls back to the old prepend.
     const bootBar = document.querySelector('.site-boot-bar');

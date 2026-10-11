@@ -23,15 +23,16 @@ Only things that exist today are listed. A dash means there is no ready-made pie
 
 | Page type or job | Start from | In an app (SDK) | In Blazor |
 |---|---|---|---|
-| Whole app frame: side nav, header, body | Template `overlays-nav` for the composition; element `pk-app-shell` with `pk-side-nav` or `pk-navbar` | `mountApp` with modules (see [Build an app](build-an-app.md)) | `PkAppShell`, `PkSideNav` |
+| Whole app frame: side nav, header, body | Template `app` (a runnable app); template `overlays-nav` for the composition; element `pk-app-shell` with `pk-side-nav` or `pk-navbar` | `mountApp` with modules (see [Build an app](build-an-app.md)) | `PkAppShell`, `PkSideNav` |
 | A plain content page: breadcrumbs, title, actions, content, footer | Template `page`; element `pk-page-header` | `mountPage` with `custom`, or `doc` for long-form text | `PkPageHeader`, or `PageBase` for its state |
 | Static informational page: a heading and a block of prose, no data | Template `page`; elements `pk-heading`, `pk-card` | Page type `note` | `PkNotePage` |
 | List page (search, table, rows open a record) | Template `routed-pair`; layout `list`; element `pk-data-table` | Page type `list` | `PkTable`, or `PkDataTable` when the server pages, searches and sorts |
 | A list and its record | Template `routed-pair`: two routed pages, `/things` and `/things/{id}` (the default; see "Which list shape" below) | Page types `list` and `record`, the record route under the list | `PkDataTable` or `PkTable`; routes and `NavigationManager` for the record |
-| Record create and edit | Layout `record`; layout `record-detail` (main body plus sticky sidebar); element `pk-detail-layout` | Page type `record` | `PkRecordForm` with `PkFieldGroup` and `PkRecordEditor` |
+| Record create and edit | Layout `record`; layout `record-detail` (main body plus sticky sidebar); element `pk-record-form` (toolbar, tabs, error, sidebar around your form) or `pk-detail-layout` | Page type `record` | `PkRecordForm` with `PkFieldGroup` and `PkRecordEditor` |
 | Read-only record or key figures | Layout `record-detail`; elements `pk-field-list`, `pk-stat` | Page type `record` with `editable: false` | `PkFieldList`, `PkStat` |
 | Settings form | Template `form`; pattern `unsaved-settings` for a sticky save bar; elements `pk-form`, `pk-form-section` | Page type `settings` | `PkForm` with `PkFormSection` |
 | Long form built from a list of fields | Pattern `forms` for the controls, or `pk-field-group` to draw them from a list of field specs | Page type `record` | `PkFieldGroup` with `PkFieldSpec` |
+| Print a document, edit a design, show tokens | `pk-print-page`, `pk-canvas`, `pk-design-surface`, `pk-specimen`; `pk-page-shell` for a headed page | Page type `print`; else `custom` | `PkPrintPage`, `PkCanvas`, `PkDesignSurface`, `PkSpecimen`, `PkPageShell` |
 | Dashboard or report | Template `dashboard`; pattern `data-display`; elements `pk-stat`, `pk-chart`; for tabbed, independently loading widgets with filters `pk-dashboard-page` | Page type `dashboard` | `PkStat`, `PkChart`, `PkDashboardPage` |
 | Search | Pattern `search-results`; element `pk-app-bar-search` in the shell header; `pk-command-palette` for a keyboard launcher | `search` in the app config, or `search(query, ctx)` on a module | `PkAppBarSearch`, `PkCommandPalette` |
 | Filtered table | Pattern `filter-table` (a `pk-data-table`); element `pk-table-filters` | Page type `list` (its `filters`) | `PkTableFilters`, `PkDataTable` |
@@ -130,9 +131,13 @@ Write your own only when the SDK has nothing for the job and composing existing 
 
 ```razor
 <PkRecordForm OnValid="SaveAsync" Busy="_busy" Error="@_error">
-    <PkCard Heading="Details">
-        <PkFieldGroup TItem="Location" Fields="_fields" Model="_location" />
-    </PkCard>
+    <form @onsubmit:preventDefault>
+        <PkStack>
+            <PkCard Heading="Details">
+                <PkFieldGroup TItem="Location" Fields="_fields" Model="_location" />
+            </PkCard>
+        </PkStack>
+    </form>
 </PkRecordForm>
 
 @code {

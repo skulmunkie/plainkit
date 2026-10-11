@@ -63,3 +63,4 @@ _site/
 
 ## The UI review output (node scripts/ui-review.mjs): screenshots and a manifest for the pull request, never committed
 review-output/
+review-cache/

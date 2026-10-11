@@ -251,6 +251,7 @@ export const appCases = [
 
     ['workspace page type (#353): mounted and destroyed 100 times leaves no listener, observer, timer or element behind, and every consumer handle is destroyed exactly once', async t => {
         const { mountPage } = await dist('js/app.js');
+        await t.load(t.stage('<pk-workspace-page></pk-workspace-page>')); // loaded on demand: define it first, so the case also passes on its own
         const box = document.createElement('div'); t.stage('').append(box);
         let mounts = 0, destroys = 0;
         const config = { panes: ['nav', 'aside'], mount: (panes, ctx) => {
@@ -283,6 +284,7 @@ export const appCases = [
 
     ['workspace page type (#353): the loading state shows while mount() is pending, a rejection shows the danger alert with a working Retry, and the panes are untouched by the state', async t => {
         const { mountPage } = await dist('js/app.js');
+        await t.load(t.stage('<pk-workspace-page></pk-workspace-page>'));
         const box = document.createElement('div'); t.stage('').append(box);
         let attempts = 0, release;
         const page = await mountPage(box, { type: 'workspace', config: { mount: (panes, ctx) => {
@@ -308,6 +310,7 @@ export const appCases = [
 
     ['record page type (#353): mounted and destroyed 100 times leaves no listener (the leave guard included), observer, timer or element behind', async t => {
         const { mountPage } = await dist('js/app.js');
+        await t.load(t.stage('<pk-record-page></pk-record-page><pk-heading></pk-heading>')); // mountPage waits for these, loaded on demand: define them first, so the case also passes on its own (--elements)
         const box = document.createElement('div'); t.stage('').append(box);
         const config = { fields: [{ name: 'name', label: 'Name', required: true }], sidebar: [{ heading: 'Summary', fields: ['name'] }], load: async () => ({ name: 'Widget' }), save: async () => {}, mode: 'edit' };
         const cycle = async () => {
@@ -334,6 +337,7 @@ export const appCases = [
 
     ['record page type (#353): loading while load() is pending, a rejection shows the danger alert with a working Retry, edit shows the form and a server error lands on its field', async t => {
         const { mountPage } = await dist('js/app.js');
+        await t.load(t.stage('<pk-record-page></pk-record-page><pk-heading></pk-heading><pk-form></pk-form><pk-field-list></pk-field-list><pk-field></pk-field>')); // loaded on demand: define them first, so the case also passes on its own (--elements)
         const box = document.createElement('div'); t.stage('').append(box);
         let attempts = 0, release;
         const page = await mountPage(box, { type: 'record', config: { id: '1', fields: [{ name: 'name', label: 'Name', required: true }], load: () => {
@@ -461,6 +465,32 @@ export const appCases = [
         host.replaceChildren();
     }],
 
+    ['pk-doc-page: the stack of breadcrumb, title, summary, body and pager has even gaps (the scorecard inconsistent-gaps measure, 6px) on a phone, a tablet and a desktop, as a guide and as the home list (#402)', async t => {
+        for (const [width, query] of [[375, ''], [1024, ''], [1280, ''], [375, '?cards'], [1024, '?cards']]) {
+            const host = t.stage(''), fr = document.createElement('iframe');
+            fr.title = `doc page at ${width}px`; fr.style.cssText = `width:${width}px;height:900px;border:0;display:block`;
+            fr.src = new URL(`./doc-page-frame.html${query}`, import.meta.url).href;
+            await new Promise(resolve => { fr.addEventListener('load', resolve, { once: true }); host.append(fr); });
+            const win = fr.contentWindow, d = win.document;
+            const el = d.querySelector('pk-doc-page'); await until(() => win.customElements.get('pk-doc-page'), 'the doc page to upgrade');
+            await until(() => el.querySelector('.doc-page-title')?.textContent && (query ? el.querySelector('pk-grid pk-card') : el.querySelector('h2#one') && el.querySelector('pk-pager')), 'the page to draw', 150);
+            // Readiness, not time: every pk-* the page drew is defined, fonts are loaded and two frames have laid it out.
+            await Promise.all([...new Set([el, ...el.querySelectorAll('*')].map(n => n.localName).filter(n => n.includes('-')))].map(n => win.customElements.whenDefined(n)));
+            await d.fonts.ready; await new Promise(r => win.requestAnimationFrame(() => win.requestAnimationFrame(r)));
+            const gaps = [];
+            const kids = [...el.children].filter(k => { const r = k.getBoundingClientRect(), p = win.getComputedStyle(k).position; return r.width > 0 && r.height > 0 && p !== 'absolute' && p !== 'fixed'; });
+            for (let i = 1; i < kids.length; i++) { const a = kids[i - 1].getBoundingClientRect(), b = kids[i].getBoundingClientRect(); if (b.top >= a.bottom - 1) gaps.push(Math.round((b.top - a.bottom) * 10) / 10); }
+            if (!query) {
+                // The horizontal layout is untouched by the gap fix: the columns (article, then the contents when side by side) are centred in the page with the --space-8 column gap.
+                const page = el.shadowRoot.querySelector('[part="page"]'), art = el.shadowRoot.querySelector('[part="article"]'), cs = win.getComputedStyle(page);
+                const tracks = cs.gridTemplateColumns.split(' ').map(parseFloat), colGap = parseFloat(cs.columnGap), pr = page.getBoundingClientRect();
+                const expected = pr.left + (pr.width - tracks.reduce((a, b) => a + b, 0) - colGap * (tracks.length - 1)) / 2;
+                t.ok(Math.abs(art.getBoundingClientRect().left - expected) <= 1, `${width}px: the article's left edge is where the centred columns put it (${art.getBoundingClientRect().left} vs ${expected}; tracks ${cs.gridTemplateColumns}, column gap ${cs.columnGap})`);
+                t.eq(tracks.length === 2 ? colGap : 0, tracks.length === 2 ? parseFloat(win.getComputedStyle(d.documentElement).getPropertyValue('--space-8')) * (/rem$/.test(win.getComputedStyle(d.documentElement).getPropertyValue('--space-8').trim()) ? parseFloat(win.getComputedStyle(d.documentElement).fontSize) : 1) : 0, `${width}px: the column gap is --space-8`);
+            }            t.ok(gaps.length >= 2 && Math.max(...gaps) - Math.min(...gaps) <= 6, `${width}px ${query || 'guide'}: the vertical gaps between the article's children differ by no more than 6px (${kids.map(k => k.localName).join(' | ')}: ${gaps.join(', ')})`);
+        }
+    }],
+
     ['pk-doc-page: the article body and the pk-toc it owns are light DOM the toc can address by id, a same-page link scrolls and emits pk-navigate without touching history, and mounting/unmounting 100 times leaves no listener behind (#353)', async t => {
         const el = document.createElement('pk-doc-page');
         el.config = { items: [{ id: 'a', title: 'Guide A', summary: 'About A' }, { id: 'b', title: 'Guide B' }], id: 'a', search: true };
@@ -499,6 +529,7 @@ export const appCases = [
 
     ['master-detail page type (#353): mounted and destroyed 100 times, opening and closing a record each time, leaves no listener, observer, timer or element behind, and every record handle is destroyed exactly once', async t => {
         const { mountPage } = await dist('js/app.js');
+        await t.load(t.stage('<pk-master-detail-page></pk-master-detail-page>')); // loaded on demand: define it first, so the case also passes on its own
         const box = document.createElement('div'); t.stage('').append(box);
         let mounts = 0, destroys = 0;
         const config = { list: { columns: [{ key: 'name', label: 'Name' }] }, load: () => ({ rows: [{ id: '1', name: 'A' }] }), mountDetail: (pane, id, ctx) => {
@@ -533,6 +564,7 @@ export const appCases = [
 
     ['master-detail page type (#353): a failing list shows its error state, a pending record shows loading, a rejected record shows the danger alert and Retry recovers it', async t => {
         const { mountPage } = await dist('js/app.js');
+        await t.load(t.stage('<pk-master-detail-page></pk-master-detail-page>'));
         const box = document.createElement('div'); t.stage('').append(box);
         let attempts = 0, release;
         const page = await mountPage(box, { type: 'master-detail', config: { list: { columns: [{ key: 'name', label: 'Name' }] }, load: () => { throw new Error('list down'); }, mountDetail: (pane, id) => {

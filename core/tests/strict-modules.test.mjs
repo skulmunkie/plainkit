@@ -89,3 +89,23 @@ test('the consumer ruleset is unaffected: it still stops at S9, module-only ids 
     const findings = checkFiles([{ path: 'app.js', text: "document.querySelector('a');" }], { ruleset: 'consumer' });
     assert.ok(!findings.some(f => f.rule === 'S10' || f.rule === 'S11' || f.rule === 'S12'), 'FIX: module-only ids must not appear in the consumer ruleset');
 });
+
+// S7/S8 exemption for the mount wrappers (module-rules.mjs): moduleFromMount and a custom page with a mount own their platform access.
+const rulesIn = (path, text) => checkFiles([{ path, text }], { ruleset: RULESET }).filter(f => f.rule === 'S7' || f.rule === 'S8').map(f => f.rule);
+
+test('S7/S8: a moduleFromMount module is not flagged', () => {
+    assert.deepEqual(rulesIn('modules/x/dev.js', "import { moduleFromMount } from 'plainkit';\nexport default moduleFromMount(mountDev, { id: 'dev', options: { go: () => document.title } });"), []);
+});
+
+test('S7/S8: a custom-page module with a mount is not flagged', () => {
+    assert.deepEqual(rulesIn('modules/x/redirect.js', "export default defineModule({ routes: [{ path: '*', page: 'custom', config: { mount: () => location.replace(href) } }] });"), []);
+});
+
+test('S7: a plain module with the same access is still flagged, as is access outside the wrapper span', () => {
+    assert.deepEqual(rulesIn('modules/x/plain.js', 'export const go = () => location.replace(href);'), ['S7']);
+    assert.deepEqual(rulesIn('modules/x/mixed.js', "export default moduleFromMount(mountDev, { id: 'dev' });\nexport const go = () => location.replace(href);"), ['S7']);
+});
+
+test('S8: a custom page without a mount is still flagged', () => {
+    assert.deepEqual(rulesIn('modules/x/p.js', "export const home = { page: 'custom', config: {} };"), ['S8']);
+});

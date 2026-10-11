@@ -11,6 +11,7 @@ node scripts/bench/load.mjs      [--runs=5]
 node scripts/bench/runtime.mjs   [--only=upgrade|batching|leaks] [--runs=5] [--n=2000] [--tag=pk-x] [--verbose]
 node scripts/bench/scale.mjs     [--only=table|log|tree|list|misc] [--runs=3]
 node scripts/bench/pages.mjs     [--only=pages|sweep|css] [--runs=3]
+node scripts/bench/wire.mjs      [--runs=5] [--json=file] [--compare=old.json] [--profile=slow-4g-4x-cpu|unthrottled]
 node scripts/bench/package.mjs   [--nupkg=path]
 node scripts/bench/blazor.mjs    [--only=table|list|assets] [--runs=3] [--publish=<dir>]   # build the Playground first, see below
 ```
@@ -68,6 +69,13 @@ benchmarks in `blazor/tests/PlainKit.Blazor.Tests/ScaleTests.cs`. They are skipp
 ```
 PK_BENCH=1 PK_BENCH_OUT=bench.txt dotnet test blazor/tests/PlainKit.Blazor.Tests --configuration Release --filter "Category=Benchmark"
 ```
+
+## Page weight: the ratchet and the wire bench
+
+Three reference pages (`scripts/bench/ref-pages.mjs`: one `pk-button`, a form, a data table) are measured two ways.
+
+- **The ratchet** (its pages and graph walk: `scripts/bench/ref-pages.mjs`, `scripts/bench/wire-graph.mjs`) (`core/tests/page-weight.test.mjs`, in the normal test run, no browser): the gzip and brotli bytes and the request count of each page's static request graph, from `core/dist`, against `core/tests/page-weight.ceiling.json`. Bytes and counts only, so it is deterministic. The ceiling is the measured value rounded up by under 2 percent and **only ever shrinks**: lower it when a page gets lighter, never raise it. A new shared import in `element.js` shows on every row at once.
+- **The wire bench** (`node scripts/bench/wire.mjs`): the same pages loaded cold on Slow 4G with 4x CPU and brotli: bytes over the wire, requests, FCP, LCP, CLS and time until every pk-* is upgraded, median of N runs (min and max in the JSON). `--json=<file>` keeps the result and `--compare=<file>` prints the deltas against an earlier one. Timings are reported, never gated.
 
 ## Regression guards (in the normal test run)
 

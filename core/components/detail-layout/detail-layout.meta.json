@@ -28,6 +28,14 @@
       "description": "The selected section once the layout has collapsed to one column and its cards name two or more data-pk-section values. Empty selects the first section."
     },
     {
+      "name": "tabsFrom",
+      "type": "enum",
+      "default": "collapse",
+      "values": ["collapse", "phone", "tablet", "always"],
+      "reflect": true,
+      "description": "Where the data-pk-section tabs take effect. collapse: once the layout has collapsed to one column (the container query). phone or tablet: at or below that viewport width, whatever the layout. always: in the two-column layout too, so a wide record page shows one section at a time, sidebar cards of the chosen section beside it. Elsewhere every section shows and there is no strip."
+    },
+    {
       "name": "nextLabel",
       "type": "string",
       "default": "Next",
@@ -83,6 +91,11 @@
       "name": "--pk-detail-layout-sidebar",
       "description": "Sidebar column width in the two-column layout.",
       "default": "20rem"
+    },
+    {
+      "name": "--pk-detail-layout-gap",
+      "description": "Gap between the main column and the sidebar in the two-column layout.",
+      "default": "var(--space-6)"
     },
     {
       "name": "--pk-detail-layout-main-max",

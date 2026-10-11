@@ -18,7 +18,6 @@
 import { ensureStyles, styleUrls, h, on } from '../../js/mount-support.js';
 import { loadElements } from '../../js/loader.js';
 import { createLogger } from '../../js/log.js';
-import { applyDynamic } from '../../js/dynamic.js';
 import { matchesHotkey } from '../../js/hotkey.js';
 
 const log = createLogger('tool-dock');
@@ -55,56 +54,44 @@ export async function mountToolDock(container, options = {}) {
         tabs.append(h(doc, 'pk-tab-panel', { value: p.id }, body));
     }
 
-    const surface = h(doc, dock ? 'aside' : 'section', { class: `td-surface td-surface--${mode}`, 'aria-label': label }, tabs);
-    let toggleButton = null;
-    let sizes = null;
+    // Dock mode is a pk-tray (edge, launcher, sizes, hotkey and focus handling live in the element); inline mode is a plain section.
+    const surface = h(doc, dock ? 'pk-tray' : 'section', dock
+        ? { label, 'launcher-label': launcherLabel, hotkey, size: SIZES[options.size] ? options.size : 'medium', sizes: true, open: opened }
+        : { class: 'td-surface', 'aria-label': label }, tabs);
     if (theme) surface.setAttribute('data-theme', theme);
-    if (dock) {
-        surface.hidden = !opened;
-        surface.dataset.dyn = `--td-height:${SIZES[options.size] ?? SIZES.medium}`;
-        applyDynamic(surface);
-        sizes = h(doc, 'pk-button-group', { label: 'Dock height', mode: 'single', slot: 'trailing' },
-            ...Object.keys(SIZES).map(k => h(doc, 'pk-button', { toggle: true, variant: 'ghost', size: 'mini', value: k, pressed: k === (options.size ?? 'medium') }, k[0].toUpperCase() + k.slice(1))));
-        const close = h(doc, 'pk-button', { size: 'mini', variant: 'ghost', label: `Close ${label.toLowerCase()}`, slot: 'trailing' }, 'Close');
-        tabs.append(sizes, close);
-        on(close, 'click', () => api.close());
-        on(sizes, 'pk-toggle', e => { const v = e.target.closest('pk-button')?.getAttribute('value'); if (v && SIZES[v]) { surface.dataset.dyn = `--td-height:${SIZES[v]}`; applyDynamic(surface); } });
-        toggleButton = h(doc, 'pk-button', { class: 'td-launcher', size: 'mini', variant: 'secondary' }, launcherLabel);
-        on(toggleButton, 'click', () => api.toggle());
-        doc.body.append(surface, toggleButton);
-    } else {
-        container.replaceChildren(surface);
-    }
+    if (dock) doc.body.append(surface); else container.replaceChildren(surface);
     loadElements(surface).catch(err => log.debug('elements did not load (loadElements reports it)', err));
-    if (toggleButton) loadElements(toggleButton).catch(err => log.debug('elements did not load (loadElements reports it)', err));
 
     // Every panel mounts up front (a console-style panel must record from the start); activate/deactivate follow what is visible.
     // whileHidden runs a measurement with the dock out of the way (so the page is measured, not the dock); isTool says whether an element is ours.
     const whileHidden = fn => {
-        const before = [surface.hidden, toggleButton?.hidden];
-        surface.hidden = true; if (toggleButton) toggleButton.hidden = true;
-        try { return fn(); } finally { surface.hidden = before[0]; if (toggleButton) toggleButton.hidden = before[1]; }
+        if (!dock) return fn();
+        const [parent, next] = [surface.parentNode, surface.nextSibling]; // out of the document while fn measures
+        surface.remove();
+        try { return fn(); } finally { parent.insertBefore(surface, next); }
     };
-    const context = { doc, win, theme, whileHidden, isTool: e => surface.contains(e) || e === toggleButton };
+    const context = { doc, win, theme, whileHidden, isTool: e => surface.contains(e) };
     await Promise.all(panels.map(async p => { mounted.set(p.id, (await p.mount(bodies.get(p.id), context)) ?? {}); }));
     const sync = () => { for (const [id, m] of mounted) (opened && id === active ? m.activate : m.deactivate)?.(); };
     on(tabs, 'pk-tab-change', e => { active = e.detail.value; sync(); });
 
-    const onKey = e => { if (dock && matchesHotkey(e, hotkey)) { e.preventDefault(); api.toggle(); } };
-    if (dock) on(doc, 'keydown', onKey);
+    // The tray opens and closes itself (launcher, Close, Escape, the chord); follow it so the panels activate and deactivate.
+    if (dock) {
+        on(surface, 'pk-open', () => { opened = true; sync(); });
+        on(surface, 'pk-close', e => { if (!e.defaultPrevented) { opened = false; sync(); } });
+    }
     sync();
 
     const api = {
-        open() { opened = true; if (dock) { surface.hidden = false; toggleButton.setAttribute('aria-pressed', 'true'); } sync(); },
-        close() { opened = false; if (dock) { surface.hidden = true; toggleButton.setAttribute('aria-pressed', 'false'); } sync(); },
+        open() { opened = true; if (dock) surface.show(); sync(); },
+        close() { opened = false; if (dock) surface.hide(); sync(); },
         toggle() { opened ? api.close() : api.open(); },
         isOpen: () => opened,
         select(id) { if (ids.includes(id)) { active = id; tabs.setAttribute('value', id); sync(); } },
         tabs: () => ids.slice(),
         destroy() {
-            doc.removeEventListener('keydown', onKey);
             for (const m of mounted.values()) { m.deactivate?.(); m.destroy?.(); }
-            surface.remove(); toggleButton?.remove();
+            surface.remove();
         },
     };
     return api;

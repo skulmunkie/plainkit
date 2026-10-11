@@ -3,7 +3,7 @@
 // Generated/, wwwroot/, obj/, bin/) with their line counts, and reports three kinds of finding in them:
 //
 //   name-parity    a hand-written component (Components/*.razor) whose name is not Pk + an element or module tag in PascalCase.
-//   layout-recipe  a .razor whose markup instantiates two or more OTHER Pk* components (a layout recipe such as PkRecordForm's form + stack + toolbar):
+//   layout-recipe  a .razor whose markup instantiates two or more OTHER Pk* components (a layout recipe such as PkDevToolsPage's five mounts in one page):
 //                  markup tags only (a tag opens after whitespace or `>`, so `EventCallback<PkSelectEventArgs>` and `Func<PkListRequest...>` do not count).
 //   state-machine  Timer/PeriodicTimer/Task.Delay (timing), CancellationTokenSource (cancellation), a request sequence counter or generation guard
 //                  (a stale-load guard) or a retry/attempt loop, in code and markup with comments removed. A file may declare in the inventory

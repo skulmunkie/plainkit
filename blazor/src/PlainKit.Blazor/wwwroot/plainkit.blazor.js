@@ -127,6 +127,9 @@ export const setCallback = (el, name, host, refresh) => { if (host) { el[name] =
 // Runs an element's load again (PkDataTable.ReloadAsync).
 export const refresh = el => el.refresh?.();
 
+// Calls one of an element's own methods (PkRecordForm.SubmitAsync -> submit()).
+export const call = (el, method) => el[method]?.();
+
 export const openTools =container => mounted.get(container)?.open?.();
 export const closeTools = container => mounted.get(container)?.close?.();
 export const toggleTools = container => mounted.get(container)?.toggle?.();

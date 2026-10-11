@@ -18,7 +18,8 @@ Plainkit is plain HTML, CSS custom properties and ES modules. Components are cus
 - Text is `pk-text`, not a `<p>` or `<span>` with a class: a paragraph (`<pk-text tone="muted">`), a run inside a line (`<pk-text inline weight="semibold">`), a lead or eyebrow (`variant="lead"`, `variant="eyebrow"`), a mono figure (`font="mono"`). Real headings stay native `<h1>` to `<h6>` (they carry the heading role, level and outline); `variant="h1"` to `"h6"` is only the look, for text that should resemble a heading without being one. Layout is `pk-stack`, `pk-cluster` and `pk-grid`, not a styled `<div>`. A bulleted or numbered prose list is `pk-list` (`ordered`, `marker`: `auto`/`disc`/`decimal`/`check`/`none`, `gap`, `dense`), items as plain elements (a `span`, an `a`, `pk-text inline`) never a raw `ul`, `ol` or `li`. A max-width, padded content region (a doc-like page, a gallery stage, a code view) is `pk-container` (`size` `sm`/`md`/`lg`/`full` on the `--content-*` tokens, `padding` on the space scale, `scroll` `y`/`both` for a region that scrolls on its own — it needs `label` and gets `tabindex=0`/`role=region`), not a hand-styled `<div>` with `max-width`, padding and `overflow`.
 - A built-in page type's `heading` (and `pk-page-header`'s `title` slot) is a light-DOM `<pk-heading level="1">`, a real heading in its own shadow tree: `querySelector('h1')` does not find it, so select `h1, pk-heading[level="1"]` (what `mountApp` focuses after navigation; the page shell gives it `tabindex="-1"`). Blazor's `PkPageHeader` draws the same slotted `pk-heading` for `Title`. The `record` page type asks before an in-app leave with unsaved edits (link, breadcrumb, back/forward: `ctx.dialogs.confirm`, Stay keeps the page, edits and address; a Save that navigates itself and `ctx.navigate` are not asked): nothing to configure.
 - Never use anything a reference marks **Deprecated**: it logs a warning once, and it is removed in the release named there; use what the table says.
-- Nothing fails silently: mistakes are logged as warnings (see `references/logging.md`). When a tag does nothing, check the console for a `loader` or element warning. Saved state goes through `createStore` (`references/state.md`): bad or old data gives the defaults and one warning, and secrets never go in it. An app is made of modules (`defineModule`, `createModuleHost`; `references/app.md`), long work is a task (never a hand-built toast or progress bar), and messages and questions go through `ctx.notify`/`ctx.dialogs` (never hand-built toast or dialog markup) — see `references/app.md`, "Tasks" and "Notifications and dialogs".
+- A `mountApp` module route marked `persist: true` keeps its built page (hidden) while another route shows and is freed with the module; use it for list-like routes, not ones that depend on params (other params rebuild it).
+- Nothing fails silently: mistakes are logged as warnings (see `references/logging.md`). When a tag does nothing, check the console for a `loader` or element warning. Saved state goes through `createStore` (`references/state.md`): bad or old data gives the defaults and one warning, and secrets never go in it. An app is made of modules (`defineModule`, `createModuleHost`; `references/app.md`), page `load`/`save` callbacks need no hand-written cancel, busy or disposed guards (the `list` and `record` types pass `load` an AbortSignal as its last argument and drop stale or post-leave results), long work is a task (never a hand-built toast or progress bar), and messages and questions go through `ctx.notify`/`ctx.dialogs` (never hand-built toast or dialog markup) — see `references/app.md`, "Tasks" and "Notifications and dialogs".
 
 ## References (open on demand)
 
@@ -56,6 +57,8 @@ Before writing markup for a page or a job, open `references/choosing.md` (decisi
 </html>
 ```
 
+For a page with a header, tabs and states of its own, use `pk-page-shell` instead of assembling `pk-page-header`, `pk-tabs` and the state markup by hand: `<pk-page-shell heading="Orders" crumbs='[...]'>` with `slot="actions"` buttons, a `pk-tabs` in `slot="tabs"`, and your content as the default slot (one region: swap it on `pk-tab-change`). `state="loading|empty|error|forbidden"` (with `state-heading`, `state-description`) replaces the content and keeps the header; Retry in the error state raises `pk-page-shell-retry`. Blazor: `PkPageShell` (`Title`, `Crumbs`, `State`, `OnRetry`, `ActionsContent`, `TabsContent`). `pk-print-page` prints only its document, `pk-canvas` and `pk-design-surface` are the pan-zoom and device-width grounds of a design tool, and `pk-specimen token="--space-4"` draws a design token.
+
 ```js
 // app.js
 import { initPlainkit } from './plainkit/js/init.js'; initPlainkit();
@@ -91,6 +94,8 @@ document.getElementById('settings').addEventListener('submit', event => {
 
 `pk-form` shows the browser's validation messages in each field and a summary; the controls are form-associated, so `FormData` sees them by `name`. Field and control details: `references/elements-form-layout.md`, `references/elements-form-controls.md`.
 
+A create-or-edit record page (toolbar with Cancel, Delete and Save, tabs, an error alert, a sidebar) is `pk-record-form` around your own `<form>`: `<pk-record-form cancellable deletable error=""><form>...</form><pk-card slot="sidebar">...</pk-card></pk-record-form>`. Listen for `pk-record-save` (it fires only once `pk-form` found the form valid), `pk-record-cancel` and `pk-record-delete`; set `busy` and `error` while and after you save, and call its `submit()` from a Save button in the page header (`actions-in-header`). It owns no values or save logic; the toolbar buttons fold to icons on a phone. Tabs: put a `pk-tabs` in `slot="tabs"` and tag sections (in the form or the sidebar) with `tab="key"` (several keys space-separated); at or below `tabs-from` (`phone` default, `tablet`, `always`) only the chosen tab's sections show, above it all show in two columns and the strip hides. Untagged sections always show; no per-page CSS. `tab-param="tab"` keeps the chosen tab in that query parameter (replaceState, no history entry) and opens on it from a link. Tabs as data: the `tabs` property (a JSON attribute or an array of `{ value, label, count?, visible? }`; Blazor `TabItems` of `PkRecordTab`) draws the strip itself, `count` as the badge and `visible: false` leaving a tab out; a `pk-tabs` in the `tabs` slot wins. `pk-detail-layout` does the same for `data-pk-section` cards: `tabs-from` (`collapse` default = once it collapses to one column, `phone`, `tablet`, `always`) moves where they become tabs, and `always` keeps the two-column layout with one section at a time. The docked strip of `pk-page-header` (it stays in view with `sticky`) takes the same data: `tabs` (JSON array of `{ value, label, count?, visible? }`; Blazor `TabItems`) and `tabs-from` (`always` default, `phone`, `tablet`) draw it at the foot of the header; a `pk-tabs` in `slot="tabs"` wins; listen for `pk-tab-change`.
+
 ### Link that looks like a button
 
 A control that navigates is a link, not a click handler: give `pk-button` an `href` and it renders a real anchor with the same variants, sizes and icons (middle and ctrl-click, the status-bar URL and Enter work natively; Space does not activate a link).
@@ -106,6 +111,8 @@ A control that navigates is a link, not a click handler: give `pk-button` an `hr
 ### Icon-only button
 
 Write an icon button like any other button, with its name as the text, and add `icon`: the text is hidden visually and stays the accessible name (and the hover tooltip); only the icon is drawn. `icon-name` draws a sprite symbol for you; a `pk-icon` or an svg in the button works too. `label` overrides the text. An icon button with no name at all fails the scorecard.
+
+To show icon and text on a large screen and only the icon on a small one, give a button with an icon `collapse="phone"` (icon only on a phone) or `collapse="tablet"` (icon only on a tablet and a phone). The text stays the accessible name; a button with no icon never collapses.
 
 ```html
 <pk-button icon variant="ghost" icon-name="plus">Add item</pk-button>
@@ -140,33 +147,19 @@ if (location.hostname === 'localhost') {
 
 Development only (Ctrl+\` toggles it). The tools are their own unit, `dist/modules/`: unzip `plainkit-modules-<version>.zip` into the runtime `dist` folder so it lands at `plainkit/modules/`. Options, the handle, custom panels and every other tool (`mountLogs`, `mountScorecard`, `mountThemeEditor`, ...): `references/tools.md`.
 
-`mountDevTools` is itself a thin consumer of `mountToolDock` (`./plainkit/modules/tool-dock/tool-dock.js`), the generic floating/docked tabbed panel underneath it — a single tool panel that docks to the bottom of the page or fills a container, toggled by a hotkey, resizable between named sizes, given its own `panels` (`{ id, title, mount(el, context) }`, same shape as `mountDevTools`'s). Point it at your own app content (`mountToolDock(null, { mode: 'dock', panels, label: 'My tools', launcherLabel: 'Tools' })`) when you want that pattern — a canvas/record/page as the main surface with tool-type panels (properties, history, an outline, a console, a chat) docked around it — for something other than the dev tools. It is not `pk-dock`: `pk-dock` is the multi-pane workspace element (Palette | Canvas | Properties, drag-to-dock, layout builder's own chrome above), while `mountToolDock` is one floating tabbed panel, not a workspace of panes. In your own markup the same job is the `pk-tray` element: `<pk-tray label="Tools" launcher-label="Open tools" hotkey="Ctrl+`" sizes>...</pk-tray>` pins a non-modal panel to a viewport edge (`edge`: bottom, top, start, end; `size`: small, medium, large) with a floating launcher and no focus trap, closes on Escape inside it, Close or the launcher, and reports `pk-open`, `pk-close` (cancelable) and `pk-size-change` (Blazor: `PkTray`, `@bind-Open`, `@bind-Size`); use `pk-drawer` instead when the panel should be modal.
+`mountDevTools` is a thin consumer of `mountToolDock`, the generic docked tabbed panel (`pk-tray` is the same job in your own markup); when to use each, how it differs from `pk-dock`, and the options: `references/tools.md`, "Tool dock and tray".
 
 ### Let people build pages with the layout builder
 
 Pages built by your users (or by your team) from the SDK's own elements, kept as JSON and exported as CSP-safe markup. The host stores the page; the builder stores nothing.
 
-```js
-import { mountLayoutBuilder } from './plainkit/modules/layout-builder/layout-builder.js';
-
-const builder = await mountLayoutBuilder(document.getElementById('editor'), {
-    html: startingMarkup,   // or model: a saved document
-    onchange: ({ model, reason }) => keepDraft(model),
-    onsave: ({ model, html }) => savePage(model, html),
-});
-```
+Call `mountLayoutBuilder(element, { html | model, onchange, onsave })` from `./plainkit/modules/layout-builder/layout-builder.js` (it returns a promise of the builder handle); the full example is in `references/tools.md`.
 
 The palette lists every element in `elements/api.json`, so a new element appears without a change. The chrome is a `pk-dock` (Palette, Structure and HTML tabs | canvas | Properties: resize, drag or use the Move menu to move a panel between groups, close and reopen panels) with File (Save, only when `onsave` is given) and Edit menus in its toolbar, each item showing its shortcut. Selection, moving (Alt+arrows or Edit > Move), duplicate, wrap, delete, undo and redo work by keyboard, menu and touch; right click (or Shift+F10, or a long press) on a canvas element opens its element menu, and on a palette button offers Add; a pointer or touch drag on a row's handle reorders the top-level page, and a palette button drags onto the canvas to insert (slot-aware when it lands on a container); each element also gets an Edit/Delete chip on hover or selection. At phone width the dock becomes one tab strip and the File and Edit menus stay in its toolbar, so Save is reachable by touch. The inspector edits the selected element's props from its API metadata. `builder.getModel()` and `builder.toHtml()` are the outputs; the model is `js/layout-model.js` (`createRegistry`, `validateDoc`, `toHtml`, `fromHtml`), which refuses unknown tags, props, slots and enum values and never lets a script, style or event handler in. The full option list and handle are in `references/tools.md`.
 
 ### Enable logging
 
-```js
-import { createLogger, configureLogging } from './plainkit/js/log.js';
-
-configureLogging({ level: 'info', scopes: { checkout: 'debug' }, routes: { error: ['console', 'toast'] } });
-const log = createLogger('checkout');
-log.info('order placed', { id: 42 });
-```
+In code: `configureLogging({ level, scopes, routes })` once at start, then `createLogger('checkout')` from `./plainkit/js/log.js` and `log.info(...)`; the worked example is in `references/logging.md`.
 
 Without code: `?pk-log=debug` in the address or `data-pk-log="debug"` on `<html>`. Levels, scopes, outputs, the viewer and measuring a page's own load metrics (`measurePage`): `references/logging.md`.
 
@@ -190,6 +183,8 @@ await page.busy(() => fetchOrders(), 'Loading orders…');
 // pk-alert danger status, and rethrown so your own error handling still runs
 ```
 
+Where the reader is (nav row, trail, title) has ONE answer on a page that is not under `mountApp`: `import { createPageContext, bindPageContext } from './plainkit/js/page-context.js'`; `const ctx = createPageContext({ router, routes, nav })` (`nav`: `[{ id, title, route }]`, optional) gives `{ ids, section, current, crumbs, title }`, and `bindPageContext(ctx, { nav: sideNav, header, breadcrumb, title: true })` writes it as plain attributes (rows with `data-id` get `current`/`expanded`, the page header `crumbs` and `heading`, the breadcrumb its links, `document.title`) and returns the unsubscribe. A route node's `context` (object or `({ path, params, query }) => object`) and `ctx.set({ title })` (data loaded after render, forgotten at the next navigation) override field by field. No element reads the context; `pk-side-nav[current-path]` stays the zero-JS fallback. In Blazor, `PkPageContext.Compute(routes, nav, path, override)` (with `PkRoute`, `PkNavEntry`, `PkPageContextOverride`) is the same algorithm in C#, so a server-rendered page needs no interop; pass the result to the header, breadcrumb and side nav parameters yourself. A shared fixture (`core/tests/fixtures/page-context.json`) keeps JS and C# identical.
+
 Busy is counted (overlapping calls never clear each other early), the overlay delays and debounces itself, and `page.destroy()` releases everything. Driving breadcrumbs from a route tree (`mountRouter`), a `pk-card` whose body the page fills with a loading, empty or error state (`showState`) and `pk-property-grid` (a live property inspector): `references/page.md`.
 
 ### Respond to screen size and change the theme
@@ -207,6 +202,10 @@ A consumer's theme and breakpoint widths are two independent choices, both made 
 ### Share a context menu across targets
 
 Several always-visible per-row or per-card icon buttons competing for space is the signal: wrap the region in one `pk-context-menu` (opens on right-click, Shift+F10 or a touch long-press) instead of a button row. Its `pk-open` detail names what was targeted (`context`, the nearest ancestor's `data-pk-context`; `pk-table` sets one per row already), so the handler rebuilds the `menu` slot before it paints: `references/elements-overlays.md`.
+
+### Use the npm package with a bundler, or ship a lean production page
+
+Import by the package's `exports` map, not by filesystem path: `import "plainkit"` (init, loader), `import "plainkit/elements/button"` (registers `pk-button`; bundlers keep it because `sideEffects` names the element modules), `import "plainkit/css"` (`plainkit.min.css`), `plainkit/app`, `plainkit/skills/*`. `plainkit/dist/*` still works for one release; move off it. No bundler? Lean page: `node core/tools/bundle-page.mjs --html index.html --out public/plainkit` (or `--elements pk-button,pk-input`; `--app`, `--full` for theme helpers, `--dist node_modules/plainkit/dist`; needs `npm i -D esbuild`) writes `plainkit.bundle.js` (init entry plus those elements) and `plainkit.bundle.css`: two requests instead of 20 to 27. Link them and call `initPlainkit()`; re-run when the page gains an element.
 
 ### Check your work
 

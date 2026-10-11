@@ -21,6 +21,7 @@ import { currentTheme, setTheme } from '../../js/theme.js';
 
 import { applyDynamic } from '../../js/dynamic.js';
 import { initPlainkit } from '../../js/plainkit.js';
+import { fillSanitizedHtml } from '../../js/sanitized-html.js';
 import { renderElement } from './elements-view.js';
 import { createElementInspector, sectionFromData } from '../../js/element-inspector.js';
 import { normalizeSections, sectionsFor } from '../../js/gallery-sections.js';
@@ -28,7 +29,7 @@ import { mediaBelow } from '../../js/breakpoints.js';
 import { clampSize, keySize, pointerSize } from '../../js/size.js';
 import { on, later, loadText } from '../../js/mount-support.js';
 import { mountRouter } from '../../js/router.js';
-import { esc, FOUNDATIONS, LAYOUT_ITEMS, TEMPLATE_PAGES, KIND_LABEL, createViews, heading, grid, cardLink, notFound, nothing } from './gallery-views.js';
+import { esc, FOUNDATIONS, LAYOUT_ITEMS, TEMPLATE_PAGES, KIND_LABEL, createViews, B, where, heading, grid, cardLink, notFound, nothing } from './gallery-views.js';
 
 const $ = (s, r = document) => r.querySelector(s);
 const slug = s => s.replace(/\W+/g, '-').replace(/^-|-$/g, '').toLowerCase();
@@ -36,6 +37,7 @@ const slug = s => s.replace(/\W+/g, '-').replace(/^-|-$/g, '').toLowerCase();
 const state = { theme: 'dark', width: 'desktop', scale: 1, filter: '', open: new Set() };
 let opts = {};
 let bare = false;
+let prefix = ''; // inside the site app the gallery lives at #/gallery/...: every address it writes or follows carries this path prefix
 let baseTitle = 'Plainkit Gallery'; // the host page's own title, so a mounted gallery adds the section to it instead of replacing it
 const frames = new Set();
 let css = null;
@@ -56,18 +58,18 @@ const keeps = (sec, grp, id) => Boolean(scopeGroup(sec, grp)?.items.some(i => i.
 // 77 elements in one flat list is a wall on a phone: the nav folds them by the group their meta declares (the section title still opens the overview).
 function elementGroups() {
     const by = new Map();
-    for (const m of ELEMENTS) { const g = m.group || 'Other'; if (!by.has(g)) by.set(g, []); by.get(g).push({ id: m.tag, title: m.title, hash: `#/elements/${m.tag}`, aliases: m.aliases }); }
-    return [...by].map(([title, items]) => ({ id: `el-${slug(title)}`, title, hash: '#/elements', items }));
+    for (const m of ELEMENTS) { const g = m.group || 'Other'; if (!by.has(g)) by.set(g, []); by.get(g).push({ id: m.tag, title: m.title, hash: `${B()}/elements/${m.tag}`, aliases: m.aliases }); }
+    return [...by].map(([title, items]) => ({ id: `el-${slug(title)}`, title, hash: `${B()}/elements`, items }));
 }
 
 function allSections() {
     return [
-        { id: 'foundations', title: 'Foundations', items: FOUNDATIONS.map(([id, t]) => ({ id, title: t, hash: `#/foundations/${id}` })) },
+        { id: 'foundations', title: 'Foundations', items: FOUNDATIONS.map(([id, t]) => ({ id, title: t, hash: `${B()}/foundations/${id}` })) },
         { id: 'elements', title: 'Elements', groups: elementGroups() },
         { id: 'samples', title: 'Samples', groups: [
-            { id: 'templates', title: 'Templates', hash: '#/samples/templates', items: [{ id: 'overview', title: 'Overview', hash: '#/samples/templates' }, ...TEMPLATE_PAGES.map(([id, title]) => ({ id, title, hash: `#/samples/templates/${id}` }))] },
-            { id: 'patterns', title: 'Patterns', hash: '#/samples/patterns', items: [{ id: 'overview', title: 'Overview', hash: '#/samples/patterns' }, ...PATTERNS.map(p => ({ id: p.id, title: p.title, hash: `#/samples/patterns/${p.id}` }))] },
-            { id: 'layouts', title: 'Layouts', hash: '#/samples/layouts', items: [{ id: 'overview', title: 'Overview', hash: '#/samples/layouts' }, ...LAYOUT_ITEMS().map(([id, t]) => ({ id, title: t, hash: `#/samples/layouts/${id}` }))] },
+            { id: 'templates', title: 'Templates', hash: `${B()}/samples/templates`, items: [{ id: 'overview', title: 'Overview', hash: `${B()}/samples/templates` }, ...TEMPLATE_PAGES.map(([id, title]) => ({ id, title, hash: `${B()}/samples/templates/${id}` }))] },
+            { id: 'patterns', title: 'Patterns', hash: `${B()}/samples/patterns`, items: [{ id: 'overview', title: 'Overview', hash: `${B()}/samples/patterns` }, ...PATTERNS.map(p => ({ id: p.id, title: p.title, hash: `${B()}/samples/patterns/${p.id}` }))] },
+            { id: 'layouts', title: 'Layouts', hash: `${B()}/samples/layouts`, items: [{ id: 'overview', title: 'Overview', hash: `${B()}/samples/layouts` }, ...LAYOUT_ITEMS().map(([id, t]) => ({ id, title: t, hash: `${B()}/samples/layouts/${id}` }))] },
         ] },
     ];
 }
@@ -86,7 +88,11 @@ const ALIASES = {
     '/templates/:id': '/samples/templates/:id', '/templates': '/samples/templates',
 };
 let router = null;
+const query = () => router?.current()?.query ?? {}; // the address's query (#/path?q=..&nav=..), from the router
 let mounted = null; // the gallery on show: { destroy() }, so a second mount ends the first instead of stacking on it
+
+// Every address the gallery writes goes through the router (hash form '#<prefix>/path?query'; the router adds the prefix back). The same address again is not a new entry.
+const goTo = (hash, replace = false) => { const to = hash.slice(B().length); if (location.hash !== hash) router?.navigate(to, { replace }); };
 
 // Where the gallery is: the section and up to two more segments of the address (#/samples/templates/page).
 function route() {
@@ -110,9 +116,9 @@ function el(tag, attrs = {}, ...kids) {
 function buildNav() {
     const nav = navEl(); if (!nav) return;
     const item = (it, slotName) => el('pk-nav-item', { href: it.hash, slot: slotName }, it.title);
-    const home = isScoped(opts) ? initialHash(tree()) || '#/overview' : '#/overview';
+    const home = isScoped(opts) ? initialHash(tree()) || `${B()}/overview` : `${B()}/overview`;
     nav.replaceChildren(el('a', { slot: 'brand', href: home }, 'Gallery'), ...tree().flatMap(sec => [
-        el('a', { class: 'gx-nav-title', href: `#/${sec.id}` }, sec.title),
+        el('a', { class: 'gx-nav-title', href: `${B()}/${sec.id}` }, sec.title),
         ...(sec.items ? sec.items.map(i => item(i)) : sec.groups.map(g => el('pk-nav-item', { 'data-branch': g.id }, g.title, el('span', { slot: 'badge' }, String(g.items.length)), ...g.items.map(i => item(i, 'children'))))),
     ]));
     syncNav();
@@ -122,7 +128,7 @@ function buildNav() {
 function syncNav() {
     const nav = navEl(); if (!nav) return;
     const r = route();
-    for (const i of nav.querySelectorAll('pk-nav-item[href]')) setAttr(i, 'current', location.hash === i.getAttribute('href') || (Boolean(r.section) && i.getAttribute('href') === `#/${r.section}/${r.a}/${r.b}`));
+    for (const i of nav.querySelectorAll('pk-nav-item[href]')) setAttr(i, 'current', location.hash === i.getAttribute('href') || (Boolean(r.section) && i.getAttribute('href') === `${B()}/${r.section}/${r.a}/${r.b}`));
     if (state.filter) return;
     for (const b of nav.querySelectorAll('pk-nav-item[data-branch]')) setAttr(b, 'expanded', state.open.has(b.dataset.branch) || Boolean(b.querySelector('pk-nav-item[current]')) || (r.section !== 'samples' && r.a === b.dataset.branch));
 }
@@ -178,7 +184,7 @@ function slot(sample, control, fixed) {
 }
 
 // The views get what they need of the gallery through this: nothing else of its state.
-const { viewFoundation, overviewHtml, samplesView } = createViews({ opts: () => opts, css: () => css, scope, scopeGroup, keeps, slot, state });
+const { viewFoundation, overviewHtml, samplesView } = createViews({ opts: () => opts, css: () => css, scope, scopeGroup, keeps, slot, state, query });
 
 function refreshFrames(changes) {
     for (const f of frames) applyToFrame(f, f.dataset.fixed ? { ...changes, width: undefined } : changes);
@@ -202,7 +208,7 @@ function fullPage() {
     return null;
 }
 
-const navVariant = () => (new URLSearchParams(location.hash.split('?')[1] ?? '').get('nav') === 'top' ? 'top' : 'side');
+const navVariant = () => (query().nav === 'top' ? 'top' : 'side');
 
 function pageUrl(fp, extra = {}) {
     const q = new URLSearchParams();
@@ -238,18 +244,19 @@ export const pagebarTitleAttrs = isFull => (isFull ? { role: 'heading', 'aria-le
 function paintPagebar() {
     const shell = $('#gx-shell');
     if (!shell || !$('#gx-pagebar')) return;
-    shell.classList.toggle('gx-full', Boolean(full));
+    shell.toggleAttribute('data-full', Boolean(full));
+    $('#gx-bar').hidden = Boolean(full); $('#gx-pagebar').hidden = !full;
+    navEl().hidden = Boolean(prefix) || Boolean(full); // the site app owns the nav when it hosts the gallery
     const titleEl = $('#gx-title');
     const attrs = pagebarTitleAttrs(Boolean(full));
     for (const name of ['role', 'aria-level']) { if (attrs[name] !== undefined) titleEl.setAttribute(name, attrs[name]); else titleEl.removeAttribute(name); }
     if (!full) return;
     const label = KIND_LABEL[full.kind];
     $('#gx-title').textContent = full.title;
-    const back = $('#gx-back'); back.href = `#/samples/${full.kind}`; back.setAttribute('label', `Back to ${label}`);
-    $('#gx-back-label').textContent = label;
+    const back = $('#gx-back'); back.href = `${B()}/samples/${full.kind}`; back.setAttribute('label', `Back to ${label}`);
     $('#gx-open').href = pageUrl(full, { width: state.width });
     for (const n of document.querySelectorAll('#gx-pagebar [data-nav-scope]')) n.hidden = full.kind !== 'templates';
-    for (const a of document.querySelectorAll('#gx-pagebar [data-nav]')) { a.dataset.goto = `#/samples/templates/${full.id}?nav=${a.dataset.nav}`; setAttr(a, a.localName === 'pk-menu-item' ? 'checked' : 'pressed', a.dataset.nav === navVariant()); }
+    for (const a of document.querySelectorAll('#gx-pagebar [data-nav]')) { a.dataset.goto = `${B()}/samples/templates/${full.id}?nav=${a.dataset.nav}`; setAttr(a, a.localName === 'pk-menu-item' ? 'checked' : 'pressed', a.dataset.nav === navVariant()); }
     const th = $('#gx-theme'); th.textContent = state.theme === 'dark' ? 'Dark' : 'Light';
     th.setAttribute('label', `Theme: ${state.theme}. Switch to ${state.theme === 'dark' ? 'light' : 'dark'}`);
 }
@@ -276,25 +283,27 @@ function view() {
     full = fullPage();
     if (full) { releaseFrames(); return fullView(full); }
     const { section: sec, a, b } = route();
-    const out = document.createElement('pk-stack'); out.className = 'gx-page';
+    // The page column: a pk-container (centred, capped), the views' content in a pk-stack inside it.
+    const out = document.createElement('pk-container'); out.setAttribute('size', 'lg'); out.setAttribute('padding', 'none');
+    const stack = document.createElement('pk-stack'); out.append(stack);
     watchFrames();
-    const put = html => { out.innerHTML = html; applyDynamic(out); return out; };
+    const put = html => { fillSanitizedHtml(stack, html); applyDynamic(out); return out; };
     if (collection()) {
         const shown = filterLeaves(leaves(tree()), opts.filter).filter(l => l.section.id === 'elements');
         if (!shown.length) return put(nothing());
-        for (const l of shown) out.append(elementSlot(l.id));
+        for (const l of shown) stack.append(elementSlot(l.id));
         return out;
     }
     // An overview the mount's scope or filter leaves empty says so instead of listing what the embedder cut.
     if (!a && ['foundations', 'elements', 'samples'].includes(sec) && !scope(sec)) return put(nothing());
     if (sec === 'foundations') {
-        if (!a) return put(heading('Foundations', 'The tokens every control reads.') + grid(FOUNDATIONS.filter(([id]) => scope('foundations')?.items.some(i => i.id === id)).map(([id, t, d]) => cardLink(`#/foundations/${id}`, t, d)).join('')));
+        if (!a) return put(heading('Foundations', 'The tokens every control reads.') + grid(FOUNDATIONS.filter(([id]) => scope('foundations')?.items.some(i => i.id === id)).map(([id, t, d]) => cardLink(`${B()}/foundations/${id}`, t, d)).join('')));
         return put(viewFoundation(a));
     }
     if (sec === 'overview') return put(overviewHtml());
     if (sec === 'elements') {
-        if (ELEMENTS.some(m => m.tag === a)) { out.append(elementSlot(a, true)); return out; }
-        return put(heading('Elements', 'Custom elements with Shadow DOM: declared props, slots, events and parts. Each page below is generated from the element\'s API data, with a live playground.') + scope('elements').groups.map(g => `<section class="gx-el-group"><h2>${esc(g.title)} <span class="muted">${g.items.length}</span></h2>${grid(g.items.map(i => { const m = ELEMENTS.find(x => x.tag === i.id); return cardLink(i.hash, `<${m.tag}>`, m.summary.split('. ')[0].replace(/\.$/, '') + '.'); }).join(''))}</section>`).join(''));
+        if (ELEMENTS.some(m => m.tag === a)) { stack.append(elementSlot(a, true)); return out; }
+        return put(heading('Elements', 'Custom elements with Shadow DOM: declared props, slots, events and parts. Each page below is generated from the element\'s API data, with a live playground.') + scope('elements').groups.map(g => `<pk-stack gap="sm"><pk-heading level="2" variant="h4">${esc(g.title)} <pk-text inline tone="muted">${g.items.length}</pk-text></pk-heading>${grid(g.items.map(i => { const m = ELEMENTS.find(x => x.tag === i.id); return cardLink(i.hash, `<${m.tag}>`, m.summary.split('. ')[0].replace(/\.$/, '') + '.'); }).join(''))}</pk-stack>`).join(''));
     }
     if (sec === 'samples') return samplesView(out, put, a, b);
     return put(notFound('Not found'));
@@ -321,7 +330,7 @@ function renderInspector() {
     if (!box) return;
     // A full-page sample owns the whole area; every other view has the Details drawer: an element page fills it, the rest show its empty state.
     toggle.hidden = Boolean(full);
-    if (full) { setAttr(box, 'open', false); $('#gx-resize').hidden = true; $('#gx-view').classList.remove('gx-view--inspecting'); return; }
+    if (full) { setAttr(box, 'open', false); $('#gx-resize').hidden = true; $('#gx-view').removeAttribute('data-inspecting'); return; }
     box.setAttribute('heading', inspecting ? `${inspecting.meta.title}: details` : 'Inspector');
     inspector ??= createElementInspector($('#gx-inspector-body'));
     inspector.show(inspecting && { meta: inspecting.meta, element: inspecting.element, extraSections: sectionsFor(hostSections, inspecting.meta.tag).map(sectionFromData) });
@@ -334,7 +343,7 @@ function setInspector(open, remember = true) {
     setAttr($('#gx-inspector'), 'open', open);
     setAttr($('#gx-inspect'), 'pressed', open);
     $('#gx-resize').hidden = !open;
-    $('#gx-view').classList.toggle('gx-view--inspecting', open);
+    $('#gx-view').toggleAttribute('data-inspecting', open);
     if (remember) writeSetting('pk-gallery-inspector', open ? '1' : '0');
 }
 
@@ -344,7 +353,7 @@ function setInspector(open, remember = true) {
 // where the handle is hidden anyway, so this stays a plain handle that reports a width in pixels (unit: 'px'), with the box's end edge
 // standing in for pk-splitter's "start" via rtl: true (see #391).
 function initResize() {
-    const handle = $('#gx-resize'); const shell = $('#gx-shell'); const body = $('.gx-body');
+    const handle = $('#gx-resize'); const shell = $('#gx-shell'); const body = $('#gx-body');
     const bounds = () => ({ min: 320, max: Math.round(innerWidth * 0.7) });
     const width = () => parseInt(getComputedStyle(shell).getPropertyValue('--inspector-w'), 10) || 0;
     const apply = px => { const { min, max } = bounds(); const w = clampSize(px, min, max); shell.dataset.dyn = `--inspector-w:${w}px`; applyDynamic(shell); return w; };
@@ -365,50 +374,46 @@ function initResize() {
 
 function paintToolbar() {
     document.querySelectorAll('[data-set-theme]').forEach(b => setAttr(b, 'pressed', b.dataset.setTheme === state.theme));
-    document.querySelectorAll('[data-set-width]').forEach(b => setAttr(b, 'pressed', b.dataset.setWidth === state.width));
-    document.querySelectorAll('pk-select.gx-scale').forEach(s => setAttr(s, 'value', String(state.scale)));
+    document.querySelectorAll('[data-set-width]').forEach(b => setAttr(b, 'checked', b.dataset.setWidth === state.width));
     document.querySelectorAll('pk-menu-item[data-scale]').forEach(m => setAttr(m, 'checked', Number(m.dataset.scale) === state.scale));
     paintPagebar();
 }
 
 function setScale(v) { state.scale = v; writeSetting('pk-gallery-scale', String(v)); refreshFrames({ scale: v }); paintToolbar(); }
 
-// The viewport switch and the text size are shared by the wide bar and the slim bar; a phone gets the text size in a Display menu.
+// The viewport and the text size live in one Display menu at every width, shared by the preview bar and the slim bar (no per-breakpoint variants).
 const SCALES = [['0.9', '90%'], ['1', '100%'], ['1.15', '115%'], ['1.3', '130%']];
-const viewportSwitch = () => '<pk-button-group label="Viewport" mode="single"><pk-button variant="ghost" toggle data-set-width="desktop" pressed>Desktop</pk-button><pk-button variant="ghost" toggle data-set-width="phone">Phone 375</pk-button></pk-button-group>';
-const scaleSelect = () => `<pk-field label="Text size" layout="inline" size="sm"><pk-select class="gx-scale" value="1">${SCALES.map(([v, l]) => `<option value="${v}">${l}</option>`).join('')}</pk-select></pk-field>`;
-const scaleItems = () => `<pk-menu-item type="header">Text size</pk-menu-item>${SCALES.map(([v, l]) => `<pk-menu-item type="radio" data-scale="${v}">${l}</pk-menu-item>`).join('')}`;
+const radios = (head, attr, rows, on, scope = '') => `<pk-menu-item type="header"${scope}>${head}</pk-menu-item>${rows.map(([v, l]) => `<pk-menu-item type="radio" data-${attr}="${v}"${v === on ? ' checked' : ''}${scope}>${l}</pk-menu-item>`).join('')}`;
+const displayItems = nav => `${nav ? radios('Navigation', 'nav', [['side', 'Side'], ['top', 'Top']], 'side', ' data-nav-scope hidden') : ''}${radios('Viewport', 'set-width', [['desktop', 'Desktop'], ['phone', 'Phone 375']], 'desktop')}${radios('Text size', 'scale', SCALES, '1')}`;
+const displayMenu = (nav, trigger) => `<pk-dropdown placement="bottom-end">${trigger}${displayItems(nav)}</pk-dropdown>`;
 
-const CHROME_HTML = `
-    <div class="gx-shell" id="gx-shell">
-        <pk-side-nav id="gx-nav" class="gx-nav" label="Gallery contents" filterable></pk-side-nav>
-        <main class="gx-main">
-            <div class="gx-bar gx-bar-main" role="toolbar" aria-label="Preview settings">
-                <pk-button variant="ghost" toggle class="gx-contents" data-gx-contents>Contents</pk-button>
-                <div class="gx-group gx-desktop-only"><span class="gx-group-label">Viewport</span>${viewportSwitch()}</div>
-                <div class="gx-group gx-desktop-only">${scaleSelect()}</div>
-                <pk-dropdown placement="bottom-end" class="gx-phone-only gx-end"><pk-button slot="trigger" variant="ghost">Display</pk-button>${scaleItems()}</pk-dropdown>
-                <pk-button variant="ghost" toggle class="gx-inspect" id="gx-inspect" aria-controls="gx-inspector" hidden>Details</pk-button>
-            </div>
-            <div class="gx-bar gx-pagebar" id="gx-pagebar" role="toolbar" aria-label="Page preview">
-                <pk-button variant="ghost" class="gx-back" id="gx-back" href="#/samples" icon-name="chevron-left"><span class="gx-wide-only" id="gx-back-label">Back</span></pk-button>
-                <strong class="gx-title" id="gx-title"></strong>
-                <div class="gx-group gx-wide-only" data-nav-scope hidden><pk-button-group label="Navigation variant" mode="single"><pk-button variant="ghost" toggle data-nav="side">Side</pk-button><pk-button variant="ghost" toggle data-nav="top">Top</pk-button></pk-button-group></div>
-                <div class="gx-group gx-desktop-only">${viewportSwitch()}</div>
-                <div class="gx-group gx-wide-only">${scaleSelect()}</div>
-                <pk-dropdown placement="bottom-end" class="gx-compact-only"><pk-button slot="trigger" variant="ghost" icon label="Display options"><pk-icon name="settings"></pk-icon></pk-button><pk-menu-item type="header" data-nav-scope hidden>Navigation</pk-menu-item><pk-menu-item type="radio" data-nav="side" data-nav-scope hidden>Side</pk-menu-item><pk-menu-item type="radio" data-nav="top" data-nav-scope hidden>Top</pk-menu-item>${scaleItems()}</pk-dropdown>
-                <pk-button variant="ghost" class="gx-theme" id="gx-theme" data-toggle-theme></pk-button>
-                <pk-button variant="ghost" class="gx-open" id="gx-open" href="#/samples" target="_blank" rel="noopener"><span class="gx-wide-only">Open in new page</span><span class="gx-compact-only">Open</span></pk-button>
-            </div>
-            <div class="gx-body">
-                <div class="gx-view" id="gx-view"></div>
-                <div class="gx-resize" id="gx-resize" role="separator" aria-orientation="vertical" aria-label="Resize the inspector" tabindex="0" hidden></div>
-                <pk-drawer docked id="gx-inspector" heading="Inspector" aria-label="Inspector"><div id="gx-inspector-body"></div></pk-drawer>
-            </div>
-        </main>
-    </div>`;
+// The frame: pk-app-shell (nav, header, body) in a page of its own; under the site app, which owns the nav and the header, a plain stack of the
+// same parts. Either way the preview bar and the slim page bar are the header content, and the body holds the view with the docked Details drawer.
+const chromeHtml = () => {
+    const hosted = Boolean(prefix), at = name => (hosted ? '' : ` slot="${name}"`); // the stack has no slots
+    const parts = `
+        <pk-side-nav${at('nav')} id="gx-nav" class="gx-nav" label="Gallery contents" filterable${hosted ? ' hidden' : ''}></pk-side-nav>
+        ${hosted ? '' : '<pk-button slot="header" variant="ghost" toggle data-nav-toggle>Contents</pk-button>'}
+        <pk-toolbar${at('header')} id="gx-bar" role="toolbar" aria-label="Preview settings">
+            ${displayMenu(false, '<pk-button slot="trigger" variant="ghost">Display</pk-button>')}
+            <pk-button variant="ghost" toggle id="gx-inspect" aria-controls="gx-inspector" hidden>Details</pk-button>
+        </pk-toolbar>
+        <pk-toolbar${at('header')} id="gx-pagebar" role="toolbar" aria-label="Page preview" hidden>
+            <pk-button variant="ghost" icon id="gx-back" href="${B()}/samples" label="Back"><pk-icon name="chevron-left"></pk-icon></pk-button>
+            <strong id="gx-title"></strong>
+            ${displayMenu(true, '<pk-button slot="trigger" variant="ghost">Display</pk-button>')}
+            <pk-button variant="ghost" id="gx-theme" data-toggle-theme></pk-button>
+            <pk-button variant="ghost" id="gx-open" href="${B()}/samples" target="_blank" rel="noopener" label="Open in a new page">Open</pk-button>
+        </pk-toolbar>
+        <pk-stack fill gap="none" id="gx-body">
+            <div id="gx-view"></div>
+            <div id="gx-resize" role="separator" aria-orientation="vertical" aria-label="Resize the inspector" tabindex="0" hidden></div>
+            <pk-drawer docked id="gx-inspector" heading="Inspector" aria-label="Inspector"><div id="gx-inspector-body"></div></pk-drawer>
+        </pk-stack>`;
+    return hosted ? `<pk-stack fill gap="none" data-flush id="gx-shell">${parts}</pk-stack>` : `<pk-app-shell flush id="gx-shell">${parts}</pk-app-shell>`;
+};
 
-const BARE_HTML = '<div class="gx-flow" id="gx-shell"><div class="gx-view" id="gx-view"></div></div>';
+const BARE_HTML = '<pk-stack gap="none" id="gx-shell"><div id="gx-view"></div></pk-stack>';
 
 // Replace the sections a host adds to the Details drawer (see the header); they are cleaned first, and the open drawer redraws.
 export function setGallerySections(sections) {
@@ -425,6 +430,7 @@ export async function mountGallery(container, options = {}) {
     hostSections = normalizeSections(options.sections);
     baseTitle = document.title || baseTitle;
     bare = opts.chrome === 'none';
+    prefix = where.prefix = options.base ?? '';
     state.theme = opts.theme ?? currentTheme(document.documentElement);
     state.width = opts.width ?? (readSetting('pk-gallery-width') === 'phone' ? 'phone' : 'desktop');
     state.scale = bare ? 1 : Number(readSetting('pk-gallery-scale')) || 1;
@@ -434,11 +440,11 @@ export async function mountGallery(container, options = {}) {
     document.documentElement.dataset.width = state.width;
     // A scoped mount with no address of its own opens the first view of its scope (the address says so from then on).
     const first = !location.hash && isScoped(opts) && !collection() ? initialHash(tree()) : '';
-    if (first) history.replaceState(null, '', first);
     router?.destroy();
-    router = mountRouter(null, { routes: [], mode: 'hash', aliases: ALIASES });
-    container.innerHTML = bare ? BARE_HTML : CHROME_HTML;
-    if (!bare) container.classList.add('gx-mount');
+    router = mountRouter(null, { routes: [], mode: 'hash', aliases: ALIASES, base: prefix });
+    if (first) goTo(first, true);
+    fillSanitizedHtml(container, bare ? BARE_HTML : chromeHtml());
+    container.toggleAttribute('data-gx-mount', !bare); // the frame fills the host's box (gallery.css)
     css = { tokens: await text(TOKENS_CSS), utilities: await text(UTILITIES_CSS), spacing: await text(SPACING_CSS), icons: await text(ICONS) };
     if (!bare) buildNav();
     paintToolbar();
@@ -455,13 +461,11 @@ export async function mountGallery(container, options = {}) {
         // A branch the reader opens or folds is remembered (the element also opens matches while a filter is typed: that does not emit).
         on(navEl(), 'pk-toggle', e => { const b = e.target.closest?.('pk-nav-item[data-branch]'); if (!b) return; if (b.hasAttribute('expanded')) state.open.add(b.dataset.branch); else state.open.delete(b.dataset.branch); writeSetting('pk-gallery-open', JSON.stringify([...state.open])); });
         // Escape or a tap on the backdrop closes the phone Contents drawer; the element hands focus back to its button.
-        on(navEl(), 'pk-close', () => { const btn = $('[data-gx-contents]'); if (btn) setAttr(btn, 'pressed', false); });
+        on(navEl(), 'pk-close', () => { const btn = $('[data-nav-toggle]'); if (btn) setAttr(btn, 'pressed', false); });
         on($('#gx-inspector'), 'pk-close', () => setInspector(false));
     }
     router.subscribe(render);
     on($('#gx-shell'), 'click', e => {
-        const contents = e.target.closest('[data-gx-contents]');
-        if (contents) { const on = !navEl().hasAttribute('open'); setAttr(navEl(), 'open', on); setAttr(contents, 'pressed', on); }
         if (e.target.closest('#gx-inspect')) setInspector(!$('#gx-inspector').hasAttribute('open'));
         const t = e.target.closest('[data-set-theme]');
         const tt = e.target.closest('[data-toggle-theme]');
@@ -470,33 +474,32 @@ export async function mountGallery(container, options = {}) {
         const w = e.target.closest('[data-set-width]');
         if (w) { state.width = w.dataset.setWidth; document.documentElement.dataset.width = state.width; writeSetting('pk-gallery-width', state.width); refreshFrames({ width: state.width }); paintToolbar(); }
         const go = e.target.closest('[data-goto]');
-        if (go) location.hash = go.dataset.goto;
+        if (go) goTo(go.dataset.goto);
         const sc = e.target.closest('pk-menu-item[data-scale]');
         if (sc) setScale(Number(sc.dataset.scale));
     });
-    on($('#gx-shell'), 'change', e => { const s = e.target.closest?.('pk-select.gx-scale'); if (s) setScale(Number(s.value)); });
     // What outlives the container's own elements: the document's events, the router, the lazy frames; destroy() ends them (the elements and their listeners go with the container).
     const offs = [on(document, 'site-search', e => setFilter(e.detail)), on(document, 'site-theme', e => { state.theme = e.detail; refreshFrames({ theme: state.theme }); paintToolbar(); })];
     const view = $('#gx-view');
     on(view, 'submit', e => { e.preventDefault(); });
-    on(view, 'pk-page', e => { const base = e.target.dataset?.base; if (base) location.hash = `${base}${base.includes('?') ? '&' : '?'}p=${e.detail.page}`; });
+    on(view, 'pk-page', e => { const base = e.target.dataset?.base; if (base) goTo(`${base}${base.includes('?') ? '&' : '?'}p=${e.detail.page}`); });
     on(view, 'input', e => {
-        const form = e.target.closest('.gx-find'); if (!form) return;
+        const form = e.target.closest('form[data-find]'); if (!form) return;
         form._cancel?.();
-        form._cancel = later(window, () => { const p = new URLSearchParams([...new FormData(form)].filter(([, v]) => v && v !== 'all')); location.hash = `${form.dataset.find}${p.toString() ? '?' + p : ''}`; later(window, () => { const n = $('.gx-find pk-input[type=search]', view); n?.focus(); const c = n?.shadowRoot?.querySelector('[part="control"]'); c?.setSelectionRange(c.value.length, c.value.length); }, 30); }, 250);
+        form._cancel = later(window, () => { const p = new URLSearchParams([...new FormData(form)].filter(([, v]) => v && v !== 'all')); goTo(`${form.dataset.find}${p.toString() ? '?' + p : ''}`); later(window, () => { const n = $('form[data-find] pk-input[type=search]', view); n?.focus(); const c = n?.shadowRoot?.querySelector('[part="control"]'); c?.setSelectionRange(c.value.length, c.value.length); }, 30); }, 250);
     });
-    on(view, 'change', e => { const form = e.target.closest('.gx-find'); if (form) form.dispatchEvent(new Event('input', { bubbles: true })); });
+    on(view, 'change', e => { const form = e.target.closest('form[data-find]'); if (form) form.dispatchEvent(new Event('input', { bubbles: true })); });
     const handle = {
         destroy() {
             if (mounted !== handle) return;
             mounted = null;
             for (const off of offs) off();
-            for (const form of container.querySelectorAll('.gx-find')) form._cancel?.();
+            for (const form of container.querySelectorAll('form[data-find]')) form._cancel?.();
             router?.destroy(); router = null;
             lazy?.disconnect(); lazy = null;
             releaseFrames();
             full = stage = inspecting = inspector = null;
-            container.replaceChildren(); container.classList.remove('gx-mount');
+            where.prefix = ''; container.replaceChildren(); container.removeAttribute('data-gx-mount');
         },
     };
     mounted = handle;

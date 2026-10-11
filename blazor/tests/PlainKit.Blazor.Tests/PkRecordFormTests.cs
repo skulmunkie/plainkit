@@ -1,11 +1,11 @@
 using Bunit;
 using Microsoft.AspNetCore.Components;
-using Microsoft.AspNetCore.Components.Rendering;
 using PlainKit.Blazor;
+using PlainKit.Blazor.Components;
 
 namespace PlainKit.Blazor.Tests;
 
-// Issue 261: the page template of a create-or-edit record page (toolbar, tabs, error, main column and sidebar).
+// Issue 999: PkRecordForm is the generated wrapper of pk-record-form; the toolbar, tabs, error and layout are drawn by the element.
 public sealed class PkRecordFormTests : BunitContext, IAsyncLifetime
 {
     Task IAsyncLifetime.InitializeAsync() => Task.CompletedTask;
@@ -19,40 +19,31 @@ public sealed class PkRecordFormTests : BunitContext, IAsyncLifetime
 
     private static RenderFragment Text(string text) => b => b.AddContent(0, text);
 
-    private static string[] Toolbar(IRenderedComponent<PkRecordForm> cut) =>
-        cut.FindAll("pk-cluster pk-button").Select(b => b.TextContent.Trim()).ToArray();
-
     [Fact]
-    public void A_bare_form_has_only_a_Save_button()
+    public void A_bare_form_renders_the_element_with_no_Cancel_or_Delete()
     {
         var cut = Render<PkRecordForm>(p => p.Add(x => x.ChildContent, Text("fields")));
 
-        Assert.Equal(["Save"], Toolbar(cut));
-        var save = cut.Find("pk-cluster pk-button");
-        Assert.Equal("submit", save.GetAttribute("type"));
-        Assert.Equal("primary", save.GetAttribute("variant"));
-        Assert.Equal("end", cut.Find("pk-cluster").GetAttribute("justify"));
-        Assert.Contains("fields", cut.Find("pk-form form").TextContent);
+        var el = cut.Find("pk-record-form");
+        Assert.Contains("fields", el.TextContent);
+        Assert.Null(el.GetAttribute("cancellable"));
+        Assert.Null(el.GetAttribute("deletable"));
     }
 
     [Fact]
-    public void The_toolbar_is_Cancel_then_Actions_then_Delete_then_Save_and_the_labels_are_configurable()
+    public void A_set_OnCancel_or_OnDelete_shows_its_button()
     {
         var cut = Render<PkRecordForm>(p => p
             .Add(x => x.OnCancel, EventCallback.Factory.Create(this, () => { }))
-            .Add(x => x.OnDelete, EventCallback.Factory.Create(this, () => { }))
-            .Add(x => x.DeleteLabel, "Remove location")
-            .Add(x => x.SaveLabel, "Save location")
-            .Add(x => x.Actions, b => { b.OpenComponent<PkButton>(0); b.AddAttribute(1, nameof(PkButton.ChildContent), Text("Duplicate")); b.CloseComponent(); }));
+            .Add(x => x.OnDelete, EventCallback.Factory.Create(this, () => { })));
 
-        Assert.Equal(["Cancel", "Duplicate", "Remove location", "Save location"], Toolbar(cut));
-        var buttons = cut.FindAll("pk-cluster pk-button");
-        Assert.Equal("ghost", buttons[0].GetAttribute("variant"));
-        Assert.Equal("warn", buttons[2].GetAttribute("variant"));
+        var el = cut.Find("pk-record-form");
+        Assert.NotNull(el.GetAttribute("cancellable"));
+        Assert.NotNull(el.GetAttribute("deletable"));
     }
 
     [Fact]
-    public async Task Cancel_and_Delete_raise_their_callbacks_and_the_valid_event_raises_OnValid()
+    public async Task The_three_record_events_raise_their_callbacks()
     {
         int cancelled = 0, deleted = 0, valid = 0;
         var cut = Render<PkRecordForm>(p => p
@@ -60,80 +51,58 @@ public sealed class PkRecordFormTests : BunitContext, IAsyncLifetime
             .Add(x => x.OnDelete, EventCallback.Factory.Create(this, () => deleted++))
             .Add(x => x.OnValid, EventCallback.Factory.Create(this, () => valid++)));
 
-        var buttons = cut.FindAll("pk-cluster pk-button");
-        await buttons[0].ClickAsync(new());
-        await buttons[1].ClickAsync(new());
-        await cut.Find("pk-form").TriggerEventAsync("onpk-valid", EventArgs.Empty);
+        var el = cut.Find("pk-record-form");
+        await el.TriggerEventAsync("onpk-record-cancel", EventArgs.Empty);
+        await el.TriggerEventAsync("onpk-record-delete", EventArgs.Empty);
+        await el.TriggerEventAsync("onpk-record-save", EventArgs.Empty);
 
         Assert.Equal((1, 1, 1), (cancelled, deleted, valid));
     }
 
     [Fact]
-    public void SaveDisabled_disables_Save_only()
+    public void The_parameters_become_the_elements_attributes()
     {
         var cut = Render<PkRecordForm>(p => p
-            .Add(x => x.OnDelete, EventCallback.Factory.Create(this, () => { }))
-            .Add(x => x.SaveDisabled, true));
+            .Add(x => x.SaveLabel, "Save location")
+            .Add(x => x.DeleteLabel, "Remove location")
+            .Add(x => x.BusyText, "Recording…")
+            .Add(x => x.SaveDisabled, true)
+            .Add(x => x.Busy, true)
+            .Add(x => x.ActionsInHeader, true)
+            .Add(x => x.Error, "Only one location can be primary."));
 
-        var buttons = cut.FindAll("pk-cluster pk-button");
-        Assert.Null(buttons[0].GetAttribute("disabled"));
-        Assert.NotNull(buttons[1].GetAttribute("disabled"));
+        var el = cut.Find("pk-record-form");
+        Assert.Equal("Save location", el.GetAttribute("save-label"));
+        Assert.Equal("Remove location", el.GetAttribute("delete-label"));
+        Assert.Equal("Recording…", el.GetAttribute("busy-text"));
+        Assert.NotNull(el.GetAttribute("save-disabled"));
+        Assert.NotNull(el.GetAttribute("busy"));
+        Assert.NotNull(el.GetAttribute("actions-in-header"));
+        Assert.Equal("Only one location can be primary.", el.GetAttribute("error"));
     }
 
     [Fact]
-    public void Busy_shows_the_busy_text_on_Save_and_disables_Delete()
-    {
-        var cut = Render<PkRecordForm>(p => p
-            .Add(x => x.OnDelete, EventCallback.Factory.Create(this, () => { }))
-            .Add(x => x.Busy, true));
-
-        var buttons = cut.FindAll("pk-cluster pk-button");
-        Assert.NotNull(buttons[0].GetAttribute("disabled"));
-        Assert.NotNull(buttons[1].GetAttribute("busy"));
-        Assert.Equal("Saving…", buttons[1].GetAttribute("busy-text"));
-
-        cut.Render(p => p.Add(x => x.BusyText, "Recording…"));
-        Assert.Equal("Recording…", cut.FindAll("pk-cluster pk-button")[1].GetAttribute("busy-text"));
-    }
-
-    [Fact]
-    public void Error_draws_an_error_alert_below_the_toolbar_and_nothing_when_empty()
-    {
-        var cut = Render<PkRecordForm>();
-        Assert.Empty(cut.FindAll("pk-alert"));
-
-        cut.Render(p => p.Add(x => x.Error, "Only one location can be primary."));
-
-        var alert = cut.Find("pk-alert");
-        Assert.Equal("danger", alert.GetAttribute("kind"));
-        Assert.Equal("Only one location can be primary.", alert.TextContent.Trim());
-    }
-
-    [Fact]
-    public void Tabs_sit_between_the_toolbar_and_the_alert()
+    public void Tabs_Actions_and_Sidebar_fill_their_slots()
     {
         var cut = Render<PkRecordForm>(p => p
             .Add(x => x.Tabs, Text("TABS"))
-            .Add(x => x.Error, "ERR"));
+            .Add(x => x.Actions, Text("ACTIONS"))
+            .Add(x => x.Sidebar, Text("status")));
 
-        var html = cut.Find("pk-form form").InnerHtml;
-        Assert.True(html.IndexOf("pk-cluster", StringComparison.Ordinal) < html.IndexOf("TABS", StringComparison.Ordinal));
-        Assert.True(html.IndexOf("TABS", StringComparison.Ordinal) < html.IndexOf("ERR", StringComparison.Ordinal));
+        Assert.Equal("TABS", cut.Find("[slot=tabs]").TextContent);
+        Assert.Equal("ACTIONS", cut.Find("[slot=actions]").TextContent);
+        Assert.Equal("status", cut.Find("[slot=sidebar]").TextContent);
     }
 
     [Fact]
-    public void A_Sidebar_puts_the_body_in_a_detail_layout_and_no_Sidebar_leaves_it_out()
+    public async Task SubmitAsync_calls_the_elements_submit_method()
     {
-        var without = Render<PkRecordForm>(p => p.Add(x => x.ChildContent, Text("main")));
-        Assert.Empty(without.FindAll("pk-detail-layout"));
+        var cut = Render<PkRecordForm>();
 
-        var with = Render<PkRecordForm>(p => p
-            .Add(x => x.ChildContent, Text("main"))
-            .Add(x => x.Sidebar, Text("status")));
+        await cut.Instance.SubmitAsync();
 
-        var layout = with.Find("pk-detail-layout");
-        Assert.Contains("main", layout.TextContent);
-        Assert.Equal("status", layout.QuerySelector("[slot=sidebar]")!.TextContent);
+        var call = JSInterop.Invocations.Single(i => i.Identifier == "call");
+        Assert.Equal("submit", call.Arguments[1]);
     }
 
     [Fact]
@@ -143,59 +112,4 @@ public sealed class PkRecordFormTests : BunitContext, IAsyncLifetime
         Assert.Equal("pricing", layout.GetAttribute("section"));
         Assert.Equal("Weiter", layout.GetAttribute("next-label"));
     }
-
-    // Issue 324: ActionsInHeader drops the toolbar row and hands the same buttons out through HeaderActions instead.
-    [Fact]
-    public void ActionsInHeader_leaves_out_the_toolbar_row()
-    {
-        var cut = Render<PkRecordForm>(p => p
-            .Add(x => x.ActionsInHeader, true)
-            .Add(x => x.OnCancel, EventCallback.Factory.Create(this, () => { }))
-            .Add(x => x.OnDelete, EventCallback.Factory.Create(this, () => { })));
-
-        Assert.Empty(cut.FindAll("pk-cluster"));
-        Assert.Empty(cut.FindAll("pk-button"));
-    }
-
-    [Fact]
-    public void HeaderActions_renders_the_same_Cancel_Actions_Delete_Save_buttons()
-    {
-        var cut = Render<PkRecordForm>(p => p
-            .Add(x => x.ActionsInHeader, true)
-            .Add(x => x.OnCancel, EventCallback.Factory.Create(this, () => { }))
-            .Add(x => x.OnDelete, EventCallback.Factory.Create(this, () => { }))
-            .Add(x => x.DeleteLabel, "Remove location")
-            .Add(x => x.SaveLabel, "Save location")
-            .Add(x => x.Actions, b => { b.OpenComponent<PkButton>(0); b.AddAttribute(1, nameof(PkButton.ChildContent), Text("Duplicate")); b.CloseComponent(); }));
-
-        var host = Render<PlainKitTestHost>(p => p.Add(x => x.Content, cut.Instance.HeaderActions));
-        var buttons = host.FindAll("pk-button");
-
-        Assert.Equal(["Cancel", "Duplicate", "Remove location", "Save location"], buttons.Select(b => b.TextContent.Trim()));
-        Assert.Equal("ghost", buttons[0].GetAttribute("variant"));
-        Assert.Equal("warn", buttons[2].GetAttribute("variant"));
-        Assert.Equal("submit", buttons[3].GetAttribute("type"));
-        Assert.Equal("primary", buttons[3].GetAttribute("variant"));
-    }
-
-    [Fact]
-    public void HeaderActions_Save_points_its_form_attribute_at_the_record_forms_own_form()
-    {
-        var cut = Render<PkRecordForm>(p => p.Add(x => x.ActionsInHeader, true));
-        var formId = cut.Find("pk-form form").GetAttribute("id");
-
-        var host = Render<PlainKitTestHost>(p => p.Add(x => x.Content, cut.Instance.HeaderActions));
-        var save = host.Find("pk-button");
-
-        Assert.False(string.IsNullOrEmpty(formId));
-        Assert.Equal(formId, save.GetAttribute("form"));
-    }
-}
-
-// A minimal host so a RenderFragment captured from one component (PkRecordForm.HeaderActions) can be rendered on its
-// own, the way a page's PkPageHeader would render it as ActionsContent.
-file sealed class PlainKitTestHost : ComponentBase
-{
-    [Parameter] public RenderFragment? Content { get; set; }
-    protected override void BuildRenderTree(RenderTreeBuilder builder) => builder.AddContent(0, Content);
 }

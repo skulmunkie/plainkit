@@ -4,7 +4,7 @@ import fs from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath, pathToFileURL } from 'node:url';
 import { groupFindings, loadScenarios, parseArgs } from '../ui-review.mjs';
-import { combinations, createExpectations, expectationFinding, keyEvents, mouseEvents, scenarioShotName, selectScenarios, stepsFor, validateScenario } from '../../core/tests/review/scenario.js';
+import { combinations, createExpectations, expectationFinding, keyEvents, mediaParams, mouseEvents, scenarioShotName, selectScenarios, stepsFor, validateScenario } from '../../core/tests/review/scenario.js';
 
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..', '..');
 const good = (over = {}) => ({ name: 'demo', elements: ['side-nav'], html: '<pk-side-nav></pk-side-nav>', steps: [{ click: 'a' }, { shot: 'open' }], expect() {}, ...over });
@@ -36,6 +36,8 @@ test('scenario validation names every problem', () => {
     one({ steps: [{ set: 'a', attr: 'x', prop: 'y' }, { shot: 'a' }] }, /exactly one of attr or prop/);
     one({ steps: [{ scroll: 'a' }, { shot: 'a' }] }, /\.to must be a number/);
     one({ steps: [{ resize: 0 }, { shot: 'a' }] }, /width in px/);
+    one({ steps: [{ media: 'braille' }, { shot: 'a' }] }, /media must be one of print, screen/);
+    assert.deepEqual(mediaParams('print'), { media: 'print' });
     one({ steps: [{ wait: 99999 }, { shot: 'a' }] }, /at most 5000/);
     one({ steps: [{ click: 'a', on: ['tablet'] }, { shot: 'a' }] }, /viewport names/);
     assert.ok(validateScenario(good({ elements: ['nope'] }), new Set(['side-nav'])).some(m => /not an element name/.test(m)));

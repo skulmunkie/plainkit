@@ -305,7 +305,7 @@ export async function mountThemeEditor(container, options = {}) {
         contrastTab.textContent = sum.bad ? `Contrast (${sum.bad} below AA)` : 'Contrast';
         const jump = (name, theme) => h(doc, 'pk-button', { size: 'mini', variant: 'ghost', 'data-jump': name, 'data-jump-theme': theme, label: `Go to ${name} in the ${theme} theme` }, name.replace(/^--/, ''));
         const group = theme => [h(doc, 'h4', { class: 'te-caption' }, `${cap(theme)} theme`), ...rows.filter(r => r.theme === theme).sort((x, y) => Number(y.bad) - Number(x.bad)).map(r => {
-            const sample = h(doc, 'span', { class: 'te-sample', title: `${r.fgValue} on ${r.bgValue}`, 'data-dyn': `--te-fg:${r.fgValue}; --te-bg:${r.bgValue}` }, 'Aa');
+            const sample = h(doc, 'span', { class: 'te-sample', title: `${r.fgValue} on ${r.bgValue}`, 'data-dyn': `--_te-fg:${r.fgValue}; --_te-bg:${r.bgValue}` }, 'Aa');
             applyDynamic(sample);
             return h(doc, 'div', { class: 'te-pair', 'data-pair-row': `${r.theme} ${r.fg} ${r.bg}` }, sample, h(doc, 'code', { class: 'te-pair-name' }, `${r.fg} on ${r.bg}`),
                 h(doc, 'pk-badge', { variant: r.bad ? 'danger' : r.ratio === null ? 'muted' : 'ok' }, r.ratio === null ? 'n/a' : `${r.ratio.toFixed(2)}:1 ${r.grade}`),
@@ -343,7 +343,7 @@ export async function mountThemeEditor(container, options = {}) {
             : h(doc, 'pk-alert', { kind: 'success' }, `The brand colour ${p.brand} meets 4.5:1 as it is in both themes.`));
         const rows = paletteRows(p.overrides, tokens);
         const group = theme => [h(doc, 'h4', { class: 'te-caption' }, `${cap(theme)} theme`), ...rows.filter(r => r.theme === theme).map(r => {
-            const sample = h(doc, 'span', { class: 'te-sample', title: `${r.fgValue} on ${r.bgValue}`, 'data-dyn': `--te-fg:${r.fgValue}; --te-bg:${r.bgValue}` }, 'Aa');
+            const sample = h(doc, 'span', { class: 'te-sample', title: `${r.fgValue} on ${r.bgValue}`, 'data-dyn': `--_te-fg:${r.fgValue}; --_te-bg:${r.bgValue}` }, 'Aa');
             applyDynamic(sample);
             return h(doc, 'div', { class: 'te-pair', 'data-pair-row': `${r.theme} ${r.fg} ${r.bg}` }, sample, h(doc, 'code', { class: 'te-pair-name' }, `${r.fg} on ${r.bg}`),
                 h(doc, 'pk-badge', { variant: r.bad ? 'danger' : 'ok' }, r.ratio === null ? 'n/a' : `${r.ratio.toFixed(1)}:1 ${r.grade}`));

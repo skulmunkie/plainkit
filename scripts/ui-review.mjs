@@ -9,6 +9,7 @@
 //                                                    a change to core/base, core/tokens or core/layouts reviews every element
 //   node scripts/ui-review.mjs --elements page-header,breadcrumb   (names or pk- tags)      node scripts/ui-review.mjs --all
 //   [--base <ref>] [--out <dir>] [--shard i/n] [--jobs N] [--skip-base] [--strict] [--port N] [--timeout <s>]
+//   --cache reuses the screenshots and findings of a unit (element or scenario x viewport x theme) whose inputs hash the same (scripts/ui-review-cache.mjs, folder review-cache/, git-ignored); --no-cache wins. Also used in CI (actions/cache, #749)
 //   --jobs N runs N disjoint shards of the run in N processes (own server and browser each) and merges them into one manifest: the same shots and audits, about N times faster on N cores
 //
 // Scenarios (core/tests/review/scenarios/*.js; format in core/tests/review/scenario.js): named, scripted states of a page or element (a menu open, a
@@ -31,9 +32,10 @@ import path from 'node:path';
 import { fileURLToPath, pathToFileURL } from 'node:url';
 import { ensureGenerated } from './generated.mjs';
 import { elementOfPath } from '../core/tools/element-folders.mjs';
+import { createCache } from './ui-review-cache.mjs';
 import { chromeArgs, findChrome, killTree, removeDir } from './attest-browser.mjs';
 import { auditFacts, summarize } from '../core/tests/review/audit.js';
-import { combinations, expectationFinding, keyEvents, mouseEvents, scenarioShotName, selectScenarios, stepsFor, validateScenario } from '../core/tests/review/scenario.js';
+import { combinations, expectationFinding, keyEvents, mediaParams, mouseEvents, scenarioShotName, selectScenarios, stepsFor, validateScenario } from '../core/tests/review/scenario.js';
 
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 export const VIEWPORTS = [{ name: 'desktop', width: 1280, height: 900 }, { name: 'phone', width: 375, height: 812 }];
@@ -99,6 +101,28 @@ export function shardOf(list, k, n) {
     return list.filter((_, i) => i % n === k - 1);
 }
 
+/**
+ * Shard k of n of a list balanced by cost (--jobs, #712): greedy longest-first into the lightest shard, ties to the lower index, so the slowest job is near the mean instead of
+ * whoever got the slow scenarios. `weights` maps nameOf(item) to seconds (the previous run's manifest timings); an item without one weighs the mean of the known ones. Without any
+ * weights it is shardOf's every-n-th split. Deterministic, disjoint, the union is the list, each shard keeps the list's order. Pure.
+ */
+export function balancedShardOf(list, k, n, weights, nameOf = x => x.name ?? x) {
+    const known = list.map(x => weights?.[nameOf(x)]).filter(Number.isFinite);
+    if (!known.length) return shardOf(list, k, n);
+    const mean = known.reduce((a, b) => a + b, 0) / known.length;
+    const cost = list.map(x => weights[nameOf(x)] ?? mean);
+    const load = Array(n).fill(0), owner = [];
+    [...list.keys()].sort((a, b) => cost[b] - cost[a] || a - b).forEach(i => { const j = load.indexOf(Math.min(...load)); load[j] += cost[i]; owner[i] = j; });
+    return list.filter((_, i) => owner[i] === k - 1);
+}
+
+/** One scenario's phase times (ms, measured) and its total (ms) as seconds, the unmeasured remainder named `steps`, so the phases add up to the total (within rounding of 0.1 s per phase). Pure. */
+export function phasesOf(phases, totalMs) {
+    const measured = Object.values(phases).reduce((a, b) => a + b, 0);
+    const all = { ...phases, steps: Math.max(0, totalMs - measured) };
+    return Object.fromEntries(Object.entries(all).map(([k, v]) => [k, Math.round(v / 100) / 10]));
+}
+
 /** The per-scenario phase times added up across scenarios, one number per phase (seconds). Pure. */
 export function sumPhases(phases) {
     const total = {};
@@ -108,13 +132,15 @@ export function sumPhases(phases) {
 
 /** Command line to options; an unknown flag is an error message, not a silent default. */
 export function parseArgs(argv) {
-    const o = { elements: [], all: false, base: 'origin/main', out: 'review-output', strict: false, port: 0, timeout: 60, scenarios: null, scenariosOnly: false, shard: null, skipBase: false, jobs: 1 };
+    const o = { elements: [], all: false, base: 'origin/main', out: 'review-output', strict: false, port: 0, timeout: 60, scenarios: null, scenariosOnly: false, shard: null, skipBase: false, jobs: 1, cache: false };
     for (let i = 0; i < argv.length; i++) {
         const a = argv[i];
         const value = () => { const v = argv[++i]; if (v === undefined || v.startsWith('--')) throw new Error(`${a} needs a value`); return v; };
         if (a === '--all') o.all = true;
         else if (a === '--strict') o.strict = true;
         else if (a === '--skip-base') o.skipBase = true;
+        else if (a === '--cache') { if (o.cache !== 'off') o.cache = 'on'; }
+        else if (a === '--no-cache') o.cache = 'off';
         else if (a === '--scenarios' || a === '--scenarios-only') {
             // The names are optional: `--scenarios` alone means every scenario, `--scenarios-only` alone the ones for the changed elements.
             const next = argv[i + 1];
@@ -129,6 +155,7 @@ export function parseArgs(argv) {
             o.shard = { k: Number(m[1]), n: Number(m[2]) };
         }
         else if (a === '--jobs') { const n = Number(value()); if (!Number.isInteger(n) || n < 1 || n > 16) throw new Error('--jobs needs a whole number from 1 to 16'); o.jobs = n; }
+        else if (a === '--weights') o.weights = value();
         else if (a === '--base') o.base = value();
         else if (a === '--out') o.out = value();
         else if (a === '--port' || a === '--timeout') { const n = Number(value()); if (!Number.isInteger(n) || n < 0) throw new Error(`${a} needs a whole number`); o[a.slice(2)] = n; }
@@ -136,6 +163,7 @@ export function parseArgs(argv) {
     }
     if (o.all && o.elements.length) throw new Error('use either --all or --elements, not both');
     if (o.scenarios === null) o.scenarios = 'auto';
+    o.cache = o.cache === 'on';
     return o;
 }
 
@@ -230,8 +258,10 @@ const WIDTH_FIX = 'the emulated viewport was not applied; re-run, and report it 
  */
 async function playScenario(cdp, { port, sc, vp, theme, out, manifest, timeout, phases }) {
     const tag = `scenario-${sc.name}`;
-    // Where the time goes (issue #750): open and ready, fixed waits, other steps (their settle included), measured audit, screenshot.
+    await cdp.send('Emulation.setEmulatedMedia', mediaParams('')); // a { media } step of the scenario before this one must not leak into it
+    // Where the time goes (issue #750): open and ready, fixed waits, settles, measured audit, screenshot; the rest (input events, applying a step) is `steps`, see phasesOf.
     const timed = async (key, fn) => { const t = Date.now(); try { return await fn(); } finally { phases[key] = (phases[key] ?? 0) + Date.now() - t; } };
+    const settle = () => timed('settle', () => evaluate(cdp, 'window.__rv.settle()'));
     const state = await timed('open', async () => { await openReview(cdp, vp, `http://localhost:${port}/tests/review/?scenario=${sc.name}&theme=${theme}`); return waitReady(cdp, timeout); });
     if (!state) { manifest.notSeen.push({ tag, viewport: vp.name, theme, reason: `the review page did not finish within ${timeout} s` }); return; }
     if (state.error) { manifest.notSeen.push({ tag, viewport: vp.name, theme, reason: state.error }); return; }
@@ -249,28 +279,28 @@ async function playScenario(cdp, { port, sc, vp, theme, out, manifest, timeout, 
             continue;
         }
         let r = {};
-        const t0 = Date.now();
-        const fixedWait = 'wait' in step && step.wait !== 'settle';
         if ('click' in step || 'hover' in step) {
             r = await evaluate(cdp, `window.__rv.target(${JSON.stringify(step)})`);
-            if (!r.error) { await mouse(mouseEvents('click' in step ? 'click' : 'hover', r.x, r.y)); await evaluate(cdp, 'window.__rv.settle()'); }
+            if (!r.error) { await mouse(mouseEvents('click' in step ? 'click' : 'hover', r.x, r.y)); await settle(); }
         } else if ('key' in step) {
             for (let n = 0; n < (step.times ?? 1); n++) await keys(keyEvents(step.key));
-            await evaluate(cdp, 'window.__rv.settle()');
+            await settle();
         } else if ('type' in step) {
             await cdp.send('Input.insertText', { text: step.type });
-            await evaluate(cdp, 'window.__rv.settle()');
+            await settle();
         } else if ('resize' in step) {
             // A real viewport width (the frame's media queries answer to it); the height stays that of the combination.
             await cdp.send('Emulation.setDeviceMetricsOverride', { width: step.resize, height: vp.height, deviceScaleFactor: 1, mobile: false });
-            await evaluate(cdp, 'window.__rv.settle()');
+            await settle();
+        } else if ('media' in step) {
+            await cdp.send('Emulation.setEmulatedMedia', mediaParams(step.media));
+            await settle();
         } else if ('wait' in step) {
-            if (step.wait === 'settle') await evaluate(cdp, 'window.__rv.settle()'); else await sleep(step.wait);
+            if (step.wait === 'settle') await settle(); else await timed('wait', () => sleep(step.wait));
         } else {
             if ('focus' in step) await keys(keyEvents('Shift')); // a key press first, so the focus that follows counts as keyboard focus (:focus-visible)
             r = await evaluate(cdp, `window.__rv.apply(${JSON.stringify(step)})`);
         }
-        phases[fixedWait ? 'wait' : 'step'] = (phases[fixedWait ? 'wait' : 'step'] ?? 0) + Date.now() - t0;
         if (r.error) {
             record(`step-${i + 1}`, [pageError('scenario-step', `step ${i + 1} ${JSON.stringify(step)}: ${r.error}`, `the step no longer matches the page: update the selector in core/tests/review/scenarios/${sc.name}.js, or fix the element if it lost that part`)], null);
             return;
@@ -295,36 +325,44 @@ export function mergeManifests(parts, { strict = false } = {}) {
         notSeen: parts.flatMap(p => p.notSeen ?? []),
         timings: Object.assign({}, ...parts.map(p => p.timings ?? {})),
         phases: Object.assign({}, ...parts.map(p => p.phases ?? {})),
+        ...(parts.some(p => p.cache) ? { cache: Object.fromEntries(['hits', 'misses', 'corrupt'].map(k => [k, parts.reduce((n, p) => n + (p.cache?.[k] ?? 0), 0)])) } : {}),
         findings,
         summary: summarize(findings, { strict }),
     };
 }
 
 /** The arguments of job i of n: the run's own arguments without --jobs and --out, plus its shard and its own output folder. Pure. */
-export function jobArgs(argv, i, n, out) {
+export function jobArgs(argv, i, n, out, weights = null) {
     const rest = [];
     for (let k = 0; k < argv.length; k++) {
-        if (argv[k] === '--jobs' || argv[k] === '--out') { k++; continue; }
+        if (argv[k] === '--jobs' || argv[k] === '--out' || argv[k] === '--weights') { k++; continue; }
         rest.push(argv[k]);
     }
-    return [...rest, '--shard', `${i}/${n}`, '--out', out];
+    return [...rest, '--shard', `${i}/${n}`, '--out', out, ...(weights ? ['--weights', weights] : [])];
 }
 
 // --jobs N: N shards of the same run in N processes (each with its own server, browser and profile), then one manifest. Same disjoint shards CI uses (#741); the screenshots and every
 // audit are the same as a serial run, only the elapsed time differs.
 async function runJobs(o, argv) {
     const out = path.resolve(root, o.out);
+    // The seconds each scenario took last time (the folder's old manifest) balance the shards; none, or a manifest that does not parse, is the every-n-th split.
+    const old = path.join(out, 'manifest.json');
+    let weights = null;
+    if (fs.existsSync(old)) { try { weights = JSON.parse(fs.readFileSync(old, 'utf8')).timings ?? null; } catch (e) { console.warn(`ignoring the previous manifest's timings (${e.message}): shards are split evenly by count`); } }
     fs.rmSync(out, { recursive: true, force: true });
     fs.mkdirSync(out, { recursive: true });
+    let weightsFile = null;
+    if (weights) { weightsFile = path.join(out, '.weights.json'); fs.writeFileSync(weightsFile, JSON.stringify(weights)); }
     const t0 = Date.now();
     const dirs = Array.from({ length: o.jobs }, (_, k) => path.join(out, `.job-${k + 1}`));
     const codes = await Promise.all(dirs.map((dir, k) => new Promise(resolve => {
-        const child = spawn(process.execPath, [fileURLToPath(import.meta.url), ...jobArgs(argv, k + 1, o.jobs, dir)], { cwd: root, stdio: ['ignore', 'pipe', 'pipe'] });
+        const child = spawn(process.execPath, [fileURLToPath(import.meta.url), ...jobArgs(argv, k + 1, o.jobs, dir, weightsFile)], { cwd: root, stdio: ['ignore', 'pipe', 'pipe'] });
         let buf = '';
         const flush = final => { const lines = buf.split('\n'); buf = final ? '' : lines.pop(); for (const l of lines) if (l.trim()) console.log(`[${k + 1}/${o.jobs}] ${l}`); };
         for (const s of [child.stdout, child.stderr]) s.on('data', d => { buf += d; flush(false); });
         child.on('close', code => { flush(true); resolve(code ?? 2); });
     })));
+    if (weightsFile) fs.rmSync(weightsFile, { force: true });
     const parts = [];
     for (const dir of dirs) {
         const file = path.join(dir, 'manifest.json');
@@ -373,7 +411,7 @@ async function main() {
     }
     let scenarios;
     try { scenarios = selectScenarios(all, { names: named, elements: names, every: o.scenarios === 'all' || (o.all && o.scenarios === 'auto') }); } catch (e) { console.error(e.message); return 2; }
-    if (o.shard) { names = shardOf(names, o.shard.k, o.shard.n); scenarios = shardOf(scenarios, o.shard.k, o.shard.n); }
+    if (o.shard) { names = shardOf(names, o.shard.k, o.shard.n); scenarios = balancedShardOf(scenarios, o.shard.k, o.shard.n, o.weights ? JSON.parse(fs.readFileSync(o.weights, 'utf8')) : null); }
     const examples = o.scenariosOnly ? [] : names;
     const out = path.resolve(root, o.out);
     fs.rmSync(out, { recursive: true, force: true });
@@ -413,13 +451,15 @@ async function main() {
         if (examples.length) console.log(`reviewing ${examples.length} element(s) (${why}): ${examples.map(n => `pk-${n}`).join(', ')}`);
         if (scenarios.length) console.log(`scenarios (${scenarios.length}): ${scenarios.map(s => s.name).join(', ')}`);
 
+        const cache = o.cache ? createCache({ root, dir: path.join(root, 'review-cache'), chrome: (await cdp.send('Browser.getVersion')).product, known }) : null;
+        const unit = (u, render) => cache ? cache.unit(u, { manifest, out }, render) : render();
         let t0 = Date.now();
-        for (const name of examples) for (const vp of VIEWPORTS) for (const theme of THEMES) {
+        for (const name of examples) for (const vp of VIEWPORTS) for (const theme of THEMES) await unit({ kind: 'example', name, vp, theme }, async () => {
             const tag = `pk-${name}`;
             await openReview(cdp, vp, `http://localhost:${port}/tests/review/?tag=${tag}&theme=${theme}`);
             const state = await waitReady(cdp, o.timeout);
-            if (!state) { manifest.notSeen.push({ tag, viewport: vp.name, theme, reason: `the review page did not finish within ${o.timeout} s` }); continue; }
-            if (state.error) { manifest.notSeen.push({ tag, viewport: vp.name, theme, reason: state.error }); continue; }
+            if (!state) { manifest.notSeen.push({ tag, viewport: vp.name, theme, reason: `the review page did not finish within ${o.timeout} s` }); return; }
+            if (state.error) { manifest.notSeen.push({ tag, viewport: vp.name, theme, reason: state.error }); return; }
             for (const [i, ex] of state.examples.entries()) {
                 const findings = auditFacts(ex.facts);
                 if (state.viewport.width !== vp.width) findings.push(pageError('viewport-width', `the page is ${state.viewport.width}px wide, expected ${vp.width}px: the capture is wrong, not the element`, WIDTH_FIX));
@@ -430,16 +470,17 @@ async function main() {
                 manifest.shots.push({ tag, example: i + 1, title: ex.title, viewport: vp.name, theme, width: vp.width, file, boxes: ex.facts.boxes.length, findings });
             }
             if (!state.examples.length) manifest.notSeen.push({ tag, viewport: vp.name, theme, reason: 'the element has no gallery examples' });
-        }
+        });
         if (examples.length) manifest.timings.examples = Math.round((Date.now() - t0) / 100) / 10;
         for (const sc of scenarios) {
             t0 = Date.now();
             const phases = {};
-            for (const { viewport, theme } of combinations(sc, VIEWPORTS, THEMES)) await playScenario(cdp, { port, sc, vp: viewport, theme, out, manifest, timeout: o.timeout, phases });
+            for (const { viewport, theme } of combinations(sc, VIEWPORTS, THEMES)) await unit({ kind: 'scenario', name: sc.name, sc, vp: viewport, theme }, () => playScenario(cdp, { port, sc, vp: viewport, theme, out, manifest, timeout: o.timeout, phases }));
             manifest.timings[sc.name] = Math.round((Date.now() - t0) / 100) / 10;
-            manifest.phases[sc.name] = Object.fromEntries(Object.entries(phases).map(([k, v]) => [k, Math.round(v / 100) / 10]));
+            manifest.phases[sc.name] = phasesOf(phases, Date.now() - t0);
         }
         const grouped = groupFindings(manifest.shots);
+        if (cache) { manifest.cache = cache.stats; console.log(`cache: ${cache.stats.hits} hit(s), ${cache.stats.misses} miss(es), ${cache.stats.corrupt} corrupt`); }
         manifest.findings = grouped;
         manifest.summary = summarize(grouped, { strict: o.strict });
         fs.writeFileSync(path.join(out, 'manifest.json'), JSON.stringify(manifest, null, 2));
@@ -447,6 +488,7 @@ async function main() {
         for (const f of grouped) { console.log(`${f.severity.toUpperCase()} ${f.tag} #${f.example} ${f.rule}: ${f.message} [${f.seen.join(', ')}]`); console.log(`  FIX: ${f.fix}`); }
         for (const n of manifest.notSeen) console.log(`NOT SEEN ${n.tag} ${n.viewport}/${n.theme}: ${n.reason}`);
         console.log(`time (s): ${Object.entries(manifest.timings).map(([k, v]) => `${k} ${v}`).join(', ')}`);
+        for (const [n, p] of Object.entries(manifest.phases)) console.log(`  ${n} by phase (s): ${Object.entries(p).map(([k, v]) => `${k} ${v}`).join(', ')}`);
         if (scenarios.length) console.log(`scenario time by phase (s): ${Object.entries(sumPhases(manifest.phases)).map(([k, v]) => `${k} ${v}`).join(', ')}`);
         console.log(`${manifest.shots.filter(s => s.file).length} screenshots in ${path.relative(root, out) || out}; ${manifest.summary.errors} error(s), ${manifest.summary.warnings} warning(s); manifest.json lists every finding.`);
         code = manifest.summary.ok && !manifest.notSeen.some(n => n.reason !== 'the element has no gallery examples') ? 0 : 1;

@@ -161,4 +161,27 @@ export const B_RULES = [
             return hits;
         },
     },
+    {
+        id: 'B7',
+        category: 'B',
+        detects: 'hand-rolled lifecycle plumbing in a component: IDisposable/IAsyncDisposable + CancellationTokenSource, or busy/error fields beside OnInitializedAsync, without PageBase/PkComponentBase',
+        severity: { normal: 'warn', strict: 'warn' },
+        docs: 'docs/superpowers/specs/2026-10-11-page-base-design.md#34-audit',
+        fixTemplate: 'FIX: {file}:{line} {found}. Inherit PageBase (a page) or PkComponentBase (any other component) and override OnLoadAsync: they own cancel-on-navigation, busy/error, safe StateHasChanged after disposal and disposal. [B7]',
+        applies: file => isRazor(file) || fileIs(file, ['.cs']),
+        scan(file) {
+            const t = file.text;
+            if (/@inherits\s+(?:[\w.]+\.)?(?:PageBase|PkComponentBase)\b|:\s*(?:[\w.]+\.)?(?:PageBase|PkComponentBase)\b/.test(t)) return [];
+            const cts = /\bnew\s+CancellationTokenSource\b|\bCancellationTokenSource\??\s+_?\w+/.exec(t);
+            if (cts && /\bI(?:Async)?Disposable\b/.test(t)) {
+                return [hitAt(t, cts.index, 'CancellationTokenSource', { found: 'hand-rolls disposal and a CancellationTokenSource' })];
+            }
+            const init = /\bOnInitializedAsync\b/.exec(t);
+            const flag = name => new RegExp(String.raw`\b(?:bool|string\??|Exception\??)\s+_?(?:${name})\b`, 'i').test(t);
+            if (init && flag('busy|isBusy|loading|isLoading|saving') && flag('error|errorMessage|loadError')) {
+                return [hitAt(t, init.index, 'OnInitializedAsync', { found: 'hand-rolls busy and error fields around OnInitializedAsync' })];
+            }
+            return [];
+        },
+    },
 ];

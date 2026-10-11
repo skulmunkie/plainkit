@@ -35,7 +35,7 @@
 
 [part="actions"] { display: flex; flex: none; gap: var(--gap-control); }
 
-[part="actions"]:not(:has(::slotted(*))) { display: none; }
+[part="actions"][hidden] { display: none; }
 
 [part="close"] { flex: none; width: 2.25rem; height: 2.25rem; margin: calc(-1 * var(--space-2)) calc(-1 * var(--space-2)) calc(-1 * var(--space-2)) 0; border: 0; border-radius: var(--radius-md); background: transparent; color: var(--color-muted); font: inherit; cursor: pointer; }
 

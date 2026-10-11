@@ -1,10 +1,10 @@
 {
   "component": "PkGallery",
-  "existing": true,
-  "existingReason": "server: ensures the SDK runtime is loaded and memoises the Sections JSON per list Not a generator gap: the component loads the SDK runtime before it renders and memoises the Sections JSON per list, which are server concerns (PkRuntime), so it stays hand-written unless the element takes the sections as data it can read itself.",
   "params": [
     {
       "name": "Kind",
+      "type": "PkGalleryKind",
+      "existingEnum": true,
       "prop": "kind"
     },
     {
@@ -17,10 +17,14 @@
     },
     {
       "name": "Theme",
+      "type": "PkTheme",
+      "existingEnum": true,
       "prop": "theme"
     },
     {
       "name": "Width",
+      "type": "PkWidth",
+      "existingEnum": true,
       "prop": "width"
     },
     {
@@ -29,19 +33,25 @@
     },
     {
       "name": "Chrome",
+      "type": "PkChrome",
+      "existingEnum": true,
       "prop": "chrome"
     },
     {
       "name": "Height",
+      "type": "int?",
       "prop": "height"
     },
     {
       "name": "Src",
-      "prop": "src"
+      "type": "string?",
+      "prop": "src",
+      "default": "_content/PlainKit.Blazor/plainkit/gallery/embed.html"
     },
     {
       "name": "Sections",
-      "type": "IReadOnlyList<PkGallerySection>",
+      "type": "IReadOnlyList<PkGallerySection>?",
+      "json": true,
       "prop": "sections",
       "note": "Sent as JSON text ([{ tag, title, open, lines, columns, rows, code }]); the gallery frame draws it in the Details drawer as text. PkGallerySection.ForBlazor() is the Blazor section, computed from the package's mappings."
     }

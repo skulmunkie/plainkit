@@ -100,6 +100,18 @@ Three things to notice:
 
 Each element is its own module in `plainkit/elements/<name>.js`, mapped by `plainkit/elements/registry.js`. `initPlainkit()` imports only the modules of the tags your page uses, so a page with a button and a card downloads two small files. Until an element has loaded, its tag is hidden by the stylesheet, so a page does not flash unstyled markup.
 
+## Ship one small request
+
+For production you can replace the lazy loading with a per-page bundle. The tool reads the `pk-*` tags in a page and writes `plainkit.bundle.js` (the init entry plus exactly those elements) and `plainkit.bundle.css`:
+
+```bash
+node core/tools/bundle-page.mjs --html index.html --out public/plainkit
+# instead of --html: --elements pk-button,pk-input
+# also: --app (app framework), --full (theme and colour helpers), --dist node_modules/plainkit/dist (an installed package)
+```
+
+The page then makes two requests instead of 20 to 27 and sends about a third fewer bytes, because one file compresses better than many small ones. Link the stylesheet, load the script as a module and call the exported `initPlainkit()` from your own script file, as above. The tool needs esbuild (`npm i -D esbuild`); it is not a dependency of the package.
+
 ## Themes and density
 
 Set `data-theme="dark"` or `data-theme="light"` on `<html>`, or on any element to theme just that part. Add `data-density="compact"` for a denser layout. Both are token sets, not extra stylesheets. To change a colour or a spacing value, override a token: [Theming and tokens](theming.md) shows how.
@@ -107,7 +119,7 @@ Set `data-theme="dark"` or `data-theme="light"` on `<html>`, or on any element t
 ## Where to go next
 
 - [Choosing what to build with](choosing-what-to-build-with.md) says when to start from a template, a layout, a pattern or an element instead of writing your own markup: read it before you build a page.
-- The [gallery](../gallery/index.html) shows every element with live examples and its API.
+- The [gallery](../../app.html#/gallery) shows every element with live examples and its API.
 - [Theming and tokens](theming.md) covers the design tokens and how to change them.
 - [Logging](logging.md) covers the one logger the SDK and your own code share.
 - The agent skills carry a reference for every element: [elements-index.md](../../dist/skills/plainkit-sdk/references/elements-index.md) lists them by group.

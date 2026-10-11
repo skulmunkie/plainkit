@@ -8,6 +8,7 @@ import { applyDynamic } from '../../js/dynamic.js';
 import { TEMPLATES_DIR, PATTERNS_DIR } from './paths.js';
 import { mountPattern } from './pattern-mount.js';
 import { on } from '../../js/mount-support.js';
+import { fillSanitizedHtml } from '../../js/sanitized-html.js';
 
 const q = new URLSearchParams(location.search);
 const kind = q.get('kind');
@@ -45,16 +46,20 @@ const entry = (() => {
     return null;
 })();
 
-// A page of its own at phone width: the page goes in a real 375px frame, so its media queries see a phone.
+// A page of its own at phone width: the page goes in a real 375px pk-frame, so its media queries see a phone. The framed page is the gallery's
+// own (same origin), so the frame is trusted with allow-same-origin; the host fills the window and the frame is centred in it.
 function device(src) {
-    document.body.classList.add('pv-host');
-    const frame = document.createElement('iframe');
-    frame.className = 'pv-device';
-    frame.title = `${entry.title} at phone width`;
-    frame.dataset.dyn = `width:${PHONE_WIDTH}px`;
+    const frame = document.createElement('pk-frame');
+    frame.setAttribute('title', `${entry.title} at phone width`);
+    frame.setAttribute('preset', 'phone');
+    frame.setAttribute('allow-same-origin', '');
+    frame.setAttribute('loading', 'eager');
+    frame.setAttribute('height', '100%');
+    frame.setAttribute('src', src);
+    frame.dataset.dyn = `width:${PHONE_WIDTH}px; height:100%; margin-inline:auto`;
     applyDynamic(frame);
-    frame.src = src;
     host.replaceChildren(frame);
+    initPlainkit(document);
 }
 
 if (!entry) {
@@ -72,12 +77,13 @@ if (!entry) {
         url.searchParams.delete('width');
         device(url.href);
     } else {
-        // The fragment is the page: a page-width column with the SDK's own page gutter, the whole window, the document scrolling itself.
-        document.body.classList.add('pv-body');
+        // The fragment is the page: a pk-container column, the whole window, the document scrolling itself.
+        const column = document.createElement('pk-container');
+        column.setAttribute('size', 'lg');
         const page = document.createElement('pk-stack');
-        page.className = 'pv-page';
-        host.replaceChildren(page);
-        page.innerHTML = entry.html;
+        column.append(page);
+        host.replaceChildren(column);
+        fillSanitizedHtml(page, entry.html);
         // The demos are not wired to a server: forms do not submit.
         on(document, 'submit', e => e.preventDefault());
         initPlainkit(document);

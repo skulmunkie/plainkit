@@ -1,0 +1,18 @@
+@page "/routed/orders/{Id}"
+
+@* The record half of the routed pair: the route gives the id, Config carries it, Load and Save are your data access. *@
+<PkRecordPage Config="@Config" Load="RoutedOrderStore.GetAsync" Save="SaveAsync" />
+
+@code {
+    [Parameter] public string Id { get; set; } = "";
+
+    private string Config => System.Text.Json.JsonSerializer.Serialize(new
+    {
+        id = Id,
+        heading = "Order",
+        fields = new object[] { new { name = "customer", label = "Customer", required = true }, new { name = "note", label = "Note", type = "textarea" } },
+    });
+
+    private Task SaveAsync(IReadOnlyDictionary<string, System.Text.Json.JsonElement> values) =>
+        RoutedOrderStore.SaveAsync(Id, values["customer"].GetString() ?? "", values["note"].GetString() ?? "");
+}

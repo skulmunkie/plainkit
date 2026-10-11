@@ -38,10 +38,20 @@ jobs:
       - name: Install build dependencies (esbuild)
         run: npm ci
 
+      # The render cache (--cache, #749): every unit is keyed by a hash of all its inputs (scripts/ui-review-cache.mjs), so a restored entry can only be hit when
+      # its inputs are identical, and a unit with an error finding or one that could not be seen is never stored. The Actions key only picks which folder to start from.
+      - name: Restore the render cache
+        uses: actions/cache@0400d5f644dc74513175e3cd8d07132dd4860809 # v4.2.4
+        with:
+          path: review-cache
+          key: ui-review-cache-${{ runner.os }}-sweep-${{ matrix.shard }}-${{ hashFiles('package-lock.json') }}-${{ github.run_id }}
+          restore-keys: |
+            ui-review-cache-${{ runner.os }}-sweep-${{ matrix.shard }}-${{ hashFiles('package-lock.json') }}-
+
       - name: Render and audit everything
         env:
           SHARD: ${{ matrix.shard }}
-        run: node scripts/ui-review.mjs --all --shard "$SHARD/4"
+        run: node scripts/ui-review.mjs --cache --all --shard "$SHARD/4"
 
       - name: Keep the screenshots
         if: always()

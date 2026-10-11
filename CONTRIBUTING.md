@@ -58,6 +58,10 @@ Numeric checks and green CI did not catch a wrong-looking record header or a bre
 - The `ui-reviewer` project subagent (`.claude/agents/ui-reviewer.md`) can do a first pass: give it a pull request number or the `review-output/` folder and it reads the issue's stated expectations, the screenshots and the manifest, and writes advice for the owner (what matches, what deviates, what a designer would flag, what it could not see). It approves and merges nothing.
 - Every layout expectation an issue states ("the chips share the crumbs row", "the actions are full width on a phone") becomes a measuring case in `core/tests/browser/`, so it stays true.
 
+## Issues about how something looks
+
+Say what you see with pictures: a found image and, where one exists, an expected image or mockup, with the measurements in the text beside them. GitHub cannot take attachments from a script, so `node scripts/issue-image.mjs <issue> <file.png> --name found` puts the image on the screenshots-only branch `issue-images` and prints the markdown to paste into the issue (`--comment` posts it).
+
 ## Building PlainKit.Blazor from a clone
 
 The generated components (`blazor/src/PlainKit.Blazor/Generated/`), the package copy of the toolkit (`wwwroot/plainkit/`) and `Generated/generated.manifest.json` (the list of what is not generated, and why) are not in git. On a fresh clone run `node scripts/bootstrap.mjs` from the repository root (Node only, about 4 seconds) before `dotnet build` or `dotnet test PlainKit.slnx`; without it the build stops with "Generated files are missing: run node scripts/bootstrap.mjs from the repository root". The generator uses the type a mapping names for a JSON prop when the package declares it, and lists a JSON prop that has no type in `generated.manifest.json` (`typesToDefine`). Consumers of the NuGet package are not affected: the package contains everything, and the manifest itself stays out of it (its content reaches them as `references/known-gaps.md` in the skill).

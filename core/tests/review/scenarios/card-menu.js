@@ -19,12 +19,12 @@ export default {
 </div>`,
     steps: [
         { shot: 'closed' },
-        { click: BTN('d2') }, { wait: 300 }, { shot: 'open-long' },
-        { key: 'Escape' }, { wait: 200 },
-        { click: BTN('d1') }, { wait: 300 }, { shot: 'open-short' },
-        { key: 'Escape' }, { wait: 200 },
-        { set: '#stage', attr: 'dir', value: 'rtl' }, { wait: 200 }, { click: BTN('d2') }, { wait: 300 }, { shot: 'rtl-open-long' },
-        { key: 'Escape' }, { wait: 200 }, { shot: 'rtl-closed' },
+        { click: BTN('d2') }, { shot: 'open-long' },
+        { key: 'Escape' }, 
+        { click: BTN('d1') }, { shot: 'open-short' },
+        { key: 'Escape' }, 
+        { set: '#stage', attr: 'dir', value: 'rtl' }, { click: BTN('d2') }, { shot: 'rtl-open-long' },
+        { key: 'Escape' }, { shot: 'rtl-closed' },
     ],
     expect(t) {
         const rtl = t.shot.startsWith('rtl');

@@ -1,0 +1,20 @@
+{
+  "component": "PkPrintPage",
+  "params": [
+    {
+      "name": "Size",
+      "type": "string",
+      "default": "",
+      "map": "prop",
+      "prop": "size"
+    },
+    {
+      "name": "Margin",
+      "type": "string",
+      "default": "15mm",
+      "map": "prop",
+      "prop": "margin"
+    }
+  ],
+  "notes": "New component (issue #1024). ChildContent is the printed document; put screen-only buttons in a child with slot=\"toolbar\" and mark anything else that must not print with data-screen-only."
+}

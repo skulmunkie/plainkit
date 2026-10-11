@@ -135,6 +135,17 @@ public sealed class PkFieldGroupTests : BunitContext, IAsyncLifetime
     }
 
     [Fact]
+    public void LabelWhen_replaces_the_label_per_record_and_falls_back_to_Label_when_empty()
+    {
+        PkFieldSpec<Order>[] fields =
+        [
+            new() { Key = "a", Label = "Reserve", LabelWhen = o => o.Qty > 0 ? "Reserve (locked)" : null, Get = o => o.Name, Set = (o, v) => o.Name = v ?? "" },
+        ];
+        Assert.Equal("Reserve", Defs(Render(fields, new Order()))[0].GetProperty("label").GetString());
+        Assert.Equal("Reserve (locked)", Defs(Render(fields, new Order { Qty = 1 }))[0].GetProperty("label").GetString());
+    }
+
+    [Fact]
     public void Placeholder_Rows_Span_HideLabel_Free_and_OptionsSource_reach_the_element()
     {
         PkFieldSpec<Order>[] fields =

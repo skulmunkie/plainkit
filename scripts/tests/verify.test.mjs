@@ -118,6 +118,14 @@ test('a check that runs "after" another waits for it even when it failed, but on
     assert.deepEqual(CHECKS.find(c => c.id === 'pack').after, ['dotnet']);
 });
 
+// #703: runChecks records which checks passed, so pack can reuse the Release build the dotnet check made (and only then).
+test('runChecks records the passed checks on the context', async () => {
+    const fake = (id, ok) => ({ id, name: id, group: 'x', needs: [], fast: false, fix: 'f', cause: 'c', fn: async () => ({ ok, output: '' }) });
+    const ctx = {};
+    await runChecks([fake('a', true), fake('b', false)], ctx);
+    assert.deepEqual([...ctx.passed], ['a']);
+});
+
 // #780: a failing test is never hidden. A fixture of real runner output: several failures in several files, stderr noise from passing tests, and a missing esbuild.
 function runFixture() {
     const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'pk-verify-fixture-'));

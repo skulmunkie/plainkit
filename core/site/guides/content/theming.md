@@ -76,7 +76,7 @@ Use them in your own CSS too, so your parts follow the theme: `padding: var(--sp
 
 ## Change one element
 
-Each element also exposes a few hooks of its own, named `--pk-<element>-<part>`. They are listed in the element's API in the [gallery](../gallery/index.html). Set them on the element or on a class, and only that element changes:
+Each element also exposes a few hooks of its own, named `--pk-<element>-<part>`. They are listed in the element's API in the [gallery](../../app.html#/gallery). Set them on the element or on a class, and only that element changes:
 
 ```css
 .square-button {
@@ -88,7 +88,7 @@ Prefer a token when you want to change something everywhere and a hook when you 
 
 ## Build a theme with the theme editor
 
-The [Theme editor](../theme/index.html) is the quickest way to a theme of your own. It lists every token with an input for it and applies your edits to the page live. On top of that it can:
+The [Theme editor](../../app.html#/theme) is the quickest way to a theme of your own. It lists every token with an input for it and applies your edits to the page live. On top of that it can:
 
 - **Generate a palette from one brand colour** (the Palette tab). Give it a colour, and optionally a neutral tint and a warn colour, and it writes the accent, fill, hover and link colours and the text and surface ramps of both themes so that every documented text pair is 4.5:1 or better. Each pair is shown as a swatch with its ratio. If your colour is too light or too dark to be text or a button fill it is moved, and the tab says how far. Apply turns the result into ordinary edits you can still change.
 - **Start from a preset or a saved theme** (the Presets tab): the default, a high-contrast theme, a compact and a roomy density, and themes you save by name in this browser.
@@ -133,4 +133,4 @@ The editor's **Custom SDK** tab makes a download from your theme and your breakp
 
 Everything happens in the page. The only requests are same-origin reads of the shipped files, and each is checked against its hash in the release manifest before it is used. The zip has the release layout (`dist/`, so it drops in where `dist` is used), the settings and a README naming the version and the settings; paste `plainkit.custom.json` into the tab's Import box to change and export again. Turn the tab off in your own page with `mountThemeEditor(el, { sdk: false })`, or point it at another copy of the files with `dist: '/assets/plainkit/'` (a folder on the same origin).
 
-The [Scorecard](../scorecard/index.html) audits pages and elements at both themes and at a phone width and a wider one, which is a good check after a large change.
+The [Scorecard](../../app.html#/scorecard) audits pages and elements at both themes and at a phone width and a wider one, which is a good check after a large change.

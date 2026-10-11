@@ -20,7 +20,7 @@ const observers = `(() => {
 
 const PAGES = () => {
     const tpl = fs.readdirSync(path.join(coreDir, 'samples', 'templates'), { withFileTypes: true }).filter(d => d.isDirectory()).map(d => `/samples/templates/${d.name}/${d.name}.html`).filter(f => fs.existsSync(path.join(coreDir, f)));
-    return [['gallery', '/site/gallery/index.html'], ['gallery #/elements', '/site/gallery/index.html#/elements'], ['scorecard', '/site/scorecard/index.html'], ['theme editor', '/site/theme/index.html'], ...tpl.map(f => [f.split('/').at(-1).replace('.html', ' (template)'), f])];
+    return [['gallery', '/app.html#/gallery'], ['gallery #/elements', '/app.html#/gallery/elements'], ['scorecard', '/app.html#/scorecard'], ['theme editor', '/app.html#/theme'], ...tpl.map(f => [f.split('/').at(-1).replace('.html', ' (template)'), f])];
 };
 
 async function pagesCase(server, browser, { runs }) {
@@ -52,7 +52,7 @@ async function pagesCase(server, browser, { runs }) {
 
 async function sweepCase(server, browser) {
     const page = await browser.newPage();
-    await page.goto(`${server.origin}/site/scorecard/index.html`);
+    await page.goto(`${server.origin}/app.html#/scorecard`);
     await sleep(1500);
     const rows = []; const base = await page.heap();
     rows.push({ round: 'start', jobs: 0, 'ms': 0, 'heap MB after GC': round(base.heap / 1048576, 1), 'DOM nodes': base.nodes, 'JS listeners': base.listeners, documents: base.documents });

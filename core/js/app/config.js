@@ -3,13 +3,11 @@
 //   export default {
 //       title: 'Orders',                                    // the document title's second half (default: brand.text)
 //       brand: { text: 'Orders' },                           // the bar's brand; it always links to the app home
-//       modules: [                                           // the top menu, in order, and the ALLOW-LIST: the only code the app ever imports
+//       modules: [                                           // the module picker's list, in order, and the ALLOW-LIST: the only code the app ever imports
 //           { id: 'orders', title: 'Orders', load: () => import('./modules/orders.js') },
 //           { id: 'settings', title: 'Settings', load: () => import('./modules/settings.js'), menu: 'settings' },   // in the settings menu, not the bar
 //       ],                                                   // entry: id, title, load (required), icon, menu ('settings'), can
 //       home: 'orders',                                      // where '#/' goes (default: the first module in the bar)
-//       layout: 'side',                                      // 'side' (the default): the module list is the side nav, each module a section whose own nav is its children; 'top' (the exception,
-//                                                            // for a tiny app with few modules and no module nav): the modules are links in the header bar. On a narrow screen both use ONE drawer.
 //       routing: 'hash', base: '',                           // 'hash' ('#/<moduleId>/...', static hosting, the default) or 'path' (server rewrites; base = the prefix)
 //       search: { placeholder: 'Search', minLength: 1 },     // the header search; false leaves it out. Results: the active module's `search(query, ctx)`, else its nav
 //       footer: { text: 'Acme', links: [{ label: 'Privacy', href: '/privacy.html' }] },   // a module's own `footer` (same shape, or false for none) replaces it while that module is active (#373)
@@ -39,7 +37,7 @@ export function readFooter(footer, key = 'footer') {
 }
 
 export function readConfig(config) {
-    const c = known(obj(config ?? fail('', 'is required (an object: modules, brand, ...)'), ''), ['title', 'brand', 'modules', 'home', 'layout', 'routing', 'base', 'search', 'footer', 'theme', 'storage', 'auth', 'can'], '');
+    const c = known(obj(config ?? fail('', 'is required (an object: modules, brand, ...)'), ''), ['title', 'brand', 'modules', 'home', 'routing', 'base', 'search', 'footer', 'theme', 'storage', 'auth', 'can'], '');
     if (!Array.isArray(c.modules) || !c.modules.length) fail('modules', 'must be a non-empty array of { id, title, load }');
     const ids = new Set();
     const modules = c.modules.map((m, i) => {
@@ -55,7 +53,6 @@ export function readConfig(config) {
     });
     const home = str(c.home, 'home', (modules.find(m => !m.menu) ?? modules[0]).id);
     if (!ids.has(home)) fail('home', `"${home}" is not one of the modules`);
-    if (c.layout !== undefined && c.layout !== 'side' && c.layout !== 'top') fail('layout', "must be 'side' or 'top'");
     if (c.routing !== undefined && c.routing !== 'hash' && c.routing !== 'path') fail('routing', "must be 'hash' or 'path'");
     if (c.can !== undefined && !isFn(c.can)) fail('can', 'must be a function');
     const brand = known(obj(c.brand, 'brand'), ['text'], 'brand.');
@@ -68,7 +65,7 @@ export function readConfig(config) {
         title: str(c.title, 'title', str(brand.text, 'brand.text', 'App')),
         brand: { text: str(brand.text, 'brand.text', 'App') },
         modules, home, auth: c.auth, can: c.can,
-        layout: c.layout ?? 'side', routing: c.routing ?? 'hash', base: str(c.base, 'base', ''),
+        routing: c.routing ?? 'hash', base: str(c.base, 'base', ''),
         search: search && { placeholder: str(search.placeholder, 'search.placeholder', 'Search'), minLength: Number.isInteger(search.minLength) && search.minLength >= 0 ? search.minLength : 1 },
         footer: c.footer === undefined ? null : readFooter(c.footer, 'footer'),
         theme: { default: theme.default ?? 'dark', param: str(theme.param, 'theme.param', 'theme') },

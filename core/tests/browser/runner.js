@@ -37,7 +37,7 @@ async function sources() {
     const registry = (await import(registryUrl)).default;
     // each element's folder as the registry names it: ./<name>/<name>.element.js, or ../<tier folder>/<name>/<name>.element.js (#767)
     const stems = Object.values(registry).map(mod => new URL(mod, 'http://x/elements/registry.js').pathname.slice(1).replace(/\.element\.js$/, ''));
-    const files = ['js/element.js', 'js/element-core.js', 'js/loader.js', 'tests/browser/cases.js', 'tests/browser/cases-overlays.js', 'tests/browser/cases-data-display.js', 'tests/browser/cases-forms.js', 'tests/browser/cases-lookup-picker.js', 'tests/browser/cases-field-group.js', 'tests/browser/cases-modules-mount.js', 'tests/browser/cases-tools.js', 'tests/browser/cases-headers.js', 'tests/browser/cases-layout.js', 'tests/browser/cases-icon-time.js', 'tests/browser/cases-workspace.js', 'tests/browser/cases-dock.js', 'tests/browser/cases-tray.js', 'tests/browser/cases-guides.js', 'tests/browser/cases-app.js', 'tests/browser/cases-navbar.js', 'tests/browser/cases-gallery.js', 'tests/browser/navbar-frame.html', 'tests/browser/navbar-frame.js', 'tests/browser/table-frame.html', 'tests/browser/table-frame.js', 'tests/browser/cases-app-shell.js', 'js/app.js', 'js/app/module.js', 'js/app/host.js', 'js/app/boundary.js', 'js/tasks.js', 'js/app/app.js', 'js/app/config.js', 'js/app/nav.js', 'js/app/shell.js', 'js/router.js', 'base/a11y.css', 'samples/app/index.html', 'samples/app/top.html', 'tests/browser/case-filter.js', 'tests/browser/runner.js'];
+    const files = ['js/element.js', 'js/element-core.js', 'js/loader.js', 'tests/browser/cases.js', 'tests/browser/cases-overlays.js', 'tests/browser/cases-data-display.js', 'tests/browser/cases-forms.js', 'tests/browser/cases-lookup-picker.js', 'tests/browser/cases-field-group.js', 'tests/browser/cases-record-form.js', 'tests/browser/cases-modules-mount.js', 'tests/browser/cases-tools.js', 'tests/browser/cases-headers.js', 'tests/browser/cases-layout.js', 'tests/browser/cases-icon-time.js', 'tests/browser/cases-workspace.js', 'tests/browser/cases-dock.js', 'tests/browser/cases-tray.js', 'tests/browser/cases-design-surface.js', 'tests/browser/cases-canvas.js', 'tests/browser/cases-guides.js', 'tests/browser/cases-app.js', 'tests/browser/cases-navbar.js', 'tests/browser/cases-gallery.js', 'tests/browser/navbar-frame.html', 'tests/browser/navbar-frame.js', 'tests/browser/table-frame.html', 'tests/browser/table-frame.js', 'tests/browser/cases-app-shell.js', 'js/app.js', 'js/app/module.js', 'js/app/host.js', 'js/app/boundary.js', 'js/tasks.js', 'js/app/app.js', 'js/app/config.js', 'js/app/nav.js', 'js/app/shell.js', 'js/router.js', 'base/a11y.css', 'samples/app/index.html', 'tests/browser/case-filter.js', 'tests/browser/runner.js'];
     for (const stem of stems) for (const ext of ['html', 'css', 'meta.json', 'js']) files.push(`${stem}.${ext}`);
     const out = {};
     for (const f of files.sort()) { const res = await fetch(new URL(`../../${f}`, import.meta.url)); if (res.ok) out[f] = await sha(await res.text()); }
@@ -50,7 +50,11 @@ const CASE_TIMEOUT_MS = 60000;
 const params = new URLSearchParams(location.search); const only = params.get('only'); const times = only ? Math.max(1, Number(params.get('times')) || 1) : 1;
 const filterList = parseList(params.get('filter')); const elementList = parseList(params.get('elements'));
 const chosen = only ? Array.from({ length: times }, () => cases.filter(([n]) => n.includes(only))).flat() : selectCases(cases, { filter: filterList, elements: elementList });
+// Case isolation (#1127): every case starts from, and leaves, empty storage. The demo apps and theme cases write to the harness origin's
+// localStorage (pk.app, saved themes), so a case outcome used to depend on which cases ran before it.
+const resetStorage = () => { localStorage.clear(); sessionStorage.clear(); };
 for (const [name, fn] of chosen) {
+    resetStorage();
     const started = performance.now();
     const li = document.createElement('li');
     // A case that never settles must fail by name, not stall the whole run (and the report) forever.
@@ -59,6 +63,7 @@ for (const [name, fn] of chosen) {
     try { await Promise.race([fn(t), stalled]); clearTimeout(timer); li.className = 'tb-pass'; li.textContent = name; results.push({ name, ok: true, ms: Math.round(performance.now() - started) }); }
     catch (e) { li.className = 'tb-fail'; li.textContent = `${name}: ${e.message}`; results.push({ name, ok: false, ms: Math.round(performance.now() - started), error: String(e.message ?? e) }); }
     list.append(li);
+    resetStorage();
 }
 stageEl.replaceChildren();
 

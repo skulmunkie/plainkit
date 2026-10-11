@@ -13,7 +13,7 @@
       "name": "Items",
       "prop": "rows",
       "type": "IReadOnlyList<TItem>",
-      "note": "Sent as a JSON attribute (camelCase, one object per item, plus the row key \"id\" from IdOf)."
+      "note": "Sent as a JSON attribute (camelCase, one object per item, plus the row key \"id\" from IdOf). An item property named Tone (warning, positive, accent or critical) or Indent (1 or 2) marks the row, tint and leading rule included, as in the element."
     },
     {
       "name": "IdOf",
@@ -195,6 +195,12 @@
       "name": "FooterContent",
       "slot": "footer",
       "type": "RenderFragment"
+    },
+    {
+      "name": "FootContent",
+      "slot": "foot",
+      "type": "RenderFragment",
+      "note": "Data-driven: a footer or summary row (one cell spanning every column; a trailing card on a phone). Raw mode (ChildContent set) renders it as the tfoot of the authored table instead."
     },
     {
       "name": "DetailTemplate",

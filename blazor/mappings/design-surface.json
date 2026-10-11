@@ -1,0 +1,16 @@
+{
+  "component": "PkDesignSurface",
+  "params": [
+    { "name": "Width", "prop": "width" },
+    { "name": "Label", "prop": "label" },
+    { "name": "Dragging", "prop": "dragging" },
+    { "name": "Interactive", "prop": "interactive" },
+    { "name": "OnPick", "event": "pk-surface-pick" },
+    { "name": "OnHover", "event": "pk-surface-hover" },
+    { "name": "OnKey", "event": "pk-surface-key" },
+    { "name": "ChildContent", "slot": "" },
+    { "name": "Chip", "slot": "chip" },
+    { "name": "Empty", "slot": "empty" }
+  ],
+  "notes": "selected, dropTarget and chipFor are element references (properties, not attributes): they cannot be plain Blazor parameters, so a Blazor page does not set them directly; the module hosting the surface (the layout builder) sets them in script. Marks for hidden and empty nodes come from data-surface-hidden / data-surface-empty on the rendered nodes, which a component can write as ordinary attributes."
+}

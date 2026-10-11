@@ -97,9 +97,9 @@ export function vueTypings(metas) {
 
 export function allManifests(metas) {
     return {
-        'custom-elements.json': JSON.stringify(customElementsManifest(metas), null, 2) + '\n',
-        'vscode.html-custom-data.json': JSON.stringify(vscodeCustomData(metas), null, 2) + '\n',
-        'web-types.json': JSON.stringify(webTypes(metas), null, 2) + '\n',
+        'custom-elements.json': JSON.stringify(customElementsManifest(metas)) + '\n',
+        'vscode.html-custom-data.json': JSON.stringify(vscodeCustomData(metas)) + '\n',
+        'web-types.json': JSON.stringify(webTypes(metas)) + '\n',
         'elements.d.ts': typings(metas),
         'elements.vue.d.ts': vueTypings(metas),
     };

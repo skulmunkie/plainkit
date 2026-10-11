@@ -130,6 +130,15 @@ export const overlaysCases = [
         let seen; el.addEventListener('pk-select', e => { seen = e.detail; }); b.click(); await t.settle(); t.eq(seen.value, 'Rebuild', 'the value is the label alone');
     }],
 
+    ['menu-item: a prefix icon and a badge lay out like a pk-nav-item row (fixed icon cell, pill pushed to the end)', async t => {
+        const el = await t.mount('<pk-dropdown open><button slot="trigger">A</button><pk-menu-item><span slot="prefix">*</span>Inbox<span slot="badge">12</span></pk-menu-item><pk-menu-item>Plain</pk-menu-item></pk-dropdown>');
+        const [a] = el.querySelectorAll('pk-menu-item'); await t.settle();
+        const row = a.getBoundingClientRect(), badge = a.querySelector('[slot="badge"]'), pill = badge.getBoundingClientRect(), icon = a.querySelector('[slot="prefix"]').getBoundingClientRect();
+        t.ok(pill.width > 0 && row.right - pill.right <= parseFloat(getComputedStyle(a).paddingRight) + 1, 'the badge sits at the end of the row');
+        t.ok(getComputedStyle(badge).borderRadius !== '0px' && getComputedStyle(badge).backgroundColor !== 'rgba(0, 0, 0, 0)', 'and is a filled pill');
+        t.ok(icon.width >= 16 && icon.right < a.part('label').getBoundingClientRect().left, 'the icon is a cell before the label');
+    }],
+
     ['dropdown: a submenu opens with Right and closes with Left', async t => {
         const el = await t.mount('<pk-dropdown open><button slot="trigger">A</button><pk-menu-item>More<pk-menu-item slot="submenu">One</pk-menu-item><pk-menu-item slot="submenu">Two</pk-menu-item></pk-menu-item></pk-dropdown>');
         const parent = el.querySelector('pk-menu-item'); const [one, two] = parent.querySelectorAll('pk-menu-item');
@@ -780,10 +789,12 @@ overlaysCases.push(
     }],
 );
 
+
 // Issue 728: pk-card-menu is the element behind the card-menu pattern: the dropdown's keyboard and focus return come through it, its open prop follows the menu, and pk-select from an item reaches the host.
+const mountDeep = async (t, html) => { const el = await t.mount(html); await t.load(el.shadowRoot); return el; }; // the element's own shadow tree holds a dropdown and a button: define them too, so the case passes on its own (#1156)
 overlaysCases.push(
     ['card-menu: opens from the keyboard, an item raises pk-select at the host once, the menu closes and focus returns to the real button; Escape does the same (issue 728)', async t => {
-        const el = await t.mount('<pk-card-menu label="Orders actions"><pk-menu-item value="export">Export</pk-menu-item><pk-menu-item value="archive">Archive</pk-menu-item></pk-card-menu>');
+        const el = await mountDeep(t, '<pk-card-menu label="Orders actions"><pk-menu-item value="export">Export</pk-menu-item><pk-menu-item value="archive">Archive</pk-menu-item></pk-card-menu>');
         const picks = []; el.addEventListener('pk-select', e => picks.push(e.detail.value));
         const btn = el.part('button'); btn.focus(); await t.settle(); const inner = deepActive(); t.eq(inner?.localName, 'button', 'the trigger takes focus');
         t.key(inner, 'ArrowDown'); await t.settle(); t.ok(el.open, 'open follows the dropdown'); t.eq(document.activeElement, el.querySelector('pk-menu-item'), 'first item focused');
@@ -793,7 +804,7 @@ overlaysCases.push(
         t.ok(!el.open, 'Escape closes'); t.eq(deepActive(), inner, 'focus is back on the real button after Escape');
     }],
     ['card-menu: the open prop opens and closes the menu, and a click on the button toggles it and keeps open in step (issue 728)', async t => {
-        const el = await t.mount('<pk-card-menu icon-name="settings" placement="bottom-start"><pk-menu-item value="a">A</pk-menu-item></pk-card-menu>');
+        const el = await mountDeep(t, '<pk-card-menu icon-name="settings" placement="bottom-start"><pk-menu-item value="a">A</pk-menu-item></pk-card-menu>');
         const dd = el.part('menu'); t.eq(dd.placement, 'bottom-start', 'placement reaches the dropdown'); t.eq(el.part('button').iconName, 'settings', 'iconName reaches the button');
         el.open = true; await t.settle(); t.ok(dd.open, 'open=true opens the dropdown');
         el.part('button').click(); await t.settle(); t.ok(!dd.open && !el.open, 'a click on the button closes it and open follows');

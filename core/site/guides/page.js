@@ -49,7 +49,7 @@ window.addEventListener('hashchange', e => {
     if (!isAnchorHash(location.hash)) return;
     const decode = s => { try { return decodeURIComponent(s); } catch { return s; } }; // a malformed %-escape is kept as typed, and then matches nothing
     const id = decode(location.hash.slice(1));
-    if (current) { page.config = { ...page.config, anchor: id }; history.replaceState(null, '', routeHash(current, id)); }
+    if (current) { page.config = { ...page.config, anchor: id }; router.navigate(routeHash(current, id).slice(1), { replace: true }); }
     e.stopImmediatePropagation();
 });
 
@@ -69,6 +69,6 @@ function route() {
 
 mountShell({ page: 'guides', title: null });
 // A same-page link (the toc, a heading's permalink) scrolls the article and gets its own history entry: pk-doc-page scrolls and reports it, the address is the page's.
-on(page, 'pk-navigate', e => history.pushState(null, '', routeHash(e.detail.id, e.detail.anchor)));
+on(page, 'pk-navigate', e => router.navigate(routeHash(e.detail.id, e.detail.anchor).slice(1)));
 router.subscribe(route);
 if (!isAnchorHash(location.hash)) route(); // a bare anchor on first load has no current guide to scroll within yet; the anchor listener above already no-ops on it

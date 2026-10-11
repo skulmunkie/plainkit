@@ -20,7 +20,7 @@ namespace PlainKit.Blazor;
 ///       private Task LoadAsync() => BusyAsync(async () => Orders = await Client.GetOrdersAsync(), "Loading orders…");
 ///   }
 /// </summary>
-public abstract partial class PageBase : ComponentBase, IDisposable
+public abstract partial class PageBase : ComponentBase, IAsyncDisposable
 {
     /// <summary>Writes an error into the SDK log through <see cref="IPkLog"/> (used by <see cref="SetErrorAsync"/>).</summary>
     [Inject] protected IPkLog Log { get; set; } = default!;
@@ -41,10 +41,10 @@ public abstract partial class PageBase : ComponentBase, IDisposable
     protected string? StatusHeading { get; private set; }
 
     /// <summary>Whether any busy action (<see cref="BusyAsync(Func{Task},string?)"/> or <see cref="BeginBusy"/>) is in flight. Busy is counted: overlapping actions each hold a token and this stays true until the last one ends.</summary>
-    protected bool IsBusy => _busy.Count > 0;
+    protected bool IsBusy => _life.IsBusy;
 
     /// <summary>The label of the most recent busy action still running; once idle, the label of the last one (so a fading overlay keeps its text).</summary>
-    protected string? BusyLabel => _busy.Count > 0 ? _busy[^1].Label : _lastLabel;
+    protected string? BusyLabel => _life.BusyLabel;
 
     /// <summary>The scope this page logs under: the SDK scope on the JavaScript side and the <c>PlainKit.&lt;scope&gt;</c> ILogger category. Override to name it; defaults to the page's own type name.</summary>
     protected virtual string LogScope => GetType().Name;
@@ -75,75 +75,66 @@ public abstract partial class PageBase : ComponentBase, IDisposable
     }
 
     /// <summary>
-    /// Takes a busy token and returns the handle that releases it (dispose it, once or many times). Use it for work that is not one awaited action:
-    /// <c>using var busy = BeginBusy("Saving…");</c>. <see cref="BusyAsync(Func{Task},string?)"/> is this around an action.
+    /// Takes a busy token and returns the handle that releases it (dispose it, once or many times) for work that is not one awaited action:
+    /// <c>using var busy = BeginBusy("Saving…");</c>.
     /// </summary>
-    protected IDisposable BeginBusy(string? label = null)
-    {
-        var token = new BusyToken(label, this);
-        _busy.Add(token);
-        _lastLabel = label;
-        StateHasChanged();
-        return token;
-    }
+    protected IDisposable BeginBusy(string? label = null) => _life.Begin(label);
 
     /// <summary>
-    /// Runs <paramref name="action"/> under a busy token (with an optional <paramref name="label"/>); the token is released in a finally, so overlapping calls never clear each other.
-    /// An exception it throws is logged and shown as a danger status through <see cref="SetErrorAsync"/>, then rethrown so the caller's own handling (a form's own field errors,
-    /// for instance) still runs.
+    /// Runs <paramref name="action"/> under a busy token (with an optional <paramref name="label"/>); overlapping calls never clear each other.
+    /// An exception it throws is logged and shown as a danger status through <see cref="SetErrorAsync"/>, then rethrown so the caller's own handling still runs.
     /// </summary>
-    protected async Task BusyAsync(Func<Task> action, string? label = null)
+    protected Task BusyAsync(Func<Task> action, string? label = null) => _life.RunAsync<object?>(label, async _ => { await action(); return null; }, e => SetErrorAsync(e));
+
+    /// <summary>The result-returning form of <see cref="BusyAsync(Func{Task},string?)"/>.</summary>
+    protected async Task<T> BusyAsync<T>(Func<Task<T>> action, string? label = null) => (await _life.RunAsync(label, _ => action(), e => SetErrorAsync(e)))!;
+
+    /// <summary>Runs on the first render and again when a parameter changed (<see cref="ReloadOnParameters"/>). <see cref="IsLoading"/> is true from before the first render until it ends; a failure is logged, shown as a danger status and kept in <see cref="LoadError"/>; a cancelled load is silent.</summary>
+    protected virtual Task OnLoadAsync(CancellationToken cancel) => Task.CompletedTask;
+
+    /// <summary>Whether a changed parameter starts a new load (default true; the previous load's token is cancelled either way).</summary>
+    protected virtual bool ReloadOnParameters => true;
+
+    /// <summary>Cancelled when the next load starts and when the page is disposed; pass it to calls started outside <see cref="OnLoadAsync"/>.</summary>
+    protected CancellationToken LoadCancellation => _life.Token;
+
+    /// <summary>True from before the first render of a load until it ends.</summary>
+    protected bool IsLoading => _life.State == "loading";
+
+    /// <summary>The exception the last load failed with, or null.</summary>
+    protected Exception? LoadError => _life.State == "error" ? _life.Error : null;
+
+    /// <summary>Re-renders through the renderer's dispatcher; a no-op after the page is disposed.</summary>
+    protected Task InvokeStateChanged() => _life.Disposed ? Task.CompletedTask : InvokeAsync(StateHasChanged);
+
+    /// <summary>Runs when the page is disposed, after its loads are cancelled and its busy tokens released.</summary>
+    protected virtual ValueTask OnDisposeAsync() => ValueTask.CompletedTask;
+
+    /// <inheritdoc />
+    public override async Task SetParametersAsync(ParameterView parameters)
     {
-        using var busy = BeginBusy(label);
-        try
-        {
-            await action();
-        }
-        catch (Exception exception)
-        {
-            await SetErrorAsync(exception);
-            throw;
-        }
+        var next = parameters.ToDictionary();
+        var reload = ReloadOnParameters && (_parameters is null || next.Count != _parameters.Count || next.Any(p => !_parameters.TryGetValue(p.Key, out var old) || !Equals(old, p.Value)));
+        _parameters = next;
+        if (reload) _life.Expect();
+        await base.SetParametersAsync(parameters);
+        if (!reload) return;
+        var load = _life.LoadAsync<object?>(async c => { await OnLoadAsync(c); return null; }, null, e => SetErrorAsync(e));
+        if (!load.IsCompleted) _ = load.ContinueWith(_ => InvokeStateChanged(), TaskScheduler.Default);
     }
 
-    /// <summary>The result-returning form of <see cref="BusyAsync(Func{Task},string?)"/>: the same counted busy, label and error handling around an action that produces a value.</summary>
-    protected async Task<T> BusyAsync<T>(Func<Task<T>> action, string? label = null)
+    /// <summary>Releases every busy token. Disposal does this; a page that disposes itself calls it directly.</summary>
+    protected void ReleaseBusy() => _life.ReleaseBusy();
+
+    async ValueTask IAsyncDisposable.DisposeAsync()
     {
-        using var busy = BeginBusy(label);
-        try
-        {
-            return await action();
-        }
-        catch (Exception exception)
-        {
-            await SetErrorAsync(exception);
-            throw;
-        }
+        _life.Dispose();
+        await OnDisposeAsync();
     }
 
-    /// <summary>Releases every busy token. Blazor does this when it disposes the page; a page that implements its own <c>Dispose</c> calls this from it.</summary>
-    protected void ReleaseBusy()
-    {
-        _busy.Clear();
-    }
+    /// <summary>Creates the page lifecycle.</summary>
+    protected PageBase() => _life = new PkLifecycle(() => { if (!_life!.Disposed) StateHasChanged(); });
 
-    void IDisposable.Dispose() => ReleaseBusy();
-
-    private readonly List<BusyToken> _busy = [];
-    private string? _lastLabel;
-
-    private sealed class BusyToken(string? label, PageBase page) : IDisposable
-    {
-        public string? Label { get; } = label;
-        private PageBase? _page = page;
-
-        public void Dispose()
-        {
-            var owner = _page;
-            _page = null;
-            if (owner is null) return;
-            if (owner._busy.Remove(this) && owner._busy.Count > 0) owner._lastLabel = owner._busy[^1].Label;
-            owner.StateHasChanged();
-        }
-    }
+    private readonly PkLifecycle _life;
+    private IReadOnlyDictionary<string, object?>? _parameters;
 }

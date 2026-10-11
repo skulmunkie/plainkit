@@ -225,11 +225,36 @@ export const layoutCases = [
         size(el, rem(60)); await settle(); t.ok(shown(a) && shown(b) && shown(c) && !b.hasAttribute('data-pk-section-hidden'), 'widening shows everything again');
     }],
 
+    ['detail-layout: tabs-from=always shows the strip and one section at a time in the two-column layout; tabs-from=phone shows every section on a wide viewport (#342)', async t => {
+        const el = await t.mount('<pk-detail-layout tabs-from="always"><pk-card id="a" heading="A" data-pk-section="details">a</pk-card><pk-card id="b" heading="B" data-pk-section="pricing">b</pk-card><div slot="sidebar"><pk-card id="c" heading="C" data-pk-section="pricing">c</pk-card></div></pk-detail-layout>');
+        const shown = id => getComputedStyle(el.querySelector('#' + id)).display !== 'none';
+        const settle = async () => { await t.settle(); await new Promise(r => requestAnimationFrame(() => setTimeout(r, 50))); };
+        size(el, rem(60)); await settle();
+        t.ok(getComputedStyle(el.part('tabs')).display !== 'none', 'wide: the strip shows');
+        t.ok(shown('a') && !shown('b') && !shown('c'), 'wide: only the first section shows');
+        t.ok(el.part('sidebar').getBoundingClientRect().left >= el.part('main').getBoundingClientRect().right, 'wide: the two-column layout is kept');
+        t.ok(getComputedStyle(el.part('next')).display !== 'none', 'wide: Next moves on');
+        el.part('next').click(); await settle();
+        t.ok(!shown('a') && shown('b') && shown('c'), 'Next selects the pricing section, sidebar card included');
+        el.tabsFrom = 'phone'; await settle();
+        t.ok(shown('a') && shown('b') && shown('c') && getComputedStyle(el.part('tabs')).display === 'none', 'tabs-from=phone: a wide viewport shows every section and no strip');
+    }],
+
     ['detail-layout: sidebarFirst reorders the sidebar before the main content once collapsed; sidebarTwoUp lays its own cards two per row', async t => {
         const el = await t.mount('<pk-detail-layout sidebar-first sidebar-two-up><p>Main</p><div slot="sidebar"><p>A</p><p>B</p></div></pk-detail-layout>');
         size(el, rem(30)); await t.settle();
         t.ok(el.part('main').getBoundingClientRect().top > el.part('sidebar').getBoundingClientRect().top, 'sidebarFirst: the sidebar sits above the main content once stacked');
         t.eq(getComputedStyle(el.part('sidebar')).gridTemplateColumns.trim().split(' ').length, 2, 'sidebarTwoUp: two columns of cards inside the collapsed sidebar');
+    }],
+    ['detail-layout: stacked (collapsed), the vertical gaps between its children differ by no more than the scorecard\'s 6px, the main and the sidebar stacks alike (#402)', async t => {
+        const el = await t.mount('<pk-detail-layout><pk-page-header heading="Order 1042"></pk-page-header><p>Line items go here.</p><pk-card slot="sidebar"><h3>Status</h3><p>Shipped</p></pk-card><pk-card slot="sidebar"><h3>Customer</h3><p>Ada</p></pk-card></pk-detail-layout>');
+        for (const w of [30, 60]) {
+            size(el, rem(w)); await t.settle();
+            const kids = [...el.children].filter(k => { const r = k.getBoundingClientRect(); return r.width > 0 && r.height > 0; });
+            const gaps = [];
+            for (let i = 1; i < kids.length; i++) { const a = kids[i - 1].getBoundingClientRect(), b = kids[i].getBoundingClientRect(); if (b.top >= a.bottom - 1) gaps.push(Math.round((b.top - a.bottom) * 10) / 10); }
+            t.ok(gaps.length < 3 || Math.max(...gaps) - Math.min(...gaps) <= 6, `${w}rem wide: gaps differ by no more than 6px (${kids.map(k => k.localName).join(' | ')}: ${gaps.join(', ')})`);
+        }
     }],
     ['text: a block paragraph by default, a run inside a line when inline, with the paragraph role only as a block', async t => {
         const host = t.stage('<pk-text>Para</pk-text><p>After</p><pk-text inline>Run</pk-text>');
@@ -328,6 +353,8 @@ export const layoutCases = [
         // pk-sortable in the page: the window scrolls down near its bottom edge and back up near its top edge.
         host = t.stage(`<pk-sortable label="Rows">${rows(80)}</pk-sortable>`); await t.load(host); await t.settle();
         el = host.firstElementChild; window.scrollTo(0, 0);
+        // The harness stage sits at left:-10000px, and Chrome leaves content wholly off the start edge out of the scrollable overflow, so the page only scrolled when the long results list above it did (#1163). Bring the stage into the page for this part, so the case behaves the same alone and in the full suite.
+        const stageBox = host.parentElement, stageLeft = stageBox.style.left; stageBox.style.left = '0';
         try {
             t.ok(document.scrollingElement.scrollHeight > innerHeight + 300, 'the page is taller than the window');
             h = el.querySelector('pk-sortable-item').part('handle'); hr = h.getBoundingClientRect(); p = drag(h, 32);
@@ -340,7 +367,7 @@ export const layoutCases = [
             p('pointerup', hr.left + 5, 4); await t.settle();
             const y = window.scrollY; await wait(200);
             t.eq(window.scrollY, y, 'after the drop the window stays put');
-        } finally { window.scrollTo(0, 0); }
+        } finally { stageBox.style.left = stageLeft; window.scrollTo(0, 0); }
 
         // pk-kanban inside a scrolling box: the column is taller than the box, so the box scrolls.
         const cards = n => Array.from({ length: n }, (_, i) => `<pk-sortable-item value="c${i}"><pk-card heading="Task ${i + 1}" level="3">Something to do.</pk-card></pk-sortable-item>`).join('');
@@ -426,6 +453,36 @@ layoutCases.push(
             for (const r of rows) t.ok(h(r).height >= min, `${at}: a clickable row is ${Math.round(h(r).height)}px tall`);
             for (const b of boxes) t.ok(h(b).height >= min && h(b).width >= min, `${at}: a checkbox is ${Math.round(h(b).width)}x${Math.round(h(b).height)}px`);
             if (!phone) t.ok(h(rows[0]).height < 44, `${at}: desktop rows stay compact (${Math.round(h(rows[0]).height)}px)`);
+            fr.remove();
+        }
+    }],
+);
+
+// Issue 1019: a data-driven row carries a tone (and an indent) from the row object; the tint and the leading rule show on the desktop row and on the phone card.
+layoutCases.push(
+    ['table row tone: a row with tone has a tint and a leading rule, and indent moves its first cell in, on desktop and as a phone card (issue 1019)', async t => {
+        for (const width of [1280, 375]) {
+            const host = t.stage(''), fr = document.createElement('iframe');
+            fr.title = `table row tone at ${width}px`; fr.style.cssText = `width:${width}px;height:600px;border:0;display:block`;
+            fr.src = new URL('./table-frame.html', import.meta.url).href;
+            await new Promise(resolve => { fr.addEventListener('load', resolve, { once: true }); host.append(fr); });
+            const win = fr.contentWindow, d = win.document, wait = ms => new Promise(r => setTimeout(r, ms));
+            await win.customElements.whenDefined('pk-table');
+            const tb = d.createElement('pk-table');
+            tb.setAttribute('cards', ''); tb.setAttribute('row-key', 'id');
+            tb.columns = [{ key: 'name', label: 'Name' }, { key: 'sku', label: 'SKU' }];
+            tb.rows = [{ id: 'a', name: 'Plain', sku: '1' }, { id: 'b', name: 'Late', sku: '2', tone: 'warning' }, { id: 'c', name: 'Child', sku: '3', tone: 'accent', indent: 1 }, { id: 'd', name: 'Done', sku: '4', tone: 'positive' }];
+            d.body.append(tb);
+            for (let i = 0; i < 100 && !tb.shadowRoot?.querySelector('tbody tr:nth-child(4)'); i++) await wait(40);
+            const trs = [...tb.shadowRoot.querySelectorAll('tbody tr')], at = `${width}px`, cs = el => win.getComputedStyle(el);
+            const alpha = c => { if (c.startsWith('color(')) return c.includes('/') ? Number(c.split('/')[1].replace(')', '')) : 1; const m = /rgba?\(([^)]+)\)/.exec(c)?.[1].split(/[ ,\/]+/).filter(Boolean); return m ? (m.length > 3 ? Number(m[3]) : 1) : 0; };
+            const rule = tr => cs(tr).boxShadow + ' ' + cs(tr.firstElementChild).boxShadow;
+            t.ok(trs.length === 4 && trs[1].dataset.tone === 'warning' && trs[0].dataset.tone === undefined, `${at}: tone reaches the row as data-tone`);
+            t.ok(alpha(cs(trs[0]).backgroundColor) === 0 && alpha(cs(trs[1]).backgroundColor) > 0, `${at}: a toned row is tinted, a plain one is not`);
+            t.ok(/inset/.test(rule(trs[1])) && !/inset/.test(rule(trs[0])), `${at}: only the toned row has the leading rule`);
+            t.ok(rule(trs[1]) !== rule(trs[3]), `${at}: tones differ in colour`);
+            const left = tr => { if (width < 640) return tr.getBoundingClientRect().left; const r = d.createRange(); r.selectNodeContents(tr.firstElementChild); return r.getBoundingClientRect().left; };
+            t.ok(left(trs[2]) - left(trs[0]) >= 8, `${at}: indent moves the row in (${Math.round(left(trs[2]) - left(trs[0]))}px)`);
             fr.remove();
         }
     }],

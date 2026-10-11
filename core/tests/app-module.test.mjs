@@ -258,7 +258,7 @@ test("'list' (step 6, #352) creates a pk-list-page, splits config into the eleme
     const el2 = host2.children[0];
     assert.deepEqual(el2.config, { heading: undefined, breadcrumb: undefined, columns, filters: undefined, actions: undefined, empty: undefined, pageSize: 10, selectable: undefined, rowKey: undefined, bulkActions: undefined });
     const query = { page: 1, pageSize: 10, sort: null, sortDir: 'ascending', search: '', filters: {} };
-    assert.deepEqual(el2.load(query), { rows: [{ id: 1 }], total: 1 });
+    assert.deepEqual(await el2.load(query), { rows: [{ id: 1 }], total: 1 });
     assert.deepEqual(seen, [[query, ctx]], 'load receives the query and the page ctx');
     el2.rowHref({ id: 42 });
     assert.deepEqual(navigated, ['/orders/42'], 'rowHref navigates through ctx.navigate with its own return value');
@@ -669,6 +669,46 @@ test('a router in hash mode drives the host through open(): module-relative path
     } finally { globalThis.window = prev; }
 });
 
+test('persist: a persisted route keeps its mounted page (hidden, not rebuilt) across navigation, is rebuilt for other params, and is freed with the module: no listener is left behind', async () => {
+    const { container, doc } = makeDom();
+    const made = [], freed = [];
+    const page = name => ({ mount: (el, ctx) => { made.push(name); ctx.on(doc, 'visibilitychange', () => {}); return () => freed.push(name); } });
+    const def = defineModule({ id: 'keep', routes: [
+        { path: '/', page: 'custom', persist: true, config: page('home') },
+        { path: '/item/:id', page: 'custom', persist: true, config: ({ params }) => page('item' + params.id) },
+        { path: '/plain', page: 'custom', config: page('plain') },
+        { path: '*', page: 'not-found' },
+    ] });
+    const host = createModuleHost(container, { modules: [entryFor('keep', def), entryFor('other')], ...fast });
+    const hosts = () => bodyOf(container).children;
+    for (let round = 0; round < 20; round++) {
+        assert.equal(await host.show('keep'), 'ok');
+        assert.equal(await host.show('keep', { path: '/plain' }), 'ok');
+        assert.equal(hosts().length, 2, 'the kept page and the plain one share the body');
+        assert.equal(hosts()[0].hidden, true, 'the kept page is hidden while another shows');
+        assert.equal(await host.show('keep'), 'ok');
+        assert.equal(hosts().length, 1, 'the plain page is gone');
+        assert.equal(hosts()[0].hidden, false);
+    }
+    assert.deepEqual(made.filter(n => n === 'home'), ['home'], 'the persisted page was built once');
+    assert.equal(made.filter(n => n === 'plain').length, 20, 'a plain route is rebuilt every time');
+    assert.equal(freed.filter(n => n === 'plain').length, 20, 'and cleaned up every time');
+    await host.show('keep', { path: '/item/1' });
+    await host.show('keep', { path: '/item/2' });
+    assert.deepEqual(freed.filter(n => n === 'item1'), ['item1'], 'other params rebuild the page and free the old one');
+    await host.show('keep', { path: '/nowhere' });
+    assert.equal(hosts().length, 1, 'a state replaces the body, the kept pages are detached');
+    await host.show('keep');
+    assert.equal(hosts().length, 1, 'and the home page comes back, the same one (item 2 stays kept, detached, until its route shows)');
+    assert.equal(made.filter(n => n === 'home').length, 1);
+    assert.equal(doc.count, 2, 'one listener per kept page (home, item2)');
+    await host.show('other');
+    assert.equal(doc.count, 0, 'leaving the module frees every kept page and its listeners');
+    assert.equal(freed.filter(n => n === 'home').length, 1);
+    assert.equal(freed.filter(n => n === 'item2').length, 1);
+    await host.destroy();
+});
+
 test('mount and unmount 100 times: listeners, observers, timers and store subscriptions return to zero (a module and a page with tracked resources)', async () => {
     const { container, doc } = makeDom();
     const store = createStore({ storage: { getItem: () => null, setItem() {} } });
@@ -832,7 +872,7 @@ test("'record' (step 7, #353) creates a pk-record-page, takes the id from the ro
     assert.equal(el.localName, 'pk-record-page');
     assert.deepEqual(el.config, { fields: [{ name: 'a' }], id: '42' }, 'load, save and mode are not config data');
     assert.equal(el.mode, 'edit');
-    assert.equal(el.load('42'), 'rec'); el.save({ a: 1 });
+    assert.equal(await el.load('42'), 'rec'); el.save({ a: 1 });
     assert.deepEqual(seen, [['load', '42', 'x'], ['save', { a: 1 }, 'x']]);
     cleanup();
     assert.deepEqual(host.children, []);

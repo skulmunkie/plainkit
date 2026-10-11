@@ -25,7 +25,7 @@ const codeBlock = (label, text = '') => h('pk-code-block', { label, wrap: true }
 // every change of its markup.
 export function renderElement(meta, options = {}) {
     const page = h('pk-stack', { class: 'gx-page' });
-    page.append(h('pk-page-header', { class: 'gx-head', level: 1, heading: meta.title }, h('p', { class: 'muted', slot: 'meta' }, meta.summary), h('p', { class: 'muted', slot: 'meta' }, code(`<${meta.tag}>`), ' - ', meta.group)));
+    page.append(h('pk-page-header', { level: 1, heading: meta.title }, h('p', { class: 'muted', slot: 'meta' }, meta.summary), h('p', { class: 'muted', slot: 'meta' }, code(`<${meta.tag}>`), ' - ', meta.group)));
 
     // ---- playground
     const example = meta.examples[0];
@@ -79,7 +79,7 @@ export function renderElement(meta, options = {}) {
         });
         theming.append(h('pk-field', { label: c.name }, input));
     }
-    const playground = h('pk-card', { class: 'gx-entry' },
+    const playground = h('pk-card', {},
         h('div', { class: 'gx-el-play' }, h('pk-card', {}, h('div', { class: 'gx-el-live' }, stage)), controls),
         slotField,
         disclose('Markup', snippet),
@@ -89,7 +89,7 @@ export function renderElement(meta, options = {}) {
     customElements.whenDefined(meta.tag).then(refresh);
 
     // ---- examples
-    const examples = h('pk-card', { class: 'gx-entry' }, ...meta.examples.map(x => h('pk-stack', { gap: 'sm' }, h('h3', {}, x.title), h('pk-card', {}, h('div', { class: 'gx-el-live' }, fromHtml(x.html))), disclose('Markup', codeBlock('HTML', x.html)))));
+    const examples = h('pk-card', {}, ...meta.examples.map(x => h('pk-stack', { gap: 'sm' }, h('h3', {}, x.title), h('pk-card', {}, h('div', { class: 'gx-el-live' }, fromHtml(x.html))), disclose('Markup', codeBlock('HTML', x.html)))));
 
     // ---- Playground / Examples tabs. The API reference (Properties, Slots, Events, Parts, Custom properties, Methods, Accessibility) lives
     // only in the Details flyout (js/element-inspector.js): showing it here too would draw every element page's API twice.

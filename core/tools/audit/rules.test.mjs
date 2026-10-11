@@ -235,3 +235,22 @@ test('B6: a javascript: href with a bookmarklet that embeds an unescaped <script
     const openScript = nodes.find(n => n.name.toLowerCase() === 'script' && !n.closing);
     assert.equal(openScript, undefined, `FIX: a javascript: href's embedded markup string was scanned as a real <script> element, got ${JSON.stringify(openScript)}`);
 });
+
+test('B7: flags a hand-rolled lifecycle component, not one deriving from PageBase/PkComponentBase (#1022)', () => {
+    const run = (path, text) => checkFiles([{ path, text }], { ruleset: 'consumer' }).filter(f => f.rule === 'B7');
+    const handRolled = 'public partial class Orders : ComponentBase, IDisposable\n{\n    private CancellationTokenSource? _cts;\n    private bool _busy;\n    public void Dispose() => _cts?.Cancel();\n}';
+    assert.equal(run('Orders.razor.cs', handRolled).length, 1);
+    assert.equal(run('Orders.razor', '@implements IAsyncDisposable\n@code { CancellationTokenSource _cts = new(); }').length, 1);
+    assert.equal(run('Orders.razor', '@code { bool loading; string? error; protected override async Task OnInitializedAsync() { } }').length, 1);
+    assert.match(run('Orders.razor.cs', handRolled)[0].fix, /PageBase.*PkComponentBase.*OnLoadAsync/);
+    assert.equal(run('Orders.razor.cs', handRolled.replace('ComponentBase, IDisposable', 'PageBase, IDisposable')).length, 0);
+    assert.equal(run('Orders.razor', '@inherits PkComponentBase\n@code { CancellationTokenSource _cts = new(); bool busy; }').length, 0);
+});
+
+test('P10: flags a page factory with AbortController, a busy flag and its own destroy, not one using createLifecycle (#1022)', () => {
+    const run = text => checkFiles([{ path: 'page.js', text }], { ruleset: 'consumer' }).filter(f => f.rule === 'P10');
+    const own = 'export function page() { let busy = false; const ac = new AbortController(); return { destroy() { ac.abort(); } }; }';
+    assert.equal(run(own).length, 1);
+    assert.equal(run(`import { createLifecycle } from 'plainkit/page-lifecycle.js';\n${own}`).length, 0);
+    assert.equal(run('const ac = new AbortController(); ac.abort();').length, 0);
+});

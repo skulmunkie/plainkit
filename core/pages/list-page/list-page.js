@@ -1,7 +1,7 @@
 import { showTitleBar } from '../../js/page-shell.js';
 import { loadElements } from '../../js/loader.js';
 
-const TABLE_KEYS = ['columns', 'filters', 'pageSize', 'pageSizeOptions', 'sort', 'sortDir', 'search', 'searchLabel', 'searchDebounce', 'pagerLabel', 'label', 'caption', 'empty', 'noResults', 'loadError'];
+const TABLE_KEYS = ['columns', 'filters', 'pageSize', 'pageSizeOptions', 'sort', 'sortDir', 'search', 'searchLabel', 'searchDebounce', 'pagerLabel', 'label', 'caption', 'empty', 'noResults', 'loadError', 'stickyHeader'];
 
 // The page frame (title bar, toolbar actions, the callbacks) around a pk-data-table, which owns the query, the load and the states (#801).
 export default Base => class extends Base {
@@ -10,16 +10,27 @@ export default Base => class extends Base {
         this.$w = true;
         loadElements(this.shadowRoot);
         this.sync();
+        // Cell content (#1000): the host's `cell-<id>-<key>` children are re-slotted into the table, which re-slots them into its pk-table (#817).
+        (this.$mo = new MutationObserver(() => this.forwardSlots())).observe(this, { childList: true });
+        this.forwardSlots();
+    }
+    disconnected() { this.$mo?.disconnect(); this.$w = false; }
+    forwardSlots() {
+        const table = this.part('table'), names = [...this.children].map(c => c.slot).filter(s => s?.startsWith('cell-')), have = [...table.children].filter(c => c.name?.startsWith('cell-'));
+        if (names.join() === have.map(c => c.name).join()) return;
+        for (const c of have) c.remove();
+        for (const name of names) { const s = this.ownerDocument.createElement('slot'); s.name = s.slot = name; table.append(s); }
     }
     // The data table's own parts (filters, pagination, state) stay reachable here under the names this page always had.
     part(name) { const t = super.part('table'); return super.part(name) ?? (typeof t?.part === 'function' ? t.part(name) : null); }
-    changed(name) { if (name === 'config' && this.$w) this.sync(); }
+    changed(name) { if ((name === 'config' || name === 'clickable') && this.$w) this.sync(); }
 
     sync() {
         const table = this.part('table');
         // The callbacks are handed down as they are now; a missing load shows the configured empty state, a missing rowHref leaves rows unclickable.
         table.load = q => (typeof this.load === 'function' ? this.load(q) : { rows: [] });
         table.rowHref = typeof this.rowHref === 'function' ? row => this.rowHref(row) : null;
+        table.clickable = !!this.clickable;
         // Selection is the table's: this page only switches it on (its pk-select is composed, so the host hears it as it is) and fills the bulk bar.
         table.selectable = !!this.config?.selectable;
         if (this.config?.rowKey) table.rowKey = this.config.rowKey;

@@ -1,7 +1,7 @@
 ---
 title: Migrating from the class-based components
 order: 8
-summary: The retired chip/btn-*/card-header/... class vocabulary, its pk-* replacements, and a dev-mode check that finds every retired class still on a page.
+summary: Migrating to 0.13 (the breaking changes), and the retired chip/btn-*/card-header/... class vocabulary, its pk-* replacements, and a dev-mode check that finds every retired class still on a page.
 ---
 
 ## What changed
@@ -136,3 +136,14 @@ Not everything from the old compat stylesheet was retired: the page-level layer 
 The same table drives `js/compat-warn.js`'s `RETIRED_CLASSES` map, so the console warning always matches this guide.
 
 This guide is about a *host app's* old markup, not about the SDK going forward, so it does not appear in the agent skills' workflows — an agent authoring new Plainkit markup never needs it; a person migrating an old app does.
+
+## Migrating to 0.13
+
+The 0.13 release has a few breaking changes; each is a small edit.
+
+- **Package imports (npm).** `plainkit` now has an `exports` map. Import `plainkit/elements/<name>` (was `plainkit/dist/elements/<name>.js`), `plainkit/css` (was `plainkit/dist/plainkit.min.css`) and `plainkit/js/<file>` (was `plainkit/dist/js/<file>.js`). Other public entries are `plainkit`, `plainkit/app`, `plainkit/skills/*`, `plainkit/custom-elements.json`, `plainkit/web-types.json` and `plainkit/package.json`. A `plainkit/dist/*` path still resolves in this release and is removed in the next; a path outside the map no longer resolves. `sideEffects` now names the element modules and CSS, so a bundler keeps an element import instead of dropping it.
+- **`mountApp` has no `layout` key.** Delete `layout: 'side'` or `'top'` from the config (it is ignored with one warning). The side nav is the active module's own tree, and modules are switched with a module picker button in the header (the first drawer row on a phone, absent with one module).
+- **Site pages moved into one app.** The standalone pages for Files, Scorecard, Theme editor, Layout builder, Settings and Dev tools are gone, with no redirect. Open `app.html#/files`, `app.html#/scorecard`, `app.html#/theme`, `app.html#/layout-builder`, `app.html#/settings` and `app.html#/devtools`; Spacing is a gallery foundation at `app.html#/gallery/foundations/spacing`. The Gallery and Guides also open there (`app.html#/gallery`, `app.html#/guides`).
+- **Blazor `PageBase` is `IAsyncDisposable`**, not `IDisposable`. A page that cast it to `IDisposable` or declared its own `Dispose` through the interface moves that work into `OnDisposeAsync()`. A page that only calls `ReleaseBusy()` or `BusyAsync` needs no change. It also gains `OnLoadAsync(CancellationToken)`, `IsLoading`, `LoadError` and `LoadCancellation`.
+- **Blazor `PkRecordForm` is generated.** Wrap your cards in your own `<form @onsubmit:preventDefault><PkStack>...</PkStack></form>` as `ChildContent` (the component no longer draws the form). `HeaderActions` is removed: with `ActionsInHeader`, put your own Save button in the page header and call `await _form.SubmitAsync()` on an `@ref`.
+- **Internal chrome tokens renamed.** The undocumented size tokens of the site's own pages (theme editor, scorecard, code explorer, guides, layout builder, gallery) now carry the reserved private prefix. They were never public tokens; if your CSS read one, use your own value.

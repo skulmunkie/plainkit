@@ -27,15 +27,15 @@ export default {
         el.load = () => ({ rows: ROWS, total: 112 });
     },
     steps: [
-        { click: '#loading' }, { wait: 150 }, { shot: 'loading' },
-        { click: '#fail' }, { wait: 200 }, { shot: 'error' },
-        { click: '#none' }, { wait: 200 }, { shot: 'empty' },
-        { click: '#ok' }, { wait: 300 }, { shot: 'rows' },
-        { click: '#loading' }, { click: SEARCH }, { type: 'zz' }, { wait: 400 }, { type: 'zz' }, { shot: 'typing-loading' },
-        { click: '#none' }, { wait: 200 }, { shot: 'no-results' },
-        { click: '#ok' }, { wait: 300 },
-        { click: `${TABLE} >>> [data-select-all]` }, { wait: 300 }, { shot: 'page' },
-        { click: BTN }, { wait: 200 }, { shot: 'all' },
+        { click: '#loading' }, { shot: 'loading' },
+        { click: '#fail' }, { shot: 'error' },
+        { click: '#none' }, { shot: 'empty' },
+        { click: '#ok' }, { shot: 'rows' },
+        { click: '#loading' }, { click: SEARCH }, { type: 'zz' }, { type: 'zz' }, { shot: 'typing-loading' },
+        { click: '#none' }, { shot: 'no-results' },
+        { click: '#ok' }, 
+        { click: `${TABLE} >>> [data-select-all]` }, { shot: 'page' },
+        { click: BTN }, { shot: 'all' },
     ],
     expect(t) {
         t.ok(t.metric('html', 'scrollWidth') <= t.metric('html', 'clientWidth') + 1, 'the page scrolls sideways');

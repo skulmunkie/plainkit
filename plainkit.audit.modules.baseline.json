@@ -12,46 +12,6 @@
       "fingerprint": "72df4cff072aac59"
     },
     {
-      "rule": "S3",
-      "file": "core/modules/code-explorer/element.js",
-      "fingerprint": "e522384e0e0b147a"
-    },
-    {
-      "rule": "S3",
-      "file": "core/modules/code-explorer/element.js",
-      "fingerprint": "e522384e0e0b147a"
-    },
-    {
-      "rule": "S3",
-      "file": "core/modules/code-explorer/element.js",
-      "fingerprint": "e522384e0e0b147a"
-    },
-    {
-      "rule": "S3",
-      "file": "core/modules/code-explorer/element.js",
-      "fingerprint": "e522384e0e0b147a"
-    },
-    {
-      "rule": "S3",
-      "file": "core/modules/code-explorer/element.js",
-      "fingerprint": "e522384e0e0b147a"
-    },
-    {
-      "rule": "S3",
-      "file": "core/modules/code-explorer/element.js",
-      "fingerprint": "e522384e0e0b147a"
-    },
-    {
-      "rule": "S3",
-      "file": "core/modules/code-explorer/element.js",
-      "fingerprint": "e522384e0e0b147a"
-    },
-    {
-      "rule": "S3",
-      "file": "core/modules/code-explorer/element.js",
-      "fingerprint": "e522384e0e0b147a"
-    },
-    {
       "rule": "S5",
       "file": "core/modules/code-explorer/element.js",
       "fingerprint": "0763431e36ebde1a"
@@ -70,21 +30,6 @@
       "rule": "S3",
       "file": "core/modules/layout-builder/layout-builder.js",
       "fingerprint": "48feed30d3a63598"
-    },
-    {
-      "rule": "S3",
-      "file": "core/modules/layout-builder/layout-builder.js",
-      "fingerprint": "ee1a503dd3c512e1"
-    },
-    {
-      "rule": "S3",
-      "file": "core/modules/layout-builder/layout-builder.js",
-      "fingerprint": "ee1a503dd3c512e1"
-    },
-    {
-      "rule": "S3",
-      "file": "core/modules/layout-builder/layout-builder.js",
-      "fingerprint": "ee1a503dd3c512e1"
     },
     {
       "rule": "S1",
@@ -207,71 +152,6 @@
       "fingerprint": "34350429c4ab6cc0"
     },
     {
-      "rule": "S1",
-      "file": "core/site/devtools/index.html",
-      "fingerprint": "a26ff5b3d3bd2a97"
-    },
-    {
-      "rule": "S1",
-      "file": "core/site/devtools/index.html",
-      "fingerprint": "a26ff5b3d3bd2a97"
-    },
-    {
-      "rule": "S10",
-      "file": "core/site/devtools/index.html",
-      "fingerprint": "6263ad578044a147"
-    },
-    {
-      "rule": "S7",
-      "file": "core/site/devtools/page.js",
-      "fingerprint": "3cb75da86a5084fd"
-    },
-    {
-      "rule": "S1",
-      "file": "core/site/files/index.html",
-      "fingerprint": "15a015bc43329c1d"
-    },
-    {
-      "rule": "S1",
-      "file": "core/site/files/index.html",
-      "fingerprint": "15a015bc43329c1d"
-    },
-    {
-      "rule": "S10",
-      "file": "core/site/files/index.html",
-      "fingerprint": "17092d7a55931de3"
-    },
-    {
-      "rule": "S7",
-      "file": "core/site/files/page.js",
-      "fingerprint": "1abdc410f76e75f5"
-    },
-    {
-      "rule": "S7",
-      "file": "core/site/files/page.js",
-      "fingerprint": "a7b1618782f9d82f"
-    },
-    {
-      "rule": "S7",
-      "file": "core/site/files/page.js",
-      "fingerprint": "a7b1618782f9d82f"
-    },
-    {
-      "rule": "S7",
-      "file": "core/site/files/page.js",
-      "fingerprint": "a7b1618782f9d82f"
-    },
-    {
-      "rule": "S7",
-      "file": "core/site/files/page.js",
-      "fingerprint": "a7b1618782f9d82f"
-    },
-    {
-      "rule": "S7",
-      "file": "core/site/files/page.js",
-      "fingerprint": "a7b1618782f9d82f"
-    },
-    {
       "rule": "S7",
       "file": "core/site/gallery/boots/code-explorer.js",
       "fingerprint": "77456563fe943378"
@@ -375,11 +255,6 @@
       "rule": "S10",
       "file": "core/site/gallery/embed.html",
       "fingerprint": "899ca22906eb510f"
-    },
-    {
-      "rule": "S3",
-      "file": "core/site/gallery/embed.html",
-      "fingerprint": "3e5a29fc71028ab9"
     },
     {
       "rule": "S3",
@@ -517,191 +392,6 @@
       "fingerprint": "fa13a5225f183370"
     },
     {
-      "rule": "S3",
-      "file": "core/site/gallery/gallery-views.js",
-      "fingerprint": "fa13a5225f183370"
-    },
-    {
-      "rule": "S3",
-      "file": "core/site/gallery/gallery-views.js",
-      "fingerprint": "fa13a5225f183370"
-    },
-    {
-      "rule": "S3",
-      "file": "core/site/gallery/gallery-views.js",
-      "fingerprint": "fa13a5225f183370"
-    },
-    {
-      "rule": "S3",
-      "file": "core/site/gallery/gallery-views.js",
-      "fingerprint": "fa13a5225f183370"
-    },
-    {
-      "rule": "S3",
-      "file": "core/site/gallery/gallery-views.js",
-      "fingerprint": "fa13a5225f183370"
-    },
-    {
-      "rule": "S3",
-      "file": "core/site/gallery/gallery-views.js",
-      "fingerprint": "fa13a5225f183370"
-    },
-    {
-      "rule": "S3",
-      "file": "core/site/gallery/gallery-views.js",
-      "fingerprint": "fa13a5225f183370"
-    },
-    {
-      "rule": "S3",
-      "file": "core/site/gallery/gallery-views.js",
-      "fingerprint": "fa13a5225f183370"
-    },
-    {
-      "rule": "S3",
-      "file": "core/site/gallery/gallery-views.js",
-      "fingerprint": "fa13a5225f183370"
-    },
-    {
-      "rule": "S3",
-      "file": "core/site/gallery/gallery-views.js",
-      "fingerprint": "fa13a5225f183370"
-    },
-    {
-      "rule": "S3",
-      "file": "core/site/gallery/gallery-views.js",
-      "fingerprint": "fa13a5225f183370"
-    },
-    {
-      "rule": "S3",
-      "file": "core/site/gallery/gallery-views.js",
-      "fingerprint": "fa13a5225f183370"
-    },
-    {
-      "rule": "S3",
-      "file": "core/site/gallery/gallery-views.js",
-      "fingerprint": "fa13a5225f183370"
-    },
-    {
-      "rule": "S3",
-      "file": "core/site/gallery/gallery-views.js",
-      "fingerprint": "fa13a5225f183370"
-    },
-    {
-      "rule": "S3",
-      "file": "core/site/gallery/gallery-views.js",
-      "fingerprint": "fa13a5225f183370"
-    },
-    {
-      "rule": "S3",
-      "file": "core/site/gallery/gallery-views.js",
-      "fingerprint": "fa13a5225f183370"
-    },
-    {
-      "rule": "S3",
-      "file": "core/site/gallery/gallery-views.js",
-      "fingerprint": "fa13a5225f183370"
-    },
-    {
-      "rule": "S3",
-      "file": "core/site/gallery/gallery-views.js",
-      "fingerprint": "fa13a5225f183370"
-    },
-    {
-      "rule": "S3",
-      "file": "core/site/gallery/gallery-views.js",
-      "fingerprint": "fa13a5225f183370"
-    },
-    {
-      "rule": "S3",
-      "file": "core/site/gallery/gallery-views.js",
-      "fingerprint": "fa13a5225f183370"
-    },
-    {
-      "rule": "S3",
-      "file": "core/site/gallery/gallery-views.js",
-      "fingerprint": "fa13a5225f183370"
-    },
-    {
-      "rule": "S3",
-      "file": "core/site/gallery/gallery-views.js",
-      "fingerprint": "fa13a5225f183370"
-    },
-    {
-      "rule": "S3",
-      "file": "core/site/gallery/gallery-views.js",
-      "fingerprint": "fa13a5225f183370"
-    },
-    {
-      "rule": "S3",
-      "file": "core/site/gallery/gallery-views.js",
-      "fingerprint": "fa13a5225f183370"
-    },
-    {
-      "rule": "S3",
-      "file": "core/site/gallery/gallery-views.js",
-      "fingerprint": "fa13a5225f183370"
-    },
-    {
-      "rule": "S3",
-      "file": "core/site/gallery/gallery-views.js",
-      "fingerprint": "fa13a5225f183370"
-    },
-    {
-      "rule": "S3",
-      "file": "core/site/gallery/gallery-views.js",
-      "fingerprint": "fa13a5225f183370"
-    },
-    {
-      "rule": "S3",
-      "file": "core/site/gallery/gallery-views.js",
-      "fingerprint": "fa13a5225f183370"
-    },
-    {
-      "rule": "S3",
-      "file": "core/site/gallery/gallery-views.js",
-      "fingerprint": "fa13a5225f183370"
-    },
-    {
-      "rule": "S3",
-      "file": "core/site/gallery/gallery-views.js",
-      "fingerprint": "fa13a5225f183370"
-    },
-    {
-      "rule": "S3",
-      "file": "core/site/gallery/gallery-views.js",
-      "fingerprint": "fa13a5225f183370"
-    },
-    {
-      "rule": "S3",
-      "file": "core/site/gallery/gallery-views.js",
-      "fingerprint": "fa13a5225f183370"
-    },
-    {
-      "rule": "S3",
-      "file": "core/site/gallery/gallery-views.js",
-      "fingerprint": "fa13a5225f183370"
-    },
-    {
-      "rule": "S3",
-      "file": "core/site/gallery/gallery-views.js",
-      "fingerprint": "fa13a5225f183370"
-    },
-    {
-      "rule": "S3",
-      "file": "core/site/gallery/gallery-views.js",
-      "fingerprint": "fa13a5225f183370"
-    },
-    {
-      "rule": "S3",
-      "file": "core/site/gallery/gallery-views.js",
-      "fingerprint": "fa13a5225f183370"
-    },
-    {
-      "rule": "S3",
-      "file": "core/site/gallery/gallery-views.js",
-      "fingerprint": "fa13a5225f183370"
-    },
-    {
       "rule": "S7",
       "file": "core/site/gallery/gallery-views.js",
       "fingerprint": "735a41dbe948439b"
@@ -710,16 +400,6 @@
       "rule": "S7",
       "file": "core/site/gallery/gallery-views.js",
       "fingerprint": "735a41dbe948439b"
-    },
-    {
-      "rule": "S7",
-      "file": "core/site/gallery/gallery-views.js",
-      "fingerprint": "e6cc2a6caee331f1"
-    },
-    {
-      "rule": "S7",
-      "file": "core/site/gallery/gallery-views.js",
-      "fingerprint": "e6cc2a6caee331f1"
     },
     {
       "rule": "S1",
@@ -749,202 +429,12 @@
     {
       "rule": "S3",
       "file": "core/site/gallery/gallery.js",
-      "fingerprint": "b64c4ab3869a414a"
-    },
-    {
-      "rule": "S3",
-      "file": "core/site/gallery/gallery.js",
-      "fingerprint": "217f93327ca89a02"
-    },
-    {
-      "rule": "S3",
-      "file": "core/site/gallery/gallery.js",
       "fingerprint": "1409daba11df2b67"
-    },
-    {
-      "rule": "S3",
-      "file": "core/site/gallery/gallery.js",
-      "fingerprint": "1409daba11df2b67"
-    },
-    {
-      "rule": "S3",
-      "file": "core/site/gallery/gallery.js",
-      "fingerprint": "b64c4ab3869a414a"
-    },
-    {
-      "rule": "S3",
-      "file": "core/site/gallery/gallery.js",
-      "fingerprint": "b64c4ab3869a414a"
-    },
-    {
-      "rule": "S3",
-      "file": "core/site/gallery/gallery.js",
-      "fingerprint": "1409daba11df2b67"
-    },
-    {
-      "rule": "S3",
-      "file": "core/site/gallery/gallery.js",
-      "fingerprint": "1409daba11df2b67"
-    },
-    {
-      "rule": "S3",
-      "file": "core/site/gallery/gallery.js",
-      "fingerprint": "1409daba11df2b67"
-    },
-    {
-      "rule": "S3",
-      "file": "core/site/gallery/gallery.js",
-      "fingerprint": "1409daba11df2b67"
-    },
-    {
-      "rule": "S3",
-      "file": "core/site/gallery/gallery.js",
-      "fingerprint": "1409daba11df2b67"
-    },
-    {
-      "rule": "S3",
-      "file": "core/site/gallery/gallery.js",
-      "fingerprint": "1409daba11df2b67"
-    },
-    {
-      "rule": "S3",
-      "file": "core/site/gallery/gallery.js",
-      "fingerprint": "1409daba11df2b67"
-    },
-    {
-      "rule": "S3",
-      "file": "core/site/gallery/gallery.js",
-      "fingerprint": "1409daba11df2b67"
-    },
-    {
-      "rule": "S3",
-      "file": "core/site/gallery/gallery.js",
-      "fingerprint": "1409daba11df2b67"
-    },
-    {
-      "rule": "S3",
-      "file": "core/site/gallery/gallery.js",
-      "fingerprint": "1409daba11df2b67"
-    },
-    {
-      "rule": "S3",
-      "file": "core/site/gallery/gallery.js",
-      "fingerprint": "1409daba11df2b67"
-    },
-    {
-      "rule": "S3",
-      "file": "core/site/gallery/gallery.js",
-      "fingerprint": "1409daba11df2b67"
-    },
-    {
-      "rule": "S3",
-      "file": "core/site/gallery/gallery.js",
-      "fingerprint": "1409daba11df2b67"
-    },
-    {
-      "rule": "S3",
-      "file": "core/site/gallery/gallery.js",
-      "fingerprint": "1409daba11df2b67"
-    },
-    {
-      "rule": "S3",
-      "file": "core/site/gallery/gallery.js",
-      "fingerprint": "1409daba11df2b67"
-    },
-    {
-      "rule": "S3",
-      "file": "core/site/gallery/gallery.js",
-      "fingerprint": "1409daba11df2b67"
-    },
-    {
-      "rule": "S3",
-      "file": "core/site/gallery/gallery.js",
-      "fingerprint": "1409daba11df2b67"
-    },
-    {
-      "rule": "S3",
-      "file": "core/site/gallery/gallery.js",
-      "fingerprint": "1409daba11df2b67"
-    },
-    {
-      "rule": "S3",
-      "file": "core/site/gallery/gallery.js",
-      "fingerprint": "1409daba11df2b67"
-    },
-    {
-      "rule": "S3",
-      "file": "core/site/gallery/gallery.js",
-      "fingerprint": "1409daba11df2b67"
-    },
-    {
-      "rule": "S3",
-      "file": "core/site/gallery/gallery.js",
-      "fingerprint": "1409daba11df2b67"
-    },
-    {
-      "rule": "S3",
-      "file": "core/site/gallery/gallery.js",
-      "fingerprint": "1409daba11df2b67"
-    },
-    {
-      "rule": "S3",
-      "file": "core/site/gallery/gallery.js",
-      "fingerprint": "1409daba11df2b67"
-    },
-    {
-      "rule": "S3",
-      "file": "core/site/gallery/gallery.js",
-      "fingerprint": "1409daba11df2b67"
-    },
-    {
-      "rule": "S3",
-      "file": "core/site/gallery/gallery.js",
-      "fingerprint": "1409daba11df2b67"
-    },
-    {
-      "rule": "S3",
-      "file": "core/site/gallery/gallery.js",
-      "fingerprint": "1409daba11df2b67"
-    },
-    {
-      "rule": "S3",
-      "file": "core/site/gallery/gallery.js",
-      "fingerprint": "1409daba11df2b67"
-    },
-    {
-      "rule": "S3",
-      "file": "core/site/gallery/gallery.js",
-      "fingerprint": "1409daba11df2b67"
-    },
-    {
-      "rule": "S3",
-      "file": "core/site/gallery/gallery.js",
-      "fingerprint": "b64c4ab3869a414a"
-    },
-    {
-      "rule": "S3",
-      "file": "core/site/gallery/gallery.js",
-      "fingerprint": "b64c4ab3869a414a"
-    },
-    {
-      "rule": "S5",
-      "file": "core/site/gallery/gallery.js",
-      "fingerprint": "379a4ef36f53d9a5"
-    },
-    {
-      "rule": "S5",
-      "file": "core/site/gallery/gallery.js",
-      "fingerprint": "379a4ef36f53d9a5"
     },
     {
       "rule": "S7",
       "file": "core/site/gallery/gallery.js",
       "fingerprint": "ad731324cc7c5c5a"
-    },
-    {
-      "rule": "S7",
-      "file": "core/site/gallery/gallery.js",
-      "fingerprint": "8383d2a151e611f6"
     },
     {
       "rule": "S7",
@@ -1039,6 +529,11 @@
     {
       "rule": "S7",
       "file": "core/site/gallery/gallery.js",
+      "fingerprint": "8383d2a151e611f6"
+    },
+    {
+      "rule": "S7",
+      "file": "core/site/gallery/gallery.js",
       "fingerprint": "ad731324cc7c5c5a"
     },
     {
@@ -1050,21 +545,6 @@
       "rule": "S7",
       "file": "core/site/gallery/gallery.js",
       "fingerprint": "8383d2a151e611f6"
-    },
-    {
-      "rule": "S7",
-      "file": "core/site/gallery/gallery.js",
-      "fingerprint": "ad731324cc7c5c5a"
-    },
-    {
-      "rule": "S7",
-      "file": "core/site/gallery/gallery.js",
-      "fingerprint": "ad731324cc7c5c5a"
-    },
-    {
-      "rule": "S7",
-      "file": "core/site/gallery/gallery.js",
-      "fingerprint": "ad731324cc7c5c5a"
     },
     {
       "rule": "S1",
@@ -1102,16 +582,6 @@
       "fingerprint": "f2ae6596f2d78288"
     },
     {
-      "rule": "S3",
-      "file": "core/site/gallery/index.html",
-      "fingerprint": "f2ae6596f2d78288"
-    },
-    {
-      "rule": "S3",
-      "file": "core/site/gallery/index.html",
-      "fingerprint": "f2ae6596f2d78288"
-    },
-    {
       "rule": "S1",
       "file": "core/site/gallery/preview.html",
       "fingerprint": "47161e0c9c4b8730"
@@ -1127,39 +597,9 @@
       "fingerprint": "1215229800249cf4"
     },
     {
-      "rule": "S3",
-      "file": "core/site/gallery/preview.js",
-      "fingerprint": "b9c628dfc77031ec"
-    },
-    {
-      "rule": "S3",
-      "file": "core/site/gallery/preview.js",
-      "fingerprint": "6f2931bf82fbc961"
-    },
-    {
-      "rule": "S3",
-      "file": "core/site/gallery/preview.js",
-      "fingerprint": "b9c628dfc77031ec"
-    },
-    {
-      "rule": "S3",
-      "file": "core/site/gallery/preview.js",
-      "fingerprint": "6f2931bf82fbc961"
-    },
-    {
-      "rule": "S5",
-      "file": "core/site/gallery/preview.js",
-      "fingerprint": "60bbff63d0c16309"
-    },
-    {
       "rule": "S7",
       "file": "core/site/gallery/preview.js",
       "fingerprint": "1994bf40d7b77d6e"
-    },
-    {
-      "rule": "S7",
-      "file": "core/site/gallery/preview.js",
-      "fingerprint": "40466c9aed1de3cf"
     },
     {
       "rule": "S7",
@@ -1212,11 +652,6 @@
       "fingerprint": "40466c9aed1de3cf"
     },
     {
-      "rule": "S3",
-      "file": "core/site/gallery/standalone.js",
-      "fingerprint": "ae5c3cee5a121840"
-    },
-    {
       "rule": "S7",
       "file": "core/site/gallery/standalone.js",
       "fingerprint": "c637d1cd4335064a"
@@ -1225,6 +660,11 @@
       "rule": "S7",
       "file": "core/site/gallery/standalone.js",
       "fingerprint": "5b6be95d1fee83ab"
+    },
+    {
+      "rule": "S7",
+      "file": "core/site/gallery/standalone.js",
+      "fingerprint": "c637d1cd4335064a"
     },
     {
       "rule": "S7",
@@ -1250,11 +690,6 @@
       "rule": "S10",
       "file": "core/site/guides/index.html",
       "fingerprint": "58f516cbdc9659fa"
-    },
-    {
-      "rule": "S3",
-      "file": "core/site/guides/index.html",
-      "fingerprint": "27368eb4855930d8"
     },
     {
       "rule": "S3",
@@ -1307,101 +742,6 @@
       "fingerprint": "63558c176d70bc1e"
     },
     {
-      "rule": "S1",
-      "file": "core/site/layout-builder/index.html",
-      "fingerprint": "f8b7164cc3700b19"
-    },
-    {
-      "rule": "S1",
-      "file": "core/site/layout-builder/index.html",
-      "fingerprint": "f8b7164cc3700b19"
-    },
-    {
-      "rule": "S1",
-      "file": "core/site/layout-builder/index.html",
-      "fingerprint": "f8b7164cc3700b19"
-    },
-    {
-      "rule": "S10",
-      "file": "core/site/layout-builder/index.html",
-      "fingerprint": "c7138068dd9125d1"
-    },
-    {
-      "rule": "S3",
-      "file": "core/site/layout-builder/index.html",
-      "fingerprint": "4f30525faf4db60b"
-    },
-    {
-      "rule": "S3",
-      "file": "core/site/layout-builder/index.html",
-      "fingerprint": "4f30525faf4db60b"
-    },
-    {
-      "rule": "S1",
-      "file": "core/site/layout-builder/layout-builder.css",
-      "fingerprint": "3b6f988bf0e9f97a"
-    },
-    {
-      "rule": "S10",
-      "file": "core/site/layout-builder/layout-builder.css",
-      "fingerprint": "bc15d03df9c5ade5"
-    },
-    {
-      "rule": "S3",
-      "file": "core/site/layout-builder/layout-builder.js",
-      "fingerprint": "8ead8e0fb3a6b712"
-    },
-    {
-      "rule": "S7",
-      "file": "core/site/layout-builder/layout-builder.js",
-      "fingerprint": "555acd59066b9972"
-    },
-    {
-      "rule": "S7",
-      "file": "core/site/layout-builder/layout-builder.js",
-      "fingerprint": "555acd59066b9972"
-    },
-    {
-      "rule": "S7",
-      "file": "core/site/layout-builder/layout-builder.js",
-      "fingerprint": "555acd59066b9972"
-    },
-    {
-      "rule": "S7",
-      "file": "core/site/layout-builder/layout-builder.js",
-      "fingerprint": "555acd59066b9972"
-    },
-    {
-      "rule": "S1",
-      "file": "core/site/scorecard/index.html",
-      "fingerprint": "a22efeff1024cbb1"
-    },
-    {
-      "rule": "S1",
-      "file": "core/site/scorecard/index.html",
-      "fingerprint": "a22efeff1024cbb1"
-    },
-    {
-      "rule": "S10",
-      "file": "core/site/scorecard/index.html",
-      "fingerprint": "d5723be2f7bd111e"
-    },
-    {
-      "rule": "S3",
-      "file": "core/site/scorecard/index.html",
-      "fingerprint": "0f0c34b4c77b72d6"
-    },
-    {
-      "rule": "S3",
-      "file": "core/site/scorecard/index.html",
-      "fingerprint": "0f0c34b4c77b72d6"
-    },
-    {
-      "rule": "S3",
-      "file": "core/site/scorecard/scorecard.js",
-      "fingerprint": "e4d0449fb20aa2d2"
-    },
-    {
       "rule": "S3",
       "file": "core/site/scorecard/scorecard.js",
       "fingerprint": "e4d0449fb20aa2d2"
@@ -1432,26 +772,6 @@
       "fingerprint": "3ec333c7f03f52cb"
     },
     {
-      "rule": "S7",
-      "file": "core/site/scorecard/scorecard.js",
-      "fingerprint": "3ec333c7f03f52cb"
-    },
-    {
-      "rule": "S7",
-      "file": "core/site/scorecard/scorecard.js",
-      "fingerprint": "24f399cb407dc2c5"
-    },
-    {
-      "rule": "S7",
-      "file": "core/site/scorecard/scorecard.js",
-      "fingerprint": "3ec333c7f03f52cb"
-    },
-    {
-      "rule": "S7",
-      "file": "core/site/scorecard/scorecard.js",
-      "fingerprint": "3ec333c7f03f52cb"
-    },
-    {
       "rule": "S5",
       "file": "core/site/scorecard/sweep.js",
       "fingerprint": "221af7a6320ac21d"
@@ -1470,41 +790,6 @@
       "rule": "S7",
       "file": "core/site/scorecard/sweep.js",
       "fingerprint": "29690f4e49e928d8"
-    },
-    {
-      "rule": "S1",
-      "file": "core/site/settings/index.html",
-      "fingerprint": "fa91c610fc95d2d9"
-    },
-    {
-      "rule": "S1",
-      "file": "core/site/settings/index.html",
-      "fingerprint": "fa91c610fc95d2d9"
-    },
-    {
-      "rule": "S10",
-      "file": "core/site/settings/index.html",
-      "fingerprint": "6db933d6bc089fc5"
-    },
-    {
-      "rule": "S7",
-      "file": "core/site/settings/page.js",
-      "fingerprint": "0df686ad7913b7ab"
-    },
-    {
-      "rule": "S7",
-      "file": "core/site/settings/page.js",
-      "fingerprint": "0df686ad7913b7ab"
-    },
-    {
-      "rule": "S7",
-      "file": "core/site/settings/page.js",
-      "fingerprint": "0df686ad7913b7ab"
-    },
-    {
-      "rule": "S7",
-      "file": "core/site/settings/page.js",
-      "fingerprint": "0df686ad7913b7ab"
     },
     {
       "rule": "S3",
@@ -1560,76 +845,6 @@
       "rule": "S10",
       "file": "core/site/site.css",
       "fingerprint": "8c5f2a83d749b3a1"
-    },
-    {
-      "rule": "S10",
-      "file": "core/site/spacing/index.html",
-      "fingerprint": "a131b36e8a95527c"
-    },
-    {
-      "rule": "S1",
-      "file": "core/site/theme/index.html",
-      "fingerprint": "c127dd54a2a0c2ed"
-    },
-    {
-      "rule": "S1",
-      "file": "core/site/theme/index.html",
-      "fingerprint": "c127dd54a2a0c2ed"
-    },
-    {
-      "rule": "S10",
-      "file": "core/site/theme/index.html",
-      "fingerprint": "dc77d3ccbb33af2f"
-    },
-    {
-      "rule": "S3",
-      "file": "core/site/theme/index.html",
-      "fingerprint": "d253804066a98ea0"
-    },
-    {
-      "rule": "S3",
-      "file": "core/site/theme/index.html",
-      "fingerprint": "d253804066a98ea0"
-    },
-    {
-      "rule": "S7",
-      "file": "core/site/theme/theme.js",
-      "fingerprint": "bab4d733e0e7633b"
-    },
-    {
-      "rule": "S7",
-      "file": "core/site/theme/theme.js",
-      "fingerprint": "bab4d733e0e7633b"
-    },
-    {
-      "rule": "S7",
-      "file": "core/site/theme/theme.js",
-      "fingerprint": "bab4d733e0e7633b"
-    },
-    {
-      "rule": "S7",
-      "file": "core/site/theme/theme.js",
-      "fingerprint": "bab4d733e0e7633b"
-    },
-    {
-      "rule": "S7",
-      "file": "core/site/theme/theme.js",
-      "fingerprint": "bab4d733e0e7633b"
-    },
-    {
-      "rule": "S7",
-      "file": "core/site/theme/theme.js",
-      "fingerprint": "bab4d733e0e7633b"
-    },
-    {
-      "rule": "S7",
-      "file": "core/site/theme/theme.js",
-      "fingerprint": "bab4d733e0e7633b"
-    },
-    {
-      "rule": "S7",
-      "file": "core/site/theme/theme.js",
-      "fingerprint": "bab4d733e0e7633b"
     }
   ]
 }

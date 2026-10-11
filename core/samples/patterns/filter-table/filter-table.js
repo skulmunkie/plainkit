@@ -13,7 +13,7 @@ export default function mount(root) {
     if (!table) { log.warn('the filter-table sample needs a [data-table] pk-data-table', { root }); return { destroy() {} }; }
     let items = Array.from({ length: 23 }, (_, i) => ({ id: String(i + 1), name: `Item ${i + 1}`, status: STATUS[i % 3], amount: `$${(5 + i * 3.25).toFixed(2)}` }));
     let picked = [];
-    table.load = q => queryList(items, { filter: q.filters?.status ? r => r.status === q.filters.status : null, search: q.search, searchKeys: ['name'], sort: q.sort, sortDir: q.sortDir, page: q.page, pageSize: q.pageSize });
+    table.load = q => queryList(items, { filter: q.filters?.status?.length ? r => q.filters.status.includes(r.status) : null, search: q.search, searchKeys: ['name'], sort: q.sort, sortDir: q.sortDir, page: q.page, pageSize: q.pageSize });
     table.addEventListener('pk-select', e => { picked = e.detail.selected; }, { signal: ac.signal });
     // The bulk bar's Delete: the ids of the chosen rows (scope "all" would run the query on the server instead), then a reload.
     root.addEventListener('click', e => {

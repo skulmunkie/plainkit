@@ -1,0 +1,396 @@
+{
+  "comment": "Shared by core/tests/page-context.test.mjs (js/page-context.js) and blazor/tests/PlainKit.Blazor.Tests/PkPageContextTests.cs (PkPageContext.cs): one route tree, one nav tree, paths with optional overrides and the expected { ids, section, current, crumbs, title }. Change the algorithm on one side and both tests must agree. A route label is a string, or labelParam names the route parameter used as the label.",
+  "routes": [
+    {
+      "path": "/",
+      "label": "Home"
+    },
+    {
+      "path": "/orders",
+      "label": "Orders",
+      "children": [
+        {
+          "path": "/orders/open",
+          "label": "Open"
+        },
+        {
+          "path": "/orders/new",
+          "label": "New order"
+        },
+        {
+          "path": "/orders/:id",
+          "labelParam": "id",
+          "children": [
+            {
+              "path": "/orders/:id/lines",
+              "label": "Lines"
+            }
+          ]
+        },
+        {
+          "path": "/orders/hidden",
+          "label": "Hidden",
+          "crumb": false
+        }
+      ]
+    },
+    {
+      "label": "Admin",
+      "children": [
+        {
+          "path": "/admin/users",
+          "label": "Users"
+        }
+      ]
+    },
+    {
+      "path": "*",
+      "label": "Not found"
+    }
+  ],
+  "nav": [
+    {
+      "id": "home",
+      "title": "Home",
+      "route": "/"
+    },
+    {
+      "id": "orders",
+      "title": "Orders",
+      "route": "/orders",
+      "children": [
+        {
+          "id": "open",
+          "title": "Open orders",
+          "route": "/orders/open"
+        }
+      ]
+    },
+    {
+      "id": "admin",
+      "title": "Admin",
+      "children": [
+        {
+          "id": "users",
+          "title": "Users",
+          "route": "/admin/users"
+        }
+      ]
+    }
+  ],
+  "cases": [
+    {
+      "name": "home",
+      "path": "/",
+      "expect": {
+        "ids": [
+          "home"
+        ],
+        "section": "home",
+        "current": "home",
+        "crumbs": [
+          {
+            "label": "Home"
+          }
+        ],
+        "title": "Home"
+      }
+    },
+    {
+      "name": "list page",
+      "path": "/orders",
+      "expect": {
+        "ids": [
+          "orders"
+        ],
+        "section": "orders",
+        "current": "orders",
+        "crumbs": [
+          {
+            "label": "Orders"
+          }
+        ],
+        "title": "Orders"
+      }
+    },
+    {
+      "name": "nav child",
+      "path": "/orders/open",
+      "expect": {
+        "ids": [
+          "orders",
+          "open"
+        ],
+        "section": "orders",
+        "current": "open",
+        "crumbs": [
+          {
+            "label": "Orders",
+            "href": "/orders"
+          },
+          {
+            "label": "Open orders"
+          }
+        ],
+        "title": "Open orders"
+      }
+    },
+    {
+      "name": "static beats param",
+      "path": "/orders/new",
+      "expect": {
+        "ids": [
+          "orders"
+        ],
+        "section": "orders",
+        "current": "orders",
+        "crumbs": [
+          {
+            "label": "Orders",
+            "href": "/orders"
+          },
+          {
+            "label": "New order"
+          }
+        ],
+        "title": "New order"
+      }
+    },
+    {
+      "name": "record under its list",
+      "path": "/orders/42",
+      "expect": {
+        "ids": [
+          "orders"
+        ],
+        "section": "orders",
+        "current": "orders",
+        "crumbs": [
+          {
+            "label": "Orders",
+            "href": "/orders"
+          },
+          {
+            "label": "42"
+          }
+        ],
+        "title": "42"
+      }
+    },
+    {
+      "name": "encoded param",
+      "path": "/orders/a%20b",
+      "expect": {
+        "ids": [
+          "orders"
+        ],
+        "section": "orders",
+        "current": "orders",
+        "crumbs": [
+          {
+            "label": "Orders",
+            "href": "/orders"
+          },
+          {
+            "label": "a b"
+          }
+        ],
+        "title": "a b"
+      }
+    },
+    {
+      "name": "page below a record",
+      "path": "/orders/42/lines",
+      "expect": {
+        "ids": [
+          "orders"
+        ],
+        "section": "orders",
+        "current": "orders",
+        "crumbs": [
+          {
+            "label": "Orders",
+            "href": "/orders"
+          },
+          {
+            "label": "42",
+            "href": "/orders/42"
+          },
+          {
+            "label": "Lines"
+          }
+        ],
+        "title": "Lines"
+      }
+    },
+    {
+      "name": "query and hash ignored",
+      "path": "/orders/open?tab=x#top",
+      "expect": {
+        "ids": [
+          "orders",
+          "open"
+        ],
+        "section": "orders",
+        "current": "open",
+        "crumbs": [
+          {
+            "label": "Orders",
+            "href": "/orders"
+          },
+          {
+            "label": "Open orders"
+          }
+        ],
+        "title": "Open orders"
+      }
+    },
+    {
+      "name": "group in the nav tree",
+      "path": "/admin/users",
+      "expect": {
+        "ids": [
+          "admin",
+          "users"
+        ],
+        "section": "admin",
+        "current": "users",
+        "crumbs": [
+          {
+            "label": "Admin"
+          },
+          {
+            "label": "Users"
+          }
+        ],
+        "title": "Users"
+      }
+    },
+    {
+      "name": "crumb false",
+      "path": "/orders/hidden",
+      "expect": {
+        "ids": [
+          "orders"
+        ],
+        "section": "orders",
+        "current": "orders",
+        "crumbs": [
+          {
+            "label": "Orders"
+          }
+        ],
+        "title": "Orders"
+      }
+    },
+    {
+      "name": "not found",
+      "path": "/nope",
+      "expect": {
+        "ids": [],
+        "section": null,
+        "current": null,
+        "crumbs": [],
+        "title": ""
+      }
+    },
+    {
+      "name": "override title rewrites the last crumb",
+      "path": "/orders/42",
+      "override": {
+        "title": "Order 42 (Acme)"
+      },
+      "expect": {
+        "ids": [
+          "orders"
+        ],
+        "section": "orders",
+        "current": "orders",
+        "crumbs": [
+          {
+            "label": "Orders",
+            "href": "/orders"
+          },
+          {
+            "label": "Order 42 (Acme)"
+          }
+        ],
+        "title": "Order 42 (Acme)"
+      }
+    },
+    {
+      "name": "override crumbs win, title follows",
+      "path": "/orders/42",
+      "override": {
+        "crumbs": [
+          {
+            "label": "A",
+            "href": "/a"
+          },
+          {
+            "label": "B"
+          }
+        ]
+      },
+      "expect": {
+        "ids": [
+          "orders"
+        ],
+        "section": "orders",
+        "current": "orders",
+        "crumbs": [
+          {
+            "label": "A",
+            "href": "/a"
+          },
+          {
+            "label": "B"
+          }
+        ],
+        "title": "B"
+      }
+    },
+    {
+      "name": "override ids",
+      "path": "/orders/42",
+      "override": {
+        "ids": [
+          "orders",
+          "open"
+        ]
+      },
+      "expect": {
+        "ids": [
+          "orders",
+          "open"
+        ],
+        "section": "orders",
+        "current": "open",
+        "crumbs": [
+          {
+            "label": "Orders",
+            "href": "/orders"
+          },
+          {
+            "label": "42"
+          }
+        ],
+        "title": "42"
+      }
+    },
+    {
+      "name": "override title on not found",
+      "path": "/nope",
+      "override": {
+        "title": "Gone"
+      },
+      "expect": {
+        "ids": [],
+        "section": null,
+        "current": null,
+        "crumbs": [],
+        "title": "Gone"
+      }
+    }
+  ]
+}

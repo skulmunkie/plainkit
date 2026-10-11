@@ -18,6 +18,7 @@
 :host([size="lg"]) { font-size: var(--text-lg); line-height: 1.5; }
 :host([tone="default"]) { color: var(--color-text); }
 :host([tone="muted"]) { color: var(--color-muted); }
+:host([tone="muted"]) ::slotted(code) { color: var(--color-text); }
 :host([tone="accent"]) { color: var(--color-accent); }
 :host([tone="positive"]) { color: var(--delta-up); }
 :host([tone="warning"]) { color: var(--chart-2); }

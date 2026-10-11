@@ -34,10 +34,18 @@ const h = (tag, attrs = {}, ...kids) => {
 };
 const code = text => h('code', {}, text);
 
-function table(label, cols, rows) {
+// A host-described section's rows: a plain table, text only.
+function rawTable(label, cols, rows) {
     return h('pk-table', { label }, h('table', {},
         h('thead', {}, h('tr', {}, ...cols.map(c => h('th', {}, c)))),
         h('tbody', {}, ...rows.map(r => h('tr', {}, ...r.map(c => h('td', {}, c)))))));
+}
+
+// An API table: a data pk-table (its own cells, so the gallery can size them) that lays each row out as a labelled card on a phone and keeps its first column in view when it scrolls (#1113).
+function table(label, cols, rows) {
+    const columns = cols.map((c, i) => ({ key: `c${i}`, label: c }));
+    const data = rows.map((r, n) => ({ id: n, ...Object.fromEntries(r.map((_, i) => [`c${i}`, '']))}));
+    return h('pk-table', { label, cards: true, 'sticky-column': true, columns: JSON.stringify(columns), rows: JSON.stringify(data) }, ...rows.flatMap((r, n) => r.map((c, i) => h('span', { slot: `cell-${n}-c${i}` }, c))));
 }
 
 // A descriptor from another window (already through normalizeSections) as an extra section; text only, no markup is ever parsed.
@@ -46,7 +54,7 @@ export function sectionFromData(data) {
         title: data.title, open: data.open === true,
         render(box) {
             for (const line of data.lines ?? []) box.append(h('p', {}, line));
-            if (data.rows?.length) box.append(table(data.title, data.columns, data.rows));
+            if (data.rows?.length) box.append(rawTable(data.title, data.columns, data.rows));
             if (data.code) { const block = h('pk-code-block', { label: data.title, wrap: true }); block.textContent = data.code; box.append(block); }
         },
     };

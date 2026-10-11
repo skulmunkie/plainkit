@@ -78,11 +78,15 @@
     },
     {
       "name": "prefix",
-      "description": "Icon before the label."
+      "description": "Icon before the label, in a fixed cell like pk-nav-item's icon slot."
     },
     {
       "name": "suffix",
-      "description": "Shortcut or badge after it."
+      "description": "Shortcut after it."
+    },
+    {
+      "name": "badge",
+      "description": "A count or status pill at the end of the row, styled like pk-nav-item's badge slot."
     },
     {
       "name": "description",
@@ -149,6 +153,10 @@
     {
       "title": "With a description",
       "html": "<div class=\"stack\"><pk-menu-item description=\"Additive; nothing is deleted.\">Import sample data</pk-menu-item><pk-menu-item>Rebuild the index<span slot=\"description\">Takes a minute; the list is empty until it finishes.</span></pk-menu-item></div>"
+    },
+    {
+      "title": "With an icon and a badge",
+      "html": "<div class=\"stack\"><pk-menu-item><span slot=\"prefix\">&#9993;</span>Inbox<span slot=\"badge\">12</span></pk-menu-item><pk-menu-item><span slot=\"prefix\">&#9873;</span>Flagged</pk-menu-item></div>"
     }
   ]
 }

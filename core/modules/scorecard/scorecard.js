@@ -205,7 +205,7 @@ export async function mountScorecard(container, options = {}) {
         h(doc, 'pk-text', { tone: 'muted', role: 'status', 'aria-live': 'polite', 'data-sc-progress': true }),
         h(doc, 'pk-stack', { gap: 'md', 'data-sc-result': true }, emptyState(doc, ...NOT_YET))] : []),
         // The measuring frames sit off-screen at full size (a hidden frame has no layout to measure).
-        h(doc, 'div', { 'aria-hidden': 'true', 'data-sc-frames': true, 'data-dyn': 'position:fixed; left:var(--sc-frames-offscreen); top:0; width:var(--sc-frames-w); height:var(--sc-frames-h); overflow:hidden; visibility:hidden' }));
+        h(doc, 'div', { 'aria-hidden': 'true', 'data-sc-frames': true, 'data-dyn': 'position:fixed; left:var(--_sc-frames-offscreen); top:0; width:var(--_sc-frames-w); height:var(--_sc-frames-h); overflow:hidden; visibility:hidden' }));
     applyDynamic(root);
     container.replaceChildren(root);
     const $ = s => root.querySelector(s);
@@ -227,7 +227,7 @@ export async function mountScorecard(container, options = {}) {
     // afterwards.
     const hosts = {};
     const heading = { size: 'Size and budgets', api: 'API surface', tiers: 'Composition by tier', sweep: 'Size sweep', security: 'Security and defects', history: 'History' };
-    for (const name of ['size', 'api', 'tiers', 'sweep', 'security', 'history']) if (sections.has(name)) hosts[name] = h(doc, 'div', {});
+    for (const name of ['size', 'api', 'tiers', 'sweep', 'security', 'history']) if (sections.has(name)) hosts[name] = h(doc, 'pk-stack', { gap: 'sm' });
     const settled = get => Promise.resolve().then(get).then(v => ({ ok: true, v })).catch(err => ({ ok: false, err }));
     const loadHistoryData = () => {
         if (!historyKey) return { history: [], scoring: undefined, noKey: true };

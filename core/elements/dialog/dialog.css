@@ -45,7 +45,7 @@
 
 [part="footer"] { display: flex; flex-wrap: wrap; justify-content: flex-end; gap: var(--gap-control); flex: none; padding: var(--pad-modal); border-top: 1px solid var(--color-border); }
 
-[part="footer"]:not(:has(::slotted(*))) { display: none; }
+[part="footer"][hidden] { display: none; }
 
 @keyframes dialog-in { from { opacity: 0; transform: translateY(0.5rem); } }
 

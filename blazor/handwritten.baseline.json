@@ -9,13 +9,11 @@
     "Components/PkDevTools.razor": 109,
     "Components/PkDevToolsPage.razor": 89,
     "Components/PkFieldGroup.razor": 79,
-    "Components/PkGallery.razor": 63,
     "Components/PkLookupPicker.razor": 152,
     "Components/PkLogs.razor": 64,
     "Components/PkLogSettings.razor": 52,
     "Components/PkPerformance.razor": 55,
     "Components/PkQuality.razor": 47,
-    "Components/PkRecordForm.razor": 137,
     "Components/PkScorecard.razor": 62,
     "Components/PkSideNav.razor": 108,
     "Components/PkStyles.razor": 55,
@@ -35,12 +33,13 @@
     "DevTools/PkSnapshotReader.cs": 29,
     "DevTools/PkSourceProvider.cs": 16,
     "EndpointExtensions.cs": 14,
-    "PageBase.cs": 149,
+    "PageBase.cs": 140,
     "PageBase.Toasts.cs": 32,
     "PkAppBarSearchTypes.cs": 19,
     "PkAssets.cs": 114,
     "PkCallbackSlot.cs": 77,
     "PkChartData.cs": 22,
+    "PkComponentBase.cs": 73,
     "PkCrumb.cs": 6,
     "PkDockTypes.cs": 6,
     "PkElementBase.cs": 106,
@@ -52,12 +51,16 @@
     "PkGalleryImage.cs": 22,
     "PkHostEnvironment.cs": 41,
     "PkInputFormat.cs": 67,
-    "PkListTypes.cs": 47,
+    "PkListPageQuery.cs": 24,
+    "PkListTypes.cs": 37,
+    "PkLifecycle.cs": 119,
     "PkLogging.cs": 213,
     "PkNotifications.cs": 121,
     "PkOptions.cs": 26,
-    "PkRecordEditor.cs": 159,
+    "PkRecordEditor.cs": 157,
+    "PkRecordTab.cs": 8,
     "PkRecordEditor.Toasts.cs": 40,
+    "PkPageContext.cs": 98,
     "PkRuntime.cs": 125,
     "PkScoreTarget.cs": 25,
     "PkSelectOption.cs": 20,
@@ -68,23 +71,14 @@
     "PkThemePreset.cs": 17,
     "PkTimeZone.cs": 161,
     "ServiceCollectionExtensions.cs": 39,
-    "Testing/PkDataTableTesting.cs": 44
+    "Testing/PkDataTableTesting.cs": 44,
+    "Testing/PkFieldGroupTesting.cs": 68
   },
   "debt": [
     {
       "rule": "layout-recipe",
       "file": "Components/PkDevToolsPage.razor",
       "reason": "composes five dev tools mounts into one page; a layout recipe for a Blazor-only host page, to be reviewed when the dev tools move to a module page"
-    },
-    {
-      "rule": "name-parity",
-      "file": "Components/PkRecordForm.razor",
-      "reason": "old name of PkRecordPage; renamed once pk-record-page has slots for actions, sidebar and tabs (#801 name map)"
-    },
-    {
-      "rule": "layout-recipe",
-      "file": "Components/PkRecordForm.razor",
-      "reason": "form + stack + toolbar + detail layout recipe; moves to slots on pk-record-page (#801 section 2.3)"
     }
   ]
 }

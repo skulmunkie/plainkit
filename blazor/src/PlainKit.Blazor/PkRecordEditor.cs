@@ -34,11 +34,16 @@ public sealed partial class PkRecordEditor<TRecord, TForm, TKey>(
     Func<TKey, Task<TRecord?>> load,
     Func<TRecord?, TForm> toForm,
     Func<TForm, TRecord?, Task> save,
-    Func<TRecord, Task>? delete = null)
+    Func<TRecord, Task>? delete = null) : IDisposable
     where TRecord : class
     where TForm : class
     where TKey : notnull
 {
+    private readonly PkLifecycle _life = new(() => { });
+
+    /// <summary>Cancels a running load and releases the busy state; optional, for an editor whose owner is disposed.</summary>
+    public void Dispose() => _life.Dispose();
+
     /// <summary>
     /// Optional: decides that an exception is written for the user even though it does not implement <see cref="IPkUserFacingException"/>, so an
     /// app whose domain layer must not reference this library needs no wrapper. Consulted in addition to the marker (either one shows the message);
@@ -59,7 +64,7 @@ public sealed partial class PkRecordEditor<TRecord, TForm, TKey>(
     public bool NotFound { get; private set; }
 
     /// <summary>A save or delete is running; a second one is refused.</summary>
-    public bool Busy { get; private set; }
+    public bool Busy => _life.IsBusy;
 
     /// <summary>The message to show (validation messages, a user-facing failure or the generic line); null when there is none.</summary>
     public string? Error { get; private set; }
@@ -81,17 +86,14 @@ public sealed partial class PkRecordEditor<TRecord, TForm, TKey>(
     {
         Error = null;
         NotFound = false;
-        var record = await load(id);
-        if (record is null)
+        Exception? failure = null;
+        await _life.LoadAsync(_ => load(id), record =>
         {
-            NotFound = true;
-            Record = null;
-            Form = null;
-            return;
-        }
-
-        Record = record;
-        Form = toForm(record);
+            NotFound = record is null;
+            Record = record;
+            Form = record is null ? null : toForm(record);
+        }, e => { failure = e; return Task.CompletedTask; });
+        if (failure is not null) System.Runtime.ExceptionServices.ExceptionDispatchInfo.Capture(failure).Throw();
     }
 
     /// <summary>Validates the form, then saves it. True when saved; otherwise <see cref="Error"/> says why.</summary>
@@ -134,7 +136,7 @@ public sealed partial class PkRecordEditor<TRecord, TForm, TKey>(
 
     private async Task<bool> RunAsync(Func<Task> action, string verb)
     {
-        Busy = true;
+        using var busy = _life.Begin(verb);
         try
         {
             await action();
@@ -150,10 +152,6 @@ public sealed partial class PkRecordEditor<TRecord, TForm, TKey>(
             logger.LogError(ex, "Failed {Verb} {Noun}", verb, noun);
             Error = $"Unexpected error while {verb}. See log for details.";
             return false;
-        }
-        finally
-        {
-            Busy = false;
         }
     }
 }

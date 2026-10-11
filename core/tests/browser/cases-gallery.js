@@ -34,6 +34,19 @@ export const galleryCases = [
         t.eq(log.filter(e => e.level === 'warn' || e.level === 'error').map(e => `${e.scope}: ${e.message}`).join('; '), '', 'nothing was logged as a problem');
     }],
 
+    ['gallery: the content of a card in a view is stacked with a gap, not flush (sections of tokens, spacing and the layout samples; #1161)', async t => {
+        const p = await open(t, '#/foundations/tokens', '', 375);
+        for (const hash of ['#/foundations/tokens', '#/foundations/spacing', '#/samples/layouts/responsive']) {
+            await p.go(hash); await until(() => p.view().querySelector('pk-card > pk-stack > *:nth-child(2)'), `a card with stacked content on ${hash}`); await wait(300);
+            const flush = [];
+            for (const card of p.view().querySelectorAll('pk-card')) {
+                const kids = [...card.children].filter(k => k.getBoundingClientRect().height > 0 && !k.slot);
+                for (let i = 1; i < kids.length; i++) if (kids[i].getBoundingClientRect().top - kids[i - 1].getBoundingClientRect().bottom < 1) flush.push(`${kids[i - 1].localName} -> ${kids[i].localName}`);
+            }
+            t.eq(flush.slice(0, 5).join('; '), '', `${hash}: no two blocks inside a card touch`);
+        }
+    }],
+
     ['gallery: mounting again ends the gallery on show, and destroy() leaves no listener, observer or timer behind and empties its container (#401)', async t => {
         const { mountGallery } = await import(new URL('../../site/gallery/gallery.js', import.meta.url).href);
         const inst = instrument();
@@ -104,14 +117,15 @@ export const galleryCases = [
     ['gallery: the query inside the hash drives a list: ?q filters the utilities, ?p pages them, and going back restores the earlier list', async t => {
         const p = await open(t, '#/foundations/utilities');
         await p.shows('Utilities');
-        const rows = () => [...p.view().querySelectorAll('pk-table tbody tr')];
+        const rows = () => [...(p.view().querySelector('pk-table')?.shadowRoot?.querySelectorAll('tbody tr') ?? [])];
+        const name = r => r.cells[0].querySelector('slot')?.assignedNodes()[0]?.textContent ?? r.cells[0].textContent;
         await until(() => rows().length >= 30, 'the first page of utilities');
         const all = rows().length;
         await p.go('#/foundations/utilities?q=flex');
-        await until(() => rows().length > 0 && rows().length < all && rows().every(r => /flex/.test(r.cells[0].textContent)), 'only the matching utilities');
+        await until(() => rows().length > 0 && rows().length < all && rows().every(r => /flex/.test(name(r))), 'only the matching utilities');
         await p.go('#/foundations/utilities?p=2');
         await until(() => p.view().querySelector('pk-pagination')?.getAttribute('page') === '2', 'the second page');
-        p.win.history.back(); await until(() => rows().length > 0 && rows().every(r => /flex/.test(r.cells[0].textContent)), 'back to the filtered list');
+        p.win.history.back(); await until(() => rows().length > 0 && rows().every(r => /flex/.test(name(r))), 'back to the filtered list');
     }],
 
     ['gallery: a scoped mount with no address opens its first view, and one with an address opens that', async t => {
@@ -119,5 +133,245 @@ export const galleryCases = [
         await p.shows('Foundations', 'the overview of the scope');
         t.ok([...p.doc.querySelectorAll('pk-nav-item[href]')].every(i => i.getAttribute('href').startsWith('#/foundations')), 'the nav holds only the scope');
         const q = await open(t, '#/foundations/spacing', '?kind=foundations'); await q.shows('Spacing');
+    }],
+
+    ['gallery: the preview bar and the top bar keep their box while their elements upgrade, so the view does not jump on first load (#1076)', async t => {
+        const p = await open(t, '#/overview');
+        await Promise.all(['pk-toolbar', 'pk-dropdown', 'pk-button', 'pk-navbar'].map(tag => p.win.customElements.whenDefined(tag)));
+        await wait(100);
+        const bar = p.doc.querySelector('#gx-bar'), top = p.doc.querySelector('pk-navbar');
+        // The same markup with no script at all: every pk-* element stays undefined, which is the state a slow connection paints first.
+        const base = new URL('../../', import.meta.url).href;
+        const f = document.createElement('iframe'); f.title = 'Undefined state'; f.style.cssText = 'width:1280px;height:900px;border:0';
+        f.srcdoc = `<!doctype html><html data-theme="dark"><head><link rel="stylesheet" href="${base}plainkit.css"><link rel="stylesheet" href="${base}site/site.css"><link rel="stylesheet" href="${base}site/gallery/gallery.css"></head>`
+            + `<body class="site"><div class="site-body" data-gx-mount><pk-app-shell flush>${bar.outerHTML}</pk-app-shell></div></body></html>`;
+        const loaded = new Promise(r => f.addEventListener('load', r, { once: true })); p.win.frameElement.parentElement.append(f); await loaded; await wait(100);
+        const raw = f.contentDocument.querySelector('#gx-bar');
+        t.ok(bar.getClientRects().length > 0, `the live preview bar is drawn (display ${p.win.getComputedStyle(bar).display}, ${p.doc.documentElement.className}, ${bar.parentElement?.className})`);
+        const h = el =>Math.round(el.getBoundingClientRect().height * 2) / 2;
+        t.eq(h(raw), h(bar), `the preview bar is ${h(raw)}px high before its elements upgrade and ${h(bar)}px after`);
+        t.ok(top.getBoundingClientRect().height <= parseFloat(getComputedStyle(p.doc.documentElement).fontSize) * 3.5 + 1.5, 'the top bar is one row high');
+    }],
+    ['gallery: the preview bar and the slim page bar are pk-toolbar rows, their controls share one row and the Display menu holds the viewport and the text size (#682)', async t => {
+        const p = await open(t, '#/overview');
+        const main = p.doc.querySelector('#gx-bar'), page = p.doc.querySelector('#gx-pagebar');
+        t.eq(main?.localName, 'pk-toolbar', 'the preview bar is a pk-toolbar'); t.eq(page?.localName, 'pk-toolbar', 'the page bar is a pk-toolbar');
+        t.eq(main.querySelectorAll('[class]').length, 0, 'no hand-written class inside the preview bar');
+        const display = main.querySelector('pk-dropdown'), inspect = p.doc.querySelector('#gx-inspect');
+        t.eq([...display.querySelectorAll('pk-menu-item[data-set-width]')].map(i => i.dataset.setWidth).join(), 'desktop,phone', 'the Display menu switches the viewport');
+        t.eq(display.querySelectorAll('pk-menu-item[data-scale]').length, 4, 'and the text size');
+        inspect.hidden = false; await wait(100);
+        const a = display.getBoundingClientRect(), b = inspect.getBoundingClientRect();
+        t.ok(Math.abs((a.top + a.height / 2) - (b.top + b.height / 2)) < 2, 'Display and Details share one row');
+        t.ok(main.getBoundingClientRect().height <= 64, 'the preview bar is one slim row');
+        await p.go('#/samples/layouts/shell'); await until(() => p.doc.querySelector('#gx-title').textContent === 'App shell', 'the slim bar');
+        const row = ['#gx-back', '#gx-title', '#gx-theme', '#gx-open'].map(s => p.doc.querySelector(s).getBoundingClientRect());
+        t.ok(row.every(r => Math.abs((r.top + r.height / 2) - (row[0].top + row[0].height / 2)) < 2), 'Back, the title, the theme switch and Open share one row');
+    }],
+    ['gallery: the page frame is a pk-app-shell, the nav is its nav column, both bars are its header, the view is the one scroller and the Details drawer docks over the end edge (#682)', async t => {
+        const p = await open(t, '#/elements/pk-button');
+        const shell = p.doc.querySelector('#gx-shell'), nav = p.doc.querySelector('#gx-nav'), bar = p.doc.querySelector('#gx-bar'), view = p.view();
+        t.eq(shell.localName, 'pk-app-shell', 'the frame is a pk-app-shell'); t.eq(nav.getAttribute('slot'), 'nav', 'the nav is in its nav slot');
+        t.eq(p.doc.querySelectorAll('#gx-shell > [class]:not(.gx-nav)').length, 0, 'no hand-written class on the frame parts (the nav keeps one for its width before it upgrades)');
+        await until(() => view.querySelector('pk-page-header'), 'the element page');
+        const n = nav.getBoundingClientRect(), b = bar.getBoundingClientRect(), v = view.getBoundingClientRect();
+        t.ok(n.right <= b.left + 1 && n.right <= v.left + 1, 'the nav column lies before the bar and the view');
+        t.ok(b.bottom <= v.top + 1, 'the header (the bar) lies above the view');
+        t.ok(Math.abs(v.bottom - shell.getBoundingClientRect().bottom) < 2, 'the view reaches the bottom of the frame');
+        t.ok(shell.getBoundingClientRect().height <= p.win.innerHeight + 1, 'the frame fits the window, only the view scrolls');
+        const toggle = p.doc.querySelector('#gx-inspect'); toggle.hidden = false;
+        if (!p.doc.querySelector('#gx-inspector').hasAttribute('open')) toggle.click();
+        await until(() => p.doc.querySelector('#gx-inspector').hasAttribute('open'), 'the Details drawer to open'); await wait(300);
+        const d = p.doc.querySelector('#gx-inspector').shadowRoot.querySelector('[part="panel"]').getBoundingClientRect();
+        t.ok(Math.abs(d.right - v.right) < 2 && d.top >= b.bottom - 1, 'the drawer docks to the end edge of the body, under the header');
+        t.ok(parseFloat(p.win.getComputedStyle(view).paddingInlineEnd) >= d.width, 'the view keeps clear of the drawer');
+        p.go('#/samples/layouts/shell'); await until(() => p.doc.querySelector('#gx-title').textContent === 'App shell', 'the slim bar');
+        t.ok(p.win.getComputedStyle(nav).display === 'none' && bar.hidden && !p.doc.querySelector('#gx-pagebar').hidden, 'a full-page sample hides the nav and the wide bar and shows the slim bar');
+    }],
+    ['gallery: the overview, the page header and the side-nav titles keep their box while their elements upgrade (#1076)', async t => {
+        const p = await open(t, '#/overview');
+        await Promise.all(['pk-page-header', 'pk-card', 'pk-grid', 'pk-side-nav', 'pk-nav-item'].map(tag => p.win.customElements.whenDefined(tag)));
+        await wait(100);
+        const shell = p.doc.querySelector('#gx-shell');
+        // The same markup with no script: every pk-* element stays undefined, the state a slow connection paints first.
+        const base = new URL('../../', import.meta.url).href;
+        const f = document.createElement('iframe'); f.title = 'Undefined state'; f.style.cssText = 'width:1280px;height:900px;border:0';
+        f.srcdoc = `<!doctype html><html data-theme="dark"><head><link rel="stylesheet" href="${base}plainkit.css"><link rel="stylesheet" href="${base}site/site.css"><link rel="stylesheet" href="${base}site/gallery/gallery.css"></head>`
+            + `<body class="site"><div class="site-body" data-gx-mount>${shell.outerHTML}</div></body></html>`;
+        const loaded = new Promise(r => f.addEventListener('load', r, { once: true })); p.win.frameElement.parentElement.append(f); await loaded; await wait(100);
+        const raw = f.contentDocument;
+        const box = (d, sel, i = 0) => d.querySelectorAll(sel)[i].getBoundingClientRect();
+        const near = (sel, what, i = 0) => t.ok(Math.abs(box(raw, sel, i).height - box(p.doc, sel, i).height) <= 3, `${what} is ${Math.round(box(raw, sel, i).height)}px high before upgrade and ${Math.round(box(p.doc, sel, i).height)}px after`);
+        near('.gx-head', 'the page header'); near('.gx-tile', 'an overview tile'); near('#gx-view pk-grid', 'the overview grid');
+        // Titles sit between nav rows. The nav's own header is hidden until its element is defined, so compare the distance between two titles (the rows
+        // between them are what must keep their height while pk-nav-item is undefined: the 0.0015 shift), not the position of the first.
+        const gap = (d, i) => box(d, '.gx-nav-title', i + 1).top - box(d, '.gx-nav-title', i).top;
+        for (let i = 0; i < 2; i++) t.ok(Math.abs(gap(raw, i) - gap(p.doc, i)) <= 3, `the rows under nav title ${i} take ${Math.round(gap(raw, i))}px before upgrade and ${Math.round(gap(p.doc, i))}px after`);
+    }],
+    ['gallery: the Details inspector draws its API tables on pk-table, no cell overlaps another, no Description is clipped inside its cell, the Name column stays put when the table scrolls, and the drawer never scrolls sideways (#1113)', async t => {
+        const p = await openInspector(t, 1280);
+        const body = p.doc.querySelector('#gx-inspector-body'), tb = p.tbl.shadowRoot.querySelector('table'), scroll = p.tbl.shadowRoot.querySelector('[part="scroll"]');
+        const overlap = (a, b) => a.left < b.right - 1 && b.left < a.right - 1 && a.top < b.bottom - 1 && b.top < a.bottom - 1;
+        const rows = [...tb.querySelectorAll('tbody tr')], bad = [];
+        for (const tr of rows) { const cells = [...tr.children].map(c => c.getBoundingClientRect()); for (let i = 0; i < cells.length; i++) for (let j = i + 1; j < cells.length; j++) if (overlap(cells[i], cells[j])) bad.push(tr.textContent.slice(0, 40)); }
+        t.eq(bad.join(' | '), '', 'no cell overlaps another in any row');
+        const d = [...tb.querySelectorAll('thead th')].map(th => th.textContent.trim().toLowerCase()).indexOf('description');
+        t.ok(d > 0, 'the table has a Description column');
+        t.eq(rows.filter(tr => tr.children[d].scrollWidth > tr.children[d].clientWidth + 1).length, 0, 'no Description cell is clipped by its own box');
+        t.ok(Math.min(...rows.map(tr => tr.children[d].getBoundingClientRect().width)) >= 128, 'the Description column is at least 128px wide');
+        const drawer = p.doc.querySelector('#gx-inspector');
+        t.ok(body.scrollWidth <= body.clientWidth + 1 && drawer.scrollWidth <= drawer.clientWidth + 1, 'the drawer itself does not scroll sideways');
+        t.ok(scroll.scrollWidth > scroll.clientWidth, 'the wide table scrolls inside its own region (the intentional scroll)');
+        const first = rows[0].children[0], x0 = first.getBoundingClientRect().left; scroll.scrollLeft = 120; await wait(100);
+        t.ok(Math.abs(first.getBoundingClientRect().left - x0) < 2, 'the Name column stays put while the table scrolls sideways');
+    }],
+    ['gallery: on a phone the inspector API tables are cards, one labelled line per cell, none overlapping and nothing scrolling sideways (#1113)', async t => {
+        const p = await openInspector(t, 375);
+        const scroll = p.tbl.shadowRoot.querySelector('[part="scroll"]'), card = p.tbl.shadowRoot.querySelector('tbody tr');
+        t.eq(p.win.getComputedStyle(card).display, 'block', 'a row is a card (block), not a table row');
+        t.ok(scroll.scrollWidth <= scroll.clientWidth + 1, 'the cards do not scroll sideways');
+        const cells = [...card.children].map(c => c.getBoundingClientRect()), box = card.getBoundingClientRect();
+        t.ok(cells.length === 4 && cells.every((c, i) => c.left >= box.left - 1 && c.right <= box.right + 1 && (i === 0 || c.top >= cells[i - 1].bottom - 1)), 'the four cells stack inside the card without overlapping');
+        t.ok([...card.children].every(c => c.getAttribute('data-label')), 'every cell is labelled');
+    }],
+];
+
+// The gallery on an element page with the Details drawer open and its first API table (Properties) drawn.
+async function openInspector(t, width) {
+    const p = await open(t, '#/elements/pk-button', '', width);
+    const toggle = p.doc.querySelector('#gx-inspect'); toggle.hidden = false;
+    if (!p.doc.querySelector('#gx-inspector').hasAttribute('open')) toggle.click();
+    p.tbl = await until(() => { const e = p.doc.querySelector('#gx-inspector-body pk-table'); return e?.shadowRoot?.querySelectorAll('tbody tr').length > 3 && e; }, 'the Properties table');
+    await wait(300); return p;
+}
+
+async function openApp(t, hash, width = 1280) {
+    const host = t.stage(''), f = document.createElement('iframe');
+    f.title = 'Site app'; f.style.cssText = `width:${width}px;height:900px;border:0;display:block`;
+    const loaded = new Promise(r => f.addEventListener('load', r, { once: true }));
+    f.src = new URL(`../../app.html${hash}`, import.meta.url).href; host.append(f); await loaded;
+    return { win: f.contentWindow, d: f.contentDocument };
+}
+
+// The Gallery as a lazy module of the site app (#355, step 4): core/app.html#/gallery/..., the same views under one kept route, the app's own nav and row marking.
+export const galleryAppCases = [
+    ['gallery module (app): a deep link opens the element page, the nav marks the section and no gallery nav column is drawn, a click in the views keeps the app address, and the page is kept (not remounted) while the address changes', async t => {
+        const host = t.stage(''), f = document.createElement('iframe');
+        f.title = 'Site app'; f.style.cssText = 'width:1280px;height:900px;border:0;display:block';
+        const loaded = new Promise(r => f.addEventListener('load', r, { once: true }));
+        f.src = new URL('../../app.html#/gallery/elements/pk-button', import.meta.url).href; host.append(f); await loaded;
+        const win = f.contentWindow, d = f.contentDocument;
+        await until(() => d.querySelector('#gx-view pk-page-header')?.getAttribute('heading') === 'Button', 'the Button page');
+        const shell = d.querySelector('#gx-shell');
+        t.ok(getComputedStyle(d.querySelector('#gx-nav')).display === 'none', 'the gallery draws no nav column of its own');
+        await until(() => d.querySelector('#pk-nav pk-nav-item[current]')?.getAttribute('href') === '#/gallery/elements/pk-button', 'the Button row to be current');
+        for (const a of d.querySelectorAll('#gx-view [href^="#/"]')) t.ok(a.getAttribute('href').startsWith('#/gallery/'), 'every link in the views is under #/gallery');
+        win.location.hash = '#/gallery/foundations/typography'; await wait(300);
+        await until(() => d.querySelector('#gx-view pk-page-header')?.getAttribute('heading') === 'Typography', 'the Typography page');
+        t.ok(d.querySelector('#gx-shell') === shell, 'the gallery was kept, not mounted again');
+        await until(() => /Typography/.test(d.querySelector('#pk-nav pk-nav-item[current]')?.textContent ?? ''), 'the Typography row to be current');
+    }],
+    ['gallery module (app): the nav lists the foundations and the element categories folded, a category opens to its elements, and a deep link to an element opens its page with that row marked and its category open', async t => {
+        const { d, win } = await openApp(t, '#/gallery');
+        const nav = () => [...d.querySelectorAll('#pk-nav pk-nav-item')];
+        await until(() => nav().some(i => i.textContent.trim().startsWith('Foundations')), 'the Foundations row');
+        const row = text => nav().find(i => i.firstChild?.textContent.trim() === text);
+        t.ok(row('Typography') && row('Navigation') && row('Page types') && row('Templates'), 'foundation pages, element categories and the sample lists are all in the nav');
+        t.ok(!row('Navigation').hasAttribute('expanded'), 'a category is folded until it is opened');
+        t.ok(!row('Navigation').querySelector('[current]'), 'no element row is marked before one is open');
+        row('Navigation').toggleAttribute('expanded', true);
+        t.ok(row('Navigation').querySelectorAll('pk-nav-item').length >= 10, 'the opened category lists its elements');
+        win.location.hash = '#/gallery/elements/pk-button'; await wait(200);
+        await until(() => d.querySelector('#gx-view pk-page-header')?.getAttribute('heading') === 'Button', 'the Button page');
+        await until(() => d.querySelector('#pk-nav pk-nav-item[current]')?.getAttribute('href') === '#/gallery/elements/pk-button', 'the Button row to be current');
+        t.ok(d.querySelector('#pk-nav pk-nav-item[current]').closest('pk-nav-item[expanded]'), 'the category of the current row is open');
+        win.location.hash = '#/gallery/foundations/typography'; await until(() => d.querySelector('#gx-view pk-page-header')?.getAttribute('heading') === 'Typography', 'Typography');
+        win.history.back(); await until(() => d.querySelector('#pk-nav pk-nav-item[current]')?.getAttribute('href') === '#/gallery/elements/pk-button', 'back to the Button row');
+        const link = d.querySelector('#pk-nav pk-nav-item[href="#/gallery/elements/pk-badge"]');
+        link?.focus(); t.ok(link && d.querySelector('#pk-nav').contains(link), 'element rows are links, reachable by keyboard');
+    }],
+    ['gallery module (app): on a phone the drawer holds the same tree and an element row opens its page', async t => {
+        const { d, win } = await openApp(t, '#/gallery/elements/pk-button', 375);
+        await until(() => d.querySelector('#gx-view pk-page-header')?.getAttribute('heading') === 'Button', 'the Button page');
+        d.querySelector('pk-button[data-nav-toggle]').click(); await wait(500);
+        const cur = await until(() => d.querySelector('#pk-nav pk-nav-item[current][href$="pk-button"]'), 'the current row in the drawer');
+        t.eq(cur.getAttribute('href'), '#/gallery/elements/pk-button', 'the drawer marks the Button row');
+        win.location.hash = '#/gallery/elements/pk-badge';
+        await until(() => d.querySelector('#gx-view pk-page-header')?.getAttribute('heading') === 'Badge', 'the Badge page');
+    }],
+    ['gallery module (app): an element deep link with the whole nav tree drawn shifts the layout less than 0.1 (#355)', async t => {
+        const { d, win } = await openApp(t, '#/gallery/elements/pk-button');
+        await until(() => d.querySelector('#gx-view pk-page-header')?.getAttribute('heading') === 'Button', 'the Button page');
+        await wait(1500);
+        const seen = type => new Promise(r => { const o = new win.PerformanceObserver(l => r(l.getEntries())); try { o.observe({ type, buffered: true }); } catch { r([]); } setTimeout(() => r(o.takeRecords()), 300); });
+        const entries = await seen('layout-shift'), cls = entries.filter(e => !e.hadRecentInput).reduce((n, e) => n + e.value, 0);
+        t.ok(d.querySelectorAll('#pk-nav pk-nav-item').length > 150, 'the nav tree is in the page');
+        t.ok(cls < 0.1, `layout shift ${cls.toFixed(4)} over ${entries.length} entries`);
+    }],
+    ['modules (app): a cold deep link to each lazy module leaves no pk-* element undefined once its view is drawn, and the gallery page header draws its heading (the view is drawn after the app scan)', async t => {
+        for (const hash of ['#/gallery/elements/pk-button', '#/gallery/foundations/typography', '#/guides', '#/files', '#/scorecard', '#/theme', '#/layout-builder', '#/settings', '#/devtools']) {
+            const { d, win } = await openApp(t, hash);
+            await until(() => d.querySelector('main')?.querySelector('*'), `${hash}: the page to draw`);
+            if (hash.includes('gallery')) await until(() => d.querySelector('#gx-view pk-page-header, #gx-view pk-card'), `${hash}: the gallery view`);
+            await wait(1200);
+            const tags = [...new Set([...d.body.querySelectorAll('*')].map(e => e.localName).filter(n => n.startsWith('pk-')))];
+            const undef = tags.filter(n => !win.customElements.get(n));
+            t.eq(undef.join(', '), '', `${hash}: every pk-* in the page is defined 1.2 s after the view drew`);
+            if (hash.includes('pk-button')) t.ok(d.querySelector('#gx-view pk-page-header')?.shadowRoot?.querySelector('[part="title"]')?.textContent.trim(), 'the page header drew its heading');
+        }
+    }],
+    // Files and Scorecard as lazy modules of the site app (#355, step 6a)
+    ['files module (app, 1280px and 375px): the explorer opens the file and line of the address, fills the content area under the bar and does not scroll the page', async t => {
+        for (const width of [1280, 375]) {
+            const { d } = await openApp(t, '#/files?path=tokens/tokens.css&line=3', width);
+            const ex = await until(() => d.querySelector('#pk-main pk-code-explorer'), `the explorer at ${width}px`);
+            await until(() => /tokens\.css/.test(ex.textContent + (ex.shadowRoot?.textContent ?? '')), 'the opened file name in the explorer');
+            const main = d.querySelector('#pk-main').getBoundingClientRect(), box = ex.getBoundingClientRect();
+            t.ok(box.height >= main.height * 0.6, `the explorer is ${Math.round(box.height)}px high in a ${Math.round(main.height)}px content area at ${width}px`);
+            t.ok(box.right <= main.right + 1 && box.left >= main.left - 1, `the explorer stays inside the content area at ${width}px`);
+            t.ok(box.bottom <= Math.min(main.bottom, d.documentElement.clientHeight) + 1, `the explorer ends at ${Math.round(box.bottom)}px, inside the ${Math.round(Math.min(main.bottom, d.documentElement.clientHeight))}px window, so the page does not scroll behind it at ${width}px`);
+            t.ok(d.documentElement.scrollWidth <= width, `no horizontal page scroll at ${width}px`);
+        }
+    }],
+    ['scorecard module (app, 1280px and 375px): the card opens with its Run button and ranked section inside the content area, and a file link points into the Files module', async t => {
+        for (const width of [1280, 375]) {
+            const { d } = await openApp(t, '#/scorecard', width);
+            const run = await until(() => d.querySelector('#pk-main [data-sc-run]'), `the Run button at ${width}px`);
+            const main = d.querySelector('#pk-main').getBoundingClientRect(), r = run.getBoundingClientRect();
+            t.ok(r.right <= main.right + 1 && r.left >= main.left - 1 && r.height > 0, `the Run button sits inside the content area at ${width}px`);
+            t.ok(d.documentElement.scrollWidth <= width, `no horizontal page scroll at ${width}px`);
+        }
+    }],
+    ['scorecard module (app, 1280px and 375px): in every section card the badge row ends above the note under it (#1121)', async t => {
+        for (const width of [1280, 375]) {
+            const { d } = await openApp(t, '#/scorecard', width);
+            await until(() => d.querySelector('#pk-main [data-sc-run]'), `the Run button at ${width}px`);
+            const notes = await until(() => { const n = [...d.querySelectorAll('#pk-main pk-card p.muted')].filter(p => p.previousElementSibling?.localName === 'pk-cluster'); return n.some(p => p.textContent.startsWith("Elements per composition")) ? n : null; }, "the section notes", 400).catch(e => { throw new Error(`${e.message}: cards ${d.querySelectorAll("pk-card").length}, muted ${[...d.querySelectorAll("p.muted")].map(p => p.previousElementSibling?.localName + ":" + p.closest("pk-card")?.localName).join()}, hash ${d.location.hash}`); });
+            for (const p of notes) {
+                const above = [...p.previousElementSibling.children].reduce((r, e) => ({ top: Math.min(r.top, e.getBoundingClientRect().top), bottom: Math.max(r.bottom, e.getBoundingClientRect().bottom) }), p.previousElementSibling.getBoundingClientRect()), box = p.getBoundingClientRect();
+                t.ok(above.bottom <= box.top + 0.01, `the badge row (${above.top}-${above.bottom}) ends above the note (${box.top}) in '${p.textContent.slice(0, 30)}' at ${width}px`);
+            }
+        }
+    }],
+
+    ['gallery: a pattern drawn inline puts the desktop sample beside the phone sample on a wide window and keeps only the phone sample, inside the viewport, on a phone (pk-grid, no gx-pair class)', async t => {
+        for (const width of [1280, 375]) {
+            const host = t.stage(''), f = document.createElement('iframe');
+            f.title = 'Gallery inline'; f.style.cssText = `width:${width}px;height:900px;border:0;position:fixed;left:0;top:0;z-index:10`;
+            const loaded = new Promise(r => f.addEventListener('load', r, { once: true }));
+            f.src = new URL('../../site/gallery/embed.html?chrome=none#/samples/patterns/notifications', import.meta.url).href; host.append(f); await loaded;
+            const doc = f.contentDocument, win = f.contentWindow;
+            const halves = await until(() => { const h = [...doc.querySelectorAll('[data-pair] > pk-stack')]; return h.length === 2 && h; }, 'the desktop and phone halves');
+            t.eq(doc.querySelectorAll('.gx-pair').length, 0, 'no hand-written pair class is left');
+            await until(() => win.customElements.get('pk-grid'), 'pk-grid to load'); await t.settle();
+            const [d, ph] = halves.map(h => h.getBoundingClientRect());
+            if (width > 640) {
+                t.ok(ph.left >= d.right - 0.5, `the phone half (left ${ph.left}) starts at or after the desktop half's right edge (${d.right}) at ${width}px`);
+                t.ok(Math.abs(ph.top - d.top) < 2, `the halves share a top (${d.top} / ${ph.top}) at ${width}px`);
+            } else {
+                t.eq(win.getComputedStyle(halves[0]).display, 'none', 'the desktop half is dropped on a phone');
+                t.ok(ph.width > 0 && ph.right <= width + 0.5, `the phone half (${ph.left}-${ph.right}) fits the ${width}px window`);
+            }
+        }
     }],
 ];

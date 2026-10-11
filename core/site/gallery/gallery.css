@@ -1,62 +1,24 @@
 /* Gallery page chrome: the shell around the nav, the bars, the view and the inspector; entry cards, frames, foundation swatches. The chrome and the
    pages are pk-* elements (pk-side-nav, pk-button, pk-drawer, pk-card, pk-page-header ...); this file holds only what the gallery itself needs. Tokens only. */
 
-[hidden]:is(pk-button, pk-menu-item, pk-dropdown, pk-drawer, .gx-group) { display: none; }
+[hidden]:is(pk-button, pk-menu-item, pk-dropdown, pk-drawer, pk-side-nav, pk-toolbar) { display: none; }
 
 /* ---- entries, frames, foundations ---- */
-.gx-entry { margin-bottom: var(--space-4); scroll-margin-top: var(--space-2); }
-
-.gx-entry h4 { margin: var(--space-3) 0 var(--space-2); font-size: var(--text-base); }
-
-.gx-frame { display: block; max-width: 100%; margin: 0 auto var(--space-3); border: var(--gx-border-w) solid var(--color-border); border-radius: var(--radius-md); background: var(--color-bg); }
+.gx-frame { display: block; max-width: 100%; margin: 0 auto var(--space-3); border: var(--_gx-border-w) solid var(--color-border); border-radius: var(--radius-md); background: var(--color-bg); }
 
 .gx-slot { min-width: 0; }
 
-.gx-table { table-layout: auto; }
-
-.gx-table td, .gx-table th { overflow-wrap: anywhere; }
-
 .gx-swatch-cell { display: flex; align-items: center; gap: var(--space-2); padding: var(--space-1) var(--space-2); background: var(--color-bg); color: var(--color-text); border-radius: var(--radius-sm); }
 
-.gx-swatch { flex: none; width: var(--gx-swatch-size); height: var(--gx-swatch-size); border: var(--gx-border-w) solid var(--color-border); border-radius: var(--radius-sm); }
-
-.gx-space-row { display: flex; align-items: center; gap: var(--space-3); margin-bottom: var(--space-1); }
-
-.gx-space-row code { min-width: var(--gx-space-code-min-w); }
-
-.gx-space-bar { display: block; height: var(--gx-space-bar-h); background: var(--color-accent); border-radius: var(--radius-xs); }
-
-.gx-box { display: inline-flex; flex-direction: column; gap: var(--space-1); padding: var(--space-3); background: var(--color-panel); border: var(--gx-border-w) solid var(--color-border); }
-
-.gx-z { display: inline-block; padding: var(--space-1) var(--space-2); background: var(--color-surface-alt); border-radius: var(--radius-sm); }
+.gx-swatch { flex: none; width: var(--_gx-swatch-size); height: var(--_gx-swatch-size); border: var(--_gx-border-w) solid var(--color-border); border-radius: var(--radius-sm); }
 
 .gx-effect { padding: var(--space-1); }
 
-.gx-icons { display: grid; grid-template-columns: repeat(auto-fill, minmax(var(--gx-icon-min-w), 1fr)); gap: var(--space-2); }
 
-.gx-icon { display: flex; flex-direction: column; align-items: center; gap: var(--space-1); padding: var(--space-2); background: var(--color-surface-alt); border-radius: var(--radius-md); font-size: var(--text-xs); }
 
-.gx-pair { display: grid; grid-template-columns: minmax(0, 2fr) auto; gap: var(--space-3); align-items: start; }
 
-.gx-notice-file { margin: var(--space-4); }
+.gx-stage { height: calc(100dvh - var(--_gx-stage-reserve)); min-height: var(--_gx-stage-min-h); margin-inline: auto; }
 
-.gx-stage { height: calc(100dvh - var(--gx-stage-reserve)); min-height: var(--gx-stage-min-h); margin-inline: auto; }
-
-.gx-find { margin-bottom: var(--space-4); }
-
-.gx-head { --pk-page-header-title-size: calc(var(--text-lg) * 1.4); margin-bottom: var(--gap-section); }
-
-.gx-page { inline-size: 100%; max-inline-size: var(--gx-page-max-w); margin-inline: auto; }
-
-.gx-el-group { margin-top: var(--space-5); }
-.gx-el-group > h2 { margin-bottom: var(--space-2); font-size: var(--text-base); }
-
-/* pk-grid only lays its children into columns once it upgrades (its shadow CSS sets display:grid); until then it is a plain inline
-   element and its pk-card children stack in one column at their content width, so the Elements overview's card grids grow tall and then
-   jump short the moment pk-grid (and pk-card) define -- the biggest layout shift on that route (#135). Reserved here with the same
-   formula the element uses (grid.css), close enough to the gallery's own min="14rem" grids that there is no visible jump once it
-   upgrades for real. */
-.gx-el-group pk-grid:not(:defined) { display: grid; inline-size: 100%; box-sizing: border-box; grid-template-columns: repeat(auto-fit, minmax(min(var(--gx-el-group-min-w), 100%), 1fr)); gap: var(--space-4); }
 
 /* Element pages: the playground puts the live element beside its controls; the reference folds. */
 .gx-el-play { display: grid; gap: var(--space-4); grid-template-columns: repeat(2, minmax(0, 1fr)); }
@@ -71,113 +33,107 @@
 .gx-el-controls :is(pk-input, pk-select) { display: block; contain: inline-size; }
 .gx-el-check { align-self: end; min-height: var(--touch-target); }
 .gx-el-events { margin-top: var(--space-3); }
-.gx-el-log { margin: 0; padding-left: var(--space-5); max-height: var(--gx-el-log-max-h); overflow-y: auto; }
-.gx-disclose { margin-top: var(--space-2); border-top: var(--gx-border-w) solid var(--color-border); }
+.gx-el-log { margin: 0; padding-left: var(--space-5); max-height: var(--_gx-el-log-max-h); overflow-y: auto; }
+.gx-disclose { margin-top: var(--space-2); border-top: var(--_gx-border-w) solid var(--color-border); }
 
-/* ---- the shell: nav, main column (bar, view, inspector) ---- */
-/* The chrome fills whatever box the host gives it (a fixed-height container scrolls the contents and the view inside; an auto-height one grows with the page). */
-.gx-mount { display: flex; flex-direction: column; min-height: 0; }
-.gx-mount > .gx-shell { flex: 1; min-height: 0; }
+/* ---- the frame: pk-app-shell (nav, header, body), or a stack of the same parts under the site app ---- */
+/* The frame fills whatever box the host gives it (a fixed-height container scrolls the view inside; the shell's own 100dvh gives way to the host's box). */
+[data-gx-mount] { display: flex; flex-direction: column; min-height: 0; }
+[data-gx-mount] > #gx-shell { flex: 1; min-height: 0; height: auto; block-size: auto; }
 
-/* display+width apply before pk-side-nav is defined too (the FOUC guard only hides it, it does not reserve its box), so .gx-main does not
-   start full width and then jump left once the nav renders (#135). Below the element's own off-canvas breakpoint (side-nav.css) an UNDEFINED
-   nav still needs its flow width zeroed to match (a defined nav there is position: fixed and takes no flow width on its own); a DEFINED nav
-   must keep its own width (the element sets it, including its off-canvas open width) - overriding it here would collapse the open drawer to
-   zero width, showing the backdrop with no visible menu. */
-.gx-nav { --shell-nav-w: var(--gx-nav-w); display: flex; flex: none; width: var(--shell-nav-w); }
-
-.gx-shell { display: flex; min-height: 0; min-width: 0; }
-
-.gx-main { position: relative; flex: 1; display: flex; flex-direction: column; min-width: 0; min-height: 0; overflow: hidden; background: var(--color-panel); }
+/* Before pk-app-shell and pk-side-nav are defined the frame still has its two columns and the nav its width, so the view does not start full width and
+   then jump right once the nav renders (#135). Below the element's own off-canvas breakpoint (side-nav.css) an UNDEFINED nav needs its flow width
+   zeroed to match (a defined nav there is position: fixed and takes no flow width); a DEFINED nav keeps the width the element gives it. */
+.gx-nav { --shell-nav-w: var(--_gx-nav-w); }
+.gx-nav:not(:defined):not([hidden]) { display: flex; flex-direction: column; width: var(--shell-nav-w); }
+pk-app-shell:not(:defined) { display: grid; grid-template-columns: auto minmax(0, 1fr); align-content: start; }
+pk-app-shell:not(:defined) > * { grid-column: 2; }
+pk-app-shell:not(:defined) > .gx-nav { grid-column: 1; grid-row: 1 / span 6; }
 
 @media (--tablet) {
     .gx-nav:not(:defined) { width: 0; }
 }
 
 /* The nav's section titles are links to the section overview; the element styles the rows, this styles the titles between them. */
-.gx-nav-title { display: block; padding: var(--space-3) var(--space-3) var(--space-1); color: var(--color-muted); font-size: var(--text-meta); font-weight: 600; letter-spacing: var(--gx-nav-title-tracking); text-transform: uppercase; text-decoration: none; }
+.gx-nav-title { display: block; padding: var(--space-3) var(--space-3) var(--space-1); color: var(--color-muted); font-size: var(--text-meta); font-weight: 600; letter-spacing: var(--_gx-nav-title-tracking); text-transform: uppercase; text-decoration: none; }
 .gx-nav-title:hover { color: var(--color-text); }
-.gx-nav-title:focus-visible { outline: var(--focus-ring); outline-offset: var(--gx-focus-offset); }
+.gx-nav-title:focus-visible { outline: var(--focus-ring); outline-offset: var(--_gx-focus-offset); }
 
-/* min-height reserves the row's height before its buttons are defined (a row of plain light-DOM text is shorter than a row of real controls: #135). */
-.gx-bar { display: flex; flex-wrap: wrap; align-items: center; gap: var(--gap-control) var(--space-3); flex: none; min-height: calc(var(--ctl-h) + var(--space-2) * 2); padding: var(--space-2) var(--space-4); background: var(--color-panel); border-bottom: var(--gx-border-w) solid var(--color-border); }
+/* First load (#1076): the rows and tiles below keep their box while their elements are still undefined, so nothing under them moves when they upgrade.
+   A nav row is the element's own height; a collapsed branch's children show nothing yet; a tile is the height of a card with a heading and one line; a page header the height of a title and one lead line; the
+   overview grid is pk-grid's own template (min 14rem, gap --space-4). Each rule applies only until the element is defined. */
+.gx-nav > pk-nav-item:not(:defined) { display: block; min-height: calc(var(--space-8) + var(--space-1)); }
+.gx-nav > pk-nav-item > pk-nav-item:not(:defined) { display: none; }
+.gx-tiles:not(:defined) { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(var(--_gx-el-group-min-w), 100%), 1fr)); gap: var(--space-4); }
+.gx-tile { min-block-size: calc(var(--space-12) * 3 + var(--space-3)); } /* one floor for both states, above the tallest platform font's content height, so the box does not depend on the font (130px vs 118px on Linux, #1176) */
+.gx-tile:not(:defined) { display: block; }
+.gx-head { line-height: 1.25; min-block-size: calc(var(--space-12) + var(--space-3)); } /* one box source in both states: a fixed line height (the platform font's "normal" gave 45px on Linux, 53px on Windows) and a floor the defined header honours too */
+.gx-head:not(:defined) { display: block; }
 
-.gx-group { display: flex; align-items: center; gap: var(--space-2); }
+/* The preview bar and the slim page bar are pk-toolbar rows in the shell's header, which draws the row's padding, border and background. The row's box is
+   reserved before pk-toolbar and its buttons are defined (#135, #1076): an undefined toolbar is laid out as one nowrap row of the control height, and the Display menu's items stay out of it. */
+#gx-bar, #gx-pagebar { --pk-toolbar-margin: 0; flex: 1; min-width: 0; min-height: var(--ctl-h); }
+:is(#gx-bar, #gx-pagebar):not(:defined):not([hidden]) { display: flex; align-items: center; gap: var(--space-3); }
+:is(#gx-bar, #gx-pagebar):not(:defined) pk-menu-item { display: none; }
+:is(#gx-bar, #gx-pagebar)::part(lead) { flex: 1; flex-wrap: nowrap; align-items: center; }
+/* Under the site app there is no shell header: the stack gives the bars the same row (padding, border, panel) the header draws. */
+pk-stack#gx-shell > :is(#gx-bar, #gx-pagebar) { flex: none; box-sizing: border-box; min-height: calc(var(--ctl-h) + var(--space-2) * 2 + var(--_gx-border-w)); padding: var(--space-2) var(--space-4); background: var(--color-panel); border-bottom: var(--_gx-border-w) solid var(--color-border); }
+pk-stack#gx-shell[data-full] > #gx-pagebar { padding-block: var(--space-1); }
+/* The Contents button opens the nav drawer; above the drawer breakpoint the nav is always there. */
+[data-nav-toggle] { display: none; }
 
-.gx-group-label { font-size: var(--text-md); color: var(--color-muted); }
+/* The body holds the view (the one scroller) and the docked Details drawer over its end edge. */
+#gx-body { position: relative; flex: 1; min-height: 0; background: var(--color-panel); }
 
-.gx-end, .gx-inspect { margin-inline-start: auto; }
-
-.gx-contents, .gx-phone-only { display: none; }
-
-.gx-body { position: relative; flex: 1; min-height: 0; display: flex; flex-direction: column; }
-
-.gx-view { flex: 1; min-height: 0; overflow: auto; display: flex; flex-direction: column; padding: var(--pad-page); }
+#gx-view { flex: 1; min-height: 0; overflow: auto; display: flex; flex-direction: column; padding: var(--pad-page); }
 
 /* The docked inspector sits over the pane's right edge: keep the page gutter as well as the inspector's width. */
-.gx-view.gx-view--inspecting { padding-inline-end: calc(var(--inspector-w) + var(--pad-page)); }
+#gx-view[data-inspecting] { padding-inline-end: calc(var(--inspector-w) + var(--pad-page)); }
 
-.gx-resize { position: absolute; top: 0; bottom: 0; inset-inline-end: var(--inspector-w); width: var(--space-2); cursor: ew-resize; z-index: var(--z-sticky); }
-.gx-resize:hover, .gx-resize:focus-visible { background: var(--color-accent); }
+/* The inspector's API tables are wider than the drawer: the table keeps room for its Description and scrolls inside its own region with the Name column fixed (a phone lays rows out as cards instead). Muted text takes the stronger token on the drawer surface, and code inside it the text colour, so both clear 4.5:1 (#1113). */
+#gx-inspector-body pk-table::part(table) { min-inline-size: var(--_gx-api-table-min-w); }
+#gx-inspector-body .muted { color: var(--color-muted-strong); }
+.muted code { color: var(--color-text); }
 
-/* Full-page samples (a template, pattern or layout): the nav and the wide toolbar give way to one slim bar and the stage takes the whole main area. */
-.gx-bar.gx-pagebar { display: none; }
-.gx-full > .gx-nav, .gx-full .gx-bar-main { display: none; }
-.gx-full .gx-bar.gx-pagebar { display: flex; flex-wrap: nowrap; gap: var(--space-3); padding-block: var(--space-1); }
-.gx-full > .gx-main .gx-body > .gx-view { padding: 0; overflow: hidden; }
+#gx-resize { position: absolute; top: 0; bottom: 0; inset-inline-end: var(--inspector-w); width: var(--space-2); cursor: ew-resize; z-index: var(--z-sticky); }
+#gx-resize:hover, #gx-resize:focus-visible { background: var(--color-accent); }
+
+/* Full-page samples (a template, pattern or layout): the nav and the wide toolbar give way to one slim bar (the script hides them) and the stage takes the whole body. */
+[data-full] #gx-view { padding: 0; overflow: hidden; }
 .gx-stagebox { flex: 1; min-height: 0; display: flex; justify-content: center; background: var(--color-surface-alt); }
 .gx-page-frame { flex: none; display: block; width: 100%; max-width: 100%; height: 100%; border: 0; background: var(--color-bg); }
-.gx-page-frame--phone { border-inline: var(--gx-border-w) solid var(--color-border); }
-.gx-pagebar .gx-title { flex: 1; min-width: var(--gx-title-min-w); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-.gx-pagebar { --ctl-h: var(--touch-target); }
+.gx-page-frame--phone { border-inline: var(--_gx-border-w) solid var(--color-border); }
+#gx-title { flex: 1; min-width: var(--_gx-title-min-w); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+#gx-pagebar { --ctl-h: var(--touch-target); }
 
-/* The slim bar stays one row: below this width the nav variant, the text size and the long labels move into a Display menu or shorten. */
-.gx-pagebar .gx-compact-only { display: none; }
-
+/* Below the wide breakpoint the slim bar's buttons keep a touch-sized width (Back is icon only). */
 @media (--wide) {
-    .gx-pagebar .gx-wide-only { display: none; }
-    .gx-pagebar .gx-compact-only { display: inline-flex; }
-    .gx-pagebar > pk-button { min-width: var(--touch-target); }
+    #gx-pagebar > pk-button { min-width: var(--touch-target); }
 }
 
 /* The nav becomes an off-canvas drawer (the element's own breakpoint): the Contents button opens it. */
 @media (--tablet) {
-    .gx-contents { display: inline-block; }
+    [data-nav-toggle] { display: inline-block; }
+    pk-app-shell:not(:defined) { grid-template-columns: minmax(0, 1fr); }
 }
 
 @media (--tablet) {
     .gx-el-play { grid-template-columns: minmax(0, 1fr); }
-    .gx-pair { grid-template-columns: minmax(0, 1fr); }
 }
 
 @media (--phone) {
+    #gx-inspector-body pk-table::part(table) { min-inline-size: 0; }
     /* Samples get the width: tighter gutters, and the desktop half of a desktop/phone pair is dropped (the phone frame IS the screen). */
-    .gx-view, .gx-view.gx-view--inspecting { padding: var(--space-3) var(--space-2); }
-    .gx-view .gx-entry { --pk-card-padding: var(--space-2); }
-    .gx-pair > div:first-child { display: none; }
+    #gx-view, #gx-view[data-inspecting] { padding: var(--space-3) var(--space-2); }
+    [data-pair] > :first-child { display: none; }
 
-    /* API tables become one card per row: the header row is hidden, each cell shows its column name beside its value. */
-    .gx-table, .gx-table tbody, .gx-table tr, .gx-table td { display: block; }
-    .gx-table thead { position: absolute; inline-size: var(--gx-hidden-size); block-size: var(--gx-hidden-size); overflow: hidden; clip-path: inset(50%); }
-    .gx-table tr { margin-bottom: var(--gap-card); padding: var(--space-2) var(--space-3); border: var(--gx-border-w) solid var(--color-border); border-radius: var(--radius-md); }
-    .gx-table td { display: grid; grid-template-columns: minmax(var(--gx-table-col1-min-w), 30%) minmax(0, 1fr); gap: var(--space-3); padding: var(--space-1) 0; border: 0; }
-    .gx-table td::before { content: attr(data-label); color: var(--color-muted); font-size: var(--text-meta); }
-
-    .gx-desktop-only { display: none; }
-
-    .gx-phone-only { display: inline-block; }
-
-    .gx-bar { flex-wrap: nowrap; gap: var(--space-1); padding-inline: var(--space-2); }
-
-    .gx-bar .gx-end { margin-inline-start: auto; }
-    .gx-bar .gx-end ~ .gx-inspect { margin-inline-start: 0; }
-
-    .gx-bar { --ctl-h: var(--touch-target); }
-    .gx-bar pk-button { --pk-button-padding: var(--space-2); }
-    .gx-bar > pk-button, .gx-bar pk-dropdown > pk-button { min-height: var(--touch-target); white-space: nowrap; }
+    #gx-bar, #gx-pagebar { --ctl-h: var(--touch-target); }
+    pk-stack#gx-shell > :is(#gx-bar, #gx-pagebar) { padding-inline: var(--space-2); }
+    :is(#gx-bar, #gx-pagebar) pk-button { --pk-button-padding: var(--space-2); white-space: nowrap; }
+    :is(#gx-bar, #gx-pagebar)::part(lead) { gap: var(--space-1); }
 
     /* The nav's section-title links: a 44px tap target on a phone, same as the slotted brand link (pk-side-nav's own ::slotted rule). */
     .gx-nav-title { display: flex; align-items: center; box-sizing: border-box; min-height: var(--touch-target); }
 
-    .gx-resize { display: none; }
+    #gx-resize { display: none; }
 }

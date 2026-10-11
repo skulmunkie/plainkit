@@ -54,3 +54,34 @@ test('every js/app/pages/ chunk stays inside appPageTypeGzKb, and every js/app/ 
     console.log(`page types: ${pages.length} chunks, largest ${worst.toFixed(2)} KB gzip`);
     for (const f of [...list('js/app'), 'js/app.js']) assert.ok(gz([f]) < BUDGETS.jsModuleGzKb.limit, `${f} is over the ${BUDGETS.jsModuleGzKb.limit} KB per-module gzip budget. FIX: split it or make it smaller.`);
 });
+
+// Per-module line targets (#362): a ratchet set EQUAL to today's size. A file may shrink (then lower its number here), never grow; a new file
+// under js/app/ has no entry, so it fails until it is listed at its own size. Never raise a number.
+const LINES = {
+    'js/app.js': 8, 'js/app/app.js': 221, 'js/app/boundary.js': 90, 'js/app/config.js': 74, 'js/app/host.js': 291, 'js/app/lazy.js': 41,
+    'js/app/module.js': 182, 'js/app/nav.js': 118, 'js/app/shell.js': 58,
+    'js/app/pages/custom.js': 14, 'js/app/pages/dashboard.js': 17, 'js/app/pages/doc.js': 31, 'js/app/pages/list.js': 26, 'js/app/pages/master-detail.js': 25,
+    'js/app/pages/not-found.js': 20, 'js/app/pages/note.js': 18, 'js/app/pages/print.js': 25, 'js/app/pages/record.js': 43, 'js/app/pages/settings.js': 19,
+    'js/app/pages/states.js': 22, 'js/app/pages/svc-dialogs.js': 2, 'js/app/pages/svc-leave-guard.js': 52, 'js/app/pages/svc-notify.js': 2,
+    'js/app/pages/svc-page-toasts.js': 15, 'js/app/pages/svc-tasks.js': 2, 'js/app/pages/tool.js': 19, 'js/app/pages/wizard.js': 23, 'js/app/pages/workspace.js': 19,
+};
+const lineCount = f => fs.readFileSync(path.join(root, f), 'utf8').replace(/\r\n/g, '\n').split('\n').length - 1;
+
+test('every app framework file stays at or under its line target, and a new file must be listed (ratchet, #362)', () => {
+    const files = ['js/app.js', ...list('js/app'), ...list('js/app/pages')];
+    for (const f of files) {
+        assert.ok(f in LINES, `${f} has no line target. FIX: add it to LINES in core/tests/app-budgets.test.mjs at its current size.`);
+        assert.ok(lineCount(f) <= LINES[f], `${f} is ${lineCount(f)} lines, target ${LINES[f]}. FIX: make it smaller or split it; never raise the target.`);
+    }
+    for (const f of Object.keys(LINES)) assert.ok(files.includes(f), `${f} is gone. FIX: delete its entry from LINES.`);
+});
+
+// The framework ships no stylesheet of its own (the shell and elements carry theirs): the app-only CSS budget is zero bytes. Never raise it.
+const APP_CSS_BYTES = 0;
+test('the app framework adds no CSS (app-only CSS budget, #362)', () => {
+    const css = [];
+    const walk = d => { for (const e of fs.readdirSync(path.join(root, d), { withFileTypes: true })) e.isDirectory() ? walk(`${d}/${e.name}`) : /\.css$/.test(e.name) && css.push(`${d}/${e.name}`); };
+    walk('js/app');
+    const bytes = css.reduce((n, f) => n + fs.statSync(path.join(root, f)).size, 0);
+    assert.ok(bytes <= APP_CSS_BYTES, `js/app has ${bytes} bytes of CSS (${css.join(', ')}), budget ${APP_CSS_BYTES}. FIX: style with tokens inside an element; the app layer has no stylesheet.`);
+});

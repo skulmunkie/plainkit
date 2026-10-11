@@ -42,7 +42,7 @@ export default {
 };
 ```
 
-`modules` is the top of the menu **and the allow-list**: it is the only code the app ever imports, and each `load` is a lazy `import()`, so a module costs nothing until someone opens it. The config is checked when it is mounted: a bad value throws with the key named, an unknown key is one warning. The rest of the keys (`home`, `layout`, `search`, `theme`, `storage`, `auth`, `can`) are in the [app reference](../../dist/skills/plainkit-sdk/references/app.md).
+`modules` is the top of the menu **and the allow-list**: it is the only code the app ever imports, and each `load` is a lazy `import()`, so a module costs nothing until someone opens it. The config is checked when it is mounted: a bad value throws with the key named, an unknown key is one warning. The rest of the keys (`home`, `search`, `theme`, `storage`, `auth`, `can`) are in the [app reference](../../dist/skills/plainkit-sdk/references/app.md).
 
 ## Write a module
 
@@ -57,7 +57,7 @@ export default defineModule({
         { id: 'overview', title: 'Overview', route: '/overview', icon: 'dashboard' },
 ```
 
-Routes are relative to the module (the app adds `#/tour`), so the list above lives at `#/tour` and the overview at `#/tour/overview`. Each route names a page type and its config: `{ path, label, page, config }`. A `config` can also be a function of `{ params, query }` when the data depends on the address. A route may also carry `context`, the page's place when its address cannot say (a data-driven menu, a record under a section it is not nested in): `context: { ids: ['reports', 'monthly'], title: 'March report' }`, or a function of `{ path, params, query }` returning that object. `ids` are nav ids from the top section down to the current row (the side nav marks the row and opens the branches), `crumbs` is `[{ label, href? }]` with module-relative hrefs, and `title` names the page in the header and the document title (a title alone also renames the last crumb). Each part you leave out stays what the address says, so most routes need none. The last route, `{ path: '*', page: 'not-found' }`, answers every address that matches nothing.
+Routes are relative to the module (the app adds `#/tour`), so the list above lives at `#/tour` and the overview at `#/tour/overview`. Each route names a page type and its config: `{ path, label, page, config }`. A `config` can also be a function of `{ params, query }` when the data depends on the address. A route may also carry `context`, the page's place when its address cannot say (a data-driven menu, a record under a section it is not nested in): `context: { ids: ['reports', 'monthly'], title: 'March report' }`, or a function of `{ path, params, query }` returning that object. `ids` are nav ids from the top section down to the current row (the side nav marks the row and opens the branches), `crumbs` is `[{ label, href? }]` with module-relative hrefs, and `title` names the page in the header and the document title (a title alone also renames the last crumb). Each part you leave out stays what the address says, so most routes need none. A route may be `persist: true`: its page is built once and kept, hidden, while another route of the module shows, and shown again (not rebuilt) when you return, so scroll position, typed text and a loaded list survive; it is freed when the module is left, and rebuilt when the same route returns with other params (so use it for routes whose page does not depend on the address, like a list). A kept page keeps its listeners and timers while hidden, so give it little background work. The last route, `{ path: '*', page: 'not-found' }`, answers every address that matches nothing.
 
 ## Page types
 
@@ -74,10 +74,12 @@ Pick the page type for the job before you write any markup. Each draws a finishe
 | Forms | `wizard` | `steps`, `review`, `submitLabel` | `validate(stepId, values, ctx)`, `submit(values, ctx)`, `load(ctx)` |
 | Content | `doc` | `items`, `search`, `home` | `loadItem(id, ctx)`, `href(id, anchor, ctx)` |
 | Content | `workspace` | `panes`, `labels`, `fill` | `mount(panes, ctx)` |
+| Content | `note` | `heading`, `body`, `cardHeading` | none |
+| Content | `print` | `heading`, `size`, `margin`, `toolbar` | `render(el, ctx)` |
 | Escape hatch | `custom` | none | `mount(host, ctx)` |
 | States | `states`, `not-found` | `state`, `heading`, `description`, `label` | `retry(ctx)`, `action(ctx)` |
 
-A validation callback or a save rejects, or returns, `{ errors: { field: message } }` to show inline errors. A `load` that rejects shows the built-in error state with Retry; you write neither. Reach for `custom` only when no other type fits: it is the counted escape hatch, and everything the framework tracks (listeners, timers, the abort signal) still applies to it through `ctx`.
+A validation callback or a save rejects, or returns, `{ errors: { field: message } }` to show inline errors. A `load` that rejects shows the built-in error state with Retry; you write neither. The `list` and `record` types run `load`, `save`, `delete` and `onBulk` through the page lifecycle (`js/page-lifecycle.js`): a newer load aborts the older one, whose result is never drawn (your `load` gets an `AbortSignal` as its last argument, pass it to `fetch`), the page is busy while a save or delete runs, and everything in flight is aborted and silenced when the page is left. Write no `AbortController`, busy flag or disposed check of your own. Reach for `custom` only when no other type fits: it is the counted escape hatch, and everything the framework tracks (listeners, timers, the abort signal) still applies to it through `ctx`.
 
 ### Data pages
 
@@ -181,7 +183,7 @@ Route params and query values come from the address, so they are untrusted text:
 
 ## The nav is structure
 
-`nav` is a function returning a few stable destinations, never one entry per record. Records are the rows of a list page and a record route under it. With `layout: 'side'` (the default) the modules are the top-level sections of the side nav and the active one holds its own nav; `layout: 'top'` puts a tiny app's module links in the header. On a narrow screen both use one drawer.
+`nav` is a function returning a few stable destinations, never one entry per record. Records are the rows of a list page and a record route under it. The side nav is the active module's own nav and nothing else (a module without a `nav` leaves the column empty on a wide screen, so the page does not reflow, and shows no drawer body on a phone). Modules are switched with the module picker: a button in the header showing the active module's title, and on a narrow screen the first row of the one drawer. With one module there is no picker.
 
 ## State, settings and guards
 

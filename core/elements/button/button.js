@@ -11,12 +11,25 @@ export function linkAttrs(p) {
 }
 
 import { drawIcon } from '../../js/icon-sprite.js';
+import { mediaBelow } from '../../js/breakpoints.js';
 
 // The name an icon button announces, and (as its native tooltip) shows on hover: the label, else the words in the default slot. Empty when the button is not icon-only.
 export const tipText = (p, text) => (p.icon ? (p.label || text || '').trim().replace(/\s+/g, ' ') : '');
 
 export default Base => class extends Base {
-    connected() { if (!this.$c) { this.$c = e => this.press(e); this.addEventListener('click', this.$c); } }
+    connected() {
+        if (!this.$c) {
+            this.$c = e => this.press(e); this.addEventListener('click', this.$c);
+            // collapse: the viewport and the slotted icon are read here, where a real element is guaranteed; updated() only turns them into attributes.
+            this.$mqs = { phone: mediaBelow('phone'), tablet: mediaBelow('tablet') };
+            this.$fit = () => { this.$fits = this.collapse !== 'none' && Boolean(this.$mqs[this.collapse]?.matches); this.requestUpdate(); };
+            const slots = () => { this.$slotIcon = this.slotted('start').length > 0 || this.slotted().some(n => n.localName === 'pk-icon'); this.requestUpdate(); };
+            this.watchSlot('start', slots); this.watchSlot('', slots);
+        }
+        for (const q of Object.values(this.$mqs)) q.addEventListener('change', this.$fit);
+        this.$fit();
+    }
+    disconnected() { for (const q of Object.values(this.$mqs ?? {})) q.removeEventListener('change', this.$fit); }
     press(e) {
         if (this.disabled || this.busy) { e.stopImmediatePropagation(); e.preventDefault(); return; }
         if (this.href) return;
@@ -43,6 +56,9 @@ export default Base => class extends Base {
         else { c.removeAttribute('aria-pressed'); c.removeAttribute('aria-expanded'); }
         // An icon button keeps its name while busy (the spinner replaces the icon, not the words), so busy-text does not swap it.
         this.toggleAttribute('has-busy-text', this.busy && this.busyText !== '' && !this.icon);
+        const hasIcon = Boolean(this.iconName || this.$slotIcon);
+        this.toggleAttribute('has-icon', hasIcon);
+        this.toggleAttribute('collapsed', hasIcon && !this.icon && Boolean(this.$fits));
         const icon = this.part('icon');
         icon.toggleAttribute('hidden', !this.iconName); // an svg has no hidden property, so the template's data-if cannot do it
         drawIcon(icon.firstChild, this.iconName, (k, m, d) => this.warnOnce(k, m, d));

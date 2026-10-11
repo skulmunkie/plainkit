@@ -13,18 +13,17 @@
 //   const router = mountRouter(el, { mode: 'hash', routes: [...], guard: host.guard });   // access is checked BEFORE anything is imported...
 //   await host.open('/orders/7?tab=x');                                                    // ...and again here, at mount, after the import
 //
-// Lifecycle, once each and in this order: resolve (the allow-listed import, 10 s timeout, one automatic retry after 300 ms, then the boundary error with Retry) ->
+// Lifecycle, once each and in this order: resolve (the allow-listed import, 10 s timeout, one retry after 300 ms, then the boundary error with Retry) ->
 // can (app, entry, module; fail closed) -> unmount of the module being left -> mount(ctx) -> per route: layout, page factory (host, config, ctx) -> on a route change
 // page cleanup -> on a module switch page cleanup, unmount(ctx), the cleanup mount returned, then everything ctx tracked is disposed. Steps that change what is mounted
-// run one at a time in request order; a request made while another is in flight cancels the older one (its ctx.signal aborts, what it mounted is torn down before
-// the newer one starts). A failed import, timeout or denied module leaves the previous module mounted and usable; a throwing mount or page shows the boundary error
+// run one at a time in request order; a newer request cancels an older one in flight (its ctx.signal aborts, what it mounted is torn down first). A failed import, timeout or denied module leaves the previous module mounted and usable; a throwing mount or page shows the boundary error
 // and Retry, and a module can always be left. Every failure is logged through the SDK logger (scope app:<id>).
 //
 // The module id in an address is only a key into the allow-list (ids are checked against MODULE_ID first); nothing else is ever passed to import().
 // show(id, { path, query }) / open(address, query) resolve to 'ok' | 'forbidden' | 'not-found' | 'error' | 'superseded'.
 //
 // ctx (what a module and its pages receive) is documented in js/app/module.js.
-import { createLogger, isLogEnabled } from '../log.js';
+import { createLogger } from '../log.js';
 import { createPage, BUSY_DELAY } from '../page.js';
 import { createStore } from '../store.js';
 import { matchRoute } from '../route-tree.js';
@@ -48,12 +47,12 @@ export function createModuleHost(container, { modules = [], router, auth, can, s
     }
     const doc = container.ownerDocument;
     const root = doc.documentElement;
-    // No element is defined when it is created: whatever the host or a page adds is loaded after it is in the page (a pk-* tag renders hidden until defined).
+    // Elements are loaded after what the host or a page adds is in the page.
     const load = () => Promise.resolve(elements(box.root)).catch(e => log.error('elements failed to load', e));
     const box = createBoundary(doc, load);
     container.replaceChildren(box.root);
     load();
-    // While the next module loads the previous one is covered (after BUSY_DELAY, so a fast load never flashes it).
+    // The previous module is covered while the next loads (after BUSY_DELAY).
     const hostPage = createPage({ overlay: box.busy, delay: BUSY_DELAY, scope: 'app' });
 
     let st = store, token = 0, active = null, last = null, dead = false, turn = Promise.resolve();
@@ -69,7 +68,7 @@ export function createModuleHost(container, { modules = [], router, auth, can, s
         return Promise.race([promise, timeoutP]).finally(() => { clearTimeout(id); timers.delete(id); });
     };
 
-    // true, or { allow: false, redirect }: the checks run in order and the first answer that is not true (or { allow: true }) wins; a throw denies.
+    // true, or { allow: false, redirect }: the first check that is not true wins; a throw denies.
     const verdict = (id, route, ...checks) => {
         for (const check of checks) {
             if (!check) continue;
@@ -85,10 +84,10 @@ export function createModuleHost(container, { modules = [], router, auth, can, s
     };
     const access = (entry, def, route) => verdict(entry.id, route, can && (c => can(entry, c)), entry.can, def?.can);
 
-    // A scope of tracked resources: what on/observe/after/signal register ends with end(); late calls do nothing.
+    // Tracked resources: what on/observe/after/signal register ends with end(); late calls do nothing.
     function scope(lg, busy) {
         const ac = new AbortController(), off = new Set();
-        // ctx.tasks: tasks of this scope; when it ends its cancellable tasks are cancelled and the others continue with their toast (js/tasks.js).
+        // ctx.tasks: on end, cancellable tasks are cancelled, the others continue with their toast (js/tasks.js).
         const ts = tasks?.scope({ busy });
         const ns = notify?.scope(), ds = dialogs?.scope();
         const own = fn => (off.add(fn), fn);
@@ -147,7 +146,7 @@ export function createModuleHost(container, { modules = [], router, auth, can, s
             ctx: Object.create(base, mine.api), lg,
             // A ctx for one page: the same members, with resources that end when the page is left.
             pageScope() { const p = scope(lg, page.begin); return { ctx: Object.create(base, p.api), end: p.end }; },
-            // Ends everything the module registered, last first; nothing here can throw.
+            // Ends everything the module registered; nothing here can throw.
             async dispose() {
                 await mine.end();
                 facade?.destroy();
@@ -157,19 +156,13 @@ export function createModuleHost(container, { modules = [], router, auth, can, s
         };
     }
 
-    const dropPage = async a => {
-        const { page, end } = a.page ?? {};
-        a.page = null;
-        await safe(page, 'page cleanup', a.lg);
-        await safe(end, 'page cleanup', a.lg);
-        a.pageHost?.remove();
-        a.pageHost = null;
-    };
-    async function leave() {
-        const a = active;
-        if (!a) return;
-        active = null;
+    // A route with persist: true keeps its page (a.kept, by route node) hidden while another shows; leaving the module frees it.
+    const free = async (a, e) => { for (const f of [e.page, e.end]) await safe(f, 'page cleanup', a.lg); e.host.remove(); a.kept.delete(e.node); };
+    const dropPage = async a => { const e = a.page; a.page = null; if (e) await (a.kept.get(e.node) === e ? (e.host.hidden = true) : free(a, e)); };
+    const leave = () => { const a = active; active = null; return a && end(a); };
+    async function end(a) {
         await dropPage(a);
+        for (const e of a.kept.values()) await free(a, e);
         await safe(() => a.def.unmount?.(a.ctx), 'unmount', a.lg);
         await safe(a.cleanup, 'mount cleanup', a.lg);
         await a.dispose();
@@ -185,31 +178,33 @@ export function createModuleHost(container, { modules = [], router, auth, can, s
         if (!spec || spec.type === 'not-found') { box.notFound(`There is nothing at ${a.entry.title} ${route.path}.`); return 'not-found'; }
         if (verdict(a.entry.id, route, m.node.can) !== true) { box.forbidden(a.entry.title); return 'forbidden'; }
         const factory = pageTypeFor(a.def, spec.type), layout = m.node.layout && layoutFor(a.def, m.node.layout);
+        const keep = m.node.persist === true, key = JSON.stringify(route.params), old = a.kept.get(m.node);
+        const place = host => { for (const c of [...box.body.children]) c.hasAttribute('data-pk-page') || c.remove(); host.parentNode ?? box.body.append(host); };
+        if (old?.key === key) { box.ready(); place(old.host); old.host.hidden = false; a.page = old; return 'ok'; }
+        if (old) await free(a, old);
         const host = doc.createElement('div'), sc = a.pageScope();
         host.setAttribute('data-pk-page', spec.type);
-        a.pageHost = host;
         try {
             if (!factory || (m.node.layout && !layout)) throw new Error(!factory ? `the page type "${spec.type}" is not available` : `the layout "${m.node.layout}" is not available`);
             box.ready();
-            box.body.replaceChildren(host);
+            place(host);
             const into = (layout && (await layout(host, sc.ctx))) || host;
             const cfg = typeof spec.config === 'function' ? spec.config(route, sc.ctx) : spec.config;
             const cleanup = cleanupOf(await factory(into, cfg, sc.ctx));
             load();
-            if (!alive(t) || a !== active) { await safe(cleanup, 'page cleanup', a.lg); await sc.end(); host.remove(); return 'superseded'; }
-            a.page = { page: cleanup, end: sc.end };
+            if (!alive(t) || a !== active) { await free(a, { page: cleanup, end: sc.end, host }); return 'superseded'; }
+            a.page = { page: cleanup, end: sc.end, host, node: m.node, key };
+            if (keep) a.kept.set(m.node, a.page);
             return 'ok';
         } catch (e) {
             a.lg.error(`the page for ${route.path} failed`, e);
-            await sc.end();
-            host.remove();
-            a.pageHost = null;
+            await free(a, { end: sc.end, host });
             if (alive(t) && a === active) box.fail(`Could not show ${a.entry.title}`, e, () => show(a.entry.id, r));
             return 'error';
         }
     }
 
-    // What to do once the module is known and loaded, run exclusively: check access, then show the page (same module) or switch modules.
+    // Run exclusively once the module is loaded: check access, then show the page or switch modules.
     async function apply(entry, def, r, t) {
         if (!alive(t)) return 'superseded';
         if (!def || access(entry, def, r) !== true) { await leave(); if (!alive(t)) return 'superseded'; box.forbidden(entry.title); return 'forbidden'; }
@@ -218,7 +213,7 @@ export function createModuleHost(container, { modules = [], router, auth, can, s
         if (!alive(t)) return 'superseded';
         const s = { route: { path: '/', params: {}, query: {} } };
         const { ctx, dispose, lg, pageScope } = makeCtx(entry, def, s);
-        const a = { entry, def, ctx, dispose, lg, pageScope, state: s, page: null, pageHost: null, cleanup: null };
+        const a = { entry, def, ctx, dispose, lg, pageScope, state: s, page: null, kept: new Map(), cleanup: null };
         try {
             a.cleanup = cleanupOf(await def.mount?.(ctx));
         } catch (e) {
@@ -227,7 +222,7 @@ export function createModuleHost(container, { modules = [], router, auth, can, s
             if (alive(t)) box.fail(`Could not start ${entry.title}`, e, () => show(entry.id, r));
             return alive(t) ? 'error' : 'superseded';
         }
-        if (!alive(t)) { await safe(() => def.unmount?.(ctx), 'unmount', lg); await safe(a.cleanup, 'mount cleanup', lg); await dispose(); return 'superseded'; }
+        if (!alive(t)) { await end(a); return 'superseded'; }
         active = a;
         return showPage(a, r, t);
     }
@@ -237,7 +232,7 @@ export function createModuleHost(container, { modules = [], router, auth, can, s
         if (!entry) return exclusive(async () => { if (!alive(t)) return 'superseded'; await leave(); box.notFound('There is no such page.'); return 'not-found'; });
         let def = defs.get(id);
         if (!def && access(entry, null, r) === true) {
-            // Only an allow-listed loader is ever called, and only for a module that is not denied at the door.
+            // Only an allow-listed loader is called, and not for a module denied at the door.
             box.loading(entry.title, !active);
             const end = active ? hostPage.begin(`Loading ${entry.title}`) : null;
             try {
@@ -263,16 +258,13 @@ export function createModuleHost(container, { modules = [], router, auth, can, s
         last = [id, r];
         const t0 = globalThis.performance?.now() ?? 0;
         const status = await run(id, r, t);
-        if (alive(t)) {
-            globalThis.performance?.measure?.(`pk-route:${allow.has(id) ? id : '?'}`, { start: t0 });
-            if (isLogEnabled('debug', 'app')) log.debug(`${id}${norm(r.path)}: ${status} in ${Math.round((globalThis.performance?.now() ?? 0) - t0)} ms`);
-        }
+        if (alive(t)) globalThis.performance?.measure?.(`pk-route:${allow.has(id) ? id : '?'}`, { start: t0 });
         return status;
     }
 
     return {
         show,
-        // An address '/<module>/<path>' (what a hash-mode router reports as its `url`) with its query object: the first segment is the module id.
+        // An address '/<module>/<path>' (a hash-mode router's `url`) with its query: the first segment is the module id.
         open(address, query = {}) {
             const [id, ...rest] = norm(address).split('/').filter(Boolean);
             return show(id, { path: '/' + rest.join('/'), query });

@@ -32,6 +32,8 @@ export default Base => class extends Base {
         else if (name === 'mode') this.draw();
     }
 
+    refresh() { if (this.$w && this.isConnected) this.fetch(); }
+
     // The record is loaded by id (config.id, the route's param) through the load(id) callback; no id means a new record (no load, edit mode).
     async fetch() {
         const gen = this.$gen = (this.$gen ?? 0) + 1, box = this.part('state'), id = this.config?.id ?? null;
@@ -86,7 +88,11 @@ export default Base => class extends Base {
         for (const f of fields) {
             const dt = doc.createElement('dt'), dd = doc.createElement('dd'), v = text(vals[f.name]);
             dt.textContent = f.label ?? f.name;
-            dd.textContent = (f.options?.find(o => text(o.value ?? o) === v)?.label ?? v) || '-';
+            // A host child slot="field-<name>" replaces the value (#1000); without one the slot shows the text.
+            const slot = doc.createElement('slot');
+            slot.name = `field-${f.name}`;
+            slot.textContent = (f.options?.find(o => text(o.value ?? o) === v)?.label ?? v) || '-';
+            dd.append(slot);
             list.append(dt, dd);
         }
         return list;

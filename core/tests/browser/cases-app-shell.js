@@ -35,10 +35,14 @@ export const appShellCases = [
         const s = await demo(t, 375, { hash: '#/overview' });
         const toggle = s.d.querySelector('[data-nav-toggle]');
         t.ok(toggle && s.win.getComputedStyle(toggle).display !== 'none', 'the shell hamburger is there');
-        t.eq(s.d.querySelectorAll('pk-navbar a[data-module]').length, 0, 'no module links in the bar in the side layout');
+        t.ok(s.d.querySelector('pk-navbar pk-dropdown').hidden, 'no picker in the bar on a phone: it is in the drawer');
         t.ok(!s.nav().open, 'the drawer starts closed');
         toggle.click(); await wait(500);
         t.ok(s.nav().open, 'the hamburger opens the drawer');
+        const picker = s.nav().firstElementChild;
+        t.ok(picker.querySelector(':scope > pk-nav-item[data-module="reports"]'), 'the first row of the drawer is the picker, holding the modules');
+        picker.shadowRoot.querySelector('[part="link"]').click(); await wait(300);
+        t.ok(picker.expanded, 'tapping the picker opens the module list in place');
         for (const id of MODULES) t.ok(s.d.querySelector(`pk-nav-item[data-module="${id}"]`), `the drawer lists ${id}`);
         s.d.querySelector('pk-nav-item[data-module="reports"]').shadowRoot.querySelector('[part="link"]').click();
         await until(() => s.d.querySelector('#pk-main :is(h1, pk-heading[level="1"])')?.textContent === 'Summary', 'the reports page');
@@ -48,17 +52,71 @@ export const appShellCases = [
         t.eq(s.d.title, 'Reports - Demo app', 'the document title follows');
     }],
 
-    ['mountApp: the top layout has the module links in the bar on a wide screen and the same links in the one drawer on a phone (never a second hamburger)', async t => {
-        const wide = await demo(t, 1280, { app: 'top.html', hash: '#/overview' });
-        t.eq(wide.d.querySelectorAll('pk-navbar a[data-module]').length, 2, 'two module links in the bar');
-        t.ok(!wide.d.querySelector('#pk-nav'), 'no module nav and no drawer: the page has the full width');
-        const phone = await demo(t, 375, { app: 'top.html', hash: '#/overview' });
-        const links = [...phone.d.querySelectorAll('pk-navbar a[data-module]')];
-        t.ok(links.every(a => phone.win.getComputedStyle(a).display === 'none' || !a.getClientRects().length), 'the bar links are hidden on a phone');
-        const bar = phone.d.querySelector('pk-navbar').shadowRoot.querySelector('[part="toggle"]');
-        t.eq(phone.win.getComputedStyle(bar).display, 'none', "the bar's own hamburger is not shown");
-        phone.d.querySelector('[data-nav-toggle]').click(); await wait(500);
-        for (const id of ['overview', 'about']) t.ok(phone.d.querySelector(`#pk-nav pk-nav-item[data-module="${id}"]`), `the drawer lists ${id}`);
+    ['mountApp module picker (#388) on a desktop: one picker showing the active title, it lists the modules, choosing one repaints the side nav to that module\'s own tree and the route, a deep link restores it, and the keyboard operates it', async t => {
+        const s = await demo(t, 1280, { hash: '#/orders' });
+        const pickers = s.d.querySelectorAll('pk-navbar pk-dropdown[placement="bottom-start"]');
+        t.eq(pickers.length, 1, 'exactly one picker');
+        const trigger = pickers[0].querySelector('[slot="trigger"]');
+        t.eq(trigger.textContent.trim(), 'Orders', 'it shows the active module');
+        t.eq([...pickers[0].querySelectorAll('pk-menu-item')].map(i => i.textContent).join(','), 'Overview,Orders,Reports', 'it lists the modules');
+        t.eq(s.d.querySelectorAll('#pk-nav > pk-nav-item[data-module]').length, 0, 'the side nav has no module rows');
+        t.ok(s.d.querySelector('#pk-nav > pk-nav-item[href="#/orders"]'), "the side nav holds the module's own first entry, with no wrapper row");
+        const tg = s.d.querySelector('[data-nav-toggle]');
+        t.ok(!tg || tg.hidden, 'no second hamburger on a wide screen');
+        // keyboard: ArrowDown on the trigger opens the list, Enter on an item chooses it
+        trigger.focus();
+        trigger.dispatchEvent(new s.win.KeyboardEvent('keydown', { key: 'ArrowDown', bubbles: true, composed: true })); await wait(200);
+        t.ok(pickers[0].open, 'ArrowDown opens the list');
+        s.d.querySelector('pk-navbar pk-menu-item[data-module="reports"]').click();
+        await until(() => s.d.querySelector('#pk-main :is(h1, pk-heading[level="1"])')?.textContent === 'Summary', 'the reports page');
+        t.ok(s.win.location.hash.startsWith('#/reports'), 'the route changed');
+        t.eq(trigger.textContent.trim(), 'Reports', 'the picker shows the new module');
+        t.eq(s.d.title, 'Reports - Demo app', 'the document title reads the same module title');
+        t.eq([...s.d.querySelectorAll('pk-breadcrumb a')].map(a => a.textContent)[1], 'Reports', 'the breadcrumb too');
+        t.eq(s.d.querySelector('#pk-nav').getAttribute('label'), 'Reports menu', 'and the menu label');
+        t.ok(!s.d.querySelector('#pk-nav pk-nav-item[href="#/orders"]'), "the nav swapped to the new module's tree");
+        const deep = await demo(t, 1280, { hash: '#/reports' });
+        t.eq(deep.d.querySelector('pk-navbar pk-dropdown [slot="trigger"]').textContent.trim(), 'Reports', 'a deep link restores the picker');
+        const none = await demo(t, 1280, { hash: '#/overview' });
+        t.ok(none.d.querySelector('#pk-nav') && !none.d.querySelector('#pk-nav pk-nav-item'), 'a module with no nav keeps an empty side-nav column (no reflow) with no items');
+        t.ok(!none.d.querySelector('pk-navbar pk-dropdown').hidden, 'and the picker still shows');
+    }],
+
+    ['mountApp module picker (#388) on a phone: the picker is the drawer\'s first item, the module nav follows it, choosing a module swaps the nav below and closes the drawer, and there is still one hamburger', async t => {
+        const s = await demo(t, 375, { hash: '#/orders' });
+        t.eq(s.d.querySelectorAll('[data-nav-toggle]').length, 1, 'one hamburger');
+        s.d.querySelector('[data-nav-toggle]').click(); await wait(500);
+        const first = s.nav().firstElementChild;
+        t.ok(first.querySelector(':scope > pk-nav-item[data-module]'), 'the first row holds the modules');
+        t.ok(s.nav().children[1]?.getAttribute('href') === '#/orders', "the module's own nav follows the picker");
+        first.shadowRoot.querySelector('[part="link"]').click(); await wait(200);
+        first.querySelector('pk-nav-item[data-module="reports"]').shadowRoot.querySelector('[part="link"]').click();
+        await until(() => s.d.querySelector('#pk-main :is(h1, pk-heading[level="1"])')?.textContent === 'Summary', 'the reports page');
+        t.ok(!s.nav().open, 'the drawer closed');
+        t.eq([...s.nav().firstElementChild.childNodes].find(n => n.nodeType === 3).textContent, 'Reports', 'the picker row shows the new module');
+    }],
+
+    ['mountApp module picker (#388): one module has no picker on any width, and 100 module switches leave no node behind', async t => {
+        for (const w of [375, 1280]) {
+            const host = t.stage(''), f = document.createElement('iframe');
+            f.style.cssText = `width:${w}px;height:600px;border:0;display:block`;
+            f.srcdoc = '<!doctype html><link rel="stylesheet" href="' + new URL('../../plainkit.css', import.meta.url).href + '"><div id="app"></div>';
+            await new Promise(resolve => { f.addEventListener('load', resolve, { once: true }); host.append(f); });
+            const { mountApp, defineModule } = await src('js/app.js'), one = defineModule({ id: 'orders', title: 'Orders', routes: [{ path: '/', page: 'custom', config: { mount: host => { const h1 = host.ownerDocument.createElement('h1'); h1.textContent = 'Orders'; host.append(h1); } } }] });
+            const app = mountApp(f.contentDocument.getElementById('app'), { brand: { text: 'One' }, modules: [{ id: 'orders', title: 'Orders', load: async () => one }] });
+            const d = f.contentDocument;
+            await until(() => d.querySelector('#pk-main :is(h1, pk-heading[level="1"])'), 'the page');
+            t.ok(d.querySelector('pk-navbar pk-dropdown[placement="bottom-start"]').hidden, `no picker in the bar at ${w}`);
+            t.ok(!d.querySelector('#pk-nav > pk-nav-item > pk-nav-item[data-module]'), `and none in the drawer at ${w}`);
+            await app.destroy();
+        }
+        const s = await demo(t, 1280, { hash: '#/orders' });
+        const count = () => s.d.getElementsByTagName('*').length;
+        await s.go('#/reports'); await s.go('#/orders'); await wait(100);
+        const before = count();
+        for (let i = 0; i < 100; i++) await s.go(i % 2 ? '#/orders' : '#/reports');
+        await s.go('#/orders'); await wait(100);
+        t.ok(count() <= before + 2, `100 switches left ${count() - before} extra nodes`);
     }],
 
     ['mountApp: landmarks, skip links, one h1, focus on the new page, a live announcement, the document title and the current nav row after a route change', async t => {
@@ -84,9 +142,9 @@ export const appShellCases = [
         const s = await demo(t, 1280, { hash: '#/overview' });
         const fetched = id => s.win.performance.getEntriesByType('resource').filter(r => r.name.endsWith(`/modules/${id}.js`)).length;
         t.eq(fetched('reports'), 0, 'the reports chunk is not fetched yet');
-        s.d.querySelector('pk-nav-item[data-module="reports"]').dispatchEvent(new s.win.PointerEvent('pointerover', { bubbles: true, composed: true }));
+        s.d.querySelector('pk-navbar pk-menu-item[data-module="reports"]').dispatchEvent(new s.win.PointerEvent('pointerover', { bubbles: true, composed: true }));
         await until(() => fetched('reports') === 1, 'the prefetch', 30);
-        s.d.querySelector('pk-nav-item[data-module="reports"]').shadowRoot.querySelector('[part="link"]').click();
+        s.d.querySelector('pk-navbar pk-menu-item[data-module="reports"]').click();
         await until(() => s.d.querySelector('#pk-main :is(h1, pk-heading[level="1"])')?.textContent === 'Summary', 'the reports page');
         t.eq(fetched('reports'), 1, 'choosing the module did not fetch its chunk again');
     }],
@@ -260,7 +318,8 @@ export const appShellCases = [
         history.replaceState(null, '', '#/a');
         const app = mountApp(el, { modules: [{ id: 'a', title: 'A', load: async () => mod('a') }, { id: 'b', title: 'B', load: async () => mod('b') }], search: { placeholder: 'Find' } });
         await until(() => el.querySelector('#pk-main')?.textContent.includes('a'), 'module a');
-        const search = el.querySelector('pk-app-bar-search'), input = search.shadowRoot.querySelector('[part="control"]');
+        await until(() => el.querySelector('pk-app-bar-search'), 'the search'); await customElements.whenDefined('pk-app-bar-search'); // loaded on demand: wait, so the case also passes on its own (--elements)
+        const search = el.querySelector('pk-app-bar-search'), input = await until(() => search.shadowRoot?.querySelector('[part="control"]'), 'the search input');
         const type = async text => { input.value = text; input.dispatchEvent(new Event('input', { bubbles: true })); await wait(400); };
         await type('one');
         t.eq(JSON.stringify(got.a), '["one"]', 'module a heard the query');
@@ -283,12 +342,39 @@ export const appShellCases = [
         await until(() => el.querySelector('#pk-main')?.textContent.includes('a'), 'module a');
         const handle = ctxA.tasks.run({ title: 'Importing', cancellable: true, run: ({ signal }) => new Promise(resolve => signal.addEventListener('abort', () => { aborted = true; resolve(); })) });
         const stack = el.querySelector('pk-toast-stack[position="bottom-end"]');
-        await until(() => stack.querySelector('pk-toast'), 'the task toast');
+        await until(() => stack.querySelector('pk-toast'), 'the task toast'); await t.load(stack); // loaded on demand: wait, so the case also passes on its own (--elements)
         t.ok(stack.querySelector('pk-toast').getAttribute('heading') === 'Importing', 'the toast carries the title, in the shell stack');
         app.navigate('/b');
         await until(() => el.querySelector('#pk-main')?.textContent.includes('b'), 'module b');
         await handle.promise;
         t.ok(aborted && handle.state === 'cancelled', 'leaving the module cancelled its cancellable task');
+        await app.destroy();
+        history.replaceState(null, '', location.pathname + location.search);
+    }],
+    // #346: a route with persist: true keeps its page element while another route shows, and the same element is shown again on return.
+    ['mountApp: a persist route keeps its page element across navigation (hidden while away, same element on return) and leaving the module frees it', async t => {
+        const { mountApp, defineModule } = await src('js/app.js');
+        const el = document.createElement('div'); t.stage('').append(el);
+        let built = 0, freed = 0;
+        const a = defineModule({ id: 'a', routes: [
+            { path: '/', page: 'custom', persist: true, config: { mount: h => { built++; h.textContent = 'kept page'; return () => { freed++; }; } } },
+            { path: '/other', page: 'custom', config: { mount: h => { h.textContent = 'other page'; } } },
+        ] });
+        const b = defineModule({ id: 'b', routes: [{ path: '/', page: 'custom', config: { mount: h => { h.textContent = 'b'; } } }] });
+        history.replaceState(null, '', '#/a');
+        const app = mountApp(el, { modules: [{ id: 'a', title: 'A', load: async () => a }, { id: 'b', title: 'B', load: async () => b }] });
+        const main = () => el.querySelector('#pk-main');
+        await until(() => main()?.textContent.includes('kept page'), 'the kept page');
+        const kept = main().querySelector('[data-pk-page]');
+        app.navigate('/a/other');
+        await until(() => main()?.textContent.includes('other page'), 'the other page');
+        t.ok(kept.isConnected && kept.hidden && freed === 0, 'the kept page stays in the page, hidden, and is not cleaned up');
+        app.navigate('/a');
+        await until(() => !kept.hidden && !main().textContent.includes('other page'), 'the kept page again');
+        t.ok(main().querySelector('[data-pk-page]') === kept && built === 1, 'the same element is shown again and was built once');
+        app.navigate('/b');
+        await until(() => main()?.textContent.includes('b') && !main().textContent.includes('kept'), 'module b');
+        t.ok(freed === 1 && !kept.isConnected, 'leaving the module cleans the kept page up and removes it');
         await app.destroy();
         history.replaceState(null, '', location.pathname + location.search);
     }],
@@ -319,6 +405,24 @@ export const appShellCases = [
         await until(() => win.location.hash === '#/things', 'Save to navigate back to the list'); await settle('the list after Save');
         t.eq(d.activeElement, h1(), 'focus is on the list heading again'); await until(() => bodyRows().length > 1, 'the list rows again');
         t.ok([...bodyRows()].some(r => r.textContent.includes('Renamed thing')), 'the saved name shows in the list');
+    }],
+    // #354, #363: the app shell template. The overview is a dashboard; the inbox is a master-detail route whose deep link opens a message beside the list (wide) and fits 1280 and 375.
+    ['app template (#354, #363): the overview dashboard renders, an inbox deep link shows the list and the open message, and neither overflows at 1280 or 375', async t => {
+        const host = t.stage('');
+        for (const width of [1280, 375]) {
+            const f = document.createElement('iframe');
+            f.title = 'app template'; f.style.cssText = `width:${width}px;height:800px;border:0;display:block`;
+            f.src = new URL('../../samples/templates/app/app.html#/overview', import.meta.url).href;
+            await new Promise(resolve => { f.addEventListener('load', resolve, { once: true }); host.append(f); });
+            const win = f.contentWindow, d = win.document;
+            const deep = (root, sel) => { const hit = root.querySelector?.(sel); if (hit) return hit; for (const el of root.querySelectorAll?.('*') ?? []) if (el.shadowRoot) { const h = deep(el.shadowRoot, sel); if (h) return h; } return null; };
+            await until(() => deep(d, 'pk-dashboard-page'), 'the overview dashboard'); await wait(200);
+            t.ok(d.documentElement.scrollWidth <= width, `the overview fits ${width}px`);
+            win.location.hash = '#/inbox/3';
+            const page = await until(() => deep(d, 'pk-master-detail-page'), 'the master-detail page'); await until(() => page.part('record')?.textContent.includes('Message 3'), 'the open message'); await wait(200);
+            t.ok(d.documentElement.scrollWidth <= width, `the inbox fits ${width}px`);
+            f.remove();
+        }
     }],
     // #872: the record page asks before an in-app leave with unsaved edits. A link and back are asked; Stay keeps the edits, the address and the page; Leave goes; Save then navigating is not asked.
     ['routed-pair template (#872): unsaved edits ask before an in-app link or back; Stay keeps the edits and the address, Leave goes, Save does not ask', async t => {

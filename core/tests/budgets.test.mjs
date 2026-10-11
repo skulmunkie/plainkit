@@ -53,3 +53,10 @@ test('the stylesheets load no webfont and no font file (system font stack, SVG s
     const css = ['tokens/tokens.css', 'base/base.css', read('plainkit.css')].map(t => (t.endsWith('.css') && !t.includes('{') ? read(t) : t)).join('') + listElementFolders(root).map(d => read(`${d.folder}/${d.name}/${d.name}.css`)).join('');
     assert.ok(!/@font-face|fonts\.googleapis|\.woff/.test(css));
 });
+
+// One-way ratchet for three modules already over the 6 KB per-module budget (so they are not in the list above).
+// Ceilings are their gzip size when listed; they may only come down, never up.
+test('layout-model, custom-sdk-logic and dock-model do not grow past their ratchet ceilings (gzip KB)', () => {
+    const ceilings = { 'js/layout-model.js': 13.88, 'js/custom-sdk-logic.js': 8.21, 'js/dock-model.js': 7.2 };
+    for (const [f, limit] of Object.entries(ceilings)) assert.ok(gzKb(read(f)) <= limit, `${f} is ${gzKb(read(f)).toFixed(2)} KB gzip, ratchet ceiling ${limit}. FIX: make it smaller; never raise the ceiling.`);
+});

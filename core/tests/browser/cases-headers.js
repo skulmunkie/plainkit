@@ -145,6 +145,7 @@ export const headerCases = [
         const page = await t.mount('<pk-settings-page></pk-settings-page>');
         page.config = cfg;
         for (let i = 0; i < 30 && !page.shadowRoot.querySelectorAll('pk-tooltip').length; i++) await wait(100);
+        await t.load(page.shadowRoot);
         await t.settle();
         const tips = [...page.shadowRoot.querySelectorAll('pk-tooltip')];
         t.eq(tips.length, 3, 'one tip per hint, none for the plain field or action');
@@ -195,5 +196,23 @@ headerCases.push(
         t.eq([...h.part('trail').children].map(k => k.localName).join(), 'span,span', 'a script address is not a link');
         const bad = await t.mount('<pk-page-header heading="T" crumbs="not json"></pk-page-header>');
         t.ok(bad.part('trail').hidden, 'no trail');
+    }],
+    // The suite cannot switch to print media: what the rules do in print is measured by the print-page scenario (ui-review, { media: 'print' }); here the adopted stylesheet itself.
+    ['print-page: the adopted document stylesheet carries @page size and margin and the print block, and leaves with the page', async t => {
+        const p = await t.mount('<pk-print-page size="A4" margin="12mm"><button slot="toolbar">Print</button><pk-card heading="Acme"><p>Due</p></pk-card><p data-screen-only>Screen only</p><pk-table caption="Lines"></pk-table></pk-print-page>');
+        await t.settle();
+        const sheet = document.adoptedStyleSheets.at(-1), rules = [...sheet.cssRules];
+        t.ok(rules.some(r => r instanceof CSSPageRule && r.style.margin === '12mm'), '@page carries the margin prop');
+        t.ok(rules.some(r => r instanceof CSSPageRule && /size:\s*a4/i.test(r.cssText)), '@page carries the size prop');
+        p.remove();
+        t.ok(rules.some(r => r instanceof CSSMediaRule && r.media.mediaText === 'print' && /break-inside:\s*avoid/.test(r.cssText)), 'the print block keeps cards whole');
+        t.ok(!document.adoptedStyleSheets.includes(sheet), 'removing the page removes the document stylesheet');
+    }],
+    ['print-page: blocks inside the sheet are spaced by the element, never touching (the gallery example)', async t => {
+        const p = await t.mount('<pk-print-page size="A4" margin="15mm"><pk-button slot="toolbar">Print</pk-button><pk-heading level="1">Statement</pk-heading><pk-card heading="Acme"><p>Balance due</p></pk-card><p data-screen-only>Not printed</p></pk-print-page>');
+        await t.settle(); await t.settle();
+        const kids = [...p.children].filter(c => c.slot !== 'toolbar'), r = kids.map(k => k.getBoundingClientRect());
+        for (let i = 1; i < r.length; i++) t.ok(r[i].top - r[i - 1].bottom >= 8, `block ${i} sits at least 8px below the one before (${r[i].top - r[i - 1].bottom}px)`);
+        p.remove();
     }],
 );

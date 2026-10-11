@@ -18,7 +18,7 @@
       "type": "json",
       "default": [],
       "reflect": false,
-      "description": "Row data, one object per row. A JSON attribute or a property. Custom cell content goes in the cell-<rowId>-<key> slots, expanded content in detail-<rowId>."
+      "description": "Row data, one object per row. A JSON attribute or a property. Custom cell content goes in the cell-<rowId>-<key> slots, expanded content in detail-<rowId>. Two optional row fields mark a row: tone (warning, positive, accent or critical) tints it and draws a leading rule, and indent (1 or 2) steps it in, for rows that need attention or sit under a parent; both carry through to the phone card (issue 1019). Any other value is ignored."
     },
     {
       "name": "rowKey",
@@ -280,6 +280,10 @@
     {
       "name": "footer",
       "description": "Below the table; an pk-pagination fits."
+    },
+    {
+      "name": "foot",
+      "description": "Data-driven mode: a footer or summary row (totals, a note that the figures do not add up). One tfoot cell spanning every column after the rows on a desktop; a full-width trailing card after the last card on a phone. Raw mode authors its own tfoot instead."
     }
   ],
   "events": [
@@ -394,6 +398,10 @@
     {
       "name": "footer",
       "description": "The footer wrapper."
+    },
+    {
+      "name": "foot",
+      "description": "The single cell of the foot row (in a tfoot), spanning every column."
     }
   ],
   "cssProperties": [
@@ -411,6 +419,7 @@
   ],
   "a11y": "A real table with a caption, aria-rowcount and aria-busy. Sortable headers hold a button and carry aria-sort. The scrolling frame is a labelled focusable region so the keyboard can scroll it. A clickable row is focusable (one tab stop per row, before the checkbox and buttons inside it) and Enter or Space on it activates it, with a visible focus ring; the controls inside a row keep their own keys. Each expandable row has a real button (Enter or Space) with aria-expanded and aria-controls pointing at its detail row, and keeps focus after it toggles. The loading row carries a status text. Checkboxes name their row; the selection count is a polite status, and the \"Select all N rows\" / \"Clear selection\" button inside it is a real button (a tab stop, named with the count) whose change of text is announced by the same status. The card layout keeps the header for assistive technology. Cell values are set as text, never parsed as HTML. The current row (current-row) carries aria-current=\"true\", so a screen reader announces which record is open. An editable table is role=\"grid\": one cell is the tab stop (arrow keys, Home and End move it, Tab moves and commits), the active cell has aria-selected, a cell that cannot be edited has aria-readonly, an invalid cell has aria-invalid and its message is tied to its editor with aria-describedby, every editor is named \"<column>, row <id>\" (a control the host slots into a cell needs its own name: the pk-switch's own text, e.g. <span class=\"u-sr-only\">Listed, row 1</span> to keep it off the screen), and a committed or cancelled edit is announced in a polite status region.",
   "examples": [
+    {"title": "Totals footer", "html": "<pk-table label=\"Invoice lines\" cards columns='[{\"key\":\"item\",\"label\":\"Item\"},{\"key\":\"qty\",\"label\":\"Qty\",\"type\":\"number\"},{\"key\":\"total\",\"label\":\"Total\",\"type\":\"number\"}]'\n  rows='[{\"id\":1,\"item\":\"Bracket\",\"qty\":4,\"total\":\"40.00\"},{\"id\":2,\"item\":\"Hinge\",\"qty\":6,\"total\":\"27.00\"}]'>\n  <span slot=\"foot\">Total 67.00 for 10 items</span>\n</pk-table>"},
     {
       "title": "Sortable, selectable table",
       "html": "<pk-table id=\"t1\" label=\"Products\" caption=\"Stock by product\" striped hover selectable\n  columns='[{\"key\":\"sku\",\"label\":\"SKU\",\"sortable\":true},{\"key\":\"price\",\"label\":\"Price\",\"type\":\"number\",\"sortable\":true}]'\n  rows='[{\"id\":1,\"sku\":\"AC-001\",\"price\":\"$4.99\"},{\"id\":2,\"sku\":\"AC-002\",\"price\":\"$3.99\"}]'>\n  <pk-button slot=\"bulk\" size=\"mini\" variant=\"ghost\">Archive</pk-button>\n</pk-table>"
@@ -430,6 +439,10 @@
     {
       "title": "Expandable rows",
       "html": "<pk-table label=\"POs\" expandable columns='[{\"key\":\"po\",\"label\":\"PO\"}]' rows='[{\"id\":1,\"po\":\"PO 1042\"},{\"id\":2,\"po\":\"PO 1043\"}]'>\n  <p slot=\"detail-1\">3 lines: Widget 1 x 20.</p>\n</pk-table>"
+    },
+    {
+      "title": "Row tone and indent (issue 1019)",
+      "html": "<pk-table label=\"Orders\" cards columns='[{\"key\":\"po\",\"label\":\"PO\"},{\"key\":\"state\",\"label\":\"State\"}]' rows='[{\"id\":1,\"po\":\"PO 1042\",\"state\":\"Shipped\",\"tone\":\"positive\"},{\"id\":2,\"po\":\"PO 1043\",\"state\":\"Late: needs a call\",\"tone\":\"warning\"},{\"id\":3,\"po\":\"PO 1043-A\",\"state\":\"Split from 1043\",\"indent\":1},{\"id\":4,\"po\":\"PO 1044\",\"state\":\"Open\"}]'></pk-table>"
     },
     {
       "title": "Editable cells",

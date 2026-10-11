@@ -1,13 +1,13 @@
 // mountApp's pure parts (js/app/config.js, js/app/nav.js) and the rules of its entry (#350): the config is checked before anything is built, the nav is structure, the module
 // route tree says which nav entry a record page belongs to, and the entry pulls in no module and no page type. The DOM side (the shell, the drawer, focus, leaks, layout shift)
-// is proved in a real browser: tests/browser/cases-app-shell.js and the scenarios app-shell, app-shell-top and app-module-switch.
+// is proved in a real browser: tests/browser/cases-app-shell.js and the scenarios app-shell, app-module-switch and app-module-switch.
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import fs from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { readConfig, readFooter } from '../js/app/config.js';
-import { locate, pageContext, routeContext, menuTree, absolute, navOf, searchNav, MAX_TOP, MAX_ALL } from '../js/app/nav.js';
+import { locate, pageContext, routeContext, absolute, navOf, searchNav, MAX_TOP, MAX_ALL } from '../js/app/nav.js';
 import { navRoutes } from '../js/route-tree.js';
 import { defineModule } from '../js/app/module.js';
 import { addLogSink, setLogLevel } from '../js/log.js';
@@ -19,9 +19,9 @@ addLogSink(e => logs.push(e));
 const load = () => Promise.resolve({});
 const base = { modules: [{ id: 'orders', title: 'Orders', load }, { id: 'reports', load }] };
 
-test('the config: defaults, the side layout, the first bar module is home', () => {
+test('the config: defaults, the first bar module is home', () => {
     const c = readConfig(base);
-    assert.equal(c.layout, 'side');
+    assert.equal(c.layout, undefined);
     assert.equal(c.routing, 'hash');
     assert.equal(c.home, 'orders');
     assert.equal(c.modules[1].title, 'reports');
@@ -29,7 +29,9 @@ test('the config: defaults, the side layout, the first bar module is home', () =
     assert.equal(c.search.placeholder, 'Search');
     assert.equal(readConfig({ ...base, search: false }).search, null);
     assert.equal(readConfig({ modules: [{ id: 'about', menu: 'settings', load }, { id: 'orders', load }] }).home, 'orders');
-    assert.equal(readConfig({ ...base, layout: 'top' }).layout, 'top');
+    logs.length = 0;
+    assert.equal(readConfig({ ...base, layout: 'top' }).layout, undefined, 'the layout key is gone (#388): ignored with the one unknown-key warning');
+    assert.equal(logs.filter(e => e.level === 'warn').length, 1);
 });
 
 test('the config: a bad value throws naming the key, an unknown key is ONE warning and is ignored', () => {
@@ -40,7 +42,6 @@ test('the config: a bad value throws naming the key, an unknown key is ONE warni
     assert.throws(() => readConfig({ modules: [{ id: 'a' }] }), /modules\[0\]\.load/);
     assert.throws(() => readConfig({ modules: [{ id: 'a', load, menu: 'top' }] }), /menu/);
     assert.throws(() => readConfig({ ...base, home: 'nope' }), /config\.home/);
-    assert.throws(() => readConfig({ ...base, layout: 'left' }), /config\.layout/);
     assert.throws(() => readConfig({ ...base, routing: 'query' }), /config\.routing/);
     assert.throws(() => readConfig({ ...base, theme: { default: 'blue' } }), /theme\.default/);
     assert.throws(() => readConfig({ ...base, footer: { links: [{ label: 'x', href: ['java', 'script:x'].join('') }] } }), /footer\.links\[0\]/);
@@ -113,14 +114,10 @@ test('defineModule checks nested routes too (a duplicate or a bad page type insi
     assert.throws(() => defineModule({ id: 'x', routes: [{ path: '/a', page: 'custom', children: [{ path: '/a/b' }] }] }), /needs page/);
 });
 
-test('the one menu tree: modules with the active one holding its entries; the settings-menu modules are left out; links are built through hrefOf', () => {
-    const modules = [{ id: 'orders', title: 'Orders', icon: 'orders' }, { id: 'reports', title: 'Reports' }, { id: 'about', title: 'About', menu: 'settings' }];
+test('the side nav is the own tree of one module: links are built through hrefOf', () => {
     const shown = absolute(NAV, r => `#/orders${r === '/' ? '' : r}`);
     assert.deepEqual(shown[0], { id: 'all', title: 'All orders', icon: undefined, badge: undefined, href: '#/orders', children: [] });
     assert.equal(shown[2].children[0].href, '#/orders/shipped');
-    const tree = menuTree(modules, p => `#${p}`, 'orders', shown);
-    assert.deepEqual(tree.map(t => [t.module, t.active, t.children.length, t.href]), [['orders', true, 3, '#/orders'], ['reports', false, 0, '#/reports']]);
-    assert.equal(menuTree(modules, p => `#${p}`, null, []).some(t => t.active), false);
 });
 
 test('search: the nav is searched by title, at most eight, groups have no route', () => {

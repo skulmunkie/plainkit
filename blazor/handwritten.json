@@ -39,9 +39,6 @@
     "Components/PkFieldGroup.razor": {
       "category": "typed-generics"
     },
-    "Components/PkGallery.razor": {
-      "category": "wrapper"
-    },
     "Components/PkLookupPicker.razor": {
       "category": "typed-generics"
     },
@@ -56,9 +53,6 @@
     },
     "Components/PkQuality.razor": {
       "category": "mount"
-    },
-    "Components/PkRecordForm.razor": {
-      "category": "debt"
     },
     "Components/PkScorecard.razor": {
       "category": "mount"
@@ -140,6 +134,9 @@
     "PkChartData.cs": {
       "category": "dto"
     },
+    "PkComponentBase.cs": {
+      "category": "runtime"
+    },
     "PkCrumb.cs": {
       "category": "dto"
     },
@@ -173,8 +170,18 @@
     "PkInputFormat.cs": {
       "category": "typed-generics"
     },
+    "PkListPageQuery.cs": {
+      "category": "typed-generics"
+    },
     "PkListTypes.cs": {
       "category": "typed-generics"
+    },
+    "PkLifecycle.cs": {
+      "category": "runtime",
+      "allows": [
+        "cancellation",
+        "sequence"
+      ]
     },
     "PkLogging.cs": {
       "category": "runtime"
@@ -188,8 +195,15 @@
     "PkRecordEditor.cs": {
       "category": "editcontext"
     },
+    "PkRecordTab.cs": {
+      "category": "dto"
+    },
     "PkRecordEditor.Toasts.cs": {
       "category": "editcontext"
+    },
+    "PkPageContext.cs": {
+      "category": "runtime",
+      "blazorOnly": "C# port of core/js/page-context.js (#670): server rendering has no JS to ask; core/tests/fixtures/page-context.json is read by both test suites so the two cannot drift"
     },
     "PkRuntime.cs": {
       "category": "runtime"
@@ -222,6 +236,9 @@
       "category": "runtime"
     },
     "Testing/PkDataTableTesting.cs": {
+      "category": "callback-slot"
+    },
+    "Testing/PkFieldGroupTesting.cs": {
       "category": "callback-slot"
     }
   }

@@ -6,7 +6,7 @@
 //   { name, elements: ['side-nav'], html: '<pk-...>', viewports?: ['desktop'|'phone'], themes?: ['light'|'dark'], issue?, steps: [...], expect(t) }
 // Steps are objects with one action key (and optional `on: ['phone']` to run only in some viewports):
 //   { click: sel } { hover: sel } { focus: sel } { key: 'Tab', times?: 2 } { type: 'text' } { scroll: sel, to: 800 } { set: sel, attr|prop: name, value }
-//   { resize: 400 } (the viewport width: media queries answer to it; the height stays) { wait: 'settle' | ms } { shot: 'name' }
+//   { resize: 400 } (the viewport width: media queries answer to it; the height stays) { media: 'print' | 'screen' } (emulate that CSS media type from here on; reset when the scenario ends) { wait: 'settle' | ms } { shot: 'name' }
 // A selector is a CSS selector; `a >>> b` looks for b inside the shadow tree of the first a (any depth of >>>).
 // An optional `setup(frame)` (sync or async, runs in the page only) wires behaviour the markup cannot carry: click handlers, a page object (CSP allows no
 // inline handlers). Import what it needs at the top of the scenario module with a relative path; the module is also loaded in Node, so touch no DOM at the top level.
@@ -14,7 +14,10 @@
 
 export const VIEWPORT_NAMES = ['desktop', 'phone'];
 export const THEME_NAMES = ['light', 'dark'];
-export const STEP_KEYS = ['click', 'hover', 'focus', 'key', 'type', 'scroll', 'set', 'resize', 'wait', 'shot'];
+export const STEP_KEYS = ['click', 'hover', 'focus', 'key', 'type', 'scroll', 'set', 'resize', 'media', 'wait', 'shot'];
+export const MEDIA_TYPES = ['print', 'screen'];
+/** The DevTools parameters of a { media } step (the emulated CSS media type; the scenario's own end resets it with an empty one). Pure. */
+export const mediaParams = media => ({ media });
 const SLUG = /^[a-z][a-z0-9-]*$/;
 
 /** Problems with a scenario module's export, as a list of messages (empty = valid). `known` = element names, when given elements must be among them. */
@@ -43,6 +46,7 @@ export function validateScenario(s, known = null) {
         if (k === 'type' && typeof st.type !== 'string') bad.push(`${at}.type must be text`);
         if (k === 'scroll' && !Number.isFinite(st.to)) bad.push(`${at}.to must be a number of px`);
         if (k === 'set' && (typeof st.attr === 'string') === (typeof st.prop === 'string')) bad.push(`${at} needs exactly one of attr or prop`);
+        if (k === 'media' && !MEDIA_TYPES.includes(st.media)) bad.push(`${at}.media must be one of ${MEDIA_TYPES.join(', ')}`);
         if (k === 'resize' && !(Number.isFinite(st.resize) && st.resize > 0)) bad.push(`${at}.resize must be a width in px`);
         if (k === 'wait' && st.wait !== 'settle' && !(Number.isFinite(st.wait) && st.wait >= 0 && st.wait <= 5000)) bad.push(`${at}.wait must be "settle" or milliseconds (at most 5000)`);
         if (k === 'shot') {

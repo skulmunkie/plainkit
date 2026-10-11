@@ -7,5 +7,5 @@
     { "name": "Model", "prop": "values", "type": "TItem", "note": "The bound record: each spec's Get gives the element's values, each pk-field-change calls Set." },
     { "name": "ModelChanged", "event": "pk-field-change", "type": "EventCallback" }
   ],
-  "notes": "PkFieldGroup<TItem> (Components/PkFieldGroup.razor) wraps pk-field-group 1:1: the controls, the conditional rendering, the form value and the validation are the element's. When, Disabled, ReadOnly, HelpWhen and OptionsSource are read on every render and sent as data; LabelAction is slotted as label-action-<key>; Search is the element's search callback."
+  "notes": "PkFieldGroup<TItem> (Components/PkFieldGroup.razor) wraps pk-field-group 1:1: the controls, the conditional rendering, the form value and the validation are the element's. When, Disabled, ReadOnly, HelpWhen, LabelWhen and OptionsSource are read on every render and sent as data; LabelAction is slotted as label-action-<key>; Search is the element's search callback."
 }

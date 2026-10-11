@@ -1,6 +1,6 @@
 {
   "name": "plainkit",
-  "version": "0.12.0",
+  "version": "0.13.0",
   "description": "A dependency-free UI toolkit: plain HTML, CSS custom properties and small ES modules, with pk-* custom elements.",
   "type": "module",
   "bin": { "plainkit": "dist/tools/audit/cli.mjs" },
@@ -8,6 +8,22 @@
   "homepage": "https://github.com/skulmunkie/plainkit",
   "repository": { "type": "git", "url": "git+https://github.com/skulmunkie/plainkit.git", "directory": "core" },
   "keywords": ["ui", "design-system", "web-components", "custom-elements", "css", "no-dependencies"],
-  "files": ["dist", "!dist/modules", "LICENSE", "README.md"],
-  "sideEffects": false
+  "files": ["dist", "!dist/modules", "!dist/AGENTS.md", "LICENSE", "README.md"],
+  "main": "./dist/plainkit.js",
+  "module": "./dist/plainkit.js",
+  "exports": {
+    ".": "./dist/plainkit.js",
+    "./app": "./dist/js/app.js",
+    "./elements/api.json": "./dist/elements/api.json",
+    "./elements/*": "./dist/elements/*.js",
+    "./js/*": "./dist/js/*.js",
+    "./css": "./dist/plainkit.min.css",
+    "./plainkit.css": "./dist/plainkit.css",
+    "./custom-elements.json": "./dist/custom-elements.json",
+    "./web-types.json": "./dist/web-types.json",
+    "./skills/*": "./dist/skills/*",
+    "./dist/*": "./dist/*",
+    "./package.json": "./package.json"
+  },
+  "sideEffects": ["./dist/elements/*.js", "./dist/*.css"]
 }

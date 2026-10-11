@@ -95,7 +95,7 @@ function llmsTxt(src, bundle) {
     const out = [
         '# Plainkit', '',
         `> Plainkit ${version}. A dependency-free UI toolkit: \`pk-*\` custom elements, CSS tokens and small ES modules for plain HTML pages with no framework and no build step, plus a Blazor component wrapper (PlainKit.Blazor).`, '',
-        'Everything in one file: [AGENTS.md](AGENTS.md) (a single-document reference) or [llms-full.txt](llms-full.txt) (the same content, concatenated plainly). Claude Code loads the skills directly: `skills/plainkit-sdk/SKILL.md`, `skills/plainkit-blazor/SKILL.md`.', '',
+        'Everything in one file: [llms-full.txt](llms-full.txt) (the whole reference, concatenated plainly). Claude Code loads the skills directly: `skills/plainkit-sdk/SKILL.md`, `skills/plainkit-blazor/SKILL.md`.', '',
     ];
     for (const skill of SKILL_NAMES) {
         const { skillMd, refs } = skillFiles(bundle, skill);
@@ -159,7 +159,7 @@ if (process.argv[1] && path.resolve(process.argv[1]) === fileURLToPath(import.me
         console.log(`core/dist/{${OUT_NAMES.join(',')}} match their sources`);
     } else {
         const n = write(gen);
-        build({ write: true }); // the SRI manifest lists these files too, so rebuild it now that they are on disk
+        if (!process.argv.includes('--no-manifest')) build({ write: true }); // the SRI manifest lists these files too, so rebuild it now that they are on disk (--no-manifest: the bootstrap rebuilds it once afterwards)
         console.log(`${n} agent reference files written to core/dist; dist/manifest.json refreshed`);
     }
 }
