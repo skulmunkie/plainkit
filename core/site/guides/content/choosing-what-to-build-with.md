@@ -32,6 +32,7 @@ Only things that exist today are listed. A dash means there is no ready-made pie
 | Read-only record or key figures | Layout `record-detail`; elements `pk-field-list`, `pk-stat` | Page type `record` with `editable: false` | `PkFieldList`, `PkStat` |
 | Settings form | Template `form`; pattern `unsaved-settings` for a sticky save bar; elements `pk-form`, `pk-form-section` | Page type `settings` | `PkForm` with `PkFormSection` |
 | Long form built from a list of fields | Pattern `forms` for the controls, or `pk-field-group` to draw them from a list of field specs | Page type `record` | `PkFieldGroup` with `PkFieldSpec` |
+| Print a document, edit a design, show tokens | `pk-print-page`, `pk-canvas`, `pk-design-surface`, `pk-specimen`; `pk-page-shell` for a headed page | Page type `print`; else `custom` | `PkPrintPage`, `PkCanvas`, `PkDesignSurface`, `PkSpecimen`, `PkPageShell` |
 | Dashboard or report | Template `dashboard`; pattern `data-display`; elements `pk-stat`, `pk-chart`; for tabbed, independently loading widgets with filters `pk-dashboard-page` | Page type `dashboard` | `PkStat`, `PkChart`, `PkDashboardPage` |
 | Search | Pattern `search-results`; element `pk-app-bar-search` in the shell header; `pk-command-palette` for a keyboard launcher | `search` in the app config, or `search(query, ctx)` on a module | `PkAppBarSearch`, `PkCommandPalette` |
 | Filtered table | Pattern `filter-table` (a `pk-data-table`); element `pk-table-filters` | Page type `list` (its `filters`) | `PkTableFilters`, `PkDataTable` |
