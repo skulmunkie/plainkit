@@ -36,12 +36,9 @@ public enum PkFieldKind
 public sealed record PkFieldOption(string Value, string Label);
 
 /// <summary>
-/// One field of a <see cref="Components.PkFieldGroup{TItem}"/>: everything a plain field needs to render itself and read/write one property of
-/// <typeparamref name="TItem"/> through <see cref="Get"/>/<see cref="Set"/> — the string form of the value, the same shape every
-/// control's own <c>Value</c> parameter already takes (<c>PkInput.Min</c>/<c>Max</c>/<c>Step</c>/<c>MaxLength</c> are strings for the
-/// same reason: the element does its own coercion). A field can gate its own rendering with <see cref="When"/> (issue 226); a field
-/// whose value is computed rather than a plain property mirror is still not spec-able here — write it by hand next to the group, the
-/// same way issue 222 scoped it.
+/// One field of a <see cref="Components.PkFieldGroup{TItem}"/>: what a plain field needs to render itself and read/write one property of <typeparamref name="TItem"/> through
+/// <see cref="Get"/>/<see cref="Set"/>, as strings (the shape every control's own <c>Value</c> takes; the element does its own coercion). <see cref="When"/> gates its rendering (issue 226).
+/// A field whose value is computed rather than a property mirror is not spec-able here: write it by hand next to the group (issue 222).
 /// </summary>
 public sealed record PkFieldSpec<TItem>
 {
@@ -122,6 +119,9 @@ public sealed record PkFieldSpec<TItem>
 
     /// <summary>Help text chosen per record; used instead of <see cref="Help"/> when it returns a non-empty string, so a locked and an editable state need one spec, not two guarded by <see cref="When"/>.</summary>
     public Func<TItem, string?>? HelpWhen { get; init; }
+
+    /// <summary>The label chosen per record (for example one that names another field's value); used instead of <see cref="Label"/> when it returns a non-empty string. Read on every render, like <see cref="HelpWhen"/>.</summary>
+    public Func<TItem, string?>? LabelWhen { get; init; }
 
     /// <summary>Extra content in the field's <c>label-action</c> slot, beside the label text (adopt-from-source buttons, flag badges). Re-evaluated with the record on every render. It follows the <see cref="Help"/> tooltip when both are set and never replaces the label text.</summary>
     public RenderFragment<TItem>? LabelAction { get; init; }
