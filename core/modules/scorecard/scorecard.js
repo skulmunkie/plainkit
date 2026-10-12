@@ -211,7 +211,10 @@ export async function mountScorecard(container, options = {}) {
         h(doc, 'div', { 'aria-hidden': 'true', 'data-sc-frames': true, 'data-dyn': 'position:fixed; left:var(--_sc-frames-offscreen); top:0; width:var(--_sc-frames-w); height:var(--_sc-frames-h); overflow:hidden; visibility:hidden' }));
     applyDynamic(root);
     container.replaceChildren(root);
-    const $ = s => root.querySelector(s);
+    // The first draw's elements load before any section starts fetching: the size section reads every element file at once, and those requests would
+    // otherwise queue ahead of the few modules the first draw needs and leave it undefined for seconds on a cold start (#1185).
+    const first = loadElements(root);
+    const $ =s => root.querySelector(s);
     let items = [];
     let last = null; let running = false;
 
@@ -231,7 +234,7 @@ export async function mountScorecard(container, options = {}) {
     const hosts = {};
     const heading = { size: 'Size and budgets', api: 'API surface', tiers: 'Composition by tier', sweep: 'Size sweep', security: 'Security and defects', history: 'History' };
     for (const name of ['size', 'api', 'tiers', 'sweep', 'security', 'history']) if (sections.has(name)) hosts[name] = h(doc, 'pk-stack', { gap: 'sm' });
-    const settled = get => Promise.resolve().then(get).then(v => ({ ok: true, v })).catch(err => ({ ok: false, err }));
+    const settled = get => first.then(get).then(v => ({ ok: true, v })).catch(err => ({ ok: false, err }));
     const loadHistoryData = () => {
         if (!historyKey) return { history: [], scoring: undefined, noKey: true };
         const history = readHistory(storage, historyKey);
@@ -357,7 +360,6 @@ export async function mountScorecard(container, options = {}) {
     }
 
     const runButton = $('[data-sc-run]'); if (runButton) on(runButton, 'click', run);
-    loadElements(root);
     if (autorun && runs) await run();
     // a run in flight keeps its frames' host until it has stopped (a frame in a detached host never loads), then the card goes
     const destroy = () => { ac.abort(); if (!running) root.remove(); };
