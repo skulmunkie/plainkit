@@ -15,7 +15,7 @@ export const PAGES = [
     { key: 'scorecard', title: 'Scorecard', href: '../../app.html#/scorecard' },
     { key: 'theme', title: 'Theme editor', href: '../../app.html#/theme' },
     { key: 'layout-builder', title: 'Layout builder', href: '../../app.html#/layout-builder' },
-    { key: 'guides', title: 'Guides', href: '../guides/index.html' },
+    { key: 'guides', title: 'Guides', href: '../../app.html#/guides' },
     { key: 'devtools', title: 'Dev tools', href: '../../app.html#/devtools' },
 ];
 

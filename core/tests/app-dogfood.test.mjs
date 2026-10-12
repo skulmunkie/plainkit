@@ -73,8 +73,8 @@ function siteViolations(site, { pub, htmlAllowed }) {
 
 // The site as it is today. Each entry is a step of the migration still to land; remove an entry when its violation is gone.
 const KNOWN = new Set([
-    'site/gallery/index.html::extra-html-page', 'site/guides/index.html::extra-html-page',
-    'site/gallery/standalone.js::mount-shell', 'site/guides/page.js::mount-shell',
+    'site/gallery/index.html::extra-html-page',
+    'site/gallery/standalone.js::mount-shell',
     'site/shell.js::mount-shell', 'site/shell.js::pages-array', 'site/shell.js::theme-observer',
 ]);
 // Internal files the site still reaches into (ledgered by pattern so the list needs no per-file entry); also only shrinks.

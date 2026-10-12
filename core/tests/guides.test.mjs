@@ -1,5 +1,4 @@
-// The Guides: the content loader (tools/guides.mjs: front matter, ids, links between guides, images), the page's routing (site/guides/guides-logic.js) and the
-// shipped content. The samples inside the guides are verified in scripts/tests/guides.test.mjs, which has the SDK's and Blazor's API to check them against.
+// The Guides: the content loader (tools/guides.mjs: front matter, ids, links between guides, images), the shipped content. The samples inside the guides are verified in scripts/tests/guides.test.mjs, which has the SDK's and Blazor's API to check them against.
 import './needs-bootstrap.mjs';
 import test from 'node:test';
 import assert from 'node:assert/strict';
@@ -8,7 +7,6 @@ import os from 'node:os';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { loadGuides, guidesModule } from '../tools/guides.mjs';
-import { isAnchorHash, neighbours, routeHash } from '../site/guides/guides-logic.js';
 import { htmlToText, indexWords, guideWords, searchGuides } from '../site/guides/guides-search.js';
 
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
@@ -73,21 +71,6 @@ test('an empty or missing folder is no guides and no problem', () => {
     assert.deepEqual(loadGuides(path.join(os.tmpdir(), 'pk-guides-does-not-exist')), { guides: [], problems: [] });
 });
 
-test('routeHash builds a guide or heading address; isAnchorHash tells a route address apart from a bare in-page anchor', () => {
-    assert.equal(routeHash('theming'), '#/theming');
-    assert.equal(routeHash('theming', 'x'), '#/theming/x');
-    for (const h of ['', '#', '#/', '#/theming', '#/theming/change-a-token']) assert.equal(isAnchorHash(h), false, h);
-    for (const h of ['#install', '#%E0%A4%A', '#path=a.js&line=3']) assert.equal(isAnchorHash(h), true, h);
-});
-
-test('previous and next follow the reading order and stop at the ends', () => {
-    const g = ['a', 'b', 'c'].map(id => ({ id }));
-    assert.deepEqual(neighbours(g, 'a'), { prev: null, next: g[1], index: 0 });
-    assert.deepEqual(neighbours(g, 'b'), { prev: g[0], next: g[2], index: 1 });
-    assert.deepEqual(neighbours(g, 'c'), { prev: g[1], next: null, index: 2 });
-    assert.deepEqual(neighbours(g, 'zzz'), { prev: null, next: null, index: -1 });
-});
-
 test('the shipped guides are valid, ordered, and the generated module is exactly what they convert to', async () => {
     const { guides, problems } = loadGuides();
     assert.deepEqual(problems, []);
@@ -145,11 +128,9 @@ test('a query that only appears in a guide\'s body finds it without matching any
     assert.equal(results[0].titleMatch, false); assert.equal(results[0].bodyMatch, true);
 });
 
-test('the Guides page is real: no "coming soon" left in the page or the shell, and its scripts and styles are files', () => {
-    const page = read('site/guides/index.html');
-    assert.doesNotMatch(page + read('site/guides/page.js') + read('site/shell.js'), /coming soon/i);
-    assert.match(page, /<script type="module" src="page\.js">/);
-    assert.match(page, /<pk-doc-page id="guides">/);
-    assert.doesNotMatch(page, /guides\.css/, 'the page has no stylesheet of its own: pk-doc-page draws it');
-    assert.match(read('site/shell.js'), /key: 'guides', title: 'Guides', href: '\.\.\/guides\/index\.html'/);
+test('the Guides module is real: no "coming soon" left in it or the shell, the shell links to the app, and the standalone page is gone', () => {
+    assert.doesNotMatch(read('site/modules/guides.js') + read('site/shell.js'), /coming soon/i);
+    assert.match(read('site/shell.js'), /key: 'guides', title: 'Guides', href: '\.\.\/\.\.\/app\.html#\/guides'/);
+    assert.match(read('site/app.config.js'), /id: 'guides'/);
+    for (const gone of ['site/guides/index.html', 'site/guides/page.js', 'site/guides/guides-logic.js']) assert.equal(fs.existsSync(path.join(root, gone)), false, `${gone} was retired: old links stop working, there is no redirect`);
 });

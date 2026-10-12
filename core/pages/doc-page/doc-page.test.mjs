@@ -1,5 +1,5 @@
 // Unit tests for pk-doc-page: building the shell and nav, the home list, loading an item, the pager, the error/retry path, and the three
-// behaviours ported from the guides page (core/site/guides/page.js) - in-page anchor scroll (pk-navigate), focus on the title after a real
+// behaviours ported from the former standalone Guides page - in-page anchor scroll (pk-navigate), focus on the title after a real
 // navigation, and the first-load anchor settle. Stub base and a tiny fake DOM, no real browser (same spirit as tool-page.test.mjs).
 import test from 'node:test';
 import assert from 'node:assert/strict';

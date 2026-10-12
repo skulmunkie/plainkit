@@ -16,7 +16,7 @@ Rule applied to every candidate (the owner's net-reduction test, as declined on 
 | Finding | Evidence | Would duplicate | Verdict and reason |
 | --- | --- | --- | --- |
 | Gallery API tables restyle themselves into stacked cards | `core/site/gallery/gallery.css:158-163` (about 0.9 KB), `gallery.js:268` `dataTable()` | `pk-table[cards]` (`elements/table/table.css:46-54`) | Blocked. `cards` styles the element's own shadow `<table>` (the `columns`/`rows` mode). The gallery uses the raw slotted-table mode with HTML in cells (`<code>`, swatches), which those selectors cannot reach; converting means per-cell slots for every table and grows the code. |
-| Hash routing in gallery and guides | `core/site/gallery/gallery.js` `route()`, `core/site/guides/page.js` | `core/js/router.js` | Already spiked and declined on #401 (no net reduction). |
+| Hash routing in gallery and guides | `core/site/gallery/gallery.js` `route()`, the former Guides page script | `core/js/router.js` | Already spiked and declined on #401 (no net reduction). |
 | Details-drawer resize handle | `core/site/gallery/gallery.js:542` | `pk-splitter` | Already declined on #391. |
 | Layout-builder arrow/Home/End move | `core/modules/layout-builder/layout-builder.js:62`, `:558` | a shared tree-reorder | Tracked as #395 and on `composition.allow.json`; not new. |
 | Escape helper `esc` copied three times | `core/site/gallery/gallery.js:29`, `core/modules/scorecard/scorecard.js:48`, `core/modules/code-explorer/element.js:27` | itself | Measured about 150 chars each; a shared export plus three imports is roughly break-even, so no net reduction. Fold into #497 only if that PR wants it. |
