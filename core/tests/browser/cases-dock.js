@@ -86,6 +86,7 @@ export const dockCases = [
         const toggle = () => [...root().querySelectorAll('[part=collapse-toggle]')].find(b => b.getAttribute('data-panel') === 'canvas');
         t.eq(ctl(toggle()).getAttribute('aria-expanded'), 'true');
         const bodyId = 'b-canvas';
+        if ('ariaControlsElements' in ctl(toggle())) t.eq(ctl(toggle()).ariaControlsElements?.[0]?.id, 'b-canvas', 'the toggle controls the body it hides (aria-controls, reflected across the shadow boundary)');
         toggle().click(); await t.settle();
         t.eq(seen.length, 1); t.eq(seen[0].reason, 'collapse'); t.ok(seen[0].layout.collapsed.includes('canvas'));
         t.eq(ctl(toggle()).getAttribute('aria-expanded'), 'false');
@@ -119,6 +120,8 @@ export const dockCases = [
         t.ok(rail(), 'the collapsed right column is a rail button, not a header');
         t.ok(rect(rail().closest('[part=group]')).width < before, 'the column narrows to the rail width');
         t.eq(ctl(rail()).getAttribute('aria-expanded'), 'false');
+        t.eq(ctl(rail()).getAttribute('aria-haspopup'), 'true', 'the rail button says it opens a popup');
+        if ('ariaControlsElements' in ctl(rail())) t.eq(ctl(rail()).ariaControlsElements?.[0]?.getAttribute('part'), 'flyout', 'the rail button controls the flyout');
         const rc = rect(ctl(rail())), rg = rect(rail().closest('[part=group]'));
         t.ok(rc.height > 60 && rc.height >= rg.height - 2, `the rail control fills the rail's height (not clipped to a square): control ${Math.round(rc.height)}, rail ${Math.round(rg.height)}`);
         t.ok(rc.width >= rg.width - 2 && rc.width <= rg.width + 1, `the rail control spans the rail width: ${Math.round(rc.width)} of ${Math.round(rg.width)}`);

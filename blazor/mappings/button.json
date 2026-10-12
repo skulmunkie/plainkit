@@ -97,6 +97,11 @@
       "type": "bool"
     },
     {
+      "name": "Haspopup",
+      "prop": "haspopup",
+      "type": "string"
+    },
+    {
       "name": "OnClick",
       "event": "click",
       "type": "MouseEventArgs"

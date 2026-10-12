@@ -14,6 +14,8 @@ pk-splitter > [slot] { block-size: 100%; }
 [part="collapse-toggle"], [part="rail-button"] { --pk-button-bg: transparent; --pk-button-bg-hover: var(--color-surface-alt); --pk-button-fg: var(--color-text); --pk-button-border: transparent; --pk-button-radius: 0; --pk-button-padding: var(--space-3); }
 [part="collapse-toggle"] { flex: 1; min-inline-size: 0; }
 [part="collapse-toggle"]::part(control) { flex-direction: row-reverse; justify-content: flex-end; block-size: 100%; min-block-size: var(--touch-target); font-size: inherit; font-weight: inherit; }
+[part="collapse-toggle"]::part(chevron) { color: var(--color-muted); }
+[part="flyout"] > [part="collapse-toggle"] { --pk-button-padding: var(--space-3) 0; }
 [part="collapse-toggle"]::part(control):focus-visible, [part="rail-button"]::part(control):focus-visible { outline-offset: -2px; }
 [part="header"] > pk-dropdown { align-self: center; flex: none; }
 [part="group"][data-movable] [part="header"], [part="group"][data-movable] pk-tabs::part(list) { cursor: grab; }

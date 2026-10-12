@@ -284,6 +284,18 @@ export const formCases = [
         t.eq(tg.part('control').getAttribute('aria-pressed'), 'false'); tg.click(); await t.settle(); t.ok(tg.pressed); t.eq(seen.value, 'bold'); t.eq(tg.part('control').getAttribute('aria-pressed'), 'true'); t.ok(tg.hasAttribute('pressed'));
     }],
 
+    ['button: haspopup reaches the inner control as aria-haspopup, and controls names an element across the shadow boundary (a no-op where the browser lacks ariaControlsElements)', async t => {
+        const host = await t.mount('<div><pk-button haspopup="menu">Open</pk-button><pk-button>Plain</pk-button><div id="tgt">Target</div></div>');
+        const [b, plain, tgt] = host.children, c = b.part('control');
+        t.eq(c.getAttribute('aria-haspopup'), 'menu', 'haspopup is on the control');
+        t.ok(!plain.part('control').hasAttribute('aria-haspopup'), 'no haspopup, no attribute');
+        b.haspopup = ''; await t.settle(); t.ok(!c.hasAttribute('aria-haspopup'), 'clearing it removes the attribute');
+        b.controls = tgt; await t.settle();
+        if ('ariaControlsElements' in c) { t.eq(c.ariaControlsElements?.[0], tgt, 'the control controls the target element'); b.controls = null; await t.settle(); t.ok(!c.ariaControlsElements?.length, 'clearing controls clears the reference'); }
+        else t.ok(true, 'no ariaControlsElements here: controls is a safe no-op');
+        t.eq(b.part('control').localName, 'button', 'the control is still a button');
+    }],
+
     ['button: collapse folds the label into the icon at and below its breakpoint (measured in this viewport), never without an icon, and the name stays', async t => {
         const host = await t.mount('<div><pk-button collapse="phone" icon-name="plus">Add item</pk-button><pk-button collapse="tablet" icon-name="plus">Add item</pk-button><pk-button collapse="phone">Add item</pk-button><pk-button icon-name="plus">Add item</pk-button></div>'); await t.settle();
         const [p, tb, none, plain] = host.children, w = b => b.part('control').getBoundingClientRect().width;

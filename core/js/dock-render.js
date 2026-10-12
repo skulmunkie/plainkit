@@ -57,6 +57,7 @@ export function group(el, d, n, floaterId) {
             railBtn.hidden = false;
             railBtn.setAttribute('data-rail-panel', panel);
             railBtn.pressed = el.$flyout === panel;
+            railBtn.controls = el.part('flyout');
             railBtn.textContent = title(panel);
             return g;
         }
@@ -64,6 +65,7 @@ export function group(el, d, n, floaterId) {
         h.id = `h-${panel}`;
         const toggle = h.querySelector('[part="collapse-toggle"]');
         toggle.pressed = !collapsed;
+        toggle.controls = body;
         toggle.setAttribute('data-panel', panel);
         toggle.querySelector('[part="title"]').textContent = title(panel);
         if (!el.$phoneStrip) h.append(panelTrigger(el, d, panel, n.id, movable, floaterId));
