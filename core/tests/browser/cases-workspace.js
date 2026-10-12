@@ -209,7 +209,7 @@ export const workspaceCases = [
 
     ['image gallery: the add tile is a real file input and raises pk-add with the chosen files', async t => {
         const g = await gallery(t);
-        const input = g.part('file'); t.eq(input.type, 'file'); t.ok(input.multiple); t.eq(input.getAttribute('accept'), 'image/*');
+        const input = g.part('add').part('control'); t.eq(input.type, 'file'); t.ok(input.multiple); t.eq(input.getAttribute('accept'), 'image/*');
         t.ok(shown(g.part('add-tile')) && g.part('add-text').textContent.trim() === 'Add image');
         let got = null; g.addEventListener('pk-add', e => { got = e.detail; });
         const dt = new DataTransfer(); dt.items.add(new File(['x'], 'a.png', { type: 'image/png' })); input.files = dt.files;
@@ -229,7 +229,7 @@ export const workspaceCases = [
     ['image gallery: an input in the input slot (a Blazor InputFile) becomes the add tile\'s own picker; its own change carries the real files, and pk-add does not fire for it', async t => {
         const g = await t.mount('<pk-image-gallery editable><input slot="input" type="file" multiple></pk-image-gallery>');
         g.images = IMAGES.map(i => ({ ...i })); await t.settle(); await t.load(g.shadowRoot);
-        t.ok(g.hasAttribute('has-input')); t.eq(getComputedStyle(g.part('file')).display, 'none', 'the internal input is hidden once an input is slotted');
+        const dz = g.part('add'); t.eq(dz.localName, 'pk-dropzone'); t.ok(dz.hasAttribute('has-input')); t.eq(getComputedStyle(dz.part('control')).display, 'none', 'the internal input is hidden once an input is slotted');
         const input = g.querySelector('input[slot="input"]');
         let added = null; g.addEventListener('pk-add', e => { added = e.detail; });
         let changes = 0; input.addEventListener('change', () => changes++);
