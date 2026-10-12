@@ -88,8 +88,17 @@ export function renderElement(meta, options = {}) {
 
     // ---- Playground / Examples tabs. The API reference (Properties, Slots, Events, Parts, Custom properties, Methods, Accessibility) lives
     // only in the Details flyout (js/element-inspector.js): showing it here too would draw every element page's API twice.
-    page.append(h('pk-tabs', { value: 'playground', label: `${meta.title} views` },
+    const tabs = h('pk-tabs', { value: 'playground', label: `${meta.title} views`, 'data-wait': '' },
         h('pk-tab', { value: 'playground' }, 'Playground'), h('pk-tab-panel', { value: 'playground' }, playground),
-        h('pk-tab', { value: 'examples' }, 'Examples'), h('pk-tab-panel', { value: 'examples' }, examples)));
+        h('pk-tab', { value: 'examples' }, 'Examples'), h('pk-tab-panel', { value: 'examples' }, examples));
+    page.append(tabs);
+    // The tabs and every pk-* element inside them are defined a moment after this page is drawn, and each upgrade resizes what it holds (a tab bar, a tall live element):
+    // the page content stays invisible (not hidden, so it keeps its place) until they are all defined, else everything below moves as they arrive (layout shift, issue 1204).
+    const tags = new Set(['pk-tabs']); for (const e of tabs.querySelectorAll('*')) if (e.localName.startsWith('pk-')) tags.add(e.localName);
+    // Defined is not drawn: a big live element (an app shell, a workspace) fills itself over the next frames, so the page also waits until its height has held for a few frames.
+    const release = () => tabs.removeAttribute('data-wait');
+    const settle = (last = -1, still = 0) => win.requestAnimationFrame(() => { const now = tabs.offsetHeight; if (now === last && ++still >= 8) release(); else settle(now, now === last ? still : 0); });
+    Promise.all([...tags].map(tag => customElements.whenDefined(tag))).then(() => settle());
+    later(win, release, 3000); // a tag that never gets defined must not leave the page blank
     return page;
 }

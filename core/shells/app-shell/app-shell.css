@@ -42,7 +42,7 @@
     ::slotted(pk-side-nav[collapsed]:not(:defined)) { width: var(--shell-nav-w-collapsed); }
 }
 
-@media (--tablet) { :host { grid-template-columns: minmax(0, 1fr); } }
+@media (--tablet) { :host { grid-template-columns: minmax(0, 1fr); } ::slotted(pk-side-nav:not(:defined)) { display: none; } } /* Its drawer is off canvas once defined: until then it would sit in flow above the main column and push it down when it upgrades (issue 1204). */
 
 @media (--phone) {
     [part="body"] { --pk-page-header-sticky-top: calc(-1 * var(--space-4)); padding: var(--space-4); padding-inline: max(var(--space-4), env(safe-area-inset-left)) max(var(--space-4), env(safe-area-inset-right)); }
