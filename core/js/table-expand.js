@@ -14,16 +14,19 @@ export const toggled = (ids, id, open) => [...ids.map(String).filter(x => x !== 
 // A row can expand when the host gave it detail content.
 export const hasDetail = (table, id) => [...table.children].some(c => c.slot === `detail-${id}`);
 
+// The detail panels of a row, as the suffix after detail-<rowId>: '' for the slot detail-<rowId>, '.<name>' for each detail-<rowId>.<name>. Named panels are opened by the host alone (expanded holds "<rowId>.<name>").
+const panels = (table, id) => [...table.children].map(c => c.slot).filter(s => s.startsWith(`detail-${id}`) && (s.length === 7 + id.length || s[7 + id.length] === '.')).map(s => s.slice(7 + id.length));
+
 // The header cell over the toggle column: empty, named for assistive technology.
 export const head = h => h('th', { 'data-expand': true, scope: 'col' }, h('span', { class: 'sr' }, 'Details'));
 
 // The row's toggle cell goes in after the checkbox cell; an expandable row is followed by its detail row (hidden while collapsed, so
 // aria-controls always points at a real element). `span` is the column count the detail cell covers.
 export function rows(table, tr, id, i, span, h) {
-    const has = hasDetail(table, id), open = has && table.expanded.map(String).includes(id);
-    const button = has && h('button', { type: 'button', 'data-expand-id': id, 'aria-expanded': String(open), 'aria-controls': `pk-d${i}`, 'aria-label': `Details for row ${id}` }, open ? '▾' : '▸');
-    tr.insertBefore(h('td', { 'data-expand': true }, button || ''), tr.children[Number(table.selectable)] ?? null);
-    return has ? [tr, h('tr', { id: `pk-d${i}`, 'data-detail': true, hidden: !open }, h('td', { colspan: span }, h('slot', { name: `detail-${id}` })))] : [tr];
+    const ps = panels(table, id), open = p => table.expanded.map(String).includes(id + p), has = ps.includes(''), on = has && open('');
+    const button = has && h('button', { type: 'button', 'data-expand-id': id, 'aria-expanded': String(on), 'aria-controls': `pk-d${i}`, 'aria-label': `Details for row ${id}` }, on ? '▾' : '▸');
+    if (table.expander !== 'none') tr.insertBefore(h('td', { 'data-expand': true }, button || ''), tr.children[Number(table.selectable)] ?? null);
+    return [tr, ...ps.map((p, n) => h('tr', { id: `pk-d${i}${p && '-' + n}`, 'data-detail': true, hidden: !open(p) }, h('td', { colspan: span }, h('slot', { name: `detail-${id}${p}` }))))];
 }
 
 // A click on content the host put in a cell slot: it is light DOM, so closest('tr') cannot reach the row from the target; the composed path can. Only a click on non-interactive content is a row click

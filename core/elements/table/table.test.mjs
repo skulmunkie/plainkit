@@ -68,6 +68,15 @@ test('an expandable row gets a toggle with aria-expanded and aria-controls point
     assert.equal(closed.attrs.hidden, true);
 });
 
+test('expander none leaves out the toggle cell, and a row can have several named panels the host opens by "<rowId>.<name>"', () => {
+    const t = table({ expander: 'none', expanded: ['2.notes'], children: [{ slot: 'detail-2.lines' }, { slot: 'detail-2.notes' }, { slot: 'detail-20' }] });
+    const [tr, lines, notes] = X.rows(t, h('tr'), '2', 0, 3, h);
+    assert.equal(tr.children.length, 0);
+    assert.deepEqual([lines.attrs.hidden, notes.attrs.hidden], [true, false]);
+    assert.deepEqual([lines.kids[0].kids[0].attrs.name, notes.kids[0].kids[0].attrs.name], ['detail-2.lines', 'detail-2.notes']);
+    assert.notEqual(lines.attrs.id, notes.attrs.id);
+});
+
 test('a row without detail content has an empty toggle cell and no detail row, and the toggle goes after the checkbox cell', () => {
     const rowsOf = X.rows(table(), h('tr'), '1', 0, 3, h);
     assert.equal(rowsOf.length, 1);
@@ -110,7 +119,7 @@ test('the empty state has a text prop, and the table detail slots are listed in 
     const { readFileSync } = await import('node:fs');
     const meta = JSON.parse(readFileSync(new URL('./table.meta.json', import.meta.url), 'utf8'));
     assert.equal(meta.props.find(p => p.name === 'emptyText').default, 'No rows');
-    assert.deepEqual(meta.slots.filter(s => s.dynamic).map(s => s.name), ['cell-<rowId>-<key>', 'header-<key>', 'detail-<rowId>']);
+    assert.deepEqual(meta.slots.filter(s => s.dynamic).map(s => s.name), ['cell-<rowId>-<key>', 'header-<key>', 'detail-<rowId>', 'detail-<rowId>.<name>']);
     assert.ok(meta.events.some(e => e.name === 'pk-row-expand'));
 });
 
@@ -165,7 +174,7 @@ test('Enter and Space on the row itself activate a clickable row; keys on contro
 // spacer rows standing in for the ones it skips.
 
 const { default: V, THRESHOLD } = await import('../../js/table-vw.js');
-const hv = (tag, attrs = {}, ...kids) => ({ tag, attrs, kids, style: { setProperty(k, v) { attrs[k] = v; } } });
+const hv = (tag, attrs = {}, ...kids) => ({ tag, attrs, kids, style: { set cssText(v) { attrs['block-size'] = /block-size:([^;]+)/.exec(v)[1]; } } });
 // No DOM (and no CSS global) in a node:test run: a small real escaper, not a passthrough, so a test that puts a quote in a
 // row key actually exercises the escaping table-vw.js/table.js rely on (issue 640).
 globalThis.CSS ??= { escape: s => String(s).replace(/["\\]/g, '\\$&') };
