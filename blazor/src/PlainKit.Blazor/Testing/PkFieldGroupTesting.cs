@@ -3,8 +3,7 @@ using PlainKit.Blazor.Testing;
 
 namespace PlainKit.Blazor.Components
 {
-    // The seams the test helpers in PlainKit.Blazor.Testing use: what the element would be sent, and the pk-field-change it would raise.
-    public partial class PkFieldGroup<TItem>
+    public partial class PkFieldGroup<TItem>   // the seams the test helpers use: what the element would be sent, and what it would raise
     {
         internal IReadOnlyList<PkFieldState> FieldsForTest()
         {
@@ -12,8 +11,12 @@ namespace PlainKit.Blazor.Components
             return Defs().Select(d => new PkFieldState(d.Key!, d.Label, d.Readonly, d.Disabled, d.Required, values.GetValueOrDefault(d.Key!))).ToList();
         }
 
-        internal Task CommitForTestAsync(string key, object? value) =>
-            Changed(new PkFieldChangeEventArgs { Key = key, Value = JsonSerializer.SerializeToElement(value) });
+        internal async Task<string?> CommitForTestAsync(string key, object? value)   // as the element does: the commit callback first, pk-field-change only when it answers null
+        {
+            var e = new PkFieldChangeEventArgs { Key = key, Value = JsonSerializer.SerializeToElement(value) };
+            if (await Commit(e) is string error) return error;
+            await Changed(e); return null;
+        }
     }
 
     public partial class PkDataTable<TItem>
@@ -44,12 +47,8 @@ namespace PlainKit.Blazor.Testing
         public static PkFieldState Field<TItem>(this Components.PkFieldGroup<TItem> group, string key) =>
             group.Fields().FirstOrDefault(f => f.Key == key) ?? throw new InvalidOperationException($"The field group shows no field '{key}'.");
 
-        /// <summary>Raises the element's <c>pk-field-change</c> for this key: the spec's <c>Set</c> runs, then <c>ModelChanged</c>. A checkbox takes a bool, everything else a string (or null).</summary>
-        public static Task CommitAsync<TItem>(this Components.PkFieldGroup<TItem> group, string key, object? value)
-        {
-            ArgumentNullException.ThrowIfNull(group);
-            return group.CommitForTestAsync(key, value);
-        }
+        /// <summary>Commits this key as the element would: <c>SetAsync</c> (if any) first, then <c>pk-field-change</c>: <c>Set</c> and <c>ModelChanged</c>. Returns the field error a throwing <c>SetAsync</c> would show (nothing else runs), else null. A checkbox takes a bool, everything else a string (or null).</summary>
+        public static Task<string?> CommitAsync<TItem>(this Components.PkFieldGroup<TItem> group, string key, object? value) => (group ?? throw new ArgumentNullException(nameof(group))).CommitForTestAsync(key, value);
 
         /// <summary>The trail <c>Crumbs</c> sends to the element, as a typed list (empty when none is set).</summary>
         public static IReadOnlyList<PkCrumb> CrumbTrail(this Components.PkPageHeader header)

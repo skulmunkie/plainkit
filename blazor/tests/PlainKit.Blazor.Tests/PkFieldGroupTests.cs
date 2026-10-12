@@ -5,6 +5,7 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.JSInterop;
 using PlainKit.Blazor;
 using PlainKit.Blazor.Components;
+using PlainKit.Blazor.Testing;
 
 namespace PlainKit.Blazor.Tests;
 
@@ -244,5 +245,48 @@ public sealed class PkFieldGroupTests : BunitContext, IAsyncLifetime
     {
         Render(Fields());
         Assert.DoesNotContain(_bridge.Invocations, i => i.Identifier == "setCallback");
+    }
+
+    // Issue 264: an async Set (PkFieldSpec.Async). Busy, last wins and the field error are the element's (browser case); the wrapper only hands the element a commit callback
+    // that runs SetAsync and answers null or the exception's message, and raises ModelChanged (through pk-field-change) after that.
+    private static PkFieldSpec<Order> AsyncName(Func<string?, Task> save, Order order) =>
+        PkFieldSpec<Order>.Async("name", "Name", o => o.Name, async (o, v) => { await save(v); o.Name = v ?? ""; });
+
+    [Fact]
+    public async Task An_async_Set_gets_a_commit_callback_and_ModelChanged_comes_after_it_succeeds()
+    {
+        var order = new Order(); var log = new List<string>();
+        var cut = Render([AsyncName(async v => { await Task.Yield(); log.Add("set " + v); }, order)], order, EventCallback.Factory.Create(this, () => log.Add("changed")));
+        cut.WaitForAssertion(() => Assert.Equal("commit", Assert.Single(_bridge.Invocations["setCallback"]).Arguments[1]));
+        Assert.Null(await cut.Instance.CommitAsync("name", "Acme"));
+        Assert.Equal(["set Acme", "changed"], log); Assert.Equal("Acme", order.Name);
+    }
+
+    [Fact]
+    public async Task A_throwing_async_Set_answers_its_message_for_the_field_error_and_raises_no_ModelChanged()
+    {
+        var order = new Order(); var changed = 0;
+        var cut = Render([AsyncName(_ => throw new InvalidOperationException("Name is taken"), order)], order, EventCallback.Factory.Create(this, () => changed++));
+        Assert.Equal("Name is taken", await cut.Instance.CommitAsync("name", "Acme"));
+        Assert.Equal(0, changed); Assert.Equal("", order.Name);
+    }
+
+    [Fact]
+    public async Task A_stale_async_Set_completion_is_the_elements_to_drop_so_each_call_runs_alone()
+    {
+        // The element decides which answer counts (last wins); the callback itself must not share state between calls, so two pending Sets both run and each answers for itself.
+        var order = new Order(); var gates = new List<TaskCompletionSource>(); var seen = new List<string?>();
+        var cut = Render([AsyncName(v => { seen.Add(v); var g = new TaskCompletionSource(); gates.Add(g); return g.Task; }, order)], order);
+        var first = cut.Instance.CommitAsync("name", "a"); var second = cut.Instance.CommitAsync("name", "ab");
+        gates[1].SetResult(); gates[0].SetException(new InvalidOperationException("stale"));
+        Assert.Null(await second); Assert.Equal("stale", await first);
+        Assert.Equal(["a", "ab"], seen);
+    }
+
+    [Fact]
+    public void Without_an_async_Set_no_commit_callback_is_set()
+    {
+        Render(Fields());
+        Assert.DoesNotContain(_bridge.Invocations, i => i.Identifier == "setCallback" && Equals(i.Arguments[1], "commit"));
     }
 }

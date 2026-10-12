@@ -4,9 +4,8 @@
 @inherits PkElementBase
 @implements IDisposable
 
-@* Hand-written (mapping "existing"): a typed wrapper over pk-field-group, which owns the controls, the conditional rendering, the form value, the validation and pk-form's summary (#222, #226).
-   It turns PkFieldSpec<TItem> items and a model into the element's fields and values, and pk-field-change back into each spec's Set. The funcs of a spec (When, Disabled, ReadOnly, HelpWhen,
-   LabelWhen, OptionsSource) are read on every render and sent as data; a field whose When is false is not sent. LabelAction and Editor are slotted; Search is the search callback. *@
+@* Hand-written (mapping "existing"): a typed wrapper over pk-field-group (controls, conditions, form value, validation are the element's, #222, #226): specs and model become its fields and values,
+   pk-field-change goes back to each Set. The specs' funcs are read on every render and sent as data; LabelAction and Editor are slotted; Search and SetAsync are its search and commit callbacks. *@
 <pk-field-group fields="@PkAttr.Json(Defs())"
                 values="@Values()"
                 @ref="Element"
@@ -21,8 +20,7 @@
 
 @code {
     [Inject] private PkRuntime Runtime { get; set; } = default!;
-
-    private readonly PkCallbackSlot _search = new("search");
+    private readonly PkCallbackSlot _search = new("search"), _commit = new("commit");
 
     /// <summary>The fields to render, in order.</summary>
     [Parameter, EditorRequired] public IReadOnlyList<PkFieldSpec<TItem>> Fields { get; set; } = [];
@@ -30,8 +28,7 @@
     /// <summary>The bound record; each field's <c>Get</c> reads it, each commit calls <c>Set</c> then <see cref="ModelChanged"/>.</summary>
     [Parameter, EditorRequired] public TItem Model { get; set; } = default!;
 
-    /// <summary>Raised after any field commits a change (the model was already updated in place through <c>Set</c>). A handler on the parent re-renders it, and with it this group: its
-    /// <c>Get</c>, <c>When</c>, <c>Disabled</c> and <c>HelpWhen</c> are read again.</summary>
+    /// <summary>Raised after a field commits (the model was updated through <c>Set</c>, or <c>SetAsync</c> succeeded). A handler on the parent re-renders it and this group: <c>Get</c>, <c>When</c>, <c>Disabled</c> and <c>HelpWhen</c> are read again.</summary>
     [Parameter] public EventCallback ModelChanged { get; set; }
 
     private IEnumerable<PkFieldSpec<TItem>> Visible() => Fields.Where(f => f.When is null || f.When(Model));
@@ -48,7 +45,6 @@
             Disabled = (f.Disabled?.Invoke(Model) ?? false) || (readOnly && !text), Readonly = readOnly && text, Options = f.OptionsSource?.Invoke() ?? f.Options,
         };
     }).ToList();
-
     // The values as JSON with the keys as the specs spell them: a checkbox is a boolean, everything else the string Get returns.
     private string Values() => JsonSerializer.Serialize(Visible().ToDictionary(f => f.Key,
         f => f.Kind == PkFieldKind.Checkbox ? !string.IsNullOrEmpty(f.Get(Model)) && f.Get(Model) != "false" : (object?)f.Get(Model)));
@@ -57,9 +53,14 @@
     protected override async Task OnAfterRenderAsync(bool firstRender)
     {
         await base.OnAfterRenderAsync(firstRender);
-        await _search.SyncAsync<PkFieldSearch>(await Runtime.BridgeAsync(Assets), Element, Fields.Any(f => f.Search is not null),
-            async a => (object?)await Fields.First(f => f.Key == a.Key).Search!(a.Query), refresh: true);
+        var bridge = await Runtime.BridgeAsync(Assets);
+        await _search.SyncAsync<PkFieldSearch>(bridge, Element, Fields.Any(f => f.Search is not null), async a => (object?)await Fields.First(f => f.Key == a.Key).Search!(a.Query), refresh: true);
+        await _commit.SyncAsync<PkFieldChangeEventArgs>(bridge, Element, Fields.Any(f => f.SetAsync is not null), Commit);
     }
+
+    // The element's commit callback (busy, last wins, the field error are its): the async Set runs here; the answer is null or the exception's message.
+    private async Task<object?> Commit(PkFieldChangeEventArgs e) { try { await (Fields.First(f => f.Key == e.Key).SetAsync?.Invoke(Model, Text(e.Value)) ?? Task.CompletedTask); return null; } catch (Exception ex) { return ex.Message; } }
+    private static string? Text(JsonElement? e) => e?.ValueKind switch { JsonValueKind.True => "true", JsonValueKind.False => "", JsonValueKind.Null or JsonValueKind.Undefined => null, JsonValueKind.String => e?.GetString(), _ => e?.GetRawText() };
 
     /// <inheritdoc />
     protected override void AddEventHandlers(Dictionary<string, object> handlers) =>
@@ -67,12 +68,11 @@
 
     private async Task Changed(PkFieldChangeEventArgs e)
     {
-        var f = Fields.FirstOrDefault(f => f.Key == e.Key);
-        if (f is null || e.Value is not { } v) return;
-        f.Set(Model, v.ValueKind switch { JsonValueKind.True => "true", JsonValueKind.False => "", JsonValueKind.Null or JsonValueKind.Undefined => null, JsonValueKind.String => v.GetString(), _ => v.GetRawText() });
+        if (e.Value is null || Fields.FirstOrDefault(f => f.Key == e.Key) is not { } f) return;
+        f.Set(Model, Text(e.Value));
         await ModelChanged.InvokeAsync();
     }
 
     /// <inheritdoc />
-    public void Dispose() => _search.Dispose();
+    public void Dispose() { _search.Dispose(); _commit.Dispose(); }
 }

@@ -91,12 +91,23 @@
   ],
   "specMembers": [
     {
+      "name": "SetAsync",
+      "type": "Func<TItem, string?, Task>?",
+      "doc": "An async commit (build it with Async): run instead of Set when the user commits. The field is busy while it runs, a newer edit of the field replaces a pending one (last wins; a stale completion changes nothing), an exception shows its message as the field's error with the typed text kept, and ModelChanged is raised only after it succeeds."
+    },
+    {
       "name": "Editor",
       "type": "RenderFragment<TItem>?",
       "doc": "Your own content in place of a control (an input with an inline action, a read-only summary): drawn in the field's body, in the element's editor-<key> slot. It has no value of its own, takes no part in the form or its validation, and Get/Set are never called; build it with Custom."
     }
   ],
   "fieldFactories": [
+    {
+      "name": "Async",
+      "doc": "A spec whose change is committed by an async call (a service, a dependent reload): the element shows the field busy while it runs, a newer edit replaces a pending one (last wins, a stale answer changes nothing), an exception shows its message as the field's error and keeps the typed text, and ModelChanged is raised only after it succeeds. Get reads the model; the text goes to setAsync, not to Set.",
+      "params": "Func<TItem, string?> get, Func<TItem, string?, Task> setAsync",
+      "init": ["Get = get", "Set = (_, _) => { }", "SetAsync = setAsync"]
+    },
     {
       "name": "Decimal",
       "doc": "A number spec over a decimal? property: Min, Max and Step are decimals, and the value is read and written as invariant-culture text, so the model never sees the page's culture.",

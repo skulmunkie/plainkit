@@ -227,6 +227,31 @@ export const fieldGroupCases = [
         t.ok(!combo.hasAttribute('filtering'), 'without a callback the combobox filters its own options again');
     }],
 
+    ['field-group: an async commit callback shows the field busy, the newest edit wins, a rejection or a returned message shows as the field error with the typed text kept, and pk-field-change comes only after success', async t => {
+        const host = t.stage('<pk-field-group label="Order"></pk-field-group>');
+        const el = host.firstElementChild, pending = [], changes = [];
+        el.commit = ({ key, value }) => new Promise((resolve, reject) => pending.push({ key, value, resolve, reject }));
+        el.fields = [{ key: 'name', label: 'Name' }]; el.values = { name: '' };
+        el.addEventListener('pk-field-change', e => changes.push(e.detail.value));
+        await t.load(host); await t.load(el.shadowRoot); await t.settle(); await t.settle();
+        const field = el.shadowRoot.querySelector('pk-field'), input = el.shadowRoot.querySelector('pk-input');
+        const type = async text => { const i = input.part('control'); i.value = text; i.dispatchEvent(new Event('input', { bubbles: true, composed: true })); i.dispatchEvent(new Event('change', { bubbles: true, composed: true })); await t.settle(); };
+        await type('a'); await type('ab');
+        t.eq(pending.map(p => p.value).join(','), 'a,ab', 'every edit is handed to the host');
+        t.eq(changes.length, 0, 'no pk-field-change while the commit is pending');
+        t.eq(input.getAttribute('aria-busy'), 'true', 'the control is busy'); t.ok(field.querySelector('[data-busy]'), 'and the field shows it');
+        pending[1].resolve(); await t.settle();
+        t.eq(changes.join(','), 'ab', 'the newest edit raised pk-field-change'); t.ok(!input.hasAttribute('aria-busy'), 'and the field is no longer busy');
+        pending[0].reject(new Error('stale')); await t.settle();
+        t.eq(field.error, '', 'a stale completion does not show an error'); t.eq(changes.length, 1, 'or raise pk-field-change'); t.eq(el.values.name, 'ab');
+        await type('abc'); pending[2].reject(new Error('Name is taken')); await t.settle();
+        t.eq(field.error, 'Name is taken', 'a rejection is the field error'); t.eq(input.value, 'abc', 'the typed text stays'); t.eq(changes.length, 1, 'with no pk-field-change');
+        await type('abcd'); t.eq(field.error, '', 'a new edit clears the message'); pending[3].resolve('Too long'); await t.settle();
+        t.eq(field.error, 'Too long', 'a returned string is the field error'); t.eq(changes.length, 1);
+        await type('abcde'); pending[4].resolve(); await t.settle();
+        t.eq(field.error, ''); t.eq(changes.at(-1), 'abcde');
+    }],
+
     ['field-group in pk-form: assigning valid values after a stopped submit lets the next submit through and clears the summary and every message', async t => {
         const fields = [{ key: 'name', label: 'Name', required: true }, { key: 'qty', label: 'Quantity', kind: 'number', min: '5' }, { key: 'status', label: 'Status', kind: 'select', options: [{ value: 'open', label: 'Open' }, { value: 'closed', label: 'Closed' }] }, { key: 'note', label: 'Note', kind: 'textarea', required: true, when: { field: 'status', equals: 'closed' } }];
         const host = t.stage('<pk-form summary><form><pk-field-group label="Order"></pk-field-group><pk-button type="submit">Save</pk-button></form></pk-form>');
