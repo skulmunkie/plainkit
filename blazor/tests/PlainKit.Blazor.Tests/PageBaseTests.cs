@@ -184,4 +184,46 @@ public sealed class PageBaseTests : BunitContext
         var members = typeof(PageBase).GetMembers(System.Reflection.BindingFlags.Instance | System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Public).Select(m => m.Name).ToList();
         Assert.DoesNotContain("ShowBusyOverlay", members); Assert.DoesNotContain("BusyDelay", members); Assert.DoesNotContain("BusyMinTime", members); Assert.DoesNotContain("Clock", members);
     }
+
+    // Issue 1208: a load that completes synchronously after an earlier render must still re-render (IsLoading flipped).
+    [Fact]
+    public void A_load_that_completes_synchronously_re_renders_after_an_earlier_loading_render()
+    {
+        var cut = Render<SyncLoadAfterAsyncInitHost>();
+        cut.WaitForAssertion(() => Assert.Equal("ready", cut.Find("p").TextContent));
+    }
+
+    // Issue 1209
+    [Fact]
+    public async Task TryBusyAsync_returns_true_on_success_and_false_on_failure_without_throwing()
+    {
+        var cut = Render<PageBaseHost>();
+
+        Assert.True(await cut.InvokeAsync(() => cut.Instance.CallTryBusyAsync(() => Task.CompletedTask, "Working…")));
+        Assert.Empty(Log.Entries);
+        Assert.Null(cut.Instance.StatusMessage);
+
+        var ok = await cut.InvokeAsync(() => cut.Instance.CallTryBusyAsync(() => throw new InvalidOperationException("boom"), "Working…"));
+
+        Assert.False(ok);
+        Assert.False(cut.Instance.IsBusy);
+        Assert.Single(Log.Entries);
+        Assert.Equal(PkLogLevel.Error, Log.Entries[0].Level);
+        Assert.Equal("boom", cut.Instance.StatusMessage);
+        Assert.Equal("danger", cut.Instance.StatusKind);
+    }
+
+    [Fact]
+    public async Task DescribeError_overrides_the_status_and_log_text_and_BusyAsync_still_rethrows()
+    {
+        var cut = Render<PageBaseHost>();
+        cut.Instance.Describe = e => e.InnerException?.Message ?? e.Message;
+        var failure = new Exception("outer", new InvalidOperationException("the cause"));
+
+        Assert.False(await cut.InvokeAsync(() => cut.Instance.CallTryBusyAsync(() => throw failure)));
+        Assert.Equal("the cause", cut.Instance.StatusMessage);
+        Assert.Equal("the cause", Log.Entries[0].Message);
+
+        await Assert.ThrowsAsync<Exception>(() => cut.InvokeAsync(() => cut.Instance.CallBusyAsync(() => throw failure)));
+    }
 }
