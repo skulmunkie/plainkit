@@ -15,7 +15,7 @@
       "type": "json",
       "default": [],
       "reflect": false,
-      "description": "The field specs, in order: { key, label, kind?, hint?, help?, required?, readonly?, disabled?, hideLabel?, span?, placeholder?, min?, max?, step?, minlength?, maxlength?, pattern?, rows?, options?: [{ value, label }], free?, when?, msg? }. kind is text (default), number, email, password, date, time, url, tel, textarea, select, checkbox, switch, range or combobox. hint is the line under the field, help a tooltip beside the label, span makes the field fill the row, msg is { constraint: text } for the form's validation messages."
+      "description": "The field specs, in order: { key, label, kind?, hint?, help?, required?, readonly?, disabled?, hideLabel?, span?, placeholder?, min?, max?, step?, minlength?, maxlength?, pattern?, format?, decimals?, currency?, locale?, rows?, options?: [{ value, label }], free?, when?, msg? }. kind is text (default), number, email, password, date, time, url, tel, textarea, select, checkbox, switch, range or combobox. hint is the line under the field, help a tooltip beside the label, span makes the field fill the row, format is money on an input kind (with decimals, currency, locale: pk-input's money format, the value stays the plain number), msg is { constraint: text } for the form's validation messages."
     },
     {
       "name": "values",
@@ -100,7 +100,7 @@
   "examples": [
     {
       "title": "Fields with a conditional one (set fields and values from script: an inline script cannot run under this site's CSP)",
-      "html": "<pk-field-group label=\"Order\" fields='[{\"key\":\"name\",\"label\":\"Name\",\"required\":true},{\"key\":\"qty\",\"label\":\"Quantity\",\"kind\":\"number\",\"min\":\"1\"},{\"key\":\"status\",\"label\":\"Status\",\"kind\":\"select\",\"options\":[{\"value\":\"open\",\"label\":\"Open\"},{\"value\":\"closed\",\"label\":\"Closed\"}]},{\"key\":\"note\",\"label\":\"Closing note\",\"kind\":\"textarea\",\"required\":true,\"when\":{\"field\":\"status\",\"equals\":\"closed\"}}]' values='{\"status\":\"open\"}'></pk-field-group>"
+      "html": "<pk-field-group label=\"Order\" fields='[{\"key\":\"name\",\"label\":\"Name\",\"required\":true},{\"key\":\"qty\",\"label\":\"Quantity\",\"kind\":\"number\",\"min\":\"1\"},{\"key\":\"status\",\"label\":\"Status\",\"kind\":\"select\",\"options\":[{\"value\":\"open\",\"label\":\"Open\"},{\"value\":\"closed\",\"label\":\"Closed\"}]},{\"key\":\"note\",\"label\":\"Closing note\",\"kind\":\"textarea\",\"required\":true,\"when\":{\"field\":\"status\",\"equals\":\"closed\"}},{\"key\":\"amount\",\"label\":\"Amount\",\"kind\":\"number\",\"format\":\"money\",\"decimals\":2,\"currency\":\"USD\"}]' values='{\"status\":\"open\"}'></pk-field-group>"
     }
   ],
   "methods": [
