@@ -44,7 +44,7 @@ function body(el, rowsAll, h) {
     const s = el.part('scroll'), rowH = el.$rowH || 32, vh = s.clientHeight || 400, span = cols.length + lead;
     const start = Math.max(0, Math.floor(s.scrollTop / rowH) - 10); // 10 extra rows above and below the viewport, so a fast scroll or a focus move does not flash empty rows
     const end = Math.min(rowsAll.length, start + Math.ceil(vh / rowH) + 20);
-    const bump = (size, place) => { const td = h('td', { colspan: span }); td.style.setProperty('padding', '0'); td.style.setProperty('border', '0'); td.style.setProperty('block-size', `${size}px`); return h('tr', { 'data-spacer': place, 'aria-hidden': true }, td); };
+    const bump = (size, place) => { const td = h('td', { colspan: span }); td.style.cssText = `padding:0;border:0;block-size:${size}px`; return h('tr', { 'data-spacer': place, 'aria-hidden': true }, td); };
     const drawn = rowsAll.slice(start, end).map((row, j) => tr(el, row, rowId(row, start + j, el.rowKey), sel, h));
     return [...(start > 0 ? [bump(start * rowH, 'top')] : []), ...drawn, ...(end < rowsAll.length ? [bump((rowsAll.length - end) * rowH, 'bottom')] : [])];
 }
