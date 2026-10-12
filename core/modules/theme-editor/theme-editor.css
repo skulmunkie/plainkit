@@ -16,6 +16,8 @@
 
 .te-row > pk-input, .te-row > pk-colour-input, .te-row > pk-unit-input { min-width: 0; }
 
+.te-row > pk-input::part(control) { text-overflow: ellipsis; }
+
 .te-row > [data-pair] { grid-column: 3; }
 
 .te-row > pk-button { grid-column: 4; }

@@ -165,6 +165,7 @@ function measure(stage) {
         if (inter && el.labels?.length) { const l = [...el.labels].map(x => x.getBoundingClientRect()).sort((a, b) => b.width * b.height - a.width * a.height)[0]; if (l.width && l.height) hitRect = [l.width, l.height].map(v => Math.round(v * 10) / 10); }
         boxes.push({
             id, parent, hitRect, path: pathOf(el, stage), rect: [r.x + ox, r.y + oy, r.width, r.height].map(v => Math.round(v * 10) / 10),
+            lines: cs.display === 'inline' && el.getClientRects().length > 1 ? [...el.getClientRects()].map(q => [q.x + ox, q.y + oy, q.width, q.height].map(v => Math.round(v * 10) / 10)) : null, // a wrapped inline box is several line boxes, not its bounding rect
             inFlow: !['absolute', 'fixed'].includes(cs.position) && cs.float === 'none' && !el.hasAttribute('popover'),
             clipX, clipY, interactive: inter, inlineLink: el.localName === 'a' && cs.display === 'inline', name: inter ? nameOf(el) : '',
             textColor: ownText && bg && Number(cs.opacity) === 1 ? rgba(cs.color) : null, bg, fontSize: parseFloat(cs.fontSize), bold: Number(cs.fontWeight) >= 700,
