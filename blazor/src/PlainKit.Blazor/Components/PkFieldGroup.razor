@@ -5,17 +5,17 @@
 @implements IDisposable
 
 @* Hand-written (mapping "existing"): a typed wrapper over pk-field-group, which owns the controls, the conditional rendering, the form value, the validation and pk-form's summary (#222, #226).
-   It only turns PkFieldSpec<TItem> items and a model into the element's fields and values, and the element's pk-field-change back into each spec's Set. The funcs of a spec (When, Disabled,
-   ReadOnly, HelpWhen, LabelWhen, OptionsSource) are read on every render and sent as data; a field whose When is false is not sent at all. LabelAction is slotted for its field; Search is the element's
-   search callback. *@
+   It turns PkFieldSpec<TItem> items and a model into the element's fields and values, and pk-field-change back into each spec's Set. The funcs of a spec (When, Disabled, ReadOnly, HelpWhen,
+   LabelWhen, OptionsSource) are read on every render and sent as data; a field whose When is false is not sent. LabelAction and Editor are slotted; Search is the search callback. *@
 <pk-field-group fields="@PkAttr.Json(Defs())"
                 values="@Values()"
                 @ref="Element"
                 class="@Css()"
                 @attributes="Splat">
-    @foreach (var f in Visible().Where(f => f.LabelAction is not null))
+    @foreach (var f in Visible())
     {
-        <span slot="@($"label-action-{f.Key}")">@f.LabelAction!(Model)</span>
+        if (f.LabelAction is not null) { <span slot="@($"label-action-{f.Key}")">@f.LabelAction(Model)</span> }
+        if (f.Editor is not null) { <div slot="@($"editor-{f.Key}")">@f.Editor(Model)</div> }
     }
 </pk-field-group>
 
@@ -44,7 +44,7 @@
         string? Pick(Func<TItem, string?>? when, string? fallback) => when?.Invoke(Model) is { Length: > 0 } s ? s : fallback;
         return PkFieldGroupMembers.Pass(f) with
         {
-            Label = Pick(f.LabelWhen, f.Label)!, Kind = f.Kind.ToString().ToLowerInvariant(), Help = Pick(f.HelpWhen, f.Help),
+            Label = Pick(f.LabelWhen, f.Label)!, Kind = f.Editor is not null ? "custom" : f.Kind.ToString().ToLowerInvariant(), Help = Pick(f.HelpWhen, f.Help),
             Disabled = (f.Disabled?.Invoke(Model) ?? false) || (readOnly && !text), Readonly = readOnly && text, Options = f.OptionsSource?.Invoke() ?? f.Options,
         };
     }).ToList();

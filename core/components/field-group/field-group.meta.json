@@ -15,7 +15,7 @@
       "type": "json",
       "default": [],
       "reflect": false,
-      "description": "The field specs, in order: { key, label, kind?, hint?, help?, required?, readonly?, disabled?, hideLabel?, span?, placeholder?, min?, max?, step?, minlength?, maxlength?, pattern?, format?, decimals?, currency?, locale?, rows?, options?: [{ value, label }], free?, when?, msg? }. kind is text (default), number, email, password, date, time, url, tel, textarea, select, checkbox, switch, range or combobox. hint is the line under the field, help a tooltip beside the label, span makes the field fill the row, format is money on an input kind (with decimals, currency, locale: pk-input's money format, the value stays the plain number), msg is { constraint: text } for the form's validation messages."
+      "description": "The field specs, in order: { key, label, kind?, hint?, help?, required?, readonly?, disabled?, hideLabel?, span?, placeholder?, min?, max?, step?, minlength?, maxlength?, pattern?, format?, decimals?, currency?, locale?, rows?, options?: [{ value, label }], free?, when?, msg? }. kind is text (default), number, email, password, date, time, url, tel, textarea, select, checkbox, switch, range or combobox, or custom (no control: the field's body is the child with slot editor-<key>; it has no value and takes no part in the form or its validation). hint is the line under the field, help a tooltip beside the label, span makes the field fill the row, format is money on an input kind (with decimals, currency, locale: pk-input's money format, the value stays the plain number), msg is { constraint: text } for the form's validation messages."
     },
     {
       "name": "values",
@@ -68,7 +68,8 @@
     }
   ],
   "slots": [
-    { "name": "", "description": "Holds children whose slot is label-action- followed by a field key: each appears beside that field's label (a button, a badge). A child with no such slot name is not shown." }
+    { "name": "", "description": "Holds children whose slot is label-action- followed by a field key: each appears beside that field's label (a button, a badge). A child with no such slot name is not shown." },
+    { "name": "editor-<key>", "dynamic": true, "description": "The body of the custom field with that key: your own content in place of a control. It has no value and takes no part in the form or its validation." }
   ],
   "events": [
     {
@@ -101,6 +102,10 @@
     {
       "title": "Fields with a conditional one (set fields and values from script: an inline script cannot run under this site's CSP)",
       "html": "<pk-field-group label=\"Order\" fields='[{\"key\":\"name\",\"label\":\"Name\",\"required\":true},{\"key\":\"qty\",\"label\":\"Quantity\",\"kind\":\"number\",\"min\":\"1\"},{\"key\":\"status\",\"label\":\"Status\",\"kind\":\"select\",\"options\":[{\"value\":\"open\",\"label\":\"Open\"},{\"value\":\"closed\",\"label\":\"Closed\"}]},{\"key\":\"note\",\"label\":\"Closing note\",\"kind\":\"textarea\",\"required\":true,\"when\":{\"field\":\"status\",\"equals\":\"closed\"}},{\"key\":\"amount\",\"label\":\"Amount\",\"kind\":\"number\",\"format\":\"money\",\"decimals\":2,\"currency\":\"USD\"}]' values='{\"status\":\"open\"}'></pk-field-group>"
+    },
+    {
+      "title": "A custom field: your own content in the field body (slot editor-<key>), no value and no part in the form",
+      "html": "<pk-field-group label=\"Order\" fields='[{\"key\":\"name\",\"label\":\"Name\"},{\"key\":\"sum\",\"label\":\"Summary\",\"kind\":\"custom\"}]' values='{\"name\":\"Acme\"}'><span slot=\"editor-sum\">3 lines, total 45.00</span></pk-field-group>"
     }
   ],
   "methods": [
