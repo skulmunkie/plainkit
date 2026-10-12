@@ -14,7 +14,25 @@
       "default": "15mm",
       "map": "prop",
       "prop": "margin"
+    },
+    {
+      "name": "ChildContent",
+      "type": "RenderFragment?",
+      "map": "slot",
+      "slot": ""
+    },
+    {
+      "name": "Toolbar",
+      "type": "RenderFragment?",
+      "map": "slot",
+      "slot": "toolbar"
+    },
+    {
+      "name": "Title",
+      "type": "RenderFragment?",
+      "map": "slot",
+      "slot": "title"
     }
   ],
-  "notes": "New component (issue #1024). ChildContent is the printed document; put screen-only buttons in a child with slot=\"toolbar\" and mark anything else that must not print with data-screen-only."
+  "notes": "New component (issue #1024). ChildContent is the printed document (the default slot); Toolbar fills the screen-only toolbar slot and Title the title slot (issue #1215: the wrapper first had no slot parameters, so the document was dropped). Mark anything else that must not print with data-screen-only."
 }
