@@ -7,10 +7,10 @@
 :host([block]) { display: block; }
 [part="control"] { font: inherit; font-size: var(--text-read); font-weight: 500; line-height: 1.3; display: inline-flex; align-items: center; justify-content: center; gap: var(--space-2); min-height: var(--ctl-h); background: var(--_bg); color: var(--_fg); border: 1px solid var(--pk-button-border, var(--_bd)); border-radius: var(--pk-button-radius, var(--radius-sm)); padding: var(--pk-button-padding, var(--space-2) var(--space-4)); white-space: nowrap; text-decoration: none; cursor: pointer; touch-action: manipulation; }
 :host([block]) [part="control"] { width: 100%; }
-:host(:is([overflow="wrap"],[overflow="truncate"])) { max-inline-size: 100%; min-inline-size: 0; }
-:host(:is([overflow="wrap"],[overflow="truncate"])) [part="control"] { max-inline-size: 100%; min-inline-size: 0; box-sizing: border-box; }
 :host([overflow="wrap"]) [part="control"] { white-space: normal; overflow-wrap: anywhere; text-align: center; }
-:host([overflow="truncate"]) .lbl { min-inline-size: 0; overflow: hidden; text-overflow: ellipsis; }
+:host([overflow="truncate"]) { max-inline-size: 100%; }
+:host([overflow="truncate"]) [part="control"] { max-inline-size: 100%; box-sizing: border-box; }
+:host([overflow="truncate"]) .lbl { overflow: hidden; text-overflow: ellipsis; }
 :host(:not([disabled])) [part="control"]:hover { background: var(--_bg-hover); }
 :host([variant="ghost"]:not([pressed],[disabled])) [part="control"]:hover { color: var(--color-text); border-color: var(--color-text); }
 :host([variant="secondary"]:not([pressed],[disabled])) [part="control"]:hover { color: var(--color-accent-hover); border-color: var(--color-accent-hover); }
