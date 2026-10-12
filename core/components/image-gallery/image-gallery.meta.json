@@ -35,10 +35,9 @@
     { "name": "actions", "description": "The row of buttons under an image." },
     { "name": "action", "description": "A make-primary or remove pk-button." },
     { "name": "add-tile", "description": "The list item holding the add tile." },
-    { "name": "add", "description": "The add tile (a label around the file input)." },
+    { "name": "add", "description": "The add tile: a pk-dropzone (the picker and file drops). Style its box with ::part(zone) through this part." },
     { "name": "add-icon", "description": "The plus on the add tile." },
     { "name": "add-text", "description": "The text on the add tile." },
-    { "name": "file", "description": "The file input." },
     { "name": "viewer", "description": "The pk-lightbox." }
   ],
   "cssProperties": [
