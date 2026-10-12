@@ -79,6 +79,7 @@ export default {
             t.within(ICON, BOX); t.within(TEXT, BOX);
             t.sameRow(ICON, TEXT);
             t.noOverlap(ICON, TEXT);
+            t.contrast('#q >>> [role=option][aria-selected="true"] [part=row-sub]', '#q >>> [role=option][aria-selected="true"]'); // 1243
             t.ringVisible(BOX);
             t.ringUnclipped(BOX);
             t.atLeast(TEXT, 'width', 100);
