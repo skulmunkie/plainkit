@@ -13,7 +13,7 @@ if (options.chrome === 'full') doc.body.classList.add('site');
 // The height goes out at most once per frame, and only when it moved by more than a pixel (lazy frames mounting would otherwise
 // flood the parent with jumps). The target is the embedder's origin when the browser reports it, else '*' (the payload is one number).
 let sent = -1; let queued = 0;
-const target = (() => { try { return win.location.ancestorOrigins?.[0] || (doc.referrer ? new URL(doc.referrer).origin : '*'); } catch { return '*'; } })();
+const target = (() => { try { return addressOf(win).ancestor || (doc.referrer ? new URL(doc.referrer).origin : '*'); } catch { return '*'; } })();
 const flush = () => {
     queued = 0;
     const height = Math.ceil(host.getBoundingClientRect().height);

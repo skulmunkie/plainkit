@@ -25,14 +25,14 @@
       "type": "string",
       "default": "pk-palette-recents",
       "reflect": true,
-      "description": "localStorage key; empty disables recents."
+      "description": "Browser storage key; empty disables recents."
     },
     {
       "name": "noShortcut",
       "type": "boolean",
       "default": false,
       "reflect": true,
-      "description": "Do not bind Ctrl/Cmd+K on the document."
+      "description": "Do not bind Ctrl/Cmd+K on the page."
     },
     {
       "name": "label",

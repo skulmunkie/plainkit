@@ -24,8 +24,8 @@ const SCRIPTS = ['theme', 'colour', 'quality', 'scoring', 'audit', 'plainkit', '
 const scriptFiles = () => Object.fromEntries(SCRIPTS.map(n => [n, here(`../../js/${n}.js`)]));
 
 // What the size section weighs: the built files in dist/, each against the budget of tests/budgets.test.mjs.
-async function sizeFiles() {
-    const res = await fetch(here('../../dist/manifest.json'));
+async function sizeFiles(fetchFn = globalThis.fetch) {
+    const res = await fetchFn(here('../../dist/manifest.json'));
     if (!res.ok) return [];
     const { files } = await res.json();
     const dist = p => here(`../../dist/${p}`);
@@ -41,11 +41,11 @@ async function sizeFiles() {
 }
 
 // Mounts the card into `root` (the site app's scorecard module, modules/scorecard.js, calls this); resolves to { run, results, report, ready, destroy }.
-export async function startScorecard(root, concurrency, signal) {
-    const intro = document.createElement('p');
+export async function startScorecard(root, concurrency, signal, doc = root.ownerDocument) {
+    const intro = doc.createElement('p');
     intro.className = 'muted';
     intro.textContent = `Scores 0-100 for performance, scale, look and accessibility, from the definitions in scorecard/scoring.data.js (every threshold is a setting there). A run renders every gallery sample at ${SCORING.widths.join(', ')}px in both themes, so it takes a little while.`;
-    const host = document.createElement('div');
+    const host = doc.createElement('div');
     root.replaceChildren(intro, host);
     return mountScorecard(host, {
         sections: ['ranked', 'performance', 'size', 'api', 'tiers', 'sweep', 'security', 'history'],
