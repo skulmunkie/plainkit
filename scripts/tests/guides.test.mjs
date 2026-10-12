@@ -173,6 +173,16 @@ test('every sample block in the Build an app guide is copied verbatim from a fil
     assert.doesNotMatch(g.text, /ctx\.modules\(/, 'module-composed dashboards are not documented until they merge');
 });
 
+// The entry-versus-lazy section quotes the hard cap and the page-type limit; read them from the budget source so the guide cannot rot (#514).
+test('the Build an app guide states the entry cap and the page-type limit from the budget source', async () => {
+    const { BUDGETS } = await import('../../core/site/scorecard/scoring.data.js');
+    const text = guide('build-an-app').text;
+    assert.ok(text.includes(`\`appEntryGzKb\` (${BUDGETS.appEntryGzKb.limit} KB)`), 'FIX: update the entry cap in the guide section "What is in the entry and what is lazy"');
+    assert.ok(text.includes(`(limit ${BUDGETS.appPageTypeGzKb.limit})`));
+    assert.match(text, /core\/tests\/app-budgets\.test\.mjs/);
+    assert.ok(fs.existsSync(path.join(root, 'core/tests/app-budgets.test.mjs')));
+});
+
 // The module `footer` the Build an app guide describes is accepted by defineModule (#363, #373); `false` means none.
 test('the Build an app guide documents the module footer and defineModule accepts both shapes', async () => {
     assert.match(guide('build-an-app').text, /module may also carry its own `footer`/);
