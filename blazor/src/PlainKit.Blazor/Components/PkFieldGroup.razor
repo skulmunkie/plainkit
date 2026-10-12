@@ -74,5 +74,5 @@
     }
 
     /// <inheritdoc />
-    public void Dispose() { _search.Dispose(); _commit.Dispose(); }
+    public void Dispose() { _search.Dispose(); _commit.Dispose(); Untrack(); }
 }

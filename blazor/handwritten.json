@@ -241,6 +241,9 @@
     "Testing/PkDataTableTesting.cs": {
       "category": "callback-slot"
     },
+    "Testing/PkFieldTesting.cs": {
+      "category": "callback-slot"
+    },
     "Testing/PkFieldGroupTesting.cs": {
       "category": "callback-slot"
     }
