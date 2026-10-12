@@ -23,18 +23,18 @@
 [part="action"]::part(control) { white-space: normal; max-inline-size: 100%; }
 
 [part="add-tile"] { position: relative; display: grid; align-self: start; aspect-ratio: 1; min-inline-size: 0; }
-[part="add"] { position: relative; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: var(--space-1); padding: var(--space-2); border: 1px dashed var(--color-border); border-radius: var(--pk-image-gallery-radius, var(--radius-lg)); background: var(--color-surface-alt); color: var(--color-muted-strong); text-align: center; cursor: pointer; touch-action: manipulation; }
-[part="add"]:hover { border-color: var(--color-accent); color: var(--color-text); }
-[part="add"]:focus-within { outline: var(--focus-ring); outline-offset: 2px; }
+[part="add"] { display: block; block-size: 100%; min-inline-size: 0; }
+[part="add"]::part(zone) { box-sizing: border-box; block-size: 100%; padding: var(--space-2); gap: var(--space-1); align-content: center; border: 1px dashed var(--color-border); border-radius: var(--pk-image-gallery-radius, var(--radius-lg)); background: var(--color-surface-alt); color: var(--color-muted-strong); touch-action: manipulation; }
+[part="add"]::part(zone):hover, [part="add"][dragover]::part(zone) { border-color: var(--color-accent); color: var(--color-text); }
+[part="add"]::part(title) { font-size: inherit; font-weight: inherit; color: inherit; }
+[part="add-icon"], [part="add-text"] { display: block; }
 [part="add-icon"] { font-size: var(--text-lg); line-height: 1; }
 [part="add-text"] { font-size: var(--text-meta); line-height: 1.2; }
-[part="file"] { position: absolute; inset: 0; inline-size: 100%; block-size: 100%; opacity: 0; cursor: pointer; }
-:host([has-input]) [part="file"] { display: none; }
 
 @media (pointer: coarse), (--phone) {
     [part="actions"] { padding-inline-start: calc(var(--space-1) + var(--touch-target)); }
 }
 @media (--phone) {
     [part="action"] { --pk-button-padding: calc((var(--touch-target) - 1.25 * var(--text-meta)) / 2) var(--space-2); }
-    [part="add"] { min-block-size: var(--touch-target); }
+    [part="add"]::part(zone) { min-block-size: var(--touch-target); }
 }
