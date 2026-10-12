@@ -207,22 +207,22 @@ export default {
             t.absent('#dock >>> [part=group][drop-zone="center"]');
         }
         if (t.shot === 'collapsed') {
-            t.ok(t.attr('#dock >>> [data-panel=canvas]', 'aria-expanded') === 'false', 'the toggle reports collapsed');
+            t.absent('#dock >>> [data-panel=canvas][pressed]', 'the toggle reports collapsed (its control drops aria-expanded)');
             t.hidden('#dock >>> #b-canvas', 'the collapsed body is hidden');
             t.visible('#dock >>> #h-canvas', 'the header stays, showing only the title and chevron');
         }
         if (t.shot === 'expanded') {
-            t.ok(t.attr('#dock >>> [data-panel=canvas]', 'aria-expanded') === 'true', 'the toggle reports expanded again');
+            t.exists('#dock >>> [data-panel=canvas][pressed]', 'the toggle reports expanded again');
             t.visible('#dock >>> #b-canvas', 'the body is back');
         }
         if (t.shot === 'rail') {
             t.exists('#dock >>> [part=rail-button]');
             t.visible('#dock >>> [part=rail-button]', 'the collapsed right column shows a rail button');
             t.absent('#dock >>> [data-panel=props]', 'no header chevron is left for it');
-            t.ok(t.attr('#dock >>> [part=rail-button]', 'aria-expanded') === 'false', 'the flyout is not open yet');
+            t.absent('#dock >>> [part=rail-button][pressed]', 'the flyout is not open yet');
         }
         if (t.shot === 'flyout-open') {
-            t.ok(t.attr('#dock >>> [part=rail-button]', 'aria-expanded') === 'true', 'the rail button reports the flyout open');
+            t.exists('#dock >>> [part=rail-button][pressed]', 'the rail button reports the flyout open');
             t.visible('#dock >>> [part=flyout]', 'the flyout is shown');
             t.visible('[slot=props]', 'the panel content is shown inside the flyout');
             t.visible('#dock >>> [part=flyout] > [part=collapse-toggle]', 'the flyout offers its own Expand affordance back to a docked header');
@@ -234,7 +234,7 @@ export default {
             // Issue #636: the Expand button in the flyout restored Properties to a normal docked header, closed the flyout, and left no rail behind.
             t.hidden('#dock >>> [part=flyout]', 'the flyout closed once Properties expanded');
             t.absent('#dock >>> [part=rail-button]', 'no rail button is left: the right column is a normal header again');
-            t.ok(t.attr('#dock >>> [data-panel=props]', 'aria-expanded') === 'true', 'the restored header reports expanded');
+            t.exists('#dock >>> [data-panel=props][pressed]', 'the restored header reports expanded');
             t.visible('#dock >>> #b-props', 'the panel body is back in its normal docked position');
         }
         if (t.shot === 'move-menu') { t.visible('#dock >>> [part=group] pk-dropdown', 'the Move menu opened'); t.exists('#dock >>> [part=group] pk-menu-item'); }

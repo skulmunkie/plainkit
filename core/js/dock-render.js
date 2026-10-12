@@ -56,17 +56,14 @@ export function group(el, d, n, floaterId) {
             g.setAttribute('aria-label', title(panel));
             railBtn.hidden = false;
             railBtn.setAttribute('data-rail-panel', panel);
-            railBtn.setAttribute('aria-haspopup', 'true');
-            railBtn.setAttribute('aria-expanded', String(el.$flyout === panel));
-            railBtn.setAttribute('aria-controls', 'flyout');
+            railBtn.pressed = el.$flyout === panel;
             railBtn.textContent = title(panel);
             return g;
         }
         railBtn.remove();
         h.id = `h-${panel}`;
         const toggle = h.querySelector('[part="collapse-toggle"]');
-        toggle.setAttribute('aria-expanded', String(!collapsed));
-        toggle.setAttribute('aria-controls', bodyId);
+        toggle.pressed = !collapsed;
         toggle.setAttribute('data-panel', panel);
         toggle.querySelector('[part="title"]').textContent = title(panel);
         if (!el.$phoneStrip) h.append(panelTrigger(el, d, panel, n.id, movable, floaterId));
