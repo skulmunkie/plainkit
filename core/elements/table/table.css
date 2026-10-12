@@ -23,6 +23,7 @@ th { color: var(--color-muted-strong); font-size: var(--text-meta); font-weight:
 :host([sticky-header][sticky-column]) thead th:first-child { z-index: calc(var(--z-sticky) + 1); }
 tr[data-clickable] { cursor: pointer; }
 tr[data-clickable]:focus-visible { outline: var(--focus-ring); outline-offset: -2px; }
+th slot::slotted(*) { margin-inline-start: var(--space-1); }
 th button { all: unset; display: inline-block; cursor: pointer; }
 th[aria-sort="none"] button::after { content: " \2195"; opacity: 0.5; }
 th[aria-sort="ascending"] button::after { content: " \2191"; }

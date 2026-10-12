@@ -110,7 +110,7 @@ test('the empty state has a text prop, and the table detail slots are listed in 
     const { readFileSync } = await import('node:fs');
     const meta = JSON.parse(readFileSync(new URL('./table.meta.json', import.meta.url), 'utf8'));
     assert.equal(meta.props.find(p => p.name === 'emptyText').default, 'No rows');
-    assert.deepEqual(meta.slots.filter(s => s.dynamic).map(s => s.name), ['cell-<rowId>-<key>', 'detail-<rowId>']);
+    assert.deepEqual(meta.slots.filter(s => s.dynamic).map(s => s.name), ['cell-<rowId>-<key>', 'header-<key>', 'detail-<rowId>']);
     assert.ok(meta.events.some(e => e.name === 'pk-row-expand'));
 });
 
@@ -239,7 +239,7 @@ test('currentRow marks one row with aria-current and a tint and is a host-set st
     const meta = JSON.parse(readFileSync(new URL('./table.meta.json', import.meta.url), 'utf8'));
     const p = meta.props.find(x => x.name === 'currentRow');
     assert.deepEqual([p.type, p.default, p.reflect], ['string', '', true]);
-    assert.match(readFileSync(new URL('./table.js', import.meta.url), 'utf8'), /'aria-current': this\.currentRow && this\.currentRow === id \? 'true' : null/);
+    assert.match(readFileSync(new URL('./../../js/table-vw.js', import.meta.url), 'utf8'), /'aria-current': el\.currentRow && el\.currentRow === id \? 'true' : null/);
     assert.match(readFileSync(new URL('./table.css', import.meta.url), 'utf8'), /tr\[aria-current\]/);
 });
 
