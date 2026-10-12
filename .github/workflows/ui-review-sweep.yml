@@ -2,7 +2,8 @@ name: UI review sweep
 
 # The full UI review (every element and scenario, node scripts/ui-review.mjs --all) on main, nightly and on demand, in four shards. A pull request only reviews
 # the elements it changes (ci.yml, job ui-review); this is the coverage check for everything else, including token, base CSS and layout changes (issue #777).
-# An error finding fails the shard, so the scheduled run shows red on main. The screenshots are kept as the artifacts ui-review-sweep-1 to -4.
+# An error finding fails the shard, so the scheduled run shows red on main, and the job `report` opens or updates ONE issue "UI review sweep failing on main" (#781),
+# comments when the sweep is green again and never closes it. The screenshots are kept as the artifacts ui-review-sweep-1 to -4.
 on:
   schedule:
     - cron: '17 3 * * *'
@@ -60,3 +61,48 @@ jobs:
           name: ui-review-sweep-${{ matrix.shard }}
           path: review-output/
           if-no-files-found: ignore
+
+  # One tracking issue, like nightly-full.yml and browser-nightly.yml: opened on the first failed sweep, commented on by later failures, commented on when
+  # the sweep is green again, never closed (the owner does). Its own job so that only it holds issues: write; the shards keep contents: read.
+  report:
+    name: Tracking issue
+    needs: sweep
+    # always(): runs after failed shards too. Scheduled and manual runs on main only (a manual run on another branch must not report to the main issue); never a pull request.
+    if: always() && github.event_name != 'pull_request' && github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    permissions:
+      contents: read
+      actions: read
+      issues: write
+    steps:
+      - name: Open or update the tracking issue
+        uses: actions/github-script@3a2844b7e9c422d3c10d287c895573f7108da1b3 # v9.0.0
+        env:
+          SWEEP_RESULT: ${{ needs.sweep.result }}
+        with:
+          script: |
+            const TITLE = 'UI review sweep failing on main';
+            const GREEN = '<!-- ui-review-sweep: green -->';
+            const FAIL = '<!-- ui-review-sweep: failing -->';
+            const { owner, repo } = context.repo;
+            const sha = context.sha.slice(0, 8);
+            const runUrl = `${context.serverUrl}/${owner}/${repo}/actions/runs/${context.runId}`;
+            const result = process.env.SWEEP_RESULT;
+            if (result === 'cancelled') { core.info('sweep cancelled, nothing to report'); return; }
+            const failed = result !== 'success';
+            const issues = await github.paginate(github.rest.issues.listForRepo, { owner, repo, state: 'open', per_page: 100 });
+            const existing = issues.find(i => !i.pull_request && i.title === TITLE);
+            if (failed) {
+              const jobs = await github.paginate(github.rest.actions.listJobsForWorkflowRun, { owner, repo, run_id: context.runId, per_page: 100 });
+              const bad = jobs.filter(j => j.name.startsWith('Sweep') && j.conclusion === 'failure').map(j => `- ${j.name}: ${j.html_url}`);
+              const body = [FAIL, `The nightly UI review sweep (node scripts/ui-review.mjs --all) failed on \`main\` (${sha}). Run: ${runUrl}`, '',
+                bad.length ? 'Failed shards:' : 'No shard is marked failed (the failure is outside the shards: see the run).', ...bad, '',
+                'The findings are in each shard log (every error has a FIX line) and the screenshots are the artifacts `ui-review-sweep-1` to `-4`. Reproduce a shard: `node scripts/ui-review.mjs --all --shard i/4`. This issue is closed by the owner, not automatically.'].join('\n');
+              if (existing) { await github.rest.issues.createComment({ owner, repo, issue_number: existing.number, body }); core.info(`commented on #${existing.number}`); }
+              else { const made = await github.rest.issues.create({ owner, repo, title: TITLE, body }); core.info(`opened #${made.data.number}`); }
+            } else if (existing) {
+              const comments = await github.paginate(github.rest.issues.listComments, { owner, repo, issue_number: existing.number, per_page: 100 });
+              if (comments.length && String(comments[comments.length - 1].body ?? '').includes(GREEN)) { core.info('green, the issue already says so'); return; }
+              await github.rest.issues.createComment({ owner, repo, issue_number: existing.number, body: [GREEN, `The UI review sweep is green again on \`main\` (${sha}). Run: ${runUrl}`, '', 'Close this issue when you are satisfied it stays green.'].join('\n') });
+            } else core.info('green, and no open tracking issue');
