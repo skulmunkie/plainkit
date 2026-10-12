@@ -23,6 +23,7 @@ const DOCK = `<pk-dock label="Editor">
   <div slot="props" data-heading="Properties" data-group="right">Properties</div>
 </pk-dock>`;
 const rect = e => e.getBoundingClientRect();
+const ctl = b => b.shadowRoot.querySelector('[part=control]'); // the pk-button's inner <button>: it carries aria-expanded, the label and the focus ring
 const key = (el, k) => el.dispatchEvent(new KeyboardEvent('keydown', { key: k, bubbles: true, composed: true, cancelable: true }));
 
 export const dockCases = [
@@ -83,18 +84,30 @@ export const dockCases = [
         const dock = doc.querySelector('pk-dock'), root = () => dock.shadowRoot.querySelector('[part=root]');
         const seen = []; dock.addEventListener('pk-layout-change', e => seen.push(e.detail));
         const toggle = () => [...root().querySelectorAll('[part=collapse-toggle]')].find(b => b.getAttribute('data-panel') === 'canvas');
-        t.eq(toggle().getAttribute('aria-expanded'), 'true');
-        const bodyId = toggle().getAttribute('aria-controls');
+        t.eq(ctl(toggle()).getAttribute('aria-expanded'), 'true');
+        const bodyId = 'b-canvas';
+        if ('ariaControlsElements' in ctl(toggle())) t.eq(ctl(toggle()).ariaControlsElements?.[0]?.id, 'b-canvas', 'the toggle controls the body it hides (aria-controls, reflected across the shadow boundary)');
         toggle().click(); await t.settle();
         t.eq(seen.length, 1); t.eq(seen[0].reason, 'collapse'); t.ok(seen[0].layout.collapsed.includes('canvas'));
-        t.eq(toggle().getAttribute('aria-expanded'), 'false');
+        t.eq(ctl(toggle()).getAttribute('aria-expanded'), 'false');
         const body = root().querySelector(`#${bodyId}`);
         t.ok(body.hidden, 'the panel\'s body is hidden while collapsed');
         t.ok(rect(doc.querySelector('[slot=canvas]')).width === 0, 'the slotted panel content is out of layout too');
         toggle().click(); await t.settle();
         t.eq(seen.length, 2); t.eq(seen[1].reason, 'collapse'); t.ok(!seen[1].layout.collapsed.includes('canvas'));
-        t.eq(toggle().getAttribute('aria-expanded'), 'true');
+        t.eq(ctl(toggle()).getAttribute('aria-expanded'), 'true');
         t.ok(!root().querySelector(`#${bodyId}`).hidden, 'expanding restores the body');
+    }],
+
+    ['dock: the header collapse-toggle keeps its part name, takes focus, and its focus ring sits inside the header (not clipped by the dock)', async t => {
+        const { doc } = await frame(t, DOCK, 1200);
+        const dock = doc.querySelector('pk-dock'), toggle = [...dock.shadowRoot.querySelectorAll('[part=collapse-toggle]')].find(b => b.getAttribute('data-panel') === 'canvas');
+        t.eq(toggle.localName, 'pk-button'); t.ok(toggle.disclosure, 'a disclosure button, so its own chevron and aria-expanded');
+        toggle.focus(); await t.settle();
+        t.eq(dock.shadowRoot.activeElement, toggle, 'the toggle takes focus');
+        t.eq(getComputedStyle(ctl(toggle)).outlineOffset, '-2px', 'the ring is drawn inside the control');
+        const h = rect(toggle.closest('[part=header]')), c = rect(ctl(toggle));
+        t.ok(c.height >= h.height - 1 && c.left >= h.left - 1 && c.right <= h.right + 1, 'the control fills the header height and stays within it');
     }],
 
     ['dock: collapsing an edge group (right column) folds it to a narrow rail button; activating it opens the panel as a flyout that closes on Escape and returns focus', async t => {
@@ -106,11 +119,17 @@ export const dockCases = [
         const rail = () => root().querySelector('[part=rail-button]');
         t.ok(rail(), 'the collapsed right column is a rail button, not a header');
         t.ok(rect(rail().closest('[part=group]')).width < before, 'the column narrows to the rail width');
-        t.eq(rail().getAttribute('aria-expanded'), 'false');
+        t.eq(ctl(rail()).getAttribute('aria-expanded'), 'false');
+        t.eq(ctl(rail()).getAttribute('aria-haspopup'), 'true', 'the rail button says it opens a popup');
+        if ('ariaControlsElements' in ctl(rail())) t.eq(ctl(rail()).ariaControlsElements?.[0]?.getAttribute('part'), 'flyout', 'the rail button controls the flyout');
+        const rc = rect(ctl(rail())), rg = rect(rail().closest('[part=group]'));
+        t.ok(rc.height > 60 && rc.height >= rg.height - 2, `the rail control fills the rail's height (not clipped to a square): control ${Math.round(rc.height)}, rail ${Math.round(rg.height)}`);
+        t.ok(rc.width >= rg.width - 2 && rc.width <= rg.width + 1, `the rail control spans the rail width: ${Math.round(rc.width)} of ${Math.round(rg.width)}`);
+        t.ok(ctl(rail()).scrollHeight <= ctl(rail()).clientHeight + 1, 'the vertical label is not clipped');
         rail().click(); await t.settle(); await wait(60);
         const flyout = dock.shadowRoot.querySelector('[part=flyout]');
         t.ok(!flyout.hidden, 'activating the rail button opens the flyout');
-        t.eq(rail().getAttribute('aria-expanded'), 'true');
+        t.eq(ctl(rail()).getAttribute('aria-expanded'), 'true');
         t.ok(rect(doc.querySelector('[slot=props]')).width > 0, 'the panel content is shown inside the flyout');
         const fr = rect(flyout), rr = rect(rail());
         t.ok(fr.left >= rr.right - 1 || fr.right <= rr.left + 1, `the flyout is positioned over the content, beside the rail button (opening toward the content, so to its left for a right column), not on top of it: flyout ${Math.round(fr.left)}-${Math.round(fr.right)}, rail ${Math.round(rr.left)}-${Math.round(rr.right)}`);
@@ -119,7 +138,7 @@ export const dockCases = [
         t.ok(flyout.hidden, 'Escape closes the flyout');
         t.eq(dock.shadowRoot.activeElement, rail(), 'focus returns to the rail button');
         rail().click(); await t.settle(); await wait(60);
-        dock.shadowRoot.querySelector('[part=flyout] button').focus(); doc.querySelector('#probe').focus(); // focus leaves the flyout (its focusout is what closes it); button.click() alone never focuses anything
+        dock.shadowRoot.querySelector('[part=flyout] pk-button').focus(); doc.querySelector('#probe').focus(); // focus leaves the flyout (its focusout is what closes it); button.click() alone never focuses anything
         await t.settle(); await wait(60);
         t.ok(dock.shadowRoot.querySelector('[part=flyout]').hidden, 'moving focus elsewhere also closes the flyout');
     }],

@@ -45,7 +45,7 @@ export function reflyout(el) {
     const btn = el.part('root').querySelector?.(`[data-rail-panel="${el.$flyout}"]`);
     const flyoutEl = el.part('flyout');
     if (!btn) { el.$flyout = null; el.$o?.(); el.$o = undefined; unplace(flyoutEl); flyoutEl.hidden = true; return; }
-    btn.setAttribute('aria-expanded', 'true');
+    btn.pressed = true;
     place(btn, flyoutEl, { placement: 'right-start', offset: 4 });
 }
 
@@ -63,7 +63,7 @@ export function toggleFlyout(el, panel, btn) {
     flyoutEl.replaceChildren(x, slotEl);
     loadElements(flyoutEl);
     place(btn, flyoutEl, { placement: 'right-start', offset: 4 });
-    btn.setAttribute('aria-expanded', 'true');
+    btn.pressed = true;
     el.$o?.();
     el.$o = onOutside([btn, flyoutEl], ev => closeFlyout(el, ev));
 }
@@ -78,7 +78,7 @@ export function closeFlyout(el, e) {
     const flyoutEl = el.part('flyout');
     unplace(flyoutEl); flyoutEl.hidden = true;
     const btn = el.part('root').querySelector?.(`[data-rail-panel="${panel}"]`);
-    btn?.setAttribute('aria-expanded', 'false');
+    if (btn) btn.pressed = false;
     if (e?.type === 'keydown') btn?.focus?.();
 }
 
@@ -95,7 +95,7 @@ export function onFlyoutBlur(el, e) {
 // the header's collapse-toggle, since restoring from the flyout is the same expandPanel call; reflyout(), called from dock.js's draw(), then
 // notices the rail button is gone and closes the now-stale flyout on its own). Enter/Space activate any of them, no extra key handling needed.
 export function onToggle(el, e, collapsePanel, expandPanel) {
-    const btn = e.target.closest?.('button');
+    const btn = e.target.closest?.('pk-button');
     const railPanel = btn?.getAttribute('data-rail-panel');
     if (railPanel) { e.stopPropagation(); toggleFlyout(el, railPanel, btn); return; }
     const panel = btn?.getAttribute('data-panel');

@@ -1,7 +1,6 @@
 {
   "version": 1,
   "entries": [
-    { "rule": "D1", "element": "app-bar-search", "found": "input", "count": 1 },
-    { "rule": "D1", "element": "dock", "found": "button", "count": 3 }
+    { "rule": "D1", "element": "app-bar-search", "found": "input", "count": 1 }
   ]
 }

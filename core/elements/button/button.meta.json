@@ -163,6 +163,20 @@
       "description": "A button that shows or hides something else: a click flips pressed, a built-in caret rotates with it, and the control reports aria-expanded instead of aria-pressed. Use it for a row or panel the button itself expands and collapses (a sub-row, a detail block); for a control that stays visually pressed without expanding anything, use toggle instead. Composes with every variant, size and icon."
     },
     {
+      "name": "haspopup",
+      "type": "string",
+      "default": "",
+      "reflect": false,
+      "description": "What the button opens, announced as aria-haspopup on the control: menu, listbox, tree, grid, dialog or true. Empty says nothing."
+    },
+    {
+      "name": "controls",
+      "type": "json",
+      "default": null,
+      "reflect": false,
+      "description": "Property only: the element (or array of elements) this button controls, set as aria-controls on the control through ariaControlsElements, so it can name an element in the host's own tree across the shadow boundary. Where the browser lacks ariaControlsElements it does nothing and aria-expanded still announces the state."
+    },
+    {
       "name": "pressed",
       "type": "boolean",
       "default": false,
@@ -268,7 +282,7 @@
       "description": "Focuses the inner button or link."
     }
   ],
-  "a11y": "A native button (with href a native link) lives in the shadow root, so it is focusable and exposes the button (link) role. A button activates on Enter and Space, a link on Enter only, as any link does; its name comes from the slot. An icon button (icon) hides that text visually (a zero-size font, not display:none, so it stays in the accessibility tree) and it remains the name; label overrides it. Every icon-only button needs a name: from its text, label or aria-label (the scorecard flags one without). The name is also the native title tooltip on hover (skipped inside a pk-tooltip, which gives hover and keyboard focus, or when the host has its own title); the title is never the name. A toggle reports aria-pressed; a disclosure reports aria-expanded instead (never both) and draws a caret that rotates with pressed, for a button that itself expands or collapses another part of the page (name the expanded region with aria-controls if it is not adjacent). A busy button reports aria-busy and ignores clicks without dropping focus, and a busy icon button swaps its icon for the spinner and keeps its name; a disabled or busy link drops its href and reports aria-disabled. Focus ring and the 44px phone target are built in.",
+  "a11y": "A native button (with href a native link) lives in the shadow root, so it is focusable and exposes the button (link) role. A button activates on Enter and Space, a link on Enter only, as any link does; its name comes from the slot. An icon button (icon) hides that text visually (a zero-size font, not display:none, so it stays in the accessibility tree) and it remains the name; label overrides it. Every icon-only button needs a name: from its text, label or aria-label (the scorecard flags one without). The name is also the native title tooltip on hover (skipped inside a pk-tooltip, which gives hover and keyboard focus, or when the host has its own title); the title is never the name. A toggle reports aria-pressed; a disclosure reports aria-expanded instead (never both) and draws a caret that rotates with pressed, for a button that itself expands or collapses another part of the page (name the expanded region with aria-controls if it is not adjacent). A busy button reports aria-busy and ignores clicks without dropping focus, and a busy icon button swaps its icon for the spinner and keeps its name; a disabled or busy link drops its href and reports aria-disabled. Focus ring and the 44px phone target are built in. haspopup sets aria-haspopup on the control; controls (property only) sets aria-controls through ariaControlsElements (Chrome 135, Safari 16.4, Firefox 136; a no-op in older browsers, where aria-expanded still announces the state).",
   "examples": [
     {
       "title": "Variants",
@@ -285,6 +299,10 @@
     {
       "title": "Disclosure: a caret and aria-expanded",
       "html": "<pk-button disclosure variant=\"ghost\" size=\"mini\">Details</pk-button>\n<pk-button disclosure variant=\"plain\" pressed>Channels</pk-button>"
+    },
+    {
+      "title": "A button that opens a menu",
+      "html": "<pk-button disclosure haspopup=\"menu\" variant=\"ghost\">Actions</pk-button>"
     },
     {
       "title": "Icon buttons: the text is the name",
