@@ -39,4 +39,19 @@ export const siteToolCases = [
             t.ok(r.bottom <= 800 + 1, `${width}: the dock ends inside the screen (${Math.round(r.bottom)})`);
         }
     }],
+    ['files module (app): a deep link #/files?path=&line= opens that file at that line', async t => {
+        const p = await openApp(t, '#/files?path=tokens/tokens.css&line=3', 1280, '#pk-main pk-code-explorer');
+        t.ok(p.tool.getAttribute('initial-line') === '3', 'the explorer is asked to focus line 3');
+        const tab = await until(() => p.tool.querySelector('pk-tab[selected]'), 'the opened file tab');
+        t.ok(/tokens\.css/.test(tab.textContent + (tab.getAttribute('value') ?? '')), 'tokens.css is the open tab');
+    }],
+    ['layout builder module (app): a saved draft under the legacy key is restored, not replaced by the sample page', async t => {
+        const key = 'pk-layout-builder-draft', old = localStorage.getItem(key);
+        localStorage.setItem(key, JSON.stringify({ version: 1, seq: 2, nodes: [{ id: 'n1', tag: 'h2', props: {}, slots: { '': ['Restored draft heading'] } }] }));
+        try {
+            const p = await openApp(t, '#/layout-builder', 1280, '#pk-main pk-dock');
+            t.ok(p.main.textContent.includes('Restored draft heading') || (p.main.querySelector('pk-design-surface')?.textContent ?? '').includes('Restored draft heading'), 'the saved heading is on the canvas');
+            t.ok(!p.main.textContent.includes('Team overview'), 'the sample page is not shown');
+        } finally { if (old === null) localStorage.removeItem(key); else localStorage.setItem(key, old); }
+    }],
 ];
