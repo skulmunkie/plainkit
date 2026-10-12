@@ -172,3 +172,12 @@ test('every sample block in the Build an app guide is copied verbatim from a fil
     for (const re of [/Speed/, /Reliability/, /Security/, /client guard is a user-interface rule only/i, /Enforce every permission on the server/]) assert.match(g.text, re);
     assert.doesNotMatch(g.text, /ctx\.modules\(/, 'module-composed dashboards are not documented until they merge');
 });
+
+// The module `footer` the Build an app guide describes is accepted by defineModule (#363, #373); `false` means none.
+test('the Build an app guide documents the module footer and defineModule accepts both shapes', async () => {
+    assert.match(guide('build-an-app').text, /module may also carry its own `footer`/);
+    const { defineModule } = await import('../../core/js/app/module.js');
+    const base = { id: 'fin', title: 'Finance', routes: [{ path: '/', label: 'Home', page: 'not-found' }] };
+    assert.equal(defineModule({ ...base, footer: { text: 'Run by Finance', links: [{ label: 'Terms', href: '/terms.html' }] } }).footer.text, 'Run by Finance');
+    assert.equal(defineModule({ ...base, footer: false }).footer, false);
+});
