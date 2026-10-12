@@ -13,3 +13,6 @@
 [part="chips"][hidden] { display: none; }
 [part="chevron"] { flex: none; color: var(--color-muted-strong); transition: transform var(--duration-fast) ease; }
 :host([open]) [part="chevron"] { transform: rotate(180deg); }
+
+/* The popover body is muted by default; the rows of the list are the content, so they read in the text colour (a selected row's tint and the loading skeleton fell below 4.5:1 otherwise). */
+[part="table"] { color: var(--color-text); }

@@ -23,11 +23,11 @@ const cell = (row, key) => `#g >>> tbody tr:nth-child(${row}) td[data-key=${key}
 export default {
     name: 'table-edit',
     issue: [331],
-    elements: ['table'],
-    html: `<div class="u-p-1r-1p25r"><pk-table id="g" label="Stock" caption="Edit a cell with Enter" editable columns='${columns}' rows='${rows}'>${switches}</pk-table><button id="after" type="button">After</button><output id="log"></output></div>`,
+    elements: ['table', 'button'],
+    html: `<div class="u-p-1r-1p25r"><pk-table id="g" label="Stock" caption="Edit a cell with Enter" editable columns='${columns}' rows='${rows}'>${switches}</pk-table><pk-button id="after">After</pk-button><output id="log"></output></div>`,
     setup(frame) {
         const log = frame.querySelector('#log'), add = m => log.setAttribute('data-log', `${log.getAttribute('data-log') ?? ''}${m};`);
-        document.addEventListener('focusin', e => { const n = e.composedPath()[0]; add(n.localName === 'button' && n.getRootNode().host?.localName === 'pk-switch' ? 'switch' : n.localName === 'td' ? `cell-${n.dataset.key}` : n.id || n.localName); });
+        document.addEventListener('focusin', e => { const n = e.composedPath()[0]; add(n.localName === 'button' && n.getRootNode().host?.localName === 'pk-switch' ? 'switch' : n.localName === 'td' ? `cell-${n.dataset.key}` : n.id || n.getRootNode().host?.id || n.localName); });
         frame.querySelector('#g').addEventListener('pk-change', e => add(`pk-change:${e.detail.checked}`));
         frame.querySelector('#g').addEventListener('change', e => { if (e.target.localName === 'pk-switch') add(`change:${e.detail.checked}`); });
     },
