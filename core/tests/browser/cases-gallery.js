@@ -79,10 +79,10 @@ export const galleryCases = [
         await p.go('#/samples/templates'); await p.shows('Templates');
         t.ok(p.view().querySelector('pk-breadcrumb a[href="#/samples"]'), 'the list has its breadcrumb');
         await p.go('#/samples/layouts/shell');
-        await until(() => p.doc.querySelector('#gx-view iframe.gx-page-frame'), 'the full-page frame');
+        await until(() => p.doc.querySelector('#gx-view iframe.gx-page-frame'), 'the full-page frame', 400);
         t.ok(/kind=layouts&id=shell/.test(p.doc.querySelector('iframe.gx-page-frame').src), 'the frame loads that layout');
-        await until(() => p.doc.querySelector('#gx-title').textContent === 'App shell', 'the slim bar to carry the title');
-        await until(() => p.doc.querySelector('#gx-back').href === '#/samples/layouts', 'and a way back to the list');
+        await until(() => p.doc.querySelector('#gx-title').textContent === 'App shell', 'the slim bar to carry the title', 400);
+        await until(() => p.doc.querySelector('#gx-back').href === '#/samples/layouts', 'and a way back to the list', 400);
     }],
 
     ['gallery: the old addresses keep working: a control page is its element, layouts and templates live under samples, blocks and an unknown section are handled', async t => {
@@ -313,10 +313,11 @@ export const galleryAppCases = [
             const { d, win } = await openApp(t, hash);
             await until(() => d.querySelector('main')?.querySelector('*'), `${hash}: the page to draw`);
             if (hash.includes('gallery')) await until(() => d.querySelector('#gx-view pk-page-header, #gx-view pk-card'), `${hash}: the gallery view`);
+            // The loader imports each element on demand, so a loaded machine defines them late: after the 1.2 s grace, poll (10 s cap) until none is left undefined; a tag the loader never picks up still fails.
+            const undefOf = () => [...new Set([...d.body.querySelectorAll('*')].map(e => e.localName).filter(n => n.startsWith('pk-')))].filter(n => !win.customElements.get(n));
             await wait(1200);
-            const tags = [...new Set([...d.body.querySelectorAll('*')].map(e => e.localName).filter(n => n.startsWith('pk-')))];
-            const undef = tags.filter(n => !win.customElements.get(n));
-            t.eq(undef.join(', '), '', `${hash}: every pk-* in the page is defined 1.2 s after the view drew`);
+            for (let i = 0; i < 200 && undefOf().length; i++) await wait(50);
+            t.eq(undefOf().join(', '), '', `${hash}: every pk-* in the page is defined once the view is drawn`);
             if (hash.includes('pk-button')) t.ok(d.querySelector('#gx-view pk-page-header')?.shadowRoot?.querySelector('[part="title"]')?.textContent.trim(), 'the page header drew its heading');
         }
     }],

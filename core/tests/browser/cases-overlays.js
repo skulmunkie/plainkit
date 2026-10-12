@@ -528,6 +528,8 @@ export const overlaysCases = [
     ['app-bar-search: typing debounces pk-query, items render as results, arrows and Enter pick one and raise pk-select, Escape closes', async t => {
         const el = await t.mount('<pk-app-bar-search debounce="10" label="Search"></pk-app-bar-search>');
         const input = el.part('control');
+        await customElements.whenDefined('pk-input'); // the loader imports pk-input on demand; the native combobox below lives in its shadow root
+        for (let i = 0; i < 200 && !input.shadowRoot?.querySelector('input'); i++) await new Promise(r => setTimeout(r, 25));
         let queries = 0; el.addEventListener('pk-query', () => queries++);
         input.value = 'wid'; input.dispatchEvent(new Event('input', { bubbles: true }));
         t.ok(el.part('popup').hidden === false, 'the popup opens while typing, before results arrive');
