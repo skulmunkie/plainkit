@@ -19,7 +19,7 @@ export function pageGraph(html, pagePath) {
     for (const m of html.matchAll(/<link[^>]+href="([^"]+)"/g)) add(m[1]);
     for (const m of html.matchAll(/from '([^']+)'/g)) add(m[1]);
     add(REGISTRY);
-    const registry = Object.fromEntries([...read(REGISTRY).toString().matchAll(/"(pk-[\w-]+)":\s*"([^"]+)"/g)].map(m => [m[1], m[2]]));
+    const registry = Object.fromEntries(read(REGISTRY).toString().match(/fromEntries\('([^']*)'/)[1].split(' ').map(n => [`pk-${n}`, `./${n}.js`])); // the registry lists the names once (tools/build.mjs)
     const tags = new Set([...html.matchAll(/<(pk-[\w-]+)/g)].map(m => m[1]));
     const loaded = new Set();
     for (;;) {

@@ -73,12 +73,12 @@ function reach(starts) {
     return seen;
 }
 
-test('a page that uses only runtime elements never fetches a module: nothing reachable from the entry or an element imports dist/modules', () => {
+test('a page that uses only runtime elements never fetches a module: nothing reachable from the entry or an element imports dist/modules', async () => {
     const starts = ['dist/plainkit.js', 'dist/js/plainkit.js', 'dist/js/loader.js', ...[...out.keys()].filter(f => /^dist\/elements\/[^/]+\.js$/.test(f))];
     const seen = reach(starts);
     assert.ok(seen.size > 90, `only ${seen.size} files reached`);
     assert.deepEqual([...seen].filter(f => f.startsWith('dist/modules/')), []);
-    const registry = JSON.parse(out.get('dist/elements/registry.js').replace(/^[\s\S]*?export default /, '').replace(/;\s*$/, ''));
+    const registry = (await import(`data:text/javascript;base64,${Buffer.from(out.get('dist/elements/registry.js')).toString('base64')}`)).default;
     assert.ok(Object.values(registry).every(p => !/modules/.test(p)), 'no element is a module');
 });
 

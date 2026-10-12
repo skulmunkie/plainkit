@@ -58,6 +58,10 @@ export default Base => class extends Base {
         if (this.money()) { let c = ''; try { c = new Intl.NumberFormat(this.locale, { style: 'currency', currency: this.currency }).formatToParts(0).find(p => p.type === 'currency').value; } catch { this.warnOnce('c', 'bad currency'); } this.part('currency').textContent = c; }
         if (this.stepper) { this.part('step-down').disabled = this.disabled || this.n() <= num(this.min, -Infinity); this.part('step-up').disabled = this.disabled || this.n() >= num(this.max, Infinity); }
         if (this.copyable) this.part('copy').disabled = this.disabled || this.value === '';
+        // A combobox: the listbox lives in the host's tree, which the inner input reaches through element reflection (an older browser just ignores the two element references).
+        const l = this.listbox;
+        i.role = l && 'combobox'; i.ariaExpanded = l && '' + !l.hidden; i.ariaAutoComplete = l && 'list';
+        i.ariaControlsElements = l && [l]; i.ariaActivedescendantElement = l && l.querySelector('[aria-selected=true]');
         this.check();
     }
     check() {

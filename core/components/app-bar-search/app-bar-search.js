@@ -5,7 +5,6 @@
 // items is a JSON attribute or property (like pk-table's rows/columns), data-driven: { id, label, group?, sub?, thumbnail?, badge? }[].
 // The host computes results (locally or on the server) in response to the debounced pk-query event; this element never filters or fetches
 // itself. Choosing a result raises pk-select with the item; the host decides what happens (navigate, open a record) — never this element.
-import { drawIcon } from '../../js/icon-sprite.js';
 import { loadElements } from '../../js/loader.js';
 import { nextIndex } from '../../js/menu-logic.js';
 
@@ -17,10 +16,12 @@ export default Base => class extends Base {
     connected() {
         if (this.$w) return;
         this.$w = true;
-        loadElements(this.shadowRoot); // the expand and close buttons are pk-button elements in this shadow tree
+        loadElements(this.shadowRoot); // the field is a pk-input and the expand and close buttons pk-button elements in this shadow tree
         const box = this.part('box'), input = this.part('control'), pop = this.part('popup');
         this.part('expand').addEventListener('click', () => this.expand());
         this.part('collapse').addEventListener('click', () => this.collapse());
+        input.listbox = pop; // pk-input makes itself the combobox for this listbox (an ID could not name it across the shadow boundary)
+        input.addEventListener('pk-search', e => e.stopPropagation()); // the field's own search event is this element's pk-query; it must not reach an ancestor's pk-search listener
         input.addEventListener('input', () => {
             clearTimeout(this.$t);
             this.$t = setTimeout(() => this.emit('pk-query', { query: input.value }, { cancelable: false }), this.debounce);
@@ -29,13 +30,12 @@ export default Base => class extends Base {
         pop.addEventListener('slotchange', () => this.part('footer').hidden = !this.slotted('footer').length);
         pop.addEventListener('mousedown', e => e.preventDefault());
         pop.addEventListener('click', e => { const o = e.target.closest('[part="option"]'); if (o) this.select(this.$rows[Number(o.dataset.i)]); });
-        this.addEventListener('keydown', e => this.keys(e));
+        this.addEventListener('keydown', e => this.keys(e), true); // capture: Escape closes the results before pk-input's own Escape clears the text
         this.addEventListener('focusout', e => { if (!this.contains(e.relatedTarget)) this.setOpen(false); });
         box.addEventListener('focusout', e => { if (!this.expanded && !box.contains(e.relatedTarget)) this.collapse(); });
         // pk-app-shell collapses this field (collapse()) when its drawer opens, so two overlays never show at once; this element looks nowhere upward.
         this.$onRoute = () => { this.setOpen(false); this.collapse(); };
         addEventListener('popstate', this.$onRoute);
-        drawIcon(this.part('box-icon').firstChild, 'search', (k, m, d) => this.warnOnce(k, m, d));
         this.paint();
     }
     disconnected() {
@@ -51,7 +51,7 @@ export default Base => class extends Base {
 
     expand() { if (this.expanded) return; this.emit('pk-toggle', { expanded: this.expanded = true }, { cancelable: false }); requestAnimationFrame(() => this.part('control').focus()); }
     collapse() { this.setOpen(false); this.part('control').value = ''; if (!this.expanded) return; this.emit('pk-toggle', { expanded: this.expanded = false }, { cancelable: false }); }
-    setOpen(open) { if (this.$open === open) return; this.$open = open; this.part('popup').hidden = !open; this.part('control').setAttribute('aria-expanded', String(open)); this.highlight(-1); }
+    setOpen(open) { if (this.$open === open) return; this.$open = open; this.part('popup').hidden = !open; this.highlight(-1); }
 
     paint() {
         const foot = this.part('footer');
@@ -79,9 +79,10 @@ export default Base => class extends Base {
     highlight(i) {
         this.$a = i;
         const cur = this.part('popup').querySelector(`#pk-abs-${i}`);
-        const prev = this.part('popup').querySelector('[data-hl]');
-        if (prev !== cur) { prev?.removeAttribute('data-hl'); cur?.setAttribute('data-hl', ''); }
-        if (cur) { this.part('control').setAttribute('aria-activedescendant', cur.id); cur.scrollIntoView({ block: 'nearest' }); } else this.part('control').removeAttribute('aria-activedescendant');
+        const prev = this.part('popup').querySelector('[aria-selected]');
+        if (prev !== cur) { prev?.removeAttribute('aria-selected'); cur?.setAttribute('aria-selected', 'true'); }
+        this.part('control').requestUpdate?.(); // pk-input sets aria-activedescendant to the option marked aria-selected
+        cur?.scrollIntoView({ block: 'nearest' });
     }
     select(item) {
         if (!item) return;

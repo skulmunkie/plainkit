@@ -113,9 +113,9 @@ test('a tag is pk-<folder>, and the generated module inlines template, css and b
     }
 });
 
-test('the build writes per-element modules, a registry, the FOUC guard and a page layer with no component rules', () => {
+test('the build writes per-element modules, a registry, the FOUC guard and a page layer with no component rules', async () => {
     const out = built();
-    const registry = JSON.parse(out.get('dist/elements/registry.js').replace(/^[\s\S]*?export default /, '').replace(/;\s*$/, ''));
+    const registry = (await import(`data:text/javascript;base64,${Buffer.from(out.get('dist/elements/registry.js')).toString('base64')}`)).default;
     assert.deepEqual(Object.keys(registry).sort(), elements.map(e => e.meta.tag).sort());
     for (const el of elements) { assert.ok(out.has(`dist/elements/${el.name}.js`)); assert.ok(out.has(`${el.folder}/${el.name}/${el.name}.element.js`)); }
     const fouc = out.get('elements/elements.css');
