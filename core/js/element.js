@@ -42,16 +42,18 @@ export class PkElement extends HTMLElement {
         const root = this.shadowRoot ?? this.attachShadow({ mode: 'open', delegatesFocus: c.delegatesFocus });
         root.adoptedStyleSheets = [sheetFor(RESET), sheetFor(c.css)];
         if (!Object.hasOwn(c, '$k')) { c.$k = document.createElement('template'); c.$k.innerHTML = c.template; }
-        root.replaceChildren(c.$k.content.cloneNode(true));
+        // Bound on the detached clone, attached resolved: a child upgrading on attach never sees a raw {{placeholder}} (#1188).
+        const f = c.$k.content.cloneNode(true);
         this.$b = [];
-        const walk = document.createTreeWalker(root, 5);
-        for (let n = walk.nextNode(); n; n = walk.nextNode()) {
+        for (let n, w = document.createTreeWalker(f, 5); n = w.nextNode();) {
             if (n.nodeType === 3) { if (n.nodeValue.includes('{{')) this.$b.push({ n, parts: parseBindings(n.nodeValue) }); continue; }
             for (const a of n.attributes) {
                 if (a.value.includes('{{')) this.$b.push({ n, a: a.name, parts: parseBindings(a.value) });
                 else if (a.name === 'data-if' || a.name === 'data-if-not') this.$b.push({ n, key: a.value, not: a.name === 'data-if-not' });
             }
         }
+        this.render();
+        root.replaceChildren(f);
     }
 
     // The element's logger (scope: its tag), and a warning that is said once per element and key, so a loop or a re-render does not flood.
@@ -93,7 +95,7 @@ export class PkElement extends HTMLElement {
     render() {
         for (const b of this.$b) {
             if (b.parts) { const v = bindValue(b.parts, this.$, b.a); if (!b.a) b.n.nodeValue = v; else if (v === null) b.n.removeAttribute(b.a); else b.n.setAttribute(b.a, v); }
-            else b.n.hidden = b.not ? !!this.$[b.key] : !this.$[b.key];
+            else b.n.hidden = !this.$[b.key] === !b.not;
         }
     }
 
