@@ -21,3 +21,4 @@
     :host([orientation="vertical"]) .handle::after { inset-inline: 0; inset-block: calc((var(--_h) - var(--touch-target)) / 2); }
 }
 @media (prefers-reduced-motion: reduce) { .handle::before { transition: none; } }
+@media (--phone) { :host { --_h: max(var(--pk-splitter-handle, var(--space-2)), var(--touch-target)); } }

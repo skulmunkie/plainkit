@@ -186,7 +186,8 @@
  ],
  "splitter": [
   "(pointer: coarse)",
-  "(prefers-reduced-motion: reduce)"
+  "(prefers-reduced-motion: reduce)",
+  "(max-width: 640px)"
  ],
  "step": [
   "(max-width: 640px)"
@@ -196,6 +197,9 @@
   "(prefers-reduced-motion: reduce)"
  ],
  "tab": [
+  "(max-width: 640px)"
+ ],
+ "tab-panel": [
   "(max-width: 640px)"
  ],
  "table": [
