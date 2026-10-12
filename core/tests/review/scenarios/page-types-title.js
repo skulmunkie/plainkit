@@ -7,13 +7,13 @@ export default {
     issue: [807],
     elements: ['states-page', 'not-found-page', 'tool-page', 'heading'],
     html: '<div id="boxes"><main id="a"></main><main id="b"></main><main id="c"></main></div>',
-    setup(frame) {
+    async setup(frame) {
         const at = id => frame.querySelector(`#${id}`);
-        globalThis.__pages = [
+        globalThis.__pages = await Promise.all([
             mountPage(at('a'), { type: 'states', config: { state: 'empty', heading: 'No orders yet', description: 'Orders you place show up here.' } }),
             mountPage(at('b'), { type: 'not-found', config: { description: 'That page moved or never existed.' } }),
             mountPage(at('c'), { type: 'tool', config: { heading: 'Tax calculator', input: [{ key: 'amount', type: 'number', label: 'Amount' }], runLabel: 'Add tax' } }),
-        ];
+        ]);
     },
     steps: [{ wait: 'settle' }, { shot: 'pages' }],
     expect(t) {
