@@ -7,7 +7,7 @@ import fs from 'node:fs';
 const html = fs.readFileSync(new URL('../index.html', import.meta.url), 'utf8');
 
 test('the root page redirects and renders nothing before it does (no first-load bounce)', () => {
-    assert.match(html, /<meta http-equiv="refresh" content="0; url=site\/gallery\/index\.html">/);
+    assert.match(html, /<meta http-equiv="refresh" content="0; url=app\.html#\/gallery">/);
     const body = html.match(/<body[^>]*>([\s\S]*)<\/body>/)[1].replace(/<!--[\s\S]*?-->/g, '').replace(/<noscript>[\s\S]*?<\/noscript>/g, '');
     assert.equal(body.trim(), '', 'visible body content would be painted before the redirect: put it in <noscript>');
 });

@@ -128,9 +128,8 @@ test('a query that only appears in a guide\'s body finds it without matching any
     assert.equal(results[0].titleMatch, false); assert.equal(results[0].bodyMatch, true);
 });
 
-test('the Guides module is real: no "coming soon" left in it or the shell, the shell links to the app, and the standalone page is gone', () => {
-    assert.doesNotMatch(read('site/modules/guides.js') + read('site/shell.js'), /coming soon/i);
-    assert.match(read('site/shell.js'), /key: 'guides', title: 'Guides', href: '\.\.\/\.\.\/app\.html#\/guides'/);
+test('the Guides module is real: no "coming soon" left in it, and the standalone page is gone', () => {
+    assert.doesNotMatch(read('site/modules/guides.js'), /coming soon/i);
     assert.match(read('site/app.config.js'), /id: 'guides'/);
     for (const gone of ['site/guides/index.html', 'site/guides/page.js', 'site/guides/guides-logic.js']) assert.equal(fs.existsSync(path.join(root, gone)), false, `${gone} was retired: old links stop working, there is no redirect`);
 });

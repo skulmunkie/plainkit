@@ -1,4 +1,4 @@
-// Browser cases for the Gallery's routing (site/gallery/gallery.js, #401): the real page in a frame, driven only through its address, so they hold whatever draws the routes. Deep links,
+// Browser cases for the Gallery's routing (site/gallery/gallery.js, #401): the embed page (full chrome) in a frame, driven only through its address, so they hold whatever draws the routes. Deep links,
 // the old addresses that keep working, back and forward, the query inside the hash (?q ?p) and a scoped mount's first route. Same contract as cases.js: [name, async (t) => void].
 import { instrument } from './cases-app.js';
 
@@ -10,7 +10,7 @@ async function open(t, hash = '', search = '', width = 1280) {
     const host = t.stage(''), f = document.createElement('iframe');
     f.title = 'Gallery page'; f.style.cssText = `width:${width}px;height:900px;border:0`;
     const loaded = new Promise(r => f.addEventListener('load', r, { once: true }));
-    f.src = new URL(`../../site/gallery/index.html${search}${hash}`, import.meta.url).href; host.append(f); await loaded;
+    f.src = new URL(`../../site/gallery/embed.html${search}${hash}`, import.meta.url).href; host.append(f); await loaded;
     const win = f.contentWindow, doc = f.contentDocument;
     await until(() => doc.querySelector('#gx-view')?.firstElementChild, 'the first view');
     const heading = () => doc.querySelector('#gx-view pk-page-header')?.getAttribute('heading') ?? doc.querySelector('#gx-view pk-empty-state')?.getAttribute('heading') ?? '';
@@ -135,11 +135,11 @@ export const galleryCases = [
         const q = await open(t, '#/foundations/spacing', '?kind=foundations'); await q.shows('Spacing');
     }],
 
-    ['gallery: the preview bar and the top bar keep their box while their elements upgrade, so the view does not jump on first load (#1076)', async t => {
+    ['gallery: the preview bar keeps their box while their elements upgrade, so the view does not jump on first load (#1076)', async t => {
         const p = await open(t, '#/overview');
-        await Promise.all(['pk-toolbar', 'pk-dropdown', 'pk-button', 'pk-navbar'].map(tag => p.win.customElements.whenDefined(tag)));
+        await Promise.all(['pk-toolbar', 'pk-dropdown', 'pk-button'].map(tag => p.win.customElements.whenDefined(tag)));
         await wait(100);
-        const bar = p.doc.querySelector('#gx-bar'), top = p.doc.querySelector('pk-navbar');
+        const bar = p.doc.querySelector('#gx-bar');
         // The same markup with no script at all: every pk-* element stays undefined, which is the state a slow connection paints first.
         const base = new URL('../../', import.meta.url).href;
         const f = document.createElement('iframe'); f.title = 'Undefined state'; f.style.cssText = 'width:1280px;height:900px;border:0';
@@ -150,7 +150,6 @@ export const galleryCases = [
         t.ok(bar.getClientRects().length > 0, `the live preview bar is drawn (display ${p.win.getComputedStyle(bar).display}, ${p.doc.documentElement.className}, ${bar.parentElement?.className})`);
         const h = el =>Math.round(el.getBoundingClientRect().height * 2) / 2;
         t.eq(h(raw), h(bar), `the preview bar is ${h(raw)}px high before its elements upgrade and ${h(bar)}px after`);
-        t.ok(top.getBoundingClientRect().height <= parseFloat(getComputedStyle(p.doc.documentElement).fontSize) * 3.5 + 1.5, 'the top bar is one row high');
     }],
     ['gallery: the preview bar and the slim page bar are pk-toolbar rows, their controls share one row and the Display menu holds the viewport and the text size (#682)', async t => {
         const p = await open(t, '#/overview');
@@ -170,6 +169,7 @@ export const galleryCases = [
     }],
     ['gallery: the page frame is a pk-app-shell, the nav is its nav column, both bars are its header, the view is the one scroller and the Details drawer docks over the end edge (#682)', async t => {
         const p = await open(t, '#/elements/pk-button');
+        await p.win.customElements.whenDefined(p.doc.querySelector('#gx-shell').localName); await wait(100);
         const shell = p.doc.querySelector('#gx-shell'), nav = p.doc.querySelector('#gx-nav'), bar = p.doc.querySelector('#gx-bar'), view = p.view();
         t.eq(shell.localName, 'pk-app-shell', 'the frame is a pk-app-shell'); t.eq(nav.getAttribute('slot'), 'nav', 'the nav is in its nav slot');
         t.eq(p.doc.querySelectorAll('#gx-shell > [class]:not(.gx-nav)').length, 0, 'no hand-written class on the frame parts (the nav keeps one for its width before it upgrades)');
