@@ -4,12 +4,19 @@
 @* The list half of the routed pair (guide "A routed list and record page"): a row click navigates to the record page. *@
 <PkListPage TItem="Order"
             Config="@_config"
+            Columns="_columns"
             Load="RoutedOrderStore.PageAsync"
             IdOf="o => o.Id"
             OnRowClick="Open" />
 
 @code {
-    private const string _config = """{"label":"Orders","pageSize":10,"columns":[{"key":"orderNo","label":"Order","sortable":true},{"key":"customer","label":"Customer"}]}""";
+    private const string _config = """{"label":"Orders","pageSize":10}""";
+
+    private static readonly PkTableColumn<Order>[] _columns =
+    [
+        new() { Key = "orderNo", Label = "Order", Sortable = true },
+        new() { Key = "customer", Label = "Customer", Cell = o => @<strong>@o.Customer</strong> },
+    ];
 
     private void Open(PkRowClickEventArgs e) => Nav.NavigateTo($"/routed/orders/{Uri.EscapeDataString(e.Id!)}");
 }
