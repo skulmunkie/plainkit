@@ -152,16 +152,6 @@
       "fingerprint": "34350429c4ab6cc0"
     },
     {
-      "rule": "S7",
-      "file": "core/site/gallery/boots/code-explorer.js",
-      "fingerprint": "77456563fe943378"
-    },
-    {
-      "rule": "S3",
-      "file": "core/site/gallery/elements-view.js",
-      "fingerprint": "df5f069f33e776c8"
-    },
-    {
       "rule": "S5",
       "file": "core/site/gallery/elements-view.js",
       "fingerprint": "fc108104051fff14"
@@ -180,21 +170,6 @@
       "rule": "S5",
       "file": "core/site/gallery/elements-view.js",
       "fingerprint": "fc108104051fff14"
-    },
-    {
-      "rule": "S7",
-      "file": "core/site/gallery/elements-view.js",
-      "fingerprint": "09c98ba351493d34"
-    },
-    {
-      "rule": "S7",
-      "file": "core/site/gallery/elements-view.js",
-      "fingerprint": "09c98ba351493d34"
-    },
-    {
-      "rule": "S7",
-      "file": "core/site/gallery/elements-view.js",
-      "fingerprint": "09c98ba351493d34"
     },
     {
       "rule": "S7",
@@ -272,11 +247,6 @@
       "fingerprint": "003d8302e9f86e04"
     },
     {
-      "rule": "S7",
-      "file": "core/site/gallery/frame-boot.js",
-      "fingerprint": "7a675de840c1180c"
-    },
-    {
       "rule": "S1",
       "file": "core/site/gallery/frame.css",
       "fingerprint": "bf757f6a917526c4"
@@ -302,19 +272,9 @@
       "fingerprint": "06c0a3c94ddc06bd"
     },
     {
-      "rule": "S3",
-      "file": "core/site/gallery/frame.js",
-      "fingerprint": "3560a3e9ecad7f75"
-    },
-    {
       "rule": "S5",
       "file": "core/site/gallery/frame.js",
       "fingerprint": "c1929282320be6c0"
-    },
-    {
-      "rule": "S7",
-      "file": "core/site/gallery/frame.js",
-      "fingerprint": "35a2d9a69cbdd1a8"
     },
     {
       "rule": "S1",
@@ -360,16 +320,6 @@
       "rule": "S3",
       "file": "core/site/gallery/gallery-views.js",
       "fingerprint": "fa13a5225f183370"
-    },
-    {
-      "rule": "S7",
-      "file": "core/site/gallery/gallery-views.js",
-      "fingerprint": "735a41dbe948439b"
-    },
-    {
-      "rule": "S7",
-      "file": "core/site/gallery/gallery-views.js",
-      "fingerprint": "735a41dbe948439b"
     },
     {
       "rule": "S1",

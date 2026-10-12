@@ -161,7 +161,7 @@ function mountFrame(slotEl) {
     slotEl.dataset.mounted = '1';
     const sample = JSON.parse(slotEl.dataset.sample);
     const fixed = slotEl.dataset.fixed;
-    const frame = makeFrame(sample, fixed ? { ...state, width: fixed } : state, slotEl.dataset.control);
+    const frame = makeFrame(sample, fixed ? { ...state, width: fixed } : state, slotEl.dataset.control, doc);
     if (fixed) frame.dataset.fixed = fixed;
     frames.add(frame);
     slotEl.replaceChildren(frame);
@@ -179,7 +179,7 @@ function slot(sample, control, fixed) {
 }
 
 // The views get what they need of the gallery through this: nothing else of its state.
-const { viewFoundation, overviewHtml, samplesView } = createViews({ opts: () => opts, css: () => css, scope, scopeGroup, keeps, slot, state, query });
+const { viewFoundation, overviewHtml, samplesView } = createViews({ doc, opts: () => opts, css: () => css, scope, scopeGroup, keeps, slot, state, query });
 
 function refreshFrames(changes) {
     for (const f of frames) applyToFrame(f, f.dataset.fixed ? { ...changes, width: undefined } : changes);
@@ -264,7 +264,7 @@ function elementSlot(tag, live = false) {
     const holder = h(doc, 'div', { 'aria-busy': 'true' });
     loadElement(tag).then(meta => {
         if (!holder.isConnected) return;
-        holder.replaceWith(renderElement(meta, live ? { onLive: element => { inspecting = { meta, element }; }, onChange: () => inspector?.refresh() } : {}));
+        holder.replaceWith(renderElement(meta, live ? { doc, onLive: element => { inspecting = { meta, element }; }, onChange: () => inspector?.refresh() } : { doc }));
         if (live) renderInspector();
     }, err => { holder.textContent = `Could not load ${tag}: ${err.message}`; });
     return holder;

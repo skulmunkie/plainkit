@@ -6,7 +6,8 @@ import { bootPattern } from './pattern-mount.js';
 import { PATTERNS_DIR } from './paths.js';
 
 initPlainkit();
-const root = document.documentElement;
+const doc = document;
+const root = doc.documentElement;
 const scale = Number(root.dataset.scale);
 if (scale) { root.dataset.dyn = `font-size:${(14 * scale).toFixed(2)}px`; applyDynamic(root); }
 const boot = root.dataset.boot;
