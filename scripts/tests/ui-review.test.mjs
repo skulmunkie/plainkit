@@ -134,6 +134,14 @@ test('a small control inside a big enough label is not a tap-target finding; a b
     assert.deepEqual(rules(facts([input], phone)), ['tap-target']);
 });
 
+test('the hit area is the larger of the control and its label: a 44px control with a short label passes, a 20px control with a 19px label still warns (issue 1003)', () => {
+    const tall = box({ interactive: true, name: 'Name', rect: [0, 0, 300, 44] });
+    assert.deepEqual(rules(facts([{ ...tall, hitRect: [60, 19] }], phone)), [], 'a short label does not shrink a 44px control');
+    const small = box({ interactive: true, name: 'Name', rect: [0, 0, 300, 20] });
+    assert.deepEqual(rules(facts([{ ...small, hitRect: [60, 19] }], phone)), ['tap-target'], 'a 20px control with a 19px label is undersized');
+    assert.deepEqual(rules(facts([{ ...small, hitRect: [300, 44] }], phone)), [], 'a big enough label still counts');
+});
+
 test('a standard visually-hidden element (pk-skip-link before focus, a u-sr-only live region) is not a clipped-content or tap-target finding', () => {
     const skipLink = box({ interactive: true, name: 'Skip to content', rect: [0, 0, 1, 1], clipX: true, hiddenVisually: true });
     assert.deepEqual(rules(facts([skipLink], phone)), []);

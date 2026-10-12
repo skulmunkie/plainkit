@@ -76,6 +76,8 @@ export function closestDeep(el, selector) {
     return null;
 }
 
+// The standard "visually hidden" technique (a pk-skip-link before focus, u-sr-only): 1px, clipped, off-screen on purpose, so it is not a tap target until it takes focus (issue 1161; pk-skip-link's focused size has its own browser case).
+const hiddenUntilFocus = (el, win) => { const cs = win.getComputedStyle(el); const r = el.getBoundingClientRect(); return ['absolute', 'fixed'].includes(cs.position) && r.width <= 1.5 && r.height <= 1.5 && cs.overflow === 'hidden' && cs.clipPath !== 'none' && !el.matches(':focus'); };
 const INTERACTIVE = 'a[href], button, input:not([type="hidden"]):not([type="checkbox"]):not([type="radio"]), select, textarea, summary, [role="tab"]';
 
 // Measures one document at a viewport width. `phone` turns on the touch-target check. Pure over the DOM it is given. The touch-target and
@@ -88,7 +90,7 @@ export function measure(doc, width, { checkH1 = true } = {}) {
     deepWalk(doc.body ?? de, win, el => {
         if (phone && el.matches?.(INTERACTIVE) && !el.disabled && !closestDeep(el, '[hidden]')) {
             const r = el.getBoundingClientRect();
-            if (r.width !== 0 && r.height !== 0 && r.height < 43.5 && !(el.tagName === 'A' && win.getComputedStyle(el).display === 'inline') && !closestDeep(el, '.ft, .co, .csr, .cv, .page-crumbs, .tab-close') && !TARGET_EXCEPTIONS.some(x => el.matches(x.selector))) out.smallTargets++;
+            if (r.width !== 0 && r.height !== 0 && r.height < 43.5 && !(el.tagName === 'A' && win.getComputedStyle(el).display === 'inline') && !hiddenUntilFocus(el, win) && !closestDeep(el, '.ft, .co, .csr, .cv, .page-crumbs, .tab-close') && !TARGET_EXCEPTIONS.some(x => el.matches(x.selector))) out.smallTargets++;
         }
         for (const child of el.childNodes) {
             if (child.nodeType !== 3 || !child.textContent.trim()) continue;

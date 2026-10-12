@@ -4,6 +4,7 @@
 // The Elements branch holds 131 rows, over the nav's 40-entry advice: the one deliberate exception, a tree of collapsed groups; the header search still finds an element by name.
 import { defineModule } from '../../js/app.js';
 import { loadElements, observeElements } from '../../js/loader.js';
+import { later } from '../../js/mount-support.js';
 import { mountGallery } from '../gallery/gallery.js';
 import { ELEMENTS } from '../gallery/gallery.data.js';
 import { FOUNDATIONS } from '../gallery/gallery-views.js';
@@ -28,7 +29,7 @@ const mount = (host, ctx) => {
     const shown = mountGallery(host, { chrome: 'full', init: false, base: '/gallery', theme: ctx.theme.name });
     // the view is revealed once every pk-* element in it is defined, not only imported: a late upgrade (a table, a specimen) resizes it on screen (#1212); a tag that never defines must not keep it hidden
     const defined = () => Promise.all([...new Set([...host.querySelectorAll(':not(:defined)')].map(e => e.localName))].filter(tag => tag.startsWith('pk-')).map(tag => customElements.whenDefined(tag)));
-    const capped = work => Promise.race([work, new Promise(resolve => setTimeout(resolve, 3000))]);
+    const capped = work => Promise.race([work, new Promise(resolve => later(host.ownerDocument.defaultView, resolve, 3000))]);
     shown.then(() => loadElements(host)).then(() => capped(defined())).finally(() => { host.hidden = false; });
     return () => { stop(); watch?.disconnect(); shown.then(g => g.destroy()); css.remove(); };
 };
