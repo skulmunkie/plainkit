@@ -7,7 +7,7 @@ import { startScorecard } from '../scorecard/scorecard.js';
 export let mounted = null;
 
 const mount = query => (host, ctx) => {
-    const ready = mounted = startScorecard(host, Number(query.concurrency) || undefined).catch(err => { ctx.log.error('the scorecard could not start', err); return null; });
+    const ready = mounted = startScorecard(host, Number(query.concurrency) || undefined, ctx.signal).catch(err => { ctx.log.error('the scorecard could not start', err); return null; });
     return () => { ready.then(card => card?.destroy?.()); mounted = null; };
 };
 

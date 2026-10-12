@@ -118,6 +118,18 @@ export const toolCases = [
         t.eq(only.find(i => i.name === 'Bad').findings.map(f => f.check).join(), 'image-alt', 'only the requested check remains');
         card.destroy();
     }],
+    ['scorecard module: aborting the signal mid-run destroys the card and stops opening frames (#358)', async t => {
+        const { mountScorecard } = await dist('scorecard');
+        const host = t.stage(''), ac = new AbortController();
+        const targets = Array.from({ length: 8 }, (_, i) => ({ name: `T${i}`, html: '<p>Fine</p>' }));
+        const card = await mountScorecard(host, { targets, themes: ['dark'], widths: [375, 1024], concurrency: 1, signal: ac.signal });
+        const running = card.run();
+        ac.abort();
+        await running;
+        t.eq(host.querySelector('[data-sc-run]'), null, 'the card is removed');
+        t.eq(host.querySelectorAll('iframe').length, 0, 'no measuring frame is left');
+        t.eq(card.report(), null, 'a cancelled run reports nothing');
+    }],
     ['scorecard module: an icon-only pk-button with no accessible name is an unnamed-input failure; one named by its text or its label is not, and none is under 44px on a phone', async t => {
         const { mountScorecard } = await dist('scorecard');
         const { sampleDoc } = await import('../../site/gallery/frame.js'); // a frame that loads the elements, so the buttons are drawn (and measurable)
