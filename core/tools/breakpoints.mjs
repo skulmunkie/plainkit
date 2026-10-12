@@ -17,7 +17,7 @@
 import fs from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
-import { parseBreakpoints, conditionMap, resolveCustomMedia, breakpointProperties } from '../js/custom-sdk-logic.js';
+import { parseBreakpoints, conditionMap, resolveCustomMedia, breakpointProperties } from '../js/custom-sdk-breakpoints.js';
 
 const here = path.dirname(fileURLToPath(import.meta.url));
 export const BREAKPOINTS_FILE = path.join(here, '..', 'tokens', 'breakpoints.json');
