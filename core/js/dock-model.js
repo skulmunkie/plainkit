@@ -6,77 +6,12 @@
 // Every operation returns { doc, problems } and never mutates or throws on data: a request that cannot be applied returns the input unchanged plus a problem.
 // Close/open and undo add their fields and operations in later steps (fromJson drops keys it does not know).
 import { clampSize } from './size.js';
+import { LIMITS, ZONES, SIZE, problem, same, isSplit, walk, depth, groups, findGroup, findNode, floaters, findFloaterGroup, editFloater, edit, next, tabs, lift, VERSION } from './dock-tree.js';
 
-export const VERSION = 1;
-export const LIMITS = Object.freeze({ depth: 12, groups: 64, panels: 128, floaters: 16, bytes: 65536 });
-export const ZONES = ['center', 'left', 'right', 'top', 'bottom'];
-const RECT = { minW: 120, minH: 80 };
-const ID = /^d[1-9]\d{0,8}$/, PANEL = /^[a-z][\w-]{0,39}$/;
-const SIZE = { min: 5, max: 95 };
-
-const problem = (code, message, path = '') => ({ code, severity: 'warning', message, path });
-const same = (doc, p) => ({ doc, problems: [p] });
-const isSplit = n => n?.type === 'split';
-
-function walk(n, f) { if (n) { f(n); if (isSplit(n)) { walk(n.a, f); walk(n.b, f); } } }
-export const groups = doc => { const g = []; walk(doc.root, n => { if (!isSplit(n)) g.push(n); }); return g; };
-export const panelIds = doc => groups(doc).flatMap(g => g.panels);
-export const findGroup = (doc, panel) => groups(doc).find(g => g.panels.includes(panel)) ?? null;
-export const findNode = (doc, id) => { let f = null; walk(doc.root, n => { if (n.id === id) f = n; }); return f; };
-const depth = n => (isSplit(n) ? 1 + Math.max(depth(n.a), depth(n.b)) : 1);
-export const floaters = doc => doc.floating ?? [];
-export const findFloater = (doc, id) => floaters(doc).find(f => f.id === id) ?? null;
-// Whether a group is a docked column at a screen edge: every horizontal-split ancestor keeps it in the branch nearest that edge, and it is actually
-// inside at least one horizontal split (a vertical split is transparent to edge-ness — stacking a group above or below does not move it off a
-// horizontal edge, but a group that is never beside another column, such as a full-width bottom bar, is not a "column" at all). Rail rendering
-// (dock.js) only applies to an edge group; a group that is not one (the centre column, a bottom bar, or a column with something beside it on
-// both sides) collapses to a header instead, per the design.
-function edgeWalk(n, id, left, right, sawSplit) {
-    if (!n) return null;
-    if (n.id === id) return sawSplit ? { left, right } : { left: false, right: false };
-    if (!isSplit(n)) return null;
-    if (n.orientation === 'horizontal') return edgeWalk(n.a, id, left, false, true) ?? edgeWalk(n.b, id, false, right, true);
-    return edgeWalk(n.a, id, left, right, sawSplit) ?? edgeWalk(n.b, id, left, right, sawSplit);
-}
-export const isEdgeGroup = (doc, id) => { const e = edgeWalk(doc.root, id, true, true, false); return Boolean(e && (e.left || e.right)); };
-const findFloaterGroup = (doc, panel) => floaters(doc).find(f => f.group.panels.includes(panel)) ?? null;
-const editFloater = (doc, id, fn) => floaters(doc).map(f => (f.id === id ? fn(f) : f));
-const nextFloaterZ = doc => floaters(doc).reduce((m, f) => Math.max(m, f.z), 0) + 1;
-// Clamp a rect to a positive minimum size and, when bounds { w, h } are given, inside them (never rejected, always shrunk/moved to fit).
-function clampRect(r, bounds) {
-    const w = Math.max(RECT.minW, Math.min(Number.isFinite(r.w) ? r.w : RECT.minW, bounds?.w ?? Infinity));
-    const h = Math.max(RECT.minH, Math.min(Number.isFinite(r.h) ? r.h : RECT.minH, bounds?.h ?? Infinity));
-    const maxX = bounds ? Math.max(0, bounds.w - w) : Infinity, maxY = bounds ? Math.max(0, bounds.h - h) : Infinity;
-    const x = Math.max(0, Math.min(Number.isFinite(r.x) ? r.x : 0, maxX)), y = Math.max(0, Math.min(Number.isFinite(r.y) ? r.y : 0, maxY));
-    return { x, y, w, h };
-}
-
-// Replace the node with this id by fn(node) (null removes it, and its parent split collapses into the surviving sibling). Untouched branches are shared.
-function edit(n, id, fn) {
-    if (!n) return n;
-    if (n.id === id) return fn(n);
-    if (!isSplit(n)) return n;
-    const a = edit(n.a, id, fn), b = edit(n.b, id, fn);
-    if (a === n.a && b === n.b) return n;
-    return a === null ? b : b === null ? a : { ...n, a, b };
-}
-const next = (doc, root, seq = doc.seq) => ({ ...doc, seq, root });
-const tabs = (id, list, active = list[0]) => ({ id, type: 'tabs', active, panels: list });
-
-export const emptyLayout = () => ({ version: VERSION, seq: 0, root: null, collapsed: [], floating: [] });
-
-// The layout a consumer gets with no saved one. panels: [{ id, group? }]; group is left, center, right or bottom (anything else is center). Left | center | right
-// become split(left, split(center, right)) and a bottom group is stacked under all of them; an empty side is left out.
-export function defaultLayout(panels) {
-    const by = g => panels.filter(p => (g === 'center' ? !['left', 'right', 'bottom'].includes(p.group) : p.group === g)).map(p => p.id);
-    let seq = 0;
-    const group = ids => (ids.length ? tabs(`d${++seq}`, ids) : null);
-    const join = (a, b, orientation, size) => (a && b ? { id: `d${++seq}`, type: 'split', orientation, size, min: SIZE.min, max: SIZE.max, a, b } : a ?? b);
-    const [l, c, r, b] = ['left', 'center', 'right', 'bottom'].map(g => group(by(g)));
-    const row = join(l, join(c, r, 'horizontal', 75), 'horizontal', 20);
-    const root = join(row, b, 'vertical', 75);
-    return { version: VERSION, seq, root, collapsed: [], floating: [] };
-}
+// The pieces split out for size (issue 1108) stay reachable from here, so every importer keeps working.
+export { VERSION, LIMITS, ZONES, groups, panelIds, findGroup, findNode, floaters, findFloater, isEdgeGroup, emptyLayout, defaultLayout } from './dock-tree.js';
+export { floatPanel, dockFloating, moveFloater, resizeFloater, dragFloater, floatDrag, raiseFloater } from './dock-float.js';
+export { toJson, fromJson } from './dock-json.js';
 
 // Every invariant of the spec that step 1 has, as a list of problems (empty = valid). declared = the panel ids that exist, when known.
 export function validate(doc, declared = null) {
@@ -132,14 +67,6 @@ export function activate(doc, { panel }) {
     return f.group.active === panel ? { doc, problems: [] } : { doc: { ...doc, floating: editFloater(doc, f.id, x => ({ ...x, group: { ...x.group, active: panel } })) }, problems: [] };
 }
 
-// Take a panel out of its group (the group goes when it was the last one). Returns the new root.
-function lift(doc, panel) {
-    const g = findGroup(doc, panel);
-    return edit(doc.root, g.id, x => {
-        const rest = x.panels.filter(p => p !== panel);
-        return rest.length ? { ...x, panels: rest, active: x.active === panel ? rest[Math.min(x.panels.indexOf(panel), rest.length - 1)] : x.active } : null;
-    });
-}
 
 // Move a panel into a tab group at an index (the keyboard and menu form of a tab drag; also reorders inside a group). The panel becomes the group's active tab.
 export function moveTab(doc, { panel, group, index = Infinity }) {
@@ -181,62 +108,6 @@ export function dockPanel(doc, { panel, target, zone }) {
     return depth(root) - 1 > LIMITS.depth || groups(out).length > LIMITS.groups ? same(doc, problem('limit', 'the layout would be too deep or too large', target)) : { doc: out, problems: [] };
 }
 
-// Take a panel out of its tab group into a new floater (a window-like overlay inside the dock's own bounds, never over the page, per the design's decision
-// "floating layer: inside the dock bounds only"). rect: { x, y, w, h }, clamped to a positive minimum and, when bounds { w, h } (the dock's own size) are
-// given, inside them. The group the panel left may collapse away, same as any other lift.
-export function floatPanel(doc, { panel, rect = {}, bounds } = {}) {
-    const g = findGroup(doc, panel);
-    if (!g) return same(doc, problem('unknown-panel', `no panel ${panel}`, panel));
-    if (floaters(doc).length >= LIMITS.floaters) return same(doc, problem('limit', 'too many floating panels', panel));
-    const seq = doc.seq + 2;
-    const floater = { id: `d${seq - 1}`, ...clampRect(rect, bounds), z: nextFloaterZ(doc), group: tabs(`d${seq}`, [panel]) };
-    return { doc: { ...next(doc, lift(doc, panel), seq), floating: [...floaters(doc), floater] }, problems: [] };
-}
-
-// Dock a whole floater's group back into the tree, next to a group (zone left/right/top/bottom, as dockPanel) or into it (zone center, its panels join
-// the target's tabs). The floater's group node is reused as-is so a multi-panel floater keeps its tabs and active panel.
-export function dockFloating(doc, { floater, target, zone } = {}) {
-    const f = findFloater(doc, floater);
-    const to = findNode(doc, target);
-    if (!f) return same(doc, problem('unknown-floater', `no floater ${floater}`, floater));
-    if (!to || isSplit(to)) return same(doc, problem('unknown-group', `no group ${target}`, target));
-    if (!ZONES.includes(zone)) return same(doc, problem('unknown-zone', `no zone ${zone}`, target));
-    const rest = floaters(doc).filter(x => x.id !== floater);
-    if (zone === 'center') {
-        const others = to.panels.filter(p => !f.group.panels.includes(p));
-        const root = edit(doc.root, target, x => ({ ...x, panels: [...others, ...f.group.panels], active: f.group.active }));
-        return { doc: { ...next(doc, root), floating: rest }, problems: [] };
-    }
-    const before = zone === 'left' || zone === 'top', seq = doc.seq + 1;
-    const root = edit(doc.root, target, x => ({ id: `d${seq}`, type: 'split', orientation: zone === 'left' || zone === 'right' ? 'horizontal' : 'vertical', size: 50, min: SIZE.min, max: SIZE.max, a: before ? f.group : x, b: before ? x : f.group }));
-    const out = { ...next(doc, root, seq), floating: rest };
-    return depth(root) - 1 > LIMITS.depth || groups(out).length > LIMITS.groups ? same(doc, problem('limit', 'the layout would be too deep or too large', target)) : { doc: out, problems: [] };
-}
-
-// Move or resize a floater's rect (clamped to bounds when given). raiseFloater brings it to the front (the highest z).
-export function moveFloater(doc, { floater, x, y, bounds } = {}) {
-    const f = findFloater(doc, floater);
-    if (!f) return same(doc, problem('unknown-floater', `no floater ${floater}`, floater));
-    const rect = clampRect({ ...f, x, y }, bounds);
-    return { doc: { ...doc, floating: editFloater(doc, floater, n => ({ ...n, ...rect })) }, problems: [] };
-}
-export function resizeFloater(doc, { floater, w, h, bounds } = {}) {
-    const f = findFloater(doc, floater);
-    if (!f) return same(doc, problem('unknown-floater', `no floater ${floater}`, floater));
-    const rect = clampRect({ ...f, w, h }, bounds);
-    return { doc: { ...doc, floating: editFloater(doc, floater, n => ({ ...n, ...rect })) }, problems: [] };
-}
-// A pointer-drag delta applied to a floater's rect at the moment the drag started (start: { x, y, w, h }): resize widens/heightens it by (dx, dy),
-// otherwise it moves by (dx, dy). Both go through moveFloater/resizeFloater, so the clamp is the one clampRect already has (a dock.js title-bar
-// or resize-handle drag never re-derives that math itself, round 2 item 5, #618).
-export function dragFloater(doc, { floater, start, dx = 0, dy = 0, resize, bounds } = {}) {
-    return resize ? resizeFloater(doc, { floater, w: start.w + dx, h: start.h + dy, bounds }) : moveFloater(doc, { floater, x: start.x + dx, y: start.y + dy, bounds });
-}
-// The $drag state a pointer down on a floater's move handle or resize grip starts (dock.js adds its own DOM `handle` reference on top): f's own
-// rect at grab time is the `start` dragFloater above wants back on every subsequent move.
-export function floatDrag(f, resize, pointerId, sx, sy) {
-    return { float: true, resize, id: f.id, pointerId, sx, sy, x: f.x, y: f.y, w: f.w, h: f.h };
-}
 // The $drag state a pointer down on a tab-drag-to-dock handle starts (dock.js adds its own DOM `handle` reference on top).
 export function tabDrag(panel, from, pointerId, sx, sy) {
     return { panel, from, target: null, zone: null, pointerId, moved: false, sx, sy };
@@ -244,74 +115,4 @@ export function tabDrag(panel, from, pointerId, sx, sy) {
 // The live-region phrase for a completed moveTab/dockPanel (dock.js's applyMove); panelTitle/targetTitle are already resolved display names.
 export function describeMove(kind, panelTitle, targetTitle, zone) {
     return kind === 'dock' ? `${panelTitle} docked ${zone === 'top' ? 'above' : zone === 'bottom' ? 'below' : zone + ' of'} ${targetTitle}` : `${panelTitle} added as a tab in ${targetTitle}`;
-}
-export function raiseFloater(doc, { floater } = {}) {
-    const f = findFloater(doc, floater);
-    if (!f) return same(doc, problem('unknown-floater', `no floater ${floater}`, floater));
-    const maxZ = floaters(doc).reduce((m, x) => Math.max(m, x.z), 0);
-    return f.z === maxZ ? { doc, problems: [] } : { doc: { ...doc, floating: editFloater(doc, floater, n => ({ ...n, z: maxZ + 1 })) }, problems: [] };
-}
-
-export const toJson = doc => JSON.stringify(doc);
-
-// The one door for stored, imported or shared data. input: a JSON string or an object; panels: [{ id, group? }] declared now. Rebuilds the tree from known fields only,
-// drops panels that are not declared and groups that empty, and appends declared panels the data lacks to the first group (or a default layout when there is no tree).
-// Anything unusable gives defaultLayout(panels) and a problem. Result: { doc, problems }; the doc always passes validate().
-export function fromJson(input, { panels = [] } = {}) {
-    const declared = panels.filter(p => PANEL.test(p?.id)), known = new Set(declared.map(p => p.id)), problems = [];
-    const fallback = why => { problems.push(problem('fallback', `${why}: using the default layout`)); return { doc: defaultLayout(declared), problems }; };
-    let data = input;
-    if (typeof input === 'string') {
-        if (input.length > LIMITS.bytes) return fallback('the layout is too large');
-        try { data = JSON.parse(input); } catch { return fallback('the layout is not valid JSON'); }
-    }
-    if (!data || typeof data !== 'object' || Array.isArray(data)) return fallback('the layout is not an object');
-    if (data.version !== VERSION) return fallback(`layout version ${String(data.version)} is not ${VERSION}`);
-    const used = new Set(), ids = new Set(); let seq = 0, count = 0, dropped = 0;
-    const idOf = raw => { if (ID.test(raw) && !ids.has(raw)) { ids.add(raw); seq = Math.max(seq, Number(raw.slice(1))); return raw; } return null; };
-    const build = (n, d) => {
-        if (!n || typeof n !== 'object' || d > LIMITS.depth || count > LIMITS.groups * 2) { dropped++; return null; }
-        count++;
-        const id = idOf(n.id);
-        if (n.type === 'split') {
-            const a = build(n.a, d + 1), b = build(n.b, d + 1);
-            if (!a || !b) return a ?? b;
-            const min = Number.isFinite(n.min) ? clampSize(n.min, 0, 100) : SIZE.min, max = Number.isFinite(n.max) ? clampSize(n.max, 0, 100) : SIZE.max;
-            return { id, type: 'split', orientation: n.orientation === 'vertical' ? 'vertical' : 'horizontal', size: clampSize(n.size, min, max), min: Math.min(min, max), max: Math.max(min, max), a, b };
-        }
-        const list = (Array.isArray(n.panels) ? n.panels : []).filter(p => known.has(p) && !used.has(p) && used.add(p));
-        if (!list.length) { dropped++; return null; }
-        return { id, type: 'tabs', active: list.includes(n.active) ? n.active : list[0], panels: list };
-    };
-    let root = build(data.root, 1);
-    // Nodes whose id was missing, malformed or repeated get the next free ones (assigned here in tree order).
-    const give = n => { if (n) { if (!n.id) n.id = `d${++seq}`; if (isSplit(n)) { give(n.a); give(n.b); } } };
-    if (Number.isInteger(data.seq) && data.seq > seq && data.seq < 1e9) seq = data.seq; // ids are never reused, so the stored counter stays when it is ahead
-    give(root);
-    // Floaters: same known-fields-only rebuild as a group, plus a clamped rect. A malformed one is dropped, not fatal to the rest of the layout.
-    let floatersOut = [];
-    if (Array.isArray(data.floating)) for (const raw of data.floating) {
-        if (!raw || typeof raw !== 'object' || floatersOut.length >= LIMITS.floaters) { dropped++; continue; }
-        const id = idOf(raw.id), g = raw.group && typeof raw.group === 'object' ? raw.group : null, gid = g ? idOf(g.id) : null;
-        const list = g ? (Array.isArray(g.panels) ? g.panels : []).filter(p => known.has(p) && !used.has(p) && used.add(p)) : [];
-        if (!id || !gid || !list.length) { dropped++; continue; }
-        floatersOut.push({ id, ...clampRect(raw, null), z: Number.isFinite(raw.z) ? raw.z : floatersOut.length + 1, group: { id: gid, type: 'tabs', active: list.includes(g.active) ? g.active : list[0], panels: list } });
-    }
-    if (dropped) problems.push(problem('repaired', `${dropped} unusable node(s) dropped`));
-    const missing = declared.filter(p => !used.has(p.id));
-    if (missing.length) {
-        problems.push(problem('panel-added', `panels not in the stored layout: ${missing.map(p => p.id).join(', ')}`));
-        if (root) {
-            const first = groups({ root })[0], list = [...first.panels, ...missing.map(p => p.id)];
-            root = edit(root, first.id, x => ({ ...x, panels: list }));
-        } else if (floatersOut.length) {
-            const first = floatersOut[0], list = [...first.group.panels, ...missing.map(p => p.id)];
-            floatersOut = floatersOut.map(f => (f === first ? { ...f, group: { ...f.group, panels: list } } : f));
-        } else {
-            return { doc: defaultLayout(declared), problems };
-        }
-    }
-    const collapsed = [...new Set((Array.isArray(data.collapsed) ? data.collapsed : []).filter(p => typeof p === 'string' && used.has(p)))];
-    const doc = { version: VERSION, seq, root, collapsed, floating: floatersOut };
-    return { doc, problems };
 }

@@ -35,7 +35,7 @@ test('the element base runtime stays inside its budget', () => {
 });
 
 test('every behaviour module stays inside the per-module gzip budget and the base set stays small', () => {
-    const modules = ['js/theme', 'js/page', 'js/tasks', 'js/notify', 'js/dialogs', 'js/colour', 'js/quality', 'js/scoring', 'js/audit', 'js/plainkit', 'js/code-explorer/element', 'js/code-explorer/providers', 'js/code-explorer/tokenize', 'js/store', 'js/app', 'js/app/module', 'js/app/host', 'js/app/boundary', 'js/app/app', 'js/app/config', 'js/app/nav', 'js/app/shell', 'js/router', ...fs.readdirSync(path.join(root, 'js/app/pages')).map(f => `js/app/pages/${f.replace(/\.js$/, '')}`)];
+    const modules = ['js/theme', 'js/page', 'js/tasks', 'js/notify', 'js/dialogs', 'js/colour', 'js/quality', 'js/scoring', 'js/audit', 'js/plainkit', 'js/code-explorer/element', 'js/code-explorer/providers', 'js/code-explorer/tokenize', 'js/store', 'js/app', 'js/app/module', 'js/app/host', 'js/app/boundary', 'js/app/app', 'js/app/config', 'js/app/nav', 'js/app/shell', 'js/router', 'js/dock-model', 'js/dock-tree', 'js/dock-float', 'js/dock-json', ...fs.readdirSync(path.join(root, 'js/app/pages')).map(f => `js/app/pages/${f.replace(/\.js$/, '')}`)];
     for (const m of modules) assert.ok(gzKb(read(`${m}.js`)) < BUDGETS.jsModuleGzKb.limit, `${m}.js is over ${BUDGETS.jsModuleGzKb.limit} KB gzip`);
     assert.ok(gzKb(read('modules/code-explorer/reports.js')) < BUDGETS.jsModuleGzKb.limit, 'modules/code-explorer/reports.js is over the per-module gzip budget');
     const base = ['js/plainkit', 'js/invokers', 'js/log', 'js/loader', 'js/theme', 'js/colour', 'js/dynamic'].map(m => read(`${m}.js`)).join('');
@@ -54,9 +54,9 @@ test('the stylesheets load no webfont and no font file (system font stack, SVG s
     assert.ok(!/@font-face|fonts\.googleapis|\.woff/.test(css));
 });
 
-// One-way ratchet for three modules already over the 6 KB per-module budget (so they are not in the list above).
+// One-way ratchet for two modules already over the 6 KB per-module budget (so they are not in the list above).
 // Ceilings are their gzip size when listed; they may only come down, never up.
-test('layout-model, custom-sdk-logic and dock-model do not grow past their ratchet ceilings (gzip KB)', () => {
-    const ceilings = { 'js/layout-model.js': 13.88, 'js/custom-sdk-logic.js': 8.21, 'js/dock-model.js': 7.2 };
+test('layout-model and custom-sdk-logic do not grow past their ratchet ceilings (gzip KB)', () => {
+    const ceilings = { 'js/layout-model.js': 13.88, 'js/custom-sdk-logic.js': 8.21 };
     for (const [f, limit] of Object.entries(ceilings)) assert.ok(gzKb(read(f)) <= limit, `${f} is ${gzKb(read(f)).toFixed(2)} KB gzip, ratchet ceiling ${limit}. FIX: make it smaller; never raise the ceiling.`);
 });
