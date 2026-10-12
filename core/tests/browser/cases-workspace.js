@@ -218,6 +218,27 @@ export const workspaceCases = [
         g.addLabel = 'Upload photo'; await t.settle(); t.eq(g.part('add-text').textContent.trim(), 'Upload photo');
     }],
 
+    ['image gallery: a dropped image on the add tile raises exactly one pk-add with the file and leaves the dropzone list empty; a dropped non-image raises nothing (#1085)', async t => {
+        const g = await gallery(t); const dz = g.part('add'); await t.load(dz.shadowRoot);
+        const adds = []; g.addEventListener('pk-add', e => adds.push(e.detail));
+        const drop = f => { const dt = new DataTransfer(); dt.items.add(f); dz.part('zone').dispatchEvent(new DragEvent('drop', { dataTransfer: dt, bubbles: true, cancelable: true })); };
+        drop(new File(['x'], 'a.png', { type: 'image/png' })); await t.settle();
+        t.eq(adds.length, 1, 'one pk-add'); t.eq(adds[0].names.join(), 'a.png'); t.eq(adds[0].files[0].name, 'a.png');
+        t.eq(dz.part('list').children.length, 0, 'the dropzone list is cleared for the next choice'); t.eq(dz.files.length, 0);
+        drop(new File(['x'], 'a.txt', { type: 'text/plain' })); await t.settle();
+        t.eq(adds.length, 1, 'a rejected type raises no pk-add');
+    }],
+
+    ['image gallery: a pick on a slotted InputFile never raises pk-add, and a drop goes into that input (#1085)', async t => {
+        const g = await t.mount('<pk-image-gallery editable><input slot="input" type="file" multiple></pk-image-gallery>');
+        await t.settle(); await t.load(g.shadowRoot);
+        const dz = g.part('add'), input = g.querySelector('input[slot="input"]'); await t.load(dz.shadowRoot);
+        let adds = 0, changes = 0; g.addEventListener('pk-add', () => adds++); input.addEventListener('change', () => changes++);
+        const dt = new DataTransfer(); dt.items.add(new File(['x'], 'a.png', { type: 'image/png' }));
+        dz.part('zone').dispatchEvent(new DragEvent('drop', { dataTransfer: dt, bubbles: true, cancelable: true })); await t.settle();
+        t.eq(changes, 1, 'the dropped file reaches the slotted input as its own change'); t.eq(input.files.length, 1); t.eq(adds, 0, 'no pk-add for the slotted input');
+    }],
+
     ['image gallery: hide-add keeps make-primary, remove and reorder but never draws the add tile', async t => {
         const g = await gallery(t, 'editable hide-add');
         t.ok(!shown(g.part('add-tile')), 'no add tile');
