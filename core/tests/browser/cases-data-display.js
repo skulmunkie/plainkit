@@ -594,6 +594,33 @@ export const dataDisplayCases = [
         t.eq(getComputedStyle(el.part('scroll')).overflowX, 'auto'); el.flow = true; await t.settle(); t.eq(getComputedStyle(el.part('scroll')).overflowX, 'visible');
     }],
 
+    ['table: header-<key> slots render beside the title in their own header cell; the text title and sort button stay, and the action neither sorts nor leaves the keyboard (#1217)', async t => {
+        const many = Array.from({ length: 600 }, (_, i) => ({ id: i + 1, sku: 'S' + i, price: '$' + i }));
+        for (const [name, data] of [['plain', JSON.parse(rows)], ['windowed', many]]) {
+            const el = await t.mount(`<pk-table label="H" columns='${cols}'><button slot="header-sku" type="button" aria-label="About SKU">?</button></pk-table>`);
+            el.rows = data; await t.settle();
+            const th = k => el.shadowRoot.querySelector(`thead th[data-key="${k}"]`), btn = el.querySelector('button'), sorts = [];
+            el.addEventListener('pk-sort', e => sorts.push(e.detail.key));
+            const a = btn.getBoundingClientRect(), b = th('sku').getBoundingClientRect();
+            t.ok(a.width > 0 && a.left >= b.left - 1 && a.right <= b.right + 1, name + ': the slotted button renders inside the SKU header cell');
+            t.eq(th('sku').querySelector('button').textContent, 'SKU', name + ': the text title is still the sort button');
+            t.eq(th('sku').getAttribute('aria-sort'), 'none', name + ': aria-sort stays'); t.ok(th('price').querySelector('slot[name="header-price"]').assignedNodes().length === 0, name + ': a column with no slot has an empty slot');
+            t.eq(th('price').textContent.trim(), 'Price', name + ': and its title');
+            btn.focus(); t.ok(btn.matches(':focus'), name + ': the action takes keyboard focus'); t.eq(btn.tabIndex, 0, name + ': and is a tab stop');
+            btn.click(); await t.settle(); t.eq(sorts.length, 0, name + ': clicking the action raises no pk-sort'); t.eq(th('sku').getAttribute('aria-sort'), 'none', name + ': the column is not sorted');
+            th('sku').querySelector('button').click(); await t.settle(); t.eq(sorts.join(), 'sku', name + ': the title button still sorts');
+            const late = document.createElement('i'); late.slot = 'header-price'; late.textContent = 'late'; el.append(late); await t.settle();
+            t.ok(late.getBoundingClientRect().width > 0, name + ': a header slot added later renders');
+        }
+    }],
+    ['data-table: header-<key> slots reach the inner table header (#1217)', async t => {
+        const el = await t.mount(`<pk-data-table columns='[{"key":"sku","label":"SKU"},{"key":"qty","label":"Qty"}]'><button slot="header-qty" type="button" aria-label="About Qty">?</button></pk-data-table>`);
+        el.load = async () => ({ rows: [{ id: 1, sku: 'A', qty: 3 }], total: 1 }); el.refresh();
+        const th = () => el.part('table').shadowRoot.querySelector('thead th[data-key="qty"]');
+        await until(() => th(), 'the header');
+        await until(() => { const a = el.querySelector('button').getBoundingClientRect(), b = th().getBoundingClientRect(); return a.width > 0 && a.left >= b.left - 1 && a.right <= b.right + 1; }, 'the slotted button in the Qty header');
+    }],
+
     ['table: filters and sorts locally when not manual, and a slotted cell replaces the text', async t => {
         const el = await t.mount(`<pk-table filterable columns='${cols}' rows='${rows}'><b slot="cell-1-sku">custom</b></pk-table>`);
         t.ok(el.shadowRoot.querySelector('tbody tr[data-pk-context="1"] slot[name="cell-1-sku"]'), 'cell slot rendered');
