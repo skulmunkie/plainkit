@@ -234,4 +234,17 @@ public sealed class GeneratedComponentTests : BunitContext, IAsyncLifetime
 
         Assert.Contains(JSInterop.Invocations, i => i.Identifier == "import");
     }
+
+    [Fact]
+    public void PrintPage_content_and_toolbar_fill_their_slots()
+    {
+        var cut = Render<PkPrintPage>(p => p
+            .Add(x => x.Size, "A4")
+            .AddChildContent("<p id=\"doc\">Hello</p>")
+            .Add(x => x.Toolbar, (RenderFragment)(b => b.AddMarkupContent(0, "<button id=\"print\">Print</button>"))));
+
+        Assert.Equal("Hello", cut.Find("pk-print-page #doc").TextContent);
+        Assert.Null(cut.Find("pk-print-page #doc").Closest("[slot]"));
+        Assert.Equal("toolbar", cut.Find("#print").Closest("[slot]")!.GetAttribute("slot"));
+    }
 }
