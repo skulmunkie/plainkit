@@ -20,6 +20,7 @@ test('each control commits through its own documented event, and the value is re
 
 test('a spec becomes the attributes of its control: only the set ones, the type of a scalar, constraints', () => {
     assert.deepEqual(controlAttrs({ key: 'q', kind: 'number', min: '1', max: 9, step: '0.5', required: true }), { type: 'number', required: '', min: '1', max: 9, step: '0.5' });
+    assert.deepEqual(controlAttrs({ key: 'a', kind: 'number', format: 'money', decimals: 2, currency: 'USD', locale: 'en-US' }), { type: 'number', format: 'money', decimals: 2, currency: 'USD', locale: 'en-US' }, 'the money format reaches pk-input');
     assert.deepEqual(controlAttrs({ key: 'q', kind: 'wat', placeholder: 'p' }), { type: 'text', placeholder: 'p' }, 'an unknown kind is text');
     assert.deepEqual(controlAttrs({ key: 'n', kind: 'textarea', rows: 5, maxlength: 40 }), { maxlength: 40, rows: 5 });
     assert.deepEqual(controlAttrs({ key: 'r', kind: 'range', min: 0, max: 10, required: true }), { min: 0, max: 10 }, 'a range has no required');
