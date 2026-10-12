@@ -684,6 +684,24 @@ export const dataDisplayCases = [
         const phone = await at(375); t.eq(phone.w, 375); t.ok(phone.other, 'the SKU shows'); t.ok(!phone.td, 'the hidePhone cell is hidden in a card');
         const wide = await at(1200); t.ok(wide.td, 'shown on a wide screen');
     }],
+    ['table: a column with shed drops out by its own width (24, 36, 48rem), highest number first, at any viewport; windowed rows align (the phone cards layout is the table-shed UI scenario) (#1218)', async t => {
+        const cols = '[{"key":"a","label":"A"},{"key":"b","label":"B","shed":1},{"key":"c","label":"C","shed":2},{"key":"d","label":"D","shed":3}]';
+        const shown = el => ['a', 'b', 'c', 'd'].filter(k => { const c = el.shadowRoot.querySelector(`tbody td[data-key="${k}"]`); return c && getComputedStyle(c).display !== 'none'; }).join('');
+        const rem = parseFloat(getComputedStyle(document.documentElement).fontSize), at = async (width, extra = '', rows = '[{"id":1,"a":"1","b":"2","c":"3","d":"4"}]') => {
+            const box = await t.mount(`<div style="width:${width}px"><pk-table label="S" ${extra} columns='${cols}' rows='${rows}'></pk-table></div>`);
+            const el = box.querySelector('pk-table'); await until(() => el.shadowRoot?.querySelector('tbody td'), 'the table'); await t.settle(); return el;
+        };
+        t.eq(shown(await at(60 * rem)), 'abcd', 'a 60rem container shows every column');
+        t.eq(shown(await at(40 * rem)), 'abc', 'under 48rem the shed 3 column goes');
+        t.eq(shown(await at(30 * rem)), 'ab', 'under 36rem shed 2 goes too');
+        t.eq(shown(await at(20 * rem)), 'a', 'under 24rem only the unmarked column stays');
+        t.ok(innerWidth > 20 * rem, 'decided by the table, not the viewport');
+        const rows = JSON.stringify(Array.from({ length: 600 }, (_, i) => ({ id: i, a: `a${i}`, b: 'b', c: 'c', d: 'd' })));
+        const big = await at(30 * rem, 'max-height="12rem"', rows), heads = [...big.shadowRoot.querySelectorAll('thead tr:first-child th')].filter(h => getComputedStyle(h).display !== 'none');
+        const cells = [...big.shadowRoot.querySelector('tbody tr[data-pk-context]').children].filter(c => getComputedStyle(c).display !== 'none');
+        t.eq(big.$virtual, true, 'the table windows'); t.eq(cells.length, heads.length, 'a windowed row has as many cells as headers');
+        t.ok(cells.every((c, i) => Math.abs(c.getBoundingClientRect().left - heads[i].getBoundingClientRect().left) < 2), 'windowed cells line up with their headers');
+    }],
     ['table (375px): a slotted pk-card in a cell keeps a real width in the cards layout, and the row does not grow absurdly (#1146)', async t => {
         const { sampleDoc } = await import('../../site/gallery/frame.js');
         const html = `<pk-table cards label="C" columns='[{"key":"name","label":"Name"},{"key":"c","label":"Colour in the dark theme scope"}]' rows='[{"id":1,"name":"Primary"}]'><pk-card slot="cell-1-c" data-theme="dark"><span style="display:inline-block;width:2rem;height:1rem;background:red"></span> <code>#336699</code></pk-card></pk-table>`;

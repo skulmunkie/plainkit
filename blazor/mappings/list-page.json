@@ -7,7 +7,7 @@
       "default": "{}",
       "map": "prop",
       "prop": "config",
-      "note": "Sent as a JSON attribute: { columns: [{ key, label, type?, align?, sortable?, hidePhone? }], filters?: [{ key, type, label, options? }], actions?: [{ label, href?, variant? }], empty?: { heading?, description? }, pageSize?, selectable?, rowKey?, bulkActions?: [{ id, label, variant? }] }. A column key names a property of TItem in camel case (orderNo for OrderNo)."
+      "note": "Sent as a JSON attribute: { columns: [{ key, label, type?, align?, sortable?, hidePhone?, shed? }], filters?: [{ key, type, label, options? }], actions?: [{ label, href?, variant? }], empty?: { heading?, description? }, pageSize?, selectable?, rowKey?, bulkActions?: [{ id, label, variant? }] }. A column key names a property of TItem in camel case (orderNo for OrderNo)."
     },
     {
       "name": "Load",
