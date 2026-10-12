@@ -24,6 +24,19 @@ async function open(t, width, search = '') {
 }
 
 export const navbarCases = [
+    ['app shell on a phone and a tablet (#1204): a side nav that is not defined yet takes no room, so the main column does not move down then jump up when it upgrades', async t => {
+        for (const w of [375, 768]) {
+            const s = await open(t, w, '?holdnav');
+            const nav = s.d.querySelector('pk-side-nav'), main = s.shell.shadowRoot.querySelector('[part="main"]');
+            t.ok(!s.win.customElements.get('pk-side-nav'), `the side nav is still undefined at ${w}px`);
+            const before = s.box(main);
+            t.eq(nav.getClientRects().length, 0, `the undefined side nav has no box at ${w}px`);
+            t.ok(before.top < 1, `the main column starts at the top (${before.top.toFixed(0)}px) at ${w}px, not below an in-flow nav`);
+            await s.win.releaseNav(); await s.win.customElements.whenDefined('pk-side-nav'); await wait(400);
+            t.ok(Math.abs(s.box(main).top - before.top) < 1 && Math.abs(s.box(main).height - before.height) < 1, `the main column keeps its rect when the nav upgrades at ${w}px: ${before.top.toFixed(0)}+${before.height.toFixed(0)} -> ${s.box(main).top.toFixed(0)}+${s.box(main).height.toFixed(0)}`);
+        }
+    }],
+
     ['navbar no-fold in an app shell: exactly one menu control is shown at every width (the shell\'s), never the bar\'s own hamburger too', async t => {
         for (const w of WIDTHS) {
             const s = await open(t, w);
