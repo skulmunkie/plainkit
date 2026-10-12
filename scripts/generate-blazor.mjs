@@ -267,6 +267,8 @@ export function modelElement(el, mapping, reg) {
     // `cell-<id>-<key>` slots for the rows the `load` callback just returned.
     if (mapping.cells) {
         out.cells = { load: mapping.cells.load };
+        // `columns: true`: the mapping's Columns parameter (map cells, PkTableColumn<TItem>) replaces config.columns, and each column's Cell template fills its cell slots.
+        if (mapping.cells.columns) out.cells.columns = true;
     }
 
     // ---- 2b. `events`: a callback for each listed element event, named On<Event> ("pk-property-change" -> OnPropertyChange), typed from the meta's
@@ -476,7 +478,7 @@ export function renderComponent(m, mappingName, ns = 'PlainKit.Blazor') {
     const live = [...m.handlers.values()].filter(h => h.updates.length || h.callbacks.length);
     const custom = live.filter(h => !h.native);
     const attrs = [];
-    for (const a of m.attrs) attrs.push(`${a.attr}="${a.expr}"`);
+    for (const a of m.attrs) attrs.push(`${a.attr}="${m.cells?.columns && a.attr === 'config' ? '@ConfigWithColumns()' : a.expr}"`);
     // The element itself (PkElementBase.Element), for PkRuntime.ReadFormValuesAsync and any host that needs a JavaScript handle.
     attrs.push('@ref="Element"');
     for (const h of live.filter(x => x.native)) attrs.push(`@${h.attr}="${handlerName(h)}"`);
@@ -489,7 +491,8 @@ export function renderComponent(m, mappingName, ns = 'PlainKit.Blazor') {
     // this element is the assigned element for the slot, and its own box must dissolve the way a single-root fragment's would.
     const slottedChild = c => `@if (!string.IsNullOrEmpty(${c.name})) {<${c.slotted.tag} slot=${lit(c.slotted.slot)}${Object.entries(c.slotted.attrs ?? {}).map(([k, v]) => ` ${k}=${String(v).startsWith('@') ? `"${v}"` : lit(v)}`).join('')}>@${c.name}</${c.slotted.tag}>}`;
     const children0 = m.children.map(c => (c.slotted ? slottedChild(c) : c.slot === '' ? `@${c.name}` : `@if (${c.name} is not null${c.unless ? ` && ${c.unless} is not { Count: > 0 }` : ''}) {<span slot=${lit(c.slot)} class="u-contents">@${c.name}</span>}`)).join('');
-    const cells = m.cells ? '@if (Cells is not null) {foreach (var row in _cellRows) {foreach (var cell in Cells) {<span slot="@($"cell-{row.Id}-{cell.Key}")" class="u-contents" @key="@($"cell-{row.Id}-{cell.Key}")">@cell.Value(row.Item)</span>}}}' : '';
+    const colCells = m.cells?.columns ? '@if (Columns is not null) {foreach (var row in _cellRows) {foreach (var col in Columns) {if (col.Cell is not null) {<span slot="@($"cell-{row.Id}-{col.Key}")" class="u-contents" @key="@($"cell-{row.Id}-{col.Key}")">@col.Cell(row.Item)</span>}}}}' : '';
+    const cells = colCells + (m.cells ? '@if (Cells is not null) {foreach (var row in _cellRows) {foreach (var cell in Cells) {<span slot="@($"cell-{row.Id}-{cell.Key}")" class="u-contents" @key="@($"cell-{row.Id}-{cell.Key}")">@cell.Value(row.Item)</span>}}}' : '');
     const slotMaps = (m.slotMaps ?? []).map(s => `@if (${s.name} is not null) {foreach (var item in ${s.name}) {<span slot="@($"${s.prefix}{item.Key}")" class="u-contents" @key="@($"${s.prefix}{item.Key}")">@item.Value</span>}}`).join('');
     const children = children0 + cells + slotMaps;
     if (attrs.length === 0) L.push(`<${m.tag}>${children}</${m.tag}>`);
@@ -519,9 +522,14 @@ export function renderComponent(m, mappingName, ns = 'PlainKit.Blazor') {
     }
     if (m.cells) L.push('', '    private List<(string Id, TItem Item)> _cellRows = [];', '',
         '    private async Task<object?> ShowCellsAsync(IReadOnlyList<TItem> items)', '    {',
-        '        if (Cells is null || IdOf is null) return null;',
+        `        if ((Cells is null${m.cells.columns ? ' && Columns is null' : ''}) || IdOf is null) return null;`,
         '        await InvokeAsync(() => { _cellRows = items.Select(i => (IdOf!(i), i)).ToList(); StateHasChanged(); });',
         '        return null;', '    }');
+    if (m.cells?.columns) L.push('', '    private string ConfigWithColumns()', '    {',
+        '        if (Columns is null) return Config ?? "{}";',
+        '        var node = System.Text.Json.Nodes.JsonNode.Parse(Config ?? "{}") as System.Text.Json.Nodes.JsonObject ?? new System.Text.Json.Nodes.JsonObject();',
+        '        node["columns"] = System.Text.Json.Nodes.JsonNode.Parse(PkAttr.Json(Columns.Select(c => c.ToColumn()))!);',
+        '        return node.ToJsonString();', '    }');
     for (const x of m.methods) L.push('', doc(x.doc), `    public async Task ${x.name}() => await (await Runtime.BridgeAsync(Assets)).InvokeVoidAsync("call", Element, ${lit(x.method)});`);
     if (m.field) L.push('', '    /// <inheritdoc />', `    protected override Expression<Func<${m.field.cs}>>? FieldExpression => ${m.field.expr};`);
     if (m.field?.values) L.push('', '    /// <inheritdoc />', `    protected override Expression<Func<IReadOnlyList<string>?>>? ValuesFieldExpression => ${m.field.values};`);

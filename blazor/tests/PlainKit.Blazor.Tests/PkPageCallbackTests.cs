@@ -160,6 +160,24 @@ public sealed class PkPageCallbackTests : BunitContext, IAsyncLifetime
         Assert.Equal("EUR 7", cut.Find("[slot='cell-B-2-total']").TextContent);
     }
 
+    [Fact]
+    public async Task ListPage_typed_Columns_replace_config_columns_and_Cell_fills_slots()
+    {
+        var cut = Render<PkListPage<Order>>(p => p
+            .Add(x => x.Config, "{\"label\":\"Orders\",\"columns\":[{\"key\":\"old\",\"label\":\"Old\"}]}")
+            .Add(x => x.Columns, [new() { Key = "orderNo", Label = "No", Sortable = true }, new() { Key = "total", Label = "Total", Cell = o => b => b.AddContent(0, $"EUR {o.Total}") }])
+            .Add(x => x.Load, r => Task.FromResult(new PkListResult<Order>([new("A-1", 5)], 1)))
+            .Add(x => x.IdOf, o => o.OrderNo));
+        var config = JsonDocument.Parse(cut.Find("pk-list-page").GetAttribute("config")!).RootElement;
+        Assert.Equal("Orders", config.GetProperty("label").GetString());
+        Assert.Equal(["orderNo", "total"], config.GetProperty("columns").EnumerateArray().Select(c => c.GetProperty("key").GetString()));
+        var host = Assert.IsType<DotNetObjectReference<PkCallbackHost<PkListPageQuery>>>(Assert.Single(_bridge.Invocations["setCallback"]).Arguments[2]);
+        await cut.InvokeAsync(() => host.Value.Invoke(new PkListPageQuery()));
+
+        Assert.Equal(["cell-A-1-total"], cut.FindAll("[slot^='cell-']").Select(e => e.GetAttribute("slot")));
+        Assert.Equal("EUR 5", cut.Find("[slot='cell-A-1-total']").TextContent);
+    }
+
     private sealed record Order(string OrderNo, int Total);
 
     [Fact]

@@ -61,6 +61,6 @@ Build the config with a serializer, not by gluing strings, so an id with a quote
 
 ## What this does not cover
 
-A field value in view mode can be your own markup through `Fields` (a field name to a `RenderFragment`), and a list cell through `Cells` (with `IdOf`). Field groups and section slots are not part of `PkRecordPage` yet; for a form with tabs, sections or a sidebar of your own markup use `PkRecordForm` and `PkRecordEditor` (see the Blazor skill's `references/record-form.md`).
+A field value in view mode can be your own markup through `Fields` (a field name to a `RenderFragment`), and a list cell through `Cells` (with `IdOf`). `PkListPage` also takes typed `Columns` (`PkTableColumn<TItem>`, as on `PkDataTable`): they replace the columns of `Config`, and a column's `Cell` template fills that cell of every loaded row. Field groups and section slots are not part of `PkRecordPage` yet; for a form with tabs, sections or a sidebar of your own markup use `PkRecordForm` and `PkRecordEditor` (see the Blazor skill's `references/record-form.md`).
 
 The code above runs in the playground sample (`blazor/samples/PlainKit.Playground`, pages `RoutedOrders` and `RoutedOrder`), which is built with the solution, so it cannot drift from the components.
