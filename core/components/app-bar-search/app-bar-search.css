@@ -5,6 +5,9 @@
 /* The pill is this element's box, so the field drops its own: no box of its own, its icon and input laid into the pill's row. */
 [part="control"], [part="control"]::part(box) { display: contents; }
 [part="control"]::part(control)::-webkit-search-cancel-button { display: none; }
+/* The field's own width (what a bare input sizes to), and the same width reserved before pk-input is defined (icon + gap + field), so the pill does not grow, and shift the header, when it upgrades. */
+[part="control"]::part(control) { inline-size: 14.5rem; }
+[part="control"]:not(:defined) { display: block; flex: 1; inline-size: calc(14.5rem + 1.1em + var(--space-2)); }
 [part="collapse"] { display: none; flex: none; margin-inline-end: calc(var(--space-2) * -1); }
 [part="popup"] { position: absolute; top: calc(100% + var(--space-2)); left: -1px; right: -1px; z-index: var(--z-modal-over-flyout); min-width: var(--pk-app-bar-search-popup-width, 24rem); max-width: calc(100vw - var(--space-4)); max-height: 60vh; overflow-y: auto; background: var(--color-flyout); color: var(--color-text); border: 1px solid var(--color-border); border-radius: var(--radius-sm); box-shadow: var(--shadow-card); }
 [part="popup"][data-placement="top"] { top: auto; bottom: calc(100% + var(--space-2)); }
