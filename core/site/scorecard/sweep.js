@@ -142,12 +142,12 @@ export async function settled(f, { timeout = SETTLE_TIMEOUT_MS, until = null } =
     }
 }
 
-function makeFrame(item, width, theme) {
-    const f = document.createElement('iframe');
+function makeFrame(item, width, theme, doc) {
+    const f = doc.createElement('iframe');
     f.dataset.dyn = `position:fixed;left:-20000px;top:0;width:${width}px;height:900px;border:0`;
     applyDynamic(f);
     const src = item.src?.(theme); if (src) f.src = src; else f.srcdoc = item.doc(theme);
-    document.body.append(f);
+    doc.body.append(f);
     return f;
 }
 
@@ -173,13 +173,13 @@ const failed = r => r.error || r.overflow > 0 || r.smallTargets > 0 || r.nestedS
 // One item at every width and theme. By default the document is loaded once, then resized (the width) and re-themed (the data-theme attribute, which is how
 // the gallery itself switches theme), and each change is measured once the frame has settled again; { fresh: true } loads a new frame for every cell
 // (slow; the cross-check for the reuse). An error in a cell is recorded and the next cell starts from a new frame.
-async function sweepItem(item, { widths, themes, fresh }, out) {
+async function sweepItem(item, { widths, themes, fresh, doc }, out) {
     const cell = (theme, width, m) => out.push({ item: item.name, width, theme, ...m });
     let f = null;
     try {
         for (const theme of themes) for (const width of widths) {
             try {
-                if (fresh || !f) { f?.remove(); f = makeFrame(item, width, theme); }
+                if (fresh || !f) { f?.remove(); f = makeFrame(item, width, theme, doc); }
                 else { f.dataset.dyn = `width:${width}px`; applyDynamic(f); f.contentDocument.documentElement.setAttribute('data-theme', theme); }
                 await settled(f, { until: item.until });
                 cell(theme, width, measure(f.contentDocument, width, { checkH1: item.checkH1 }));
@@ -194,10 +194,10 @@ async function sweepItem(item, { widths, themes, fresh }, out) {
 
 // Returns { checked, failures: [{ item, width, theme, ...metrics }], items }, failures in item, theme, width order. shard: { index, count } takes every
 // count-th item, so several tabs (separate render processes) can each run a share; size is the number of items in flight in this tab.
-export async function sweep({ kinds = KINDS, filter = null, widths = WIDTHS, themes = THEMES, progress, size = 3, shard = null, fresh = false } = {}) {
+export async function sweep({ kinds = KINDS, filter = null, widths = WIDTHS, themes = THEMES, progress, size = 3, shard = null, fresh = false, doc = globalThis.document } = {}) {
     const all = items({ kinds, filter }); const mine = shard ? all.filter((_, i) => i % shard.count === shard.index) : all;
     const results = partial; results.length = 0; const order = new Map(all.map((it, i) => [it.name, i]));
-    await pool(mine.map(it => () => sweepItem(it, { widths, themes, fresh }, results)), size, (d, n) => progress?.(d, n));
+    await pool(mine.map(it => () => sweepItem(it, { widths, themes, fresh, doc }, results)), size, (d, n) => progress?.(d, n));
     const rank = r => [order.get(r.item), themes.indexOf(r.theme), widths.indexOf(r.width)];
     const cmp = (x, y) => { const p = rank(x); const q = rank(y); return p[0] - q[0] || p[1] - q[1] || p[2] - q[2]; };
     return { checked: results.length, failures: results.filter(failed).sort(cmp), items: mine.length };
@@ -209,8 +209,8 @@ export function summarise(report) {
     return { checked: report.checked, failing: report.failures.length, by, widths: WIDTHS, themes: THEMES };
 }
 
-export async function postReport(report, { part, final } = {}, url = '/__report') {
+export async function postReport(report, { part, final } = {}, url = '/__report', fetchFn = globalThis.fetch) {
     const q = new URLSearchParams({ ...(part ? { part } : {}), ...(final ? { final: '1' } : {}) }).toString();
-    const res = await fetch(url + (q ? '?' + q : ''), { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify({ checked: report.checked, failures: report.failures, widths: WIDTHS, themes: THEMES }) });
+    const res = await fetchFn(url + (q ? '?' + q : ''), { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify({ checked: report.checked, failures: report.failures, widths: WIDTHS, themes: THEMES }) });
     return res.status;
 }

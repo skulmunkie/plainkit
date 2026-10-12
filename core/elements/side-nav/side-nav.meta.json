@@ -40,7 +40,7 @@
       "type": "string",
       "default": "",
       "reflect": true,
-      "description": "localStorage key for collapsed and open branches."
+      "description": "Browser storage key for collapsed and open branches."
     },
     {
       "name": "currentPath",

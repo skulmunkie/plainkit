@@ -1,7 +1,7 @@
 // The platform access the tool modules share (js/mount-support.js): timers that return their cancel, saved state, and the page address (#682 S7).
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { later, every, storedText, storeText, addressOf, loadText } from '../js/mount-support.js';
+import { later, every, storedText, storeText, addressOf, replaceAddress, loadText } from '../js/mount-support.js';
 
 const fakeWin = () => {
     const timers = new Map(); let next = 1; const store = new Map();
@@ -11,7 +11,7 @@ const fakeWin = () => {
         setInterval(fn, ms) { timers.set(next, { fn, ms, repeat: true }); return next++; },
         clearTimeout(id) { timers.delete(id); }, clearInterval(id) { timers.delete(id); },
         localStorage: { getItem: k => store.get(k) ?? null, setItem(k, v) { store.set(k, String(v)); } },
-        location: { href: 'https://x.test/p?q=1#a=2', hash: '#a=2' },
+        location: { href: 'https://x.test/p?q=1#a=2', hash: '#a=2', replace(h) { this.replaced = h; } },
     };
 };
 
@@ -45,8 +45,10 @@ test('saved state reads and writes through localStorage: a blocked read throws, 
 
 test('addressOf gives the href and the hash as they are now', () => {
     const win = fakeWin();
-    assert.deepEqual(addressOf(win), { href: 'https://x.test/p?q=1#a=2', hash: '#a=2' });
+    assert.deepEqual(addressOf(win), { href: 'https://x.test/p?q=1#a=2', hash: '#a=2', ancestor: '' });
     win.location.hash = '#b'; assert.equal(addressOf(win).hash, '#b');
+    win.location.ancestorOrigins = ['https://embedder.test']; assert.equal(addressOf(win).ancestor, 'https://embedder.test');
+    replaceAddress(win, 'https://x.test/n'); assert.equal(win.location.replaced, 'https://x.test/n');
 });
 
 test('loadText returns the text of an ok response and throws with the url and status otherwise', async () => {
