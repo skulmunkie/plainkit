@@ -22,7 +22,7 @@ test('what a change needs', () => {
     assert.deepEqual(runs(['core/tests/browser/cases.js']), ['node', 'browser']);
     assert.deepEqual(runs(['scripts/tests/verify.test.mjs']), ['node']);
     assert.deepEqual(runs(['blazor/src/PlainKit.Blazor/Components/PkX.razor']), ['node', 'dotnet', 'pack']);
-    assert.deepEqual(runs(['core/site/gallery/index.html']), ['node', 'dotnet']);
+    assert.deepEqual(runs(['core/site/gallery/embed.html']), ['node', 'dotnet']);
     assert.deepEqual(runs(['scripts/attest-browser.mjs']), ['node', 'dotnet', 'browser']);
     assert.deepEqual(runs(['core/VERSION', 'CHANGELOG.md']), ['node', 'dotnet', 'pack']);
     assert.deepEqual(runs(['Directory.Packages.props']), ['node', 'dotnet', 'pack']);

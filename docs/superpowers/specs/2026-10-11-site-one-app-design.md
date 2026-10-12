@@ -40,7 +40,7 @@ Steps 1 and 2 are framework (strict budget gate); 3 is the pilot for the content
 
 ## 4. What breaks
 
-- **Old URLs**: `site/gallery/index.html?...`, `site/guides/...`, `site/files`, `site/scorecard`, `site/theme`, `site/layout-builder` and their hash/query forms stop working. No redirect stubs (owner rule). `site/gallery/embed.html` and `preview.html` are iframe documents used by samples and must stay standalone documents, or the sample frames break.
+- **Old URLs**: the standalone gallery page (`gallery/index.html?...`), `site/guides/...`, `site/files`, `site/scorecard`, `site/theme`, `site/layout-builder` and their hash/query forms stop working. No redirect stubs (owner rule). `site/gallery/embed.html` and `preview.html` are iframe documents used by samples and must stay standalone documents, or the sample frames break.
 - `core/tests/retired-urls.test.mjs`: add each retired address in the step that removes it, after fixing every reference (docs, README, skills, scripts, scorecard, gallery link maps).
 - Stored state: `pk-site-theme` (read once via `storage.legacy`), gallery settings keys (`gallery/settings.js`); nav open/closed state resets.
 - `scorecard-sweep`, `ui-review.mjs` and any script opening gallery pages by URL need the new addresses.

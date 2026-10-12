@@ -4,7 +4,7 @@ import fs from 'node:fs';
 import path from 'node:path';
 import { resolveSiteCss } from './breakpoints.mjs';
 
-// Files copied as they are, plus the rewritten ones. standalone.js and index.html are the SDK site's own host page and stay out.
+// Files copied as they are, plus the rewritten ones. The SDK site's own host is app.html (the gallery module), which is not part of dist.
 const COPY = ['gallery.js', 'gallery-views.js', 'settings.js', 'frame.js', 'frame-boot.js', 'frame.css', 'gallery.css', 'gallery.static.js', 'elements-view.js', 'sample-tree.js', 'embed.js', 'preview.js', 'pattern-mount.js'];
 
 // The dist layout puts js/, plainkit.css and icons.svg one level above the gallery folder, not two: drop one "../" from a specifier that

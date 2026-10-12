@@ -41,7 +41,7 @@ relative paths, so the folder can be served under any prefix (`/sdk/<version>/`)
 | `icons/` | The icon sprite's design language (`README.md`) and source: `src/<name>.svg`, one shape per icon; `build.mjs` lints and generates `icons.svg`, `icons.json` and `icons.d.ts` (all generated, not in git) |
 | `layouts/<id>/` | Page anatomies (list, record, setup, tool, wizard): `<id>.html` + `<id>.meta.json` listing the elements used |
 | `samples/templates/<id>/`, `samples/patterns/<id>/` | Full-page templates and composed patterns, each in its own folder with `.html`, `.meta.json` (and `.js`: a template's page script, a pattern's optional `mount(root)` script) |
-| `site/` | The site: `shell.js`, `site.css` and the pages `gallery/`, `theme/`, `scorecard/`, `files/`, `guides/` (its `content/*.md` are the guides; `spacing/` only redirects to the gallery) |
+| `site/` | The site: `site.css`, `app.config.js` and the app modules in `modules/` (gallery, theme, scorecard, files, guides, ...), opened through `app.html`; `gallery/` also holds the embed, preview and frame hosts and `guides/content/*.md` are the guides |
 | `app.html`, `app.js` | The entry of the site as one `mountApp` app (#355): the shell, router and modules (`site/modules/`, `site/app.config.js`); the old per-page entries redirect to it |
 | `site2/` | The Site V2 / strict-module-mode rebuild target (`docs/superpowers/specs/2026-09-28-site-v2-strict-modules-design.md`, tracker #346); empty until the design's open questions are answered. `site/` (above) is the live Gallery App and is not touched by this work until cutover |
 | `STANDARDS.md` | The rules: naming, tokens, modules, the dist pattern, CSP, and keeping SDK and Blazor in step |

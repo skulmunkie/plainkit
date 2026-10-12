@@ -310,7 +310,7 @@ async function pagesStage(cdp, port, widths, deadline) {
     await cdp.send('Network.enable'); await cdp.send('Runtime.enable'); await cdp.send('Page.enable'); await cdp.send('Performance.enable');
     await cdp.send('Page.addScriptToEvaluateOnNewDocument', { source: OBSERVERS });
     // The gallery's own hash routes are every product-template sample; the shell pages that wrap them (the gallery's own root, the scorecard and
-    // the theme editor) are loaded once each too, undecorated, so a CLS regression in core/site/shell.js or a page's own late content shows up
+    // the theme editor) are loaded once each too, undecorated, so a CLS regression in the app shell or a page's own late content shows up
     // here instead of only in the ad hoc node scripts/bench/pages.mjs run (#135).
     const shellPages = [
         { label: 'gallery', url: `http://localhost:${port}/app.html?theme=dark#/gallery` },

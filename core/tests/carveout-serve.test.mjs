@@ -19,7 +19,7 @@ for (const [name, args, prefix] of [['plain', [], ''], ['under a CSP header', ['
             assert.deepEqual([...new Set(failures)], []);
             assert.ok(total > 300, `crawled ${total} resources`);
             if (args.includes('--csp')) { const header = (await fetch(`${origin}/index.html`)).headers.get('content-security-policy') ?? ''; assert.match(header, /script-src 'self'/); assert.match(header, /style-src 'self'(?!\s+'unsafe-inline')/); assert.doesNotMatch(header, /unsafe-inline/); }
-            if (prefix) assert.equal((await fetch(`http://localhost:${port}/site/gallery/index.html`)).status, 404, 'outside the prefix nothing is served');
+            if (prefix) assert.equal((await fetch(`http://localhost:${port}/site/gallery/embed.html`)).status, 404, 'outside the prefix nothing is served');
         } finally { const gone = new Promise(r => proc.once('exit', r)); proc.kill(); await Promise.race([gone, new Promise(r => setTimeout(r, 2000))]); }
     });
 }

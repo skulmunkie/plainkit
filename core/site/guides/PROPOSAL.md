@@ -42,7 +42,7 @@ A guide is data, not text to be parsed. One JSON file per guide, blocks in order
 | Callouts | `pk-alert`, `pk-hint` | yes |
 | Breadcrumb | `pk-breadcrumb` | yes |
 | Live example next to its code | a `pk-gallery control="..."` frame, or `dist/gallery` embed | yes |
-| Layout | `pk-app-shell` or the site shell (`site/shell.js`) | yes |
+| Layout | `pk-app-shell` (the site app) | yes |
 | Deep links and back button | hash routing like `site/gallery/gallery.js` (`#/guides/<id>`) | pattern exists, not a component |
 
 ## Gaps (not built, owner decides)
