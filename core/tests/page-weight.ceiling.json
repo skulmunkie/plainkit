@@ -2,5 +2,5 @@
   "_comment": "Page-weight ceilings: per reference page (scripts/bench/ref-pages.mjs), the most gzip and brotli bytes and requests its static request graph may have. Set to the measured value rounded up by less than 2 percent. THIS FILE ONLY EVER SHRINKS: lower a number when the page gets lighter; never raise one, never add a page to hide growth. If you are over, make the source smaller.",
   "button": { "requests": 14, "gzip": 19000, "brotli": 16500 },
   "form": { "requests": 18, "gzip": 28700, "brotli": 24900 },
-  "table": { "requests": 14, "gzip": 21200, "brotli": 18500 }
+  "table": { "requests": 14, "gzip": 20800, "brotli": 18500 }
 }
