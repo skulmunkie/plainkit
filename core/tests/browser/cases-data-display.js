@@ -687,17 +687,17 @@ export const dataDisplayCases = [
     ['table: a column with shed drops out by its own width (24, 36, 48rem), highest number first, at any viewport; windowed rows align (the phone cards layout is the table-shed UI scenario) (#1218)', async t => {
         const cols = '[{"key":"a","label":"A"},{"key":"b","label":"B","shed":1},{"key":"c","label":"C","shed":2},{"key":"d","label":"D","shed":3}]';
         const shown = el => ['a', 'b', 'c', 'd'].filter(k => { const c = el.shadowRoot.querySelector(`tbody td[data-key="${k}"]`); return c && getComputedStyle(c).display !== 'none'; }).join('');
-        const at = async (width, extra = '', rows = '[{"id":1,"a":"1","b":"2","c":"3","d":"4"}]') => {
+        const rem = parseFloat(getComputedStyle(document.documentElement).fontSize), at = async (width, extra = '', rows = '[{"id":1,"a":"1","b":"2","c":"3","d":"4"}]') => {
             const box = await t.mount(`<div style="width:${width}px"><pk-table label="S" ${extra} columns='${cols}' rows='${rows}'></pk-table></div>`);
             const el = box.querySelector('pk-table'); await until(() => el.shadowRoot?.querySelector('tbody td'), 'the table'); await t.settle(); return el;
         };
-        t.eq(shown(await at(900)), 'abcd', 'a 900px container shows every column');
-        t.eq(shown(await at(700)), 'abc', 'under 48rem the shed 3 column goes');
-        t.eq(shown(await at(500)), 'ab', 'under 36rem shed 2 goes too');
-        t.eq(shown(await at(320)), 'a', 'under 24rem only the unmarked column stays');
-        t.ok(innerWidth > 320, 'decided by the table, not the viewport');
+        t.eq(shown(await at(60 * rem)), 'abcd', 'a 60rem container shows every column');
+        t.eq(shown(await at(40 * rem)), 'abc', 'under 48rem the shed 3 column goes');
+        t.eq(shown(await at(30 * rem)), 'ab', 'under 36rem shed 2 goes too');
+        t.eq(shown(await at(20 * rem)), 'a', 'under 24rem only the unmarked column stays');
+        t.ok(innerWidth > 20 * rem, 'decided by the table, not the viewport');
         const rows = JSON.stringify(Array.from({ length: 600 }, (_, i) => ({ id: i, a: `a${i}`, b: 'b', c: 'c', d: 'd' })));
-        const big = await at(500, 'max-height="12rem"', rows), heads = [...big.shadowRoot.querySelectorAll('thead tr:first-child th')].filter(h => getComputedStyle(h).display !== 'none');
+        const big = await at(30 * rem, 'max-height="12rem"', rows), heads = [...big.shadowRoot.querySelectorAll('thead tr:first-child th')].filter(h => getComputedStyle(h).display !== 'none');
         const cells = [...big.shadowRoot.querySelector('tbody tr[data-pk-context]').children].filter(c => getComputedStyle(c).display !== 'none');
         t.eq(big.$virtual, true, 'the table windows'); t.eq(cells.length, heads.length, 'a windowed row has as many cells as headers');
         t.ok(cells.every((c, i) => Math.abs(c.getBoundingClientRect().left - heads[i].getBoundingClientRect().left) < 2), 'windowed cells line up with their headers');
