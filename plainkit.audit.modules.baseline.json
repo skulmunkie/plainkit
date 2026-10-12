@@ -303,41 +303,6 @@
     },
     {
       "rule": "S1",
-      "file": "core/site/gallery/index.html",
-      "fingerprint": "abdc4a92626d642b"
-    },
-    {
-      "rule": "S1",
-      "file": "core/site/gallery/index.html",
-      "fingerprint": "abdc4a92626d642b"
-    },
-    {
-      "rule": "S1",
-      "file": "core/site/gallery/index.html",
-      "fingerprint": "abdc4a92626d642b"
-    },
-    {
-      "rule": "S10",
-      "file": "core/site/gallery/index.html",
-      "fingerprint": "a98d6ceb6fdfdd0c"
-    },
-    {
-      "rule": "S3",
-      "file": "core/site/gallery/index.html",
-      "fingerprint": "f2ae6596f2d78288"
-    },
-    {
-      "rule": "S3",
-      "file": "core/site/gallery/index.html",
-      "fingerprint": "f2ae6596f2d78288"
-    },
-    {
-      "rule": "S3",
-      "file": "core/site/gallery/index.html",
-      "fingerprint": "f2ae6596f2d78288"
-    },
-    {
-      "rule": "S1",
       "file": "core/site/gallery/preview.html",
       "fingerprint": "47161e0c9c4b8730"
     },
@@ -370,11 +335,6 @@
       "rule": "S5",
       "file": "core/site/scorecard/sweep.js",
       "fingerprint": "221af7a6320ac21d"
-    },
-    {
-      "rule": "S3",
-      "file": "core/site/shell.js",
-      "fingerprint": "cd44668dacbeede4"
     },
     {
       "rule": "S1",

@@ -1,12 +1,7 @@
-/* SDK site chrome: the layout the standalone pages (gallery, theme, files, guides, scorecard) share.
+/* SDK site chrome: the layout the site's app modules and the embed hosts share.
    Everything reads SDK tokens; nothing here restyles an SDK control. */
 
 .site { display: flex; flex-direction: column; height: 100vh; height: 100dvh; overflow: hidden; }
-
-/* Reserves the top bar's box before the shell script defines pk-navbar and mounts it (shell.js swaps this element for the real bar in
-   place, so the page never grows or shrinks when the swap happens: see #135). Same box as navbar.css's [part="nav"] min-height plus its
-   host border, so the swap is pixel-for-pixel. */
-.site-boot-bar { flex: none; height: var(--app-header-h); background: var(--color-panel); border-bottom: var(--site-border-w) solid var(--color-border); }
 
 .site-body { flex: 1; min-height: 0; display: flex; flex-direction: column; }
 

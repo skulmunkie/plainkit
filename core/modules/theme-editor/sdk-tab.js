@@ -6,7 +6,8 @@
 //               with a recomputed manifest, as a zip. Everything runs in this page; the only requests are same-origin reads of the shipped dist files.
 //   Import      a plainkit.custom.json from an earlier export puts the theme and the widths back.
 // The logic is js/custom-sdk-logic.js, js/custom-sdk.js and js/zip-store.js; this file is the interface only. Built from SDK components.
-import { validateBreakpoints, deltaRows, readSettings, RANGE } from '../../js/custom-sdk-logic.js';
+import { validateBreakpoints, deltaRows, RANGE } from '../../js/custom-sdk-breakpoints.js';
+import { readSettings } from '../../js/custom-sdk-files.js';
 import { fetchDist, exportSdk, exportTheme } from '../../js/custom-sdk.js';
 import { PK_VERSION } from '../../js/version.js';
 import { createLogger } from '../../js/log.js';

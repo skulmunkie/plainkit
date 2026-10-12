@@ -1,6 +1,6 @@
 // The SDK gallery. ONE side nav (a pk-side-nav) whose tree is exactly the content: section > group > item. Every nav
 // entry is a view with its own URL hash (#/elements/pk-button), so each view shows one topic and back/forward work. The
-// top navbar (site/shell.js) is the only other navigation. Samples render in iframes (frame.js) so the phone switch is real.
+// app's top bar is the only other navigation. Samples render in iframes (frame.js) so the phone switch is real.
 // The gallery's own chrome, views and samples are pk-* elements.
 // Framework-free; ES module driven by gallery.data.js.
 //

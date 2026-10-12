@@ -110,7 +110,7 @@ export function validateApi(meta, { template = '', css = '', name = meta?.tag ??
 }
 
 // The same props as the runtime wants them: { name: { type, default, values, reflect } }.
-export const propsObject = meta => Object.fromEntries(meta.props.map(({ name, type, default: d, values, reflect }) => [name, { type, default: d, ...(values ? { values } : {}), reflect }]));
+export const propsObject = meta => Object.fromEntries(meta.props.map(({ name, type, default: d, values, reflect }) => [name, { type, default: d, ...(values ? { values } : {}), ...(reflect ? { reflect } : {}) }]));
 
 // Everything an element deprecates, as [{ item, since, remove, message }]. `item` is the API surface name (api-surface.mjs): the tag, then
 // tag:prop:name, tag:event:name or tag:slot:name (the default slot is "(default)").

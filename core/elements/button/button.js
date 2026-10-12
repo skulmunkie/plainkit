@@ -55,6 +55,7 @@ export default Base => class extends Base {
         else if (this.toggle) { c.setAttribute('aria-pressed', String(this.pressed)); c.removeAttribute('aria-expanded'); }
         else { c.removeAttribute('aria-pressed'); c.removeAttribute('aria-expanded'); }
         // An icon button keeps its name while busy (the spinner replaces the icon, not the words), so busy-text does not swap it.
+        if ('ariaControlsElements' in c) c.ariaControlsElements = this.controls ? [].concat(this.controls) : null;
         this.toggleAttribute('has-busy-text', this.busy && this.busyText !== '' && !this.icon);
         const hasIcon = Boolean(this.iconName || this.$slotIcon);
         this.toggleAttribute('has-icon', hasIcon);
