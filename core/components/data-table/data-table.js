@@ -50,7 +50,7 @@ export default Base => class extends Base {
         if (names.join() === have.map(c => c.name).join()) return;
         for (const c of have) c.remove();
         for (const name of names) { const s = this.ownerDocument.createElement('slot'); s.name = s.slot = name; table.append(s); }
-        table.requestUpdate();
+        table.requestUpdate?.(); // not defined yet: it draws these children on its first render
     }
     changed(name) {
         if (!this.$w) return;

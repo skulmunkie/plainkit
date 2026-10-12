@@ -446,6 +446,18 @@ export const dataDisplayCases = [
         t.eq(td(1, 'qty').dataset.align, 'end', 'a number column aligns to the end'); t.ok(td(1, 'note').hasAttribute('data-hide-phone'), 'hidePhone reaches the cell');
     }],
 
+    ['data-table: a cell slot added while the inner pk-table is not upgraded yet raises no error and shows once it is (#1187)', async t => {
+        const el = await mountDataTable(t, `<pk-data-table columns='[{"key":"sku","label":"SKU"}]'></pk-data-table>`);
+        const table = el.part('table'), errors = [], onError = e => { errors.push(e.message); e.preventDefault(); };
+        window.addEventListener('error', onError);
+        Object.defineProperty(table, 'requestUpdate', { value: undefined, configurable: true }); // what an element that is not defined yet looks like
+        try {
+            const late = document.createElement('i'); late.slot = 'cell-1-sku'; el.append(late);
+            await wait(50);
+        } finally { window.removeEventListener('error', onError); delete table.requestUpdate; }
+        t.eq(errors.join(), '', 'no uncaught error from the observer');
+        t.ok(table.querySelector('slot[name="cell-1-sku"]'), 'the slot is forwarded all the same');
+    }],
     ['data-table: clickable rows are tab stops, Enter or a click raises pk-row-click on the host with the row id, and currentRow marks the open row (#817)', async t => {
         const el = await t.mount(`<pk-data-table clickable current-row="2" columns='[{"key":"sku","label":"SKU"}]'></pk-data-table>`);
         el.load = async () => ({ rows: [{ id: 1, sku: 'A' }, { id: 2, sku: 'B' }], total: 2 });
