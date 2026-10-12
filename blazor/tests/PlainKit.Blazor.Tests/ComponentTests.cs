@@ -65,6 +65,13 @@ public sealed class ComponentTests : BunitContext, IAsyncLifetime
     }
 
     [Fact]
+    public void Button_overflow_reaches_the_element_as_an_attribute()
+    {
+        Assert.Equal("truncate", Render<PkButton>(p => p.Add(x => x.Overflow, ButtonOverflow.Truncate)).Find("pk-button").GetAttribute("overflow"));
+        Assert.Null(Render<PkButton>().Find("pk-button").GetAttribute("overflow"));
+    }
+
+    [Fact]
     public void Dev_tools_page_offers_the_three_workspaces_and_marks_the_current_one()
     {
         var cut = Render<PkDevToolsPage>(p => p.Add(x => x.Tab, "scorecard"));
