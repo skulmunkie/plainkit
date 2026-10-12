@@ -41,7 +41,7 @@ async function sizeFiles() {
 }
 
 // Mounts the card into `root` (the site app's scorecard module, modules/scorecard.js, calls this); resolves to { run, results, report, ready, destroy }.
-export async function startScorecard(root, concurrency) {
+export async function startScorecard(root, concurrency, signal) {
     const intro = document.createElement('p');
     intro.className = 'muted';
     intro.textContent = `Scores 0-100 for performance, scale, look and accessibility, from the definitions in scorecard/scoring.data.js (every threshold is a setting there). A run renders every gallery sample at ${SCORING.widths.join(', ')}px in both themes, so it takes a little while.`;
@@ -52,7 +52,7 @@ export async function startScorecard(root, concurrency) {
         targets: elementTargets(),
         historyKey: SCORING.historyKey,
         historyMax: SCORING.historyMax,
-        concurrency, // #/scorecard?concurrency=2 renders fewer frames at once on a slow machine
+        concurrency, signal, // #/scorecard?concurrency=2 renders fewer frames at once on a slow machine
         link: i => `#/gallery/elements/${i.id}`,
         rankedLabel: 'Element',
         fileLink: (file, line) => `#/files?path=${encodeURIComponent(file)}&line=${line}`,

@@ -9,7 +9,8 @@
 // { name, html } for markup rendered with the SDK stylesheets, { name, srcdoc } for a whole document, or { name, samples: [...] } for
 // several frames scored as one), checks (keep only findings whose check or category is listed, e.g. ['accessibility', 'touch-target'];
 // default all), themes (default dark and light), widths (default 375 and 1024), historyKey (a localStorage key: keeps the runs and shows
-// the change since the last), historyMax (runs kept, default 40), autorun, theme, height, link (item => href for a ranked name).
+// the change since the last), historyMax (runs kept, default 40), autorun, theme, height, link (item => href for a ranked name), signal (an AbortSignal:
+// when it aborts the card is destroyed and a run in flight stops opening frames and paints nothing).
 // sections: which parts to show, from ranked, performance, size, api, tiers, sweep, security, history; default ['ranked'], which is the
 // scorecard as it always was.
 //   ranked       the score and every target worst first (needs a run)
@@ -135,12 +136,13 @@ function measure(frame, phone, focus) {
 }
 
 // Score every target: [{ id, name, kind, findings (grouped), score }] in the order given.
-export async function runTargets(targets, { host, themes = DEFAULTS.themes, widths = DEFAULTS.widths, checks, penalty = DEFAULTS.penalty, concurrency = DEFAULTS.concurrency, onProgress, base } = {}) {
+export async function runTargets(targets, { host, themes = DEFAULTS.themes, widths = DEFAULTS.widths, checks, penalty = DEFAULTS.penalty, concurrency = DEFAULTS.concurrency, onProgress, base, signal } = {}) {
     const list = normalizeTargets(targets);
     const results = new Map(list.map(t => [t.id, { target: t, findings: [] }]));
     const widest = Math.max(...widths);
     const jobs = [];
     for (const t of list) for (const frame of t.frames) for (const theme of themes) for (const width of widths) jobs.push(async () => {
+        if (signal?.aborted) return; // a cancelled run opens no more frames
         const f = await openFrame(host, frame, { theme, width, base });
         try { for (const x of measure(f, width <= 640, theme === themes[0] && width === widest)) results.get(t.id).findings.push({ ...x, context: `${theme} ${width}px` }); } finally { f.remove(); }
     });
@@ -191,6 +193,7 @@ export async function mountScorecard(container, options = {}) {
     const data = options.data ?? {};
     const sections = new Set(options.sections ?? ['ranked']);
     for (const s of sections) if (!SECTIONS.includes(s)) throw new Error(`mountScorecard: unknown section "${s}" (one of ${SECTIONS.join(', ')})`);
+    const ac = new AbortController();
     const runs = sections.has('ranked') || sections.has('performance');
     if (runs && !normalizeTargets(targets).length) throw new Error('mountScorecard needs targets: URLs, { name, url }, { name, html } or { name, srcdoc }');
     const doc = container.ownerDocument;
@@ -213,7 +216,7 @@ export async function mountScorecard(container, options = {}) {
     const first = loadElements(root);
     const $ =s => root.querySelector(s);
     let items = [];
-    let last = null;
+    let last = null; let running = false;
 
     // Own-origin data: a URL string is read from the host's origin only; anything else is the value itself.
     const load = async value => {
@@ -312,7 +315,7 @@ export async function mountScorecard(container, options = {}) {
     async function run() {
         const button = $('[data-sc-run]');
         if (!button) return items;
-        button.setAttribute('disabled', '');
+        button.setAttribute('disabled', ''); running = true;
         try {
             const perf = sections.has('performance');
             const scoring = perf ? await load(data.scoring) : null;
@@ -320,8 +323,9 @@ export async function mountScorecard(container, options = {}) {
             setProgress('Rendering every target at every width and theme…');
             items = await runTargets(targets, {
                 host: $('[data-sc-frames]'), themes: options.themes ?? scoring?.themes, widths: options.widths ?? scoring?.widths, penalty: options.penalty ?? scoring?.findingPenalty,
-                checks: options.checks, concurrency: options.concurrency, base: options.base, onProgress: (d, n) => setProgress(`Checking ${d}/${n}…`),
+                checks: options.checks, concurrency: options.concurrency, base: options.base, signal: ac.signal, onProgress: (d, n) => setProgress(`Checking ${d}/${n}…`),
             });
+            if (ac.signal.aborted) return items;
             const report = perf ? await measured(scoring, items) : null;
             const overall = report ? report.scores.overall : meanScore(items);
             let changes = []; let d = { overall: null, categories: {}, items: [] }; let history = [];
@@ -351,11 +355,14 @@ export async function mountScorecard(container, options = {}) {
                 loadElements(result);
             }
             setProgress(`Done. Overall ${overall}.`);
-        } catch (err) { log.error('the scorecard run failed', err); setProgress(`The run failed: ${err.message}`); } finally { button.removeAttribute('disabled'); }
+        } catch (err) { log.error('the scorecard run failed', err); setProgress(`The run failed: ${err.message}`); } finally { running = false; button.removeAttribute('disabled'); if (ac.signal.aborted) root.remove(); }
         return items;
     }
 
     const runButton = $('[data-sc-run]'); if (runButton) on(runButton, 'click', run);
     if (autorun && runs) await run();
-    return { run, results: () => items, report: () => last, ready, destroy: () => root.remove() };
+    // a run in flight keeps its frames' host until it has stopped (a frame in a detached host never loads), then the card goes
+    const destroy = () => { ac.abort(); if (!running) root.remove(); };
+    if (options.signal) { if (options.signal.aborted) destroy(); else on(options.signal, 'abort', destroy, { once: true }); }
+    return { run, results: () => items, report: () => last, ready, destroy };
 }
