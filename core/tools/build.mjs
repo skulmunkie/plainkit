@@ -27,7 +27,7 @@ import { checkFolders } from './tiers.mjs';
 import { collectSnapshot, collectFileList } from './snapshot.mjs';
 import { guidesModule } from './guides.mjs';
 import { loadBreakpoints, resolveCustomMedia, breakpointProperties } from './breakpoints.mjs';
-import { manifestText, modulesRequires } from '../js/custom-sdk-logic.js';
+import { manifestText, modulesRequires } from '../js/custom-sdk-files.js';
 import { reportJson as breakpointReport } from './breakpoint-report.mjs';
 
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
