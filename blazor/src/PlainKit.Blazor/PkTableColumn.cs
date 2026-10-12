@@ -37,7 +37,7 @@ public enum PkTableEditor
 }
 
 /// <summary>A column of a <c>pk-table</c>.</summary>
-/// <remarks>Sent to the element's <c>columns</c> attribute (JSON, camelCase): <c>{ "key", "label", "type", "align", "sortable", "hidePhone" }</c>.</remarks>
+/// <remarks>Sent to the element's <c>columns</c> attribute (JSON, camelCase): <c>{ "key", "label", "type", "align", "sortable", "hidePhone", "shed" }</c>.</remarks>
 public sealed record PkTableColumn
 {
     /// <summary>The field of a row that this column shows.</summary>
@@ -62,6 +62,10 @@ public sealed record PkTableColumn
     [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingDefault)]
     public bool HidePhone { get; init; }
 
+    /// <summary>Drop the column when the table itself is narrower than 24rem (1), 36rem (2) or 48rem (3).</summary>
+    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
+    public int? Shed { get; init; }
+
     /// <summary>The editor of the column's cells in an editable table; null leaves the column read-only.</summary>
     [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
     public PkTableEditor? Editor { get; init; }
@@ -69,19 +73,15 @@ public sealed record PkTableColumn
     /// <summary>The choices of a <see cref="PkTableEditor.Select"/> editor.</summary>
     [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
     public IReadOnlyList<string>? Options { get; init; }
-
     /// <summary>An empty value is refused.</summary>
     [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingDefault)]
     public bool Required { get; init; }
-
     /// <summary>The smallest value of a <see cref="PkTableEditor.Number"/> editor.</summary>
     [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
     public double? Min { get; init; }
-
     /// <summary>The largest value of a <see cref="PkTableEditor.Number"/> editor.</summary>
     [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
     public double? Max { get; init; }
-
     /// <summary>The longest text a <see cref="PkTableEditor.Text"/> editor accepts.</summary>
     [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
     public int? MaxLength { get; init; }

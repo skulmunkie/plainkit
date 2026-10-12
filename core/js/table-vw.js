@@ -11,15 +11,13 @@ import { rowId, idSet } from './rowset.js';
 // magic number scattered across the source; table.meta.json's summary documents it, so it is the one place a host reads it (no prop:
 // the threshold is fixed, to keep this element inside its own gzip budget).
 export const THRESHOLD = 500;
-const OVERSCAN = 10; // extra rows drawn above and below the viewport, so a fast scroll or a focus move does not flash empty rows
 
 // The table's own view getter (sorted + filtered rows), memoized against the inputs that decide it: a scroll-driven re-render hits the
 // cache instead of re-sorting thousands of rows every frame. Correctness never depends on the cache: any changed input recomputes
 // through the getter itself, so windowing can never show a different order or a different set of rows than a plain table would.
 function view(el) {
-    const k = ['rows', 'columns', 'filters', 'sort', 'sortDir'], c = el.$vc;
-    if (c && k.every(n => c[n] === el[n])) return c.result;
-    return (el.$vc = { ...Object.fromEntries(k.map(n => [n, el[n]])), result: el.view }).result;
+    const v = ['rows', 'columns', 'filters', 'sort', 'sortDir'].map(n => el[n]), c = el.$vc;
+    return c && v.every((x, i) => x === c.v[i]) ? c.result : (el.$vc = { v, result: el.view }).result;
 }
 
 // The first time a render windows: listens on the scroll frame (the table's own shadow node, built once in the constructor, never
@@ -38,24 +36,22 @@ function attach(el) {
 // so this stays pure, like table-expand.js's h-taking functions.
 function body(el, rowsAll, h) {
     const prev = el.part('body').querySelector('tr[data-pk-context]');
-    if (prev) el.$rowH = prev.getBoundingClientRect().height || el.$rowH;
+    el.$rowH = prev?.getBoundingClientRect().height || el.$rowH;
     if (el.expandable || el.editable || rowsAll.length <= THRESHOLD) return el.$virtual = false, null;
     if (!el.$vs) { el.$vs = 1; attach(el); }
     el.$virtual = true;
     const cols = el.list('columns'), lead = Number(el.selectable), sel = el.chosen?.() ?? idSet(el.selected);
     const s = el.part('scroll'), rowH = el.$rowH || 32, vh = s.clientHeight || 400, span = cols.length + lead;
-    const start = Math.max(0, Math.floor(s.scrollTop / rowH) - OVERSCAN);
-    const end = Math.min(rowsAll.length, start + Math.ceil(vh / rowH) + OVERSCAN * 2);
+    const start = Math.max(0, Math.floor(s.scrollTop / rowH) - 10); // 10 extra rows above and below the viewport, so a fast scroll or a focus move does not flash empty rows
+    const end = Math.min(rowsAll.length, start + Math.ceil(vh / rowH) + 20);
     const bump = (size, place) => { const td = h('td', { colspan: span }); td.style.setProperty('padding', '0'); td.style.setProperty('border', '0'); td.style.setProperty('block-size', `${size}px`); return h('tr', { 'data-spacer': place, 'aria-hidden': true }, td); };
-    const drawn = rowsAll.slice(start, end).flatMap((row, j) => {
-        return [tr(el, row, rowId(row, start + j, el.rowKey), sel, h)];
-    });
+    const drawn = rowsAll.slice(start, end).map((row, j) => tr(el, row, rowId(row, start + j, el.rowKey), sel, h));
     return [...(start > 0 ? [bump(start * rowH, 'top')] : []), ...drawn, ...(end < rowsAll.length ? [bump((rowsAll.length - end) * rowH, 'bottom')] : [])];
 }
 
 // The frame state of the table: busy flag, the empty state, the bulk bar count, the scroll frame's max height, and the foot cell spanning all `span` columns (#1020). Lives here, not in table.js, to keep that module in its gzip budget.
 function frame(el, tb, span, rows) {
-    tb.setAttribute('aria-busy', String(el.loading));
+    tb.setAttribute('aria-busy', el.loading);
     if (el.maxHeight) el.style.setProperty('--pk-table-max-height', el.maxHeight); else el.style.removeProperty('--pk-table-max-height');
     const foot = el.part('foot'); foot.colSpan = span; foot.closest('tfoot').hidden = !el.querySelector(':scope > [slot="foot"]');
     el.part('empty').hidden = el.loading || rows > 0;
@@ -75,7 +71,7 @@ function tr(el, row, id, sel, h) {
     pick.checked = sel.has(id);
     return h('tr', { 'data-pk-context': id, 'data-selected': sel.has(id), 'data-clickable': el.clickable, ...mark(row), 'aria-current': el.currentRow && el.currentRow === id ? 'true' : null },
         ...(el.selectable ? [h('td', { 'data-check': true }, pick)] : []),
-        ...el.list('columns').map(c => { const name = `cell-${id}-${c.key}`; return h('td', { 'data-key': c.key, 'data-label': c.label ?? c.key, 'data-align': al(c), 'data-hide-phone': c.hidePhone }, el.querySelector(`:scope > [slot="${CSS.escape(name)}"]`) ? h('slot', { name }) : String(row[c.key] ?? '')); }));
+        ...el.list('columns').map(c => { const name = `cell-${id}-${c.key}`; return h('td', { 'data-key': c.key, 'data-label': c.label ?? c.key, 'data-align': al(c), 'data-hide-phone': c.hidePhone, 'data-shed': c.shed }, el.querySelector(`:scope > [slot="${CSS.escape(name)}"]`) ? h('slot', { name }) : String(row[c.key] ?? '')); }));
 }
 
 // The header rows (the titles, and the filter row when filterable) for table.js, which has no room for them in its gzip budget.
@@ -83,8 +79,8 @@ function head(el, k, x, lead, sel, h) {
     const box = h('input', { type: 'checkbox', 'data-select-all': true, 'aria-label': 'Select all rows' });
     box.checked = sel.checked; box.indeterminate = sel.mixed;
     const head = [h('tr', {}, ...(el.selectable ? [h('th', { 'data-check': true }, box)] : []), ...(x ? [x.head(h)] : []),
-        ...k.map(c => h('th', { 'data-key': c.key, 'data-align': al(c), 'data-hide-phone': c.hidePhone, scope: 'col', 'aria-sort': c.sortable ? (el.sort === c.key ? el.sortDir : 'none') : null }, c.sortable ? h('button', { type: 'button' }, c.label ?? c.key) : (c.label ?? c.key), h('slot', { name: `header-${c.key}` }))))];
-    if (el.filterable) head.push(h('tr', { 'data-filters': true }, ...(lead ? [h('th', { colspan: lead })] : []), ...k.map(c => h('th', { 'data-hide-phone': c.hidePhone }, h('input', { type: 'search', 'data-filter': c.key, 'aria-label': `Filter ${c.label ?? c.key}`, value: el.filters[c.key] ?? '' })))));
+        ...k.map(c => h('th', { 'data-key': c.key, 'data-align': al(c), 'data-hide-phone': c.hidePhone, 'data-shed': c.shed, scope: 'col', 'aria-sort': c.sortable ? (el.sort === c.key ? el.sortDir : 'none') : null }, c.sortable ? h('button', { type: 'button' }, c.label ?? c.key) : (c.label ?? c.key), h('slot', { name: `header-${c.key}` }))))];
+    if (el.filterable) head.push(h('tr', { 'data-filters': true }, ...(lead ? [h('th', { colspan: lead })] : []), ...k.map(c => h('th', { 'data-hide-phone': c.hidePhone, 'data-shed': c.shed }, h('input', { type: 'search', 'data-filter': c.key, 'aria-label': `Filter ${c.label ?? c.key}`, value: el.filters[c.key] ?? '' })))));
     return head;
 }
 

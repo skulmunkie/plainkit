@@ -54,15 +54,14 @@ public sealed record PkTableColumn<TItem>
 
     /// <summary>What the column holds; it decides how the element sorts and filters the column when it is not in manual mode. Null leaves it to the element (text).</summary>
     public PkTableColumnType? Type { get; init; }
-
     /// <summary>The alignment of the cells; null leaves it to the element (start, or end for a number).</summary>
     public PkTableColumnAlign? Align { get; init; }
-
     /// <summary>The header can be activated to sort by this column (the table reports it; in manual mode you re-query).</summary>
     public bool Sortable { get; init; }
-
     /// <summary>Leave the column out of the card layout on a phone.</summary>
     public bool HidePhone { get; init; }
+    /// <summary>Drop the column when the table itself is narrower than 24rem (1), 36rem (2) or 48rem (3); null keeps it. The card layout keeps every column.</summary>
+    public int? Shed { get; init; }
 
     /// <summary>The editor of the column's cells when the table is <c>Editable</c>; null leaves the column read-only. A column with a <see cref="Cell"/> template is not editable.</summary>
     public PkTableEditor? Editor { get; init; }
@@ -97,6 +96,7 @@ public sealed record PkTableColumn<TItem>
         Align = Align,
         Sortable = Sortable,
         HidePhone = HidePhone,
+        Shed = Shed,
         Editor = Cell is null ? Editor : null,
         Options = Options,
         Required = Required,

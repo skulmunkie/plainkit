@@ -24,7 +24,7 @@ public sealed class PkTableTests : BunitContext, IAsyncLifetime
     [
         new() { Key = "customer", Label = "Customer", Sortable = true },
         new() { Key = "total", Label = "Total", Type = PkTableColumnType.Number, Align = PkTableColumnAlign.End, Text = o => o.Total.ToString("0.00") },
-        new() { Key = "status", Label = "Status", HidePhone = true, Cell = o => b => { b.OpenElement(0, "b"); b.AddContent(1, o.Status); b.CloseElement(); } },
+        new() { Key = "status", Label = "Status", HidePhone = true, Shed = 2, Cell = o => b => { b.OpenElement(0, "b"); b.AddContent(1, o.Status); b.CloseElement(); } },
     ];
 
     public PkTableTests()
@@ -46,7 +46,8 @@ public sealed class PkTableTests : BunitContext, IAsyncLifetime
         var el = Render(p => p.Add(x => x.Manual, true).Add(x => x.Label, "Orders")).Find("pk-table");
 
         using var columns = JsonDocument.Parse(el.GetAttribute("columns")!);
-        Assert.Equal("hidePhone", columns.RootElement[2].EnumerateObject().Last().Name);
+        Assert.Equal("shed", columns.RootElement[2].EnumerateObject().Last().Name);
+        Assert.Equal(2, columns.RootElement[2].GetProperty("shed").GetInt32());
         Assert.Equal("end", columns.RootElement[1].GetProperty("align").GetString());
         Assert.Equal("number", columns.RootElement[1].GetProperty("type").GetString());
         Assert.False(columns.RootElement[0].TryGetProperty("text", out _));
