@@ -113,6 +113,9 @@
     "EndpointExtensions.cs": {
       "category": "runtime"
     },
+    "PageBase.Busy.cs": {
+      "category": "runtime"
+    },
     "PageBase.cs": {
       "category": "runtime"
     },
