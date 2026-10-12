@@ -23,6 +23,17 @@ export const type = (control, text) => { const i = control.shadowRoot.querySelec
 export const choose = (control, value) => { const s = control.shadowRoot.querySelector('select'); s.value = value; s.dispatchEvent(new Event('change', { bubbles: true, composed: true })); };
 
 export const fieldGroupCases = [
+    ['templated attributes: a shadow template never stamps a raw {{placeholder}} onto a child (#1188)', async t => {
+        const log = await import('../../js/log.js'); await t.mount('<pk-grid></pk-grid><pk-button></pk-button>'); await t.settle(); log.clearLogBuffer(); // the children are defined first, as in an app that loaded them
+        const seen = [];
+        const mo = new MutationObserver(() => {});
+        await t.mount('<pk-field-group label="Order" columns="2"></pk-field-group><pk-card-menu></pk-card-menu>');
+        await t.settle();
+        const bad = log.getLogBuffer().filter(e => (e.level === 'warn' || e.level === 'error') && /\{\{/.test(e.message)).map(e => `${e.scope}: ${e.message}`);
+        t.eq(bad.join('; '), '', 'no child warned about an unresolved {{placeholder}}');
+        const left = [...document.querySelectorAll('pk-field-group,pk-card-menu')].flatMap(h => [...h.shadowRoot.querySelectorAll('*')].filter(n => [...n.attributes].some(a => a.value.includes('{{'))));
+        t.eq(left.length, 0, 'no stamped child kept a {{placeholder}} attribute');
+    }],
     ['field-group: each spec becomes a pk-field with the right control, values come from the values property, and the host is a named group', async t => {
         const el = await mountGroup(t, FIELDS, { name: 'Acme', qty: '3', status: 'open', rush: true });
         t.eq(keys(el).join('|'), 'Name|Quantity|Status|Rush', 'the closed-only note is not drawn');
