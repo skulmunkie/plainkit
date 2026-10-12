@@ -12,6 +12,8 @@
 // inline handlers). Import what it needs at the top of the scenario module with a relative path; the module is also loaded in Node, so touch no DOM at the top level.
 // expect(t) runs after every `shot` step, with t.shot = the shot's name, t.viewport = { name, width, height } and t.theme.
 
+import { contrastRatio } from './audit.js';
+
 export const VIEWPORT_NAMES = ['desktop', 'phone'];
 export const THEME_NAMES = ['light', 'dark'];
 export const STEP_KEYS = ['click', 'hover', 'focus', 'key', 'type', 'scroll', 'set', 'resize', 'media', 'wait', 'shot'];
@@ -200,6 +202,14 @@ export function createExpectations(env, context = {}) {
         scrolls: sel => env.metric(sel, 'scrollHeight') > env.metric(sel, 'clientHeight') + 1 || fail(`${sel} does not scroll: its content is ${env.metric(sel, 'scrollHeight')}px in a ${env.metric(sel, 'clientHeight')}px box`),
         /** A CSS property has a value. */
         styleIs: (sel, prop, value) => env.style(sel, prop) === value || fail(`${sel} has ${prop}: ${env.style(sel, prop)}, expected ${value}`),
+        /** The text colour of fg reads at least `min`:1 (default 4.5, WCAG AA small text) on the background colour of bg. Both must be opaque. */
+        contrast: (fg, bg, min = 4.5) => {
+            const rgb = c => { const m = c.match(/-?[\d.]+/g)?.map(Number); return m && m.length >= 3 ? (c.startsWith('color(') ? m.slice(0, 3).map(v => v * 255) : m.slice(0, 3)) : null; };
+            const a = rgb(env.style(fg, 'color')), b = rgb(env.style(bg, 'background-color'));
+            if (!a || !b) return fail(`${fg} or ${bg} has no readable colour (${env.style(fg, 'color')} on ${env.style(bg, 'background-color')})`);
+            const r = contrastRatio(a, b);
+            return r >= min || fail(`${fg} text reads ${r.toFixed(2)}:1 on ${bg}, below ${min}:1`);
+        },
         /** The element shows a focus ring: an outline with a width, or a box-shadow. */
         ringVisible: sel => {
             const w = parseFloat(env.style(sel, 'outline-width')), st = env.style(sel, 'outline-style');

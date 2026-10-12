@@ -29,6 +29,7 @@
 [part="row-label"] { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 /* --color-muted reads 4.3:1 on --color-flyout in the dark theme, just under WCAG AA: --color-muted-strong instead. */
 [part="row-sub"] { color: var(--color-muted-strong); font-size: var(--text-meta); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+[part="option"][aria-selected="true"] [part="row-sub"] { color: var(--color-text); }
 /* --chip-bg/--chip-fg (same pairing as pk-badge-popover's pill), not --color-surface-alt/--color-muted: that pairing
    also reads 4.3:1 on dark, just under WCAG AA. */
 [part="badge"] { flex: none; padding: 0 var(--space-2); border-radius: var(--radius-pill); background: var(--chip-bg); color: var(--chip-fg); font-size: var(--text-meta); }
