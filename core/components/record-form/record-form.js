@@ -18,6 +18,7 @@ export default Base => class extends Base {
         on('cancel', () => this.emit('pk-record-cancel', null));
         on('delete', () => this.emit('pk-record-delete', null));
         on('save', () => this.submit());
+        this.addEventListener('keydown', e => this.enterSubmits_(e));
         // pk-form validated the submit: this element's own event, and pk-form's stops here.
         this.part('form').addEventListener('pk-valid', e => { e.stopPropagation(); this.emit('pk-record-save', null); });
         this.watchSlot('sidebar', () => this.part('layout').toggleAttribute('data-bare', this.slotted('sidebar').length === 0));
@@ -78,6 +79,14 @@ export default Base => class extends Base {
             return;
         } else return;
         win.history.replaceState(win.history.state, '', url);
+    }
+    /** Enter in a single-line control of the form submits it as Save does: the Save button is outside the form, so the browser has no submit button to press (#1198). */
+    enterSubmits_(e) {
+        if (e.key !== 'Enter' || e.isComposing || e.defaultPrevented || e.shiftKey || e.ctrlKey || e.altKey || e.metaKey) return;
+        const form = this.form_(), t = e.composedPath()[0];
+        if (!form || !t?.matches?.('input:not([type=button],[type=submit],[type=reset],[type=checkbox],[type=radio],[type=file],[type=image])') || !form.contains(t.getRootNode().host ?? t)) return;
+        e.preventDefault();
+        this.submit();
     }
     form_() { return this.slotted().find(e => e.localName === 'form') ?? this.querySelector('form'); }
     /** Submits the consumer's form as its own submit button would: pk-form checks it, and a valid one raises pk-record-save. Call it from a button outside this element (the page header's). */

@@ -37,6 +37,28 @@ export const recordFormCases = [
         t.eq(leaked.v, 0, 'pk-valid stops inside: the element\'s own event is the contract');
     }],
 
+    ['record-form: Enter in a single-line field saves like Save (#1198): invalid shows the summary and raises nothing; valid raises once; a textarea, IME composition and modifier keys do not', async t => {
+        const el = await mount(t); const saved = count(el, 'pk-record-save');
+        const form = el.querySelector('form');
+        form.querySelector('pk-stack').insertAdjacentHTML('beforeend', '<pk-field label="Code"><pk-input name="code"></pk-input></pk-field>');
+        await t.load(form); await t.settle();
+        const enter = (target, init = {}) => { const e = new KeyboardEvent('keydown', { key: 'Enter', bubbles: true, composed: true, cancelable: true, ...init }); target.dispatchEvent(e); return e; };
+        const code = form.querySelector('pk-input[name=code]').part('control');
+        const e1 = enter(code); await t.settle(); await t.settle();
+        t.ok(e1.defaultPrevented, 'the default (implicit submission) is taken over, so no double submit');
+        t.ok(!el.part('form').part('summary').hidden, 'Enter on an invalid form shows the summary'); t.eq(saved.v, 0, 'and raises nothing');
+        await type(t, el, 'Acme');
+        enter(code); await t.settle(); await t.settle();
+        t.eq(saved.v, 1, 'Enter on a valid form raises pk-record-save once');
+        const area = el.querySelector('pk-textarea').part('control');
+        const e2 = enter(area); await t.settle(); await t.settle();
+        t.ok(!e2.defaultPrevented && saved.v === 1, 'Enter in a textarea is left alone (a newline) and does not save');
+        enter(code, { isComposing: true }); await t.settle(); t.eq(saved.v, 1, 'Enter that confirms an IME composition does not save');
+        for (const m of ['shiftKey', 'ctrlKey', 'altKey', 'metaKey']) enter(code, { [m]: true });
+        await t.settle(); t.eq(saved.v, 1, 'Enter with a modifier does not save');
+        const e3 = enter(el.part('save')); await t.settle(); t.ok(!e3.defaultPrevented && saved.v === 1, 'Enter on a button is left to the button');
+    }],
+
     ['record-form: Cancel and Delete show only when asked, raise their own event once, Delete is disabled while busy, and Save shows its busy text, label and disabled state', async t => {
         const plain = await mount(t);
         t.ok(button(plain, 'cancel').hidden && button(plain, 'delete').hidden, 'neither shows by default');
