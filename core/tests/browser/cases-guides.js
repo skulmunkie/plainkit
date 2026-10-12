@@ -1,192 +1,12 @@
-// Browser cases for the Guides page (site/guides/): the real page in a frame 1280px and 375px wide, so its media queries answer to the frame. Same contract as
-// cases.js: [name, async (t) => void]. What a headless node test cannot see: the side nav, toc and pager as upgraded elements, real scrolling, focus and keys.
+// Browser cases for the Guides module of the site app (core/app.html#/guides): the real app in a frame 1280px and 375px wide, so its media queries answer to the frame.
+// Same contract as cases.js: [name, async (t) => void]. What a headless node test cannot see: the side nav, toc and pager as upgraded elements, real scrolling, focus and keys.
 const wait = ms => new Promise(r => setTimeout(r, ms));
 const until = async (fn, what, tries = 100) => { for (let i = 0; i < tries; i++) { const v = fn(); if (v) return v; await wait(50); } throw new Error(`timed out waiting for ${what}`); };
-const shown = el => getComputedStyle(el).visibility !== 'hidden' && getComputedStyle(el).display !== 'none' && el.getBoundingClientRect().width > 0;
 
-// Opens the page at a hash and waits until it has painted a guide (or the list), its elements are defined and the toc has read the headings.
-async function open(t, hash, { width = 1280, height = 800, theme = 'dark', toc = true } = {}) {
-    const host = t.stage('');
-    const f = document.createElement('iframe');
-    f.title = 'Guides page'; f.style.width = `${width}px`; f.style.height = `${height}px`; f.style.border = '0';
-    const loaded = new Promise(r => f.addEventListener('load', r, { once: true }));
-    f.src = new URL(`../../site/guides/index.html?theme=${theme}${hash}`, import.meta.url).href; host.append(f); await loaded;
-    const win = f.contentWindow, doc = f.contentDocument;
-    await until(() => doc.querySelector('pk-doc-page > .prose')?.firstElementChild && doc.querySelector('.doc-page-title')?.textContent, 'the guide to paint');
-    await until(() => ['pk-doc-page', 'pk-side-nav', 'pk-nav-item', 'pk-toc', 'pk-breadcrumb', 'pk-pager', 'pk-code-block', 'pk-card', 'pk-alert', 'pk-input'].every(n => !doc.querySelector(n) || win.customElements.get(n)), 'the elements to be defined');
-    const q = { 'gd-title': '.doc-page-title', 'gd-body': 'pk-doc-page > .prose', 'gd-toc': 'pk-toc', 'gd-pager': 'pk-pager', 'gd-crumbs': 'pk-breadcrumb', 'gd-nav': 'pk-side-nav', 'gd-scroll': '.site-docs', 'gd-contents': '.doc-page-toggle', 'gd-summary': '.doc-page-summary', 'gd-search': 'pk-side-nav pk-input', 'gd-search-status': 'pk-side-nav pk-text' };
-    const $ = id => doc.querySelector(q[id]);
-    if (toc) await until(() => $('gd-toc').shadowRoot?.querySelector('a'), 'the toc to list the headings');
-    await t.settle(); await wait(400);
-    const problems = () => win.PkLog.getLogBuffer().filter(e => e.level === 'warn' || e.level === 'error').map(e => `${e.scope}: ${e.message}`);
-    const links = () => [...$('gd-toc').shadowRoot.querySelectorAll('a')];
-    return { f, win, doc, $, problems, links, scroller: $('gd-scroll'), nav: $('gd-nav'), items: [...doc.querySelectorAll('pk-side-nav pk-nav-item')].map(i => (i.dataset.guide = i.dataset.docId, i)) };
-}
-const hashIs = (p, re, what) => until(() => re.test(p.win.location.hash), what);
 const rgb = c => { const m = /rgba?\(([\d.]+)[, ]+([\d.]+)[, ]+([\d.]+)(?:[, /]+([\d.]+))?/.exec(c); return m && Number(m[4] ?? 1) > 0.99 ? [1, 2, 3].map(i => Number(m[i])) : null; };
 const backdrop = el => { for (let n = el; n; n = n.parentElement) { const c = rgb(getComputedStyle(n).backgroundColor); if (c) return c; } return null; }; // the first opaque background behind an element
 const luminance = ([r, g, b]) => { const f = v => { v /= 255; return v <= 0.03928 ? v / 12.92 : ((v + 0.055) / 1.055) ** 2.4; }; return 0.2126 * f(r) + 0.7152 * f(g) + 0.0722 * f(b); };
 const contrast = (a, b) => { const [hi, lo] = [luminance(a), luminance(b)].sort((x, y) => y - x); return (hi + 0.05) / (lo + 0.05); };
-
-export const guidesCases = [
-    ['guides (1280px): the side nav lists every guide and marks the open one, the page shows its title, breadcrumb, table of contents and pager, and nothing was logged as a problem', async t => {
-        const p = await open(t, '#/getting-started');
-        t.eq(p.items.length, 10, 'one nav item per guide');
-        t.eq(p.items.filter(i => i.hasAttribute('current')).map(i => i.dataset.guide).join(), 'getting-started', 'the open guide is current');
-        t.ok(shown(p.nav), 'the nav is a column, not a hidden drawer');
-        t.eq(p.$('gd-title').textContent, 'Getting started with the SDK');
-        t.eq(p.doc.querySelectorAll('h1').length, 1, 'one h1 on the page');
-        t.eq(p.doc.title, 'Getting started with the SDK - Guides - Plainkit');
-        const crumb = p.$('gd-crumbs');
-        t.eq(crumb.querySelector('a').getAttribute('href'), '#/'); t.eq(crumb.querySelector('[aria-current="page"]').textContent, 'Getting started with the SDK');
-        const headings = [...p.$('gd-body').querySelectorAll('h2, h3')];
-        t.ok(headings.length >= 5 && headings.every(h => h.id), 'every heading has an id');
-        t.eq(p.links().length, headings.length, 'the toc lists every h2 and h3');
-        t.eq(p.links().map(a => a.getAttribute('href').slice(1)).join(), headings.map(h => h.id).join(), 'in order, pointing at those ids');
-        t.ok(shown(p.$('gd-toc')), 'the toc is visible beside the article');
-        t.ok([...p.$('gd-body').querySelectorAll('pk-code-block')].some(b => b.shadowRoot.querySelector('[part="code"]')?.textContent.includes('initPlainkit')), 'a code sample renders in a pk-code-block');
-        t.ok(p.$('gd-body').querySelector('pk-alert'), 'the blockquote is a pk-alert');
-        t.ok(!p.$('gd-pager').querySelector('[slot="prev"]') && p.$('gd-pager').querySelector('[slot="next"]').getAttribute('href') === '#/getting-started-blazor', 'the first guide has a next link and no previous');
-        t.eq(p.problems().join('; '), '', 'no warning or error was logged');
-    }],
-
-    ['guides: the previous and next links walk the guides in order, the address follows, and focus lands on the new title', async t => {
-        const p = await open(t, '#/getting-started');
-        p.$('gd-pager').querySelector('[slot="next"]').click();
-        await hashIs(p, /^#\/getting-started-blazor$/, 'the second guide');
-        await until(() => p.$('gd-title').textContent === 'Getting started with Blazor', 'its title');
-        await until(() => p.doc.activeElement === p.$('gd-title'), 'focus on the title');
-        t.eq(p.items.filter(i => i.hasAttribute('current')).map(i => i.dataset.guide).join(), 'getting-started-blazor');
-        t.eq(p.$('gd-pager').querySelector('[slot="prev"]').getAttribute('href'), '#/getting-started'); t.eq(p.$('gd-pager').querySelector('[slot="next"]').getAttribute('href'), '#/choosing-what-to-build-with');
-        t.eq(p.scroller.scrollTop, 0, 'a new page starts at its top');
-        p.$('gd-pager').querySelector('[slot="prev"]').click();
-        await hashIs(p, /^#\/getting-started$/, 'back to the first');
-        t.eq(p.problems().join('; '), '');
-    }],
-
-    ['guides: a heading permalink is its own history entry written through the router, and back returns to the guide top without a remount (#401)', async t => {
-        const p = await open(t, '#/getting-started');
-        const before = p.win.history.length, id = p.links()[1].getAttribute('href').slice(1);
-        p.links()[1].click();
-        await hashIs(p, new RegExp(`^#/getting-started/${id}$`), 'the permalink address');
-        t.eq(p.win.history.length, before + 1, 'one new history entry');
-        p.win.history.back();
-        await hashIs(p, /^#\/getting-started$/, 'back to the guide address');
-        t.eq(p.$('gd-title').textContent, 'Getting started with the SDK');
-        t.eq(p.problems().join('; '), '');
-    }],
-
-    ['guides: a table of contents link scrolls the article and not the page shell, marks the heading in view, and makes the address one that reloads to the same place', async t => {
-        const p = await open(t, '#/getting-started');
-        const target = p.links()[1], id = target.getAttribute('href').slice(1);
-        target.click();
-        await hashIs(p, new RegExp(`^#/getting-started/${id}$`), 'the address to name the heading');
-        await until(() => p.scroller.scrollTop > 100, 'the article to scroll');
-        t.eq(p.doc.scrollingElement.scrollTop, 0, 'the page shell did not move');
-        const h = p.doc.getElementById(id), box = p.scroller.getBoundingClientRect();
-        t.ok(h.getBoundingClientRect().top >= box.top - 1, 'the heading is inside the article scroller, not above it');
-        await until(() => p.links().find(a => a.getAttribute('aria-current') === 'location')?.getAttribute('href') === `#${id}`, 'the toc to mark that heading');
-        const reload = await open(t, p.win.location.hash);
-        t.ok(reload.doc.getElementById(id).getBoundingClientRect().top >= reload.scroller.getBoundingClientRect().top - 1, 'the copied address opens at the heading');
-    }],
-
-    ['guides: a heading has a permalink (named, empty until drawn) that copies to a deep link, and a deep link opens at its heading', async t => {
-        const p = await open(t, '#/theming/change-a-token');
-        const h = p.doc.getElementById('change-a-token');
-        t.ok(h && h.getBoundingClientRect().top >= p.scroller.getBoundingClientRect().top - 1 && h.getBoundingClientRect().top < 300, 'the deep link scrolled to the heading');
-        const anchor = h.querySelector('a.anchor');
-        t.eq(anchor.getAttribute('aria-label'), 'Link to this section'); t.eq(anchor.getAttribute('href'), '#change-a-token'); t.eq(anchor.textContent, '', 'no text of its own, so the toc and the heading text stay clean');
-        const other = p.doc.getElementById('the-families-of-tokens');
-        other.querySelector('a.anchor').click();
-        await hashIs(p, /^#\/theming\/the-families-of-tokens$/, 'the permalink to become a deep link');
-        await until(() => p.scroller.scrollTop > 0 && p.doc.scrollingElement.scrollTop === 0, 'the article to scroll without moving the shell');
-        t.eq(p.problems().join('; '), '');
-    }],
-
-    ['guides: keyboard: the arrow keys move between the guides in the nav, an activated row opens its guide, and the toc links are in the tab order', async t => {
-        const p = await open(t, '#/logging');
-        const [first, second] = p.items;
-        first.focusRow(); await t.settle();
-        t.ok(p.doc.activeElement === first, 'the first row has focus');
-        t.key(first, 'ArrowDown'); await t.settle();
-        t.ok(p.doc.activeElement === second, 'ArrowDown moves to the next guide');
-        t.key(second, 'End'); await t.settle();
-        t.ok(p.doc.activeElement === p.items.at(-1), 'End moves to the last');
-        t.key(p.items.at(-1), 'Home'); await t.settle();
-        t.ok(p.doc.activeElement === first, 'Home moves to the first');
-        second.shadowRoot.querySelector('a').click();
-        await hashIs(p, /^#\/getting-started-blazor$/, 'the activated row to open its guide');
-        await until(() => p.$('gd-title').textContent === 'Getting started with Blazor', 'its title');
-        t.ok(p.links().every(a => a.tabIndex >= 0), 'the toc links are focusable');
-        t.ok(p.$('gd-body').querySelector('a.anchor').tabIndex >= 0, 'so are the heading permalinks');
-    }],
-
-    ['guides (375px): no sideways scroll, the nav is a drawer opened by the Guides button, Escape closes it and choosing a guide closes it and opens the guide', async t => {
-        const p = await open(t, '#/getting-started', { width: 375, height: 800 });
-        t.ok(p.doc.documentElement.scrollWidth <= 375, 'the page fits the phone width');
-        t.ok(p.$('gd-body').getBoundingClientRect().right <= 375 + 1, 'so does the article');
-        for (const wrap of p.$('gd-body').querySelectorAll('.table-wrap')) t.ok(wrap.getBoundingClientRect().right <= 376, 'a table scrolls inside its own region');
-        const button = p.$('gd-contents'); // doc-page's own Menu button
-        t.ok(shown(button), 'the Guides button is shown'); t.ok(!shown(p.nav), 'the nav is off screen until asked');
-        button.click(); await until(() => shown(p.nav), 'the drawer to open');
-        t.ok(p.nav.hasAttribute('open') && button.hasAttribute('pressed'), 'the button shows it is pressed');
-        t.key(p.items[0], 'Escape'); await until(() => !p.nav.hasAttribute('open'), 'Escape to close the drawer');
-        t.ok(!button.hasAttribute('pressed'), 'the button follows');
-        button.click(); await until(() => shown(p.nav), 'the drawer to open again');
-        p.items.find(i => i.dataset.guide === 'theming').shadowRoot.querySelector('a').click();
-        await hashIs(p, /^#\/theming$/, 'the chosen guide');
-        await until(() => !p.nav.hasAttribute('open') && p.$('gd-title').textContent === 'Theming and tokens', 'the drawer to close on the new guide');
-        t.ok(shown(p.$('gd-toc')) && p.links().length >= 5, 'the toc stays available above the article');
-        t.eq(p.problems().join('; '), '');
-    }],
-
-    ['guides: the list page has a card per guide, and an unknown guide says so, offers the list and logs a warning', async t => {
-        const list = await open(t, '#/', { toc: false });
-        const cards = [...list.$('gd-body').querySelectorAll('pk-grid pk-card')];
-        t.eq(cards.length, 10); t.eq(cards.map(c => c.getAttribute('href')).join(), '#/getting-started,#/getting-started-blazor,#/choosing-what-to-build-with,#/build-an-app,#/theming,#/responsive-design,#/logging,#/migrating-from-compat,#/conformance-audit,#/blazor-list-and-record');
-        t.ok(!list.items.some(i => i.hasAttribute('current')), 'no guide is current on the list'); t.eq(list.$('gd-toc').hidden, true, 'no toc on the list');
-        const gone = await open(t, '#/no-such-guide', { toc: false });
-        t.eq(gone.$('gd-title').textContent, 'Not found');
-        t.ok(/no-such-guide/.test(gone.$('gd-body').querySelector('pk-empty-state')?.getAttribute('description') ?? ''), 'the page names what is missing'); t.eq(gone.$('gd-crumbs').querySelector('a').getAttribute('href'), '#/', 'the breadcrumb offers the list');
-        t.ok(gone.problems().some(m => /no guide named "no-such-guide"/.test(m)), 'the mistake is logged, not silent');
-    }],
-
-    ['guides: the search box filters the nav to a title match instantly and to a body-only match (from the build\'s word index) too, says which guides matched, and clearing it shows every guide again', async t => {
-        const p = await open(t, '#/', { toc: false });
-        const input = p.$('gd-search'), control = input.part('control'), status = p.$('gd-search-status');
-        const type = value => { control.value = value; control.dispatchEvent(new Event('input', { bubbles: true, composed: true })); };
-        type('Theming');
-        await until(() => /titled/.test(status.textContent), 'the title match to be reported');
-        t.ok(!p.items.find(i => i.dataset.guide === 'theming').hidden, 'the guide titled "Theming and tokens" is shown');
-        t.ok(status.textContent.includes('titled') && status.textContent.includes('Theming and tokens'), 'the status names it as a title match');
-        type('swatch'); // only in theming's body text (the theme editor section), not in any guide's title
-        await until(() => p.items.filter(i => !i.hidden).length === 1, 'the body-only match to narrow the nav');
-        const shownItem = p.items.find(i => !i.hidden);
-        t.eq(shownItem.dataset.guide, 'theming', 'the guide whose text mentions "swatch" is found');
-        t.ok(status.textContent.includes('mentioned in') && status.textContent.includes('Theming and tokens'), 'the status says it was found in the text');
-        type('there-is-no-such-word-in-any-guide');
-        await until(() => p.items.every(i => i.hidden), 'no guide to match a nonsense query');
-        t.ok(status.textContent.includes('No guides match'));
-        type('');
-        await until(() => p.items.every(i => !i.hidden), 'clearing the box to show every guide again');
-        t.eq(status.textContent, '');
-        t.eq(p.problems().join('; '), '');
-    }],
-
-    ['guides: in both themes the article text and its code stay readable (4.5:1) and the page follows the theme', async t => {
-        for (const theme of ['dark', 'light']) {
-            const p = await open(t, '#/theming', { theme });
-            t.eq(p.doc.documentElement.getAttribute('data-theme'), theme);
-            const bg = backdrop(p.scroller);
-            t.ok(bg, `the page has a background in ${theme}`);
-            const check = (el, what) => { const c = rgb(getComputedStyle(el).color), ratio = contrast(c, bg); t.ok(ratio >= 4.5, `${theme}: ${what} is ${ratio.toFixed(2)}:1 on the page`); };
-            check(p.$('gd-body').querySelector('p'), 'paragraph text'); check(p.$('gd-summary'), 'the summary'); check(p.$('gd-body').querySelector('h2'), 'a heading');
-            check(p.links()[0], 'a toc link');
-            const alert = p.$('gd-body').querySelector('pk-alert'); t.ok(alert && shown(alert), `${theme}: the alert is drawn`);
-            t.eq(p.problems().join('; '), '');
-        }
-    }],
-];
 
 // The Guides as a lazy module of the site app (#355): core/app.html#/guides, the same content and search in the app's 'doc' page type.
 async function openApp(t, hash, width = 1280) {
@@ -266,6 +86,102 @@ export const guidesAppCases = [
         const toc = p.doc().querySelector('pk-toc'), link = await until(() => [...(toc.shadowRoot?.querySelectorAll('a') ?? [])][1], 'a toc link');
         link.click();
         await until(() => /^#\/guides\/theming\?anchor=/.test(p.win.location.hash), `the toc link (${link.getAttribute('href')}) to write an anchored address, hash ${p.win.location.hash}`);
+    }],
+    // Ported from the standalone page (#357) before it was retired: keyboard, the phone drawer, permalinks and both themes, now against the app's guides module.
+    ['guides module (app): keyboard: the arrow keys, Home and End move between the guides in the nav, an activated row opens its guide, and the toc links and heading permalinks are in the tab order', async t => {
+        const p = await openApp(t, '#/guides/logging');
+        const guides = () => p.items().filter(i => /\/guides\/[a-z-]+$/.test(i.getAttribute('href') ?? ''));
+        const [first, second] = guides();
+        first.focusRow(); await t.settle();
+        t.ok(p.d.activeElement === first, 'the first guide row has focus');
+        t.key(first, 'ArrowDown'); await t.settle();
+        t.ok(p.d.activeElement === second, 'ArrowDown moves to the next guide');
+        t.key(second, 'End'); await t.settle();
+        t.ok(p.d.activeElement === p.items().at(-1), 'End moves to the last row');
+        t.key(p.d.activeElement, 'Home'); await t.settle();
+        t.ok(p.d.activeElement === p.items()[0], 'Home moves to the first row');
+        second.shadowRoot.querySelector('a').click();
+        await until(() => p.win.location.hash === '#/guides/getting-started-blazor', 'the activated row to open its guide');
+        await until(() => p.d.querySelector('.doc-page-title')?.textContent === 'Getting started with Blazor', 'its title');
+        const toc = await until(() => p.doc().querySelector('pk-toc')?.shadowRoot?.querySelectorAll('a'), 'the toc links');
+        t.ok(toc.length > 0 && [...toc].every(a => a.tabIndex >= 0), 'the toc links are focusable');
+        t.ok(p.doc().querySelector('a.anchor').tabIndex >= 0, 'so are the heading permalinks');
+    }],
+    ['guides module (app, 375px): no sideways scroll, the guide list is a drawer opened by the menu button, Escape closes it and choosing a guide closes it and opens the guide', async t => {
+        const p = await openApp(t, '#/guides/getting-started', 375);
+        const nav = p.d.querySelector('#pk-nav'), button = p.d.querySelector('[data-nav-toggle]');
+        const vis = el => { const r = el.getBoundingClientRect(), s = getComputedStyle(el); return s.visibility !== 'hidden' && s.display !== 'none' && r.width > 0 && r.right > 0 && r.left < 375; };
+        t.ok(p.d.documentElement.scrollWidth <= 375, 'the page fits the phone width');
+        t.ok(p.doc().querySelector('.prose').getBoundingClientRect().right <= 376, 'so does the article');
+        for (const wrap of p.doc().querySelectorAll('.table-wrap')) t.ok(wrap.getBoundingClientRect().right <= 376, 'a table scrolls inside its own region');
+        t.ok(vis(button), 'the menu button is shown'); t.ok(!vis(nav), 'the nav is off screen until asked');
+        button.click(); await until(() => vis(nav) && nav.hasAttribute('open'), 'the drawer to open');
+        t.key(p.items()[0], 'Escape'); await until(() => !nav.hasAttribute('open'), 'Escape to close the drawer');
+        button.click(); await until(() => vis(nav), 'the drawer to open again');
+        p.items().find(i => /\/guides\/theming$/.test(i.getAttribute('href') ?? '')).shadowRoot.querySelector('a').click();
+        await until(() => p.win.location.hash === '#/guides/theming', 'the chosen guide');
+        await until(() => !nav.hasAttribute('open') && p.d.querySelector('.doc-page-title')?.textContent === 'Theming and tokens', 'the drawer to close on the new guide');
+        t.ok(p.d.documentElement.scrollWidth <= 375, 'still no sideways scroll');
+    }],
+    ['guides module (app): a heading has a permalink (named, empty until drawn) that writes a deep link, and a deep link opens at its heading; a bare in-page #heading address is not an app address and opens no guide', async t => {
+        const p = await openApp(t, '#/guides/theming?anchor=change-a-token');
+        const body = p.d.querySelector('pk-app-shell').shadowRoot.querySelector('[part="body"]');
+        const h = await until(() => p.doc().querySelector('[id="change-a-token"]'), 'the heading');
+        await until(() => body.scrollTop > 0, 'the deep link to scroll');
+        await wait(600);
+        t.ok(Math.abs(h.getBoundingClientRect().top - body.getBoundingClientRect().top) < 250, 'the deep link opened at the heading');
+        const a = h.querySelector('a.anchor');
+        t.eq(a.getAttribute('aria-label'), 'Link to this section'); t.eq(a.textContent, '', 'no text of its own, so the toc and the heading text stay clean');
+        p.doc().querySelector('[id="the-families-of-tokens"] a.anchor').click();
+        await until(() => /^#\/guides\/theming\?anchor=the-families-of-tokens$/.test(p.win.location.hash), `the permalink to become a deep link (${p.win.location.hash})`);
+        t.ok(p.d.documentElement.scrollTop < 3, 'the page itself did not scroll');
+        await p.go('#the-families-of-tokens');
+        t.ok(p.d.querySelector('pk-app-shell'), 'the app survives a bare anchor address');
+    }],
+    ['guides module (app): in both themes the article text, summary, heading, toc link and alert stay readable (4.5:1) and the page follows the theme', async t => {
+        for (const theme of ['dark', 'light']) {
+            const p = await openApp(t, '#/guides/theming');
+            p.win.PkTheme?.setTheme?.(p.d.documentElement, theme) ?? p.d.documentElement.setAttribute('data-theme', theme);
+            p.d.documentElement.setAttribute('data-theme', theme); await t.settle(); await wait(300);
+            const bg = backdrop(p.doc());
+            t.ok(bg, `the page has a background in ${theme}`);
+            const check = (el, what) => { const c = rgb(getComputedStyle(el).color), ratio = contrast(c, bg); t.ok(ratio >= 4.5, `${theme}: ${what} is ${ratio.toFixed(2)}:1 on the page`); };
+            check(p.doc().querySelector('.prose p'), 'paragraph text'); check(p.doc().querySelector('.doc-page-summary'), 'the summary'); check(p.doc().querySelector('.prose h2'), 'a heading');
+            const link = await until(() => p.doc().querySelector('pk-toc')?.shadowRoot?.querySelector('a'), 'a toc link'); check(link, 'a toc link');
+            const alert = p.doc().querySelector('pk-alert'); t.ok(alert && alert.getBoundingClientRect().width > 0, `${theme}: the alert is drawn`);
+        }
+    }],
+    ['guides module (app): a guide has one h1, the toc lists every h2 and h3 in order, code is a pk-code-block, a quote is a pk-alert, the first guide has a next link and no previous, and a permalink is its own history entry that back undoes', async t => {
+        const p = await openApp(t, '#/guides/getting-started');
+        await until(() => p.doc().querySelector('pk-toc')?.shadowRoot?.querySelector('a') && p.doc().querySelector('pk-pager [slot="next"]'), 'the toc and pager to draw'); await wait(300);
+        const links = () => [...p.doc().querySelector('pk-toc').shadowRoot.querySelectorAll('a')];
+        t.eq(p.d.querySelectorAll('h1').length, 1, 'one h1 on the page');
+        t.eq(p.d.querySelector('.doc-page-title').textContent, 'Getting started with the SDK');
+        const headings = [...p.doc().querySelectorAll('.prose h2, .prose h3')];
+        t.ok(headings.length >= 5 && headings.every(h => h.id), 'every heading has an id');
+        t.eq(links().map(a => a.getAttribute('href').slice(1)).join(), headings.map(h => h.id).join(), 'the toc lists every h2 and h3, in order, pointing at those ids');
+        t.ok([...p.doc().querySelectorAll('pk-code-block')].some(b => (b.textContent + (b.shadowRoot?.textContent ?? '')).includes('initPlainkit')), 'a code sample is a pk-code-block');
+        t.ok(p.doc().querySelector('pk-alert'), 'the blockquote is a pk-alert');
+        t.ok(!p.doc().querySelector('pk-pager [slot="prev"]') && /getting-started-blazor$/.test(p.doc().querySelector('pk-pager [slot="next"]').getAttribute('href')), 'the first guide has a next link and no previous');
+        const before = p.win.history.length;
+        links()[1].click();
+        await until(() => /\?anchor=/.test(p.win.location.hash), 'the permalink address');
+        t.eq(p.win.history.length, before + 1, 'one new history entry');
+        p.win.history.back();
+        await until(() => p.win.location.hash === '#/guides/getting-started', 'back to the guide address');
+        t.eq(p.d.querySelector('.doc-page-title').textContent, 'Getting started with the SDK');
+    }],
+    ['guides module (app): the search finds a word only in a guide body, says which guides matched, says so when none do, and clearing shows every guide again', async t => {
+        const p = await openApp(t, '#/guides');
+        const input = await until(() => p.doc().querySelector(':scope > pk-container pk-input'), 'the search box'), status = () => p.doc().querySelector(':scope > pk-container pk-text').textContent;
+        const shown = () => p.items().filter(i => !i.hidden && /\/guides\/[a-z-]+$/.test(i.getAttribute('href') ?? '')).map(i => i.getAttribute('href').split('/').pop());
+        const type = v => { input.value = v; input.dispatchEvent(new Event('input', { bubbles: true, composed: true })); };
+        type('swatch'); // only in theming's body, in no title
+        await until(() => shown().length === 1, 'the nav to narrow to the body match');
+        t.eq(shown()[0], 'theming'); t.ok(status().includes('mentioned in') && status().includes('Theming and tokens'), 'the status says it was found in the text');
+        type('there-is-no-such-word-in-any-guide');
+        await until(() => shown().length === 0, 'no guide to match'); t.ok(status().includes('No guides match'));
+        type(''); await until(() => shown().length === 10, 'every guide again');
     }],
     // The header search (#355): the active module's `search` answers; picking a result navigates.
     ['site app header search (1280px): a body word lists the Guides that mention it, the keyboard picks one and the address and page follow', async t => {

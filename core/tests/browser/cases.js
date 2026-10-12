@@ -331,7 +331,7 @@ import { emptyPartsCases } from './cases-empty-parts.js'; cases.push(...emptyPar
 import { trayCases } from './cases-tray.js'; cases.push(...trayCases);
 import { designSurfaceCases } from './cases-design-surface.js'; cases.push(...designSurfaceCases);
 import { canvasCases } from './cases-canvas.js'; cases.push(...canvasCases);
-import { guidesCases, guidesAppCases } from './cases-guides.js'; cases.push(...guidesCases, ...guidesAppCases);
+import { guidesAppCases } from './cases-guides.js'; cases.push(...guidesAppCases);
 import { appCases } from './cases-app.js'; cases.push(...appCases);
 import { navbarCases } from './cases-navbar.js'; cases.push(...navbarCases);
 import { galleryCases, galleryAppCases } from './cases-gallery.js'; cases.push(...galleryCases, ...galleryAppCases);

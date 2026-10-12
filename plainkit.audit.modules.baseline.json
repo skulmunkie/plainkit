@@ -352,31 +352,6 @@
       "fingerprint": "1215229800249cf4"
     },
     {
-      "rule": "S1",
-      "file": "core/site/guides/index.html",
-      "fingerprint": "e965efa75f47fc79"
-    },
-    {
-      "rule": "S1",
-      "file": "core/site/guides/index.html",
-      "fingerprint": "e965efa75f47fc79"
-    },
-    {
-      "rule": "S10",
-      "file": "core/site/guides/index.html",
-      "fingerprint": "58f516cbdc9659fa"
-    },
-    {
-      "rule": "S3",
-      "file": "core/site/guides/index.html",
-      "fingerprint": "27368eb4855930d8"
-    },
-    {
-      "rule": "S3",
-      "file": "core/site/guides/index.html",
-      "fingerprint": "27368eb4855930d8"
-    },
-    {
       "rule": "S3",
       "file": "core/site/scorecard/scorecard.js",
       "fingerprint": "e4d0449fb20aa2d2"
