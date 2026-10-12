@@ -59,6 +59,7 @@ function frame(el, tb, span, rows) {
     if (el.maxHeight) el.style.setProperty('--pk-table-max-height', el.maxHeight); else el.style.removeProperty('--pk-table-max-height');
     const foot = el.part('foot'); foot.colSpan = span; foot.closest('tfoot').hidden = !el.querySelector(':scope > [slot="foot"]');
     el.part('empty').hidden = el.loading || rows > 0;
+    el.part('scroll').tabIndex = rows > 0 ? 0 : -1; // an empty frame has nothing to scroll: not a tab stop or a tap target
     const n = idSet(el.selected).size;
     el.part('bulk').hidden = n === 0; el.part('bulk-count').textContent = `${n} selected`;
 }
