@@ -69,7 +69,7 @@ public abstract partial class PageBase : ComponentBase, IAsyncDisposable
     /// <summary>Logs the exception through <see cref="IPkLog"/> (its message and its <see cref="Exception.ToString"/> as detail) and shows the message as a danger status.</summary>
     protected async Task SetErrorAsync(Exception exception, string? message = null)
     {
-        var text = message ?? exception.Message;
+        var text = message ?? DescribeError(exception);
         await Log.WriteAsync(PkLogLevel.Error, LogScope, text, exception.ToString());
         SetStatus(text, "danger");
     }
@@ -79,15 +79,6 @@ public abstract partial class PageBase : ComponentBase, IAsyncDisposable
     /// <c>using var busy = BeginBusy("Saving…");</c>.
     /// </summary>
     protected IDisposable BeginBusy(string? label = null) => _life.Begin(label);
-
-    /// <summary>
-    /// Runs <paramref name="action"/> under a busy token (with an optional <paramref name="label"/>); overlapping calls never clear each other.
-    /// An exception it throws is logged and shown as a danger status through <see cref="SetErrorAsync"/>, then rethrown so the caller's own handling still runs.
-    /// </summary>
-    protected Task BusyAsync(Func<Task> action, string? label = null) => _life.RunAsync<object?>(label, async _ => { await action(); return null; }, e => SetErrorAsync(e));
-
-    /// <summary>The result-returning form of <see cref="BusyAsync(Func{Task},string?)"/>.</summary>
-    protected async Task<T> BusyAsync<T>(Func<Task<T>> action, string? label = null) => (await _life.RunAsync(label, _ => action(), e => SetErrorAsync(e)))!;
 
     /// <summary>Runs on the first render and again when a parameter changed (<see cref="ReloadOnParameters"/>). <see cref="IsLoading"/> is true from before the first render until it ends; a failure is logged, shown as a danger status and kept in <see cref="LoadError"/>; a cancelled load is silent.</summary>
     protected virtual Task OnLoadAsync(CancellationToken cancel) => Task.CompletedTask;
@@ -120,7 +111,8 @@ public abstract partial class PageBase : ComponentBase, IAsyncDisposable
         await base.SetParametersAsync(parameters);
         if (!reload) return;
         var load = _life.LoadAsync<object?>(async c => { await OnLoadAsync(c); return null; }, null, e => SetErrorAsync(e));
-        if (!load.IsCompleted) _ = load.ContinueWith(_ => InvokeStateChanged(), TaskScheduler.Default);
+        if (load.IsCompleted) await InvokeStateChanged();
+        else _ = load.ContinueWith(_ => InvokeStateChanged(), TaskScheduler.Default);
     }
 
     /// <summary>Releases every busy token. Disposal does this; a page that disposes itself calls it directly.</summary>

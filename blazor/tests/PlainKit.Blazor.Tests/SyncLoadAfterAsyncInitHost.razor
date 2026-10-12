@@ -1,0 +1,8 @@
+@* Issue 1208: an async OnInitializedAsync renders (still loading) before the load starts; the load then completes synchronously. *@
+@inherits PageBase
+
+<p>@(IsLoading ? "loading" : "ready")</p>
+
+@code {
+    protected override async Task OnInitializedAsync() => await Task.Yield();
+}
