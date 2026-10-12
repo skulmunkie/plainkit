@@ -51,7 +51,9 @@ const CONTROL = /^(BUTTON|INPUT|SELECT|TEXTAREA|A)$/;
 
 // Controls the phone touch-target check leaves out: a link inside running text (WCAG 2.5.8 exempts it; the size sweep applies the same rule)
 // and a tab panel, which is focusable for the keyboard but is not something a finger taps.
-export const touchExempt = (el, win) => el.localName === 'pk-tab-panel' || (el.tagName === 'A' && win.getComputedStyle(el).display === 'inline');
+// The standard "visually hidden" technique (a pk-skip-link before focus, u-sr-only): 1px, clipped, off-screen on purpose, so it is not a tap target until it takes focus (issue 1161; pk-skip-link's focused size has its own browser case).
+const hiddenUntilFocus = (el, win) => { const cs = win.getComputedStyle(el); const r = el.getBoundingClientRect(); return ['absolute', 'fixed'].includes(cs.position) && r.width <= 1.5 && r.height <= 1.5 && cs.overflow === 'hidden' && cs.clipPath !== 'none' && !el.matches(':focus'); };
+export const touchExempt = (el, win) => el.localName === 'pk-tab-panel' || (el.tagName === 'A' && win.getComputedStyle(el).display === 'inline') || hiddenUntilFocus(el, win);
 
 export const tokenPx = (win, doc, name, fb) => {
     const cs = win.getComputedStyle(doc.documentElement); const v = cs.getPropertyValue(name).trim();

@@ -113,11 +113,17 @@ test('an exempt control (an inline link, a tab panel) is not a touch target; unn
     assert.deepEqual(evaluate(measures({ controls: [c({ exempt: true })] }), { phone: true }), []);
     assert.deepEqual(evaluate(measures({ controls: [c({})] }), { phone: true }).map(f => f.check), ['touch-target']);
     assert.deepEqual(evaluate(measures({ controls: [c({ exempt: true, name: '' })] }), { phone: true }).map(f => f.check), ['unnamed-input']);
-    const win = { getComputedStyle: el => ({ display: el.display }) };
-    assert.equal(touchExempt({ tagName: 'A', localName: 'a', display: 'inline' }, win), true);
-    assert.equal(touchExempt({ tagName: 'A', localName: 'a', display: 'block' }, win), false, 'a block link (a nav row) is a real target');
-    assert.equal(touchExempt({ tagName: 'PK-TAB-PANEL', localName: 'pk-tab-panel' }, win), true);
-    assert.equal(touchExempt({ tagName: 'BUTTON', localName: 'button' }, win), false);
+    const win = { getComputedStyle: el => ({ display: el.display, position: el.position, overflow: el.overflow, clipPath: el.clipPath ?? 'none' }) };
+    const box = (w, h, over = {}) => ({ tagName: 'A', localName: 'a', display: 'inline-block', getBoundingClientRect: () => ({ width: w, height: h }), matches: () => false, ...over });
+    assert.equal(touchExempt(box(40, 19, { display: 'inline' }), win), true);
+    assert.equal(touchExempt(box(40, 19, { display: 'block' }), win), false, 'a block link (a nav row) is a real target');
+    assert.equal(touchExempt(box(40, 19, { tagName: 'PK-TAB-PANEL', localName: 'pk-tab-panel' }), win), true);
+    assert.equal(touchExempt(box(40, 19, { tagName: 'BUTTON', localName: 'button' }), win), false);
+    const hidden = { position: 'absolute', overflow: 'hidden', clipPath: 'inset(50%)' };
+    assert.equal(touchExempt(box(1, 1, hidden), win), true, 'a clipped 1px skip link is not a target while hidden (issue 1161)');
+    assert.equal(touchExempt(box(1, 1, { ...hidden, matches: () => true }), win), false, 'focused, it is measured');
+    assert.equal(touchExempt(box(1, 1, { ...hidden, clipPath: 'none' }), win), false, 'a tiny box that is not clipped on purpose is a defect');
+    assert.equal(touchExempt(box(30, 19, hidden), win), false, 'a clipped box that is not 1px is a defect');
 });
 
 test('an element whose label is drawn in its shadow tree has an accessible name; an empty one still has none', () => {

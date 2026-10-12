@@ -570,4 +570,17 @@ export const appShellCases = [
         await app.destroy();
         history.replaceState(null, '', location.pathname + location.search);
     }],
+    ['pk-skip-link: clipped to 1px until it takes focus (the sweeps ignore it then), full size with a touch-target-high hit area once focused (issue 1161)', async t => {
+        const host = t.stage('<pk-skip-link href="#x">Skip to content</pk-skip-link>'); await t.load(host); await t.settle();
+        const link = host.querySelector('pk-skip-link').part('link');
+        const before = link.getBoundingClientRect();
+        t.ok(before.width <= 1.5 && before.height <= 1.5, `hidden before focus: ${before.width}x${before.height}`);
+        link.focus(); await t.settle();
+        const after = link.getBoundingClientRect();
+        const target = parseFloat(getComputedStyle(document.documentElement).getPropertyValue('--touch-target')) || 44;
+        t.ok(after.height >= target - 0.5, `focused height ${after.height}px is at least the touch target ${target}px`);
+        t.ok(after.width >= target - 0.5 && after.width > 40, `focused width ${after.width}px is a visible button`);
+        const vp = host.querySelector('pk-skip-link').getBoundingClientRect();
+        t.ok(after.right > 0 && after.bottom > 0 && after.left < innerWidth && after.top < innerHeight, 'focused, it is on screen ' + JSON.stringify([after.left, after.top, vp.width]));
+    }],
 ];
