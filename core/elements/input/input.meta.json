@@ -255,7 +255,7 @@
       "type": "json",
       "default": null,
       "reflect": false,
-      "description": "Property only: the listbox element this input drives, which makes it a combobox (role=combobox, aria-autocomplete=list, aria-expanded from the listbox's hidden state, aria-controls through ariaControlsElements). The listbox may live in the host's own shadow tree, as an ID cannot cross the boundary. The option inside it marked aria-selected='true' is the active one (aria-activedescendant through ariaActivedescendantElement), so focus stays in the input. The input reads the listbox on each update: call requestUpdate() after showing, hiding or re-marking it. Chrome 135, Safari 16.4 and Firefox 136 or newer are needed for the two element references; in an older browser they do nothing (the role and aria-expanded still apply)."
+      "description": "Property only: the listbox element this input drives, making it a combobox (aria-controls through ariaControlsElements; the option marked aria-selected='true' is the aria-activedescendant). The listbox may sit in the host's shadow tree. Call requestUpdate() after changing it. Needs Chrome 135, Safari 16.4 or Firefox 136."
     },
     {
       "name": "autohide",
@@ -379,7 +379,7 @@
       "description": "Moves focus to the inner input."
     }
   ],
-  "a11y": "A native input lives in the shadow root, named by label (aria-label) and described by description (aria-description); invalid sets aria-invalid, and the state is never colour alone (the ring is thicker). Buttons are labelled and reveal reports aria-pressed. The copy button disables itself while the value is empty and its aria-label switches to \"Copied\" for a couple of seconds after a successful copy; a clipboard failure (insecure origin, denied permission) is logged, never shown as a false success. Money and stepper fields keep the number in value while showing formatted text. Text is 16px and the control 44px tall on a phone. With listbox set the native input is a combobox (role=combobox, aria-autocomplete=list, aria-expanded following the listbox's hidden state) and focus stays in it: aria-controls names the listbox and aria-activedescendant the option marked aria-selected=\"true\", both through element reflection (ariaControlsElements, ariaActivedescendantElement), which is what lets the listbox live in a host's shadow tree, where an ID cannot reach. That needs Chrome 135, Safari 16.4 or Firefox 136; in an older browser the two references do nothing (the role, name and expanded state still apply).",
+  "a11y": "A native input lives in the shadow root, named by label (aria-label) and described by description (aria-description); invalid sets aria-invalid, and the state is never colour alone (the ring is thicker). Buttons are labelled and reveal reports aria-pressed. The copy button disables itself while the value is empty and its aria-label switches to \"Copied\" for a couple of seconds after a successful copy; a clipboard failure (insecure origin, denied permission) is logged, never shown as a false success. Money and stepper fields keep the number in value while showing formatted text. Text is 16px and the control 44px tall on a phone. With listbox set the input is a combobox (role, aria-expanded, aria-controls and aria-activedescendant through element reflection: Chrome 135, Safari 16.4 or Firefox 136; older browsers ignore the two references).",
   "examples": [
     {
       "title": "Text, states and sizes",
