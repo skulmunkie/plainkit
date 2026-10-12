@@ -49,6 +49,21 @@ export const cases = [
         t.ok(b.shadowRoot.querySelector('[part="control"]'));
     }],
 
+    ['button: overflow wrap and truncate keep a long label inside a narrow container; the full text stays in the DOM (#1221)', async t => {
+        const LONG = 'A fairly long record title that cannot fit on one line at phone width, many words';
+        const ID = 'SOME-LONG-IDENTIFIER-20260913-WITH-MANY-DASHES-AND-SEGMENTS';
+        const host = t.stage(`<div><pk-button variant="plain">${LONG}</pk-button><pk-button variant="plain"><code>${ID}</code></pk-button></div>`);
+        host.style.inlineSize = '200px'; await t.load(host); await t.settle();
+        const [a, b] = host.querySelectorAll('pk-button'); const cw = host.getBoundingClientRect().right;
+        t.ok(a.getBoundingClientRect().right > cw, 'default: a long label overflows (unchanged look)');
+        a.overflow = 'wrap'; b.overflow = 'wrap'; await t.settle();
+        t.ok(a.getBoundingClientRect().right <= cw + 0.5, 'wrap: the button fits the container'); t.ok(b.getBoundingClientRect().right <= cw + 0.5, 'wrap: an unbroken identifier breaks too');
+        t.ok(a.getBoundingClientRect().height > 2 * 20, 'wrap: the label runs over several lines');
+        a.overflow = 'truncate'; b.overflow = 'truncate'; await t.settle();
+        for (const el of [a, b]) { const r = el.getBoundingClientRect(); t.ok(r.right <= cw + 0.5, 'truncate: the button fits the container'); const l = el.shadowRoot.querySelector('.lbl'); t.ok(l.scrollWidth > l.clientWidth, 'truncate: the label is cut'); t.eq(getComputedStyle(l).textOverflow, 'ellipsis'); }
+        t.eq(a.textContent, LONG, 'truncate: the full label is still the content, so the accessible name is whole');
+    }],
+
     ['button: focus goes to the inner button (delegatesFocus) and a disabled button swallows clicks', async t => {
         const b = await t.mount('<pk-button>Go</pk-button>');
         b.focus();
