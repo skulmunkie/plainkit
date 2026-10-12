@@ -62,7 +62,6 @@ export default Base => class extends Base {
     connected() {
         if (this.$w) return;
         this.$w = true;
-        this.watchSlot('input', () => this.requestUpdate());
         const grid = this.part('grid');
         grid.addEventListener('click', e => {
             const b = e.target.closest?.('[data-action]'); const li = b?.closest('[data-index]');
@@ -80,24 +79,19 @@ export default Base => class extends Base {
             if (e.detail.external || !Number.isInteger(e.detail.from) || !Number.isInteger(e.detail.to)) return;
             this.reorder(e.detail.from, e.detail.to);
         });
-        this.part('file').addEventListener('change', e => {
-            const files = [...(e.target.files ?? [])]; e.target.value = '';
-            if (files.length) this.emit('pk-add', { files, names: files.map(f => f.name) });
-        });
-        // With an input slotted (a Blazor InputFile, wrapped in a display:contents span by the generated component, so it never covers the
-        // tile itself for a native label click to hit), the label's click opens that input's own picker instead of the internal one.
-        this.part('add').addEventListener('click', e => {
-            const ext = this.external();
-            if (!ext) return;
-            e.preventDefault();
-            ext.click();
+        // The add tile is a pk-dropzone (picker, drop and the slotted InputFile contract are its own). Its pk-files is the gallery's pk-add; the
+        // dropzone keeps the accepted files, so the gallery clears it for the next choice. A pick on a slotted input reports through that input itself.
+        const add = this.part('add');
+        add.addEventListener('change', e => e.stopPropagation());
+        // With an input slotted (a Blazor InputFile) the dropzone only drops into it; a click on the tile opens that input's own picker (the dropzone's pick()).
+        add.addEventListener('click', e => { if (e.target === add && add.hasAttribute('has-input')) add.pick(); });
+        add.addEventListener('pk-files', e => {
+            e.stopPropagation();
+            const files = e.detail.files; if (!files.length) return;
+            add.clear(); this.emit('pk-add', { files, names: files.map(f => f.name) });
         });
     }
     get list() { return this.$list ?? []; }
-    // The input slot's own file input (a Blazor InputFile), if there is one: with one slotted, it (not the internal input) is the add
-    // tile's default label-associated control, so a click opens its own file picker and its own change (Blazor's OnChange) carries the
-    // real files directly -- pk-image-gallery relays nothing and pk-add does not fire for that pick, the same contract pk-dropzone uses.
-    external() { const slot = this.slotted('input')[0]; return slot?.localName === 'input' ? slot : slot?.querySelector('input') ?? null; }
     makePrimary(index) {
         const list = normalize(this.images); const previous = primaryIndex(list, this.primary);
         if (index < 0 || index >= list.length || index === previous) return;
@@ -126,7 +120,6 @@ export default Base => class extends Base {
         viewer.show(index);
     }
     updated() {
-        this.toggleAttribute('has-input', this.slotted('input').length > 0);
         const grid = this.part('grid'); const add = this.part('add-tile'); const tpl = this.shadowRoot.querySelector('template[data-tile]');
         // data-if="editable" (element.js) already hides the tile when not editable; hideAdd only narrows that further, so it never
         // overrides data-if's own hidden when not editable, and never shows the tile when editable is false.
@@ -161,7 +154,7 @@ export default Base => class extends Base {
         loadElements(this.shadowRoot);
         if (this.$focus !== undefined) {
             const n = this.$focus; this.$focus = undefined;
-            const target = grid.querySelector(`[data-index="${n}"] pk-media`)?.part?.('box') ?? this.part('file');
+            const target = grid.querySelector(`[data-index="${n}"] pk-media`)?.part?.('box') ?? this.part('add');
             target?.focus?.();
         }
     }

@@ -175,6 +175,22 @@ test('the nightly workflows exist: full verify, browser suite, UI review sweep; 
     assert.match(wf('ui-review-sweep.yml'), /schedule:[\s\S]*--all/);
 });
 
+test('the UI review sweep files or updates one tracking issue (#781), with issues: write only on that job, on main, never on a pull request', () => {
+    const sweep = wf('ui-review-sweep.yml');
+    assert.ok(sweep.includes('UI review sweep failing on main'));
+    assert.ok(sweep.includes('github.rest.issues.create') && sweep.includes('createComment'), 'creates the issue and comments on it');
+    assert.ok(!sweep.includes('state: \'closed\'') && !/issues\.update/.test(sweep), 'never closes the issue');
+    assert.equal((sweep.match(/^\s+issues: write$/gm) ?? []).length, 1, 'issues: write appears once');
+    assert.match(sweep, /^permissions:\n  contents: read\n/m, 'the workflow default stays read-only');
+    const report = jobOf(sweep, 'report');
+    assert.ok(report.includes('issues: write'), 'only the report job holds issues: write');
+    assert.doesNotMatch(jobOf(sweep, 'sweep'), /^\s+(issues|permissions):/m, 'the shards hold no extra permissions');
+    assert.match(report, /^    needs: sweep$/m);
+    assert.match(report, /if: always\(\) && github\.event_name != 'pull_request' && github\.ref == 'refs\/heads\/main'/);
+    assert.doesNotMatch(sweep, /^\s*pull_request/m, 'the sweep never triggers on a pull request');
+    assert.match(report, /uses: actions\/github-script@[0-9a-f]{40} # v\d/);
+});
+
 test('release.yml runs the full verify first; build and publish both need it, so nothing is published when it fails', () => {
     const rel = wf('release.yml');
     const v = jobOf(rel, 'verify');

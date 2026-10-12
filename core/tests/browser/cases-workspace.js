@@ -209,13 +209,34 @@ export const workspaceCases = [
 
     ['image gallery: the add tile is a real file input and raises pk-add with the chosen files', async t => {
         const g = await gallery(t);
-        const input = g.part('file'); t.eq(input.type, 'file'); t.ok(input.multiple); t.eq(input.getAttribute('accept'), 'image/*');
+        const input = g.part('add').part('control'); t.eq(input.type, 'file'); t.ok(input.multiple); t.eq(input.getAttribute('accept'), 'image/*');
         t.ok(shown(g.part('add-tile')) && g.part('add-text').textContent.trim() === 'Add image');
         let got = null; g.addEventListener('pk-add', e => { got = e.detail; });
         const dt = new DataTransfer(); dt.items.add(new File(['x'], 'a.png', { type: 'image/png' })); input.files = dt.files;
         input.dispatchEvent(new Event('change', { bubbles: true })); await t.settle();
         t.eq(got.names.join(), 'a.png'); t.eq(got.files.length, 1); t.eq(input.files.length, 0, 'the picker is reset for the next choice');
         g.addLabel = 'Upload photo'; await t.settle(); t.eq(g.part('add-text').textContent.trim(), 'Upload photo');
+    }],
+
+    ['image gallery: a dropped image on the add tile raises exactly one pk-add with the file and leaves the dropzone list empty; a dropped non-image raises nothing (#1085)', async t => {
+        const g = await gallery(t); const dz = g.part('add'); await t.load(dz.shadowRoot);
+        const adds = []; g.addEventListener('pk-add', e => adds.push(e.detail));
+        const drop = f => { const dt = new DataTransfer(); dt.items.add(f); dz.part('zone').dispatchEvent(new DragEvent('drop', { dataTransfer: dt, bubbles: true, cancelable: true })); };
+        drop(new File(['x'], 'a.png', { type: 'image/png' })); await t.settle();
+        t.eq(adds.length, 1, 'one pk-add'); t.eq(adds[0].names.join(), 'a.png'); t.eq(adds[0].files[0].name, 'a.png');
+        t.eq(dz.part('list').children.length, 0, 'the dropzone list is cleared for the next choice'); t.eq(dz.files.length, 0);
+        drop(new File(['x'], 'a.txt', { type: 'text/plain' })); await t.settle();
+        t.eq(adds.length, 1, 'a rejected type raises no pk-add');
+    }],
+
+    ['image gallery: a pick on a slotted InputFile never raises pk-add, and a drop goes into that input (#1085)', async t => {
+        const g = await t.mount('<pk-image-gallery editable><input slot="input" type="file" multiple></pk-image-gallery>');
+        await t.settle(); await t.load(g.shadowRoot);
+        const dz = g.part('add'), input = g.querySelector('input[slot="input"]'); await t.load(dz.shadowRoot);
+        let adds = 0, changes = 0; g.addEventListener('pk-add', () => adds++); input.addEventListener('change', () => changes++);
+        const dt = new DataTransfer(); dt.items.add(new File(['x'], 'a.png', { type: 'image/png' }));
+        dz.part('zone').dispatchEvent(new DragEvent('drop', { dataTransfer: dt, bubbles: true, cancelable: true })); await t.settle();
+        t.eq(changes, 1, 'the dropped file reaches the slotted input as its own change'); t.eq(input.files.length, 1); t.eq(adds, 0, 'no pk-add for the slotted input');
     }],
 
     ['image gallery: hide-add keeps make-primary, remove and reorder but never draws the add tile', async t => {
@@ -229,7 +250,7 @@ export const workspaceCases = [
     ['image gallery: an input in the input slot (a Blazor InputFile) becomes the add tile\'s own picker; its own change carries the real files, and pk-add does not fire for it', async t => {
         const g = await t.mount('<pk-image-gallery editable><input slot="input" type="file" multiple></pk-image-gallery>');
         g.images = IMAGES.map(i => ({ ...i })); await t.settle(); await t.load(g.shadowRoot);
-        t.ok(g.hasAttribute('has-input')); t.eq(getComputedStyle(g.part('file')).display, 'none', 'the internal input is hidden once an input is slotted');
+        const dz = g.part('add'); t.eq(dz.localName, 'pk-dropzone'); t.ok(dz.hasAttribute('has-input')); t.eq(getComputedStyle(dz.part('control')).display, 'none', 'the internal input is hidden once an input is slotted');
         const input = g.querySelector('input[slot="input"]');
         let added = null; g.addEventListener('pk-add', e => { added = e.detail; });
         let changes = 0; input.addEventListener('change', () => changes++);
