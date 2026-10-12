@@ -540,11 +540,20 @@ export const overlaysCases = [
         t.ok(!rows[1].querySelector('[part="badge"]').hidden, 'a badge shows when the item has one');
         t.ok(el.part('popup').querySelector('[role="presentation"]'), 'a group heading renders once for the shared group');
         let picked = null; el.addEventListener('pk-select', e => { picked = e.detail.item; });
-        t.key(input, 'ArrowDown'); t.key(input, 'ArrowDown');
-        t.ok(rows[1].hasAttribute('data-hl') && !rows[0].hasAttribute('data-hl') && input.getAttribute('aria-activedescendant') === rows[1].id, 'the highlighted row carries data-hl and is the aria-activedescendant');
+        // The combobox is the native input inside the pk-input; the listbox is in this element's tree, so the references cross the shadow boundary through element reflection (Chrome 135, Safari 16.4, Firefox 136).
+        const native = input.shadowRoot.querySelector('input'), reflects = 'ariaControlsElements' in native;
+        t.ok(native.role === 'combobox' && native.ariaAutoComplete === 'list' && native.ariaExpanded === 'true' && native.getAttribute('aria-label') === 'Search', 'the inner input is a combobox with its accessible name, expanded while the results show');
+        if (reflects) t.ok(native.ariaControlsElements?.length === 1 && native.ariaControlsElements[0] === el.part('popup'), 'aria-controls names the listbox across the shadow boundary');
+        t.key(input, 'ArrowDown'); t.key(input, 'ArrowDown'); await t.settle();
+        t.ok(rows[1].getAttribute('aria-selected') === 'true' && !rows[0].hasAttribute('aria-selected'), 'the highlighted row is the one aria-selected option');
+        if (reflects) t.ok(native.ariaActivedescendantElement === rows[1], 'the highlighted row is the aria-activedescendant, across the shadow boundary');
+        t.key(input, 'ArrowUp'); await t.settle();
+        if (reflects) t.ok(native.ariaActivedescendantElement === rows[0], 'ArrowUp moves the active descendant to the first row');
+        t.key(input, 'ArrowDown'); await t.settle();
         t.key(input, 'Enter');
         t.eq(picked?.id, 'b', 'two ArrowDown from nothing highlighted lands on the second row');
-        t.ok(el.part('popup').hidden, 'picking a result closes the popup');
+        await t.settle();
+        t.ok(el.part('popup').hidden && native.ariaExpanded === 'false' && !native.ariaActivedescendantElement, 'picking a result closes the popup: collapsed, no active descendant');
         input.dispatchEvent(new Event('input', { bubbles: true }));
         t.key(input, 'Escape'); t.ok(el.part('popup').hidden, 'Escape closes the results');
     }],

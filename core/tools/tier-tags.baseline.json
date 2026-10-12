@@ -1,6 +1,4 @@
 {
   "version": 1,
-  "entries": [
-    { "rule": "D1", "element": "app-bar-search", "found": "input", "count": 1 }
-  ]
+  "entries": []
 }

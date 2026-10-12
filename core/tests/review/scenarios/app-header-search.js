@@ -15,7 +15,7 @@ export default {
     steps: [
         { wait: 'settle' }, { wait: 600 },
         { click: 'pk-app-bar-search >>> [part=expand]', on: ['phone'] },
-        { click: 'pk-app-bar-search >>> [part=control]' }, { type: 'logger' }, { wait: 600 }, { shot: 'results' },
+        { click: 'pk-app-bar-search >>> [part=control] >>> [part=control]' }, { type: 'logger' }, { wait: 600 }, { shot: 'results' },
         { key: 'ArrowDown' }, { key: 'Enter' }, { wait: 600 }, { shot: 'picked' },
     ],
     expect(t) {

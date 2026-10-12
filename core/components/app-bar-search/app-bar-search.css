@@ -1,11 +1,10 @@
 :host { display: inline-flex; flex: 1 1 auto; align-items: center; min-width: 0; max-width: var(--pk-app-bar-search-width, 34rem); margin-inline: var(--pk-app-bar-search-align, auto); }
-[part="box-icon"] { flex: none; width: 1.1em; height: 1.1em; fill: none; stroke: currentColor; stroke-width: 2; }
 [part="expand"] { display: none; flex: none; }
 [part="box"] { position: relative; display: flex; align-items: center; gap: var(--space-2); flex: 1 1 auto; min-width: 0; min-height: var(--ctl-h); padding-inline: var(--space-3); background: var(--color-input); border: 1px solid var(--color-input-border); border-radius: var(--radius-pill); transition: border-color 0.15s; }
 [part="box"]:focus-within { border-color: var(--color-accent-hover); outline: var(--focus-ring); outline-offset: 2px; }
-[part="control"] { flex: 1; min-width: 0; border: 0; outline: 0; background: transparent; color: var(--color-text); font: inherit; font-size: var(--text-read); }
-[part="control"]::placeholder { color: var(--color-muted); opacity: 1; }
-[part="control"]::-webkit-search-cancel-button { display: none; }
+/* The pill is this element's box, so the field drops its own: no box of its own, its icon and input laid into the pill's row. */
+[part="control"], [part="control"]::part(box) { display: contents; }
+[part="control"]::part(control)::-webkit-search-cancel-button { display: none; }
 [part="collapse"] { display: none; flex: none; margin-inline-end: calc(var(--space-2) * -1); }
 [part="popup"] { position: absolute; top: calc(100% + var(--space-2)); left: -1px; right: -1px; z-index: var(--z-modal-over-flyout); min-width: var(--pk-app-bar-search-popup-width, 24rem); max-width: calc(100vw - var(--space-4)); max-height: 60vh; overflow-y: auto; background: var(--color-flyout); color: var(--color-text); border: 1px solid var(--color-border); border-radius: var(--radius-sm); box-shadow: var(--shadow-card); }
 [part="popup"][data-placement="top"] { top: auto; bottom: calc(100% + var(--space-2)); }
@@ -21,7 +20,7 @@
 [part="footer"] { position: sticky; inset-block-end: 0; padding: var(--space-2) var(--space-3); background: var(--color-flyout); border-top: 1px solid var(--color-border); }
 [part="empty"] { padding: var(--space-3); color: var(--color-muted); }
 [part="option"] { display: flex; align-items: center; gap: var(--space-2); padding: var(--space-2) var(--space-3); cursor: pointer; }
-[part="option"]:hover, [part="option"][data-hl] { background: color-mix(in srgb, var(--color-accent) 22%, var(--color-flyout)); }
+[part="option"]:hover, [part="option"][aria-selected="true"] { background: color-mix(in srgb, var(--color-accent) 22%, var(--color-flyout)); }
 [part="thumb"] { flex: none; width: 2rem; height: 2rem; border-radius: var(--radius-sm); background-color: var(--color-surface-alt); background-size: cover; background-position: center; }
 [part="row"] { flex: 1; min-width: 0; display: flex; flex-direction: column; }
 [part="row-label"] { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
@@ -46,9 +45,6 @@
     :host([expanded]) [part="box"] { display: flex; width: auto; flex: 1 1 auto; }
     :host([expanded]) [part="collapse"] { display: inline-flex; }
     [part="popup"] { min-width: 0; }
-    /* [part="box"] sizes to --ctl-h, but [part="control"] only stretches with the flex box's align-items; without align-self:stretch the
-       input's own hit box is just its line height (~23px), short of the 44px target. */
     [part="box"] { min-height: var(--touch-target); }
-    [part="control"] { font-size: 16px; align-self: stretch; }
     [part="option"] { min-height: var(--touch-target); }
 }

@@ -74,3 +74,12 @@ test('copyable adds a disabled-while-empty copy button, off by default', () => {
     assert.ok(meta.parts.some(p => p.name === 'copy'), 'the copy part is documented');
     assert.ok(css.includes(':host([copyable]) .copy { display: grid; }'));
 });
+
+// Issue #1085: pk-app-bar-search's results live in its own shadow tree, where an ID cannot reach the inner input: the combobox is wired by element reference.
+test('listbox is a property-only element reference that makes the inner input a combobox through element reflection', () => {
+    assert.equal(prop('listbox').type, 'json'); assert.equal(prop('listbox').default, null); assert.equal(prop('listbox').reflect, false);
+    const js = read('js');
+    for (const k of ['role', 'ariaExpanded', 'ariaAutoComplete', 'ariaControlsElements', 'ariaActivedescendantElement']) assert.ok(js.includes(k), `updated() sets ${k}`);
+    assert.match(js, /querySelector\('\[aria-selected=true\]'\)/, 'the active option is the one marked aria-selected');
+    assert.match(meta.a11y, /Chrome 135, Safari 16\.4 or Firefox 136/, 'the browser floor is documented');
+});

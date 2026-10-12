@@ -46,7 +46,7 @@ export default {
         { click: 'pk-button[data-nav-toggle]', on: ['phone'] }, { shot: 'nav-open', on: ['phone'] },
         { key: 'Escape', on: ['phone'] }, 
         { click: 'pk-app-bar-search >>> [part=expand]', on: ['phone'] }, 
-        { click: 'pk-app-bar-search >>> [part=control]' }, { type: 'order' }, { shot: 'search-open' },
+        { click: 'pk-app-bar-search >>> [part=control] >>> [part=control]' }, { type: 'order' }, { shot: 'search-open' },
         { key: 'Escape' }, { key: 'Escape' }, 
         { click: 'pk-dropdown[slot=actions] pk-button' }, { shot: 'settings-menu' },
         { key: 'Escape' }, 

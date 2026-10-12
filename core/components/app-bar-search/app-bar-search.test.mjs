@@ -73,3 +73,11 @@ test('the results panel has a footer slot and a popup-width hook, and an item wi
     assert.match(read('css'), /\[part="popup"\] \{[^}]*min-width: var\(--pk-app-bar-search-popup-width, 24rem\)/);
     assert.match(read('js'), /item\.id == null \|\| item\.id === ''/);
 });
+
+test('the field is a pk-input (type search) driving the popup as its listbox, not a raw input, with the old box-icon part still exported', () => {
+    const html = read('html');
+    assert.match(html, /<pk-input part="control" exportparts="search-icon:box-icon" type="search"/);
+    assert.doesNotMatch(html, /<input /, 'no raw input in the template (tier-tags D1)');
+    assert.match(read('js'), /input\.listbox = pop/);
+    assert.match(meta.a11y, /Chrome 135, Safari 16\.4, Firefox 136/);
+});

@@ -1,6 +1,7 @@
 // pk-app-bar-search inside the pk-app-shell header (issues 295, 280, 267): centred in the free space of the header at desktop width, an icon button that
 // expands over the header row on a phone, and the results panel open with a group heading, a group note row, a footer slot and a popup wider than
-// a narrow field.
+// a narrow field. The field is a pk-input laid into the pill (1085): the active state (a result highlighted with ArrowDown, focus still in the
+// input) shows the pill's focus ring, the pk-input's search icon and text on one row inside the pill, and one aria-selected result.
 const ITEMS = [
     { id: 'p1', label: 'Chai latte mix', group: 'Products', sub: 'SKU 1042', badge: 'In stock' },
     { id: 'p2', label: 'Chamomile tea', group: 'Products', sub: 'SKU 1043' },
@@ -10,6 +11,8 @@ const ITEMS = [
 const HEADER = 'pk-app-shell >>> [part=header]';
 const BOX = '#q >>> [part=box]';
 const POP = '#q >>> [part=popup]';
+const ICON = '#q >>> [part=control] >>> [part=search-icon]';
+const TEXT = '#q >>> [part=control] >>> [part=control]'; // the pk-input has no box of its own: the native input inside it is what is clicked and measured
 // group/note styling (317), the centring with a title present (318) and the contrast of the sub text and badge (319) are all fixed;
 // contrast is reported by the audit.
 
@@ -28,10 +31,12 @@ export default {
         { shot: 'rest' },
         { click: '#q >>> [part=expand]', on: ['phone'] }, { shot: 'expanded', on: ['phone'] },
         { set: '#q', prop: 'items', value: ITEMS },
-        { click: '#q >>> [part=control]', on: ['desktop'] },
+        { click: TEXT, on: ['desktop'] },
         { type: 'cha' },
         { wait: 400 },
         { shot: 'results' },
+        { key: 'ArrowDown' }, { wait: 100 },
+        { shot: 'active' },
     ],
     expect(t) {
         const desktop = t.viewport.name === 'desktop';
@@ -66,6 +71,18 @@ export default {
             if (pop && group) t.ok(group.x - pop.x >= 8, `the group heading starts ${Math.round(group.x - pop.x)}px from the panel's edge (rows are indented 12px)`);
             if (pop && note) t.ok(note.x - pop.x >= 8, `the note row starts ${Math.round(note.x - pop.x)}px from the panel's edge`);
             t.ok(t.rect(POP)?.width >= (desktop ? 383 : 300), `the results panel is ${Math.round(t.rect(POP)?.width ?? 0)}px wide, too narrow to read`);
+        }
+        if (t.shot === 'active') {
+            t.visible(POP, 'the results panel stays open while a result is highlighted');
+            t.visible('#q >>> [role=option][aria-selected="true"]', 'the highlighted result');
+            t.visible(ICON, 'the search icon from the pk-input');
+            t.within(ICON, BOX); t.within(TEXT, BOX);
+            t.sameRow(ICON, TEXT);
+            t.noOverlap(ICON, TEXT);
+            t.ringVisible(BOX);
+            t.ringUnclipped(BOX);
+            t.atLeast(TEXT, 'width', 100);
+            if (!desktop) t.atLeast(TEXT, 'height', 44);
         }
     },
 };
