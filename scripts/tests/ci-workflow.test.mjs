@@ -184,7 +184,7 @@ test('the UI review sweep files or updates one tracking issue (#781), with issue
     assert.match(sweep, /^permissions:\n  contents: read\n/m, 'the workflow default stays read-only');
     const report = jobOf(sweep, 'report');
     assert.ok(report.includes('issues: write'), 'only the report job holds issues: write');
-    assert.ok(!jobOf(sweep, 'sweep').includes('issues:'), 'the shards do not');
+    assert.doesNotMatch(jobOf(sweep, 'sweep'), /^\s+(issues|permissions):/m, 'the shards hold no extra permissions');
     assert.match(report, /^    needs: sweep$/m);
     assert.match(report, /if: always\(\) && github\.event_name != 'pull_request' && github\.ref == 'refs\/heads\/main'/);
     assert.doesNotMatch(sweep, /^\s*pull_request/m, 'the sweep never triggers on a pull request');
