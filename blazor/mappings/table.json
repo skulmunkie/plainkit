@@ -95,6 +95,12 @@
       "type": "bool"
     },
     {
+      "name": "Expander",
+      "prop": "expander",
+      "type": "string?",
+      "note": "\"none\" leaves out the built-in toggle column; the host then opens rows through Expanded."
+    },
+    {
       "name": "Editable",
       "prop": "editable",
       "type": "bool",

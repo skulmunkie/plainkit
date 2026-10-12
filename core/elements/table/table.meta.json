@@ -189,6 +189,13 @@
       "description": "Rows that have a detail-<rowId> slot get a toggle that shows or hides that slot under the row."
     },
     {
+      "name": "expander",
+      "type": "string",
+      "default": "",
+      "reflect": false,
+      "description": "Set to none to leave out the toggle column of an expandable table: the host opens rows from its own control (a disclosure inside a cell) by setting expanded, which is still honoured, and the detail-<rowId> slots are still shown for the ids in it."
+    },
+    {
       "name": "expanded",
       "type": "json",
       "default": [],
@@ -277,6 +284,11 @@
       "name": "detail-<rowId>",
       "dynamic": true,
       "description": "Detail content of one row, shown under it when the row is expanded (expandable). A row without this slot has no toggle."
+    },
+    {
+      "name": "detail-<rowId>.<name>",
+      "dynamic": true,
+      "description": "A further detail panel of one row, shown under it when expanded holds the string \"<rowId>.<name>\". A row can have several, plus detail-<rowId>. Named panels have no built-in toggle: the host opens them by setting expanded (use expander=\"none\" to drop the toggle column altogether)."
     },
     {
       "name": "empty",
@@ -446,6 +458,10 @@
     {
       "title": "Expandable rows",
       "html": "<pk-table label=\"POs\" expandable columns='[{\"key\":\"po\",\"label\":\"PO\"}]' rows='[{\"id\":1,\"po\":\"PO 1042\"},{\"id\":2,\"po\":\"PO 1043\"}]'>\n  <p slot=\"detail-1\">3 lines: Widget 1 x 20.</p>\n</pk-table>"
+    },
+    {
+      "title": "Host-controlled expansion and several panels per row (issue 1219)",
+      "html": "<pk-table label=\"POs\" expandable expander=\"none\" expanded='[\"1\",\"2.notes\"]' columns='[{\"key\":\"po\",\"label\":\"PO\"},{\"key\":\"status\",\"label\":\"Status\"}]' rows='[{\"id\":1,\"po\":\"PO 1042\",\"status\":\"Open\"},{\"id\":2,\"po\":\"PO 1043\",\"status\":\"Held\"}]'>\n  <p slot=\"detail-1\">3 lines: Widget 1 x 20.</p>\n  <p slot=\"detail-2.lines\">1 line: Widget 2 x 4.</p>\n  <p slot=\"detail-2.notes\">Held for credit review.</p>\n</pk-table>"
     },
     {
       "title": "Row tone and indent (issue 1019)",
