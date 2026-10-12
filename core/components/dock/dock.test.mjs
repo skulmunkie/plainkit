@@ -60,11 +60,11 @@ class Node {
     remove() { this.removed = true; if (this.parent) this.parent.kids = this.parent.kids.filter(k => k !== this); }
 }
 const el = (tag, cls) => { const n = new Node(tag); n.attrs.part = cls; return n; };
-// The group template: a section holding a header (with its collapse-toggle button, a chevron and a title span), a body and a rail-button, cloned per group.
+// The group template: a section holding a header (with its collapse-toggle pk-button and a title span), a body and a rail-button, cloned per group.
 const groupTemplate = () => {
-    const s = new Node('section'), h = el('div', 'header'), b = el('div', 'body'), rail = el('button', 'rail-button');
-    const toggle = el('button', 'collapse-toggle'), chevron = el('span', 'chevron'), titleSpan = el('span', 'title');
-    toggle.kids = [chevron, titleSpan]; h.kids = [toggle]; s.kids = [h, b, rail];
+    const s = new Node('section'), h = el('div', 'header'), b = el('div', 'body'), rail = el('pk-button', 'rail-button');
+    const toggle = el('pk-button', 'collapse-toggle'), titleSpan = el('span', 'title');
+    toggle.kids = [titleSpan]; h.kids = [toggle]; s.kids = [h, b, rail];
     s.cloneNode = groupTemplate;
     return s;
 };
@@ -72,7 +72,7 @@ const find = (n, tag, out = []) => { if (n.tag === tag) out.push(n); for (const 
 // dock.html's flyout carries a static Expand button (issue #636, same part as a header's own collapse-toggle) ahead of whatever panel slot
 // toggleFlyout appends: the build validates meta.parts against exactly this markup, so the stand-in mirrors it rather than letting the element
 // create its own button node.
-const flyoutExpandButton = () => el('button', 'collapse-toggle');
+const flyoutExpandButton = () => el('pk-button', 'collapse-toggle');
 const make = (panels, props = {}) => {
     const root = new Node('root'), empty = new Node('empty'), status = new Node('status'), toolbar = new Node('toolbar'), flyout = new Node('flyout');
     flyout.append(flyoutExpandButton());
@@ -267,30 +267,29 @@ test('a layout the host sets raises nothing; a panel that appears is added and r
     assert.ok(findGroup(el.layout, 'extra'));
 });
 
-test('a single-panel header has a collapse-toggle button naming its title, aria-expanded and the body it controls', () => {
+test('a single-panel header has a collapse-toggle pk-button naming its title, with the expanded state as pressed', () => {
     const { root } = make(P);
     // A multi-panel group's header (with its own unused template button) is detached by the real .remove(); this stand-in only flags it removed,
     // so tell the wired-up ones (they carry data-panel) from the leftover template button of the tools/assets tab group.
-    const toggles = find(root, 'button').filter(b => b.getAttribute('data-panel'));
+    const toggles = find(root, 'pk-button').filter(b => b.getAttribute('data-panel'));
     assert.equal(toggles.length, 2, 'the two single-panel groups (canvas, props); tools/assets is a tab group with no chevron yet');
     const canvasToggle = toggles.find(b => b.getAttribute('data-panel') === 'canvas');
-    assert.equal(canvasToggle.getAttribute('aria-expanded'), 'true');
-    assert.ok(canvasToggle.getAttribute('aria-controls'));
-    assert.deepEqual(find(canvasToggle, 'span').map(s => s.text), ['', 'Canvas']);
+    assert.equal(canvasToggle.pressed, true, 'expanded is the pk-button pressed state, which its control reports as aria-expanded');
+    assert.deepEqual(find(canvasToggle, 'span').map(s => s.text), ['Canvas']);
 });
 
 test('clicking the collapse-toggle folds the panel, commits reason collapse, and toggling back expands it', () => {
     const { el, root } = make(P);
-    const btn = find(root, 'button').find(b => b.getAttribute('data-panel') === 'canvas');
-    btn.closest = sel => (sel === 'button' ? btn : null);
+    const btn = find(root, 'pk-button').find(b => b.getAttribute('data-panel') === 'canvas');
+    btn.closest = sel => (sel === 'pk-button' ? btn : null);
     root.listeners.click({ stopPropagation() {}, target: btn });
     assert.deepEqual(el.$doc.collapsed, ['canvas']);
     assert.deepEqual(el.events.map(e => e.detail.reason), ['collapse']);
-    const bodyAfter = find(root, 'div').find(n => n.id === btn.getAttribute('aria-controls'));
+    const bodyAfter = find(root, 'div').find(n => n.id === 'b-canvas');
     assert.equal(bodyAfter.hidden, true);
-    const toggleAfter = find(root, 'button').find(b => b.getAttribute('data-panel') === 'canvas');
-    assert.equal(toggleAfter.getAttribute('aria-expanded'), 'false');
-    toggleAfter.closest = sel => (sel === 'button' ? toggleAfter : null);
+    const toggleAfter = find(root, 'pk-button').find(b => b.getAttribute('data-panel') === 'canvas');
+    assert.equal(toggleAfter.pressed, false);
+    toggleAfter.closest = sel => (sel === 'pk-button' ? toggleAfter : null);
     root.listeners.click({ stopPropagation() {}, target: toggleAfter });
     assert.deepEqual(el.$doc.collapsed, []);
     assert.deepEqual(el.events.map(e => e.detail.reason), ['collapse', 'collapse']);
@@ -298,32 +297,31 @@ test('clicking the collapse-toggle folds the panel, commits reason collapse, and
 
 test('collapsing an edge group (props, on the right) folds it to a rail button instead of a header; the centre group (canvas) still gets a header', () => {
     const { el, root } = make(P);
-    const propsToggle = find(root, 'button').find(b => b.getAttribute('data-panel') === 'props');
-    propsToggle.closest = sel => (sel === 'button' ? propsToggle : null);
+    const propsToggle = find(root, 'pk-button').find(b => b.getAttribute('data-panel') === 'props');
+    propsToggle.closest = sel => (sel === 'pk-button' ? propsToggle : null);
     root.listeners.click({ stopPropagation() {}, target: propsToggle });
     assert.deepEqual(el.$doc.collapsed, ['props']);
-    const rail = find(root, 'button').find(b => b.getAttribute('data-rail-panel') === 'props');
+    const rail = find(root, 'pk-button').find(b => b.getAttribute('data-rail-panel') === 'props');
     assert.ok(rail, 'a rail button replaces the header for the collapsed edge group');
-    assert.equal(rail.getAttribute('aria-expanded'), 'false');
-    assert.equal(rail.getAttribute('aria-haspopup'), 'true');
+    assert.equal(rail.pressed, false);
     assert.equal(rail.text, 'Properties');
-    assert.equal(find(root, 'button').some(b => b.getAttribute('data-panel') === 'props'), false, 'no header chevron left for it');
+    assert.equal(find(root, 'pk-button').some(b => b.getAttribute('data-panel') === 'props'), false, 'no header chevron left for it');
     // canvas is not at a screen edge (boxed in by left and right columns), so it keeps the accordion-style header-only fold.
-    const canvasToggle = find(root, 'button').find(b => b.getAttribute('data-panel') === 'canvas');
-    canvasToggle.closest = sel => (sel === 'button' ? canvasToggle : null);
+    const canvasToggle = find(root, 'pk-button').find(b => b.getAttribute('data-panel') === 'canvas');
+    canvasToggle.closest = sel => (sel === 'pk-button' ? canvasToggle : null);
     root.listeners.click({ stopPropagation() {}, target: canvasToggle });
     assert.deepEqual(el.$doc.collapsed, ['props', 'canvas']);
-    assert.equal(find(root, 'button').some(b => b.getAttribute('data-rail-panel') === 'canvas'), false, 'canvas stays a header, not a rail');
+    assert.equal(find(root, 'pk-button').some(b => b.getAttribute('data-rail-panel') === 'canvas'), false, 'canvas stays a header, not a rail');
 });
 
 test('a rail button opens the panel as a flyout on click, closes on a second click, and the toggle raises no layout change', () => {
     const { el, root } = make(P);
-    const propsToggle = find(root, 'button').find(b => b.getAttribute('data-panel') === 'props');
-    propsToggle.closest = sel => (sel === 'button' ? propsToggle : null);
+    const propsToggle = find(root, 'pk-button').find(b => b.getAttribute('data-panel') === 'props');
+    propsToggle.closest = sel => (sel === 'pk-button' ? propsToggle : null);
     root.listeners.click({ stopPropagation() {}, target: propsToggle });
     const before = el.events.length;
-    const rail = find(root, 'button').find(b => b.getAttribute('data-rail-panel') === 'props');
-    rail.closest = sel => (sel === 'button' ? rail : null);
+    const rail = find(root, 'pk-button').find(b => b.getAttribute('data-rail-panel') === 'props');
+    rail.closest = sel => (sel === 'pk-button' ? rail : null);
     rail.getBoundingClientRect = () => ({ left: 0, top: 0, right: 40, bottom: 40, width: 40, height: 40 });
     const flyoutEl = el.part('flyout');
     flyoutEl.style = {}; flyoutEl.getBoundingClientRect = () => ({ width: 200, height: 200 });
@@ -333,7 +331,7 @@ test('a rail button opens the panel as a flyout on click, closes on a second cli
     assert.equal(el.$flyout, 'props', 'the panel opened as a flyout');
     assert.equal(el.events.length, before, 'opening a flyout is a transient view, not a layout change');
     assert.equal(flyoutEl.hidden, false);
-    assert.deepEqual(flyoutEl.kids.map(k => k.tag), ['button', 'slot'], 'the Expand button comes before the panel slot');
+    assert.deepEqual(flyoutEl.kids.map(k => k.tag), ['pk-button', 'slot'], 'the Expand button comes before the panel slot');
     assert.deepEqual(find(flyoutEl, 'slot').map(s => s.getAttribute('name')), ['props']);
     assert.equal(flyoutEl.kids[0].getAttribute('data-panel'), 'props', 'the Expand button carries the same data-panel as the panel\'s own header toggle');
     root.listeners.click({ stopPropagation() {}, target: rail });
@@ -343,11 +341,11 @@ test('a rail button opens the panel as a flyout on click, closes on a second cli
 
 test('the flyout\'s own Expand button, a separate action from opening/closing the flyout, restores the panel to a normal docked header and closes the (now stale) flyout (issue #636)', () => {
     const { el, root } = make(P);
-    const propsToggle = find(root, 'button').find(b => b.getAttribute('data-panel') === 'props');
-    propsToggle.closest = sel => (sel === 'button' ? propsToggle : null);
+    const propsToggle = find(root, 'pk-button').find(b => b.getAttribute('data-panel') === 'props');
+    propsToggle.closest = sel => (sel === 'pk-button' ? propsToggle : null);
     root.listeners.click({ stopPropagation() {}, target: propsToggle }); // collapse props to a rail button
-    const rail = find(root, 'button').find(b => b.getAttribute('data-rail-panel') === 'props');
-    rail.closest = sel => (sel === 'button' ? rail : null);
+    const rail = find(root, 'pk-button').find(b => b.getAttribute('data-rail-panel') === 'props');
+    rail.closest = sel => (sel === 'pk-button' ? rail : null);
     rail.getBoundingClientRect = () => ({ left: 0, top: 0, right: 40, bottom: 40, width: 40, height: 40 });
     const flyoutEl = el.part('flyout');
     flyoutEl.style = {}; flyoutEl.getBoundingClientRect = () => ({ width: 200, height: 200 });
@@ -357,15 +355,15 @@ test('the flyout\'s own Expand button, a separate action from opening/closing th
     const before = el.events.length;
     const expandBtn = flyoutEl.kids[0];
     assert.ok(expandBtn, 'the flyout offers an Expand button distinct from the rail button itself');
-    expandBtn.closest = sel => (sel === 'button' ? expandBtn : null);
+    expandBtn.closest = sel => (sel === 'pk-button' ? expandBtn : null);
     flyoutEl.listeners.click({ stopPropagation() {}, target: expandBtn }); // the flyout carries its own click listener (dock.html: a sibling of root)
     assert.deepEqual(el.$doc.collapsed, [], 'expandPanel ran: the panel is no longer collapsed');
     assert.deepEqual(el.events.slice(before).map(e => e.detail.reason), ['collapse'], 'restoring from the flyout commits reason collapse, the same as the header chevron');
     assert.equal(el.$flyout, null, 'the stale flyout is closed once the panel is expanded (reflyout finds no rail button left for it)');
     assert.equal(flyoutEl.hidden, true);
-    const header = find(root, 'button').find(b => b.getAttribute('data-panel') === 'props');
+    const header = find(root, 'pk-button').find(b => b.getAttribute('data-panel') === 'props');
     assert.ok(header, 'props is drawn as a normal header again, not a rail button');
-    assert.equal(find(root, 'button').some(b => b.getAttribute('data-rail-panel') === 'props'), false);
+    assert.equal(find(root, 'pk-button').some(b => b.getAttribute('data-rail-panel') === 'props'), false);
 });
 
 test('a click that is not on a collapse-toggle button does nothing', () => {
