@@ -3,4 +3,5 @@ import '../../../modules/code-explorer/element.js';
 import { SnapshotProvider } from '../../../modules/code-explorer/providers.js';
 import { SAMPLE_SNAPSHOT } from '../sample-tree.js';
 
-document.querySelector('pk-code-explorer').provider = new SnapshotProvider(SAMPLE_SNAPSHOT);
+const doc = document;
+doc.querySelector('pk-code-explorer').provider = new SnapshotProvider(SAMPLE_SNAPSHOT);
