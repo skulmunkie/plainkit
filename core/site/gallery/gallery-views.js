@@ -8,7 +8,7 @@ import { PHONE_WIDTH } from './frame.js';
 import { parseTokenBlocks, tokenKind } from '../../js/theme.js';
 import { contrast, grade } from '../../js/colour.js';
 import { initPlainkit } from '../../js/plainkit.js';
-import { on } from '../../js/mount-support.js';
+import { on, h } from '../../js/mount-support.js';
 
 // the gallery's addresses: '#' + the path the host app mounts it under (empty when it is its own page) + the gallery's own path
 export const where = { prefix: '' };
@@ -51,10 +51,9 @@ export const dataTable = (label, cols, rows, numeric = []) => {
 };
 export const codeBlock = (code, label = '') => `<pk-code-block${label ? ` label="${esc(label)}"` : ''} wrap>${esc(code)}</pk-code-block>`;
 
-function probe(theme) {
-    const d = document.createElement('div');
-    d.hidden = true; d.setAttribute('data-theme', theme);
-    document.body.append(d);
+function probe(doc, theme) {
+    const d = h(doc, 'div', { hidden: true, 'data-theme': theme });
+    doc.body.append(d);
     return d;
 }
 
@@ -77,7 +76,7 @@ export function createViews(ctx) {
         // A length wider than the specimen's sample box (8rem) cannot be drawn to scale; it is listed as text rather than as a clamped bar showing a wrong width.
         const sized = (n, v) => parseFloat(v) * (/rem$/.test(v) ? 16 : 1) <= 128 ? `<pk-specimen token="${n}" kind="size"></pk-specimen>` : `<pk-text tone="muted"><code>${n}</code> ${esc(v)}</pk-text>`;
         const scale = prefix => Object.entries(tokens.root).filter(([n]) => n.startsWith(prefix));
-        const dark = probe('dark'); const light = probe('light');
+        const dark = probe(ctx.doc, 'dark'); const light = probe(ctx.doc, 'light');
         try {
             switch (id) {
                 case 'colours': {

@@ -6,24 +6,19 @@
 
 import { cleanMarkup } from '../../js/element-inspector-logic.js';
 import { applyDynamic } from '../../js/dynamic.js';
-import { on, later } from '../../js/mount-support.js';
-
-const h = (tag, attrs = {}, ...kids) => {
-    const el = document.createElement(tag);
-    for (const [k, v] of Object.entries(attrs)) { if (v === false || v === null || v === undefined) continue; if (k === 'class') el.className = v; else el.setAttribute(k, v === true ? '' : v); }
-    el.append(...kids.flat().filter(k => k !== null && k !== undefined && k !== false));
-    return el;
-};
-const code = text => h('code', {}, text);
-const disclose = (title, ...body) => h('pk-accordion-item', { class: 'gx-disclose', heading: title }, ...body);
-// Parsed with an element of the main document, so an pk-* tag is created against its registry and can be upgraded before it is attached.
-const fromHtml = html => { const d = document.createElement('div'); d.innerHTML = html; const f = document.createDocumentFragment(); f.append(...d.childNodes); return f; };
-// A code viewer: the code is the element's text content, so a change of text is a change of code.
-const codeBlock = (label, text = '') => h('pk-code-block', { label, wrap: true }, text);
+import { on, later, h as build } from '../../js/mount-support.js';
 
 // options.onLive(element) hands the playground's live element to the caller (the gallery's inspector shows it); options.onChange() runs after
-// every change of its markup.
+// every change of its markup; options.doc is the document the page is built in (the gallery's own by default).
 export function renderElement(meta, options = {}) {
+    const doc = options.doc ?? globalThis.document, win = doc.defaultView;
+    const h = (tag, attrs, ...kids) => build(doc, tag, attrs, ...kids);
+    const code = text => h('code', {}, text);
+    const disclose = (title, ...body) => h('pk-accordion-item', { class: 'gx-disclose', heading: title }, ...body);
+    // Parsed with an element of the main document, so an pk-* tag is created against its registry and can be upgraded before it is attached.
+    const fromHtml = html => { const d = h('div'); d.innerHTML = html; const f = doc.createDocumentFragment(); f.append(...d.childNodes); return f; };
+    // A code viewer: the code is the element's text content, so a change of text is a change of code.
+    const codeBlock = (label, text = '') => h('pk-code-block', { label, wrap: true }, text);
     const page = h('pk-stack', { class: 'gx-page' });
     page.append(h('pk-page-header', { level: 1, heading: meta.title }, h('p', { class: 'muted', slot: 'meta' }, meta.summary), h('p', { class: 'muted', slot: 'meta' }, code(`<${meta.tag}>`), ' - ', meta.group)));
 
@@ -63,7 +58,7 @@ export function renderElement(meta, options = {}) {
         while (log.children.length > 12) log.lastChild.remove();
         refresh();
         // An element that hides itself (an alert's dismiss) would leave an empty stage: bring it back so the playground stays usable.
-        later(window, () => { if (live.hidden) { live.hidden = false; refresh(); } }, 900);
+        later(win,() => { if (live.hidden) { live.hidden = false; refresh(); } }, 900);
     });
     const theming = h('pk-stack', { gap: 'sm' });
     // Custom-property overrides go through data-dyn + applyDynamic() (core/js/dynamic.js), never .style directly;

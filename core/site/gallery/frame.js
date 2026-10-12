@@ -6,7 +6,7 @@
 import { PAGE_CSS } from './paths.js';
 import { SCRIPT_NAME, DESTROY_EVENT } from './pattern-mount.js';
 import { applyDynamic } from '../../js/dynamic.js';
-import { on } from '../../js/mount-support.js';
+import { on, h } from '../../js/mount-support.js';
 
 export const GALLERY_BASE = new URL('./', import.meta.url).href;
 export const PHONE_WIDTH = 375;
@@ -79,9 +79,8 @@ export function destroyFrame(frame) {
     if (win) win.dispatchEvent(new win.Event(DESTROY_EVENT));
 }
 
-export function makeFrame(sample, state, control = '') {
-    const frame = document.createElement('iframe');
-    frame.className = 'gx-frame';
+export function makeFrame(sample, state, control = '', doc = globalThis.document) {
+    const frame = h(doc, 'iframe', { class: 'gx-frame' });
     frame.title = sample.title ?? control;
     if (control) frame.dataset.control = control;
     if (sample.height) frame.dataset.height = String(sample.height);
