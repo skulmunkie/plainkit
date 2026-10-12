@@ -5,6 +5,7 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.JSInterop;
 using PlainKit.Blazor;
 using PlainKit.Blazor.Components;
+using PlainKit.Blazor.Testing;
 
 namespace PlainKit.Blazor.Tests;
 
@@ -52,6 +53,14 @@ public sealed class PkFieldGroupTests : BunitContext, IAsyncLifetime
     // The element's `fields` and `values` attributes, as the element reads them.
     private static JsonElement[] Defs(IRenderedComponent<PkFieldGroup<Order>> cut) => cut.Markup.Length < 0 ? [] : JsonDocument.Parse(cut.Find("pk-field-group").GetAttribute("fields")!).RootElement.EnumerateArray().Select(e => e.Clone()).ToArray();
     private static JsonElement ValuesOf(IRenderedComponent<PkFieldGroup<Order>> cut) => JsonDocument.Parse(cut.Find("pk-field-group").GetAttribute("values")!).RootElement.Clone();
+
+    [Fact]
+    public void Money_format_reaches_the_element()
+    {
+        var d = Defs(Render([new PkFieldSpec<Order> { Key = "amount", Label = "Amount", Kind = PkFieldKind.Number, Get = _ => "9", Set = (_, _) => { }, Format = "money", Decimals = 2, Currency = "USD", Locale = "en-US" }]))[0];
+        Assert.Equal("money", d.GetProperty("format").GetString()); Assert.Equal(2, d.GetProperty("decimals").GetInt32());
+        Assert.Equal("USD", d.GetProperty("currency").GetString()); Assert.Equal("en-US", d.GetProperty("locale").GetString());
+    }
 
     [Fact]
     public void The_specs_become_the_elements_fields_and_the_model_its_values()
@@ -188,6 +197,27 @@ public sealed class PkFieldGroupTests : BunitContext, IAsyncLifetime
         Assert.Equal("From X", slotted[0].TextContent);
     }
 
+    // Issue 264: Custom draws the caller's own content in the element's editor-<key> slot and is sent as kind "custom".
+    [Fact]
+    public void Custom_slots_the_editor_and_sends_kind_custom()
+    {
+        var cut = Render([PkFieldSpec<Order>.Custom("sum", "Summary", o => b => b.AddContent(0, "Total " + o.Name))], new Order { Name = "X" });
+        Assert.Equal("custom", Defs(cut)[0].GetProperty("kind").GetString());
+        var slotted = cut.Find("pk-field-group > [slot]");
+        Assert.Equal("editor-sum", slotted.GetAttribute("slot")); Assert.Equal("Total X", slotted.TextContent);
+    }
+
+    // Issue 264: Decimal turns a decimal? property into a number spec with invariant-culture text for Get, Set, Min, Max and Step.
+    [Fact]
+    public void Decimal_reads_and_writes_invariant_text()
+    {
+        decimal? price = 1234.5m;
+        var spec = PkFieldSpec<Order>.Decimal("price", "Price", _ => price, (_, v) => price = v, 0.01m, 99.5m, 0.01m);
+        Assert.Equal(("1234.5", "0.01", "99.5", "0.01", PkFieldKind.Number), (spec.Get(new Order()), spec.Min, spec.Max, spec.Step, spec.Kind));
+        spec.Set(new Order(), "7.25"); Assert.Equal(7.25m, price);
+        spec.Set(new Order(), ""); Assert.Null(price);
+    }
+
     // Issue 753 gap 2: PkFieldKind.Combobox, its options from Options or from an async Search callback the element runs as the user types.
     private sealed class Pick { public string Sku { get; set; } = ""; }
 
@@ -215,5 +245,48 @@ public sealed class PkFieldGroupTests : BunitContext, IAsyncLifetime
     {
         Render(Fields());
         Assert.DoesNotContain(_bridge.Invocations, i => i.Identifier == "setCallback");
+    }
+
+    // Issue 264: an async Set (PkFieldSpec.Async). Busy, last wins and the field error are the element's (browser case); the wrapper only hands the element a commit callback
+    // that runs SetAsync and answers null or the exception's message, and raises ModelChanged (through pk-field-change) after that.
+    private static PkFieldSpec<Order> AsyncName(Func<string?, Task> save, Order order) =>
+        PkFieldSpec<Order>.Async("name", "Name", o => o.Name, async (o, v) => { await save(v); o.Name = v ?? ""; });
+
+    [Fact]
+    public async Task An_async_Set_gets_a_commit_callback_and_ModelChanged_comes_after_it_succeeds()
+    {
+        var order = new Order(); var log = new List<string>();
+        var cut = Render([AsyncName(async v => { await Task.Yield(); log.Add("set " + v); }, order)], order, EventCallback.Factory.Create(this, () => log.Add("changed")));
+        cut.WaitForAssertion(() => Assert.Equal("commit", Assert.Single(_bridge.Invocations["setCallback"]).Arguments[1]));
+        Assert.Null(await cut.Instance.CommitAsync("name", "Acme"));
+        Assert.Equal(["set Acme", "changed"], log); Assert.Equal("Acme", order.Name);
+    }
+
+    [Fact]
+    public async Task A_throwing_async_Set_answers_its_message_for_the_field_error_and_raises_no_ModelChanged()
+    {
+        var order = new Order(); var changed = 0;
+        var cut = Render([AsyncName(_ => throw new InvalidOperationException("Name is taken"), order)], order, EventCallback.Factory.Create(this, () => changed++));
+        Assert.Equal("Name is taken", await cut.Instance.CommitAsync("name", "Acme"));
+        Assert.Equal(0, changed); Assert.Equal("", order.Name);
+    }
+
+    [Fact]
+    public async Task A_stale_async_Set_completion_is_the_elements_to_drop_so_each_call_runs_alone()
+    {
+        // The element decides which answer counts (last wins); the callback itself must not share state between calls, so two pending Sets both run and each answers for itself.
+        var order = new Order(); var gates = new List<TaskCompletionSource>(); var seen = new List<string?>();
+        var cut = Render([AsyncName(v => { seen.Add(v); var g = new TaskCompletionSource(); gates.Add(g); return g.Task; }, order)], order);
+        var first = cut.Instance.CommitAsync("name", "a"); var second = cut.Instance.CommitAsync("name", "ab");
+        gates[1].SetResult(); gates[0].SetException(new InvalidOperationException("stale"));
+        Assert.Null(await second); Assert.Equal("stale", await first);
+        Assert.Equal(["a", "ab"], seen);
+    }
+
+    [Fact]
+    public void Without_an_async_Set_no_commit_callback_is_set()
+    {
+        Render(Fields());
+        Assert.DoesNotContain(_bridge.Invocations, i => i.Identifier == "setCallback" && Equals(i.Arguments[1], "commit"));
     }
 }
