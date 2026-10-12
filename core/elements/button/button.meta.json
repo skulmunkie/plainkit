@@ -292,7 +292,7 @@
     },
     {
       "title": "A long label: wrap or truncate",
-      "html": "<div class=\"u-mw-24r\"><pk-button overflow=\"wrap\" variant=\"secondary\">A fairly long record title that cannot fit on one line at phone width</pk-button>\n<pk-button overflow=\"truncate\" variant=\"plain\"><code>SOME-LONG-IDENTIFIER-20260913-WITH-MANY-DASHES-AND-SEGMENTS</code></pk-button></div>"
+      "html": "<div class=\"u-mw-24r\"><pk-stack gap=\"sm\"><pk-button overflow=\"wrap\" variant=\"secondary\">A fairly long record title that cannot fit on one line at phone width</pk-button>\n<pk-button overflow=\"truncate\" variant=\"plain\"><code>SOME-LONG-IDENTIFIER-20260913-WITH-MANY-DASHES-AND-SEGMENTS</code></pk-button></pk-stack></div>"
     },
     {
       "title": "Collapse to the icon on a small screen",
