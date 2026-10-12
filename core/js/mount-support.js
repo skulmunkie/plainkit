@@ -84,5 +84,8 @@ export function storeText(win, key, text) {
     try { win.localStorage.setItem(key, text); return null; } catch (error) { return error; }
 }
 
-// The address of the page: { href, hash } as they are right now.
-export const addressOf = win => ({ href: win.location.href, hash: win.location.hash });
+// The address of the page: { href, hash, ancestor (the embedder's origin when the browser reports it, else '') } as they are right now.
+export const addressOf = win => ({ href: win.location.href, hash: win.location.hash, ancestor: win.location.ancestorOrigins?.[0] || '' });
+
+// Replace the current history entry with another address.
+export const replaceAddress = (win, href) => win.location.replace(href);

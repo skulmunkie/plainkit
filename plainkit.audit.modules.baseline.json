@@ -172,21 +172,6 @@
       "fingerprint": "fc108104051fff14"
     },
     {
-      "rule": "S7",
-      "file": "core/site/gallery/elements/command-palette.data.js",
-      "fingerprint": "065a50986d8b5f9e"
-    },
-    {
-      "rule": "S7",
-      "file": "core/site/gallery/elements/command-palette.data.js",
-      "fingerprint": "11a5b9b5ec1e8cca"
-    },
-    {
-      "rule": "S7",
-      "file": "core/site/gallery/elements/dock.data.js",
-      "fingerprint": "311ea86e1c99b5e5"
-    },
-    {
       "rule": "S5",
       "file": "core/site/gallery/elements/frame.data.js",
       "fingerprint": "2a8aceccfea78a06"
@@ -195,21 +180,6 @@
       "rule": "S5",
       "file": "core/site/gallery/elements/frame.data.js",
       "fingerprint": "2a8aceccfea78a06"
-    },
-    {
-      "rule": "S7",
-      "file": "core/site/gallery/elements/frame.data.js",
-      "fingerprint": "405f9c282693c7da"
-    },
-    {
-      "rule": "S7",
-      "file": "core/site/gallery/elements/gallery.data.js",
-      "fingerprint": "7587fea03ab7628d"
-    },
-    {
-      "rule": "S7",
-      "file": "core/site/gallery/elements/side-nav.data.js",
-      "fingerprint": "c2a6e3668960d26f"
     },
     {
       "rule": "S1",
@@ -240,11 +210,6 @@
       "rule": "S3",
       "file": "core/site/gallery/embed.js",
       "fingerprint": "d229edc52ef1d9eb"
-    },
-    {
-      "rule": "S7",
-      "file": "core/site/gallery/embed.js",
-      "fingerprint": "003d8302e9f86e04"
     },
     {
       "rule": "S1",
@@ -387,11 +352,6 @@
       "fingerprint": "1215229800249cf4"
     },
     {
-      "rule": "S7",
-      "file": "core/site/gallery/preview.js",
-      "fingerprint": "1994bf40d7b77d6e"
-    },
-    {
       "rule": "S1",
       "file": "core/site/guides/index.html",
       "fingerprint": "e965efa75f47fc79"
@@ -432,39 +392,9 @@
       "fingerprint": "ccccf6cee72b3aa8"
     },
     {
-      "rule": "S7",
-      "file": "core/site/scorecard/scorecard.js",
-      "fingerprint": "923d66571f54d38c"
-    },
-    {
-      "rule": "S7",
-      "file": "core/site/scorecard/scorecard.js",
-      "fingerprint": "3ec333c7f03f52cb"
-    },
-    {
-      "rule": "S7",
-      "file": "core/site/scorecard/scorecard.js",
-      "fingerprint": "3ec333c7f03f52cb"
-    },
-    {
       "rule": "S5",
       "file": "core/site/scorecard/sweep.js",
       "fingerprint": "221af7a6320ac21d"
-    },
-    {
-      "rule": "S7",
-      "file": "core/site/scorecard/sweep.js",
-      "fingerprint": "9cef54afde7b89cf"
-    },
-    {
-      "rule": "S7",
-      "file": "core/site/scorecard/sweep.js",
-      "fingerprint": "9cef54afde7b89cf"
-    },
-    {
-      "rule": "S7",
-      "file": "core/site/scorecard/sweep.js",
-      "fingerprint": "29690f4e49e928d8"
     },
     {
       "rule": "S3",

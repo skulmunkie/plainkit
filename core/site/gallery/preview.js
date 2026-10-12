@@ -7,7 +7,7 @@ import { setTheme } from '../../js/theme.js';
 import { applyDynamic } from '../../js/dynamic.js';
 import { TEMPLATES_DIR, PATTERNS_DIR } from './paths.js';
 import { mountPattern } from './pattern-mount.js';
-import { on, h, addressOf } from '../../js/mount-support.js';
+import { on, h, addressOf, replaceAddress } from '../../js/mount-support.js';
 import { fillSanitizedHtml } from '../../js/sanitized-html.js';
 
 const doc = document, win = doc.defaultView;
@@ -62,7 +62,7 @@ if (!entry) {
         const url = new URL(TEMPLATES_DIR + entry.file, import.meta.url);
         for (const k of ['nav', 'theme', 'density']) if (q.get(k)) url.searchParams.set(k, q.get(k));
         // Framed at full size (no ?width) the template shows as a page; the frame is the phone when asked for one.
-        if (phone && wide) device(url.href); else win.location.replace(url.href);
+        if (phone && wide) device(url.href); else replaceAddress(win, url.href);
     } else if (phone && wide) {
         const url = new URL(addressOf(win).href);
         url.searchParams.delete('width');

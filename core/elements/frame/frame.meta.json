@@ -39,7 +39,7 @@
       "type": "boolean",
       "default": false,
       "reflect": true,
-      "description": "Adds allow-same-origin to sandbox even alongside allow-scripts; only for a trusted, cooperating document."
+      "description": "Adds allow-same-origin to sandbox even alongside allow-scripts; only for a trusted, cooperating page."
     },
     {
       "name": "preset",
