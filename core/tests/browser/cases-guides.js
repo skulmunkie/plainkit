@@ -155,6 +155,7 @@ export const guidesAppCases = [
         const p = await openApp(t, '#/guides/getting-started');
         await until(() => p.doc().querySelector('pk-toc')?.shadowRoot?.querySelector('a') && p.doc().querySelector('pk-pager [slot="next"]'), 'the toc and pager to draw'); await wait(300);
         const links = () => [...p.doc().querySelector('pk-toc').shadowRoot.querySelectorAll('a')];
+        await until(() => p.d.querySelector('.doc-page-title')?.textContent === 'Getting started with the SDK', 'the guide title to draw'); // a loaded machine splits the title from the toc pass
         t.eq(p.d.querySelectorAll('h1').length, 1, 'one h1 on the page');
         t.eq(p.d.querySelector('.doc-page-title').textContent, 'Getting started with the SDK');
         const headings = [...p.doc().querySelectorAll('.prose h2, .prose h3')];
@@ -169,6 +170,7 @@ export const guidesAppCases = [
         t.eq(p.win.history.length, before + 1, 'one new history entry');
         p.win.history.back();
         await until(() => p.win.location.hash === '#/guides/getting-started', 'back to the guide address');
+        await until(() => p.d.querySelector('.doc-page-title')?.textContent === 'Getting started with the SDK', 'the guide to draw again after back');
         t.eq(p.d.querySelector('.doc-page-title').textContent, 'Getting started with the SDK');
     }],
     ['guides module (app): the search finds a word only in a guide body, says which guides matched, says so when none do, and clearing shows every guide again', async t => {
