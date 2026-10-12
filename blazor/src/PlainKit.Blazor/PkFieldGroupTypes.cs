@@ -40,7 +40,7 @@ public sealed record PkFieldOption(string Value, string Label);
 /// <see cref="Get"/>/<see cref="Set"/>, as strings (the shape every control's own <c>Value</c> takes; the element does its own coercion). <see cref="When"/> gates its rendering (issue 226).
 /// A field whose value is computed rather than a property mirror is not spec-able here: write it by hand next to the group (issue 222).
 /// </summary>
-public sealed record PkFieldSpec<TItem>
+public sealed partial record PkFieldSpec<TItem>
 {
     /// <summary>Identifies the field; used as the control's <c>Name</c>.</summary>
     public required string Key { get; init; }
@@ -57,27 +57,6 @@ public sealed record PkFieldSpec<TItem>
     /// <summary>What the field renders; a plain <c>PkInput</c> (Text) unless set.</summary>
     public PkFieldKind Kind { get; init; } = PkFieldKind.Text;
 
-    /// <summary>Shown under the control (<c>PkField.Hint</c>).</summary>
-    public string? Hint { get; init; }
-
-    /// <summary>The field must have a value.</summary>
-    public bool Required { get; init; }
-
-    /// <summary><c>PkInput.Min</c>.</summary>
-    public string? Min { get; init; }
-
-    /// <summary><c>PkInput.Max</c>.</summary>
-    public string? Max { get; init; }
-
-    /// <summary><c>PkInput.Step</c>.</summary>
-    public string? Step { get; init; }
-
-    /// <summary><c>PkInput.MaxLength</c> or <c>PkTextarea.MaxLength</c>.</summary>
-    public string? MaxLength { get; init; }
-
-    /// <summary><c>PkInput.Pattern</c>.</summary>
-    public string? Pattern { get; init; }
-
     /// <summary>The options of a <see cref="PkFieldKind.Select"/> field; ignored otherwise.</summary>
     public IReadOnlyList<PkFieldOption>? Options { get; init; }
 
@@ -86,12 +65,6 @@ public sealed record PkFieldSpec<TItem>
     /// and whenever the group re-renders. A hidden field's markup is not emitted at all, so a hidden <see cref="Required"/> field never
     /// blocks <c>PkForm</c> validation (issue 226's own recommendation) — there is nothing left in the DOM for the form to check.</summary>
     public Func<TItem, bool>? When { get; init; }
-
-    /// <summary><c>PkInput.Placeholder</c> or <c>PkTextarea.Placeholder</c>.</summary>
-    public string? Placeholder { get; init; }
-
-    /// <summary><c>PkTextarea.Rows</c>; <see cref="PkFieldKind.Textarea"/> only, the control's own default (3) when unset.</summary>
-    public int? Rows { get; init; }
 
     /// <summary>Help text shown in a <c>PkTooltip</c> with its own info button (accessible name "Help for <see cref="Label"/>") beside the label text (<c>PkField.LabelAction</c>, so the label itself stays); for a checkbox, whose label is the field label, that is the same place. For text that belongs under the control use <see cref="Hint"/>.</summary>
     public string? Help { get; init; }
@@ -107,15 +80,6 @@ public sealed record PkFieldSpec<TItem>
 
     /// <summary>The async options source of a <see cref="PkFieldKind.Combobox"/> field: called with what the user typed, it returns the options to show (like <c>PkCombobox.OnSearchInput</c>; the element then does not filter them again). A newer query supersedes an older one whose answer is still pending. Until the first answer the static <see cref="Options"/> show.</summary>
     public Func<string, Task<IReadOnlyList<PkFieldOption>>>? Search { get; init; }
-
-    /// <summary><see cref="PkFieldKind.Combobox"/> only: the typed text is itself a valid value (<c>PkCombobox.Free</c>), not only a listed option.</summary>
-    public bool Free { get; init; }
-
-    /// <summary>The field takes every column of the <c>pk-form-section</c> grid it sits in (the <c>form-span</c> class on its <c>pk-field</c>).</summary>
-    public bool Span { get; init; }
-
-    /// <summary>Hides the label visually (a single-field card whose heading already says it) but keeps it as the control's accessible name.</summary>
-    public bool HideLabel { get; init; }
 
     /// <summary>Help text chosen per record; used instead of <see cref="Help"/> when it returns a non-empty string, so a locked and an editable state need one spec, not two guarded by <see cref="When"/>.</summary>
     public Func<TItem, string?>? HelpWhen { get; init; }

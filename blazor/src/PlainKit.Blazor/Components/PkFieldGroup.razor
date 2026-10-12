@@ -42,11 +42,10 @@
         var text = f.Kind is not (PkFieldKind.Select or PkFieldKind.Checkbox or PkFieldKind.Combobox);
         var readOnly = f.ReadOnly?.Invoke(Model) ?? false;
         string? Pick(Func<TItem, string?>? when, string? fallback) => when?.Invoke(Model) is { Length: > 0 } s ? s : fallback;
-        return new PkFieldDef
+        return PkFieldGroupMembers.Pass(f) with
         {
-            Key = f.Key, Label = Pick(f.LabelWhen, f.Label)!, Kind = f.Kind.ToString().ToLowerInvariant(), Hint = f.Hint, Help = Pick(f.HelpWhen, f.Help), Required = f.Required,
-            Disabled = (f.Disabled?.Invoke(Model) ?? false) || (readOnly && !text), Readonly = readOnly && text, HideLabel = f.HideLabel, Span = f.Span, Placeholder = f.Placeholder,
-            Min = f.Min, Max = f.Max, Step = f.Step, MaxLength = f.MaxLength, Pattern = f.Pattern, Rows = f.Rows, Options = f.OptionsSource?.Invoke() ?? f.Options, Free = f.Free,
+            Label = Pick(f.LabelWhen, f.Label)!, Kind = f.Kind.ToString().ToLowerInvariant(), Help = Pick(f.HelpWhen, f.Help),
+            Disabled = (f.Disabled?.Invoke(Model) ?? false) || (readOnly && !text), Readonly = readOnly && text, Options = f.OptionsSource?.Invoke() ?? f.Options,
         };
     }).ToList();
 

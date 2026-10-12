@@ -7,5 +7,87 @@
     { "name": "Model", "prop": "values", "type": "TItem", "note": "The bound record: each spec's Get gives the element's values, each pk-field-change calls Set." },
     { "name": "ModelChanged", "event": "pk-field-change", "type": "EventCallback" }
   ],
+  "fieldMembers": [
+    {
+      "name": "Hint",
+      "type": "string?",
+      "doc": "The line under the control."
+    },
+    {
+      "name": "Required",
+      "type": "bool",
+      "doc": "The field must have a value."
+    },
+    {
+      "name": "Placeholder",
+      "type": "string?",
+      "doc": "The control's placeholder."
+    },
+    {
+      "name": "Min",
+      "type": "string?",
+      "doc": "The minimum of the control, as text."
+    },
+    {
+      "name": "Max",
+      "type": "string?",
+      "doc": "The maximum of the control, as text."
+    },
+    {
+      "name": "Step",
+      "type": "string?",
+      "doc": "The step of the control, as text."
+    },
+    {
+      "name": "MaxLength",
+      "type": "string?",
+      "doc": "The maximum length of the control's text."
+    },
+    {
+      "name": "Pattern",
+      "type": "string?",
+      "doc": "The pattern the control's text must match."
+    },
+    {
+      "name": "Rows",
+      "type": "int?",
+      "doc": "The rows of a textarea; the control's own default when unset."
+    },
+    {
+      "name": "Free",
+      "type": "bool",
+      "doc": "A combobox accepts the typed text itself as its value."
+    },
+    {
+      "name": "Span",
+      "type": "bool",
+      "doc": "The field fills the whole row of a multi-column group."
+    },
+    {
+      "name": "HideLabel",
+      "type": "bool",
+      "doc": "Hides the label visually and keeps it as the control's accessible name."
+    },
+    {
+      "name": "Format",
+      "type": "string?",
+      "doc": "An input kind's format; \"money\" shows the number as currency while the value stays the plain number."
+    },
+    {
+      "name": "Decimals",
+      "type": "int?",
+      "doc": "Fraction digits of the money format."
+    },
+    {
+      "name": "Currency",
+      "type": "string?",
+      "doc": "The ISO 4217 currency code of the money format."
+    },
+    {
+      "name": "Locale",
+      "type": "string?",
+      "doc": "The BCP 47 locale of the money format."
+    }
+  ],
   "notes": "PkFieldGroup<TItem> (Components/PkFieldGroup.razor) wraps pk-field-group 1:1: the controls, the conditional rendering, the form value and the validation are the element's. When, Disabled, ReadOnly, HelpWhen, LabelWhen and OptionsSource are read on every render and sent as data; LabelAction is slotted as label-action-<key>; Search is the element's search callback."
 }

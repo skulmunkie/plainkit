@@ -54,6 +54,14 @@ public sealed class PkFieldGroupTests : BunitContext, IAsyncLifetime
     private static JsonElement ValuesOf(IRenderedComponent<PkFieldGroup<Order>> cut) => JsonDocument.Parse(cut.Find("pk-field-group").GetAttribute("values")!).RootElement.Clone();
 
     [Fact]
+    public void Money_format_reaches_the_element()
+    {
+        var d = Defs(Render([new PkFieldSpec<Order> { Key = "amount", Label = "Amount", Kind = PkFieldKind.Number, Get = _ => "9", Set = (_, _) => { }, Format = "money", Decimals = 2, Currency = "USD", Locale = "en-US" }]))[0];
+        Assert.Equal("money", d.GetProperty("format").GetString()); Assert.Equal(2, d.GetProperty("decimals").GetInt32());
+        Assert.Equal("USD", d.GetProperty("currency").GetString()); Assert.Equal("en-US", d.GetProperty("locale").GetString());
+    }
+
+    [Fact]
     public void The_specs_become_the_elements_fields_and_the_model_its_values()
     {
         var cut = Render(Fields(), new Order { Name = "Acme", Qty = 3, Active = true, Status = "open" });
