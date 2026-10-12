@@ -43,7 +43,7 @@ export default Base => class extends Base {
             let row = this.$rows.get(spec.key);
             if (!seen) { if (row) { row.field.remove(); this.$rows.delete(spec.key); } continue; }
             if (!row) { row = this.build(doc, spec); built = true; }
-            else if (!same(readValue(row.control, row.kind), this.$vals[spec.key] ?? (isChecked(row.kind) ? false : ''))) writeValue(row.control, row.kind, this.$vals[spec.key]);
+            else if (row.control && !same(readValue(row.control, row.kind), this.$vals[spec.key] ?? (isChecked(row.kind) ? false : ''))) writeValue(row.control, row.kind, this.$vals[spec.key]);
             shown.push(row.field);
         }
         // Moving a node takes focus out of it (a blur that a form would check), so the fields are only appended when their order is not already right.
@@ -56,6 +56,7 @@ export default Base => class extends Base {
     refresh() { this.reconcile(); }
     build(doc, spec) {
         const kind = spec.kind ?? 'text', tag = controlTag(kind);
+        if (kind === 'custom') return this.buildCustom(doc, spec);
         const control = doc.createElement(tag), field = doc.createElement('pk-field');
         const put = (el, attrs) => { for (const [k, v] of Object.entries(attrs)) el.setAttribute(k, v); };
         put(control, { ...controlAttrs(spec), ...messageAttrs(spec) });
@@ -83,6 +84,17 @@ export default Base => class extends Base {
         this.$rows.set(spec.key, row);
         return row;
     }
+    // A custom field has no control: its body is the host's own content in the editor-<key> slot, with no value, no validation and no part in the form.
+    buildCustom(doc, spec) {
+        const field = doc.createElement('pk-field'), slot = doc.createElement('slot'), row = { spec, kind: 'custom', field, control: null };
+        field.setAttribute('label', spec.label ?? spec.key);
+        if (spec.hint) field.setAttribute('help', spec.hint);
+        if (spec.span) field.setAttribute('data-span', '');
+        slot.setAttribute('name', `editor-${spec.key}`);
+        field.append(slot);
+        this.$rows.set(spec.key, row);
+        return row;
+    }
     // A combobox field with a search({ key, query }) callback property takes its options from the answer (a promise of [{ value, label }]) instead of filtering its own;
     // a newer query makes an older pending answer stale.
     async onQuery(row, e) {
@@ -96,6 +108,7 @@ export default Base => class extends Base {
     }
     syncState() {
         for (const { spec, kind, control } of this.$rows.values()) {
+            if (!control) continue;
             if (kind === 'combobox') { if (typeof this.search === 'function') control.setAttribute('filtering', 'off'); else control.removeAttribute('filtering'); }
             control.toggleAttribute('disabled', Boolean(this.disabled || spec.disabled));
             control.toggleAttribute('readonly', Boolean(this.readonly || spec.readonly));
@@ -108,14 +121,14 @@ export default Base => class extends Base {
     sync() { this.syncNow(); queueMicrotask(() => this.syncNow()); }
     syncNow() {
         if (!this.$w) return;
-        const rows = [...this.$rows.values()];
+        const rows = [...this.$rows.values()].filter(r => r.control);
         const fd = new FormData();
         for (const [name, v] of formEntries(rows.map(r => ({ key: r.spec.key, kind: r.kind, value: readValue(r.control, r.kind), disabled: this.disabled || r.spec.disabled })), this.prefix ? this.name : '')) fd.append(name, v);
         this.setFormValue(fd, fd);
         const bad = this.invalidRows()[0];
         if (bad) this.setValidity({ customError: true }, messageFor(bad.control), bad.control); else this.setValidity({});
     }
-    invalidRows() { return [...this.$rows.values()].filter(r => r.control.validity && r.control.validity.valid === false && r.control.willValidate !== false); }
+    invalidRows() { return [...this.$rows.values()].filter(r => r.control?.validity && r.control.validity.valid === false && r.control.willValidate !== false); }
     // pk-form's protocol: every problem in order, show or clear the messages in the fields, re-check one field, and focus the first problem.
     problems() { return this.invalidRows().map(r => ({ key: r.spec.key, label: r.spec.label ?? r.spec.key, message: messageFor(r.control), control: r.control, focus: () => r.control.focus() })); }
     report(on = true) {
@@ -125,7 +138,7 @@ export default Base => class extends Base {
     checkField(which) {
         const r = typeof which === 'string' ? this.$rows.get(which) : [...this.$rows.values()].find(x => x.control === which || x.field.contains?.(which));
         if (!r) return true;
-        const message = r.control.validity?.valid === false ? messageFor(r.control) : '';
+        const message = !r.control ? '' : r.control.validity?.valid === false ? messageFor(r.control) : '';
         r.field.error = message;
         return message === '';
     }
@@ -136,8 +149,8 @@ export default Base => class extends Base {
         const r = typeof which === 'string' ? this.$rows.get(which) : [...this.$rows.values()].find(x => x.control === which || x.field.contains?.(which));
         return Boolean(r?.field.error);
     }
-    focusField(key) { this.$rows.get(key)?.control.focus(); }
-    focus(options) { (this.invalidRows()[0] ?? [...this.$rows.values()][0])?.control.focus(options); }
+    focusField(key) { this.$rows.get(key)?.control?.focus(); }
+    focus(options) { (this.invalidRows()[0] ?? [...this.$rows.values()].find(r => r.control))?.control.focus(options); }
     onReset() {
         this.report(false);
         this.$vals = { ...this.$base };

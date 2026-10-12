@@ -196,6 +196,27 @@ public sealed class PkFieldGroupTests : BunitContext, IAsyncLifetime
         Assert.Equal("From X", slotted[0].TextContent);
     }
 
+    // Issue 264: Custom draws the caller's own content in the element's editor-<key> slot and is sent as kind "custom".
+    [Fact]
+    public void Custom_slots_the_editor_and_sends_kind_custom()
+    {
+        var cut = Render([PkFieldSpec<Order>.Custom("sum", "Summary", o => b => b.AddContent(0, "Total " + o.Name))], new Order { Name = "X" });
+        Assert.Equal("custom", Defs(cut)[0].GetProperty("kind").GetString());
+        var slotted = cut.Find("pk-field-group > [slot]");
+        Assert.Equal("editor-sum", slotted.GetAttribute("slot")); Assert.Equal("Total X", slotted.TextContent);
+    }
+
+    // Issue 264: Decimal turns a decimal? property into a number spec with invariant-culture text for Get, Set, Min, Max and Step.
+    [Fact]
+    public void Decimal_reads_and_writes_invariant_text()
+    {
+        decimal? price = 1234.5m;
+        var spec = PkFieldSpec<Order>.Decimal("price", "Price", _ => price, (_, v) => price = v, 0.01m, 99.5m, 0.01m);
+        Assert.Equal(("1234.5", "0.01", "99.5", "0.01", PkFieldKind.Number), (spec.Get(new Order()), spec.Min, spec.Max, spec.Step, spec.Kind));
+        spec.Set(new Order(), "7.25"); Assert.Equal(7.25m, price);
+        spec.Set(new Order(), ""); Assert.Null(price);
+    }
+
     // Issue 753 gap 2: PkFieldKind.Combobox, its options from Options or from an async Search callback the element runs as the user types.
     private sealed class Pick { public string Sku { get; set; } = ""; }
 

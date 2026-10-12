@@ -89,5 +89,33 @@
       "doc": "The BCP 47 locale of the money format."
     }
   ],
+  "specMembers": [
+    {
+      "name": "Editor",
+      "type": "RenderFragment<TItem>?",
+      "doc": "Your own content in place of a control (an input with an inline action, a read-only summary): drawn in the field's body, in the element's editor-<key> slot. It has no value of its own, takes no part in the form or its validation, and Get/Set are never called; build it with Custom."
+    }
+  ],
+  "fieldFactories": [
+    {
+      "name": "Decimal",
+      "doc": "A number spec over a decimal? property: Min, Max and Step are decimals, and the value is read and written as invariant-culture text, so the model never sees the page's culture.",
+      "params": "Func<TItem, decimal?> get, Action<TItem, decimal?> set, decimal? min = null, decimal? max = null, decimal? step = null",
+      "init": [
+        "Kind = PkFieldKind.Number",
+        "Get = item => get(item)?.ToString(System.Globalization.CultureInfo.InvariantCulture)",
+        "Set = (item, v) => set(item, decimal.TryParse(v, System.Globalization.NumberStyles.Number, System.Globalization.CultureInfo.InvariantCulture, out var d) ? d : null)",
+        "Min = min?.ToString(System.Globalization.CultureInfo.InvariantCulture)",
+        "Max = max?.ToString(System.Globalization.CultureInfo.InvariantCulture)",
+        "Step = step?.ToString(System.Globalization.CultureInfo.InvariantCulture)"
+      ]
+    },
+    {
+      "name": "Custom",
+      "doc": "A spec that draws your own content (see Editor) instead of a control; it reads and writes nothing.",
+      "params": "RenderFragment<TItem> editor",
+      "init": ["Get = _ => null", "Set = (_, _) => { }", "Editor = editor"]
+    }
+  ],
   "notes": "PkFieldGroup<TItem> (Components/PkFieldGroup.razor) wraps pk-field-group 1:1: the controls, the conditional rendering, the form value and the validation are the element's. When, Disabled, ReadOnly, HelpWhen, LabelWhen and OptionsSource are read on every render and sent as data; LabelAction is slotted as label-action-<key>; Search is the element's search callback."
 }

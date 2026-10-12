@@ -23,6 +23,18 @@ export const type = (control, text) => { const i = control.shadowRoot.querySelec
 export const choose = (control, value) => { const s = control.shadowRoot.querySelector('select'); s.value = value; s.dispatchEvent(new Event('change', { bubbles: true, composed: true })); };
 
 export const fieldGroupCases = [
+    ['field-group: a custom field shows the editor-<key> child in its body and takes no part in values, the form or validation (#264)', async t => {
+        const host = t.stage('<form><pk-field-group label="Order"><span slot="editor-sum" id="sum">Total 5</span></pk-field-group></form>');
+        const el = host.querySelector('pk-field-group');
+        el.fields = [{ key: 'name', label: 'Name', required: true }, { key: 'sum', label: 'Summary', kind: 'custom' }]; el.values = { name: 'Acme' };
+        await t.load(host); await t.load(el.shadowRoot); await t.settle(); await t.settle();
+        const field = fieldOf(el, 'Summary'), slot = field.querySelector('slot[name="editor-sum"]');
+        t.eq(keys(el).join('|'), 'Name|Summary', 'both fields are drawn');
+        t.ok(slot && slot.assignedNodes()[0]?.id === 'sum', 'the slotted child fills the field body');
+        t.eq([...new FormData(host.firstElementChild).keys()].join(','), 'name', 'only the real field is in the form value');
+        el.values = { name: '' }; await t.settle(); await t.settle();
+        t.ok(el.problems().length === 1 && el.problems()[0].key === 'name', 'validation sees only the control');
+    }],
     ['templated attributes: a shadow template never stamps a raw {{placeholder}} onto a child (#1188)', async t => {
         const log = await import('../../js/log.js'); await t.mount('<pk-grid></pk-grid><pk-button></pk-button>'); await t.settle(); log.clearLogBuffer(); // the children are defined first, as in an app that loaded them
         const seen = [];
