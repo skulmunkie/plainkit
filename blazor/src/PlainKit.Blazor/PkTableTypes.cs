@@ -72,13 +72,10 @@ public sealed record PkTableColumn<TItem>
 
     /// <summary>An empty value is refused.</summary>
     public bool Required { get; init; }
-
     /// <summary>The smallest value of a <see cref="PkTableEditor.Number"/> editor.</summary>
     public double? Min { get; init; }
-
     /// <summary>The largest value of a <see cref="PkTableEditor.Number"/> editor.</summary>
     public double? Max { get; init; }
-
     /// <summary>The longest text a <see cref="PkTableEditor.Text"/> editor accepts.</summary>
     public int? MaxLength { get; init; }
 
@@ -87,6 +84,9 @@ public sealed record PkTableColumn<TItem>
 
     /// <summary>The cell as markup (a chip, a link, an icon). Rendered as the child of the slot of that cell; the element shows it in place of the text.</summary>
     public RenderFragment<TItem>? Cell { get; init; }
+
+    /// <summary>Markup beside the title of the column header (a help tooltip, an icon button, a menu). Rendered as the child of the element's <c>header-&lt;key&gt;</c> slot; the text <see cref="Label"/> and the sort button stay, and the markup sits outside the sort button, so using it never sorts.</summary>
+    public RenderFragment? Header { get; init; }
 
     // Text fills the row under Key verbatim (the same key the column definition carries); PkTableRows.Serialize adds the property fallback.
     internal PkTableColumn ToColumn() => new()

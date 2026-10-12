@@ -83,9 +83,9 @@ function head(el, k, x, lead, sel, h) {
     const box = h('input', { type: 'checkbox', 'data-select-all': true, 'aria-label': 'Select all rows' });
     box.checked = sel.checked; box.indeterminate = sel.mixed;
     const head = [h('tr', {}, ...(el.selectable ? [h('th', { 'data-check': true }, box)] : []), ...(x ? [x.head(h)] : []),
-        ...k.map(c => h('th', { 'data-key': c.key, 'data-align': al(c), 'data-hide-phone': c.hidePhone, scope: 'col', 'aria-sort': c.sortable ? (el.sort === c.key ? el.sortDir : 'none') : null }, c.sortable ? h('button', { type: 'button' }, c.label ?? c.key) : (c.label ?? c.key))))];
+        ...k.map(c => h('th', { 'data-key': c.key, 'data-align': al(c), 'data-hide-phone': c.hidePhone, scope: 'col', 'aria-sort': c.sortable ? (el.sort === c.key ? el.sortDir : 'none') : null }, c.sortable ? h('button', { type: 'button' }, c.label ?? c.key) : (c.label ?? c.key), h('slot', { name: `header-${c.key}` }))))];
     if (el.filterable) head.push(h('tr', { 'data-filters': true }, ...(lead ? [h('th', { colspan: lead })] : []), ...k.map(c => h('th', { 'data-hide-phone': c.hidePhone }, h('input', { type: 'search', 'data-filter': c.key, 'aria-label': `Filter ${c.label ?? c.key}`, value: el.filters[c.key] ?? '' })))));
     return head;
 }
 
-export default { view, body, frame, mark, head };
+export default { view, body, frame, mark, head, tr };

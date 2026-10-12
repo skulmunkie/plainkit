@@ -35,7 +35,7 @@
                max-height="@MaxHeight"
                sticky-header="@StickyHeader"
                class="@Css()"
-               @attributes="Splat">@if (BulkContent is not null) {<span slot="bulk" class="u-contents">@BulkContent</span>}@if (EmptyContent is not null) {<div slot="empty" class="u-contents">@EmptyContent</div>}@if (ToolbarContent is not null) {<span slot="actions" class="u-contents">@ToolbarContent</span>}@foreach (var row in _rows)
+               @attributes="Splat">@if (BulkContent is not null) {<span slot="bulk" class="u-contents">@BulkContent</span>}@if (EmptyContent is not null) {<div slot="empty" class="u-contents">@EmptyContent</div>}@if (ToolbarContent is not null) {<span slot="actions" class="u-contents">@ToolbarContent</span>}@foreach (var c in Columns.Where(c => c.Header is not null)) {<span slot="@($"header-{c.Key}")" class="u-contents" @key="@($"header-{c.Key}")">@c.Header</span>}@foreach (var row in _rows)
 {
     @foreach (var column in Columns.Where(c => c.Cell is not null))
     {

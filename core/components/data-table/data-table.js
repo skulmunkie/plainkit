@@ -46,7 +46,7 @@ export default Base => class extends Base {
     }
     disconnected() { this.$mo?.disconnect(); this.$abort?.abort(); }
     forwardSlots() {
-        const table = this.part('table'), names = [...this.children].map(c => c.slot).filter(s => s?.startsWith('cell-')), have = [...table.children].filter(c => c.name?.startsWith('cell-'));
+        const table = this.part('table'), names = [...this.children].map(c => c.slot).filter(s => /^(cell|header)-/.test(s)), have = [...table.children].filter(c => /^(cell|header)-/.test(c.name));
         if (names.join() === have.map(c => c.name).join()) return;
         for (const c of have) c.remove();
         for (const name of names) { const s = this.ownerDocument.createElement('slot'); s.name = s.slot = name; table.append(s); }

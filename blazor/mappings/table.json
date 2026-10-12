@@ -7,7 +7,7 @@
       "name": "Columns",
       "prop": "columns",
       "type": "IReadOnlyList<PkTableColumn<TItem>>",
-      "note": "Sent as a JSON attribute ([{ key, label, type, align, sortable, hidePhone, editor, options, required, min, max, maxLength }], camelCase). A column with a Cell template also fills the slot cell-<rowId>-<key> of each row."
+      "note": "Sent as a JSON attribute ([{ key, label, type, align, sortable, hidePhone, editor, options, required, min, max, maxLength }], camelCase). A column with a Cell template also fills the slot cell-<rowId>-<key> of each row; a column with a Header fragment fills the slot header-<key> beside the title."
     },
     {
       "name": "Items",

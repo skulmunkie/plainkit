@@ -60,7 +60,6 @@ export default Base => class extends Base {
         if (this.total) this.$p ??= import('../../js/table-scope.js').then(m => { this.$s = m; this.requestUpdate(); }, e => this.log.error('table-scope did not load', e));
         if (this.editable) this.$w ??= import('../../js/table-edit.js').then(m => { this.$e = m; this.requestUpdate(); }, e => this.log.error('table-edit did not load', e));
         const x = this.expandable && this.$m, lead = Number(this.selectable) + Number(!!x);
-        const al = c => c.align ?? (c.type === 'number' ? 'end' : null), ph = c => c.hidePhone;
         V.frame(this, tb, k.length + lead, r.length);
 
         this.part('head').replaceChildren(...V.head(this, k, x, lead, sel, h));
@@ -68,11 +67,7 @@ export default Base => class extends Base {
         // Issue 131: at or above THRESHOLD rows, the body windows instead of drawing every row (table-vw.js). Never for an
         // expandable table (a detail row's height varies) or a host-supplied one (already returned above, at `if (own)`).
         const body = this.loading ? [h('tr', { 'data-skeleton': true }, h('td', { colspan: k.length + lead }, h('span', { class: 'sr', role: 'status' }, 'Loading')))] : V.body(this, r, h) ?? r.flatMap((row, i) => {
-            const id = rowId(row, i, this.rowKey), pick = h('input', { type: 'checkbox', 'data-select': id, 'aria-label': `Select row ${id}` });
-            pick.checked = s.has(id);
-            const tr = h('tr', { 'data-pk-context': id, 'data-selected': s.has(id), 'data-clickable': this.clickable, ...V.mark(row), 'aria-current': this.currentRow && this.currentRow === id ? 'true' : null },
-                ...(this.selectable ? [h('td', { 'data-check': true }, pick)] : []),
-                ...k.map(c => { const name = `cell-${id}-${c.key}`; return h('td', { 'data-key': c.key, 'data-label': c.label ?? c.key, 'data-align': al(c), 'data-hide-phone': ph(c) }, this.querySelector(`:scope > [slot="${CSS.escape(name)}"]`) ? h('slot', { name }) : String(row[c.key] ?? '')); }));
+            const id = rowId(row, i, this.rowKey), tr = V.tr(this, row, id, s, h);
             return x ? x.rows(this, tr, id, i, k.length + lead, h) : [tr];
         });
         this.part('body').replaceChildren(...body);
