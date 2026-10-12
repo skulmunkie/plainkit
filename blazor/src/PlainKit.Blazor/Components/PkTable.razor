@@ -47,7 +47,7 @@ else
           label="@Label"
           flow="@Flow"
           class="@Css()"
-          @attributes="Splat">@if (ToolbarContent is not null) {<pk-cluster slot="toolbar">@ToolbarContent</pk-cluster>}@if (BulkContent is not null) {<span slot="bulk" class="u-contents">@BulkContent</span>}@if (CaptionContent is not null) {<span slot="caption" class="u-contents">@CaptionContent</span>}@if (EmptyContent is not null) {<div slot="empty" class="u-contents">@EmptyContent</div>}@if (FooterContent is not null) {<div slot="footer" class="u-contents">@FooterContent</div>}@if (FootContent is not null && ChildContent is null) {<div slot="foot" class="u-contents">@FootContent</div>}@if (ChildContent is not null)
+          @attributes="Splat">@if (ToolbarContent is not null) {<pk-cluster slot="toolbar">@ToolbarContent</pk-cluster>}@if (BulkContent is not null) {<span slot="bulk" class="u-contents">@BulkContent</span>}@if (CaptionContent is not null) {<span slot="caption" class="u-contents">@CaptionContent</span>}@if (EmptyContent is not null) {<div slot="empty" class="u-contents">@EmptyContent</div>}@foreach (var c in _heads) {<span slot="@($"header-{c.Key}")" class="u-contents" @key="@($"header-{c.Key}")">@c.Header</span>}@if (FooterContent is not null) {<div slot="footer" class="u-contents">@FooterContent</div>}@if (FootContent is not null && ChildContent is null) {<div slot="foot" class="u-contents">@FootContent</div>}@if (ChildContent is not null)
 {
     <table class="@TableClass">@if (HeadContent is not null) { <thead>@HeadContent</thead> }<tbody>@ChildContent</tbody>@if (FootContent is not null) { <tfoot>@FootContent</tfoot> }</table>
 }
@@ -72,7 +72,7 @@ else foreach (var row in _items)
     private string _columns = "[]";
     private string _rows = "[]";
     private List<Row> _items = [];
-    private List<PkTableColumn<TItem>> _cells = [];
+    private List<PkTableColumn<TItem>> _cells = [], _heads = [];
     private readonly Dictionary<string, TItem> _byId = new();
     private bool _built; // the rows and columns above were built once
     private IReadOnlyList<TItem>? _builtItems;
@@ -222,7 +222,7 @@ else foreach (var row in _items)
         _builtCount = items.Count;
         _builtIdOf = IdOf;
         _builtColumns = columns.ToArray();
-        _cells = columns.Where(c => c.Cell is not null).ToList();
+        _cells = columns.Where(c => c.Cell is not null).ToList(); _heads = columns.Where(c => c.Header is not null).ToList();
         _columns = PkAttr.Json(columns.Select(c => c.ToColumn()).ToList())!;
 
         _items = new List<Row>(items.Count);

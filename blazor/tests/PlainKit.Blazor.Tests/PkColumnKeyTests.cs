@@ -43,6 +43,15 @@ public sealed class PkColumnKeyTests : BunitContext, IAsyncLifetime
     }
 
     [Fact]
+    public void Table_column_Header_fills_the_header_slot_beside_the_title()
+    {
+        PkTableColumn<Person>[] columns = [new() { Key = "Name", Label = "Name", Sortable = true, Header = b => b.AddContent(0, "help") }, new() { Key = "city", Label = "City" }];
+        var cut = Render<PkTable<Person>>(p => p.Add(x => x.Columns, columns).Add(x => x.Items, People).Add(x => x.IdOf, x => x.Id.ToString()));
+        Assert.Equal(["header-Name"], cut.FindAll("pk-table > span[slot]").Select(s => s.GetAttribute("slot")));
+        Assert.Equal("help", cut.Find("[slot=header-Name]").TextContent);
+    }
+
+    [Fact]
     public void Table_columns_and_rows_use_the_same_key_as_given()
     {
         var cut = Render<PkTable<Person>>(p => p.Add(x => x.Columns, Columns).Add(x => x.Items, People).Add(x => x.IdOf, x => x.Id.ToString()));
