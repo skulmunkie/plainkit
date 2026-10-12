@@ -168,6 +168,8 @@ const docConfig = {
 
 Text you set from data goes in with `textContent` or as an element property, never as markup. The `html` of a doc item is sanitised by the page before it is shown; give it only content you trust or have sanitised.
 
+A module may also carry its own `footer`, `{ text, links: [{ label, href }] }`, which replaces the app's `footer` while that module is active; `footer: false` draws none. A malformed footer is logged and the app footer stays.
+
 ## Routes and deep links
 
 The default routing is hash routing (`#/<moduleId>/...`), which works on static hosting and needs no server rewrite; `routing: 'path'` with a `base` is the alternative. A record route goes in its list's `children`, so the list's menu entry stays current while a record is open and the breadcrumbs read the whole trail (Page types, Tour, Order 8). `label` is a string or `(params) => string`:
