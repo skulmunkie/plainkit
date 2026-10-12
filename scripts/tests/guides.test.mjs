@@ -71,7 +71,7 @@ test('every link in a guide resolves: another guide, a heading, or a file that e
         if (/^(https?:|mailto:)/.test(href)) continue;
         links++;
         if (/^[\w-]+\.md(#|$)/.test(href)) { assert.ok(guide(href.split('#')[0].slice(0, -3)), `${g.file}: ${href} is not a guide`); continue; }
-        assert.ok(fs.existsSync(path.join(page, href.split('#')[0])), `${g.file}: ${href} does not exist next to core/site/guides/index.html`);
+        assert.ok(fs.existsSync(path.join(page, href.split('#')[0])), `${g.file}: ${href} does not exist next to core/site/guides`);
     }
     assert.ok(links >= 10);
 });

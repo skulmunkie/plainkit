@@ -3,7 +3,7 @@ import { showState } from '../../js/page-shell.js';
 import { fillSanitizedHtml } from '../../js/sanitized-html.js';
 
 // pk-doc-page (App framework tracker #346, step 7, issue #353): a side nav of items + an article + a table of contents + a pager, built from
-// the guides page's own behaviour (core/site/guides/page.js) and generalised: nav-item building, in-page anchor scroll (a same-page link in the
+// the behaviour the Guides page once had on its own, generalised: nav-item building, in-page anchor scroll (a same-page link in the
 // article scrolls the article, not the whole shell, and gets its own address via the pk-navigate event), focus on the title after a real
 // navigation, and the first-load anchor settle (the elements below the article are still upgrading, so the scroll position is retried once).
 //

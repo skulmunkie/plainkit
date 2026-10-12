@@ -66,7 +66,7 @@ The SDK is desktop-first and responds at three named widths, one source, `tokens
 
 ## Add a guide
 
-The Guides page (`site/guides/`) shows the Markdown files in `site/guides/content/`. A guide is `<id>.md` (lowercase letters, digits and dashes: the file name is its address, `#/<id>`) that starts with front matter and then uses `##` and below (the page shows the title as its one `h1`):
+The Guides (the `guides` module of the site app, `app.html#/guides`) show the Markdown files in `site/guides/content/`. A guide is `<id>.md` (lowercase letters, digits and dashes: the file name is its address, `#/guides/<id>`) that starts with front matter and then uses `##` and below (the page shows the title as its one `h1`):
 
 ```markdown
 ---
@@ -78,7 +78,7 @@ summary: One sentence for the list and the top of the page.
 ## Install
 ```
 
-It reads headings, paragraphs, lists, fenced code (the language becomes the label of a `pk-code-block`), tables, images (files next to the guides), links, `code`, bold and italic, and a quote is a `pk-alert` (`> [!warning] Text` picks the kind). Raw HTML is shown as text, never passed through. Link to another guide with `[text](other-guide.md#heading-id)`; the build checks that the guide and the heading exist and fails, naming the file, on any problem. `node scripts/bootstrap.mjs` converts the guides into `site/guides/guides.data.js` (generated, not in git), each guide carrying a `words` field too: its title, summary and body text reduced to a small search index (`site/guides/guides-search.js`) that the page's search box matches typed words against, title and body both. `scripts/tests/guides.test.mjs` checks the code in every guide against the SDK and Blazor API, so a sample must use real `pk-*` tags, props, `Pk*` components and exports.
+It reads headings, paragraphs, lists, fenced code (the language becomes the label of a `pk-code-block`), tables, images (files next to the guides), links, `code`, bold and italic, and a quote is a `pk-alert` (`> [!warning] Text` picks the kind). Raw HTML is shown as text, never passed through. Link to another guide with `[text](other-guide.md#heading-id)`; the build checks that the guide and the heading exist and fails, naming the file, on any problem. `node scripts/bootstrap.mjs` converts the guides into `site/guides/guides.data.js` (generated, not in git), each guide carrying a `words` field too: its title, summary and body text reduced to a small search index (`site/guides/guides-search.js`) that the Guides search matches typed words against, title and body both. `scripts/tests/guides.test.mjs` checks the code in every guide against the SDK and Blazor API, so a sample must use real `pk-*` tags, props, `Pk*` components and exports.
 
 ## Add a sample
 
