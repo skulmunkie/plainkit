@@ -124,6 +124,8 @@ export function planChanged(files, ctx) {
             continue;
         }
         if (/^core\/tools\/audit\//.test(f)) { plan.audit = true; rule(f, 'audit tooling', 'the audit tests'); }
+        // The module audit scans core/site and core/modules, so a change there needs it even when a test names the file (a setTimeout added to core/site/modules/gallery.js slipped through, #1216).
+        if (/^core\/site\//.test(f)) { plan.auditModules = true; rule(f, 'site', 'site code: audit-modules (the module audit scans core/site)'); }
         // A script, tool or helper: the tests that name it. None found means we cannot say what covers it: the full node job.
         const hits = testsMentioning([new RegExp(esc(f)), new RegExp(esc(path.posix.basename(f)))]);
         if (hits.length) { hits.forEach(p => plan.nodeFiles.add(p)); if (!plan.rules.some(r => r.file === f)) rule(f, 'mentioned by tests', `${hits.length} test file(s) name ${path.posix.basename(f)}`); continue; }

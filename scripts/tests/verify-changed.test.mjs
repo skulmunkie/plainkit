@@ -116,6 +116,12 @@ test('core/js, base and tokens: the broader set (every node test, the audits, th
     }
 });
 
+test('site code runs audit-modules even when a test names the file (#1216 slipped through)', () => {
+    const plan = planChanged(['core/site/modules/gallery.js'], ctxOf({ tests: [{ path: 'core/tests/gallery-chrome.test.mjs', text: 'core/site/modules/gallery.js' }], extra: ['core/site/modules/gallery.js'] }));
+    assert.equal(plan.auditModules, true);
+    assert.ok(planSteps(plan).some(s => s.id === 'audit-modules'));
+});
+
 test('a module: its tests, audit-modules and (with --browser) the whole suite', () => {
     const plan = planChanged(['core/modules/orders/module.js'], ctxOf({ tests: [{ path: 'core/modules/orders/orders.test.mjs', text: '' }] }));
     assert.ok(plan.nodeFiles.has('core/modules/orders/orders.test.mjs'));
