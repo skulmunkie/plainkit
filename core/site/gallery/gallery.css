@@ -24,6 +24,7 @@
 .gx-el-play { display: grid; gap: var(--space-4); grid-template-columns: repeat(2, minmax(0, 1fr)); }
 .gx-el-live { padding: var(--space-4); display: flex; flex-wrap: wrap; gap: var(--space-3); align-items: flex-start; }
 .gx-el-stage { display: contents; }
+.gx-page > pk-tabs[data-wait] { visibility: hidden; }
 /* A flex item's default size shrink-wraps its own content: an element that starts with sparse or positioned visible content (a loading
    state showing only a skeleton, say) can size to near-zero even though the identical markup fills the width on a plain page. The stage
    is a wrapper, not a fixed-width sample, so its rendered element (in the playground, via .gx-el-stage, or an example, direct in
