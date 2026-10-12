@@ -27,7 +27,7 @@
   "methods": [],
   "a11y": "The frame is titled \"SDK gallery\". With chrome full, the gallery is a landmark layout with a contents nav, a toolbar and a labelled inspector; with chrome none it is the content alone, and each sample sits in its own titled frame.",
   "examples": [
-    { "title": "Every form control, phone width, light theme", "html": "<pk-gallery kind=\"controls\" group=\"Forms & inputs\" width=\"phone\" theme=\"light\"></pk-gallery>" },
+    { "title": "Every form control, phone width, light theme", "html": "<pk-gallery kind=\"controls\" group=\"Forms & inputs\" width=\"phone\" theme=\"light\" height=\"480\"></pk-gallery>" },
     { "title": "Two controls only", "html": "<pk-gallery control=\"button,badge\"></pk-gallery>" },
     { "title": "The full gallery at a fixed height", "html": "<pk-gallery chrome=\"full\" height=\"560\"></pk-gallery>" }
   ]

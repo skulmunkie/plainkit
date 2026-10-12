@@ -26,7 +26,10 @@ const mount = (host, ctx) => {
     host.hidden = true;
     const watch = observeElements(host);
     const shown = mountGallery(host, { chrome: 'full', init: false, base: '/gallery', theme: ctx.theme.name });
-    shown.then(() => loadElements(host)).finally(() => { host.hidden = false; });
+    // the view is revealed once every pk-* element in it is defined, not only imported: a late upgrade (a table, a specimen) resizes it on screen (#1212); a tag that never defines must not keep it hidden
+    const defined = () => Promise.all([...new Set([...host.querySelectorAll(':not(:defined)')].map(e => e.localName))].filter(tag => tag.startsWith('pk-')).map(tag => customElements.whenDefined(tag)));
+    const capped = work => Promise.race([work, new Promise(resolve => setTimeout(resolve, 3000))]);
+    shown.then(() => loadElements(host)).then(() => capped(defined())).finally(() => { host.hidden = false; });
     return () => { stop(); watch?.disconnect(); shown.then(g => g.destroy()); css.remove(); };
 };
 

@@ -24,6 +24,53 @@ async function open(t, width, search = '') {
 }
 
 export const navbarCases = [
+    ['gallery element page (#1212): once the tabs are shown a big live element (pk-gallery) no longer changes the page height, so the controls below it do not move', async t => {
+        const host = t.stage(''), f = document.createElement('iframe');
+        f.title = 'the gallery element page for pk-gallery at 375px';
+        f.style.cssText = 'width:375px;height:812px;border:0;display:block';
+        f.src = new URL('../../app.html?theme=dark#/gallery/elements/pk-gallery', import.meta.url).href;
+        await new Promise(resolve => { f.addEventListener('load', resolve, { once: true }); host.append(f); });
+        const d = f.contentDocument;
+        let tabs = null;
+        for (let i = 0; i < 80 && !(tabs && !tabs.hasAttribute('data-wait')); i++) { await wait(100); tabs = d.querySelector('pk-tabs'); }
+        t.ok(tabs && !tabs.hasAttribute('data-wait'), 'the tabs are shown within 8 s');
+        const shown = tabs.offsetHeight;
+        await wait(1000);
+        t.ok(Math.abs(tabs.offsetHeight - shown) < 1, `the tabs are ${shown}px tall when shown and ${tabs.offsetHeight}px a second later`);
+    }],
+
+    ['gallery foundations page (#1212): the view is not revealed while any pk-* element in it is still undefined, so a late upgrade (a table, a specimen) cannot resize it on screen', async t => {
+        const host = t.stage(''), f = document.createElement('iframe');
+        f.title = 'the gallery spacing page at 1280px';
+        f.style.cssText = 'width:1280px;height:900px;border:0;display:block';
+        f.src = new URL('../../app.html?theme=dark#/gallery/foundations/spacing', import.meta.url).href;
+        host.append(f);
+        const frame = () => new Promise(r => requestAnimationFrame(r));
+        let shownFrames = 0, worst = 0, names = '';
+        for (let i = 0; i < 400 && shownFrames < 20; i++) {
+            await frame();
+            let v = null; try { v = f.contentDocument?.querySelector('#gx-view'); } catch (e) { v = null; } // not yet navigated: no document to read
+            if (!v || v.closest('[hidden]') || !v.getBoundingClientRect().height) continue;
+            shownFrames++;
+            const und = [...v.querySelectorAll(':not(:defined)')].filter(e => e.localName.startsWith('pk-'));
+            if (und.length > worst) { worst = und.length; names = [...new Set(und.map(e => e.localName))].join(', '); }
+        }
+        t.ok(shownFrames >= 20, 'the view was revealed');
+        t.eq(worst, 0, `the view was shown while ${worst} pk-* elements were undefined (${names})`);
+    }],
+
+    ['app shell body (#1212): the scrollbar appearing or going away does not change the width of the page content, so content whose height depends on its width cannot flip between two layouts', async t => {
+        const s = await open(t, 375);
+        const body = s.shell.shadowRoot.querySelector('[part="body"]'), main = s.d.querySelector('main');
+        const pad = document.createElement('div'); pad.style.height = '3000px'; main.append(pad);
+        await wait(100);
+        const tall = main.getBoundingClientRect().width;
+        pad.remove(); await wait(100);
+        const short = main.getBoundingClientRect().width;
+        t.ok(body.scrollHeight <= body.clientHeight, 'the body no longer scrolls once the padding is removed');
+        t.ok(Math.abs(tall - short) < 1, `the content is ${short.toFixed(0)}px wide without a scrollbar and ${tall.toFixed(0)}px with one`);
+    }],
+
     ['app shell on a phone and a tablet (#1204): a side nav that is not defined yet takes no room, so the main column does not move down then jump up when it upgrades', async t => {
         for (const w of [375, 768]) {
             const s = await open(t, w, '?holdnav');

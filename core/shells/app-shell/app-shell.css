@@ -21,7 +21,7 @@
 /* A pk-navbar in the header slot is the bar itself: it takes the row (its brand left, its actions right) and leaves the borders, background and side padding to the header. */
 ::slotted(pk-navbar) { flex: 1; min-width: 0; background: none; border-bottom: 0; --pk-navbar-padding: 0; }
 
-[part="body"] { flex: 1; min-height: 0; position: relative; overflow-y: auto; overscroll-behavior: contain; --pk-page-header-sticky-top: calc(-1 * var(--pad-page)); padding: var(--pad-page); padding-inline: max(var(--pad-page), env(safe-area-inset-left)) max(var(--pad-page), env(safe-area-inset-right)); }
+[part="body"] { flex: 1; min-height: 0; position: relative; overflow-y: auto; scrollbar-gutter: stable; overscroll-behavior: contain; --pk-page-header-sticky-top: calc(-1 * var(--pad-page)); padding: var(--pad-page); padding-inline: max(var(--pad-page), env(safe-area-inset-left)) max(var(--pad-page), env(safe-area-inset-right)); }
 
 :host([flush]) [part="body"] { --pk-page-header-sticky-top: 0px; padding: 0; padding-inline: env(safe-area-inset-left) env(safe-area-inset-right); }
 
