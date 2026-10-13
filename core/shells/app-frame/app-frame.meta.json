@@ -1,0 +1,185 @@
+{
+  "tag": "pk-app-frame",
+  "title": "App frame",
+  "summary": "The whole app frame from data: header with brand, module picker, search and settings menu, a side nav built from a nav model, the breadcrumb trail above the page, and a footer. It routes nothing; the host sets the model and navigates.",
+  "group": "Layout & structure",
+  "tier": "shell",
+  "props": [
+    {
+      "name": "brand",
+      "type": "string",
+      "default": "",
+      "reflect": false,
+      "description": "The brand text in the header."
+    },
+    {
+      "name": "brandHref",
+      "type": "string",
+      "default": "",
+      "reflect": false,
+      "description": "Where the brand links (a same-site path or an http(s) address); empty is plain text."
+    },
+    {
+      "name": "navLabel",
+      "type": "string",
+      "default": "Main",
+      "reflect": false,
+      "description": "The side nav landmark name."
+    },
+    {
+      "name": "nav",
+      "type": "json",
+      "default": [],
+      "reflect": false,
+      "description": "Side nav rows: { id, title, href?, icon?, badge?, children? }[]. Empty draws no nav."
+    },
+    {
+      "name": "currentId",
+      "type": "string",
+      "default": "",
+      "reflect": false,
+      "description": "Id of the current row."
+    },
+    {
+      "name": "trail",
+      "type": "json",
+      "default": [],
+      "reflect": false,
+      "description": "Ids of the branches to open (the ancestors of the current row)."
+    },
+    {
+      "name": "modules",
+      "type": "json",
+      "default": [],
+      "reflect": false,
+      "description": "The module picker: { id, title, href }[]. Fewer than two draws no picker, and pk-navbar draws none on a phone."
+    },
+    {
+      "name": "moduleTitle",
+      "type": "string",
+      "default": "",
+      "reflect": false,
+      "description": "The active module, shown on the picker."
+    },
+    {
+      "name": "crumbs",
+      "type": "json",
+      "default": [],
+      "reflect": false,
+      "description": "The breadcrumb trail: { label, href? }[]; the last is the current page and is not a link. Empty draws none."
+    },
+    {
+      "name": "search",
+      "type": "boolean",
+      "default": false,
+      "reflect": false,
+      "description": "Shows the header search."
+    },
+    {
+      "name": "searchPlaceholder",
+      "type": "string",
+      "default": "Search",
+      "reflect": false,
+      "description": "The search field placeholder and name."
+    },
+    {
+      "name": "searchItems",
+      "type": "json",
+      "default": [],
+      "reflect": false,
+      "description": "Search results, as pk-app-bar-search items: { id, label, group?, sub?, badge? }[]. The host computes them on pk-query."
+    }
+  ],
+  "slots": [
+    {
+      "name": "",
+      "description": "The page. Put the skip link target (<main id=\"pk-main\">) here."
+    },
+    {
+      "name": "footer",
+      "description": "Footer content; the strip is drawn only with a child here."
+    }
+  ],
+  "events": [
+    {
+      "name": "pk-query",
+      "detail": {
+        "query": "string"
+      },
+      "description": "The search text changed (debounced); the host sets searchItems."
+    },
+    {
+      "name": "pk-select",
+      "detail": {
+        "item": "object"
+      },
+      "description": "A search result was chosen; the host navigates."
+    },
+    {
+      "name": "pk-theme-toggle",
+      "detail": {},
+      "description": "The Toggle theme item in the settings menu was chosen."
+    }
+  ],
+  "parts": [
+    {
+      "name": "shell",
+      "description": "The pk-app-shell"
+    },
+    {
+      "name": "nav",
+      "description": "The side nav"
+    },
+    {
+      "name": "bar",
+      "description": "The header bar"
+    },
+    {
+      "name": "brand",
+      "description": "The brand link"
+    },
+    {
+      "name": "picker",
+      "description": "The module picker"
+    },
+    {
+      "name": "search",
+      "description": "The header search"
+    },
+    {
+      "name": "settings",
+      "description": "The settings menu"
+    },
+    {
+      "name": "crumbs",
+      "description": "The breadcrumb"
+    },
+    {
+      "name": "module",
+      "description": "The active module title on the picker"
+    },
+    {
+      "name": "theme",
+      "description": "The Toggle theme item"
+    },
+    {
+      "name": "footer",
+      "description": "The footer strip content"
+    }
+  ],
+  "cssProperties": [],
+  "methods": [],
+  "writes": [],
+  "a11y": "Built from pk-app-shell, pk-navbar (label Main), pk-side-nav (label navLabel) and pk-breadcrumb (aria-current on the last crumb): landmarks, keyboard and focus are theirs. The menu control is named Toggle the menu. The skip link and main landmark belong to the page slot, since an id cannot be targeted across the shadow boundary.",
+  "mobile": "The side nav is the drawer behind the menu control; the picker is not drawn (pk-navbar), the search collapses to an icon; the safe-area insets are the shell's.",
+  "examples": [
+    {
+      "title": "App frame with a module picker",
+      "html": "<pk-app-frame brand=\"Acme\" brand-href=\"#\" module-title=\"Sales\" current-id=\"open\" nav='[{\"id\":\"home\",\"title\":\"Home\",\"href\":\"#home\",\"icon\":\"home\"},{\"id\":\"orders\",\"title\":\"Orders\",\"href\":\"#orders\",\"badge\":3,\"children\":[{\"id\":\"open\",\"title\":\"Open\",\"href\":\"#open\"},{\"id\":\"shipped\",\"title\":\"Shipped\",\"href\":\"#shipped\"}]},{\"id\":\"reports\",\"title\":\"Reports\",\"href\":\"#reports\"}]' trail='[\"orders\",\"open\"]' modules='[{\"id\":\"sales\",\"title\":\"Sales\",\"href\":\"#sales\"},{\"id\":\"support\",\"title\":\"Support\",\"href\":\"#support\"}]' crumbs='[{\"label\":\"Sales\",\"href\":\"#sales\"},{\"label\":\"Orders\",\"href\":\"#orders\"},{\"label\":\"Open\"}]' search search-placeholder=\"Search orders\"><pk-page-header heading=\"Open orders\"></pk-page-header><p>The page goes in the default slot.</p><span slot=\"footer\">Acme 2026</span></pk-app-frame>"
+    },
+    {
+      "title": "One module, no search",
+      "html": "<pk-app-frame brand=\"Acme\" nav='[{\"id\":\"home\",\"title\":\"Home\",\"href\":\"#home\",\"icon\":\"home\"},{\"id\":\"orders\",\"title\":\"Orders\",\"href\":\"#orders\",\"badge\":3,\"children\":[{\"id\":\"open\",\"title\":\"Open\",\"href\":\"#open\"},{\"id\":\"shipped\",\"title\":\"Shipped\",\"href\":\"#shipped\"}]},{\"id\":\"reports\",\"title\":\"Reports\",\"href\":\"#reports\"}]' current-id=\"home\"><pk-page-header heading=\"Home\"></pk-page-header></pk-app-frame>"
+    }
+  ]
+}
