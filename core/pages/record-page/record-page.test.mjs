@@ -209,3 +209,13 @@ test('a field def in the group spelling (key, kind, hint, help) and a boolean va
     el.config = { ...el.config, id: '1' }; el.$id = '1'; el.$values = { name: 'Draft', active: true }; el.mode = 'view'; el.draw();
     assert.equal(parts.main.children[0].children[3].children[0].textContent, 'Yes', 'a boolean reads Yes or No');
 });
+
+test('a custom field forwards its editor-<key> slot into the group, so the host child fills it in edit mode (#1000)', () => {
+    const { el, parts } = make();
+    el.config = { fields: [{ key: 'name', label: 'Name' }, { key: 'extra', label: 'Extra', kind: 'custom' }] };
+    el.save = async () => {};
+    el.connected();
+    const group = parts.main.children[0].children[0].children[0];
+    assert.equal(group.children.length, 1, 'one slot for the one custom field');
+    assert.equal(group.children[0].attrs.name, 'editor-extra'); assert.equal(group.children[0].attrs.slot, 'editor-extra');
+});

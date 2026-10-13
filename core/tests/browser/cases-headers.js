@@ -284,3 +284,25 @@ headerCases.push(
         fresh.remove();
     }],
 );
+
+// Issue 1000 step 3: a custom field's editor child fills its place in the edit form, and the main-before/main-after sections stay around the form in edit mode.
+headerCases.push(
+    ['record-page: a custom field shows the host child slot="editor-<key>" inside the form (between the other fields), and main-before and main-after stay in edit mode', async t => {
+        const wait = ms => new Promise(r => setTimeout(r, ms));
+        const page = await t.mount('<pk-record-page><pk-switch slot="editor-extra">Gift wrap</pk-switch><pk-card slot="main-before" heading="Before">b</pk-card><pk-card slot="main-after" heading="After">a</pk-card></pk-record-page>');
+        page.load = async () => ({ name: 'Widget', tail: 'x' });
+        page.save = async () => {};
+        page.config = { id: '7', fields: [{ key: 'name', label: 'Name' }, { key: 'extra', label: 'Extras', kind: 'custom' }, { key: 'tail', label: 'Tail' }] };
+        for (let i = 0; i < 40 && page.part('edit').hidden; i++) await wait(50);
+        await t.load(page.shadowRoot); await t.settle();
+        page.part('edit').click(); await t.settle();
+        const group = page.part('main').querySelector('pk-field-group');
+        await t.load(group.shadowRoot); await t.settle(); await t.settle();
+        const fields = [...group.shadowRoot.querySelectorAll('pk-field')], sw = page.querySelector('pk-switch'), r = n => n.getBoundingClientRect();
+        t.eq(fields.length, 3, 'three fields, the custom one included');
+        t.ok(r(sw).width > 0 && r(sw).top >= r(fields[0]).bottom - 1 && r(sw).bottom <= r(fields[2]).top + 1, 'the editor child sits between the first and third field');
+        const before = page.querySelector('[slot=main-before]'), after = page.querySelector('[slot=main-after]');
+        t.ok(r(before).bottom <= r(group).top + 1 && r(after).top >= r(group).bottom - 1, 'the sections stay above and below the form in edit mode');
+        page.remove();
+    }],
+);
