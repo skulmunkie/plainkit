@@ -39,6 +39,11 @@ const recordConfig = {
 // current while an order is open and the breadcrumbs read Demo app > Orders > Order 8.
 export default defineModule({
     id: 'orders', title: 'Orders',
+    // Dashboard widgets (the metadata is on this module's entry in app.config.js): each returns data for a pk-stat or pk-chart, never markup.
+    widgets: {
+        open: { load: async () => ({ value: String(ORDERS.filter(r => r.status === 'Open').length), subtext: 'waiting to ship', tone: 'neutral' }) },
+        revenue: { load: async () => ({ kind: 'bar', data: { labels: ['Jul', 'Aug', 'Sep'], series: [{ name: 'Revenue', values: [410, 520, 511] }] } }) },
+    },
     nav: () => [{ id: 'all', title: 'All orders', route: '/', icon: 'orders' }, { id: 'open', title: 'Open', route: '/open' }, { id: 'shipped', title: 'Shipped', route: '/shipped' }],
     // The header search asks the active module: here it finds records (a module without `search` is searched through its nav).
     search: query => ORDERS.filter(o => `order ${o.id} ${o.customer}`.toLowerCase().includes(query.trim().toLowerCase())).map(o => ({ id: o.id, label: `Order ${o.id}`, sub: o.customer, route: `/${o.id}` })),

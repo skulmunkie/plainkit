@@ -607,4 +607,138 @@ export const appShellCases = [
         const vp = host.querySelector('pk-skip-link').getBoundingClientRect();
         t.ok(after.right > 0 && after.bottom > 0 && after.left < innerWidth && after.top < innerHeight, 'focused, it is on screen ' + JSON.stringify([after.left, after.top, vp.width]));
     }],
+    // #494, step 3: a dashboard route with a `surface` composes its widgets from what modules contribute.
+    ['dashboard from modules (#494): only the visible tab loads module code, a failing widget shows its own error card with Retry beside a working one, and a denied contribution is never offered or imported', async t => {
+        const { mountApp, defineModule } = await src('js/app.js');
+        const el = document.createElement('div'); t.stage('').append(el);
+        const loads = { alpha: 0, beta: 0, secret: 0 };
+        let healthy = false;
+        const home = defineModule({ id: 'home', routes: [{ path: '/', page: 'dashboard', config: { surface: 'ov', heading: 'Overview', tabs: [{ id: 'a', label: 'First' }, { id: 'b', label: 'Second' }] } }] });
+        const mod = (id, widgets) => async () => { loads[id]++; return defineModule({ id, widgets }); };
+        const c = (key, tab, extra = {}) => ({ key, for: ['ov'], tab, label: key, kind: 'stat', ...extra });
+        history.replaceState(null, '', '#/home');
+        const app = mountApp(el, { modules: [
+            { id: 'home', title: 'Home', load: async () => home },
+            { id: 'alpha', title: 'Alpha', contributes: [c('good', 'a'), c('bad', 'a')], load: mod('alpha', { good: { load: async () => ({ value: '7' }) }, bad: { load: async () => { if (!healthy) throw new Error('backend down'); return { value: '8' }; } } }) },
+            { id: 'beta', title: 'Beta', contributes: [c('late', 'b')], load: mod('beta', { late: { load: async () => ({ value: '9' }) } }) },
+            { id: 'secret', title: 'Secret', can: () => false, contributes: [c('hidden', 'a')], load: mod('secret', { hidden: { load: async () => ({ value: '1' }) } }) },
+        ], home: 'home' });
+        const page = await until(() => el.querySelector('pk-dashboard-page'), 'the dashboard page');
+        const cards = () => [...page.shadowRoot.querySelectorAll('pk-card')];
+        const card = key => cards().find(x => x.dataset.key === key);
+        await until(() => card('alpha:good')?.dataset.state === 'ready' && card('alpha:bad')?.dataset.state === 'error', 'one ready card and one error card', 200);
+        t.eq(cards().map(x => x.dataset.key).sort().join(), 'alpha:bad,alpha:good,beta:late', 'the denied contribution has no card');
+        t.eq(loads.alpha, 1, 'two widgets of one module share one import');
+        t.eq(loads.beta, 0, 'a tab never shown loads no module');
+        t.eq(loads.secret, 0, 'a denied module is never imported');
+        t.ok(card('alpha:good').querySelector('pk-stat'), 'the working widget is a pk-stat');
+        const retry = await until(() => card('alpha:bad').querySelector('pk-button'), 'Retry in the error card');
+        healthy = true; retry.click();
+        await until(() => card('alpha:bad').dataset.state === 'ready', 'the card after Retry', 200);
+        page.shadowRoot.querySelectorAll('pk-tab')[1].click();
+        await until(() => card('beta:late').dataset.state === 'ready', 'the second tab widget', 200);
+        t.eq(loads.beta, 1, 'the second tab loaded its module when it was shown');
+        await app.destroy();
+        history.replaceState(null, '', location.pathname + location.search);
+    }],
+
+    ['dashboard from modules (#494): reserved card heights give CLS 0 while widgets resolve, and 100 mounts and unmounts leave no node behind and abort every widget signal', async t => {
+        const { createModuleHost, defineModule } = await src('js/app.js');
+        const el = document.createElement('div'); t.stage('').append(el);
+        const signals = [];
+        const done = new WeakSet();
+        const slow = ms => ({ load: ({ signal }) => { signals.push(signal); return new Promise(r => setTimeout(() => { done.add(signal); r({ value: '5' }); }, ms)); } });
+        const home = defineModule({ id: 'home', routes: [{ path: '/', page: 'dashboard', config: { surface: 'ov', heading: 'Overview' } }] });
+        const other = defineModule({ id: 'other', routes: [{ path: '/', page: 'custom', config: { mount: h => { h.textContent = 'other'; } } }] });
+        const c = key => ({ key, for: ['ov'], label: key, kind: key === 'chart' ? 'chart' : 'stat' });
+        const host = createModuleHost(el, { modules: [
+            { id: 'home', title: 'Home', load: async () => home },
+            { id: 'other', title: 'Other', load: async () => other },
+            { id: 'w', title: 'W', contributes: [c('s1'), c('s2'), c('chart')], load: async () => defineModule({ id: 'w', widgets: { s1: slow(120), s2: slow(200), chart: { load: () => new Promise(r => setTimeout(() => r({ kind: 'bar', data: { labels: ['a'], series: [{ name: 'n', values: [1] }] } }), 160)) } } }) },
+        ] });
+        await host.show('other');
+        let shift = 0;
+        const po = new PerformanceObserver(list => { for (const e of list.getEntries()) if (!e.hadRecentInput) shift += e.value; });
+        po.observe({ type: 'layout-shift' });
+        host.show('home');
+        const page = await until(() => el.querySelector('pk-dashboard-page'), 'the dashboard');
+        await until(() => [...page.shadowRoot.querySelectorAll('pk-card')].length === 3 && [...page.shadowRoot.querySelectorAll('pk-card')].every(x => x.dataset.state === 'ready'), 'three ready cards', 200);
+        await wait(100); po.disconnect();
+        t.ok(shift < 0.001, `widgets resolving shifted the layout by ${shift.toFixed(4)} (CLS must be 0)`);
+        const count = () => el.querySelectorAll('*').length;
+        await host.show('other'); await wait(100);
+        const before = count(), made = signals.length;
+        for (let i = 0; i < 100; i++) {
+            await host.show('home');
+            await host.show('other');
+        }
+        await wait(100);
+        t.ok(count() <= before + 2, `100 mounts left ${count() - before} extra nodes`);
+        t.ok(signals.length > made, 'widgets ran');
+        t.ok(signals.every(s => s.aborted || done.has(s)), 'every widget run still in flight was aborted when its page was left');
+        t.ok(signals.slice(made).filter(s => s.aborted).length >= 99, 'the runs cut short by leaving were aborted');
+        await host.destroy();
+    }],
+    // #494, step 5: the active tab in the address, filters in the module state, size spans, a module that withdraws its widget.
+    ['dashboard from modules (#494): ?tab= opens that tab first and loads only its module, a tab change rewrites the address without a history entry, and size hints span columns', async t => {
+        const { createModuleHost, defineModule } = await src('js/app.js');
+        const el = document.createElement('div'); t.stage('').append(el);
+        const loads = { a: 0, b: 0 };
+        const home = defineModule({ id: 'home', routes: [{ path: '/', page: 'dashboard', config: { surface: 'ov', heading: 'Overview', tabs: [{ id: 'one', label: 'One' }, { id: 'two', label: 'Two' }] } }] });
+        const c = (key, tab, size) => ({ key, for: ['ov'], tab, label: key, kind: 'stat', size });
+        const mod = (id, keys) => async () => { loads[id]++; return defineModule({ id, widgets: Object.fromEntries(keys.map(k => [k, { load: async () => ({ value: k }) }])) }); };
+        const before = location.href, historyLength = history.length;
+        const host = createModuleHost(el, { modules: [
+            { id: 'home', title: 'Home', load: async () => home },
+            { id: 'a', title: 'A', contributes: [c('sm1', 'one', 'sm'), c('md1', 'one', 'md'), c('lg1', 'one', 'lg'), c('sm2', 'one', 'sm')], load: mod('a', ['sm1', 'md1', 'lg1', 'sm2']) },
+            { id: 'b', title: 'B', contributes: [c('only', 'two')], load: mod('b', ['only']) },
+        ] });
+        await host.show('home', { path: '/', query: { tab: 'two' } });
+        const page = await until(() => el.querySelector('pk-dashboard-page'), 'the dashboard');
+        const card = key => [...page.shadowRoot.querySelectorAll('pk-card')].find(x => x.dataset.key === key);
+        await until(() => card('b:only')?.dataset.state === 'ready', 'the widget of the tab in the address', 200);
+        t.eq(loads.a, 0, 'the other tab loaded no module');
+        t.eq(loads.b, 1);
+        t.eq(page.shadowRoot.querySelector('pk-tabs').value, 'two', 'the tab named in the address is the open one');
+        page.shadowRoot.querySelectorAll('pk-tab')[0].click();
+        await until(() => card('a:sm1')?.dataset.state === 'ready', 'the first tab widgets', 200);
+        t.eq(new URL(location.href).searchParams.get('tab'), 'one', 'the tab change was written to the address');
+        t.eq(history.length, historyLength, 'no history entry was added');
+        const w = k => card(k).getBoundingClientRect().width, grid = card('a:sm1').parentElement.getBoundingClientRect().width;
+        t.ok(w('a:md1') > w('a:sm1') * 1.8, `md spans two columns (${w('a:md1').toFixed(0)}px against ${w('a:sm1').toFixed(0)}px)`);
+        t.ok(Math.abs(w('a:lg1') - grid) < 2, 'lg takes the whole row');
+        t.ok(Math.abs(w('a:sm1') - w('a:sm2')) < 2, 'sm cards stay one column');
+        await host.destroy();
+        history.replaceState(null, '', before);
+    }],
+
+    ['dashboard from modules (#494): a filter selection is saved in the owning module state and restored on the next visit, and a module whose own can denies has its card withdrawn', async t => {
+        const { createModuleHost, defineModule } = await src('js/app.js');
+        const { createStore } = await src('js/store.js');
+        const el = document.createElement('div'); t.stage('').append(el);
+        const seen = [];
+        const home = defineModule({ id: 'home', state: { version: 1, defaults: { range: '' }, persist: ['range'] }, routes: [{ path: '/', page: 'dashboard', config: { surface: 'ov', heading: 'Overview', filters: [{ key: 'range', type: 'select', label: 'Range', options: ['7d', '30d'] }] } }] });
+        const other = defineModule({ id: 'other', routes: [{ path: '/', page: 'custom', config: { mount: h => { h.textContent = 'other'; } } }] });
+        const c = key => ({ key, for: ['ov'], label: key, kind: 'stat' });
+        const host = createModuleHost(el, { store: createStore({ prefix: `dash${Date.now()}` }), modules: [
+            { id: 'home', title: 'Home', load: async () => home },
+            { id: 'other', title: 'Other', load: async () => other },
+            { id: 'ok', title: 'Ok', contributes: [c('shown')], load: async () => defineModule({ id: 'ok', widgets: { shown: { load: async ({ context }) => (seen.push(context.range), { value: '1' }) } } }) },
+            { id: 'gone', title: 'Gone', contributes: [c('withdrawn')], load: async () => defineModule({ id: 'gone', can: () => false, widgets: { withdrawn: { load: async () => ({ value: '2' }) } } }) },
+        ] });
+        await host.show('home');
+        let page = await until(() => el.querySelector('pk-dashboard-page'), 'the dashboard');
+        const card = key => [...page.shadowRoot.querySelectorAll('pk-card')].find(x => x.dataset.key === key);
+        await until(() => card('ok:shown')?.dataset.state === 'ready' && card('gone:withdrawn')?.dataset.state === 'hidden', 'one ready card and one withdrawn card', 200);
+        t.ok(card('gone:withdrawn').hidden && card('gone:withdrawn').getBoundingClientRect().height === 0, 'the withdrawn card takes no space');
+        const select = await until(() => page.shadowRoot.querySelector('[data-key="range"]'), 'the range filter');
+        await until(() => select.shadowRoot, 'the select upgrade');
+        select.value = '30d'; select.dispatchEvent(new CustomEvent('pk-value-change', { bubbles: true, composed: true, detail: { value: '30d' } }));
+        await until(() => seen.at(-1) === '30d', 'the widget reloaded with the selection', 200);
+        await host.show('other'); await host.show('home');
+        page = await until(() => el.querySelector('pk-dashboard-page'), 'the dashboard again');
+        await until(() => seen.length >= 3 && seen.at(-1) === '30d', 'the first load of the next visit to see the saved range', 200);
+        t.eq(page.shadowRoot.querySelector('[data-key="range"]').value, '30d', 'the filter bar starts on the saved selection');
+        await host.destroy();
+    }],
 ];

@@ -59,6 +59,8 @@ export default Base => class extends Base {
                     card.heading = widget.label ?? '';
                     card.dataset.key = key;
                     card.dataset.tab = tab ?? '';
+                    card.dataset.kind = widget.kind ?? 'stat';
+                    if (widget.size) card.dataset.size = widget.size;
                     grid.append(card);
                     this.$cards[key] = card;
                 }
@@ -67,11 +69,12 @@ export default Base => class extends Base {
             }
         };
         if (!tabs) { draw(body, undefined); loadElements(body); this.activate(undefined); return; }
-        showTabs(body, tabs, draw, id => this.activate(id));
+        showTabs(body, tabs, draw, id => this.activate(id), this.config?.tab);
     }
 
     // Starts every widget of `tab` that has never started: the first time a tab is shown, never on a revisit, never for a tab never opened.
     activate(tab) {
+        if (tab !== undefined) this.onTab?.(tab);
         for (const w of this.config?.widgets ?? []) {
             const card = this.$cards[w.key];
             if (card && (card.dataset.tab || undefined) === tab && !this.$started.has(w.key)) this.loadWidget(w);
@@ -84,10 +87,13 @@ export default Base => class extends Base {
         box.hidden = !this.config?.filters?.length;
         if (key === this.$filtersFor) return;
         this.$filtersFor = key;
-        this.context = {};
+        // config.values: the selections the bar starts with (a host restores what it saved); they are the context the first loads see.
+        const start = this.config?.values ?? {};
+        this.context = Object.fromEntries((this.config?.filters ?? []).filter(f => start[f.key] != null && String(start[f.key]) !== '').map(f => [f.key, start[f.key]]));
         // A pk-select has no visible label of its own (its label is the accessible name), so a pk-field shows it; a pk-input shows its own.
         box.replaceChildren(...(this.config?.filters ?? []).map(f => {
             const control = filterControl(this.ownerDocument, f);
+            if (this.context[f.key] !== undefined) control.value = this.context[f.key];
             if (control.localName !== 'pk-select') return control;
             const field = this.ownerDocument.createElement('pk-field');
             field.label = f.label ?? f.key;
@@ -134,6 +140,7 @@ export default Base => class extends Base {
             return;
         }
         if (this.$tokens[widget.key] !== token) return;
+        if (result === null) { card.hidden = true; card.dataset.state = 'hidden'; return; }   // the host withdrew the widget after loading it (its module's own can)
         const tag = WIDGET_TAG[widget.kind] ?? 'pk-stat';
         const el = this.ownerDocument.createElement(tag);
         if (tag === 'pk-stat') el.label = widget.label ?? '';

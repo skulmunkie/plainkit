@@ -6,7 +6,7 @@
 import { defineModule, loadChunk } from './module.js';
 import { loadWithRetry } from './boundary.js';
 
-export function createLoader({ allow, defs, retry, permit, dead }) {
+export function createLoader({ allow, defs, retry, access, dead }) {
     const importDef = async (id, entry, alive) => {
         const mod = await loadWithRetry(entry.load, { ...retry, alive });
         const def = defineModule(mod?.default ?? mod);
@@ -14,7 +14,7 @@ export function createLoader({ allow, defs, retry, permit, dead }) {
         defs.set(id, def);
         return def;
     };
-    const deps = { allow, defs, permit, importDef, dead };
+    const deps = { allow, defs, access, importDef, dead };
     const widgets = Object.freeze({
         entries: surface => loadChunk('svc-widgets').then(m => m.entries(deps, surface)),
         def: id => loadChunk('svc-widgets').then(m => m.def(deps, id)),

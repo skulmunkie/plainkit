@@ -7,3 +7,12 @@ pk-tab-panel { padding-block-start: var(--space-4); }
 [part="section-heading"] { margin: 0 0 var(--space-3); font-size: var(--text-lg); }
 [part="grid"] { display: grid; grid-template-columns: repeat(auto-fill, minmax(18rem, 1fr)); gap: var(--space-4); align-items: start; }
 [part="grid"] > pk-card { min-inline-size: 0; }
+[part="grid"] > pk-card[hidden] { display: none; }
+/* Size hints span columns once a section is wide enough for two (a phone-width section keeps one column). */
+[part="section"] { container-type: inline-size; }
+@container (min-width: 48rem) {
+    [part="grid"] > pk-card[data-size="md"] { grid-column: span 2; }
+    [part="grid"] > pk-card[data-size="lg"] { grid-column: 1 / -1; }
+}
+[part="grid"] > pk-card[data-kind="stat"] { min-block-size: calc(var(--space-12) * 2); }
+[part="grid"] > pk-card[data-kind="chart"] { min-block-size: calc(var(--space-12) * 4); }

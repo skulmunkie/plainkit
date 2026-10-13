@@ -4,7 +4,8 @@ import { defineModule } from '../../../js/app.js';
 export default defineModule({
     id: 'overview', title: 'Overview',
     routes: [
-        { path: '/', page: 'note', config: { heading: 'Overview', body: 'Three small modules: this one has no menu, Orders has a list and a record page, Reports has two destinations.', cardHeading: 'About this page' } },
+        // A dashboard with no widget of its own: Orders and Reports contribute theirs (their config entries name this `surface`), so adding a widget never edits this route.
+        { path: '/', page: 'dashboard', config: { surface: 'overview', heading: 'Overview', tabs: [{ id: 'sales', label: 'Sales' }, { id: 'ops', label: 'Operations' }] } },
         { path: '*', page: 'not-found' },
     ],
 });

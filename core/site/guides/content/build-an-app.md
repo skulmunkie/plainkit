@@ -110,7 +110,31 @@ A dashboard is a set of widgets that each load on their own, so one slow or fail
         } },
 ```
 
-The dashboard is configured explicitly: you list the widgets and write `load`.
+The dashboard above is configured explicitly: you list the widgets and write `load`.
+
+A dashboard can instead be assembled from what several modules offer, with no edit to the dashboard route when a module adds a widget. The route names a `surface`; each module says on its config entry what it contributes (static data, read without loading the module), and puts the code in a `widgets` map that loads only when the widget is shown:
+
+```text
+        { id: 'orders', title: 'Orders', icon: 'orders', load: () => import('./modules/orders.js'),
+          // Widgets this module offers to the Overview dashboard: static data here, the code in the module's `widgets` (loaded only when the tab is shown).
+          contributes: [
+              { key: 'open', for: ['overview'], tab: 'sales', label: 'Open orders', kind: 'stat', order: 10 },
+              { key: 'revenue', for: ['overview'], tab: 'sales', label: 'Revenue by month', kind: 'chart', order: 20 },
+          ] },
+```
+
+```text
+        { path: '/', page: 'dashboard', config: { surface: 'overview', heading: 'Overview', tabs: [{ id: 'sales', label: 'Sales' }, { id: 'ops', label: 'Operations' }] } },
+```
+
+```text
+    widgets: {
+        open: { load: async () => ({ value: String(ORDERS.filter(r => r.status === 'Open').length), subtext: 'waiting to ship', tone: 'neutral' }) },
+        revenue: { load: async () => ({ kind: 'bar', data: { labels: ['Jul', 'Aug', 'Sep'], series: [{ name: 'Revenue', values: [410, 520, 511] }] } }) },
+    },
+```
+
+Only the tab on screen loads module code (a second widget of one module shares its import), a widget that fails shows its own error card with Retry beside the others, a contribution a `can` denies is never offered or imported, and leaving the page aborts every widget's `signal`. A widget's `ctx` is a subset (`id`, `log`, `auth`, `settings`, `signal`, `href`): the module is loaded as a definition only, so `mount` has not run. A `needs` key the route has no filter for warns once; a tab the route does not declare gets an implicit one. A contribution's `size` (`sm`, `md` or `lg`) is a column span hint: `md` takes two columns and `lg` the whole row from a tablet width up, and a phone has one column. The open tab is kept in the address (`?tab=`, written without a history entry, so a reload or a shared link opens on it). Filter selections are saved in the owning module's `state` when its `defaults` name the filter key (`state: { defaults: { range: '' }, persist: ['range'] }`). A module whose own `can` denies is only known once it has loaded, so its card is withdrawn then (one layout shift); put the check in the entry's `can` to hide it from the start.
 
 ### Form pages
 
