@@ -29,8 +29,9 @@ import { createStore } from '../store.js';
 import { matchRoute } from '../route-tree.js';
 import { loadElements } from '../loader.js';
 import { setTheme, currentTheme, toggleTheme } from '../theme-core.js';
-import { MODULE_ID, defineModule, pageTypeFor, layoutFor } from './module.js';
-import { createBoundary, loadWithRetry } from './boundary.js';
+import { MODULE_ID, pageTypeFor, layoutFor } from './module.js';
+import { createBoundary } from './boundary.js';
+import { createLoader } from './widget-host.js';
 
 const log = createLogger('app');
 const norm = p => '/' + String(p ?? '').split(/[?#]/)[0].split('/').filter(Boolean).join('/');
@@ -145,7 +146,7 @@ export function createModuleHost(container, { modules = [], router, auth, can, s
         return {
             ctx: Object.create(base, mine.api), lg,
             // A ctx for one page: the same members, with resources that end when the page is left.
-            pageScope() { const p = scope(lg, page.begin); return { ctx: Object.create(base, p.api), end: p.end }; },
+            pageScope() { const p = scope(lg, page.begin); return { ctx: Object.create(Object.create(base, { _widgets: { value: widgets } }), p.api), end: p.end }; },
             // Ends everything the module registered; nothing here can throw.
             async dispose() {
                 await mine.end();
@@ -227,6 +228,8 @@ export function createModuleHost(container, { modules = [], router, auth, can, s
         return showPage(a, r, t);
     }
 
+    const { importDef, widgets } = createLoader({ allow, defs, retry: { retries, backoff, timeout, wait, within, log }, permit: e => access(e, null, { path: '/', params: {}, query: {} }) === true, dead: () => dead });
+
     async function run(id, r, t) {
         const entry = typeof id === 'string' && MODULE_ID.test(id) ? allow.get(id) : undefined;
         if (!entry) return exclusive(async () => { if (!alive(t)) return 'superseded'; await leave(); box.notFound('There is no such page.'); return 'not-found'; });
@@ -236,10 +239,7 @@ export function createModuleHost(container, { modules = [], router, auth, can, s
             box.loading(entry.title, !active);
             const end = active ? hostPage.begin(`Loading ${entry.title}`) : null;
             try {
-                const mod = await loadWithRetry(entry.load, { retries, backoff, timeout, wait, within, alive: () => alive(t), log });
-                def = defineModule(mod?.default ?? mod);
-                if (def.id !== id) throw new Error(`the module loaded for "${id}" says its id is "${def.id}"`);
-                defs.set(id, def);
+                def = await importDef(id, entry, () => alive(t));
             } catch (e) {
                 if (!alive(t)) return 'superseded';
                 log.error(`could not load the module "${id}"`, e);
