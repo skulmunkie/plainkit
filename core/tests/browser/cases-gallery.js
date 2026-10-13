@@ -202,7 +202,7 @@ export const galleryCases = [
         const raw = f.contentDocument;
         const box = (d, sel, i = 0) => d.querySelectorAll(sel)[i].getBoundingClientRect();
         const near = (sel, what, i = 0) => t.ok(Math.abs(box(raw, sel, i).height - box(p.doc, sel, i).height) <= 3, `${what} is ${Math.round(box(raw, sel, i).height)}px high before upgrade and ${Math.round(box(p.doc, sel, i).height)}px after`);
-        near('.gx-head', 'the page header'); near('.gx-tile', 'an overview tile'); near('#gx-view pk-grid', 'the overview grid');
+        near('[data-gx~="head"]', 'the page header'); near('[data-gx~="tile"]', 'an overview tile'); near('#gx-view pk-grid', 'the overview grid');
         // Titles sit between nav rows. The nav's own header is hidden until its element is defined, so compare the distance between two titles (the rows
         // between them are what must keep their height while pk-nav-item is undefined: the 0.0015 shift), not the position of the first.
         const gap = (d, i) => box(d, '.gx-nav-title', i + 1).top - box(d, '.gx-nav-title', i).top;
