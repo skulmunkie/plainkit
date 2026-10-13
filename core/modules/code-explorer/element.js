@@ -21,13 +21,14 @@ import { ensureStyles, styleUrls, on } from '../../js/mount-support.js';
 import { loadElements } from '../../js/loader.js';
 import { applyDynamic } from '../../js/dynamic.js';
 import { createLogger } from '../../js/log.js';
+import { fillSanitizedHtml } from '../../js/sanitized-html.js';
 const log = createLogger('code-explorer');
 
 const CSS = ['./code-explorer.css'];
 const NAV = '::nav';
 const esc = s => String(s).replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
-// The one place markup is written into the document: every value in it went through esc(), tokens are wrapped in fixed spans.
-const fill = (el, markup) => { el.innerHTML = markup; };
+// Every value in the markup went through esc(), tokens are wrapped in fixed spans: written by the one shared sink (js/sanitized-html.js).
+const fill = fillSanitizedHtml;
 // Search hits, usages and report rows: a dense list of native buttons (pk-list-group dense), a muted line number or count, then the text.
 const hitRow = (path, line, no, textHtml) => `<button type="button" data-path="${esc(path)}" data-line="${line ?? ''}"><pk-text inline tone="muted" font="mono" size="meta">${no}</pk-text><pk-text inline font="mono" size="meta">${textHtml}</pk-text></button>`;
 const hitList = (rows, label) => `<pk-list-group variant="action" dense label="${esc(label)}">${rows}</pk-list-group>`;
@@ -219,9 +220,10 @@ export class CodeExplorerElement extends Base {
     }
 
     #fragment(markup) {
-        const scratch = this.ownerDocument.createElement('template');
+        const scratch = this.ownerDocument.createElement('div'), frag = this.ownerDocument.createDocumentFragment();
         fill(scratch, markup);
-        return scratch.content;
+        frag.append(...scratch.childNodes);
+        return frag;
     }
 
     #activeFile() { return this.#active === NAV ? '' : this.#active; }
