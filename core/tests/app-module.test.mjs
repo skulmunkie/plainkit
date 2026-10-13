@@ -942,3 +942,43 @@ test("'doc' (step 7, #353) creates a pk-doc-page, takes id and anchor from the r
     assert.equal(bare.children[0].config.id, null, 'no route param: the home list');
     assert.equal(bare.children[0].loadItem, undefined);
 });
+
+test('defineModule validates `widgets`: an object of { key: { load } } with keys like module ids (#494)', () => {
+    const ok = { id: 'w', widgets: { churn: { load() {} }, 'by-day': { load: async () => ({}) } } };
+    assert.equal(defineModule(ok), ok);
+    assert.equal(defineModule({ id: 'w' }).widgets, undefined);
+    for (const widgets of [5, null, [], { Churn: { load() {} } }, { a: {} }, { a: { load: 'x' } }, { a: null }, { '__proto__x': { load() {} } }]) assert.throws(() => defineModule({ id: 'w', widgets }), /widgets must be/, JSON.stringify(widgets));
+});
+
+test('the internal dashboard service (ctx._widgets): hidden, entries by surface, one import per module, allow-list and access checks, a failing import rejects only that call (#494)', async () => {
+    const { container } = makeDom();
+    const contributes = [{ key: 'a', for: ['overview'], label: 'A', kind: 'stat' }];
+    const loads = { w: 0, bad: 0, denied: 0, plain: 0 };
+    const w = mod('w', { widgets: { a: { load() {} } } });
+    let svc, ctxKeys;
+    registerPageType('wh-capture', (host, config, ctx) => { svc = ctx._widgets; ctxKeys = Object.keys(ctx); });
+    const home = defineModule({ id: 'home', routes: [{ path: '*', page: 'wh-capture' }] });
+    const host = createModuleHost(container, {
+        modules: [
+            entryFor('home', home),
+            { id: 'w', title: 'W', contributes, load: async () => { loads.w++; await flush(); return w; } },
+            { id: 'bad', title: 'Bad', contributes, load: async () => { loads.bad++; throw new Error('boom'); } },
+            { id: 'denied', title: 'D', contributes, can: () => false, load: async () => { loads.denied++; return mod('denied'); } },
+            { id: 'plain', title: 'P', load: async () => { loads.plain++; return mod('plain'); } },
+        ], ...fast, retries: 0,
+    });
+    assert.equal(await host.show('home'), 'ok');
+    assert.ok(svc && Object.isFrozen(svc), 'the page ctx carries the service');
+    assert.ok(!ctxKeys.includes('_widgets'), 'not enumerable');
+    assert.deepEqual((await svc.entries('overview')).map(e => e.id), ['w', 'bad', 'denied'], 'only entries contributing to the surface, config order');
+    assert.deepEqual(await svc.entries('nope'), []);
+    const listed = await svc.entries('overview'); assert.ok(Object.isFrozen(listed) && Object.isFrozen(listed[0]));
+    const [d1, d2] = await Promise.all([svc.def('w'), svc.def('w')]);
+    assert.equal(d1, w); assert.equal(d2, w); assert.equal(loads.w, 1, 'single flight: one import for two widgets');
+    assert.equal(await svc.def('w'), w); assert.equal(loads.w, 1, 'cached');
+    await assert.rejects(svc.def('bad'), /boom/); assert.equal(loads.bad, 1);
+    await assert.rejects(svc.def('denied'), /not allowed/); assert.equal(loads.denied, 0, 'a denied module is never imported');
+    for (const id of ['../x', '__proto__', 'constructor', 'nope', '', undefined, 5]) await assert.rejects(svc.def(id), /allow-listed/, String(id));
+    assert.equal(loads.plain, 0);
+    await host.destroy?.();
+});

@@ -19,7 +19,7 @@
 //       pageTypes: { kanban: (host, config, ctx) => ({ destroy() {} }) },  // page types only this module has (below); layouts: { name: (host, ctx) => element }
 //   });
 //
-// defineModule returns its argument and throws a TypeError naming the module and the mistake (bad id, duplicate route, a bad nav...).
+// defineModule returns its argument and throws a TypeError naming the module and the mistake (bad id, duplicate route, a bad nav...). `widgets: { key: { load } }` holds dashboard widget loaders keyed like the config entry's `contributes` (#494, internal for now).
 // The host (js/app/host.js) validates again after a lazy import, so a module cannot skip it.
 //
 // Page types and layouts. The built-in page type ids are reserved (BUILT_IN_PAGE_TYPES); 'custom', 'states', 'tool', 'settings', 'not-found',
@@ -49,8 +49,6 @@
 // The ctx of mount/unmount ends on unmount. A page factory gets its own ctx (same members) whose on/observe/after/signal end when the page is
 // left (a route change or the module unmounting), so a module that changes route a thousand times holds only the current page's resources.
 import { flattenRoutes } from '../route-tree.js';
-import { createLogger } from '../log.js';
-import { setTheme, currentTheme, toggleTheme } from '../theme-core.js';
 export const MODULE_ID = /^[a-z][a-z0-9-]{0,39}$/;
 
 const own = (obj, key) => obj != null && Object.hasOwn(obj, key);
@@ -71,7 +69,7 @@ export function defineModule(def) {
     if (typeof id !== 'string' || !MODULE_ID.test(id)) fail(id, 'id must match MODULE_ID');
     for (const k of ['can', 'mount', 'unmount']) if (def[k] !== undefined && !isFn(def[k])) fail(id, `${k} must be a function`);
     if (def.nav !== undefined && !isFn(def.nav)) checkNav(id, def.nav);
-    if (def.routes !== undefined && !Array.isArray(def.routes)) fail(id, 'routes must be an array');
+    if (def.routes !== undefined && !Array.isArray(def.routes)) fail(id, 'routes must be an array'); if (def.widgets !== undefined && !(def.widgets && typeof def.widgets === 'object' && !Array.isArray(def.widgets) && Object.entries(def.widgets).every(([k, w]) => MODULE_ID.test(k) && isFn(w?.load)))) fail(id, 'widgets must be { key: { load } } with keys like \'churn\'');
     const seen = new Set();
     for (const { node: r } of flattenRoutes(def.routes ?? [])) {
         const path = r?.path;
@@ -115,7 +113,7 @@ const chunk = id => import(`./pages/${id}.js`);
 const BUILT_IN = new Map(['list', 'record', 'dashboard', 'tool', 'settings', 'doc', 'workspace', 'master-detail', 'wizard', 'note', 'print', 'custom', 'not-found', 'states'].map(id => [id, (host, config, ctx) => chunk(id).then(m => m.default(host, config, ctx))]));
 export const BUILT_IN_PAGE_TYPES = Object.freeze([...BUILT_IN.keys()]);
 // The framework's own lazy services (js/app/lazy.js) are chunks in the same folder, named svc-<name>.js: a fixed allow-list, so nothing else reaches the import above.
-const SERVICE_CHUNKS = new Set(['svc-tasks', 'svc-notify', 'svc-dialogs']);
+const SERVICE_CHUNKS = new Set(['svc-tasks', 'svc-notify', 'svc-dialogs', 'svc-widgets', 'svc-mount-page', 'svc-search']);
 export const loadChunk = id => (SERVICE_CHUNKS.has(id) ? chunk(id) : Promise.reject(new TypeError(`loadChunk: "${id}" is not a framework chunk`)));
 // The factory for a page type id: the module's own, then the app's, then a built-in one that exists yet; undefined when there is none.
 // BUILT_IN is a Map, not a plain object: a lookup for '__proto__'/'constructor'/'toString' must answer undefined, never Object.prototype's own.
@@ -139,44 +137,4 @@ export function moduleFromMount(mountFn, { options, ...meta } = {}) {
 // type id, or { type, config }. ctx is a SUBSET of a module page's ctx (header, above): id/log/auth/settings/store/theme/on/observe/after/
 // signal work the same (tracked, undone by destroy()); route/page/tasks/notify/dialogs stay null; navigate()/href() fail closed, warning.
 // Returns Promise<{ destroy() }>.
-export async function mountPage(container, page, options = {}) {
-    const type = typeof page === 'string' ? page : page?.type;
-    if (typeof type !== 'string') throw new TypeError('mountPage: page must be a type id, or { type, config }');
-    const factory = pageTypeFor({}, type);
-    if (!isFn(factory)) throw new TypeError(`mountPage: page type "${type}" is not available`);
-    const config = typeof page === 'string' ? undefined : page?.config;
-    const { id = 'page', auth = null, settings = null, store = null, root = container.ownerDocument?.documentElement } = options;
-    const lg = createLogger(`app:${id}`);
-    const ac = new AbortController();
-    const offs = new Set();
-    const run = (fn, what) => { try { fn?.(); } catch (e) { lg.error(`${what} threw`, e); } };
-    const track = off => { if (ac.signal.aborted) { lg.warn('mountPage: used after destroy() ignored'); return off; } offs.add(off); return off; };
-    const ctx = {
-        id, auth, settings, store, log: lg, route: null, page: null, tasks: null, notify: null, dialogs: null, signal: ac.signal,
-        navigate: () => (lg.warn('navigate: mountPage has no router'), false),
-        href: () => null,
-        on: (t, type, fn, o) => { t.addEventListener(type, fn, o); return track(() => t.removeEventListener(type, fn, o)); },
-        observe: (o, t, opt) => { o.observe(t, opt); track(() => o.disconnect()); return o; },
-        after(ms, fn) { const t = setTimeout(() => { offs.delete(off); run(fn, 'after() callback'); }, ms); const off = () => clearTimeout(t); return track(off); },
-        theme: root ? {
-            get name() { return currentTheme(root); },
-            set: n => setTheme(root, n),
-            toggle: () => toggleTheme(root),
-            subscribe(fn) {
-                const mo = new (container.ownerDocument?.defaultView?.MutationObserver ?? MutationObserver)(() => fn(currentTheme(root)));
-                ctx.observe(mo, root, { attributes: true, attributeFilter: ['data-theme'] });
-                return () => mo.disconnect();
-            },
-        } : null,
-    };
-    const out = await factory(container, config, ctx);
-    const cleanup = typeof out === 'function' ? out : out?.destroy?.bind(out);
-    return {
-        destroy() {
-            ac.abort();
-            for (const off of [...offs].reverse()) run(off, 'cleanup');
-            offs.clear();
-            run(cleanup, 'page cleanup');
-        },
-    };
-}
+export const mountPage = (container, page, options) => loadChunk('svc-mount-page').then(f => f.mountPage(container, page, options));
