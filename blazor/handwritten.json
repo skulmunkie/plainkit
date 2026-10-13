@@ -211,6 +211,14 @@
       "category": "runtime",
       "blazorOnly": "C# port of core/js/page-context.js (#670): server rendering has no JS to ask; core/tests/fixtures/page-context.json is read by both test suites so the two cannot drift"
     },
+    "PkNavModel.cs": {
+      "category": "router",
+      "blazorOnly": "C# port of appLocate (core/tools/app-manifest.mjs, #364) over PkPageContext: server rendering has no JS to ask; core/tests/fixtures/app-nav.json is read by both test suites"
+    },
+    "PkAppModules.cs": {
+      "category": "router",
+      "blazorOnly": "DI registration of the app's module allow-list (IPkModule, PkModuleCatalog, AddPlainKitApp): a .NET host concern with no JS counterpart"
+    },
     "PkRuntime.cs": {
       "category": "runtime"
     },
