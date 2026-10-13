@@ -1,0 +1,11 @@
+import fs from 'fs';
+import zlib from 'zlib';
+import path from 'path';
+import cp from 'child_process';
+const strip = t => t.replace(/\/\*[\s\S]*?\*\//g, '').replace(/^\s*\/\/.*$/gm, '').replace(/\n\s+/g, '\n');
+const base = process.argv[2] === 'base';
+const get = f => base ? cp.execSync('git show origin/main:core/' + f, { maxBuffer: 1e8 }).toString() : fs.readFileSync('core/' + f, 'utf8');
+const seen = new Set();
+const walk = f => { if (seen.has(f)) return; seen.add(f); for (const m of get(f).matchAll(/(?:^|\n)\s*(?:import|export)\s[^'"\n]*?from\s+'(\.[^']+)'/g)) walk(path.posix.normalize(path.posix.join(path.posix.dirname(f), m[1]))); };
+walk('js/app.js');
+console.log(zlib.gzipSync(Buffer.from([...seen].map(f => strip(get(f).replace(/\r\n/g, '\n'))).join('\n'))).length);
