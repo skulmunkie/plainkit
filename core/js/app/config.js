@@ -6,7 +6,7 @@
 //       modules: [                                           // the module picker's list, in order, and the ALLOW-LIST: the only code the app ever imports
 //           { id: 'orders', title: 'Orders', load: () => import('./modules/orders.js') },
 //           { id: 'settings', title: 'Settings', load: () => import('./modules/settings.js'), menu: 'settings' },   // in the settings menu, not the bar
-//       ],                                                   // entry: id, title, load (required), icon, menu ('settings'), can
+//       ],                                                   // entry: id, title, load (required), icon, menu ('settings'), can, contributes (dashboard widgets, #494: js/app/pages/dashboard-compose.js; not wired yet)
 //       home: 'orders',                                      // where '#/' goes (default: the first module in the bar)
 //       routing: 'hash', base: '',                           // 'hash' ('#/<moduleId>/...', static hosting, the default) or 'path' (server rewrites; base = the prefix)
 //       search: { placeholder: 'Search', minLength: 1 },     // the header search; false leaves it out. Results: the active module's `search(query, ctx)`, else its nav
@@ -37,17 +37,17 @@ export function readFooter(footer, key = 'footer') {
 }
 
 export function readConfig(config) {
-    const c = known(obj(config ?? fail('', 'is required (an object: modules, brand, ...)'), ''), ['title', 'brand', 'modules', 'home', 'routing', 'base', 'search', 'footer', 'theme', 'storage', 'auth', 'can'], '');
+    const c = known(obj(config ?? fail('', 'is required'), ''), ['title', 'brand', 'modules', 'home', 'routing', 'base', 'search', 'footer', 'theme', 'storage', 'auth', 'can'], '');
     if (!Array.isArray(c.modules) || !c.modules.length) fail('modules', 'must be a non-empty array of { id, title, load }');
     const ids = new Set();
     const modules = c.modules.map((m, i) => {
         const at = `modules[${i}]`;
-        known(obj(m, at), ['id', 'title', 'icon', 'load', 'menu', 'can'], `${at}.`);
+        known(obj(m, at), ['id', 'title', 'icon', 'load', 'menu', 'can', 'contributes'], `${at}.`);
         if (typeof m.id !== 'string' || !MODULE_ID.test(m.id)) fail(`${at}.id`, `must match ${MODULE_ID}`);
         if (ids.has(m.id)) fail(`${at}.id`, `"${m.id}" is used twice`);
         ids.add(m.id);
-        if (!isFn(m.load)) fail(`${at}.load`, 'must be a function that imports the module (see the header of js/app/config.js)');
-        if (m.can !== undefined && !isFn(m.can)) fail(`${at}.can`, 'must be a function');
+        if (!isFn(m.load)) fail(`${at}.load`, 'must be a function that imports the module');
+        if (m.can !== undefined && !isFn(m.can)) fail(`${at}.can`, 'must be a function'); if (!Array.isArray(m.contributes ?? [])) fail(`${at}.contributes`, 'must be an array');
         if (m.menu !== undefined && m.menu !== 'settings') fail(`${at}.menu`, "must be 'settings' or left out");
         return { ...m, title: str(m.title, `${at}.title`, m.id) };
     });
@@ -55,15 +55,14 @@ export function readConfig(config) {
     if (!ids.has(home)) fail('home', `"${home}" is not one of the modules`);
     if (c.routing !== undefined && c.routing !== 'hash' && c.routing !== 'path') fail('routing', "must be 'hash' or 'path'");
     if (c.can !== undefined && !isFn(c.can)) fail('can', 'must be a function');
-    const brand = known(obj(c.brand, 'brand'), ['text'], 'brand.');
+    const brand = { text: str(known(obj(c.brand, 'brand'), ['text'], 'brand.').text, 'brand.text', 'App') };
     const search = c.search === false ? null : known(obj(c.search, 'search'), ['placeholder', 'minLength'], 'search.');
-    const theme = known(obj(c.theme, 'theme'), ['default', 'param'], 'theme.');
-    const storage = known(obj(c.storage, 'storage'), ['prefix', 'version', 'legacy'], 'storage.');
+    const [theme, storage] = [known(obj(c.theme, 'theme'), ['default', 'param'], 'theme.'), known(obj(c.storage, 'storage'), ['prefix', 'version', 'legacy'], 'storage.')];
     if (theme.default !== undefined && theme.default !== 'light' && theme.default !== 'dark') fail('theme.default', "must be 'light' or 'dark'");
     if (storage.version !== undefined && !Number.isInteger(storage.version)) fail('storage.version', 'must be an integer');
     return {
-        title: str(c.title, 'title', str(brand.text, 'brand.text', 'App')),
-        brand: { text: str(brand.text, 'brand.text', 'App') },
+        title: str(c.title, 'title', brand.text),
+        brand,
         modules, home, auth: c.auth, can: c.can,
         routing: c.routing ?? 'hash', base: str(c.base, 'base', ''),
         search: search && { placeholder: str(search.placeholder, 'search.placeholder', 'Search'), minLength: Number.isInteger(search.minLength) && search.minLength >= 0 ? search.minLength : 1 },

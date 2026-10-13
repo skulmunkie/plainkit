@@ -1,6 +1,6 @@
 // The npm tarball (`npm pack` in core/) has a size ceiling and a closed list of top-level entries: a one-way ratchet (packaging plan, step 2).
-// Measured after compacting the generated JSON (api.json and the editor manifests; 0.13): 1,723,626 packed / 6,683,303 unpacked bytes.
-// The ceilings are that, rounded up by under 2%. NEVER RAISE THEM: make the package smaller (lower them when it shrinks).
+// Measured after leaving llms-full.txt out of the package (it repeats dist/skills; 0.14): 1,399,986 packed / 5,455,235 unpacked bytes.
+// The ceilings leave about 50 KB of headroom for new work. NEVER RAISE THEM: make the package smaller (lower them when it shrinks).
 import './needs-bootstrap.mjs';
 import test from 'node:test';
 import assert from 'node:assert/strict';
@@ -10,8 +10,8 @@ import { spawnSync } from 'node:child_process';
 import { fileURLToPath } from 'node:url';
 
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
-const MAX_PACKED_BYTES = 1_750_000;
-const MAX_UNPACKED_BYTES = 6_780_000;
+const MAX_PACKED_BYTES = 1_450_000;
+const MAX_UNPACKED_BYTES = 5_600_000;
 const TOP_LEVEL = new Set(['dist', 'LICENSE', 'README.md', 'package.json']);
 // dist/ is the runtime unit; these are the entries of dist/ the package may carry (dist/modules is the dev-tool unit, a separate download).
 const DIST = new Set(['breakpoints.report.json', 'custom-elements.json', 'elements', 'elements.d.ts', 'elements.vue.d.ts', 'gallery', 'icons.svg', 'js', 'llms-full.txt', 'llms.txt',

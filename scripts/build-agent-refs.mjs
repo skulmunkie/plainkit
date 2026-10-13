@@ -95,7 +95,7 @@ function llmsTxt(src, bundle) {
     const out = [
         '# Plainkit', '',
         `> Plainkit ${version}. A dependency-free UI toolkit: \`pk-*\` custom elements, CSS tokens and small ES modules for plain HTML pages with no framework and no build step, plus a Blazor component wrapper (PlainKit.Blazor).`, '',
-        'Everything in one file: [llms-full.txt](llms-full.txt) (the whole reference, concatenated plainly). Claude Code loads the skills directly: `skills/plainkit-sdk/SKILL.md`, `skills/plainkit-blazor/SKILL.md`.', '',
+        'Everything in one file: `llms-full.txt`, served beside this file on the Pages site and in the release assets (the whole reference, concatenated plainly; the npm package leaves it out, its `skills/` hold the same text). Claude Code loads the skills directly: `skills/plainkit-sdk/SKILL.md`, `skills/plainkit-blazor/SKILL.md`.', '',
     ];
     for (const skill of SKILL_NAMES) {
         const { skillMd, refs } = skillFiles(bundle, skill);

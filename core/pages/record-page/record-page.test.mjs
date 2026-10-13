@@ -148,3 +148,46 @@ test('delete: the Delete button shows in view mode of an existing record when co
     el.config = { ...el.config, deletable: false }; el.mode = 'view'; el.draw();
     assert.equal(parts.delete.hidden, true, 'not without config.deletable');
 });
+
+test('deletable: the prop shows Delete like config.deletable, and clearing both hides it (#1000)', async () => {
+    const { el, parts } = make();
+    el.load = async () => ({ name: 'Widget', status: 'a' });
+    el.connected();
+    await tick();
+    assert.equal(parts.delete.hidden, true, 'neither the prop nor the config');
+    el.deletable = true; el.changed('deletable');
+    assert.equal(parts.delete.hidden, false, 'the prop alone');
+    el.deletable = false; el.changed('deletable');
+    assert.equal(parts.delete.hidden, true);
+});
+
+test('busy: every button waits, Save shows its busy state, and a submit is ignored until it clears (#1000)', async () => {
+    const { el, parts } = make();
+    let saves = 0;
+    el.load = async () => ({ name: 'Widget', status: 'a' });
+    el.save = async () => { saves++; };
+    el.connected();
+    await tick();
+    el.controls = () => [];
+    el.busy = true; el.changed('busy');
+    for (const p of ['edit', 'cancel', 'save', 'delete']) assert.equal(parts[p].disabled, true, p);
+    assert.equal(parts.save.busy, true);
+    await el.submit();
+    assert.equal(saves, 0, 'ignored while busy');
+    el.busy = false; el.changed('busy');
+    for (const p of ['edit', 'cancel', 'save', 'delete']) assert.equal(parts[p].disabled, false, p);
+    assert.equal(parts.save.busy, false);
+    await el.submit();
+    assert.equal(saves, 1);
+});
+
+test('error: the host text is a notice above the form, and empty clears it (#1000)', async () => {
+    const { el, parts } = make();
+    el.load = async () => ({ name: 'Widget', status: 'a' });
+    el.connected();
+    await tick();
+    el.error = 'Could not delete the order.'; el.changed('error');
+    assert.equal(parts.notice.children[0].textContent, 'Could not delete the order.');
+    el.error = ''; el.changed('error');
+    assert.equal(parts.notice.children.length, 0);
+});

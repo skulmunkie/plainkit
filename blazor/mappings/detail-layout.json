@@ -21,6 +21,11 @@
       "type": "string"
     },
     {
+      "name": "HideTabs",
+      "prop": "hideTabs",
+      "type": "bool"
+    },
+    {
       "name": "NextLabel",
       "prop": "nextLabel"
     },

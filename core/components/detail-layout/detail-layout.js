@@ -22,7 +22,7 @@ export default Base => class extends Base {
         this.sync();
     }
     disconnected() { this.$ro?.disconnect(); this.$mo?.disconnect(); this.$mq?.removeEventListener('change', this.$sync); this.$mq = null; }
-    changed(name) { if (name === 'section' || name === 'nextLabel' || name === 'tabsFrom') this.sync(); }
+    changed(name) { if (name === 'section' || name === 'nextLabel' || name === 'tabsFrom' || name === 'hideTabs') this.sync(); }
     pick(name) {
         const previous = this.$active;
         if (!name || name === previous) return;
@@ -35,11 +35,11 @@ export default Base => class extends Base {
         const names = [...new Set(cards.map(c => c.dataset.pkSection))];
         const tabs = this.part('tabs'), next = this.part('next');
         const on = names.length > 1;
-        tabs.hidden = !on;
+        tabs.hidden = !on || this.hideTabs; // hideTabs (issue 1241): the strip is the host's (a pk-page-header tabs-from), so the layout draws none but still shows one section at a time
         const from = this.tabsFrom;
         if (this.$from !== from) { this.$mq?.removeEventListener('change', this.$sync); this.$from = from; this.$mq = from === 'phone' || from === 'tablet' ? mediaBelow(from) : null; this.$sync ??= () => this.sync(); this.$mq?.addEventListener('change', this.$sync); }
         tabs.toggleAttribute('data-on', on && (from === 'always' || !!this.$mq?.matches));
-        const collapsed = on && getComputedStyle(tabs).display !== 'none';
+        const collapsed = on && (this.hideTabs || getComputedStyle(tabs).display !== 'none');
         if (this.section && on && !names.includes(this.section)) this.warnOnce('section:' + this.section, `section="${this.section}" matches no data-pk-section: showing the first`, { section: this.section, sections: names });
         const active = this.$active = names.includes(this.section) ? this.section : names[0];
         const key = names.map(n => n + '\n' + (cards.find(c => c.dataset.pkSection === n).dataset.pkSectionLabel || '')).join('\r');

@@ -240,6 +240,20 @@ export const layoutCases = [
         t.ok(shown('a') && shown('b') && shown('c') && getComputedStyle(el.part('tabs')).display === 'none', 'tabs-from=phone: a wide viewport shows every section and no strip');
     }],
 
+    ['detail-layout: hide-tabs draws no strip of its own and shows one section at a time from a pk-page-header strip on a wide layout (#1241)', async t => {
+        const root = await t.mount('<div><pk-page-header heading="Item" tabs-from="always"></pk-page-header><pk-detail-layout hide-tabs><pk-card id="a" heading="A" data-pk-section="details">a</pk-card><pk-card id="b" heading="B" data-pk-section="pricing">b</pk-card></pk-detail-layout></div>');
+        const head = root.querySelector('pk-page-header'), el = root.querySelector('pk-detail-layout');
+        head.tabs = [{ value: 'details', label: 'Details' }, { value: 'pricing', label: 'Pricing' }];
+        head.addEventListener('pk-tab-change', e => { el.section = e.detail.value; });
+        const shown = id => getComputedStyle(el.querySelector('#' + id)).display !== 'none';
+        const settle = async () => { await t.settle(); await new Promise(r => requestAnimationFrame(() => setTimeout(r, 50))); };
+        size(el, rem(60)); await settle();
+        t.ok(getComputedStyle(el.part('tabs')).display === 'none', 'the layout draws no strip');
+        t.ok(shown('a') && !shown('b'), 'only the first section shows, though the layout is two-column wide');
+        head.part('strip').querySelector('pk-tab[value="pricing"]').click(); await settle();
+        t.ok(!shown('a') && shown('b'), 'choosing a tab on the header shows that section');
+    }],
+
     ['detail-layout: sidebarFirst reorders the sidebar before the main content once collapsed; sidebarTwoUp lays its own cards two per row', async t => {
         const el = await t.mount('<pk-detail-layout sidebar-first sidebar-two-up><p>Main</p><div slot="sidebar"><p>A</p><p>B</p></div></pk-detail-layout>');
         size(el, rem(30)); await t.settle();
