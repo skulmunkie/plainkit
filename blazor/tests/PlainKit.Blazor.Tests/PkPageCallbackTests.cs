@@ -138,6 +138,22 @@ public sealed class PkPageCallbackTests : BunitContext, IAsyncLifetime
     }
 
     [Fact]
+    public void RecordPage_spec_Editor_is_the_custom_fields_body_slot_and_gets_the_model()
+    {
+        IReadOnlyList<PkFieldSpec<Person>> fields =
+        [
+            new() { Key = "name", Label = "Name", Get = p => p.Name, Set = (p, v) => p.Name = v ?? "" },
+            new() { Key = "tags", Label = "Tags", Get = _ => "", Set = (_, _) => { }, Editor = p => b => b.AddContent(0, "Edit " + p.Name) },
+        ];
+        var cut = Render<PkRecordPage<Person>>(p => p.Add(x => x.Fields, fields).Add(x => x.Model, new Person { Name = "Ada" }));
+
+        Assert.Equal("Edit Ada", cut.Find("[slot=editor-tags]").TextContent);
+        Assert.Empty(cut.FindAll("[slot=editor-name]"));
+        var config = JsonDocument.Parse(cut.Find("pk-record-page").GetAttribute("config")!).RootElement;
+        Assert.Equal("custom", config.GetProperty("fields")[1].GetProperty("kind").GetString());
+    }
+
+    [Fact]
     public async Task RecordPage_OnDelete_shows_Delete_and_Busy_and_Error_reach_the_element()
     {
         string? deleted = null;

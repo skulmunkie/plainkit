@@ -498,7 +498,9 @@ export function renderComponent(m, mappingName, ns = 'PlainKit.Blazor') {
     const colCells = m.cells?.columns ? '@if (Columns is not null) {foreach (var row in _cellRows) {foreach (var col in Columns) {if (col.Cell is not null) {<span slot="@($"cell-{row.Id}-{col.Key}")" class="u-contents" @key="@($"cell-{row.Id}-{col.Key}")">@col.Cell(row.Item)</span>}}}}' : '';
     const cells = colCells + (m.cells ? '@if (Cells is not null) {foreach (var row in _cellRows) {foreach (var cell in Cells) {<span slot="@($"cell-{row.Id}-{cell.Key}")" class="u-contents" @key="@($"cell-{row.Id}-{cell.Key}")">@cell.Value(row.Item)</span>}}}' : '');
     const slotMaps = (m.slotMaps ?? []).map(s => `@if (${s.name} is not null) {foreach (var item in ${s.name}) {<span slot="@($"${s.prefix}{item.Key}")" class="u-contents" @key="@($"${s.prefix}{item.Key}")">@item.Value</span>}}`).join('');
-    const children = children0 + cells + slotMaps;
+    // recordModel: a spec's Editor template is the body of its custom field in edit mode (the element forwards slot editor-<key> into its field group).
+    const editors = m.recordModel ? '@if (Fields is not null && (_loaded ?? Model) is { } editing) {foreach (var f in Fields) {if (f.Editor is not null) {<span slot="@($"editor-{f.Key}")" class="u-contents" @key="@($"editor-{f.Key}")">@f.Editor(editing)</span>}}}' : '';
+    const children = children0 + cells + slotMaps + editors;
     if (attrs.length === 0) L.push(`<${m.tag}>${children}</${m.tag}>`);
     else {
         const pad = ' '.repeat(m.tag.length + 2);

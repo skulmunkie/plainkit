@@ -116,6 +116,8 @@ export default Base => class extends Base {
         group.setAttribute('label', this.config?.heading || this.config?.title || 'Record');
         group.fields = this.fields.map(spec);
         group.values = { ...vals };
+        // A custom field's body is the host's editor-<key> child: forward that slot into the group's own.
+        for (const f of this.fields) if (kindOf(f) === 'custom') { const slot = doc.createElement('slot'); slot.setAttribute('name', `editor-${key(f)}`); slot.setAttribute('slot', `editor-${key(f)}`); group.append(slot); }
         this.$group = group;
         form.append(group);
         pf.append(form);
