@@ -22,6 +22,27 @@
       "description": "view reads the record; edit shows the form with Save and Cancel. Edit and a successful save switch it; a new record is always in edit mode."
     },
     {
+      "name": "deletable",
+      "type": "boolean",
+      "default": false,
+      "reflect": true,
+      "description": "Shows the Delete button in view mode of an existing record; pk-record-delete fires when it is pressed. The same as config.deletable (either one shows it)."
+    },
+    {
+      "name": "busy",
+      "type": "boolean",
+      "default": false,
+      "reflect": true,
+      "description": "The host is working (a delete, a save it runs itself): Edit, Cancel, Save and Delete are disabled and Save shows its busy state, and a submit is ignored, until it is false again."
+    },
+    {
+      "name": "error",
+      "type": "string",
+      "default": "",
+      "reflect": false,
+      "description": "The host's error text, shown as a notice above the form (for example a failed delete); empty clears it. A rejected save shows its own notice in the same place."
+    },
+    {
       "name": "dirty",
       "type": "boolean",
       "default": false,
@@ -51,7 +72,7 @@
     {
       "name": "pk-record-delete",
       "detail": "{ id }",
-      "detailProps": {},
+      "detailProps": { "id": "string" },
       "description": "The Delete button (shown in view mode of an existing record when config.deletable is set) was pressed. The app framework's record page type asks first, calls its delete(id, ctx) and toasts; a host that uses the element alone handles the event."
     }
   ],

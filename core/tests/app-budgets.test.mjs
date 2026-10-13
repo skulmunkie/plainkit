@@ -58,9 +58,9 @@ test('every js/app/pages/ chunk stays inside appPageTypeGzKb, and every js/app/ 
 // Per-module line targets (#362): a ratchet set EQUAL to today's size. A file may shrink (then lower its number here), never grow; a new file
 // under js/app/ has no entry, so it fails until it is listed at its own size. Never raise a number.
 const LINES = {
-    'js/app.js': 8, 'js/app/app.js': 221, 'js/app/boundary.js': 90, 'js/app/config.js': 74, 'js/app/host.js': 291, 'js/app/lazy.js': 41,
+    'js/app.js': 8, 'js/app/app.js': 221, 'js/app/boundary.js': 90, 'js/app/config.js': 73,  'js/app/host.js': 291, 'js/app/lazy.js': 41,
     'js/app/module.js': 182, 'js/app/nav.js': 118, 'js/app/shell.js': 58,
-    'js/app/pages/custom.js': 14, 'js/app/pages/dashboard.js': 17, 'js/app/pages/doc.js': 31, 'js/app/pages/list.js': 26, 'js/app/pages/master-detail.js': 25,
+    'js/app/pages/custom.js': 14, 'js/app/pages/dashboard-compose.js': 65, 'js/app/pages/dashboard.js': 17, 'js/app/pages/doc.js': 31, 'js/app/pages/list.js': 26, 'js/app/pages/master-detail.js': 25,
     'js/app/pages/not-found.js': 20, 'js/app/pages/note.js': 18, 'js/app/pages/print.js': 25, 'js/app/pages/record.js': 43, 'js/app/pages/settings.js': 19,
     'js/app/pages/states.js': 22, 'js/app/pages/svc-dialogs.js': 2, 'js/app/pages/svc-leave-guard.js': 52, 'js/app/pages/svc-notify.js': 2,
     'js/app/pages/svc-page-toasts.js': 15, 'js/app/pages/svc-tasks.js': 2, 'js/app/pages/tool.js': 19, 'js/app/pages/wizard.js': 23, 'js/app/pages/workspace.js': 19,

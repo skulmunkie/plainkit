@@ -108,6 +108,26 @@ public sealed class PkPageCallbackTests : BunitContext, IAsyncLifetime
     }
 
     [Fact]
+    public async Task RecordPage_OnDelete_shows_Delete_and_Busy_and_Error_reach_the_element()
+    {
+        string? deleted = null;
+        var plain = Render<PkRecordPage>();
+        Assert.False(plain.Find("pk-record-page").HasAttribute("deletable"));
+
+        var cut = Render<PkRecordPage>(p => p
+            .Add(x => x.OnDelete, EventCallback.Factory.Create<PkRecordDeleteEventArgs>(this, e => deleted = e.Id))
+            .Add(x => x.Busy, true)
+            .Add(x => x.Error, "Could not delete."));
+        var el = cut.Find("pk-record-page");
+        Assert.True(el.HasAttribute("deletable"));
+        Assert.True(el.HasAttribute("busy"));
+        Assert.Equal("Could not delete.", el.GetAttribute("error"));
+
+        await el.TriggerEventAsync("onpk-record-delete", new PkRecordDeleteEventArgs { Id = "7" });
+        Assert.Equal("7", deleted);
+    }
+
+    [Fact]
     public async Task RecordPage_load_gets_the_id_as_text_and_save_gets_the_values()
     {
         string? loadedId = null; IReadOnlyDictionary<string, JsonElement>? saved = null;

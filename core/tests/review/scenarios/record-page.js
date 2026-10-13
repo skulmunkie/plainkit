@@ -1,4 +1,4 @@
-// pk-record-page (#353): a record read as a field list beside summary cards, then in edit mode (the form), then a failed save with a server error on its field.
+// pk-record-page (#353): a record read as a field list beside summary cards, then in edit mode (the form), then a failed save with a server error on its field, and the host-bound surface (Delete, busy, a host error; #1000).
 // load and save are callback properties, wired in setup(), so every state is the real one.
 const RP = 'pk-record-page';
 const MAIN = `${RP} >>> [part=main]`;
@@ -11,6 +11,7 @@ export default {
         const el = frame.querySelector(RP);
         el.load = () => ({ name: 'Widget 1 Cover A', sku: 'AC-1001', status: 'active', notes: 'Ships in two boxes.' });
         el.save = () => Promise.reject(Object.assign(new Error('The record was not saved.'), { errors: { sku: 'SKU AC-1001 is already used.' } }));
+        el.deletable = true;
         el.config = {
             id: '1', heading: 'Product', title: 'Widget 1', breadcrumb: [{ label: 'Home', href: '#' }, { label: 'Products', href: '#' }], actions: [{ key: 'archive', label: 'Archive', variant: 'secondary' }],
             fields: [
@@ -26,6 +27,7 @@ export default {
         { shot: 'view' },
         { click: `${RP} >>> [part=edit]` }, { shot: 'edit' },
         { click: `${RP} >>> [part=save]` }, { shot: 'server-error' },
+        { click: `${RP} >>> [part=cancel]` }, { set: RP, prop: 'error', value: 'Could not delete the order.' }, { set: RP, prop: 'busy', value: true }, { shot: 'host-error-busy' },
     ],
     expect(t) {
         t.inViewport(RP);
@@ -39,6 +41,11 @@ export default {
         if (t.shot === 'edit') {
             t.visible(`${MAIN} pk-form`, 'the form');
             t.visible(`${RP} >>> [part=save]`, 'the Save button');
+        }
+        if (t.shot === 'host-error-busy') {
+            t.visible(`${RP} >>> [part=delete]`, 'the Delete button');
+            t.hasText(`${RP} >>> [part=notice]`, 'Could not delete the order.');
+            t.noOverlap(`${RP} >>> [part=notice]`, `${RP} >>> [part=layout]`);
         }
         if (t.shot === 'server-error') {
             t.visible(`${MAIN} pk-field[error]`, 'the field carrying the server error');
