@@ -245,3 +245,42 @@ headerCases.push(
         page.remove();
     }],
 );
+
+// Issue 1000 step 2: the edit form is one pk-field-group drawn from the field defs; typed values, a checkbox boolean, a hint and a server error on a field all work through it.
+headerCases.push(
+    ['record-page: edit mode is one pk-field-group from the field defs (key, kind, hint): save receives the typed values, a server error lands on its field, a new record starts from config.values', async t => {
+        const wait = ms => new Promise(r => setTimeout(r, ms));
+        const page = await t.mount('<pk-record-page></pk-record-page>');
+        let saved = null, fail = true;
+        page.load = async () => ({ name: 'Widget', qty: '2', active: true });
+        page.save = async v => { saved = v; if (fail) throw Object.assign(new Error('invalid'), { errors: { name: 'Name is taken' } }); };
+        page.config = { id: '7', fields: [{ key: 'name', label: 'Name', required: true, hint: 'Shown on invoices' }, { key: 'qty', label: 'Quantity', kind: 'number' }, { key: 'active', label: 'Active', kind: 'checkbox' }] };
+        for (let i = 0; i < 40 && page.part('edit').hidden; i++) await wait(50);
+        await t.load(page.shadowRoot); await t.settle();
+        page.part('edit').click(); await t.settle();
+        const group = page.part('main').querySelector('pk-field-group');
+        t.ok(group, 'edit mode draws a pk-field-group');
+        await t.load(group.shadowRoot); await t.settle(); await t.settle();
+        t.eq(group.shadowRoot.querySelectorAll('pk-field').length, 3, 'one pk-field per def');
+        t.ok(group.shadowRoot.querySelector('pk-field[help="Shown on invoices"]'), 'the hint is the line under the control');
+        const name = page.controls()[0]; name.value = 'Taken'; name.dispatchEvent(new Event('input', { bubbles: true, composed: true }));
+        t.ok(page.dirty, 'typing marks the page dirty');
+        page.part('save').click();
+        for (let i = 0; i < 40 && !saved; i++) await wait(50);
+        t.eq(saved.name, 'Taken'); t.eq(saved.qty, 2, 'a number def saves a number'); t.eq(saved.active, true, 'a checkbox saves a boolean');
+        for (let i = 0; i < 40 && group.shadowRoot.querySelector('pk-field').error !== 'Name is taken'; i++) await wait(50);
+        t.eq(group.shadowRoot.querySelector('pk-field').error, 'Name is taken', 'the server error lands on its field');
+        fail = false; page.part('save').click();
+        for (let i = 0; i < 40 && page.mode !== 'view'; i++) await wait(50);
+        t.eq(page.mode, 'view', 'a good save returns to view mode');
+        page.remove();
+        const fresh = await t.mount('<pk-record-page></pk-record-page>');
+        fresh.save = async () => {};
+        fresh.config = { fields: [{ key: 'name', label: 'Name' }], values: { name: 'Draft' } };
+        await t.load(fresh.shadowRoot); await t.settle();
+        const g2 = fresh.part('main').querySelector('pk-field-group');
+        await t.load(g2.shadowRoot); await t.settle(); await t.settle();
+        t.eq(fresh.controls()[0].value, 'Draft', 'a new record starts from config.values');
+        fresh.remove();
+    }],
+);

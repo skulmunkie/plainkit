@@ -337,7 +337,7 @@ export const appCases = [
 
     ['record page type (#353): loading while load() is pending, a rejection shows the danger alert with a working Retry, edit shows the form and a server error lands on its field', async t => {
         const { mountPage } = await dist('js/app.js');
-        await t.load(t.stage('<pk-record-page></pk-record-page><pk-heading></pk-heading><pk-form></pk-form><pk-field-list></pk-field-list><pk-field></pk-field>')); // loaded on demand: define them first, so the case also passes on its own (--elements)
+        await t.load(t.stage('<pk-record-page></pk-record-page><pk-heading></pk-heading><pk-form></pk-form><pk-field-list></pk-field-list><pk-field-group></pk-field-group>')); // loaded on demand: define them first, so the case also passes on its own (--elements)
         const box = document.createElement('div'); t.stage('').append(box);
         let attempts = 0, release;
         const page = await mountPage(box, { type: 'record', config: { id: '1', fields: [{ name: 'name', label: 'Name', required: true }], load: () => {
@@ -358,11 +358,13 @@ export const appCases = [
         el.part('edit').click();
         await until(() => el.part('main').querySelector('pk-form'), 'edit mode');
         await t.load(el.part('main'));
-        const ctl = el.part('main').querySelector('[name=name]');
+        const group = el.part('main').querySelector('pk-field-group');
+        await t.load(group.shadowRoot); await until(() => el.controls().length, 'the form controls');
+        const ctl = el.controls()[0];
         ctl.value = 'Taken'; ctl.dispatchEvent(new Event('input', { bubbles: true, composed: true }));
         t.eq(el.dirty, true, 'an edit marks the page dirty');
         el.part('save').click();
-        await until(() => el.part('main').querySelector('pk-field').getAttribute('error') === 'Name is taken', 'the inline server error');
+        await until(() => group.shadowRoot.querySelector('pk-field').error === 'Name is taken', 'the inline server error');
         t.eq(el.dirty, true, 'a failed save stays dirty');
         page.destroy();
     }],
