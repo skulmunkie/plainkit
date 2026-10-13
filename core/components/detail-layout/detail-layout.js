@@ -19,10 +19,11 @@ export default Base => class extends Base {
         }
         this.$mo ||= new MutationObserver(() => this.sync());
         this.$mo.observe(this, { childList: true, subtree: true, attributes: true, attributeFilter: ['data-pk-section', 'data-pk-section-label'] });
+        this.watch_();
         this.sync();
     }
     disconnected() { this.$ro?.disconnect(); this.$mo?.disconnect(); this.$mq?.removeEventListener('change', this.$sync); this.$mq = null; }
-    changed(name) { if (name === 'section' || name === 'nextLabel' || name === 'tabsFrom' || name === 'hideTabs') this.sync(); }
+    changed(name) { if (name === 'section' || name === 'nextLabel' || name === 'tabsFrom' || name === 'hideTabs' || name === 'sectionsAbove') this.sync(); }
     pick(name) {
         const previous = this.$active;
         if (!name || name === previous) return;
@@ -36,8 +37,17 @@ export default Base => class extends Base {
         if (this.$last !== undefined && this.$last !== active) { const url = new URL(win.location.href); url.searchParams.set(this.tabParam, active); win.history.replaceState(win.history.state, '', url); }
         this.$last = active;
     }
+    /** sections-above (issue 1241): the tagged preceding siblings, in document order. */
+    above_() { const out = []; if (this.sectionsAbove) for (let e = this.previousElementSibling; e; e = e.previousElementSibling) if (e.dataset.pkSection) out.unshift(e); return out; }
+    watch_() {
+        const p = this.parentElement;
+        if (!this.sectionsAbove || !p) return;
+        this.$mo.observe(p, { childList: true });
+        for (let e = this.previousElementSibling; e; e = e.previousElementSibling) this.$mo.observe(e, { attributes: true, attributeFilter: ['data-pk-section', 'data-pk-section-label'] });
+    }
     sync() {
-        const cards = [...this.querySelectorAll('[data-pk-section]')];
+        this.watch_();
+        const cards = [...this.above_(), ...this.querySelectorAll('[data-pk-section]')];
         const names = [...new Set(cards.map(c => c.dataset.pkSection))];
         const tabs = this.part('tabs'), next = this.part('next');
         const on = names.length > 1;

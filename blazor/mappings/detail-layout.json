@@ -26,6 +26,11 @@
       "type": "bool"
     },
     {
+      "name": "SectionsAbove",
+      "prop": "sectionsAbove",
+      "type": "bool"
+    },
+    {
       "name": "TabParam",
       "prop": "tabParam"
     },
