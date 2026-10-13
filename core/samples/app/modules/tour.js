@@ -46,6 +46,14 @@ const inboxConfig = {
     mountDetail: (pane, id) => { const o = ORDERS.find(x => x.id === id); pane.textContent = o ? `${o.customer}: ${o.status}, $${o.total}` : 'Not found'; },
 };
 
+// The escape hatch: no page type fits, so mount(host, ctx) draws the DOM itself and returns its cleanup (the framework also drops listeners and timers made through ctx).
+const clockConfig = {
+    mount: (host, ctx) => {
+        host.textContent = `Opened at ${new Date().toLocaleTimeString()} as ${ctx.id}`;
+        return () => { host.textContent = ''; };
+    },
+};
+
 export default defineModule({
     id: 'tour', title: 'Tour',
     state: { version: 1, defaults: { pageSize: 10 }, persist: ['pageSize'] },
@@ -58,6 +66,7 @@ export default defineModule({
         { id: 'guide', title: 'Guide', route: '/guide' },
         { id: 'inbox', title: 'Inbox', route: '/inbox' },
         { id: 'workspace', title: 'Workspace', route: '/workspace' },
+        { id: 'clock', title: 'Clock', route: '/clock' },
     ],
     routes: [
         { path: '/', label: 'Orders', page: 'list', config: listConfig, children: [
@@ -91,6 +100,7 @@ export default defineModule({
         } },
         { path: '/guide', label: 'Guide', page: 'doc', config: docConfig, children: [{ path: '/guide/:id', label: 'Article', page: 'doc', config: docConfig }] },
         { path: '/inbox', label: 'Inbox', page: 'master-detail', config: inboxConfig, children: [{ path: '/inbox/:id', label: p => `Order ${p.id}`, page: 'master-detail', config: inboxConfig }] },
+        { path: '/clock', label: 'Clock', page: 'custom', config: clockConfig },
         { path: '/workspace', label: 'Workspace', page: 'workspace', config: { panes: ['nav', 'aside'], mount: (panes, ctx) => { panes.main.textContent = `Main pane of ${ctx.id}`; } } },
         { path: '/empty', label: 'Empty', page: 'states', config: { state: 'empty', heading: 'Nothing here yet', description: 'Records you add appear here.' } },
         { path: '*', page: 'not-found' },
