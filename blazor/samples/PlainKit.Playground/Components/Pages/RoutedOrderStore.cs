@@ -9,13 +9,14 @@ public sealed class OrderRecord
 {
     public string Customer { get; set; } = "";
     public string Note { get; set; } = "";
+    public bool Rush { get; set; }
 }
 
 /// <summary>An in-memory stand-in for the data access of the routed list and record pages (guide "A routed list and record page").</summary>
 internal static class RoutedOrderStore
 {
-    private static readonly List<(string Id, string Customer, string Note)> _rows =
-        Enumerable.Range(1, 25).Select(i => (i.ToString(), $"Customer {i}", "")).ToList();
+    private static readonly List<(string Id, string Customer, string Note, bool Rush)> _rows =
+        Enumerable.Range(1, 25).Select(i => (i.ToString(), $"Customer {i}", "", false)).ToList();
 
     public static Task<PkListResult<Order>> PageAsync(PkListRequest r)
     {
@@ -27,7 +28,7 @@ internal static class RoutedOrderStore
     public static Task<OrderRecord?> GetAsync(string id)
     {
         var row = _rows.FirstOrDefault(x => x.Id == id);
-        return Task.FromResult(row.Id is null ? null : new OrderRecord { Customer = row.Customer, Note = row.Note });
+        return Task.FromResult(row.Id is null ? null : new OrderRecord { Customer = row.Customer, Note = row.Note, Rush = row.Rush });
     }
 
     public static Task DeleteAsync(string id)
@@ -39,7 +40,7 @@ internal static class RoutedOrderStore
     public static Task SaveAsync(string id, OrderRecord order)
     {
         var i = _rows.FindIndex(x => x.Id == id);
-        if (i >= 0) _rows[i] = (id, order.Customer, order.Note);
+        if (i >= 0) _rows[i] = (id, order.Customer, order.Note, order.Rush);
         return Task.CompletedTask;
     }
 }
