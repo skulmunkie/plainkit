@@ -134,6 +134,19 @@ export async function mountThemeEditor(container, options = {}) {
     let previewFrame = null;
     let previewSheet = null;
 
+    // Sample swatches: the chosen colours go into one adopted stylesheet on the editor's document, one rule per swatch keyed by data-swatch
+    // (never a style attribute, which the literal-colour rule rejects); each painter owns its rules, and the sheet is dropped in destroy().
+    const swatchSheet = new doc.defaultView.CSSStyleSheet();
+    doc.adoptedStyleSheets = [...doc.adoptedStyleSheets, swatchSheet];
+    const swatchRules = { pairs: [], palette: [] };
+    const safeColour = v => (/^[^{};<>\\]*$/.test(v) ? v : 'transparent');
+    function swatch(group, r) {
+        const id = `${group}-${swatchRules[group].length}`;
+        swatchRules[group].push(`[data-swatch="${id}"] { --_te-fg: ${safeColour(r.fgValue)}; --_te-bg: ${safeColour(r.bgValue)}; }`);
+        return h(doc, 'span', { class: 'te-sample', title: `${r.fgValue} on ${r.bgValue}`, 'data-swatch': id }, 'Aa');
+    }
+    const flushSwatches = () => swatchSheet.replaceSync([...swatchRules.pairs, ...swatchRules.palette].join(' '));
+
     function applyToTarget(css) {
         if (sheet) { sheet.replaceSync(css); return; }
         const next = inlineEntries(state.overrides, theme());
@@ -298,6 +311,7 @@ export async function mountThemeEditor(container, options = {}) {
     // The live audit: every pair in both themes under the current edits, worst first within a theme, each with a jump to the token that sets it.
     function paintPairs() {
         const rows = auditPairs(state.overrides, tokens, pairs);
+        swatchRules.pairs = [];
         const sum = auditSummary(rows);
         warn.hidden = false;
         warn.setAttribute('kind', sum.bad ? 'warning' : 'success');
@@ -305,13 +319,13 @@ export async function mountThemeEditor(container, options = {}) {
         contrastTab.textContent = sum.bad ? `Contrast (${sum.bad} below AA)` : 'Contrast';
         const jump = (name, theme) => h(doc, 'pk-button', { size: 'mini', variant: 'ghost', 'data-jump': name, 'data-jump-theme': theme, label: `Go to ${name} in the ${theme} theme` }, name.replace(/^--/, ''));
         const group = theme => [h(doc, 'h4', { class: 'te-caption' }, `${cap(theme)} theme`), ...rows.filter(r => r.theme === theme).sort((x, y) => Number(y.bad) - Number(x.bad)).map(r => {
-            const sample = h(doc, 'span', { class: 'te-sample', title: `${r.fgValue} on ${r.bgValue}`, 'data-dyn': `--_te-fg:${r.fgValue}; --_te-bg:${r.bgValue}` }, 'Aa');
-            applyDynamic(sample);
+            const sample = swatch('pairs', r);
             return h(doc, 'div', { class: 'te-pair', 'data-pair-row': `${r.theme} ${r.fg} ${r.bg}` }, sample, h(doc, 'code', { class: 'te-pair-name' }, `${r.fg} on ${r.bg}`),
                 h(doc, 'pk-badge', { variant: r.bad ? 'danger' : r.ratio === null ? 'muted' : 'ok' }, r.ratio === null ? 'n/a' : `${r.ratio.toFixed(2)}:1 ${r.grade}`),
                 h(doc, 'pk-cluster', { class: 'te-pair-jump' }, jump(r.fg, r.theme), jump(r.bg, r.theme)));
         })];
         auditBox.replaceChildren(...group('dark'), ...group('light'));
+        flushSwatches();
         for (const n of rowsByName.keys()) paintRow(n);
     }
 
@@ -337,18 +351,19 @@ export async function mountThemeEditor(container, options = {}) {
         const p = generate();
         state.palette = p.error ? null : p;
         applyBrand.toggleAttribute('disabled', Boolean(p.error));
-        if (p.error) { paletteNote.replaceChildren(h(doc, 'pk-alert', { kind: 'danger' }, p.error)); paletteRowsBox.replaceChildren(); return; }
+        if (p.error) { paletteNote.replaceChildren(h(doc, 'pk-alert', { kind: 'danger' }, p.error)); paletteRowsBox.replaceChildren(); swatchRules.palette = []; flushSwatches(); return; }
         paletteNote.replaceChildren(p.moved
             ? h(doc, 'pk-alert', { kind: 'warning' }, `The brand colour ${p.brand} had to move to meet 4.5:1: `, ...p.notes.flatMap((n, i) => (i ? [h(doc, 'br'), n] : [n])))
             : h(doc, 'pk-alert', { kind: 'success' }, `The brand colour ${p.brand} meets 4.5:1 as it is in both themes.`));
         const rows = paletteRows(p.overrides, tokens);
+        swatchRules.palette = [];
         const group = theme => [h(doc, 'h4', { class: 'te-caption' }, `${cap(theme)} theme`), ...rows.filter(r => r.theme === theme).map(r => {
-            const sample = h(doc, 'span', { class: 'te-sample', title: `${r.fgValue} on ${r.bgValue}`, 'data-dyn': `--_te-fg:${r.fgValue}; --_te-bg:${r.bgValue}` }, 'Aa');
-            applyDynamic(sample);
+            const sample = swatch('palette', r);
             return h(doc, 'div', { class: 'te-pair', 'data-pair-row': `${r.theme} ${r.fg} ${r.bg}` }, sample, h(doc, 'code', { class: 'te-pair-name' }, `${r.fg} on ${r.bg}`),
                 h(doc, 'pk-badge', { variant: r.bad ? 'danger' : 'ok' }, r.ratio === null ? 'n/a' : `${r.ratio.toFixed(1)}:1 ${r.grade}`));
         })];
         paletteRowsBox.replaceChildren(...group('dark'), ...group('light'));
+        flushSwatches();
     }
 
     function presetNote(kind, text) {
@@ -592,6 +607,7 @@ export async function mountThemeEditor(container, options = {}) {
         },
         destroy() {
             observer.disconnect();
+            doc.adoptedStyleSheets = doc.adoptedStyleSheets.filter(x => x !== swatchSheet);
             sdk?.destroy();
             for (const off of listeners) off();
             if (sheet) targetDoc.adoptedStyleSheets = targetDoc.adoptedStyleSheets.filter(s => s !== sheet);
