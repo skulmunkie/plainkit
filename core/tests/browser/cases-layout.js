@@ -254,6 +254,25 @@ export const layoutCases = [
         t.ok(!shown('a') && shown('b'), 'choosing a tab on the header shows that section');
     }],
 
+    ['detail-layout: tab-param opens on the section the query names and writes a change with replaceState (other parameters and hash kept, history length unchanged) (#1241)', async t => {
+        const html = '<pk-detail-layout tabs-from="always" tab-param="tab"><pk-card id="a" heading="A" data-pk-section="details">a</pk-card><pk-card id="b" heading="B" data-pk-section="pricing">b</pk-card></pk-detail-layout>';
+        const before = location.href, len = history.length;
+        const shown = (el, id) => getComputedStyle(el.querySelector('#' + id)).display !== 'none';
+        try {
+            history.replaceState(null, '', '?x=1#h');
+            const el = await t.mount(html); await t.settle();
+            t.ok(shown(el, 'a') && !shown(el, 'b'), 'no parameter: the first section');
+            t.eq(location.search, '?x=1', 'nothing is written on load');
+            el.part('tabs').querySelector('pk-tab[value="pricing"]').click(); await t.settle();
+            t.eq(location.search, '?x=1&tab=pricing', 'the chosen section is written, other parameters kept'); t.eq(location.hash, '#h', 'the hash is kept'); t.eq(history.length, len, 'no history entry is added');
+            const again = await t.mount(html); await t.settle();
+            t.ok(!shown(again, 'a') && shown(again, 'b'), 'a link carrying the parameter opens on that section');
+            history.replaceState(null, '', '?tab=nope');
+            const bad = await t.mount(html); await t.settle();
+            t.ok(shown(bad, 'a'), 'a value matching no section is ignored');
+        } finally { history.replaceState(null, '', before); }
+    }],
+
     ['detail-layout: sidebarFirst reorders the sidebar before the main content once collapsed; sidebarTwoUp lays its own cards two per row', async t => {
         const el = await t.mount('<pk-detail-layout sidebar-first sidebar-two-up><p>Main</p><div slot="sidebar"><p>A</p><p>B</p></div></pk-detail-layout>');
         size(el, rem(30)); await t.settle();

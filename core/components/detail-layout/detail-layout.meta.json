@@ -43,6 +43,13 @@
       "description": "The strip is the host's: show one section from section alone."
     },
     {
+      "name": "tabParam",
+      "type": "string",
+      "default": "",
+      "reflect": true,
+      "description": "A query parameter name (\"tab\") that keeps the chosen section in the address bar, so a reload or a shared link opens on it. No history entry is added."
+    },
+    {
       "name": "nextLabel",
       "type": "string",
       "default": "Next",
