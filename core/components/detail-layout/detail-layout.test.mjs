@@ -62,3 +62,9 @@ test('phone tabs: the section prop and event, the collapsed-only strip and the o
     assert.match(css.slice(css.indexOf('@container')), /\[part="tabs"\]:not\(\[hidden\]\)/, 'the strip only shows inside the collapsed container block');
     assert.doesNotMatch(read('html'), /style=/);
 });
+
+test('the hide-tabs example and its descriptions ship in the meta', () => {
+    assert.ok(meta.examples.some(e => /hide-tabs/.test(e.html) && /tabs=/.test(e.html)), 'an example shows hide-tabs with a page header strip');
+    assert.match(prop('hideTabs').description, /pk-tab-change/);
+    assert.match(prop('sectionsAbove').description, /show and hide/);
+});
