@@ -3,6 +3,7 @@ import { defineModule } from '../../../js/app.js';
 // Two destinations, structure only; the breadcrumbs follow the nav (Demo app > Reports > Exports).
 export default defineModule({
     id: 'reports', title: 'Reports',
+    widgets: { exports: { load: async () => ({ value: '3', subtext: 'ready to download' }) } },
     nav: () => [{ id: 'summary', title: 'Summary', route: '/', icon: 'dashboard' }, { id: 'exports', title: 'Exports', route: '/exports', badge: 3 }],
     routes: [
         { path: '/', page: 'note', config: { heading: 'Summary', body: 'Sales and audit figures at a glance.', cardHeading: 'About this page' } },

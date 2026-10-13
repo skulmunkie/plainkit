@@ -607,4 +607,76 @@ export const appShellCases = [
         const vp = host.querySelector('pk-skip-link').getBoundingClientRect();
         t.ok(after.right > 0 && after.bottom > 0 && after.left < innerWidth && after.top < innerHeight, 'focused, it is on screen ' + JSON.stringify([after.left, after.top, vp.width]));
     }],
+    // #494, step 3: a dashboard route with a `surface` composes its widgets from what modules contribute.
+    ['dashboard from modules (#494): only the visible tab loads module code, a failing widget shows its own error card with Retry beside a working one, and a denied contribution is never offered or imported', async t => {
+        const { mountApp, defineModule } = await src('js/app.js');
+        const el = document.createElement('div'); t.stage('').append(el);
+        const loads = { alpha: 0, beta: 0, secret: 0 };
+        let healthy = false;
+        const home = defineModule({ id: 'home', routes: [{ path: '/', page: 'dashboard', config: { surface: 'ov', heading: 'Overview', tabs: [{ id: 'a', label: 'First' }, { id: 'b', label: 'Second' }] } }] });
+        const mod = (id, widgets) => async () => { loads[id]++; return defineModule({ id, widgets }); };
+        const c = (key, tab, extra = {}) => ({ key, for: ['ov'], tab, label: key, kind: 'stat', ...extra });
+        history.replaceState(null, '', '#/home');
+        const app = mountApp(el, { modules: [
+            { id: 'home', title: 'Home', load: async () => home },
+            { id: 'alpha', title: 'Alpha', contributes: [c('good', 'a'), c('bad', 'a')], load: mod('alpha', { good: { load: async () => ({ value: '7' }) }, bad: { load: async () => { if (!healthy) throw new Error('backend down'); return { value: '8' }; } } }) },
+            { id: 'beta', title: 'Beta', contributes: [c('late', 'b')], load: mod('beta', { late: { load: async () => ({ value: '9' }) } }) },
+            { id: 'secret', title: 'Secret', can: () => false, contributes: [c('hidden', 'a')], load: mod('secret', { hidden: { load: async () => ({ value: '1' }) } }) },
+        ], home: 'home' });
+        const page = await until(() => el.querySelector('pk-dashboard-page'), 'the dashboard page');
+        const cards = () => [...page.shadowRoot.querySelectorAll('pk-card')];
+        const card = key => cards().find(x => x.dataset.key === key);
+        await until(() => card('alpha:good')?.dataset.state === 'ready' && card('alpha:bad')?.dataset.state === 'error', 'one ready card and one error card', 200);
+        t.eq(cards().map(x => x.dataset.key).sort().join(), 'alpha:bad,alpha:good,beta:late', 'the denied contribution has no card');
+        t.eq(loads.alpha, 1, 'two widgets of one module share one import');
+        t.eq(loads.beta, 0, 'a tab never shown loads no module');
+        t.eq(loads.secret, 0, 'a denied module is never imported');
+        t.ok(card('alpha:good').querySelector('pk-stat'), 'the working widget is a pk-stat');
+        const retry = await until(() => card('alpha:bad').querySelector('pk-button'), 'Retry in the error card');
+        healthy = true; retry.click();
+        await until(() => card('alpha:bad').dataset.state === 'ready', 'the card after Retry', 200);
+        page.shadowRoot.querySelectorAll('pk-tab')[1].click();
+        await until(() => card('beta:late').dataset.state === 'ready', 'the second tab widget', 200);
+        t.eq(loads.beta, 1, 'the second tab loaded its module when it was shown');
+        await app.destroy();
+        history.replaceState(null, '', location.pathname + location.search);
+    }],
+
+    ['dashboard from modules (#494): reserved card heights give CLS 0 while widgets resolve, and 100 mounts and unmounts leave no node behind and abort every widget signal', async t => {
+        const { createModuleHost, defineModule } = await src('js/app.js');
+        const el = document.createElement('div'); t.stage('').append(el);
+        const signals = [];
+        const done = new WeakSet();
+        const slow = ms => ({ load: ({ signal }) => { signals.push(signal); return new Promise(r => setTimeout(() => { done.add(signal); r({ value: '5' }); }, ms)); } });
+        const home = defineModule({ id: 'home', routes: [{ path: '/', page: 'dashboard', config: { surface: 'ov', heading: 'Overview' } }] });
+        const other = defineModule({ id: 'other', routes: [{ path: '/', page: 'custom', config: { mount: h => { h.textContent = 'other'; } } }] });
+        const c = key => ({ key, for: ['ov'], label: key, kind: key === 'chart' ? 'chart' : 'stat' });
+        const host = createModuleHost(el, { modules: [
+            { id: 'home', title: 'Home', load: async () => home },
+            { id: 'other', title: 'Other', load: async () => other },
+            { id: 'w', title: 'W', contributes: [c('s1'), c('s2'), c('chart')], load: async () => defineModule({ id: 'w', widgets: { s1: slow(120), s2: slow(200), chart: { load: () => new Promise(r => setTimeout(() => r({ kind: 'bar', data: { labels: ['a'], series: [{ name: 'n', values: [1] }] } }), 160)) } } }) },
+        ] });
+        await host.show('other');
+        let shift = 0;
+        const po = new PerformanceObserver(list => { for (const e of list.getEntries()) if (!e.hadRecentInput) shift += e.value; });
+        po.observe({ type: 'layout-shift' });
+        host.show('home');
+        const page = await until(() => el.querySelector('pk-dashboard-page'), 'the dashboard');
+        await until(() => [...page.shadowRoot.querySelectorAll('pk-card')].length === 3 && [...page.shadowRoot.querySelectorAll('pk-card')].every(x => x.dataset.state === 'ready'), 'three ready cards', 200);
+        await wait(100); po.disconnect();
+        t.ok(shift < 0.001, `widgets resolving shifted the layout by ${shift.toFixed(4)} (CLS must be 0)`);
+        const count = () => el.querySelectorAll('*').length;
+        await host.show('other'); await wait(100);
+        const before = count(), made = signals.length;
+        for (let i = 0; i < 100; i++) {
+            await host.show('home');
+            await host.show('other');
+        }
+        await wait(100);
+        t.ok(count() <= before + 2, `100 mounts left ${count() - before} extra nodes`);
+        t.ok(signals.length > made, 'widgets ran');
+        t.ok(signals.every(s => s.aborted || done.has(s)), 'every widget run still in flight was aborted when its page was left');
+        t.ok(signals.slice(made).filter(s => s.aborted).length >= 99, 'the runs cut short by leaving were aborted');
+        await host.destroy();
+    }],
 ];

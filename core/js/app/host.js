@@ -228,7 +228,7 @@ export function createModuleHost(container, { modules = [], router, auth, can, s
         return showPage(a, r, t);
     }
 
-    const { importDef, widgets } = createLoader({ allow, defs, retry: { retries, backoff, timeout, wait, within, log }, permit: e => access(e, null, { path: '/', params: {}, query: {} }) === true, dead: () => dead });
+    const { importDef, widgets } = createLoader({ allow, defs, retry: { retries, backoff, timeout, wait, within, log }, access, dead: () => dead });
 
     async function run(id, r, t) {
         const entry = typeof id === 'string' && MODULE_ID.test(id) ? allow.get(id) : undefined;

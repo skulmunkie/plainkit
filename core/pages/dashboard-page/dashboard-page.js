@@ -59,6 +59,7 @@ export default Base => class extends Base {
                     card.heading = widget.label ?? '';
                     card.dataset.key = key;
                     card.dataset.tab = tab ?? '';
+                    card.dataset.kind = widget.kind ?? 'stat';
                     grid.append(card);
                     this.$cards[key] = card;
                 }

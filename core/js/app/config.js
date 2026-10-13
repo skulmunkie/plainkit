@@ -6,7 +6,7 @@
 //       modules: [                                           // the module picker's list, in order, and the ALLOW-LIST: the only code the app ever imports
 //           { id: 'orders', title: 'Orders', load: () => import('./modules/orders.js') },
 //           { id: 'settings', title: 'Settings', load: () => import('./modules/settings.js'), menu: 'settings' },   // in the settings menu, not the bar
-//       ],                                                   // entry: id, title, load (required), icon, menu ('settings'), can, contributes (dashboard widgets, #494: js/app/pages/dashboard-compose.js; not wired yet)
+//       ],                                                   // entry: id, title, load (required), icon, menu ('settings'), can, contributes (dashboard widgets, #494: js/app/pages/dashboard-compose.js, drawn by a dashboard route with a `surface`)
 //       home: 'orders',                                      // where '#/' goes (default: the first module in the bar)
 //       routing: 'hash', base: '',                           // 'hash' ('#/<moduleId>/...', static hosting, the default) or 'path' (server rewrites; base = the prefix)
 //       search: { placeholder: 'Search', minLength: 1 },     // the header search; false leaves it out. Results: the active module's `search(query, ctx)`, else its nav

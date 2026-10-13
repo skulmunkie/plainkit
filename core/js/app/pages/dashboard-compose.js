@@ -1,6 +1,6 @@
 // Dashboard composition (#494, design 2026-10-13-module-dashboard-design.md, model B): modules CONTRIBUTE widget metadata on their config entry, and a dashboard
 // route composes the widgets for its `surface`. Pure: no DOM, no imports of module code, never calls a loader or `can` (the caller passes `allow`).
-// NOT wired yet: nothing imports this file at runtime (step 1). A lazy chunk under pages/, outside the entry graph (js/app.js never imports it).
+// Used by pages/dashboard-modules.js (the dashboard page type, step 3). A lazy chunk under pages/, outside the entry graph (js/app.js never imports it).
 //
 //   modules: [{ id: 'sales', title: 'Sales', load, contributes: [
 //       { key: 'churn', for: ['overview'], tab: 'sales', label: 'Churn', kind: 'stat', size: 'sm', order: 20, needs: ['range'], can: ctx => true } ] }]

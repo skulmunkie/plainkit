@@ -19,7 +19,7 @@
 //       pageTypes: { kanban: (host, config, ctx) => ({ destroy() {} }) },  // page types only this module has (below); layouts: { name: (host, ctx) => element }
 //   });
 //
-// defineModule returns its argument and throws a TypeError naming the module and the mistake (bad id, duplicate route, a bad nav...). `widgets: { key: { load } }` holds dashboard widget loaders keyed like the config entry's `contributes` (#494, internal for now).
+// defineModule returns its argument and throws a TypeError naming the module and the mistake (bad id, duplicate route, a bad nav...). `widgets: { key: { load } }` holds dashboard widget loaders keyed like the config entry's `contributes` (#494, drawn by a dashboard route with a `surface`).
 // The host (js/app/host.js) validates again after a lazy import, so a module cannot skip it.
 //
 // Page types and layouts. The built-in page type ids are reserved (BUILT_IN_PAGE_TYPES); 'custom', 'states', 'tool', 'settings', 'not-found',
@@ -113,7 +113,7 @@ const chunk = id => import(`./pages/${id}.js`);
 const BUILT_IN = new Map(['list', 'record', 'dashboard', 'tool', 'settings', 'doc', 'workspace', 'master-detail', 'wizard', 'note', 'print', 'custom', 'not-found', 'states'].map(id => [id, (host, config, ctx) => chunk(id).then(m => m.default(host, config, ctx))]));
 export const BUILT_IN_PAGE_TYPES = Object.freeze([...BUILT_IN.keys()]);
 // The framework's own lazy services (js/app/lazy.js) are chunks in the same folder, named svc-<name>.js: a fixed allow-list, so nothing else reaches the import above.
-const SERVICE_CHUNKS = new Set(['svc-tasks', 'svc-notify', 'svc-dialogs', 'svc-widgets', 'svc-mount-page', 'svc-search']);
+const SERVICE_CHUNKS = new Set(['svc-tasks', 'svc-notify', 'svc-dialogs', 'svc-widgets', 'svc-mount-page', 'svc-search', 'dashboard-modules']);
 export const loadChunk = id => (SERVICE_CHUNKS.has(id) ? chunk(id) : Promise.reject(new TypeError(`loadChunk: "${id}" is not a framework chunk`)));
 // The factory for a page type id: the module's own, then the app's, then a built-in one that exists yet; undefined when there is none.
 // BUILT_IN is a Map, not a plain object: a lookup for '__proto__'/'constructor'/'toString' must answer undefined, never Object.prototype's own.
