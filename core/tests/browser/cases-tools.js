@@ -214,7 +214,7 @@ export const toolCases = [
         applyBtn.click(); await t.settle();
         t.ok(Object.keys(editor.overrides().dark).length > 8 && Object.keys(editor.overrides().light).length > 8, 'Apply writes edits for both themes');
         t.eq(preview.style.getPropertyValue('--color-accent'), editor.overrides().dark['--color-accent'], 'the current theme is applied to the target');
-        t.ok(host.querySelector('[data-token="--color-accent"]').classList.contains('te-changed'), 'the generated tokens are ordinary edits, listed as changed');
+        t.ok(host.querySelector('[data-token="--color-accent"]').hasAttribute('data-changed'), 'the generated tokens are ordinary edits, listed as changed');
         const neutral = host.querySelector('pk-input[label^="Neutral tint"]');
         neutral.value = 'nope'; neutral.dispatchEvent(new Event('input', { bubbles: true, composed: true })); await t.settle();
         t.ok(applyBtn.hasAttribute('disabled') && /not one this can read/.test(palette().textContent), 'a colour it cannot read disables Apply and says why');
