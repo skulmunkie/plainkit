@@ -36,6 +36,16 @@ const docConfig = {
     loadItem: async () => ({ title: 'Getting started', summary: 'Mount an app.', html: '<h2 id="mount">Mount</h2><p>Call mountApp with a config.</p>' }),
 };
 
+// A record opened beside its list on one route (an inbox): the list pane reuses the orders, the detail pane is drawn by mountDetail, and the open record comes from the route's :id.
+const inboxConfig = {
+    heading: 'Inbox',
+    list: { columns: [{ key: 'id', label: 'Order' }, { key: 'customer', label: 'Customer' }] },
+    load: async () => ({ rows: ORDERS, total: ORDERS.length }),
+    rowHref: row => `/inbox/${row.id}`,
+    listHref: '/inbox',
+    mountDetail: (pane, id) => { const o = ORDERS.find(x => x.id === id); pane.textContent = o ? `${o.customer}: ${o.status}, $${o.total}` : 'Not found'; },
+};
+
 export default defineModule({
     id: 'tour', title: 'Tour',
     state: { version: 1, defaults: { pageSize: 10 }, persist: ['pageSize'] },
@@ -46,6 +56,7 @@ export default defineModule({
         { id: 'settings', title: 'Settings', route: '/settings' },
         { id: 'wizard', title: 'Import', route: '/wizard' },
         { id: 'guide', title: 'Guide', route: '/guide' },
+        { id: 'inbox', title: 'Inbox', route: '/inbox' },
         { id: 'workspace', title: 'Workspace', route: '/workspace' },
     ],
     routes: [
@@ -79,6 +90,7 @@ export default defineModule({
             submit: async (values, ctx) => { ctx.notify?.success('Import started'); },
         } },
         { path: '/guide', label: 'Guide', page: 'doc', config: docConfig, children: [{ path: '/guide/:id', label: 'Article', page: 'doc', config: docConfig }] },
+        { path: '/inbox', label: 'Inbox', page: 'master-detail', config: inboxConfig, children: [{ path: '/inbox/:id', label: p => `Order ${p.id}`, page: 'master-detail', config: inboxConfig }] },
         { path: '/workspace', label: 'Workspace', page: 'workspace', config: { panes: ['nav', 'aside'], mount: (panes, ctx) => { panes.main.textContent = `Main pane of ${ctx.id}`; } } },
         { path: '/empty', label: 'Empty', page: 'states', config: { state: 'empty', heading: 'Nothing here yet', description: 'Records you add appear here.' } },
         { path: '*', page: 'not-found' },
