@@ -7,7 +7,7 @@ import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { parseColour, blend, contrast, grade } from '../js/colour.js';
 import { buildOverrides, parseOverrides, nameProblem, valueProblem, parseTokenBlocks, tokenKind, splitLength, colourToHex } from '../js/theme.js';
-import { evaluate, literalColours, literalSizes, cssStats, accessibleName, touchExempt, hasBox, tokenPx, focusRingSelectors, focusProblems, DEFAULTS as QUALITY_DEFAULTS } from '../js/quality.js';
+import { evaluate, literalColours, literalSizes, cssStats, accessibleName, touchExempt, hasBox, tokenPx, focusRingSelectors, focusProblems, spacingMeasures, DEFAULTS as QUALITY_DEFAULTS } from '../js/quality.js';
 import { scoreMetric, scoreCategory, scoreAll, scoreFindings, rankWorstFirst, groupFindings, pushRun, readHistory, deltas, importHistory, exportHistory } from '../js/scoring.js';
 import { contrastFailures, staticMetrics } from '../js/audit.js';
 import { SnapshotProvider, ApiProvider, LazyProvider, FeedProvider, contractProblems, createProvider, wordSpans, matcherFor, NO_CAPABILITIES } from '../js/code-explorer/providers.js';
@@ -96,6 +96,20 @@ test('tokenKind, splitLength and colourToHex classify and convert token values',
 
 // ---- quality -----------------------------------------------------------------------------------------------------------
 const measures = over => ({ controls: [], images: [], scrollers: [], literals: [], overflowX: 0, width: 375, nodes: 0, ...over });
+
+test('inconsistent-gaps is skipped on a pk-table host (rows laid out by its shadow tree) but still reported on a stack', () => {
+    // Measured on the scorecard pages: a pk-table host's light-DOM children are cell spans that its shadow tree lays out as rows and columns,
+    // so the "gaps" are row heights and borders (10.1 and 18.6px at 1280; 25.5, 25.5 and 35px at 375), never authored spacing.
+    const rect = (top, h) => ({ top, bottom: top + h, left: 0, right: 100, width: 100, height: h });
+    const kid = (top, h) => ({ tagName: 'DIV', getBoundingClientRect: () => rect(top, h) });
+    const host = localName => ({ tagName: localName.toUpperCase(), localName, children: [kid(0, 20), kid(30, 20), kid(70, 20), kid(120, 20)], childNodes: [], closest: () => null, getBoundingClientRect: () => rect(0, 140) });
+    const run = el => {
+        const win = { getComputedStyle: e => ({ display: e === el ? 'flex' : 'block', position: 'static', getPropertyValue: () => '' }) };
+        return spacingMeasures({ querySelectorAll: () => [el] }, win, { ...QUALITY_DEFAULTS, flush: '.none' });
+    };
+    assert.deepEqual(run(host('pk-table')).filter(f => f.kind === 'inconsistent-gaps'), []);
+    assert.equal(run(host('pk-stack')).filter(f => f.kind === 'inconsistent-gaps').length, 1);
+});
 
 test('evaluate flags an unnamed control, a small touch target only on a phone, nested scrollers, literals and overflow', () => {
     const m = measures({

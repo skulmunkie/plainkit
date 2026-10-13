@@ -39,7 +39,7 @@ export function accessibleName(el) {
     if (by) { const t = by.split(/\s+/).map(id => doc.getElementById(id)?.textContent ?? '').join(' ').trim(); if (t) return t; }
     if (el.labels?.length) { const t = [...el.labels].map(l => l.textContent).join(' ').trim(); if (t) return t; }
     if (attr('alt')) return attr('alt');
-    // The rendered label of an element (a tree row, a step) lives in its shadow tree and its name is set through ElementInternals, which a page cannot read back.
+    // A tree row or step draws its label in its shadow tree (name set via ElementInternals, unreadable).
     const text = (el.textContent ?? '').trim() || (el.shadowRoot?.textContent ?? '').trim();
     if (text) return text;
     if (el.tagName === 'INPUT' && ['button', 'submit', 'reset'].includes(el.type) && el.value) return el.value;
@@ -92,7 +92,8 @@ export function spacingMeasures(scope, win, cfg) {
             else if (vertical && gap < 0.5 && !INLINE.test(a.tagName) && !INLINE.test(b.tagName) && !(a.tagName === 'INPUT' || b.tagName === 'INPUT')) out.push({ kind: 'zero-gap', selector: cssPath(b), value: 0, min: cfg.minGapPx });
             if (vertical) gaps.push(gap);
         }
-        if (gaps.length >= 3 && Math.max(...gaps) - Math.min(...gaps) > cfg.gapTolerancepx) out.push({ kind: 'inconsistent-gaps', selector: cssPath(el), value: Math.round((Math.max(...gaps) - Math.min(...gaps)) * 10) / 10, min: cfg.gapTolerancepx });
+        // pk-table rows are shadow-tree layout (core.test.mjs)
+        if (el.localName !== 'pk-table' && gaps.length >= 3 && Math.max(...gaps) - Math.min(...gaps) > cfg.gapTolerancepx) out.push({ kind: 'inconsistent-gaps', selector: cssPath(el), value: Math.round((Math.max(...gaps) - Math.min(...gaps)) * 10) / 10, min: cfg.gapTolerancepx });
     }
     return out;
 }
