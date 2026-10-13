@@ -204,8 +204,7 @@ export async function mountScorecard(container, options = {}) {
     if (theme) root.setAttribute('data-theme', theme);
     if (height) { root.dataset.dyn = `height:${height}; overflow:auto`; applyDynamic(root); }
     stack.replaceChildren(...(runs ? [
-        h(doc, 'pk-cluster', {}, h(doc, 'pk-button', { 'data-sc-run': true }, 'Run scorecard')),
-        h(doc, 'pk-text', { tone: 'muted', role: 'status', 'aria-live': 'polite', 'data-sc-progress': true }),
+        h(doc, 'pk-cluster', {}, h(doc, 'pk-button', { 'data-sc-run': true }, 'Run scorecard'), h(doc, 'pk-text', { tone: 'muted', inline: true, role: 'status', 'aria-live': 'polite', 'data-sc-progress': true })),
         h(doc, 'pk-stack', { gap: 'md', 'data-sc-result': true }, emptyState(doc, ...NOT_YET))] : []),
         // The measuring frames sit off-screen at full size (a hidden frame has no layout to measure).
         h(doc, 'div', { 'aria-hidden': 'true', 'data-sc-frames': true, 'data-dyn': 'position:fixed; left:var(--_sc-frames-offscreen); top:0; width:var(--_sc-frames-w); height:var(--_sc-frames-h); overflow:hidden; visibility:hidden' }));

@@ -41,7 +41,7 @@ export function slotted(table, e) {
 // A click on a toggle: the element owns the change until the event, then the host owns it (STANDARDS: two-way values).
 export function click(table, e) {
     const b = e.target.closest?.('button[data-expand-id]');
-    if (!b) return slotted(table, e);
+    if (!b) return slotted(table, e) || !!table.$r?.click(table, e);
     const id = b.dataset.expandId, open = b.getAttribute('aria-expanded') !== 'true';
     table.expanded = toggled(table.expanded, id, open);
     table.$f = id;
@@ -62,6 +62,8 @@ export function after(table) {
         sheet ??= sheetFor(STYLES);
         if (!sheets.includes(sheet)) root.adoptedStyleSheets = [...sheets, sheet];
     }
+    if (table.rowHrefTemplate) table.$rp ??= import('./table-links.js').then(m => { table.$r = m; table.requestUpdate(); }, err => table.log.error('table-links did not load', err)); // row links (#366), loaded only when the template is set
+    table.$r?.after(table);
     if (table.$f === undefined) return;
     table.part('body').querySelector(`button[data-expand-id="${CSS.escape(table.$f)}"]`)?.focus();
     table.$f = undefined;
