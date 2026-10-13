@@ -151,6 +151,8 @@ A tool page is one input and one outcome; a settings page is sections of fields 
 
 ### Content pages and states
 
+A master-detail page opens the record beside its list on one route (an inbox): declare the route and a child `/inbox/:id` with the same config, give `load` and `rowHref`, and draw the record in `mountDetail(pane, id, ctx)`; the sample's `inbox` route is a running example.
+
 A doc page shows an article with a table of contents; the route param `id` picks the item and the query `anchor` the heading. A workspace is panes (`nav`, `main`, `aside`) that your callback draws into; return a cleanup function or a `{ destroy() }` handle. A states page shows a loading, empty, error or forbidden state:
 
 ```text
