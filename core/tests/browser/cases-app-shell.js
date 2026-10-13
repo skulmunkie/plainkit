@@ -679,4 +679,66 @@ export const appShellCases = [
         t.ok(signals.slice(made).filter(s => s.aborted).length >= 99, 'the runs cut short by leaving were aborted');
         await host.destroy();
     }],
+    // #494, step 5: the active tab in the address, filters in the module state, size spans, a module that withdraws its widget.
+    ['dashboard from modules (#494): ?tab= opens that tab first and loads only its module, a tab change rewrites the address without a history entry, and size hints span columns', async t => {
+        const { createModuleHost, defineModule } = await src('js/app.js');
+        const el = document.createElement('div'); t.stage('').append(el);
+        const loads = { a: 0, b: 0 };
+        const home = defineModule({ id: 'home', routes: [{ path: '/', page: 'dashboard', config: { surface: 'ov', heading: 'Overview', tabs: [{ id: 'one', label: 'One' }, { id: 'two', label: 'Two' }] } }] });
+        const c = (key, tab, size) => ({ key, for: ['ov'], tab, label: key, kind: 'stat', size });
+        const mod = (id, keys) => async () => { loads[id]++; return defineModule({ id, widgets: Object.fromEntries(keys.map(k => [k, { load: async () => ({ value: k }) }])) }); };
+        const before = location.href, historyLength = history.length;
+        const host = createModuleHost(el, { modules: [
+            { id: 'home', title: 'Home', load: async () => home },
+            { id: 'a', title: 'A', contributes: [c('sm1', 'one', 'sm'), c('md1', 'one', 'md'), c('lg1', 'one', 'lg'), c('sm2', 'one', 'sm')], load: mod('a', ['sm1', 'md1', 'lg1', 'sm2']) },
+            { id: 'b', title: 'B', contributes: [c('only', 'two')], load: mod('b', ['only']) },
+        ] });
+        await host.show('home', { path: '/', query: { tab: 'two' } });
+        const page = await until(() => el.querySelector('pk-dashboard-page'), 'the dashboard');
+        const card = key => [...page.shadowRoot.querySelectorAll('pk-card')].find(x => x.dataset.key === key);
+        await until(() => card('b:only')?.dataset.state === 'ready', 'the widget of the tab in the address', 200);
+        t.eq(loads.a, 0, 'the other tab loaded no module');
+        t.eq(loads.b, 1);
+        t.eq(page.shadowRoot.querySelector('pk-tabs').value, 'two', 'the tab named in the address is the open one');
+        page.shadowRoot.querySelectorAll('pk-tab')[0].click();
+        await until(() => card('a:sm1')?.dataset.state === 'ready', 'the first tab widgets', 200);
+        t.eq(new URL(location.href).searchParams.get('tab'), 'one', 'the tab change was written to the address');
+        t.eq(history.length, historyLength, 'no history entry was added');
+        const w = k => card(k).getBoundingClientRect().width, grid = card('a:sm1').parentElement.getBoundingClientRect().width;
+        t.ok(w('a:md1') > w('a:sm1') * 1.8, `md spans two columns (${w('a:md1').toFixed(0)}px against ${w('a:sm1').toFixed(0)}px)`);
+        t.ok(Math.abs(w('a:lg1') - grid) < 2, 'lg takes the whole row');
+        t.ok(Math.abs(w('a:sm1') - w('a:sm2')) < 2, 'sm cards stay one column');
+        await host.destroy();
+        history.replaceState(null, '', before);
+    }],
+
+    ['dashboard from modules (#494): a filter selection is saved in the owning module state and restored on the next visit, and a module whose own can denies has its card withdrawn', async t => {
+        const { createModuleHost, defineModule } = await src('js/app.js');
+        const { createStore } = await src('js/store.js');
+        const el = document.createElement('div'); t.stage('').append(el);
+        const seen = [];
+        const home = defineModule({ id: 'home', state: { version: 1, defaults: { range: '' }, persist: ['range'] }, routes: [{ path: '/', page: 'dashboard', config: { surface: 'ov', heading: 'Overview', filters: [{ key: 'range', type: 'select', label: 'Range', options: ['7d', '30d'] }] } }] });
+        const other = defineModule({ id: 'other', routes: [{ path: '/', page: 'custom', config: { mount: h => { h.textContent = 'other'; } } }] });
+        const c = key => ({ key, for: ['ov'], label: key, kind: 'stat' });
+        const host = createModuleHost(el, { store: createStore({ prefix: `dash${Date.now()}` }), modules: [
+            { id: 'home', title: 'Home', load: async () => home },
+            { id: 'other', title: 'Other', load: async () => other },
+            { id: 'ok', title: 'Ok', contributes: [c('shown')], load: async () => defineModule({ id: 'ok', widgets: { shown: { load: async ({ context }) => (seen.push(context.range), { value: '1' }) } } }) },
+            { id: 'gone', title: 'Gone', contributes: [c('withdrawn')], load: async () => defineModule({ id: 'gone', can: () => false, widgets: { withdrawn: { load: async () => ({ value: '2' }) } } }) },
+        ] });
+        await host.show('home');
+        let page = await until(() => el.querySelector('pk-dashboard-page'), 'the dashboard');
+        const card = key => [...page.shadowRoot.querySelectorAll('pk-card')].find(x => x.dataset.key === key);
+        await until(() => card('ok:shown')?.dataset.state === 'ready' && card('gone:withdrawn')?.dataset.state === 'hidden', 'one ready card and one withdrawn card', 200);
+        t.ok(card('gone:withdrawn').hidden && card('gone:withdrawn').getBoundingClientRect().height === 0, 'the withdrawn card takes no space');
+        const select = await until(() => page.shadowRoot.querySelector('[data-key="range"]'), 'the range filter');
+        await until(() => select.shadowRoot, 'the select upgrade');
+        select.value = '30d'; select.dispatchEvent(new CustomEvent('pk-value-change', { bubbles: true, composed: true, detail: { value: '30d' } }));
+        await until(() => seen.at(-1) === '30d', 'the widget reloaded with the selection', 200);
+        await host.show('other'); await host.show('home');
+        page = await until(() => el.querySelector('pk-dashboard-page'), 'the dashboard again');
+        await until(() => seen.length >= 3 && seen.at(-1) === '30d', 'the first load of the next visit to see the saved range', 200);
+        t.eq(page.shadowRoot.querySelector('[data-key="range"]').value, '30d', 'the filter bar starts on the saved selection');
+        await host.destroy();
+    }],
 ];
