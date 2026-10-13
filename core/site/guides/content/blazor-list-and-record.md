@@ -47,8 +47,8 @@ A column `key` names a property of `TItem` in camel case (`OrderNo` is `orderNo`
 
     private static readonly IReadOnlyList<PkFieldSpec<OrderRecord>> _fields =
     [
-        new() { Key = "customer", Label = "Customer", Required = true, Get = o => o.Customer, Set = (o, v) => o.Customer = v ?? "" },
-        new() { Key = "note", Label = "Note", Kind = PkFieldKind.Textarea, Get = o => o.Note, Set = (o, v) => o.Note = v ?? "" },
+        new() { Key = "customer", Label = "Customer", Required = true, Get = order => order.Customer, Set = (order, v) => order.Customer = v ?? "" },
+        new() { Key = "note", Label = "Note", Kind = PkFieldKind.Textarea, Get = order => order.Note, Set = (order, v) => order.Note = v ?? "" },
     ];
 
     private Task SaveAsync(OrderRecord order) => Orders.SaveAsync(Id, order);
