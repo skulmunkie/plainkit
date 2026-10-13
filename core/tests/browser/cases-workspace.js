@@ -356,4 +356,20 @@ export const workspaceCases = [
             t.eq(el.part('record').textContent, width > 500 ? 'Record 2' : '');
         }
     }],
+    ['image-gallery (375px, editable, three columns): no tile clips its content sideways (the make-primary and remove buttons and the handle fit), and the handle sits clear of the buttons (#1288)', async t => {
+        const html = `<pk-image-gallery editable></pk-image-gallery>`;
+        const { doc, win } = await frame(t, html, 375, 700);
+        const g = doc.querySelector('pk-image-gallery'); g.images = IMAGES.map(i => ({ ...i })); await t.settle(); await wait(120);
+        const ts = [...g.shadowRoot.querySelectorAll('[part=tile]')]; t.eq(ts.length, 3, 'three tiles');
+        for (const [i, tile] of ts.entries()) {
+            t.ok(tile.scrollWidth <= tile.clientWidth + 1, `tile ${i} clips sideways: scrollWidth ${tile.scrollWidth} > clientWidth ${tile.clientWidth}`);
+            const box = tile.getBoundingClientRect(), handle = tile.shadowRoot.querySelector('.handle').getBoundingClientRect();
+            for (const b of tile.querySelectorAll('[part=action]')) {
+                const r = b.getBoundingClientRect();
+                t.ok(r.left >= box.left && r.right <= box.right + 1, `tile ${i}: a button stays inside the tile`);
+                t.ok(r.bottom <= handle.top + 1 || r.right <= handle.left || r.left >= handle.right, `tile ${i}: the handle does not sit under a button`);
+            }
+        }
+        t.ok(win.innerWidth === 375, 'a phone-width frame');
+    }],
 ];
