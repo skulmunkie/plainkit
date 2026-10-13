@@ -111,6 +111,8 @@
     { "name": "problems()", "description": "Every invalid shown field, in order: [{ key, label, message, control, focus() }]. pk-form lists these in its summary and focuses the first." },
     { "name": "report(on = true)", "description": "Shows each invalid field's message in its pk-field (on), or clears every message (off)." },
     { "name": "checkField(keyOrNode)", "description": "Re-checks one field, showing or clearing its message; returns whether it is valid. pk-form uses it for live checks." },
+    { "name": "snapshot()", "description": "The values as the controls hold them now, { key: value }: what the user has typed even before it committed, with the committed value for a field that is not shown." },
+    { "name": "setError(key, message)", "description": "Shows a message in one field, for an answer from the server; an empty message clears it, and report(false) clears every message." },
     { "name": "focusField(key)", "description": "Focuses one field's control." },
     { "name": "focus()", "description": "Focuses the first invalid field, else the first field." },
     { "name": "refresh()", "description": "Draws the fields again; call it after changing the visible(spec, values) callback property." }

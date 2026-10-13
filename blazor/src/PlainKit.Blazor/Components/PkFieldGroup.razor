@@ -31,23 +31,9 @@
     /// <summary>Raised after a field commits (the model was updated through <c>Set</c>, or <c>SetAsync</c> succeeded). A handler on the parent re-renders it and this group: <c>Get</c>, <c>When</c>, <c>Disabled</c> and <c>HelpWhen</c> are read again.</summary>
     [Parameter] public EventCallback ModelChanged { get; set; }
 
-    private IEnumerable<PkFieldSpec<TItem>> Visible() => Fields.Where(f => f.When is null || f.When(Model));
-
-    private IReadOnlyList<PkFieldDef> Defs() => Visible().Select(f =>
-    {
-        // PkSelect and PkCheckbox have no read-only state, so there it disables the control.
-        var text = f.Kind is not (PkFieldKind.Select or PkFieldKind.Checkbox or PkFieldKind.Combobox);
-        var readOnly = f.ReadOnly?.Invoke(Model) ?? false;
-        string? Pick(Func<TItem, string?>? when, string? fallback) => when?.Invoke(Model) is { Length: > 0 } s ? s : fallback;
-        return PkFieldGroupMembers.Pass(f) with
-        {
-            Label = Pick(f.LabelWhen, f.Label)!, Kind = f.Editor is not null ? "custom" : f.Kind.ToString().ToLowerInvariant(), Help = Pick(f.HelpWhen, f.Help),
-            Disabled = (f.Disabled?.Invoke(Model) ?? false) || (readOnly && !text), Readonly = readOnly && text, Options = f.OptionsSource?.Invoke() ?? f.Options,
-        };
-    }).ToList();
-    // The values as JSON with the keys as the specs spell them: a checkbox is a boolean, everything else the string Get returns.
-    private string Values() => JsonSerializer.Serialize(Visible().ToDictionary(f => f.Key,
-        f => f.Kind == PkFieldKind.Checkbox ? !string.IsNullOrEmpty(f.Get(Model)) && f.Get(Model) != "false" : (object?)f.Get(Model)));
+    private IEnumerable<PkFieldSpec<TItem>> Visible() => PkFieldSpecs.Visible(Fields, Model);
+    private IReadOnlyList<PkFieldDef> Defs() => PkFieldSpecs.Defs(Fields, Model);
+    private string Values() => JsonSerializer.Serialize(PkFieldSpecs.Values(Fields, Model));
 
     /// <inheritdoc />
     protected override async Task OnAfterRenderAsync(bool firstRender)
@@ -60,7 +46,7 @@
 
     // The element's commit callback (busy, last wins, the field error are its): the async Set runs here; the answer is null or the exception's message.
     private async Task<object?> Commit(PkFieldChangeEventArgs e) { try { await (Fields.First(f => f.Key == e.Key).SetAsync?.Invoke(Model, Text(e.Value)) ?? Task.CompletedTask); return null; } catch (Exception ex) { return ex.Message; } }
-    private static string? Text(JsonElement? e) => e?.ValueKind switch { JsonValueKind.True => "true", JsonValueKind.False => "", JsonValueKind.Null or JsonValueKind.Undefined => null, JsonValueKind.String => e?.GetString(), _ => e?.GetRawText() };
+    private static string? Text(JsonElement? e) => PkFieldSpecs.Text(e);
 
     /// <inheritdoc />
     protected override void AddEventHandlers(Dictionary<string, object> handlers) =>

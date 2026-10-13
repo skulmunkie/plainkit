@@ -33,34 +33,32 @@ A column `key` names a property of `TItem` in camel case (`OrderNo` is `orderNo`
 
 ## The record page
 
-`PkRecordPage` takes the record id in `Config` (`id`). The element calls `Load` with it as text; return the values by field name, or null for "not found". `Save` runs after the client validation passes and gets the values by field name as `JsonElement`. Throwing keeps the edits and shows the message; returning switches the page back to view mode.
+`PkRecordPage<TItem>` edits one typed record. `Config` carries the page options and the record id (`id`); `Fields` is a list of `PkFieldSpec<TItem>` (the same specs as `PkFieldGroup`: `Key`, `Label`, `Kind`, `Get`, `Set`, `Required`, `Hint`, `Options`...), so the fields are compile-checked. The element calls `Load` with the id as text; return the `TItem`, or null for "not found". `Save` runs after the client validation passes and receives the loaded item with the form's values already applied through each field's `Set`. Throwing keeps the edits and shows the message; returning switches the page back to view mode. For a new record (no `id`) set `Model` to the instance to fill; it is what `Save` receives.
 
 ```razor
 @page "/routed/orders/{Id}"
 
-<PkRecordPage Config="@Config" Load="LoadAsync" Save="SaveAsync" />
+<PkRecordPage TItem="OrderRecord" Config="@Config" Fields="_fields" Load="Orders.GetAsync" Save="SaveAsync" />
 
 @code {
     [Parameter] public string Id { get; set; } = "";
 
-    private string Config => System.Text.Json.JsonSerializer.Serialize(new
-    {
-        id = Id,
-        heading = "Order",
-        fields = new object[] { new { name = "customer", label = "Customer", required = true }, new { name = "note", label = "Note", type = "textarea" } },
-    });
+    private string Config => System.Text.Json.JsonSerializer.Serialize(new { id = Id, heading = "Order" });
 
-    private Task<IReadOnlyDictionary<string, object?>?> LoadAsync(string id) => Orders.GetAsync(id);
+    private static readonly IReadOnlyList<PkFieldSpec<OrderRecord>> _fields =
+    [
+        new() { Key = "customer", Label = "Customer", Required = true, Get = o => o.Customer, Set = (o, v) => o.Customer = v ?? "" },
+        new() { Key = "note", Label = "Note", Kind = PkFieldKind.Textarea, Get = o => o.Note, Set = (o, v) => o.Note = v ?? "" },
+    ];
 
-    private Task SaveAsync(IReadOnlyDictionary<string, System.Text.Json.JsonElement> values) =>
-        Orders.SaveAsync(Id, values["customer"].GetString() ?? "", values["note"].GetString() ?? "");
+    private Task SaveAsync(OrderRecord order) => Orders.SaveAsync(Id, order);
 }
 ```
 
-Build the config with a serializer, not by gluing strings, so an id with a quote in it cannot break the JSON.
+Build `Config` with a serializer, not by gluing strings, so an id with a quote in it cannot break the JSON. `PkRecordPage` is generic (`TItem`) and the only record page: the older untyped form (`fields` as JSON in `Config`, `Save` receiving a `JsonElement` dictionary) is gone.
 
 ## What this does not cover
 
-A field value in view mode can be your own markup through `Fields` (a field name to a `RenderFragment`), and a list cell through `Cells` (with `IdOf`). `PkListPage` also takes typed `Columns` (`PkTableColumn<TItem>`, as on `PkDataTable`): they replace the columns of `Config`, and a column's `Cell` template fills that cell of every loaded row. Delete, busy and error are bound from the page: `OnDelete` shows the Delete button in view mode of an existing record, and `Busy` and `Error` are the page's own state. On a `PageBase` page set `Busy="IsBusy"` and `Error="StatusMessage"` and run the handler inside `TryBusyAsync`, which logs a failure, shows it through `DescribeError` and keeps the circuit alive; navigate away when it returns true. Typed field groups and an edit-mode editor are not part of `PkRecordPage` yet; for a form with tabs, sections or a sidebar of your own markup use `PkRecordForm` and `PkRecordEditor` (see the Blazor skill's `references/record-form.md`).
+A field value in view mode can be your own markup through `ViewFields` (a field key to a `RenderFragment`), and a list cell through `Cells` (with `IdOf`). `PkListPage` also takes typed `Columns` (`PkTableColumn<TItem>`, as on `PkDataTable`): they replace the columns of `Config`, and a column's `Cell` template fills that cell of every loaded row. Delete, busy and error are bound from the page: `OnDelete` shows the Delete button in view mode of an existing record, and `Busy` and `Error` are the page's own state. On a `PageBase` page set `Busy="IsBusy"` and `Error="StatusMessage"` and run the handler inside `TryBusyAsync`, which logs a failure, shows it through `DescribeError` and keeps the circuit alive; navigate away when it returns true. `When`, `Disabled` and the other per-record members of a field are read once the record is loaded, and a field `Editor` is not drawn on the record page yet; for a form with tabs, sections or a sidebar of your own markup use `PkRecordForm` and `PkRecordEditor` (see the Blazor skill's `references/record-form.md`).
 
 The code above runs in the playground sample (`blazor/samples/PlainKit.Playground`, pages `RoutedOrders` and `RoutedOrder`), which is built with the solution, so it cannot drift from the components.

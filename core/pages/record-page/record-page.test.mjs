@@ -89,8 +89,11 @@ test('dirty follows the controls against the loaded values, fires pk-record-dirt
     el.mode = 'edit';
     el.connected();
     await tick();
-    const name = parts.main.children[0].children[0].children[0].children[0];
-    name.value = 'Changed'; el.controls = () => [name]; name.attrs.name = 'name';
+    const group = parts.main.children[0].children[0].children[0];
+    assert.equal(group.localName, 'pk-field-group', 'the edit form is one pk-field-group');
+    assert.deepEqual(group.values, { name: 'Widget' }); assert.deepEqual(group.fields.map(f => [f.key, f.kind]), [['name', 'text'], ['status', 'select']]);
+    const name = { value: 'Changed' };
+    group.snapshot = () => ({ name: name.value });
     el.track(); el.track();
     assert.equal(el.dirty, true); assert.deepEqual(events, [['pk-record-dirty', { dirty: true }]]);
     const guard = win.added.find(([t]) => t === 'beforeunload')[1];
@@ -113,14 +116,16 @@ test('save: a rejection with errors marks the fields inline, another rejection i
     el.save = async values => { if (outcome) throw outcome; return { rev: 2, ...values }; };
     el.connected();
     await tick();
-    const field = parts.main.children[0].children[0].children[0], ctl = field.children[0];
-    ctl.attrs.name = 'name'; ctl.value = 'Dup'; el.controls = () => [ctl];
-    outcome = Object.assign(new Error('invalid'), { errors: { name: 'Name is taken' } });
+    const group = parts.main.children[0].children[0].children[0], marked = {}, log = [];
+    group.snapshot = () => ({ name: 'Dup' });
+    group.setError = (k, m) => { marked[k] = m; }; group.focusField = k => log.push(['focus', k]); group.report = on => log.push(['report', on]);
+    outcome = Object.assign(new Error('invalid'), { errors: { name: 'Name is taken', ghost: 'not a field' } });
     await el.submit();
-    assert.equal(field.attrs.error, 'Name is taken'); assert.equal(ctl.focused, true);
+    assert.deepEqual(marked, { name: 'Name is taken' }); assert.deepEqual(log.at(-1), ['focus', 'name']);
     outcome = new Error('offline');
+    log.length = 0;
     await el.submit();
-    assert.equal(field.attrs.error, undefined, 'stale field errors are cleared');
+    assert.deepEqual(log[0], ['report', false], 'stale field errors are cleared');
     assert.equal(parts.notice.children[0].textContent, 'offline');
     outcome = null;
     await el.submit();
@@ -190,4 +195,17 @@ test('error: the host text is a notice above the form, and empty clears it (#100
     assert.equal(parts.notice.children[0].textContent, 'Could not delete the order.');
     el.error = ''; el.changed('error');
     assert.equal(parts.notice.children.length, 0);
+});
+
+test('a field def in the group spelling (key, kind, hint, help) and a boolean value read in view mode; a new record starts from config.values (#1000)', async () => {
+    const { el, parts } = make();
+    el.config = { id: undefined, values: { name: 'Draft', active: true }, fields: [{ key: 'name', label: 'Name', kind: 'text', hint: 'Shown on invoices' }, { key: 'active', label: 'Active', kind: 'checkbox' }, { name: 'legacy', help: 'older hint', type: 'email', options: ['a'] }], sidebar: [] };
+    el.save = async () => {};
+    el.connected();
+    const group = parts.main.children[0].children[0].children[0];
+    assert.deepEqual(group.values, { name: 'Draft', active: true });
+    assert.deepEqual(group.fields.map(f => [f.key, f.kind, f.hint]), [['name', 'text', 'Shown on invoices'], ['active', 'checkbox', undefined], ['legacy', 'email', 'older hint']]);
+    assert.deepEqual(group.fields[2].options, [{ value: 'a', label: 'a' }], 'plain string options become { value, label }');
+    el.config = { ...el.config, id: '1' }; el.$id = '1'; el.$values = { name: 'Draft', active: true }; el.mode = 'view'; el.draw();
+    assert.equal(parts.main.children[0].children[3].children[0].textContent, 'Yes', 'a boolean reads Yes or No');
 });

@@ -99,22 +99,52 @@ public sealed class PkPageCallbackTests : BunitContext, IAsyncLifetime
         Assert.True(saved["beta"].GetBoolean());
     }
 
+    private sealed class Person { public string Name { get; set; } = ""; public int Age { get; set; } public bool Active { get; set; } }
+
+    private static readonly IReadOnlyList<PkFieldSpec<Person>> PersonFields =
+    [
+        new() { Key = "name", Label = "Name", Required = true, Get = p => p.Name, Set = (p, v) => p.Name = v ?? "" },
+        new() { Key = "age", Label = "Age", Kind = PkFieldKind.Number, Get = p => p.Age.ToString(), Set = (p, v) => p.Age = int.Parse(v ?? "0") },
+        PkFieldSpec<Person>.Bool("active", "Active", p => p.Active, (p, v) => p.Active = v),
+    ];
+
     [Fact]
-    public void RecordPage_field_templates_fill_the_field_value_slots()
+    public void RecordPage_view_templates_fill_the_field_value_slots()
     {
-        var cut = Render<PkRecordPage>(p => p.Add(x => x.Fields, new Dictionary<string, RenderFragment> { ["status"] = b => b.AddContent(0, "Shipped") }));
+        var cut = Render<PkRecordPage<Person>>(p => p.Add(x => x.ViewFields, new Dictionary<string, RenderFragment> { ["status"] = b => b.AddContent(0, "Shipped") }));
 
         Assert.Equal("Shipped", cut.Find("[slot=field-status]").TextContent);
+    }
+
+    [Fact]
+    public void RecordPage_sends_the_specs_as_config_fields_and_a_new_records_model_as_its_values()
+    {
+        var cut = Render<PkRecordPage<Person>>(p => p
+            .Add(x => x.Config, "{\"heading\":\"Person\"}")
+            .Add(x => x.Fields, PersonFields)
+            .Add(x => x.Model, new Person { Name = "Ada", Age = 36, Active = true }));
+
+        var config = JsonDocument.Parse(cut.Find("pk-record-page").GetAttribute("config")!).RootElement;
+        Assert.Equal("Person", config.GetProperty("heading").GetString());
+        Assert.Equal(["name", "age", "active"], config.GetProperty("fields").EnumerateArray().Select(x => x.GetProperty("key").GetString()));
+        Assert.Equal("number", config.GetProperty("fields")[1].GetProperty("kind").GetString());
+        var values = config.GetProperty("values");
+        Assert.Equal("Ada", values.GetProperty("name").GetString());
+        Assert.Equal("36", values.GetProperty("age").GetString());
+        Assert.True(values.GetProperty("active").GetBoolean());
+
+        var withId = Render<PkRecordPage<Person>>(p => p.Add(x => x.Config, "{\"id\":\"7\"}").Add(x => x.Fields, PersonFields).Add(x => x.Model, new Person()));
+        Assert.False(JsonDocument.Parse(withId.Find("pk-record-page").GetAttribute("config")!).RootElement.TryGetProperty("values", out _));
     }
 
     [Fact]
     public async Task RecordPage_OnDelete_shows_Delete_and_Busy_and_Error_reach_the_element()
     {
         string? deleted = null;
-        var plain = Render<PkRecordPage>();
+        var plain = Render<PkRecordPage<Person>>();
         Assert.False(plain.Find("pk-record-page").HasAttribute("deletable"));
 
-        var cut = Render<PkRecordPage>(p => p
+        var cut = Render<PkRecordPage<Person>>(p => p
             .Add(x => x.OnDelete, EventCallback.Factory.Create<PkRecordDeleteEventArgs>(this, e => deleted = e.Id))
             .Add(x => x.Busy, true)
             .Add(x => x.Error, "Could not delete."));
@@ -128,11 +158,13 @@ public sealed class PkPageCallbackTests : BunitContext, IAsyncLifetime
     }
 
     [Fact]
-    public async Task RecordPage_load_gets_the_id_as_text_and_save_gets_the_values()
+    public async Task RecordPage_load_gets_the_id_answers_the_values_and_save_gets_the_item_with_the_form_applied()
     {
-        string? loadedId = null; IReadOnlyDictionary<string, JsonElement>? saved = null;
-        var cut = Render<PkRecordPage>(p => p
-            .Add(x => x.Load, id => { loadedId = id; return Task.FromResult<IReadOnlyDictionary<string, object?>?>(new Dictionary<string, object?> { ["name"] = "Ada" }); })
+        string? loadedId = null; Person? saved = null; var loaded = new Person { Name = "Ada", Age = 36 };
+        var cut = Render<PkRecordPage<Person>>(p => p
+            .Add(x => x.Config, "{\"id\":\"o-7\"}")
+            .Add(x => x.Fields, PersonFields)
+            .Add(x => x.Load, id => { loadedId = id; return Task.FromResult<Person?>(loaded); })
             .Add(x => x.Save, v => { saved = v; return Task.CompletedTask; }));
 
         var calls = _bridge.Invocations["setCallback"].ToList();
@@ -141,13 +173,18 @@ public sealed class PkPageCallbackTests : BunitContext, IAsyncLifetime
         var load = Assert.IsType<DotNetObjectReference<PkCallbackHost<JsonElement>>>(calls[0].Arguments[2]);
         var asText = await cut.InvokeAsync(() => load.Value.Invoke(JsonDocument.Parse("\"o-7\"").RootElement));
         Assert.Equal("o-7", loadedId);
-        Assert.Equal("Ada", JsonSerializer.SerializeToElement(asText).GetProperty("name").GetString());
+        var values = JsonSerializer.SerializeToElement(asText);
+        Assert.Equal("Ada", values.GetProperty("name").GetString());
+        Assert.Equal("36", values.GetProperty("age").GetString());
         await cut.InvokeAsync(() => load.Value.Invoke(JsonDocument.Parse("42").RootElement));
         Assert.Equal("42", loadedId);
 
         var save = Assert.IsType<DotNetObjectReference<PkCallbackHost<Dictionary<string, JsonElement>>>>(calls[1].Arguments[2]);
-        Assert.Null(await cut.InvokeAsync(() => save.Value.Invoke(Values("{\"name\":\"Bo\"}"))));
-        Assert.Equal("Bo", saved!["name"].GetString());
+        Assert.Null(await cut.InvokeAsync(() => save.Value.Invoke(Values("{\"name\":\"Bo\",\"age\":41,\"active\":true}"))));
+        Assert.Same(loaded, saved);
+        Assert.Equal("Bo", saved!.Name);
+        Assert.Equal(41, saved.Age);
+        Assert.True(saved.Active);
     }
 
     [Fact]

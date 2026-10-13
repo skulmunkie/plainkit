@@ -2,9 +2,13 @@ import { showState, showTitleBar } from '../../js/page-shell.js';
 import { renderState } from '../../js/page-states.js';
 import { loadElements } from '../../js/loader.js';
 
-// Which control a field builds; pk-input carries every scalar type through its own `type` attribute.
-const CONTROL = { textarea: 'pk-textarea', select: 'pk-select' };
+const CONTROLS = 'pk-input,pk-textarea,pk-select,pk-checkbox,pk-switch,pk-range,pk-combobox';
 const text = v => (v == null ? '' : String(v));
+const norm = v => (v == null || v === false ? '' : String(v));
+const key = f => f.key ?? f.name;
+const kindOf = f => f.kind ?? f.type ?? 'text';
+// A field def as pk-field-group reads it; in the older name/type spelling, help is the line under the control (the group's hint).
+const spec = f => ({ ...f, key: key(f), kind: kindOf(f), ...(f.key == null && f.help ? { hint: f.help, help: undefined } : {}), options: f.options?.map(o => (typeof o === 'object' ? o : { value: String(o), label: String(o) })) });
 
 export default Base => class extends Base {
     connected() {
@@ -28,7 +32,7 @@ export default Base => class extends Base {
     disconnected() { this.$gen = (this.$gen ?? 0) + 1; window.removeEventListener('beforeunload', this.$leave); }
     changed(name) {
         if (!this.$w || !this.isConnected) return;
-        if (name === 'config') { if ((this.config?.id ?? null) !== this.$id) this.fetch(); else { this.bar(); this.draw(); } }
+        if (name === 'config') { if ((this.config?.id ?? null) !== this.$id) this.fetch(); else { if (this.$id == null && !this.dirty) this.$values = { ...this.config?.values }; this.bar(); this.draw(); } }
         else if (name === 'mode') this.draw();
         else if (name === 'deletable') this.part('delete').hidden = this.deleteHidden();
         else if (name === 'error') this.notice();
@@ -44,7 +48,7 @@ export default Base => class extends Base {
         this.bar();
         this.part('layout').hidden = true;
         for (const p of ['edit', 'cancel', 'save', 'delete']) this.part(p).hidden = true;
-        if (id == null || typeof this.load !== 'function') { this.$values = {}; this.done(); return; }
+        if (id == null || typeof this.load !== 'function') { this.$values = { ...this.config?.values }; this.done(); return; }
         showState(box, 'loading', { label: this.config?.label });
         try {
             const rec = await this.load(id);
@@ -72,7 +76,7 @@ export default Base => class extends Base {
         side.replaceChildren(...(this.config?.sidebar ?? []).map(s => {
             const card = doc.createElement('pk-card');
             card.setAttribute('heading', s.heading ?? '');
-            card.append(this.list(doc, this.fields.filter(f => s.fields?.includes(f.name)), vals, '', true));
+            card.append(this.list(doc, this.fields.filter(f => s.fields?.includes(key(f))), vals, '', true));
             return card;
         }));
         const canEdit = this.config?.editable !== false && typeof this.save === 'function';
@@ -94,54 +98,38 @@ export default Base => class extends Base {
         if (heading) list.setAttribute('heading', heading);
         if (dense) { list.setAttribute('layout', 'stacked'); list.setAttribute('dense', ''); }
         for (const f of fields) {
-            const dt = doc.createElement('dt'), dd = doc.createElement('dd'), v = text(vals[f.name]);
-            dt.textContent = f.label ?? f.name;
+            const dt = doc.createElement('dt'), dd = doc.createElement('dd'), raw = vals[key(f)], v = typeof raw === 'boolean' ? (raw ? 'Yes' : 'No') : text(raw);
+            dt.textContent = f.label ?? key(f);
             // A host child slot="field-<name>" replaces the value (#1000); without one the slot shows the text.
             const slot = doc.createElement('slot');
-            slot.name = `field-${f.name}`;
+            slot.name = `field-${key(f)}`;
             slot.textContent = (f.options?.find(o => text(o.value ?? o) === v)?.label ?? v) || '-';
             dd.append(slot);
             list.append(dt, dd);
         }
         return list;
     }
+    // The edit form is a pk-field-group drawn from the same field defs (key, kind, label, hint, help, required, options, when ...); name and type are the older spellings of key and kind.
     form(doc, vals) {
-        const pf = doc.createElement('pk-form'), form = doc.createElement('form');
+        const pf = doc.createElement('pk-form'), form = doc.createElement('form'), group = doc.createElement('pk-field-group');
         pf.setAttribute('summary', '');
-        this.$fields = new Map();
-        for (const f of this.fields) {
-            const field = doc.createElement('pk-field'), ctl = doc.createElement(CONTROL[f.type] ?? 'pk-input');
-            field.setAttribute('label', f.label ?? f.name);
-            if (f.help) field.setAttribute('help', f.help);
-            if (f.required) field.setAttribute('required', '');
-            ctl.setAttribute('name', f.name);
-            if (f.required) ctl.setAttribute('required', '');
-            if (f.readonly) ctl.setAttribute('readonly', '');
-            if (!CONTROL[f.type] && f.type) ctl.setAttribute('type', f.type);
-            for (const o of f.type === 'select' ? f.options ?? [] : []) {
-                const opt = doc.createElement('option');
-                opt.value = text(o.value ?? o); opt.textContent = o.label ?? text(o.value ?? o);
-                ctl.append(opt);
-            }
-            ctl.value = text(vals[f.name]);
-            field.append(ctl);
-            this.$fields.set(f.name, field);
-            form.append(field);
-        }
+        group.setAttribute('label', this.config?.heading || this.config?.title || 'Record');
+        group.fields = this.fields.map(spec);
+        group.values = { ...vals };
+        this.$group = group;
+        form.append(group);
         pf.append(form);
         return pf;
     }
-    controls() { return [...this.part('main').querySelectorAll('[name]:not(slot)')]; }
+    controls() { return [...(this.$group?.shadowRoot?.querySelectorAll(CONTROLS) ?? [])]; }
+    live() { return this.$group?.snapshot?.() ?? {}; }
     collect() {
-        const out = { ...this.$values };
-        for (const c of this.controls()) {
-            const f = this.fields.find(x => x.name === c.getAttribute('name'));
-            out[f.name] = f.type === 'number' && c.value !== '' ? Number(c.value) : c.value;
-        }
+        const out = { ...this.$values }, live = this.live();
+        for (const f of this.fields) if (key(f) in live) out[key(f)] = kindOf(f) === 'number' && live[key(f)] !== '' ? Number(live[key(f)]) : live[key(f)];
         return out;
     }
     // Dirty means the controls differ from the last loaded or saved values; pk-record-dirty tells the app (which owns its router and can veto a leave).
-    track() { if (this.editing) this.setDirty(this.controls().some(c => text(this.$values?.[c.getAttribute('name')]) !== c.value)); }
+    track() { if (this.editing) { const live = this.live(); this.setDirty(Object.keys(live).some(k => norm(live[k]) !== norm(this.$values?.[k]))); } }
     setDirty(v) { if (v !== Boolean(this.dirty)) { this.dirty = v; this.emit('pk-record-dirty', { dirty: v }); } }
 
     async submit() {
@@ -149,7 +137,7 @@ export default Base => class extends Base {
         const gen = this.$gen, save = this.part('save'), values = this.collect();
         this.$saving = true; save.busy = true;
         renderState(this.part('notice'), 'ready');
-        for (const f of this.$fields?.values() ?? []) f.removeAttribute('error');
+        this.$group?.report?.(false);
         try {
             const out = await this.save(values);
             if (gen !== this.$gen) return;
@@ -161,9 +149,9 @@ export default Base => class extends Base {
             if (gen !== this.$gen) return;
             this.log.error('record save failed', err);
             // A rejection carrying { errors: { fieldName: message } } marks those fields inline; any other is a notice above the form.
-            const fields = Object.entries(err?.errors ?? {}).map(([n, m]) => [this.controls().find(c => c.getAttribute('name') === n), m]).filter(([c]) => c);
-            for (const [c, m] of fields) this.$fields.get(c.getAttribute('name')).setAttribute('error', text(m));
-            if (fields.length) fields[0][0].focus();
+            const fields = Object.entries(err?.errors ?? {}).filter(([n]) => this.fields.some(f => key(f) === n));
+            for (const [n, m] of fields) this.$group.setError(n, text(m));
+            if (fields.length) this.$group.focusField(fields[0][0]);
             else { showState(this.part('notice'), 'error', { heading: 'Could not save', error: err }); }
         } finally { this.$saving = false; this.lock(); }
     }

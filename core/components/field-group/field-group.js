@@ -163,6 +163,10 @@ export default Base => class extends Base {
         const r = typeof which === 'string' ? this.$rows.get(which) : [...this.$rows.values()].find(x => x.control === which || x.field.contains?.(which));
         return Boolean(r?.field.error);
     }
+    // The live values of the shown fields as the controls hold them now (the committed values of the others stay as they were); a host reads these when the user has typed without committing.
+    snapshot() { const out = { ...this.$vals }; for (const [k, r] of this.$rows) if (r.control) out[k] = readValue(r.control, r.kind); return out; }
+    // Shows a message in one field (a server's answer); report(false) clears every message.
+    setError(key, message) { const r = this.$rows.get(key); if (r) r.field.error = message ?? ''; }
     focusField(key) { this.$rows.get(key)?.control?.focus(); }
     focus(options) { (this.invalidRows()[0] ?? [...this.$rows.values()].find(r => r.control))?.control.focus(options); }
     onReset() {
