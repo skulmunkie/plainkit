@@ -38,6 +38,14 @@
       "doc": "The row key of an item (the config rowKey property, default id): names the cell slots of the loaded rows. Ids must not contain a double quote."
     },
     {
+      "name": "RowHrefTemplate",
+      "type": "string",
+      "default": "",
+      "map": "prop",
+      "prop": "rowHrefTemplate",
+      "note": "Row links: an address like /orders/{id} (or #/orders/{id}); {id} is the row key and any {field} a camel-case row property, URL-encoded. The first cell of each row becomes a real link (new tab, middle click, copy address) and a plain click navigates through the app router without a reload. Use it for a routed list-to-record pair; OnRowClick stays for an imperative handler."
+    },
+    {
       "name": "OnSelect",
       "event": "pk-select",
       "type": "EventCallback<PkSelectEventArgs>"
@@ -55,7 +63,7 @@
       "type": "EventCallback<PkBulkEventArgs>"
     }
   ],
-  "notes": "PkListPage<TItem>: load(query) is a callback property, set from script, so the generated component hands the element a .NET reference (PkCallbackSlot) that calls the Load parameter with the page, sort, search and filters; a Load that throws rejects the JavaScript promise, which the element shows as its own error state with Retry. rowHref is synchronous in the element and cannot cross the interop boundary; use OnRowClick (the row click that navigates to a record) or Config actions. Cells (column key to a RenderFragment<TItem>) with IdOf fill the cell-<id>-<key> slots of each loaded row (issue 1000); the page forwards them to its table. Columns (PkTableColumn<TItem>) replaces config.columns and its Cell templates fill the cell slots like Cells (issue 1000). Selection (issue 873): Config selectable/rowKey/bulkActions switch it on; OnSelect (pk-select) and OnBulk (pk-bulk, a bulkActions button) are EventCallbacks. For Selected, SelectedChanged, a BulkContent slot and the compacted large selection use PkDataTable.",
+  "notes": "PkListPage<TItem>: load(query) is a callback property, set from script, so the generated component hands the element a .NET reference (PkCallbackSlot) that calls the Load parameter with the page, sort, search and filters; a Load that throws rejects the JavaScript promise, which the element shows as its own error state with Retry. rowHref is synchronous in the element and cannot cross the interop boundary; use RowHrefTemplate (real row links to a route, a typed RowHref(TItem) is not generated: the generator has no function-to-template step) or OnRowClick (an imperative row click handler) or Config actions. Cells (column key to a RenderFragment<TItem>) with IdOf fill the cell-<id>-<key> slots of each loaded row (issue 1000); the page forwards them to its table. Columns (PkTableColumn<TItem>) replaces config.columns and its Cell templates fill the cell slots like Cells (issue 1000). Selection (issue 873): Config selectable/rowKey/bulkActions switch it on; OnSelect (pk-select) and OnBulk (pk-bulk, a bulkActions button) are EventCallbacks. For Selected, SelectedChanged, a BulkContent slot and the compacted large selection use PkDataTable.",
   "typeparam": "TItem",
   "cells": { "load": "Load", "columns": true }
 }
