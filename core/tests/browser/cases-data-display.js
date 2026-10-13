@@ -1394,4 +1394,35 @@ export const dataDisplayCases = [
             }
         } finally { if (was === null) root.removeAttribute('data-theme'); else root.setAttribute('data-theme', was); }
     }],
+    ['table: row-href-template makes the first cell of each row a real link with the right address, leaves modified clicks to the browser, reports a plain click on the link or the row as a cancelable pk-navigate (the router seam), stays focusable, and keeps it on windowed rows (#366)', async t => {
+        const data = JSON.stringify([{ id: 'A 1', po: 'PO 1', customer: 'Acme & Sons' }, { id: 'B-2', po: 'PO 2', customer: 'Globex' }]);
+        const el = await t.mount(`<pk-table label="P" row-href-template="/orders/{id}?c={customer}" columns='[{"key":"po","label":"PO"},{"key":"customer","label":"Customer"}]' rows='${data}'></pk-table>`);
+        const row = i => el.shadowRoot.querySelectorAll('tbody tr[data-pk-context]')[i], link = i => row(i).querySelector('a[data-row-link]');
+        await until(() => link(0), 'the row links (the module loads on demand, once the template is set)');
+        t.eq(link(0).getAttribute('href'), '/orders/A%201?c=Acme%20%26%20Sons', 'the id and fields are URL-encoded into the template');
+        t.eq(link(1).getAttribute('href'), '/orders/B-2?c=Globex');
+        t.eq(link(0).textContent, 'PO 1', 'the link is named by the row label (its first cell)'); t.eq(row(0).querySelectorAll('a').length, 1, 'one link per row, in the first cell');
+        t.ok(link(0).closest('td') === row(0).querySelector('td'), 'in the first cell');
+        link(0).focus(); t.ok(el.shadowRoot.activeElement === link(0), 'a real link takes focus (Enter follows it natively)');
+        const nav = [], seen = [];
+        el.addEventListener('pk-navigate', e => { nav.push(e.detail.to); e.preventDefault(); }); // what the router does: handled, no page load
+        const stop = e => { seen.push(e.defaultPrevented); e.preventDefault(); }; // after the table's own handler: record whether it intercepted, then keep the runner on this page
+        document.addEventListener('click', stop);
+        try {
+            for (const mod of [{ ctrlKey: true }, { metaKey: true }, { shiftKey: true }, { button: 1 }]) link(1).dispatchEvent(new MouseEvent('click', { bubbles: true, composed: true, cancelable: true, ...mod }));
+            t.eq(nav.length, 0, 'a ctrl, meta, shift or middle click is not intercepted'); t.ok(seen.every(x => !x), 'and the browser keeps its default');
+            link(1).click(); t.eq(nav.join(), '/orders/B-2?c=Globex', 'a plain click on the link reports pk-navigate with the route');
+            nav.length = 0; row(0).children[1].click(); t.eq(nav.join(), '/orders/A%201?c=Acme%20%26%20Sons', 'a click on the row body follows the row link');
+            nav.length = 0; el.rowHrefTemplate = '#order-{id}'; await t.settle(); await until(() => link(0)?.getAttribute('href') === '#order-A%201', 'the new template');
+            link(0).click(); t.eq(nav.length, 0, 'a hash address is left to the browser (no pk-navigate)');
+            el.rowHrefTemplate = ''; await t.settle(); t.ok(!link(0), 'clearing the template removes the links');
+            const many = JSON.stringify(Array.from({ length: 600 }, (_, i) => ({ id: i, a: `a${i}` })));
+            const big = await t.mount(`<pk-table label="Big" max-height="12rem" row-href-template="/r/{id}" columns='[{"key":"a","label":"A"}]' rows='${many}'></pk-table>`);
+            const links = () => [...big.shadowRoot.querySelectorAll('tbody tr[data-pk-context]')].map(r => [r.dataset.pkContext, r.querySelector('a[data-row-link]')?.getAttribute('href')]);
+            await until(() => links()[0]?.[1], 'links on the windowed rows'); t.eq(big.$virtual, true, 'the table windows');
+            t.ok(links().every(([id, h]) => h === `/r/${id}`), 'every drawn row has its link');
+            big.shadowRoot.querySelector('[part="scroll"]').scrollTop = 4000; await wait(150); await t.settle();
+            const after = links(); t.ok(after.length > 0 && Number(after[0][0]) > 50 && after.every(([id, h]) => h === `/r/${id}`), 'after a scroll the newly drawn rows have their links too');
+        } finally { document.removeEventListener('click', stop); }
+    }],
 ];

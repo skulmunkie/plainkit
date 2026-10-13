@@ -113,7 +113,7 @@ export default Base => class extends Base {
         table.selectable = this.selectable;
         table.selected = this.selected ?? [];
         table.selectScope = this.selectScope;
-        for (const k of ['selectPageOnly', 'cards', 'striped', 'density', 'maxHeight', 'stickyHeader']) table[k] = this[k];
+        for (const k of ['rowHrefTemplate', 'selectPageOnly', 'cards', 'striped', 'density', 'maxHeight', 'stickyHeader']) table[k] = this[k];
     }
 
     // Zero rows: while a search or filter is active `noResults` (when set), else `empty`; with nothing active a host child in the `empty` slot replaces the built-in state.
