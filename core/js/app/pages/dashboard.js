@@ -11,7 +11,7 @@ export const PAGE_TYPE = {
 import { mountTitled } from '../../page-shell.js'; import { loadChunk } from '../module.js';
 // The element and its title; `mk(el)` answers the load callback (it may read el.context). A route with a `surface` composes from modules in a lazy chunk (#494), so other dashboards never pay for it.
 export const build = (host, config, ctx, mk) => {
-    const el = host.ownerDocument.createElement('pk-dashboard-page'); el.config = { heading: config.heading, breadcrumb: config.breadcrumb, actions: config.actions, tabs: config.tabs, widgets: config.widgets, sections: config.sections, filters: config.filters, empty: config.empty }; if (config.load || mk) el.load = mk ? mk(el) : key => config.load(key, ctx);
+    const el = host.ownerDocument.createElement('pk-dashboard-page'); el.config = { heading: config.heading, breadcrumb: config.breadcrumb, actions: config.actions, tabs: config.tabs, ...(config.tab && { tab: config.tab }), widgets: config.widgets, sections: config.sections, filters: config.filters, ...(config.values && { values: config.values }), empty: config.empty }; if (config.load || mk) el.load = mk ? mk(el) : key => config.load(key, ctx);
     return mountTitled(host, el, config.heading);
 };
 export default (host, config = {}, ctx) => (config.surface ? loadChunk('dashboard-modules').then(m => m.page(host, config, ctx)) : build(host, config, ctx));

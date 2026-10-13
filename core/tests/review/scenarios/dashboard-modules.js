@@ -4,7 +4,7 @@ import { createModuleHost, defineModule } from '../../../js/app.js';
 
 const DASH = '#app pk-dashboard-page';
 const CARD = key => `${DASH} >>> pk-card[data-key="${key}"]`;
-const c = (key, tab, label, kind = 'stat') => ({ key, for: ['ov'], tab, label, kind });
+const c = (key, tab, label, kind = 'stat', size) => ({ key, for: ['ov'], tab, label, kind, size });
 
 export default {
     name: 'dashboard-modules',
@@ -20,7 +20,7 @@ export default {
         const ops = defineModule({ id: 'ops', widgets: { queue: { load: async () => ({ value: '12', subtext: 'tickets waiting' }) } } });
         const host = createModuleHost(frame.querySelector('#app'), { modules: [
             { id: 'home', title: 'Home', load: async () => home },
-            { id: 'sales', title: 'Sales', load: async () => sales, contributes: [c('mrr', 'sales', 'Recurring revenue'), c('churn', 'sales', 'Churn'), c('trend', 'sales', 'Revenue by month', 'chart')] },
+            { id: 'sales', title: 'Sales', load: async () => sales, contributes: [c('mrr', 'sales', 'Recurring revenue'), c('churn', 'sales', 'Churn'), c('trend', 'sales', 'Revenue by month', 'chart', 'lg')] },
             { id: 'ops', title: 'Ops', load: async () => ops, contributes: [c('queue', 'ops', 'Support queue')] },
         ], timeout: 60000, retries: 0, backoff: 1 });
         host.show('home');
@@ -40,7 +40,8 @@ export default {
             t.noOverlap(CARD('sales:mrr'), CARD('sales:churn'));
             t.noOverlap(CARD('sales:churn'), CARD('sales:trend'));
             t.absent(CARD('ops:queue') + ' pk-stat');
-            const a = t.rect(CARD('sales:mrr')), b = t.rect(CARD('sales:churn'));
+            const a = t.rect(CARD('sales:mrr')), b = t.rect(CARD('sales:churn')), w = t.rect(CARD('sales:trend')), g = t.rect(DASH + ' >>> [part="grid"]');
+            if (w && g) t.ok(phone ? Math.abs(w.width - g.width) < 2 : Math.abs(w.width - g.width) < 2 && w.y >= a.bottom - 1, 'size lg takes the whole row (a row of its own on a wide screen, the one column on a phone)');
             if (a && b) {
                 if (phone) t.ok(b.y >= a.bottom - 1, 'on a phone the cards stack in one column');
                 else t.ok(Math.abs(a.y - b.y) <= 2, 'on a wide screen the first cards share a row');

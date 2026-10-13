@@ -93,7 +93,7 @@ export function showTitleBar(host, box, cfg = host.config) {
  * runs for the first tab now and for each tab the reader opens. State stays with the caller: a page-wide state (showState) replaces the whole strip,
  * a per-tab or per-widget state lives inside the panel it belongs to, so one tab loading or failing never blanks another.
  */
-export function showTabs(box, tabs, draw, onShow) {
+export function showTabs(box, tabs, draw, onShow, start) {
     const strip = box.ownerDocument.createElement('pk-tabs');
     strip.setAttribute('part', 'tabs');
     for (const t of tabs) {
@@ -105,9 +105,10 @@ export function showTabs(box, tabs, draw, onShow) {
         draw(panel, t.id);
         strip.append(tab, panel);
     }
-    strip.value = tabs[0].id;
+    const first = tabs.some(t => t.id === start) ? start : tabs[0].id;
+    strip.value = first;
     strip.addEventListener('pk-tab-change', e => onShow(e.detail.value));
     box.append(strip);
     loadElements(box);
-    onShow(tabs[0].id);
+    onShow(first);
 }
