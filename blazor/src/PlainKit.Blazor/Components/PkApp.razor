@@ -1,74 +1,34 @@
 @namespace PlainKit.Blazor
 @using System.Text.Json
 @using Microsoft.AspNetCore.Components.Routing
-@using PlainKit.Blazor.Components
 @using PlainKit.Blazor.Shells
 @implements IDisposable
 @inject PkModuleCatalog Catalog
 @inject NavigationManager Nav
 @inject IPkTheme Theme
 
-@* Hand-written (#364, step 3): the app frame over the module catalog. It composes the elements the SDK shell composes (pk-app-shell, pk-navbar, pk-side-nav,
-   pk-breadcrumb, pk-app-bar-search) and hooks Blazor's own router: the PkSideNav shape. The page is @Body (ChildContent); where the reader is comes
-   from PkNavModel (the fixture-backed port of appLocate). No behaviour of its own: no timers, no routing, no guard (step 4). *@
-<PkSkipLink Href="#pk-main">Skip to content</PkSkipLink>
-<PkAppShell>
-    <HeaderContent>
-        <PkNavbar NoFold="true">
-            <BrandContent><a href="@Url("/")">@Catalog.Brand</a></BrandContent>
-            <ChildContent>
-                @if (Catalog.Modules.Count > 1)
-                {
-                    <PkDropdown>
-                        <TriggerContent><PkButton Variant="ButtonVariant.Ghost" AriaLabel="Switch module">@Title(_active)</PkButton></TriggerContent>
-                        <ChildContent>@foreach (var m in Catalog.Modules) {<PkMenuItem Href="@Url("/" + m.Manifest.Id)">@m.Manifest.Title</PkMenuItem>}</ChildContent>
-                    </PkDropdown>
-                }
-            </ChildContent>
-            <ActionsContent>
-                <PkAppBarSearch Placeholder="Search" Items="_found" OnQuery="Search" OnSelect="Go" />
-                <PkDropdown Placement="bottom-end">
-                    <TriggerContent><PkButton Variant="ButtonVariant.Ghost" AriaLabel="Settings menu"><PkIcon Name="settings" /></PkButton></TriggerContent>
-                    <ChildContent><PkMenuItem Value="theme" OnSelect="ToggleTheme">Toggle theme</PkMenuItem></ChildContent>
-                </PkDropdown>
-            </ActionsContent>
-        </PkNavbar>
-    </HeaderContent>
-    <SidebarContent>
-        @if (_active?.Manifest.Nav is { Count: > 0 } nav)
-        {
-            <PkSideNav Label="@(Title(_active) + " menu")">@Items(nav)</PkSideNav>
-        }
-    </SidebarContent>
-    <BodyContent>
-        <main id="pk-main" tabindex="-1">
-            <PkStack Gap="md">
-                <PkBreadcrumb>@foreach (var (c, i) in (_loc?.Crumbs ?? []).Select((c, i) => (c, i))) {<a href="@(c.Href is null ? null : Url(c.Href))" aria-current="@(i == _loc!.Crumbs.Count - 1 ? "page" : null)">@c.Label</a>}</PkBreadcrumb>
-                @ChildContent
-            </PkStack>
-        </main>
-    </BodyContent>
+@* Hand-written (#364, step 3), router category: the module catalog and where the reader is (PkNavModel) go into the data of pk-app-frame, which draws
+   the shell, nav, picker, search and breadcrumb. The page is the body (ChildContent); links are plain hrefs, so the only handlers are search and theme. *@
+<PkAppFrame Brand="@Catalog.Brand" BrandHref="@Url("/")" Nav="@Json(Rows(_active?.Manifest.Nav))" CurrentId="@(_loc?.Current ?? "")" Trail="@Json(_loc?.Ids ?? [])"
+            Modules="@Json(Catalog.Modules.Select(m => new { id = m.Manifest.Id, title = m.Manifest.Title, href = Url("/" + m.Manifest.Id) }))"
+            ModuleTitle="@(_active?.Manifest.Title ?? "")" Crumbs="@Json(_loc?.Crumbs.Select(c => new { label = c.Label, href = c.Href is null ? null : Url(c.Href) }) ?? [])"
+            Search="true" SearchItems="@Json(_found)" OnQuery="Search" OnSelect="Go" OnThemeToggle="ToggleTheme">
+    <ChildContent><pk-skip-link href="#pk-main">Skip to content</pk-skip-link><main id="pk-main" tabindex="-1">@ChildContent</main></ChildContent>
     <FooterContent>@Catalog.Footer</FooterContent>
-</PkAppShell>
+</PkAppFrame>
 
 @code {
+    private static readonly JsonSerializerOptions Opts = new(JsonSerializerDefaults.Web) { DefaultIgnoreCondition = System.Text.Json.Serialization.JsonIgnoreCondition.WhenWritingNull };
     private PkNavLocation? _loc;
     private IPkModule? _active;
-    private IReadOnlyList<PkAppBarSearchItem> _found = [];
+    private IEnumerable<object> _found = [];
 
     /// <summary>The page: the router's body.</summary>
     [Parameter] public RenderFragment? ChildContent { get; set; }
 
-    protected override void OnInitialized()
-    {
-        Where();
-        Nav.LocationChanged += OnLocationChanged;
-    }
+    protected override void OnInitialized() { Where(); Nav.LocationChanged += OnLocationChanged; }
 
-    protected override async Task OnAfterRenderAsync(bool firstRender)
-    {
-        if (firstRender) await Theme.InitializeAsync();
-    }
+    protected override async Task OnAfterRenderAsync(bool firstRender) { if (firstRender) await Theme.InitializeAsync(); }
 
     private void Where()
     {
@@ -76,38 +36,25 @@
         _active = (_loc is null ? null : Catalog.Get(_loc.Module)) ?? (Catalog.Home is { } h ? Catalog.Get(h) : null) ?? Catalog.Modules.FirstOrDefault();
     }
 
-    private void OnLocationChanged(object? sender, LocationChangedEventArgs e)
-    {
-        Where();
-        _ = InvokeAsync(StateHasChanged);
-    }
+    private void OnLocationChanged(object? sender, LocationChangedEventArgs e) { Where(); _ = InvokeAsync(StateHasChanged); }
 
     private string Url(string appPath) => Nav.ToAbsoluteUri(appPath.TrimStart('/')).ToString();
 
-    private static string Title(IPkModule? m) => m?.Manifest.Title ?? "Modules";
+    private static string Json(object? v) => JsonSerializer.Serialize(v, Opts);
 
-    private RenderFragment Items(IEnumerable<PkManifestNavItem> items) => @<text>@foreach (var n in items) {
-        <PkNavItem Href="@(n.Route is null ? n.Href : Url("/" + _active!.Manifest.Id + (n.Route == "/" ? "" : n.Route)))" Current="@(n.Id == _loc?.Current)" Expanded="@(_loc?.Ids.Contains(n.Id) == true)"
-                   ChildContent="@Text(n.Title)" IconContent="@(n.Icon is null ? null : Icon(n.Icon))" BadgeContent="@(n.Badge is null ? null : Text(n.Badge))" ChildrenContent="@(n.Children is { Count: > 0 } kids ? Items(kids) : null)" />
-    }</text>;
+    private string? Path(PkManifestNavItem n) => n.Route is null ? null : "/" + _active!.Manifest.Id + (n.Route == "/" ? "" : n.Route);
 
-    private static RenderFragment Text(string s) => @<text>@s</text>;
+    private IEnumerable<object> Rows(IEnumerable<PkManifestNavItem>? items) => (items ?? []).Select(n => new { n.Id, n.Title, href = Path(n) is { } p ? Url(p) : n.Href, n.Icon, n.Badge, children = Rows(n.Children) });
 
-    private static RenderFragment Icon(string name) => @<PkIcon Name="@name" />;
+    private static IEnumerable<PkManifestNavItem> Flat(IEnumerable<PkManifestNavItem>? items) => (items ?? []).SelectMany(n => new[] { n }.Concat(Flat(n.Children)));
 
     // The default search: nav entries whose title contains the query, like the SDK's searchNav.
-    private void Search(PkQueryEventArgs e)
-    {
-        var q = e.Query?.Trim() ?? "";
-        _found = q.Length == 0 || _active?.Manifest.Nav is null ? [] : Flat(_active.Manifest.Nav).Where(n => n.Route is not null && n.Title.Contains(q, StringComparison.OrdinalIgnoreCase))
-            .Take(8).Select(n => new PkAppBarSearchItem { Id = "/" + _active.Manifest.Id + (n.Route == "/" ? "" : n.Route), Label = n.Title }).ToList();
-    }
-
-    private static IEnumerable<PkManifestNavItem> Flat(IEnumerable<PkManifestNavItem> items) => items.SelectMany(n => new[] { n }.Concat(Flat(n.Children ?? [])));
+    private void Search(PkQueryEventArgs e) => _found = (e.Query?.Trim() ?? "") is { Length: > 0 } q
+        ? Flat(_active?.Manifest.Nav).Where(n => Path(n) is not null && n.Title.Contains(q, StringComparison.OrdinalIgnoreCase)).Take(8).Select(n => (object)new { id = Path(n), label = n.Title }).ToList() : [];
 
     private void Go(PkSelectEventArgs e)
     {
-        if (e.Item?.Deserialize<PkAppBarSearchItem>(new JsonSerializerOptions(JsonSerializerDefaults.Web)) is { Id.Length: > 0 } item) Nav.NavigateTo(Url(item.Id));
+        if (e.Item?.TryGetProperty("id", out var id) == true && id.GetString() is { Length: > 0 } path) Nav.NavigateTo(Url(path));
     }
 
     private async Task ToggleTheme() => await Theme.ToggleAsync();

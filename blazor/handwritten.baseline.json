@@ -64,6 +64,7 @@
     "PkRecordEditor.Toasts.cs": 40,
     "PkPageContext.cs": 98,
     "PkNavModel.cs": 24,
+    "Components/PkApp.razor": 63,
     "PkAppModules.cs": 60,
     "PkRuntime.cs": 125,
     "PkScoreTarget.cs": 25,

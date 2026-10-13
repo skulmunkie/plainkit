@@ -1,3 +1,4 @@
+using System.Text.Json;
 using Bunit;
 using Microsoft.AspNetCore.Components;
 using Microsoft.Extensions.DependencyInjection;
@@ -30,36 +31,54 @@ public sealed class PkAppTests : BunitContext, IAsyncLifetime
         Services.AddPlainKitApp(a => a.Brand("Demo app").Module<Overview>().Module<Orders>().Home("overview").Footer("Run by Finance"));
     }
 
+    private static string[] Labels(IRenderedComponent<PkApp> cut, string attr, string key) =>
+        JsonDocument.Parse(cut.Find("pk-app-frame").GetAttribute(attr)!).RootElement.EnumerateArray().Select(e => e.GetProperty(key).GetString()!).ToArray();
+
     [Fact]
-    public void Draws_the_brand_picker_footer_and_the_page()
+    public void Hands_the_brand_modules_footer_and_page_to_the_frame()
     {
         var cut = Render<PkApp>(p => p.Add(x => x.ChildContent, "page body"));
-        Assert.Contains("Demo app", cut.Find("pk-navbar a[slot=brand], pk-navbar [slot=brand] a").TextContent);
-        Assert.Equal(new[] { "Overview", "Orders" }, cut.FindAll("pk-dropdown pk-menu-item[href*=\"/\"]").Select(m => m.TextContent.Trim()));
-        Assert.Contains("Run by Finance", cut.Find("pk-app-shell [slot=footer]").TextContent);
+        var frame = cut.Find("pk-app-frame");
+        Assert.Equal("Demo app", frame.GetAttribute("brand"));
+        Assert.Equal(new[] { "Overview", "Orders" }, Labels(cut, "modules", "title"));
+        Assert.Contains("Run by Finance", frame.QuerySelector("[slot=footer]")!.TextContent);
         Assert.Contains("page body", cut.Find("main#pk-main").TextContent);
+        Assert.NotNull(cut.Find("pk-skip-link"));
     }
 
     [Fact]
-    public void Marks_the_current_nav_row_and_the_trail_for_the_address()
+    public void Sends_the_current_row_and_the_trail_for_the_address()
     {
         Services.GetRequiredService<NavigationManager>().NavigateTo("/orders/open");
         var cut = Render<PkApp>();
-        var current = cut.FindAll("pk-nav-item[current]");
-        Assert.Single(current);
-        Assert.Contains("Open", current[0].TextContent);
-        Assert.Equal(new[] { "Demo app", "Orders", "Open" }, cut.FindAll("pk-breadcrumb a").Select(a => a.TextContent.Trim()));
-        Assert.Equal("page", cut.FindAll("pk-breadcrumb a")[^1].GetAttribute("aria-current"));
+        Assert.Equal("open", cut.Find("pk-app-frame").GetAttribute("current-id"));
+        Assert.Equal("Orders", cut.Find("pk-app-frame").GetAttribute("module-title"));
+        Assert.Equal(new[] { "All orders", "Open" }, Labels(cut, "nav", "title"));
+        Assert.Equal(new[] { "Demo app", "Orders", "Open" }, Labels(cut, "crumbs", "label"));
+        Assert.EndsWith("/orders/open", JsonDocument.Parse(cut.Find("pk-app-frame").GetAttribute("nav")!).RootElement[1].GetProperty("href").GetString());
     }
 
     [Fact]
-    public void Follows_a_navigation_and_lists_only_the_active_modules_nav()
+    public void Follows_a_navigation()
     {
         var cut = Render<PkApp>();
-        Assert.Empty(cut.FindAll("pk-side-nav"));
+        Assert.Equal("[]", cut.Find("pk-app-frame").GetAttribute("nav"));
         Services.GetRequiredService<NavigationManager>().NavigateTo("/orders/42");
-        cut.WaitForAssertion(() => Assert.Equal(2, cut.FindAll("pk-side-nav pk-nav-item").Count));
-        Assert.Equal(new[] { "Demo app", "Orders", "Order" }, cut.FindAll("pk-breadcrumb a").Select(a => a.TextContent.Trim()));
+        cut.WaitForAssertion(() => Assert.Equal(new[] { "Demo app", "Orders", "Order" }, Labels(cut, "crumbs", "label")));
+        Assert.Equal("all", cut.Find("pk-app-frame").GetAttribute("current-id"));
+    }
+
+    [Fact]
+    public async Task Search_filters_the_nav_and_a_chosen_result_navigates()
+    {
+        var nav = Services.GetRequiredService<NavigationManager>();
+        nav.NavigateTo("/orders");
+        var cut = Render<PkApp>();
+        await cut.InvokeAsync(() => cut.FindComponent<Shells.PkAppFrame>().Instance.OnQuery.InvokeAsync(new PkQueryEventArgs { Query = "OPEN" }));
+        Assert.Equal(new[] { "Open" }, Labels(cut, "search-items", "label"));
+        var item = JsonDocument.Parse("{\"id\":\"/orders/open\",\"label\":\"Open\"}").RootElement;
+        await cut.InvokeAsync(() => cut.FindComponent<Shells.PkAppFrame>().Instance.OnSelect.InvokeAsync(new PkSelectEventArgs { Item = item }));
+        Assert.EndsWith("/orders/open", nav.Uri);
     }
 
     [Fact]
