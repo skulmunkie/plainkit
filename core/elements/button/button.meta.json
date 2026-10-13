@@ -266,6 +266,11 @@
       "default": "var(--radius-sm)"
     },
     {
+      "name": "--pk-button-bw",
+      "description": "Border width.",
+      "default": "1px"
+    },
+    {
       "name": "--pk-button-border",
       "description": "Border colour.",
       "default": "the variant border colour"

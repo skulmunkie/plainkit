@@ -27,6 +27,11 @@ const intersect = (a, b) => {
 };
 const inside = (a, b) => a[0] >= b[0] - 1 && a[1] >= b[1] - 1 && a[0] + a[2] <= b[0] + b[2] + 1 && a[1] + a[3] <= b[1] + b[3] + 1;
 
+// The only two intentional exemptions (issue 1259); every other overlap or clipped box stays a warning.
+// pk-avatar-group stacks its children on purpose; the pan/zoom frame of pk-canvas clips an artboard larger than the frame on purpose.
+const AVATAR_CHILD = /(^|> )pk-avatar-group[^ >]* > [^>]*$/;
+const CANVAS_FRAME = /(^|> )pk-canvas[^ >]* > div\[part=frame\]/;
+
 // Does a computed `content` value draw something? ("none", "normal" and empty strings do not.)
 const draws = content => Boolean(content) && content !== 'none' && content !== 'normal' && !/^(""|'')(\s|$)/.test(content);
 // A computed `content: "x" / ""` keeps its alternative text: empty means assistive technology skips the glyph.
@@ -60,7 +65,7 @@ export function auditFacts(facts) {
         }
         // A box hidden with the standard visually-hidden technique (pk-skip-link before focus, a u-sr-only live region) is clipped and undersized
         // on purpose: assistive tech still reaches it, so it is not a clipped-content or tap-target finding (issue 387).
-        if ((b.clipX || b.clipY) && !b.hiddenVisually) add('clipped-content', 'warn', b, `${b.path} hides ${b.clipX ? 'width' : 'height'} (content larger than its box, overflow clipped)`, 'let the box grow, wrap, or truncate on purpose with text-overflow: ellipsis');
+        if ((b.clipX || b.clipY) && !b.hiddenVisually && !CANVAS_FRAME.test(b.path)) add('clipped-content', 'warn', b, `${b.path} hides ${b.clipX ? 'width' : 'height'} (content larger than its box, overflow clipped)`, 'let the box grow, wrap, or truncate on purpose with text-overflow: ellipsis');
         // WCAG 2.2 SC 2.5.8 (Target Size Minimum): the activation area counts. A checkbox, radio or switch inside (or `for`-linked to) a clickable label is
         // activated by the whole label, so that is the target we measure (hitRect, [w, h]). A bare input or link with no label keeps its own box (issue 1003).
         const [tw, th] = b.hitRect && b.hitRect[0] * b.hitRect[1] > w * h ? b.hitRect : [w, h]; // the larger of the control and its label: a label is an extra way to hit the control, not a replacement (issue 1003)
@@ -77,6 +82,7 @@ export function auditFacts(facts) {
         for (let i = 0; i < flow.length; i++) for (let j = i + 1; j < flow.length; j++) {
             const [a, c] = [flow[i], flow[j]];
             if (inside(a.rect, c.rect) || inside(c.rect, a.rect)) continue;
+            if (AVATAR_CHILD.test(a.path) && AVATAR_CHILD.test(c.path)) continue;
             const area = a.lines || c.lines ? Math.max(...(a.lines || [a.rect]).flatMap(x => (c.lines || [c.rect]).map(y => intersect(x, y)))) : intersect(a.rect, c.rect);
             if (area >= OVERLAP_MIN) add('overlap', 'warn', a, `${a.path} and ${c.path} overlap by ${Math.round(area)}px2`, 'give the siblings room (gap, wrap) or make one an overlay on purpose');
         }
