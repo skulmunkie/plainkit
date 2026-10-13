@@ -38,12 +38,12 @@ import { loadElements } from '../loader.js';
 import { mountRouter } from '../router.js';
 import { mediaBelow } from '../breakpoints.js';
 import { navRoutes } from '../route-tree.js';
-import { MODULE_ID } from './module.js';
+import { MODULE_ID, loadChunk } from './module.js';
 import { createModuleHost } from './host.js';
 import { lazyServices } from './lazy.js';
 import { readConfig, readFooter } from './config.js';
 import { buildShell, footerNodes } from './shell.js';
-import { navOf, absolute, paintNav, pageContext, routeContext, markCurrent, searchNav } from './nav.js';
+import { navOf, absolute, paintNav, pageContext, routeContext, markCurrent } from './nav.js';
 
 const log = createLogger('app');
 // the last crumb of a page that is not a page
@@ -173,7 +173,7 @@ export function mountApp(container, config) {
         for (const fn of [...subs]) try { fn(query); } catch (err) { log.error('search subscriber threw', err); }
         let list = [];
         if (a && query.trim().length >= cfg.search.minLength) {
-            try { list = await (a.def.search ? a.def.search(query, a.ctx) : searchNav(nav, query)); } catch (err) { log.error(`search of "${a.id}" threw`, err); }
+            try { list = await (a.def.search ? a.def.search(query, a.ctx) : (await loadChunk('svc-search')).searchNav(nav, query)); } catch (err) { log.error(`search of "${a.id}" threw`, err); }
         }
         if (n !== sseq || dead) return;
         list = Array.isArray(list) ? list : [];
