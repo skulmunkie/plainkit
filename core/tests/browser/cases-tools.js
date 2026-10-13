@@ -172,6 +172,22 @@ export const toolCases = [
         editor.destroy();
     }],
 
+    ['theme editor module: contrast swatches render the chosen colours from an adopted stylesheet (no style attribute with a colour), and destroy removes the sheet', async t => {
+        await t.load(t.stage('<pk-unit-input></pk-unit-input><pk-colour-input></pk-colour-input><pk-input></pk-input><pk-select></pk-select><pk-button></pk-button><pk-tabs></pk-tabs><pk-table></pk-table><pk-stat></pk-stat><pk-card></pk-card><pk-toolbar></pk-toolbar><pk-textarea></pk-textarea><pk-badge></pk-badge><pk-alert></pk-alert>'));
+        const { mountThemeEditor } = await dist('theme-editor');
+        const before = document.adoptedStyleSheets.length;
+        const preview = t.stage('<div data-theme="dark"></div>').firstElementChild;
+        const host = t.stage('');
+        const editor = await mountThemeEditor(host, { target: preview, preview: false, savedKey: false });
+        await until(() => host.querySelector('.te-sample'), 'the swatches');
+        const samples = [...host.querySelectorAll('.te-sample')];
+        t.ok(samples.length > 0, 'swatches are drawn');
+        t.ok(samples.every(s => !s.hasAttribute('style')), 'no swatch has a style attribute');
+        const bad = samples.filter(s => { const [fg, bg] = s.title.split(' on '); const cs = getComputedStyle(s); const probe = document.createElement('i'); document.body.append(probe); probe.style.color = fg; probe.style.backgroundColor = bg; const want = getComputedStyle(probe); const ok = cs.color === want.color && cs.backgroundColor === want.backgroundColor; probe.remove(); return !ok; });
+        t.eq(bad.length, 0, 'every swatch shows the stored pair');
+        editor.destroy();
+        t.eq(document.adoptedStyleSheets.length, before, 'destroy leaves no adopted sheet behind');
+    }],
     ['theme editor module: a length token is a pk-unit-input that edits number and unit, other kinds keep their field, and Reset restores the stylesheet value', async t => {
         await t.load(t.stage('<pk-unit-input></pk-unit-input><pk-colour-input></pk-colour-input><pk-input></pk-input><pk-select></pk-select><pk-button></pk-button><pk-tabs></pk-tabs><pk-table></pk-table><pk-stat></pk-stat><pk-card></pk-card><pk-toolbar></pk-toolbar><pk-textarea></pk-textarea><pk-badge></pk-badge><pk-alert></pk-alert>')); // the editor's elements load on demand: define them first, so the case also passes on its own (--elements)
         const { mountThemeEditor } = await dist('theme-editor');
