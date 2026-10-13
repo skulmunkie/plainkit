@@ -193,6 +193,9 @@ export default {
         }
         if (t.viewport.name === 'phone') {
             t.absent('#dock >>> pk-splitter');
+            // The panel is a focusable scroll region the audit counts as a touch target: pk-dock must not override the panel's own phone min-block-size (44px).
+            const panel = t.rect('#bottom >>> pk-tab-panel[selected]');
+            t.ok(panel && panel.height >= 44, 'the selected tab panel keeps the touch-target minimum height on a phone');
             t.ok(t.metric('#dock', 'scrollWidth') <= t.viewport.width, 'no horizontal overflow on a phone');
             // Issue #602: the reading-order strip (all six panels) stays on one scrollable row.
             t.ok(t.metric('#dock >>> pk-tabs >>> [part=list]', 'scrollHeight') <= t.metric('#dock >>> pk-tabs >>> [part=list]', 'clientHeight') + 1, 'the phone tab strip wraps onto a second row instead of scrolling');
