@@ -1,0 +1,8 @@
+/* pk-app-frame: the app frame. All layout is pk-app-shell's own; this host only has to be a block the shell can fill. */
+:host { display: block; }
+
+[part="picker"][hidden], [part="search"][hidden], [part="crumbs"][hidden], [part="nav"][hidden] { display: none; }
+
+/* A long module title is cut, never wraps the header row. (pk-navbar itself does not draw the picker on a phone; the module list for the drawer is the host's, a follow-up.) */
+[part="module"] { max-width: 16ch; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+

@@ -1,0 +1,22 @@
+{
+  "component": "PkAppFrame",
+  "params": [
+    { "name": "Brand", "type": "string", "default": "", "map": "prop", "prop": "brand" },
+    { "name": "BrandHref", "type": "string", "default": "", "map": "prop", "prop": "brandHref" },
+    { "name": "NavLabel", "type": "string", "default": "Main", "map": "prop", "prop": "navLabel" },
+    { "name": "Nav", "type": "string?", "map": "prop", "prop": "nav", "note": "JSON text, [{ id, title, href, icon, badge, children }]. PkApp serialises its PkNavModel into it; a typed record follows with PkApp." },
+    { "name": "CurrentId", "type": "string", "default": "", "map": "prop", "prop": "currentId" },
+    { "name": "Trail", "type": "string?", "map": "prop", "prop": "trail", "note": "JSON text, the ids of the branches to open." },
+    { "name": "Modules", "type": "string?", "map": "prop", "prop": "modules", "note": "JSON text, [{ id, title, href }]." },
+    { "name": "ModuleTitle", "type": "string", "default": "", "map": "prop", "prop": "moduleTitle" },
+    { "name": "Crumbs", "type": "string?", "map": "prop", "prop": "crumbs", "note": "JSON text, [{ label, href }]." },
+    { "name": "Search", "type": "bool", "default": false, "map": "prop", "prop": "search" },
+    { "name": "SearchPlaceholder", "type": "string", "default": "Search", "map": "prop", "prop": "searchPlaceholder" },
+    { "name": "SearchItems", "type": "string?", "map": "prop", "prop": "searchItems", "note": "JSON text, pk-app-bar-search items." },
+    { "name": "ChildContent", "type": "RenderFragment?", "map": "slot", "slot": "" },
+    { "name": "FooterContent", "type": "RenderFragment?", "map": "slot", "slot": "footer" },
+    { "name": "OnQuery", "type": "EventCallback<PkQueryEventArgs>", "map": "event", "event": "pk-query" },
+    { "name": "OnSelect", "type": "EventCallback<PkSelectEventArgs>", "map": "event", "event": "pk-select" },
+    { "name": "OnThemeToggle", "type": "EventCallback", "map": "event", "event": "pk-theme-toggle" }
+  ]
+}
