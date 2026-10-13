@@ -129,7 +129,9 @@
       "description": "A tab strip (pk-tabs with tabs only, or your own) docked at the foot of the header, so with sticky it stays in view with the bar; replaces the strip drawn from the tabs array; hidden when empty or when tabs-from says it does not apply at this width."
     }
   ],
-  "events": [],
+  "events": [
+    { "name": "pk-tab-change", "detail": "{ value, previous, fallback? }", "detailProps": { "value": "string", "previous": "string", "fallback": "bool" }, "description": "The docked strip (drawn from tabs, or a pk-tabs you slotted) chose a tab: the pk-tabs event, passed through. Bind it to pk-detail-layout section with hide-tabs." }
+  ],
   "parts": [
     {
       "name": "header",

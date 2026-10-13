@@ -36,6 +36,13 @@
       "description": "Where the data-pk-section tabs take effect. collapse: once the layout has collapsed to one column (the container query). phone or tablet: at or below that viewport width, whatever the layout. always: in the two-column layout too, so a wide record page shows one section at a time, sidebar cards of the chosen section beside it. Elsewhere every section shows and there is no strip."
     },
     {
+      "name": "hideTabs",
+      "type": "boolean",
+      "default": false,
+      "reflect": true,
+      "description": "The strip of sections is yours (a pk-page-header with tabs, or a pk-tabs elsewhere): the layout draws none, and shows one data-pk-section at a time, whatever its width, from section alone. Set section from the strip's pk-tab-change. The Next button still shows."
+    },
+    {
       "name": "nextLabel",
       "type": "string",
       "default": "Next",
@@ -123,6 +130,10 @@
     {
       "title": "Record page with phone tabs",
       "html": "<pk-detail-layout>\n  <pk-card heading=\"Details\" data-pk-section=\"details\"><p>Name, SKU</p></pk-card>\n  <pk-card heading=\"Pricing\" data-pk-section=\"pricing\"><p>Price, cost</p></pk-card>\n  <pk-card slot=\"sidebar\" heading=\"Status\" data-pk-section=\"details\"><p>Active</p></pk-card>\n  <pk-card slot=\"sidebar\" heading=\"Channels\" data-pk-section=\"pricing\"><p>Web, store</p></pk-card>\n</pk-detail-layout>"
+    },
+    {
+      "title": "Sections from the page header (hide-tabs)",
+      "html": "<pk-page-header heading=\"Blue mug\" tabs-from=\"always\" tabs='[{\"value\":\"details\",\"label\":\"Details\"},{\"value\":\"pricing\",\"label\":\"Pricing\"}]'></pk-page-header>\n<pk-detail-layout hide-tabs section=\"details\">\n  <pk-card heading=\"Details\" data-pk-section=\"details\"><p>Name, SKU</p></pk-card>\n  <pk-card heading=\"Pricing\" data-pk-section=\"pricing\"><p>Price, cost</p></pk-card>\n</pk-detail-layout>"
     }
   ],
   "writes": [

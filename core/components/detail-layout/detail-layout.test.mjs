@@ -15,6 +15,11 @@ test('sidebarFirst and sidebarTwoUp are plain reflected booleans', () => {
     }
 });
 
+test('hideTabs is a reflected boolean: the strip is the host\'s (issue 1241)', () => {
+    assert.equal(prop('hideTabs').type, 'boolean');
+    assert.equal(prop('hideTabs').reflect, true);
+});
+
 test('the default slot is the main content, sidebar is the only named slot', () => {
     assert.deepEqual(meta.slots.map(s => s.name).sort(), ['', 'sidebar']);
 });
