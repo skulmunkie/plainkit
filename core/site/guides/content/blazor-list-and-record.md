@@ -47,8 +47,8 @@ A column `key` names a property of `TItem` in camel case (`OrderNo` is `orderNo`
 
     private static readonly IReadOnlyList<PkFieldSpec<OrderRecord>> _fields =
     [
-        new() { Key = "customer", Label = "Customer", Required = true, Get = o => o.Customer, Set = (o, v) => o.Customer = v ?? "" },
-        new() { Key = "note", Label = "Note", Kind = PkFieldKind.Textarea, Get = o => o.Note, Set = (o, v) => o.Note = v ?? "" },
+        new() { Key = "customer", Label = "Customer", Required = true, Get = order => order.Customer, Set = (order, v) => order.Customer = v ?? "" },
+        new() { Key = "note", Label = "Note", Kind = PkFieldKind.Textarea, Get = order => order.Note, Set = (order, v) => order.Note = v ?? "" },
     ];
 
     private Task SaveAsync(OrderRecord order) => Orders.SaveAsync(Id, order);
@@ -59,6 +59,6 @@ Build `Config` with a serializer, not by gluing strings, so an id with a quote i
 
 ## What this does not cover
 
-A field value in view mode can be your own markup through `ViewFields` (a field key to a `RenderFragment`), and a list cell through `Cells` (with `IdOf`). `PkListPage` also takes typed `Columns` (`PkTableColumn<TItem>`, as on `PkDataTable`): they replace the columns of `Config`, and a column's `Cell` template fills that cell of every loaded row. Delete, busy and error are bound from the page: `OnDelete` shows the Delete button in view mode of an existing record, and `Busy` and `Error` are the page's own state. On a `PageBase` page set `Busy="IsBusy"` and `Error="StatusMessage"` and run the handler inside `TryBusyAsync`, which logs a failure, shows it through `DescribeError` and keeps the circuit alive; navigate away when it returns true. `When`, `Disabled` and the other per-record members of a field are read once the record is loaded, and a field `Editor` is not drawn on the record page yet; for a form with tabs, sections or a sidebar of your own markup use `PkRecordForm` and `PkRecordEditor` (see the Blazor skill's `references/record-form.md`).
+A field value in view mode can be your own markup through `ViewFields` (a field key to a `RenderFragment`), and a list cell through `Cells` (with `IdOf`). `PkListPage` also takes typed `Columns` (`PkTableColumn<TItem>`, as on `PkDataTable`): they replace the columns of `Config`, and a column's `Cell` template fills that cell of every loaded row. Delete, busy and error are bound from the page: `OnDelete` shows the Delete button in view mode of an existing record, and `Busy` and `Error` are the page's own state. On a `PageBase` page set `Busy="IsBusy"` and `Error="StatusMessage"` and run the handler inside `TryBusyAsync`, which logs a failure, shows it through `DescribeError` and keeps the circuit alive; navigate away when it returns true. `When`, `Disabled` and the other per-record members of a field are read once the record is loaded, but they do not follow unsaved edits (the item is written at Save). A spec `Editor` is the body of that field in edit mode: bind its controls to the item's properties. `MainBefore` and `MainAfter` (`PkCard` sections) stay above and below the form in edit mode; for a form with tabs, sections or a sidebar of your own markup use `PkRecordForm` and `PkRecordEditor` (see the Blazor skill's `references/record-form.md`).
 
 The code above runs in the playground sample (`blazor/samples/PlainKit.Playground`, pages `RoutedOrders` and `RoutedOrder`), which is built with the solution, so it cannot drift from the components.
