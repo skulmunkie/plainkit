@@ -69,6 +69,10 @@
       "type": "IReadOnlyList<PkRecordTab>"
     },
     {
+      "name": "OnTabChange",
+      "event": "pk-tab-change"
+    },
+    {
       "name": "TabsContent",
       "slot": "tabs",
       "type": "RenderFragment?"
