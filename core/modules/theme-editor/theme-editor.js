@@ -235,14 +235,14 @@ export async function mountThemeEditor(container, options = {}) {
         topNote,
         h(doc, 'pk-cluster', { justify: 'between' }, count, shown, h(doc, 'pk-cluster', {}, undoBtn, redoBtn, resetAll)),
         tabs);
-    if (height) { root.classList.add('te--fixed'); root.dataset.dyn = `height:${height}`; applyDynamic(root); }
+    if (height) { root.toggleAttribute('data-fixed', true); root.dataset.dyn = `height:${height}`; applyDynamic(root); }
     container.replaceChildren(root);
     loadElements(root);
 
     if (showPreview) {
         previewFrame = h(doc, 'iframe', { class: 'te-preview', title: 'Theme preview' });
         const links = [...styleUrls(STYLES, import.meta.url), ...styleUrls(OWN_STYLES, import.meta.url)].map(u => `<link rel="stylesheet" href="${encodeURI(u)}">`).join('');
-        previewFrame.srcdoc = `<!doctype html><html lang="en" data-theme="${theme()}" data-te-preview><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">${links}</head><body class="te-preview-body">${PREVIEW}<script type="module" src="${encodeURI(import.meta.url)}"></script></body></html>`;
+        previewFrame.srcdoc = `<!doctype html><html lang="en" data-theme="${theme()}" data-te-preview><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">${links}</head><body>${PREVIEW}<script type="module" src="${encodeURI(import.meta.url)}"></script></body></html>`;
         listen(previewFrame, 'load', () => applyToPreview(outputCss().css));
         ui.previewHost.append(previewFrame);
     }
@@ -259,7 +259,7 @@ export async function mountThemeEditor(container, options = {}) {
         const row = rowsByName.get(name);
         if (!row) return;
         const changed = isChanged(state.overrides, theme(), name);
-        row.classList.toggle('te-changed', changed);
+        row.toggleAttribute('data-changed', changed);
         const reset = row.querySelector('pk-button');
         if (changed) reset.removeAttribute('disabled'); else reset.setAttribute('disabled', '');
         const chip = row.querySelector('[data-pair]');
