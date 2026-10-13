@@ -7,7 +7,7 @@
       "default": "{}",
       "map": "prop",
       "prop": "config",
-      "note": "Sent as a JSON attribute: { id?, fields, sidebar?, heading?, saveLabel?, editable?, label?, emptyHeading? }."
+      "note": "Sent as a JSON attribute with the fields added from Fields: { id?, sidebar?, heading?, title?, saveLabel?, editable?, label?, emptyHeading? }. The id selects the record to load (none: a new record). A sidebar card lists field keys."
     },
     {
       "name": "Mode",
@@ -19,13 +19,35 @@
     },
     {
       "name": "Fields",
+      "map": "cells",
+      "type": "IReadOnlyList<PkFieldSpec<TItem>>?",
+      "doc": "The record's fields, typed as PkFieldGroup's: Key, Label, Kind, Get and Set, plus Hint, Help, Required, Options, Span and the rest. In view mode they read as a list; in edit mode the element draws them as a pk-field-group. When, Disabled, ReadOnly, LabelWhen and HelpWhen are read from the record once it is loaded (they do not follow edits until the next load or save); Editor templates are not drawn yet."
+    },
+    {
+      "name": "Model",
+      "map": "cells",
+      "type": "TItem?",
+      "doc": "The record a new one (Config without an id) starts from and Save receives: set it to an instance to fill. A record with an id is what Load returns."
+    },
+    {
+      "name": "ViewFields",
       "map": "slotMap",
       "slotPrefix": "field-",
       "type": "IReadOnlyDictionary<string, RenderFragment>?",
-      "doc": "Value templates by field name (the config field name): each replaces the text of that field in view mode (the main list and the sidebar cards). A field without one shows its value. The content is yours, so it reads the record from your own state."
+      "doc": "Value templates by field key: each replaces the text of that field in view mode (the main list and the sidebar cards). A field without one shows its value. The content is yours, so it reads the record from your own state."
     },
-    { "name": "Busy", "prop": "busy", "type": "bool", "note": "The page's work in flight (bind it to PageBase.IsBusy): Edit, Cancel, Save and Delete wait." },
-    { "name": "Error", "prop": "error", "type": "string", "note": "The page's error text (bind it to PageBase.StatusMessage, or the text DescribeError gives): a notice above the form; null or empty clears it." },
+    {
+      "name": "Busy",
+      "prop": "busy",
+      "type": "bool",
+      "note": "The page's work in flight (bind it to PageBase.IsBusy): Edit, Cancel, Save and Delete wait."
+    },
+    {
+      "name": "Error",
+      "prop": "error",
+      "type": "string",
+      "note": "The page's error text (bind it to PageBase.StatusMessage, or the text DescribeError gives): a notice above the form; null or empty clears it."
+    },
     {
       "name": "OnDelete",
       "event": "pk-record-delete",
@@ -54,21 +76,25 @@
     {
       "name": "Load",
       "callback": "load",
-      "type": "Func<string, Task<IReadOnlyDictionary<string, object?>?>>?",
+      "type": "Func<string, Task<TItem?>>?",
       "refresh": true,
       "arg": "JsonElement",
       "args": "a.ValueKind == JsonValueKind.String ? a.GetString()! : a.ToString()",
-      "doc": "Loads the record whose id (config.id, the route's param) is given, as its values keyed by field name; null shows the 'record not found' state. Not called for a new record (no id). Throwing shows the element's error state."
+      "doc": "Loads the record whose id (config.id, the route's param) is given; null shows the 'record not found' state. Its field values are read through Fields.Get. Not called for a new record (no id). Throwing shows the element's error state.",
+      "returns": "KeepLoaded(r)"
     },
     {
       "name": "Save",
       "callback": "save",
-      "type": "Func<IReadOnlyDictionary<string, JsonElement>, Task>?",
+      "type": "Func<TItem, Task>?",
       "arg": "Dictionary<string, JsonElement>",
       "result": false,
       "refresh": true,
-      "doc": "Saves the form's values, keyed by field name (read text with GetString(), a number with GetDecimal()). Having it shows Edit and Save. Throwing keeps the edits and shows the exception message; returning switches to view mode."
+      "doc": "Saves the record: the loaded item (or Model for a new one) with the form's values applied through each field's Set (or SetAsync). Having it shows Edit and Save. Throwing keeps the edits and shows the exception message; returning switches to view mode.",
+      "args": "await ApplySavedAsync(a)"
     }
   ],
-  "notes": "New component: App framework step 7 (issue #353). Load(id) and Save(values) are callback properties (business logic), set from script, so the generated component hands the element a .NET reference (PkCallbackSlot) that calls the Load and Save parameters, as PkSettingsPage does for Save (issue #1000). Blazor already has the same page concept as PkRecordForm (a PkForm with a toolbar, error alert and a PkDetailLayout sidebar, with the state kept by the page or PkRecordEditor, and ActionsInHeader for the sticky title bar); PkRecordPage is the config-driven element, PkRecordForm stays the composable Razor template. Fields (field name to a RenderFragment) fills the field-<name> value slots of the view mode (issue 1000); MainBefore, MainAfter and SideAfter fill the main-before, main-after and side-after slots (PkCard sections around the field list or form and after the sidebar cards, issue 1000); Busy and Error are the page-bound surface (PageBase.IsBusy, StatusMessage) and OnDelete shows the Delete button (issue 1000, step 1); a typed Model, Save(TItem) and an edit-mode editor stay open on the issue."
+  "notes": "New component: App framework step 7 (issue #353). Load(id) and Save(values) are callback properties (business logic), set from script, so the generated component hands the element a .NET reference (PkCallbackSlot) that calls the Load and Save parameters, as PkSettingsPage does for Save (issue #1000). Blazor already has the same page concept as PkRecordForm (a PkForm with a toolbar, error alert and a PkDetailLayout sidebar, with the state kept by the page or PkRecordEditor, and ActionsInHeader for the sticky title bar); PkRecordPage is the config-driven element, PkRecordForm stays the composable Razor template. ViewFields (field key to a RenderFragment) fills the field-<key> value slots of the view mode (issue 1000); MainBefore, MainAfter and SideAfter fill the main-before, main-after and side-after slots (PkCard sections around the field list or form and after the sidebar cards, issue 1000); Busy and Error are the page-bound surface (PageBase.IsBusy, StatusMessage) and OnDelete shows the Delete button (issue 1000, step 1); a typed Model, Save(TItem) and an edit-mode editor stay open on the issue. Step 2 of issue 1000: PkRecordPage<TItem> is the only record page. Fields (PkFieldSpec<TItem>) and Model replace the JSON config fields, the generator's `recordModel` mapping adds them to Config (PkFieldSpecs.RecordConfig), Load returns the TItem and Save receives it with the form's values applied through each spec's Set.",
+  "typeparam": "TItem",
+  "recordModel": true
 }

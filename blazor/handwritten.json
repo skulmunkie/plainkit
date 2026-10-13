@@ -158,6 +158,9 @@
     "PkFieldGroupTypes.cs": {
       "category": "typed-generics"
     },
+    "PkFieldSpecs.cs": {
+      "category": "typed-generics"
+    },
     "PkFieldListTypes.cs": {
       "category": "typed-generics"
     },

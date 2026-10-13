@@ -4,14 +4,14 @@
   "group": "Page types",
   "tier": "page",
   "pageType": "record",
-  "summary": "One record shown and edited on a page: the fields read as a pk-field-list, or as a validated pk-form in edit mode, beside sidebar cards of summary fields (pk-detail-layout, which collapses on a phone). Set load(id) and save(values) as properties (business logic, never config data). load runs when config.id is set and shows the built-in loading, not-found and error (with Retry) states; without an id the page is a new record, in edit mode. save runs only after client validation passes; reject with { errors: { field: message } } to mark fields inline, or any other error for a notice above the form. While edits are unsaved, dirty is true, pk-record-dirty fires, and closing or reloading the tab asks first.",
+  "summary": "One record shown and edited on a page: the fields read as a pk-field-list, or as a validated pk-form (one pk-field-group) in edit mode, beside sidebar cards of summary fields (pk-detail-layout, which collapses on a phone). Set load(id) and save(values) as properties (business logic, never config data). load runs when config.id is set and shows the built-in loading, not-found and error (with Retry) states; without an id the page is a new record, in edit mode. save runs only after client validation passes; reject with { errors: { field: message } } to mark fields inline, or any other error for a notice above the form. While edits are unsaved, dirty is true, pk-record-dirty fires, and closing or reloading the tab asks first.",
   "props": [
     {
       "name": "config",
       "type": "json",
       "default": {},
       "reflect": false,
-      "description": "{ id?, fields, sidebar?, heading?, saveLabel?, editable?, deletable?, label?, emptyHeading? }. deletable shows a Delete button in view mode of an existing record (pk-record-delete); the record page type sets it from its delete callback. fields is [{ name, label?, type?, required?, readonly?, help?, options? }]: type is a pk-input type (text, email, number, date...), 'textarea' or 'select' (options: strings or { value, label }). sidebar is [{ heading, fields: [names] }], one card each. id selects the record to load; none means a new record. editable: false hides Edit. Optional title bar from the shared page shell: title?: string (the page heading; config.heading titles the field list), breadcrumb?: [{ label, href? }], actions?: [{ key, label, href?, variant?, hint? }] (a hint shows as a tooltip on the button) (an action without href fires pk-action). Nothing is drawn when none is set."
+      "description": "{ id?, fields, values?, sidebar?, heading?, saveLabel?, editable?, deletable?, label?, emptyHeading? }. deletable shows a Delete button in view mode of an existing record (pk-record-delete); the record page type sets it from its delete callback. fields are the field defs of pk-field-group, [{ key, label?, kind?, hint?, help?, required?, readonly?, disabled?, span?, options?, when?, ... }] (name and type are the older spellings of key and kind; in that spelling help is the line under the control): kind is a pk-input type (text, email, number, date...), textarea, select, checkbox, switch, range or combobox (options: strings or { value, label }). In edit mode the element draws them as one pk-field-group, so every member the group knows works here. values is the starting record of a new one (no id). sidebar is [{ heading, fields: [keys] }], one card each. id selects the record to load; none means a new record. editable: false hides Edit. Optional title bar from the shared page shell: title?: string (the page heading; config.heading titles the field list), breadcrumb?: [{ label, href? }], actions?: [{ key, label, href?, variant?, hint? }] (a hint shows as a tooltip on the button) (an action without href fires pk-action). Nothing is drawn when none is set."
     },
     {
       "name": "mode",
@@ -93,7 +93,7 @@
   ],
   "cssProperties": [],
   "writes": [
-    { "target": "the pk-field elements the form builds in this element's own shadow tree", "attributes": ["error"], "why": "A save that rejects with { errors } sets each named field's error, and the next save clears them. The fields are rebuilt with the form, so nothing outlives the element." }
+    { "target": "the pk-field-group the form builds in this element's own shadow tree", "attributes": ["label"], "why": "The group is named after the page heading. It is rebuilt with the form, so nothing outlives the element; a rejected save marks fields through the group's setError()." }
   ],
   "a11y": "Fields are labelled pk-field controls; pk-form moves focus to the first invalid field and lists the problems in a summary, and a server error focuses its field. The loading and error states use pk-skeleton and pk-alert's own roles and announcements.",
   "examples": [

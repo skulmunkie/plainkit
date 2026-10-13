@@ -271,6 +271,10 @@ export function modelElement(el, mapping, reg) {
         if (mapping.cells.columns) out.cells.columns = true;
     }
 
+    // ---- 2a'. `recordModel`: a typed record. The mapping's Fields (PkFieldSpec<TItem>) and Model (the new record) parameters (map cells) become config.fields and config.values
+    // (PkFieldSpecs.RecordConfig), the load callback keeps the loaded item and answers its values, and the save callback receives the item with the saved values applied.
+    if (mapping.recordModel) out.recordModel = true;
+
     // ---- 2b. `events`: a callback for each listed element event, named On<Event> ("pk-property-change" -> OnPropertyChange), typed from the meta's
     // detail (the shared PkXxxEventArgs; no detail is a plain EventCallback). "pk" lists every pk-* event of the element. An event that has an
     // `event` parameter already is left to it; a native event (click) is not generated, use the normal Blazor syntax (@onclick) for those.
@@ -478,7 +482,7 @@ export function renderComponent(m, mappingName, ns = 'PlainKit.Blazor') {
     const live = [...m.handlers.values()].filter(h => h.updates.length || h.callbacks.length);
     const custom = live.filter(h => !h.native);
     const attrs = [];
-    for (const a of m.attrs) attrs.push(`${a.attr}="${m.cells?.columns && a.attr === 'config' ? '@ConfigWithColumns()' : a.expr}"`);
+    for (const a of m.attrs) attrs.push(`${a.attr}="${m.cells?.columns && a.attr === 'config' ? '@ConfigWithColumns()' : m.recordModel && a.attr === 'config' ? '@ConfigWithFields()' : a.expr}"`);
     // The element itself (PkElementBase.Element), for PkRuntime.ReadFormValuesAsync and any host that needs a JavaScript handle.
     attrs.push('@ref="Element"');
     for (const h of live.filter(x => x.native)) attrs.push(`@${h.attr}="${handlerName(h)}"`);
@@ -530,6 +534,12 @@ export function renderComponent(m, mappingName, ns = 'PlainKit.Blazor') {
         '        var node = System.Text.Json.Nodes.JsonNode.Parse(Config ?? "{}") as System.Text.Json.Nodes.JsonObject ?? new System.Text.Json.Nodes.JsonObject();',
         '        node["columns"] = System.Text.Json.Nodes.JsonNode.Parse(PkAttr.Json(Columns.Select(c => c.ToColumn()))!);',
         '        return node.ToJsonString();', '    }');
+    if (m.recordModel) L.push('', '    private TItem? _loaded;', '    private bool _isNew;', '',
+        '    private string ConfigWithFields() => PkFieldSpecs.RecordConfig(Config, Fields, _loaded ?? Model, out _isNew);', '',
+        '    private object? KeepLoaded(TItem? item)', '    {', '        _loaded = item;', '        _ = InvokeAsync(StateHasChanged);', '        return item is null ? null : PkFieldSpecs.Values(Fields ?? [], item);', '    }', '',
+        '    private async Task<TItem> ApplySavedAsync(IReadOnlyDictionary<string, JsonElement> values)', '    {',
+        '        var item = (_isNew ? Model : _loaded) ?? throw new InvalidOperationException("A new record needs the Model parameter (the instance to fill); a loaded one is what Load returned.");',
+        '        await PkFieldSpecs.ApplyAsync(Fields ?? [], item, values);', '        return item;', '    }');
     for (const x of m.methods) L.push('', doc(x.doc), `    public async Task ${x.name}() => await (await Runtime.BridgeAsync(Assets)).InvokeVoidAsync("call", Element, ${lit(x.method)});`);
     if (m.field) L.push('', '    /// <inheritdoc />', `    protected override Expression<Func<${m.field.cs}>>? FieldExpression => ${m.field.expr};`);
     if (m.field?.values) L.push('', '    /// <inheritdoc />', `    protected override Expression<Func<IReadOnlyList<string>?>>? ValuesFieldExpression => ${m.field.values};`);

@@ -48,7 +48,7 @@ export default {
             t.noOverlap(`${RP} >>> [part=notice]`, `${RP} >>> [part=layout]`);
         }
         if (t.shot === 'server-error') {
-            t.visible(`${MAIN} pk-field[error]`, 'the field carrying the server error');
+            t.visible(`${MAIN} pk-field-group >>> pk-field[error]`, 'the field carrying the server error');
         }
     },
 };

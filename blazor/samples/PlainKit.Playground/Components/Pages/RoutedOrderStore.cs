@@ -4,6 +4,13 @@ namespace PlainKit.Playground.Components.Pages;
 
 public sealed record Order(string Id, string OrderNo, string Customer);
 
+/// <summary>The record page edits this one (typed fields, no JSON).</summary>
+public sealed class OrderRecord
+{
+    public string Customer { get; set; } = "";
+    public string Note { get; set; } = "";
+}
+
 /// <summary>An in-memory stand-in for the data access of the routed list and record pages (guide "A routed list and record page").</summary>
 internal static class RoutedOrderStore
 {
@@ -17,11 +24,10 @@ internal static class RoutedOrderStore
         return Task.FromResult(new PkListResult<Order>(page, all.Count));
     }
 
-    public static Task<IReadOnlyDictionary<string, object?>?> GetAsync(string id)
+    public static Task<OrderRecord?> GetAsync(string id)
     {
         var row = _rows.FirstOrDefault(x => x.Id == id);
-        IReadOnlyDictionary<string, object?>? result = row.Id is null ? null : new Dictionary<string, object?> { ["customer"] = row.Customer, ["note"] = row.Note };
-        return Task.FromResult(result);
+        return Task.FromResult(row.Id is null ? null : new OrderRecord { Customer = row.Customer, Note = row.Note });
     }
 
     public static Task DeleteAsync(string id)
@@ -30,10 +36,10 @@ internal static class RoutedOrderStore
         return Task.CompletedTask;
     }
 
-    public static Task SaveAsync(string id, string customer, string note)
+    public static Task SaveAsync(string id, OrderRecord order)
     {
         var i = _rows.FindIndex(x => x.Id == id);
-        if (i >= 0) _rows[i] = (id, customer, note);
+        if (i >= 0) _rows[i] = (id, order.Customer, order.Note);
         return Task.CompletedTask;
     }
 }
