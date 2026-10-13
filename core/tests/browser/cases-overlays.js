@@ -744,6 +744,7 @@ export const overlaysCases = [
                 const x = tasks.run({ title: `t${i}`, cancellable: k === 2, timeout: k === 3 ? 30 : 0, run: async ctx => { ctx.progress(1, 2); ctx.details('x'); if (k === 1) throw new Error('boom'); if (k >= 2) await new Promise(() => {}); } });
                 if (k === 2) x.cancel();
                 await x.promise;
+                if (i === 0) await t.load(host); // pk-toast loads on demand: wait for it, so dismiss() exists when the case runs alone
                 if (k === 1 || k === 3) for (const e of host.querySelectorAll('pk-toast')) e.dismiss('close');
                 if (i % 10 === 9) await wait(20);
             }
