@@ -146,6 +146,13 @@
       "description": "Rows can be activated: a click, or Enter or Space on the focused row (each row is a tab stop), raises pk-row-click with the row id. For a host that cannot pass a rowHref callback (a wrapper, a page that opens the row itself). Setting rowHref makes rows clickable too."
     },
     {
+      "name": "rowHrefTemplate",
+      "type": "string",
+      "default": "",
+      "reflect": false,
+      "description": "Row links: an address with {id} (and any {field}, URL-encoded), like /orders/{id} or #/orders/{id}. The first cell of each row becomes a real link; a plain click on it or the row goes through the router (pk-navigate). Plain data, so a wrapper can set it (rowHref is a callback)."
+    },
+    {
       "name": "currentRow",
       "type": "string",
       "default": "",

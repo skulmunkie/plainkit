@@ -14,6 +14,13 @@
       "description": "Rows raise pk-row-click when clicked (or Enter/Space on the focused row). Without it only rowHref makes rows clickable."
     },
     {
+      "name": "rowHrefTemplate",
+      "type": "string",
+      "default": "",
+      "reflect": false,
+      "description": "Row links: an address with {id} (and any {field}, URL-encoded), like /orders/{id} or #/orders/{id}. The first cell of each row becomes a real link; a plain click on it or the row goes through the router (pk-navigate). Plain data, so a wrapper can set it (rowHref is a callback)."
+    },
+    {
       "name": "config",
       "type": "json",
       "default": {},

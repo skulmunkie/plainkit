@@ -1,4 +1,5 @@
 {
+
   "tag": "pk-table",
   "replaces": ["table"],
   "title": "Table",
@@ -87,6 +88,13 @@
       "default": false,
       "reflect": true,
       "description": "Rows are activatable: they show a pointer, take the keyboard (each row is a tab stop; Enter or Space on the row) and fire pk-row-click."
+    },
+    {
+      "name": "rowHrefTemplate",
+      "type": "string",
+      "default": "",
+      "reflect": false,
+      "description": "Row links: /orders/{id} or #/orders/{id} ({field} too, URL-encoded). The first cell links; a click goes through the router."
     },
     {
       "name": "currentRow",
@@ -330,6 +338,15 @@
       "cancelable": false
     },
     {
+      "name": "pk-navigate",
+      "detail": {
+        "to": "string",
+        "href": "string"
+      },
+      "description": "A plain click on a row link (see rowHrefTemplate); cancel it to navigate yourself, else the browser follows the link.",
+      "cancelable": true
+    },
+    {
       "name": "pk-row-click",
       "detail": {
         "id": "string",
@@ -439,6 +456,7 @@
     {"title": "Shed columns by the table's width", "html": "<pk-grid ratio=\"1:3\"><pk-table label=\"Accounts\" columns='[{\"key\":\"name\",\"label\":\"Name\"},{\"key\":\"plan\",\"label\":\"Plan\",\"shed\":1},{\"key\":\"seats\",\"label\":\"Seats\",\"type\":\"number\",\"shed\":2},{\"key\":\"owner\",\"label\":\"Owner\",\"shed\":3}]'\n  rows='[{\"id\":1,\"name\":\"Acme\",\"plan\":\"Team\",\"seats\":12,\"owner\":\"Ada\"},{\"id\":2,\"name\":\"Globex\",\"plan\":\"Pro\",\"seats\":4,\"owner\":\"Grace\"}]'></pk-table>\n<pk-table label=\"Accounts, wide\" columns='[{\"key\":\"name\",\"label\":\"Name\"},{\"key\":\"plan\",\"label\":\"Plan\",\"shed\":1},{\"key\":\"seats\",\"label\":\"Seats\",\"type\":\"number\",\"shed\":2},{\"key\":\"owner\",\"label\":\"Owner\",\"shed\":3}]'\n  rows='[{\"id\":1,\"name\":\"Acme\",\"plan\":\"Team\",\"seats\":12,\"owner\":\"Ada\"}]'></pk-table></pk-grid>"},
     {"title": "Header help and action", "html": "<pk-table label=\"Stock\" columns='[{\"key\":\"sku\",\"label\":\"SKU\",\"sortable\":true},{\"key\":\"qty\",\"label\":\"Qty\",\"type\":\"number\"}]'\n  rows='[{\"id\":1,\"sku\":\"AC-001\",\"qty\":12},{\"id\":2,\"sku\":\"AC-002\",\"qty\":0}]'>\n  <pk-button slot=\"header-sku\" size=\"mini\" variant=\"ghost\" icon-name=\"info\" aria-label=\"About SKU\"></pk-button>\n  <pk-button slot=\"header-qty\" size=\"mini\" variant=\"ghost\" icon-name=\"filter\" aria-label=\"Filter quantity\"></pk-button>\n</pk-table>"},
     {"title": "Totals footer", "html": "<pk-table label=\"Invoice lines\" cards columns='[{\"key\":\"item\",\"label\":\"Item\"},{\"key\":\"qty\",\"label\":\"Qty\",\"type\":\"number\"},{\"key\":\"total\",\"label\":\"Total\",\"type\":\"number\"}]'\n  rows='[{\"id\":1,\"item\":\"Bracket\",\"qty\":4,\"total\":\"40.00\"},{\"id\":2,\"item\":\"Hinge\",\"qty\":6,\"total\":\"27.00\"}]'>\n  <span slot=\"foot\">Total 67.00 for 10 items</span>\n</pk-table>"},
+    {"title": "Row links", "html": "<pk-table label=\"Orders\" row-href-template=\"#order-{id}\" columns='[{\"key\":\"po\",\"label\":\"PO\"},{\"key\":\"customer\",\"label\":\"Customer\"}]'\n  rows='[{\"id\":\"A-1\",\"po\":\"PO 1001\",\"customer\":\"Acme\"},{\"id\":\"B-2\",\"po\":\"PO 1002\",\"customer\":\"Globex\"}]'></pk-table>"},
     {
       "title": "Sortable, selectable table",
       "html": "<pk-table id=\"t1\" label=\"Products\" caption=\"Stock by product\" striped hover selectable\n  columns='[{\"key\":\"sku\",\"label\":\"SKU\",\"sortable\":true},{\"key\":\"price\",\"label\":\"Price\",\"type\":\"number\",\"sortable\":true}]'\n  rows='[{\"id\":1,\"sku\":\"AC-001\",\"price\":\"$4.99\"},{\"id\":2,\"sku\":\"AC-002\",\"price\":\"$3.99\"}]'>\n  <pk-button slot=\"bulk\" size=\"mini\" variant=\"ghost\">Archive</pk-button>\n</pk-table>"
