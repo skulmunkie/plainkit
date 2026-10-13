@@ -12,11 +12,6 @@
       "fingerprint": "72df4cff072aac59"
     },
     {
-      "rule": "S5",
-      "file": "core/modules/code-explorer/element.js",
-      "fingerprint": "0763431e36ebde1a"
-    },
-    {
       "rule": "S1",
       "file": "core/modules/layout-builder/layout-builder.css",
       "fingerprint": "388fa27d00222c50"
@@ -230,41 +225,6 @@
       "rule": "S1",
       "file": "core/site/gallery/gallery-views.js",
       "fingerprint": "1360e3f4b273f696"
-    },
-    {
-      "rule": "S3",
-      "file": "core/site/gallery/gallery-views.js",
-      "fingerprint": "fa13a5225f183370"
-    },
-    {
-      "rule": "S3",
-      "file": "core/site/gallery/gallery-views.js",
-      "fingerprint": "fa13a5225f183370"
-    },
-    {
-      "rule": "S3",
-      "file": "core/site/gallery/gallery-views.js",
-      "fingerprint": "fa13a5225f183370"
-    },
-    {
-      "rule": "S3",
-      "file": "core/site/gallery/gallery-views.js",
-      "fingerprint": "fa13a5225f183370"
-    },
-    {
-      "rule": "S3",
-      "file": "core/site/gallery/gallery-views.js",
-      "fingerprint": "fa13a5225f183370"
-    },
-    {
-      "rule": "S3",
-      "file": "core/site/gallery/gallery-views.js",
-      "fingerprint": "fa13a5225f183370"
-    },
-    {
-      "rule": "S3",
-      "file": "core/site/gallery/gallery-views.js",
-      "fingerprint": "fa13a5225f183370"
     },
     {
       "rule": "S3",

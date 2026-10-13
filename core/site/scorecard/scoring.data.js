@@ -130,7 +130,7 @@ export const META_TEXT = [
 export const TEXT_TIERS = {
     readingPx: 14,
     metaPx: 12,
-    demoSelectors: '.gx-effect *',
+    demoSelectors: '[data-gx~="effect"] *',
     metaSelectors: META_TEXT.map(([selector]) => selector).join(', '),
 };
 // Phone touch targets that are exempt, each with its reason (the scorecard lists these; a target not matching one is a defect).

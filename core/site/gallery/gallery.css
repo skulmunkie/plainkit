@@ -4,20 +4,20 @@
 [hidden]:is(pk-button, pk-menu-item, pk-dropdown, pk-drawer, pk-side-nav, pk-toolbar) { display: none; }
 
 /* ---- entries, frames, foundations ---- */
-.gx-frame { display: block; max-width: 100%; margin: 0 auto var(--space-3); border: var(--_gx-border-w) solid var(--color-border); border-radius: var(--radius-md); background: var(--color-bg); }
+.gx-frame, [data-gx~="frame"] { display: block; max-width: 100%; margin: 0 auto var(--space-3); border: var(--_gx-border-w) solid var(--color-border); border-radius: var(--radius-md); background: var(--color-bg); }
 
 .gx-slot { min-width: 0; }
 
-.gx-swatch-cell { display: flex; align-items: center; gap: var(--space-2); padding: var(--space-1) var(--space-2); background: var(--color-bg); color: var(--color-text); border-radius: var(--radius-sm); }
+[data-gx~="swatch-cell"] { display: flex; align-items: center; gap: var(--space-2); padding: var(--space-1) var(--space-2); background: var(--color-bg); color: var(--color-text); border-radius: var(--radius-sm); }
 
-.gx-swatch { flex: none; width: var(--_gx-swatch-size); height: var(--_gx-swatch-size); border: var(--_gx-border-w) solid var(--color-border); border-radius: var(--radius-sm); }
+[data-gx~="swatch"] { flex: none; width: var(--_gx-swatch-size); height: var(--_gx-swatch-size); border: var(--_gx-border-w) solid var(--color-border); border-radius: var(--radius-sm); }
 
-.gx-effect { padding: var(--space-1); }
-
-
+[data-gx~="effect"] { padding: var(--space-1); }
 
 
-.gx-stage { height: calc(100dvh - var(--_gx-stage-reserve)); min-height: var(--_gx-stage-min-h); margin-inline: auto; }
+
+
+[data-gx~="stage"] { height: calc(100dvh - var(--_gx-stage-reserve)); min-height: var(--_gx-stage-min-h); margin-inline: auto; }
 
 
 /* Element pages: the playground puts the live element beside its controls; the reference folds. */
@@ -65,11 +65,11 @@ pk-app-shell:not(:defined) > .gx-nav { grid-column: 1; grid-row: 1 / span 6; }
    overview grid is pk-grid's own template (min 14rem, gap --space-4). Each rule applies only until the element is defined. */
 .gx-nav > pk-nav-item:not(:defined) { display: block; min-height: calc(var(--space-8) + var(--space-1)); }
 .gx-nav > pk-nav-item > pk-nav-item:not(:defined) { display: none; }
-.gx-tiles:not(:defined) { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(var(--_gx-el-group-min-w), 100%), 1fr)); gap: var(--space-4); }
-.gx-tile { min-block-size: calc(var(--space-12) * 3 + var(--space-3)); } /* one floor for both states, above the tallest platform font's content height, so the box does not depend on the font (130px vs 118px on Linux, #1176) */
-.gx-tile:not(:defined) { display: block; }
-.gx-head { line-height: 1.25; min-block-size: calc(var(--space-12) + var(--space-3)); } /* one box source in both states: a fixed line height (the platform font's "normal" gave 45px on Linux, 53px on Windows) and a floor the defined header honours too */
-.gx-head:not(:defined) { display: block; }
+[data-gx~="tiles"]:not(:defined) { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(var(--_gx-el-group-min-w), 100%), 1fr)); gap: var(--space-4); }
+[data-gx~="tile"] { min-block-size: calc(var(--space-12) * 3 + var(--space-3)); } /* one floor for both states, above the tallest platform font's content height, so the box does not depend on the font (130px vs 118px on Linux, #1176) */
+[data-gx~="tile"]:not(:defined) { display: block; }
+[data-gx~="head"] { line-height: 1.25; min-block-size: calc(var(--space-12) + var(--space-3)); } /* one box source in both states: a fixed line height (the platform font's "normal" gave 45px on Linux, 53px on Windows) and a floor the defined header honours too */
+[data-gx~="head"]:not(:defined) { display: block; }
 
 /* The preview bar and the slim page bar are pk-toolbar rows in the shell's header, which draws the row's padding, border and background. The row's box is
    reserved before pk-toolbar and its buttons are defined (#135, #1076): an undefined toolbar is laid out as one nowrap row of the control height, and the Display menu's items stay out of it. */
