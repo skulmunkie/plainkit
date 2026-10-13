@@ -8,7 +8,7 @@ import { flattenRoutes } from '../js/route-tree.js';
 import { setLogLevel } from '../js/log.js';
 
 setLogLevel('silent');
-const ELEMENT = { list: 'pk-list-page', record: 'pk-record-page', dashboard: 'pk-dashboard-page', tool: 'pk-tool-page', settings: 'pk-settings-page', wizard: 'pk-wizard-page', doc: 'pk-doc-page', workspace: 'pk-workspace-page', states: 'pk-states-page', 'not-found': 'pk-not-found-page' };
+const ELEMENT = { list: 'pk-list-page', record: 'pk-record-page', dashboard: 'pk-dashboard-page', 'master-detail': 'pk-master-detail-page', tool: 'pk-tool-page', settings: 'pk-settings-page', wizard: 'pk-wizard-page', doc: 'pk-doc-page', workspace: 'pk-workspace-page', states: 'pk-states-page', 'not-found': 'pk-not-found-page' };
 
 function fakeHost() {
     const made = [];
@@ -48,6 +48,11 @@ test('the tour\'s callbacks return what their page types read', async () => {
     assert.equal(cfg('/').rowHref({ id: '7' }), '/orders/7');
     assert.equal((await cfg('/orders/:id').load('8')).customer, 'Grace Hopper');
     assert.equal(await cfg('/orders/:id').load('404'), null);
+    assert.deepEqual((await cfg('/inbox').load()).rows.map(r => r.id), ['7', '8', '9']);
+    assert.equal(cfg('/inbox').rowHref({ id: '8' }), '/inbox/8');
+    const pane = {};
+    cfg('/inbox').mountDetail(pane, '8');
+    assert.match(pane.textContent, /Grace Hopper/);
     assert.equal((await cfg('/overview').load('open')).value, '2');
     assert.equal((await cfg('/tool').run({ amount: '10' })).value, '12.00');
     assert.deepEqual(await cfg('/wizard').validate('source', { url: 'ftp://x' }), { errors: { url: 'Use an http or https address.' } });
