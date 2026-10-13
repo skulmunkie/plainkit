@@ -851,7 +851,7 @@ export const dataDisplayCases = [
     }],
 
     ['field-list: a long unbreakable value wraps inside a narrow host instead of clipping (issue 1245)', async t => {
-        const l = await t.mount('<pk-field-list layout="stacked"><dt>Email</dt><dd id="v"><a href="mailto:a@b.c">averyveryverylongunbreakableaddress85030521@examplemailprovider.com</a></dd></pk-field-list>');
+        const l = await t.mount('<pk-field-list layout="stacked"><dt>Email</dt><dd id="v"><a href="mailto:user@example.com">averyveryverylongunbreakableaddress85030521@example.com</a></dd></pk-field-list>');
         l.style.inlineSize = '180px';
         const dd = l.querySelector('#v'); t.ok(dd.scrollWidth <= dd.clientWidth + 1 && dd.getBoundingClientRect().right <= l.getBoundingClientRect().right + 1);
     }],
