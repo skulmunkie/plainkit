@@ -970,7 +970,7 @@ test('the internal dashboard service (ctx._widgets): hidden, entries by surface,
     assert.equal(await host.show('home'), 'ok');
     assert.ok(svc && Object.isFrozen(svc), 'the page ctx carries the service');
     assert.ok(!ctxKeys.includes('_widgets'), 'not enumerable');
-    assert.deepEqual((await svc.entries('overview')).map(e => e.id), ['w', 'bad', 'denied'], 'only entries contributing to the surface, config order');
+    assert.deepEqual((await svc.entries('overview')).map(e => e.id), ['w', 'bad'], 'only entries contributing to the surface and not denied at the door, config order');
     assert.deepEqual(await svc.entries('nope'), []);
     const listed = await svc.entries('overview'); assert.ok(Object.isFrozen(listed) && Object.isFrozen(listed[0]));
     const [d1, d2] = await Promise.all([svc.def('w'), svc.def('w')]);

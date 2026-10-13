@@ -4,7 +4,7 @@ import { MODULE_ID } from '../module.js';
 
 const pend = new WeakMap();
 
-export const entries = ({ allow }, surface) => Object.freeze([...allow.values()].filter(e => e.contributes?.some(c => c?.for?.includes(surface))).map(e => Object.freeze({ id: e.id, contributes: e.contributes })));
+export const entries = ({ allow, permit }, surface) => Object.freeze([...allow.values()].filter(e => permit(e) && e.contributes?.some(c => c?.for?.includes(surface))).map(e => Object.freeze({ id: e.id, contributes: e.contributes })));
 
 export function def(deps, id) {
     const { allow, defs, permit, importDef, dead } = deps;
