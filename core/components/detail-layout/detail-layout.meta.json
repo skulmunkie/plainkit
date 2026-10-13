@@ -1,7 +1,7 @@
 {
   "tag": "pk-detail-layout",
   "title": "Detail layout",
-  "summary": "A record-detail page's body: main content and a sticky sidebar of summary cards, sized minmax(0, 1fr) plus a fixed sidebar width. Below a container width (not the viewport, so it works next to a side nav or inside a narrower pane) it collapses to one column; sidebarFirst puts the sidebar above the main content once collapsed, and sidebarTwoUp lays its own cards two-up instead of stacking one-per-row. Elements carrying data-pk-section are grouped into phone tabs once collapsed.",
+  "summary": "A record-detail page's body: main content and a sticky sidebar of summary cards, Below a container width (not the viewport) it collapses to one column; sidebarFirst puts the sidebar above the main content once collapsed, and sidebarTwoUp lays its own cards two-up instead of stacking one-per-row. Elements carrying data-pk-section are grouped into phone tabs once collapsed.",
   "group": "Layout & structure",
   "tier": "component",
   "props": [
@@ -33,7 +33,14 @@
       "default": "collapse",
       "values": ["collapse", "phone", "tablet", "always"],
       "reflect": true,
-      "description": "Where the data-pk-section tabs take effect. collapse: once the layout has collapsed to one column (the container query). phone or tablet: at or below that viewport width, whatever the layout. always: in the two-column layout too, so a wide record page shows one section at a time, sidebar cards of the chosen section beside it. Elsewhere every section shows and there is no strip."
+      "description": "Where the data-pk-section tabs apply. collapse: once the layout is one column (container query). phone or tablet: at or below that viewport width. always: in two columns too, sidebar cards of the chosen section beside it. Elsewhere every section shows, with no strip."
+    },
+    {
+      "name": "hideTabs",
+      "type": "boolean",
+      "default": false,
+      "reflect": true,
+      "description": "The strip is the host's: show one section from section alone."
     },
     {
       "name": "nextLabel",
@@ -110,7 +117,7 @@
   ],
   "methods": [],
   "a11y": "A layout primitive only: no landmark or role of its own. Give the main content and the sidebar their own headings so assistive technology can navigate between them.",
-  "mobile": "Below the container's own 48rem, not the viewport: one column, the sidebar no longer sticky (in the two-column layout it docks by its bottom edge when taller than the viewport), in document order unless sidebarFirst. Elements inside it that carry data-pk-section (optionally data-pk-section-label on the first of a section) become tabs on a pk-tabs strip when there are two or more sections: only the selected section shows, a Next button moves on, and a required control in a hidden section is revealed when the form is submitted.",
+  "mobile": "Below the container's own 48rem, not the viewport: one column, the sidebar no longer sticky (in the two-column layout it docks by its bottom edge when taller than the viewport), in document order unless sidebarFirst. Elements carrying data-pk-section (optionally data-pk-section-label on the first of a section) become tabs when there are two or more sections: only the selected one shows, a Next button moves on, and a required control in a hidden section is revealed on submit.",
   "examples": [
     {
       "title": "Order detail",
@@ -131,7 +138,7 @@
       "attributes": [
         "data-pk-section-hidden"
       ],
-      "why": "While the layout is collapsed and tabbed, every element outside the selected section gets the marker data-pk-section-hidden, and display: none is set through CSSOM (no attribute); both are removed again when the layout widens, loses its sections or the section is selected. Kept when the element disconnects."
+      "why": "While tabbed, every element outside the selected section gets data-pk-section-hidden and display: none (CSSOM, no attribute); both are removed when the layout widens, loses its sections or the section is selected. Kept when the element disconnects."
     }
   ]
 }
