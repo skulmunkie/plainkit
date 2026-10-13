@@ -95,7 +95,7 @@ jobs:
         run: node scripts/ci-changes.mjs node
 
       # The runner's own Node is older than the 22 the scripts are written for (node --test with globs needs 21+).
-      - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
         if: steps.gate.outputs.run == 'true'
         with:
           node-version: '22'
@@ -144,7 +144,7 @@ jobs:
           CI_FULL: ${{ startsWith(github.head_ref, 'release/') || contains(github.event.pull_request.labels.*.name, 'full-ci') }}
         run: node scripts/ci-changes.mjs dotnet
 
-      - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
         if: steps.gate.outputs.run == 'true'
         with:
           node-version: '22'
@@ -209,7 +209,7 @@ jobs:
           UI_REVIEW_FULL: ${{ contains(github.event.pull_request.labels.*.name, 'ui-review-full') || contains(github.event.pull_request.labels.*.name, 'full-ci') }}
         run: node scripts/ci-changes.mjs ui-review
 
-      - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
         if: steps.gate.outputs.run == 'true'
         with:
           node-version: '22'
@@ -222,7 +222,7 @@ jobs:
       # its inputs are identical, and a unit with an error finding or one that could not be seen is never stored. The Actions key only picks which folder to start from.
       - name: Restore the render cache
         if: steps.gate.outputs.run == 'true'
-        uses: actions/cache@0400d5f644dc74513175e3cd8d07132dd4860809 # v4.2.4
+        uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
         with:
           path: review-cache
           key: ui-review-cache-${{ runner.os }}-${{ matrix.shard }}-${{ hashFiles('package-lock.json') }}-${{ github.run_id }}
@@ -242,7 +242,7 @@ jobs:
 
       - name: Keep the screenshots
         if: always() && steps.gate.outputs.run == 'true'
-        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
         with:
           name: ui-review-${{ matrix.shard }}
           path: review-output/
@@ -270,7 +270,7 @@ jobs:
           CI_FULL: ${{ startsWith(github.head_ref, 'release/') || contains(github.event.pull_request.labels.*.name, 'full-ci') }}
         run: node scripts/ci-changes.mjs pack
 
-      - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
         if: steps.gate.outputs.run == 'true'
         with:
           node-version: '22'
@@ -321,7 +321,7 @@ jobs:
           CI_FULL: ${{ startsWith(github.head_ref, 'release/') || contains(github.event.pull_request.labels.*.name, 'full-ci') }}
         run: node scripts/ci-changes.mjs browser
 
-      - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
         if: steps.gate.outputs.run == 'true'
         with:
           node-version: '22'
@@ -356,7 +356,7 @@ jobs:
           fetch-depth: 1
           persist-credentials: false
 
-      - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
         with:
           node-version: '22'
 
