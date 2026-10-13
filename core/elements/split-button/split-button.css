@@ -2,8 +2,8 @@
 :host([variant="ghost"]) { --_bg: var(--pk-split-bg, transparent); --_hv: transparent; --_fg: var(--pk-split-fg, var(--field-muted)); --_bd: var(--color-border); }
 [part="split"] { display: inline-flex; }
 button { min-height: var(--ctl-h); padding: var(--space-2) var(--space-4); background: var(--_bg); color: var(--_fg); border: 1px solid var(--_bd); font: inherit; font-size: var(--text-read); font-weight: 500; line-height: 1.3; white-space: nowrap; cursor: pointer; touch-action: manipulation; }
-[part="main"] { border-radius: var(--radius-sm) 0 0 var(--radius-sm); }
-[part="toggle"] { display: grid; place-items: center; margin-inline-start: -1px; padding-inline: var(--space-3); border-radius: 0 var(--radius-sm) var(--radius-sm) 0; border-inline-start-color: color-mix(in srgb, currentColor 35%, transparent); }
+[part="main"] { border-inline-end-width: 0; border-radius: var(--radius-sm) 0 0 var(--radius-sm); }
+[part="toggle"] { display: grid; place-items: center; padding-inline: var(--space-3); border-radius: 0 var(--radius-sm) var(--radius-sm) 0; border-inline-start-color: color-mix(in srgb, currentColor 35%, transparent); }
 [part="toggle"]::after { content: ""; width: 0.4em; height: 0.4em; margin-top: -0.2em; border: solid currentColor; border-width: 0 2px 2px 0; transform: rotate(45deg); }
 button:hover:not(:disabled) { background: var(--_hv); }
 :host([variant="ghost"]) button:hover:not(:disabled) { color: var(--color-text); border-color: var(--color-text); }

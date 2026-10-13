@@ -175,6 +175,19 @@ test('boxes that touch are not overlap: 0.1px of rounding across a wide row is n
     assert.deepEqual(rules(facts([row, box({ id: 2, rect: [249.5, 1707, 961, 38] })])), ['overlap']);
 });
 
+test('only avatar-group children may overlap and only the pk-canvas frame may clip (issue 1259); the same shapes elsewhere still warn', () => {
+    const a = box({ id: 1, path: 'pk-avatar-group > pk-avatar:nth(1) "AL"', rect: [0, 0, 40, 40] });
+    const c = box({ id: 2, path: 'pk-avatar-group > pk-avatar:nth(2) "SL"', rect: [30, 0, 40, 40] });
+    assert.deepEqual(rules(facts([a, c])), []);
+    assert.deepEqual(rules(facts([{ ...a, path: 'pk-stack > pk-avatar:nth(1)' }, { ...c, path: 'pk-stack > pk-avatar:nth(2)' }])), ['overlap']);
+    assert.deepEqual(rules(facts([a, { ...c, path: 'pk-avatar-group > pk-avatar > span' }])), ['overlap']);
+    assert.deepEqual(rules(facts([a, { ...c, path: 'pk-card > pk-avatar' }])), ['overlap']);
+    const frame = box({ id: 1, clipX: true, path: 'pk-canvas#s > div[part=frame] "Artboard"' });
+    assert.deepEqual(rules(facts([frame])), []);
+    assert.deepEqual(rules(facts([{ ...frame, path: 'pk-card > div[part=frame]' }])), ['clipped-content']);
+    assert.deepEqual(rules(facts([{ ...frame, path: 'pk-canvas > div[part=other]' }])), ['clipped-content']);
+});
+
 test('findings seen in several combinations are one line', () => {
     const f = { rule: 'overlap', severity: 'warn', path: 'a', message: 'm', fix: 'x' };
     const g = groupFindings(['dark', 'light'].map(theme => ({ tag: 'pk-x', example: 1, title: 't', viewport: 'phone', theme, findings: [f] })));
