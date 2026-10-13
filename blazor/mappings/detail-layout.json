@@ -26,6 +26,10 @@
       "type": "bool"
     },
     {
+      "name": "TabParam",
+      "prop": "tabParam"
+    },
+    {
       "name": "NextLabel",
       "prop": "nextLabel"
     },
