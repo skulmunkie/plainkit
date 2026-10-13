@@ -850,6 +850,12 @@ export const dataDisplayCases = [
         const m = await t.mount('<pk-field-list><dt>A</dt><dd>B</dd></pk-field-list>'); t.ok(m.part('heading').hidden);
     }],
 
+    ['field-list: a long unbreakable value wraps inside a narrow host instead of clipping (issue 1245)', async t => {
+        const l = await t.mount('<pk-field-list layout="stacked"><dt>Email</dt><dd id="v"><a href="mailto:user@example.com">averyveryverylongunbreakableaddress85030521@example.com</a></dd></pk-field-list>');
+        l.style.inlineSize = '180px';
+        const dd = l.querySelector('#v'); t.ok(dd.scrollWidth <= dd.clientWidth + 1 && dd.getBoundingClientRect().right <= l.getBoundingClientRect().right + 1);
+    }],
+
     ['field-list: a slotted dt/dd pair with an empty dd hides itself, shows again when a value appears, and showEmpty keeps it (issue 801)', async t => {
         const l = await t.mount('<pk-field-list><dt id="a">Number</dt><dd id="b">AC-1</dd><dt id="c">Note</dt><dd id="d"></dd><dt id="e">Tag</dt><dd id="f"><span>x</span></dd></pk-field-list>');
         t.ok(!l.querySelector('#a').hidden && !l.querySelector('#b').hidden, 'a pair with a value shows');

@@ -36,10 +36,10 @@ export const KIND_LABEL = Object.fromEntries(['templates', 'patterns', 'layouts'
 // ---- small building blocks ------------------------------------------------------------------------------------------------
 // A page title with its breadcrumb above and its lead below (a pk-page-header); a titled card; a card that is one link.
 export const crumbs = (...parts) => `<pk-breadcrumb slot="breadcrumb" label="Breadcrumb">${parts.map(([label, href]) => (href ? `<a href="${href}">${esc(label)}</a>` : `<span aria-current="page">${esc(label)}</span>`)).join('')}</pk-breadcrumb>`;
-export const heading = (title, lead, crumb = '') => `<pk-page-header class="gx-head" level="1" heading="${esc(title)}">${crumb}${lead ? `<pk-text tone="muted" slot="meta">${esc(lead)}</pk-text>` : ''}</pk-page-header>`;
+export const heading = (title, lead, crumb = '') => `<pk-page-header data-gx="head" level="1" heading="${esc(title)}">${crumb}${lead ? `<pk-text tone="muted" slot="meta">${esc(lead)}</pk-text>` : ''}</pk-page-header>`;
 export const section = (title, body) => `<pk-card heading="${esc(title)}"><pk-stack gap="sm">${body}</pk-stack></pk-card>`;
-export const cardLink = (href, title, text, extra = '') => `<pk-card class="gx-tile" href="${href}" heading="${esc(title)}"><pk-text inline tone="muted">${esc(text)}</pk-text>${extra}</pk-card>`;
-export const grid = html => `<pk-grid class="gx-tiles" min="14rem">${html}</pk-grid>`;
+export const cardLink = (href, title, text, extra = '') => `<pk-card data-gx="tile" href="${href}" heading="${esc(title)}"><pk-text inline tone="muted">${esc(text)}</pk-text>${extra}</pk-card>`;
+export const grid = html => `<pk-grid data-gx="tiles" min="14rem">${html}</pk-grid>`;
 export const notFound = (title, lead, back) => `<pk-empty-state heading="${esc(title)}"${lead ? ` description="${esc(lead)}"` : ''}>${back ? `<a slot="actions" href="${back[1]}">${esc(back[0])}</a>` : ''}</pk-empty-state>`;
 export const nothing = () => '<pk-empty-state tone="compact" heading="Nothing in the gallery matches."></pk-empty-state>';
 // A data table: the raw table goes inside pk-table (frame, scrolling), each cell labelled so a phone can lay a row out as a card (gallery.css).
@@ -81,7 +81,7 @@ export function createViews(ctx) {
             switch (id) {
                 case 'colours': {
                     const names = Object.keys(tokens.dark).filter(n => n.startsWith('--color-'));
-                    const swatch = (theme, node, n) => `<div data-theme="${theme}" class="gx-swatch-cell"><span class="gx-swatch" data-dyn="background:var(${n})"></span><code>${esc(val(node, n))}</code></div>`;
+                    const swatch = (theme, node, n) => `<div data-theme="${theme}" data-gx="swatch-cell"><span data-gx="swatch" data-dyn="background:var(${n})"></span><code>${esc(val(node, n))}</code></div>`;
                     const pair = ([fg, bg]) => { const c = node => { const r = contrast(val(node, fg), val(node, bg)); return r === null ? 'n/a' : `${r.toFixed(2)}:1 ${grade(r)}`; }; return [`<code>${fg}</code> on <code>${bg}</code>`, c(dark), c(light)]; };
                     return heading('Colours', 'Read live from the computed CSS variables inside a dark and a light scope; ratios are WCAG contrast calculated in JS.')
                         + section('Palette', dataTable('Colour tokens', ['Token', 'Dark', 'Light'], names.map(n => [`<code>${n}</code>`, swatch('dark', dark, n), swatch('light', light, n)])))
@@ -109,7 +109,7 @@ export function createViews(ctx) {
                     const all = [...ctx.css().utilities.matchAll(/\.(u-[\w-]+)\s*\{([^}]*)\}/g)].map(m => ({ name: m[1], decl: m[2].trim().replace(/\s*!important/g, '') })).concat([...ctx.css().spacing.matchAll(/^\.([a-z]+-[\w]+) \{ ([^}]*)\}/gm)].map(m => ({ name: m[1], decl: m[2].trim() })));
                     const q = query(); const f = (q.q ?? '').toLowerCase();
                     const list = all.filter(u => u.name.includes(f));
-                    const pg = paged(list, Number(q.p) || 1, rows => dataTable('Utility classes', ['Class', 'Declaration', 'Effect'], rows.map(u => [`<code>${u.name}</code>`, `<code>${esc(u.decl)}</code>`, `<div class="gx-effect"><span class="${u.name}">Sample</span></div>`])), `${B()}/foundations/utilities${f ? `?q=${encodeURIComponent(f)}` : ''}`);
+                    const pg = paged(list, Number(q.p) || 1, rows => dataTable('Utility classes', ['Class', 'Declaration', 'Effect'], rows.map(u => [`<code>${u.name}</code>`, `<code>${esc(u.decl)}</code>`, `<div data-gx="effect"><span class="${u.name}">Sample</span></div>`])), `${B()}/foundations/utilities${f ? `?q=${encodeURIComponent(f)}` : ''}`);
                     return heading('Utilities', `${all.length} utility classes (u-*, and spacing p-* m-* gap-* mapped to tokens), ${list.length} shown.`)
                         + section('Find a class', `<pk-form><form data-find="${B()}/foundations/utilities"><pk-field label="Filter"><pk-input type="search" name="q" value="${esc(f)}" placeholder="e.g. mt, text, gap"></pk-input></pk-field></form></pk-form>${pg.html}${pg.nav}`);
                 }
@@ -160,7 +160,7 @@ export function createViews(ctx) {
             if (!tp) return put(notFound('Not found', '', ['Back to templates', `${B()}/samples/templates`]));
             const q = query(); const nav = q.nav === 'top' ? 'top' : 'side'; const th = q.theme ?? state.theme;
             const link = (k, v, l) => { const p = new URLSearchParams({ nav, theme: th, [k]: v }); return `<pk-button variant="ghost" size="mini" toggle${(k === 'nav' ? nav : th) === v ? ' pressed' : ''} data-goto="${B()}/samples/templates/${b}?${p}">${l}</pk-button>`; };
-            put(heading(tp[1], tp[3], groupCrumb('templates', tp[1])) + `<pk-cluster gap="sm"><a href="${B()}/samples/templates">Back to templates</a><pk-button-group label="Navigation variant" mode="single">${link('nav', 'side', 'Side nav')}${link('nav', 'top', 'Top nav')}</pk-button-group><pk-button-group label="Theme" mode="single">${link('theme', 'dark', 'Dark')}${link('theme', 'light', 'Light')}</pk-button-group><a href="${TEMPLATES_DIR}${tp[2]}?nav=${nav}&theme=${th}" target="_blank" rel="noopener">Open full page</a></pk-cluster><pk-text tone="muted"><strong>Slots:</strong> ${esc(tp[4])}</pk-text><iframe class="gx-frame gx-stage" title="${esc(tp[1])} template" src="${TEMPLATES_DIR}${tp[2]}?nav=${nav}&theme=${th}" data-dyn="width:${state.width === 'phone' ? PHONE_WIDTH + 'px' : '100%'}"></iframe>`);
+            put(heading(tp[1], tp[3], groupCrumb('templates', tp[1])) + `<pk-cluster gap="sm"><a href="${B()}/samples/templates">Back to templates</a><pk-button-group label="Navigation variant" mode="single">${link('nav', 'side', 'Side nav')}${link('nav', 'top', 'Top nav')}</pk-button-group><pk-button-group label="Theme" mode="single">${link('theme', 'dark', 'Dark')}${link('theme', 'light', 'Light')}</pk-button-group><a href="${TEMPLATES_DIR}${tp[2]}?nav=${nav}&theme=${th}" target="_blank" rel="noopener">Open full page</a></pk-cluster><pk-text tone="muted"><strong>Slots:</strong> ${esc(tp[4])}</pk-text><iframe data-gx="frame stage" title="${esc(tp[1])} template" src="${TEMPLATES_DIR}${tp[2]}?nav=${nav}&theme=${th}" data-dyn="width:${state.width === 'phone' ? PHONE_WIDTH + 'px' : '100%'}"></iframe>`);
             return out;
         }
         if (a === 'patterns') {
