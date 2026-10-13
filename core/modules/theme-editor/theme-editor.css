@@ -2,9 +2,9 @@
 
 .te { display: flex; flex-direction: column; gap: var(--space-3); min-width: 0; }
 
-.te--fixed { min-height: 0; }
+.te[data-fixed] { min-height: 0; }
 
-.te--fixed pk-tabs { flex: 1 1 auto; min-height: 0; overflow: auto; }
+.te[data-fixed] pk-tabs { flex: 1 1 auto; min-height: 0; overflow: auto; }
 
 .te-toolbar { display: grid; grid-template-columns: repeat(auto-fit, minmax(var(--_te-toolbar-col-min), 1fr)); gap: var(--space-3); align-items: end; }
 
@@ -52,11 +52,11 @@
 
 .te-diff code { background: none; padding: 0; }
 
-.te-changed { box-shadow: inset var(--_te-changed-bar-w) 0 0 var(--color-accent); }
+.te [data-changed] { box-shadow: inset var(--_te-changed-bar-w) 0 0 var(--color-accent); }
 
 .te-preview { width: 100%; height: var(--_te-preview-h); border: var(--_te-border-w) solid var(--color-border); background: var(--color-bg); }
 
-.te-preview-body { padding: var(--space-4); }
+[data-te-preview] body { padding: var(--space-4); }
 
 @media (--phone) {
     /* The search and the scope select ("The current theme") need the full width; the short Kind and Theme selects share a row. */
