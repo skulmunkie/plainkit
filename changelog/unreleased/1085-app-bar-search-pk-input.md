@@ -1,5 +1,0 @@
----
-type: breaking
-issue: 1085
----
-The pk-app-bar-search field is now a `pk-input` (type search) instead of a raw `<input>`, and pk-input gains the property-only `listbox` (an element) that makes the inner input a combobox, so the listbox can live in a host's shadow tree (call `requestUpdate()` after showing, hiding or re-marking it). Breaking changes, for code that reached into pk-app-bar-search: (1) the `control` part is now the pk-input host, so `::part(control)` no longer styles a native input (`value`, `focus()` and the `input` event work as before); (2) the highlighted result is marked `aria-selected="true"` instead of `data-hl`; (3) the native `aria-activedescendant` attribute is gone, and `aria-controls`/`aria-expanded` are no longer attributes on a light-tree input; (4) the element-reference ARIA properties that replace them need Chrome 135+, Safari 16.4+ or Firefox 136+ (older browsers still get the role, name and expanded state). The `box-icon` part is kept. No Blazor change.

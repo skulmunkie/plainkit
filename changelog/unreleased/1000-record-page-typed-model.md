@@ -1,5 +1,0 @@
----
-type: breaking
-issue: 1000
----
-Blazor: `PkRecordPage` is now `PkRecordPage<TItem>`, the only record page; the untyped JSON form is removed. Migrate: add `TItem="YourRecord"`; move the fields out of `Config` (`fields = [{ name, label, type, required }]`) into `Fields`, a list of `PkFieldSpec<YourRecord>` (`Key`, `Label`, `Kind`, `Required`, `Get`, `Set`, as on `PkFieldGroup`); keep only the page options (`id`, `heading`, `sidebar`...) in `Config`; make `Load` return the `YourRecord?` instead of a dictionary of values, and `Save` take the `YourRecord` (the loaded item with the form's values applied through each `Set`) instead of an `IReadOnlyDictionary<string, JsonElement>`; for a new record set `Model` to the instance to fill; rename the view-mode value templates `Fields` to `ViewFields`. The element's edit form is drawn by `pk-field-group` from the same field defs (which also accept `key` and `kind` as well as the older `name` and `type`), and `pk-field-group` gains `snapshot()` and `setError(key, message)`.
