@@ -216,3 +216,32 @@ headerCases.push(
         p.remove();
     }],
 );
+
+// Issue 1000: the host-bound surface of the record page (the Blazor wrapper's Busy, Error and OnDelete): deletable shows Delete, busy disables the bar, error is a notice above the form and sits on its own row.
+headerCases.push(
+    ['record-page: deletable shows Delete and raises pk-record-delete with the id; busy disables the bar buttons; error is a notice above the layout, and clearing each undoes it', async t => {
+        const wait = ms => new Promise(r => setTimeout(r, ms));
+        const page = await t.mount('<pk-record-page></pk-record-page>');
+        page.load = async () => ({ name: 'Widget' });
+        page.save = async () => {};
+        page.config = { id: '7', fields: [{ name: 'name', label: 'Name' }] };
+        for (let i = 0; i < 40 && page.part('edit').hidden; i++) await wait(50);
+        await t.load(page.shadowRoot); await t.settle();
+        t.ok(page.part('delete').hidden, 'no Delete without deletable');
+        page.deletable = true; await t.settle();
+        t.ok(!page.part('delete').hidden && rect(page.part('delete')).width > 0, 'deletable shows Delete');
+        let id = null; page.addEventListener('pk-record-delete', e => { id = e.detail.id; });
+        page.part('delete').click(); await t.settle();
+        t.eq(id, '7', 'pk-record-delete carries the record id');
+        page.busy = true; await t.settle();
+        t.ok(['edit', 'delete'].every(p => page.part(p).disabled), 'busy disables the buttons');
+        page.busy = false; await t.settle();
+        t.ok(['edit', 'delete'].every(p => !page.part(p).disabled), 'and enables them again');
+        page.error = 'Could not delete the order.'; await t.settle();
+        const notice = page.part('notice'), layout = page.part('layout');
+        t.ok(notice.textContent.includes('Could not delete the order.') && rect(notice).bottom <= rect(layout).top + 1, 'the error shows above the record');
+        page.error = ''; await t.settle();
+        t.eq(notice.children.length, 0, 'an empty error clears it');
+        page.remove();
+    }],
+);
