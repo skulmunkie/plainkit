@@ -2,18 +2,20 @@
 @inherits PageBase
 @inject NavigationManager Nav
 
-@* The record half of the routed pair: the route gives the id, Config carries it, Fields describe the typed OrderRecord, and Load, Save and OnDelete are your data access.
+@* The record half of the routed pair: the route gives the id, Config carries it, Fields describe the typed OrderRecord (one with its own Editor), and Load, Save and OnDelete are your data access.
    Busy and Error bind the page's own state (PageBase.IsBusy and StatusMessage), so a failed delete shows above the record. *@
-<PkRecordPage TItem="OrderRecord" Config="@Config" Fields="_fields" Load="RoutedOrderStore.GetAsync" Save="SaveAsync" OnDelete="DeleteAsync" Busy="IsBusy" Error="StatusMessage" />
+<PkRecordPage TItem="OrderRecord" Config="@Config" Fields="Specs" Load="RoutedOrderStore.GetAsync" Save="SaveAsync" OnDelete="DeleteAsync" Busy="IsBusy" Error="StatusMessage" />
 
 @code {
     [Parameter] public string Id { get; set; } = "";
 
     private string Config => System.Text.Json.JsonSerializer.Serialize(new { id = Id, heading = "Order" });
 
-    private static readonly IReadOnlyList<PkFieldSpec<OrderRecord>> _fields =
+    private IReadOnlyList<PkFieldSpec<OrderRecord>>? _specs;
+    private IReadOnlyList<PkFieldSpec<OrderRecord>> Specs => _specs ??=
     [
         new() { Key = "customer", Label = "Customer", Required = true, Get = o => o.Customer, Set = (o, v) => o.Customer = v ?? "" },
+        new() { Key = "rush", Label = "Priority", Get = order => order.Rush ? "Rush" : "Standard", Set = (_, _) => { }, Editor = order => @<PkSwitch Checked="order.Rush" CheckedChanged="@(on => order.Rush = on)">Rush delivery</PkSwitch> },
         new() { Key = "note", Label = "Note", Kind = PkFieldKind.Textarea, Hint = "Printed on the delivery note.", Get = o => o.Note, Set = (o, v) => o.Note = v ?? "" },
     ];
 
