@@ -1,0 +1,183 @@
+{
+  "comment": "Shared by core/tests/app-manifest.test.mjs (appLocate in tools/app-manifest.mjs) and, from step 2 of the Blazor app framework (#364), the C# PkNavModel test. Manifests (module data), the app brand, app-wide paths and the expected module, nav ids, crumbs and title.",
+  "brand": "Demo app",
+  "modules": [
+    {
+      "id": "overview",
+      "title": "Overview",
+      "routes": [
+        {
+          "path": "/",
+          "page": "dashboard"
+        }
+      ]
+    },
+    {
+      "id": "orders",
+      "title": "Orders",
+      "nav": [
+        {
+          "id": "all",
+          "title": "All orders",
+          "route": "/"
+        },
+        {
+          "id": "open",
+          "title": "Open",
+          "route": "/open"
+        }
+      ],
+      "routes": [
+        {
+          "path": "/",
+          "page": "list",
+          "label": "All orders",
+          "children": [
+            {
+              "path": "/:id",
+              "page": "record",
+              "label": "Order"
+            }
+          ]
+        },
+        {
+          "path": "/open",
+          "page": "list",
+          "label": "Open"
+        },
+        {
+          "path": "*",
+          "page": "not-found"
+        }
+      ],
+      "footer": {
+        "text": "Run by Finance",
+        "links": [
+          {
+            "label": "Help",
+            "href": "/help"
+          }
+        ]
+      }
+    }
+  ],
+  "cases": [
+    {
+      "name": "module without nav",
+      "path": "/overview",
+      "expect": {
+        "module": "overview",
+        "ids": [],
+        "current": null,
+        "crumbs": [
+          {
+            "label": "Demo app",
+            "href": "/"
+          },
+          {
+            "label": "Overview",
+            "href": "/overview"
+          }
+        ],
+        "title": "Overview"
+      }
+    },
+    {
+      "name": "module home is the first entry",
+      "path": "/orders",
+      "expect": {
+        "module": "orders",
+        "ids": [
+          "all"
+        ],
+        "current": "all",
+        "crumbs": [
+          {
+            "label": "Demo app",
+            "href": "/"
+          },
+          {
+            "label": "Orders",
+            "href": "/orders"
+          }
+        ],
+        "title": "Orders"
+      }
+    },
+    {
+      "name": "nav entry",
+      "path": "/orders/open",
+      "expect": {
+        "module": "orders",
+        "ids": [
+          "open"
+        ],
+        "current": "open",
+        "crumbs": [
+          {
+            "label": "Demo app",
+            "href": "/"
+          },
+          {
+            "label": "Orders",
+            "href": "/orders"
+          },
+          {
+            "label": "Open"
+          }
+        ],
+        "title": "Open"
+      }
+    },
+    {
+      "name": "record under its list",
+      "path": "/orders/42",
+      "expect": {
+        "module": "orders",
+        "ids": [
+          "all"
+        ],
+        "current": "all",
+        "crumbs": [
+          {
+            "label": "Demo app",
+            "href": "/"
+          },
+          {
+            "label": "Orders",
+            "href": "/orders"
+          },
+          {
+            "label": "Order"
+          }
+        ],
+        "title": "Order"
+      }
+    },
+    {
+      "name": "unmatched route",
+      "path": "/orders/nope/x",
+      "expect": {
+        "module": "orders",
+        "ids": [],
+        "current": null,
+        "crumbs": [
+          {
+            "label": "Demo app",
+            "href": "/"
+          },
+          {
+            "label": "Orders",
+            "href": "/orders"
+          }
+        ],
+        "title": "Orders"
+      }
+    },
+    {
+      "name": "unknown module",
+      "path": "/nowhere",
+      "expect": null
+    }
+  ]
+}

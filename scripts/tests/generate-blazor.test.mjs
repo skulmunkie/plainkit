@@ -520,3 +520,10 @@ test('shows: a callback that is set turns on a boolean prop; methods: an awaitab
     assert.match(razor, /public async Task SubmitAsync\(\) => await \(await Runtime\.BridgeAsync\(Assets\)\)\.InvokeVoidAsync\("call", Element, "submit"\);/);
     assert.throws(() => generate([el], { demo: m }, new Set()), /does not have/);
 });
+
+test('manifest DTOs come from the schema (#364)', () => {
+    const cs = real.files.get('PkModuleManifest.cs');
+    assert.match(cs, /public sealed record PkModuleManifest/);
+    assert.match(cs, /public required string Id \{ get; init; \}/);
+    assert.match(cs, /IReadOnlyList<PkManifestNavItem>\? Children/);
+});
