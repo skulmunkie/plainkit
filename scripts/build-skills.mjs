@@ -760,8 +760,7 @@ function blazorFiles(src) {
         files.set('references/app.md', ['# PkApp: the app frame over the module catalog', '', stamp(src, 'Components/PkApp.razor'), '',
             'A hand-written component that wraps `PkAppFrame`. Register modules with `services.AddPlainKitApp(a => a.Brand("Demo").Module<OrdersModule>().Home("orders").Footer("..."))` (each module is an `IPkModule` whose `Manifest` is a `PkModuleManifest`; a bad or duplicate id throws at startup) and put the router body inside `PkApp`. It draws the brand, the module picker (with more than one module), the side nav of the active module, search over its nav titles, the breadcrumb (`PkNavModel.Locate`), the footer and a theme toggle (`IPkTheme`). Pages stay ordinary `@page` components under `/<moduleId>/...`.', '',
             '```razor', '<Router AppAssembly="typeof(App).Assembly">', '    <Found Context="route"><PkApp><RouteView RouteData="route" /></PkApp></Found>', '</Router>', '```', '',
-            '## `PkApp`', '', table(['Parameter', 'Type', 'Description'], app.params.map(p => [code(p.name), code(p.type), p.doc])), ''].join('
-'));
+            '## `PkApp`', '', table(['Parameter', 'Type', 'Description'], app.params.map(p => [code(p.name), code(p.type), p.doc])), ''].join('\n'));
     }
 
     // a plain field bound to a model property, from a list of specs: no element of its own (issue 222)
