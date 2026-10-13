@@ -43,6 +43,13 @@
       "description": "The strip is the host's: show one section from section alone."
     },
     {
+      "name": "sectionsAbove",
+      "type": "boolean",
+      "default": false,
+      "reflect": true,
+      "description": "Also manage data-pk-section elements that are siblings before the layout (a full-width strip above it)."
+    },
+    {
       "name": "tabParam",
       "type": "string",
       "default": "",
@@ -141,7 +148,7 @@
   ],
   "writes": [
     {
-      "target": "elements inside the layout that carry data-pk-section",
+      "target": "elements inside the layout (and, with sectionsAbove, its preceding siblings) that carry data-pk-section",
       "attributes": [
         "data-pk-section-hidden"
       ],

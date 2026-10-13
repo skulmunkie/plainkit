@@ -254,6 +254,16 @@ export const layoutCases = [
         t.ok(!shown('a') && shown('b'), 'choosing a tab on the header shows that section');
     }],
 
+    ['detail-layout: sections-above hides and shows a tagged sibling before the layout with the section (#1241)', async t => {
+        const root = await t.mount('<div><pk-card id="top" heading="Top" data-pk-section="details">t</pk-card><pk-detail-layout sections-above tabs-from="always"><pk-card id="a" heading="A" data-pk-section="details">a</pk-card><pk-card id="b" heading="B" data-pk-section="pricing">b</pk-card></pk-detail-layout></div>');
+        const el = root.querySelector('pk-detail-layout');
+        const shown = id => getComputedStyle(root.querySelector('#' + id)).display !== 'none';
+        await t.settle();
+        t.ok(shown("top") && shown("a") && !shown("b"), "the first section shows the tagged sibling above with it");
+        el.section = 'pricing'; await t.settle();
+        t.ok(!shown("top") && !shown("a") && shown("b"), "choosing pricing hides the sibling above too");
+    }],
+
     ['detail-layout: tab-param opens on the section the query names and writes a change with replaceState (other parameters and hash kept, history length unchanged) (#1241)', async t => {
         const html = '<pk-detail-layout tabs-from="always" tab-param="tab"><pk-card id="a" heading="A" data-pk-section="details">a</pk-card><pk-card id="b" heading="B" data-pk-section="pricing">b</pk-card></pk-detail-layout>';
         const before = location.href, len = history.length;

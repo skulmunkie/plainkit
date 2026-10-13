@@ -4,7 +4,8 @@ export default {
     issue: [1241],
     elements: ['detail-layout', 'page-header', 'card'],
     html: `<pk-page-header id="ph" heading="Blue mug" tabs-from="always" tabs='[{"value":"details","label":"Details"},{"value":"pricing","label":"Pricing"}]'></pk-page-header>
-<pk-detail-layout id="dl" hide-tabs tab-param="tab" section="pricing">
+<pk-card id="above" heading="Pricing summary" data-pk-section="pricing"><p>Margin 38%.</p></pk-card>
+<pk-detail-layout id="dl" hide-tabs sections-above tab-param="tab" section="pricing">
 <pk-card id="details" heading="Details" data-pk-section="details"><p>Name, SKU, description.</p></pk-card>
 <pk-card id="pricing" heading="Pricing" data-pk-section="pricing"><p>Price, cost, margin.</p></pk-card>
 <div slot="sidebar"><pk-card heading="Status"><p>Active</p></pk-card></div>
@@ -15,6 +16,7 @@ export default {
         t.ok(!t.shown('#dl >>> pk-tabs'), 'the layout draws no strip of its own');
         const first = false;
         t.ok(t.shown('#pricing') !== first && t.shown('#details') === first, 'only the selected section shows');
+        t.ok(t.shown('#above'), 'a tagged strip above the layout follows the selected section');
         t.ok(t.metric('html', 'scrollWidth') <= t.metric('html', 'clientWidth') + 1, 'the page scrolls sideways');
     },
 };
