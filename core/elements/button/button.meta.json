@@ -279,6 +279,11 @@
       "name": "--pk-button-padding",
       "description": "Inner padding.",
       "default": "var(--space-2) var(--space-4); mini: 0.2rem 0.55rem"
+    },
+    {
+      "name": "--pk-button-white-space",
+      "description": "White-space of the label: set normal so a long label wraps (anywhere, when the surrounding text allows it) inside a narrow container instead of overflowing it.",
+      "default": "nowrap"
     }
   ],
   "methods": [
