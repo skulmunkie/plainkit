@@ -130,7 +130,7 @@
     }
   ],
   "events": [
-    { "name": "pk-tab-change", "detail": "{ value, previous, fallback? }", "detailProps": { "value": "string", "previous": "string", "fallback": "bool" }, "description": "The docked strip (drawn from tabs, or a pk-tabs you slotted) chose a tab: the pk-tabs event, passed through. Bind it to pk-detail-layout section with hide-tabs." }
+    { "name": "pk-tab-change", "detail": "{ value, previous, fallback? }", "detailProps": { "value": "string", "previous": "string", "fallback": "bool" }, "description": "The docked strip chose a tab." }
   ],
   "parts": [
     {
