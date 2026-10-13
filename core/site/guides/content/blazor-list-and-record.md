@@ -8,24 +8,21 @@ The usual business screen is a pair of routes: a list at `/orders` and one recor
 
 ## The list page
 
-`PkListPage<TItem>` asks `Load` for one page at a time: the request carries the search, the sort, the page and the page size. `OnRowClick` makes the rows clickable and hands you the row key in `Id`. The element cannot call back into C# to compute a link, so you navigate yourself.
+`PkListPage<TItem>` asks `Load` for one page at a time: the request carries the search, the sort, the page and the page size. `RowHrefTemplate` (an address with `{id}`, the row key) turns the first cell of each row into a real link to the record page: it opens in a new tab, and a plain click navigates through the router. `OnRowClick` is the alternative when you need a handler (it hands you the row key in `Id`).
 
 ```razor
 @page "/routed/orders"
-@inject NavigationManager Nav
 
 <PkListPage TItem="Order"
             Config="@_config"
             Load="LoadAsync"
             IdOf="o => o.Id"
-            OnRowClick="Open" />
+            RowHrefTemplate="/routed/orders/{id}" />
 
 @code {
     private const string _config = """{"label":"Orders","pageSize":10,"columns":[{"key":"orderNo","label":"Order","sortable":true},{"key":"customer","label":"Customer"}]}""";
 
     private Task<PkListResult<Order>> LoadAsync(PkListRequest request) => Orders.PageAsync(request);
-
-    private void Open(PkRowClickEventArgs e) => Nav.NavigateTo($"/routed/orders/{Uri.EscapeDataString(e.Id!)}");
 }
 ```
 
