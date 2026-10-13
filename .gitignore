@@ -26,9 +26,6 @@ scratch*/
 ## The in-browser element suite's local report (node scripts/attest-browser.mjs): not gated by CI, not a release artefact any more (issue #451).
 /core/tests/browser/report.json
 
-## The last full size sweep (node scripts/scorecard-sweep.mjs --write-report): a local report that goes stale with every gallery edit, so it is not tracked.
-/core/site/scorecard/sweep-report.json
-
 ## GitHub Pages build output, and Claude Code local state
 _site/
 .claude/*
@@ -53,6 +50,8 @@ _site/
 /core/site/files/index.json
 /core/site/scorecard/api.current.json
 /core/site/scorecard/tiers.current.json
+# The size-sweep report: an empty marker from the build until node scripts/scorecard-sweep.mjs --write-report replaces it with the last full sweep (it goes stale with every gallery edit, so it is not tracked).
+/core/site/scorecard/sweep-report.json
 /core/icons.svg
 /core/icons/icons.json
 /core/icons/icons.d.ts

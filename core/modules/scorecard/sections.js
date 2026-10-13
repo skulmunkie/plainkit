@@ -148,6 +148,7 @@ export function paintTiers(doc, host, report) {
 
 export function paintSweep(doc, host, report) {
     if (!report) return missing(doc, host, 'sweep report', 'Pass data.sweep: the last size sweep report. The tool writes it (it is not kept in the repository): node scripts/scorecard-sweep.mjs --only sweep --write-report.');
+    if (report.none) return host.replaceChildren(note(doc, 'No size sweep has been recorded yet. Run node scripts/scorecard-sweep.mjs --only sweep --write-report (the report is not kept in the repository).'));
     const s = sweepSummary(report);
     const parts = [
         row(doc, badge(doc, s.failing ? 'warn' : 'ok', `${s.failing} failing`), badge(doc, 'muted', `${s.checked} cells checked`), badge(doc, 'muted', `${s.widths.join(', ')}px`), badge(doc, 'muted', s.themes.join(' + ')), ...s.by.map(b => badge(doc, 'muted', `${b.metric} ${b.cells}`)), s.at ? badge(doc, 'muted', s.at.slice(0, 10)) : null, s.partial ? badge(doc, 'danger', 'partial') : null),
