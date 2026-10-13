@@ -24,6 +24,15 @@
       "type": "IReadOnlyDictionary<string, RenderFragment>?",
       "doc": "Value templates by field name (the config field name): each replaces the text of that field in view mode (the main list and the sidebar cards). A field without one shows its value. The content is yours, so it reads the record from your own state."
     },
+    { "name": "Busy", "prop": "busy", "type": "bool", "note": "The page's work in flight (bind it to PageBase.IsBusy): Edit, Cancel, Save and Delete wait." },
+    { "name": "Error", "prop": "error", "type": "string", "note": "The page's error text (bind it to PageBase.StatusMessage, or the text DescribeError gives): a notice above the form; null or empty clears it." },
+    {
+      "name": "OnDelete",
+      "event": "pk-record-delete",
+      "shows": "deletable",
+      "type": "EventCallback<PkRecordDeleteEventArgs>",
+      "note": "The Delete button was pressed (Id is the record's id). Setting it shows Delete in view mode of an existing record; confirm, delete and navigate away in the handler, inside TryBusyAsync on a PageBase page."
+    },
     {
       "name": "MainBefore",
       "map": "slot",
@@ -61,5 +70,5 @@
       "doc": "Saves the form's values, keyed by field name (read text with GetString(), a number with GetDecimal()). Having it shows Edit and Save. Throwing keeps the edits and shows the exception message; returning switches to view mode."
     }
   ],
-  "notes": "New component: App framework step 7 (issue #353). Load(id) and Save(values) are callback properties (business logic), set from script, so the generated component hands the element a .NET reference (PkCallbackSlot) that calls the Load and Save parameters, as PkSettingsPage does for Save (issue #1000). Blazor already has the same page concept as PkRecordForm (a PkForm with a toolbar, error alert and a PkDetailLayout sidebar, with the state kept by the page or PkRecordEditor, and ActionsInHeader for the sticky title bar); PkRecordPage is the config-driven element, PkRecordForm stays the composable Razor template. Fields (field name to a RenderFragment) fills the field-<name> value slots of the view mode (issue 1000); MainBefore, MainAfter and SideAfter fill the main-before, main-after and side-after slots (PkCard sections around the field list or form and after the sidebar cards, issue 1000); an edit-mode template stays open on the issue."
+  "notes": "New component: App framework step 7 (issue #353). Load(id) and Save(values) are callback properties (business logic), set from script, so the generated component hands the element a .NET reference (PkCallbackSlot) that calls the Load and Save parameters, as PkSettingsPage does for Save (issue #1000). Blazor already has the same page concept as PkRecordForm (a PkForm with a toolbar, error alert and a PkDetailLayout sidebar, with the state kept by the page or PkRecordEditor, and ActionsInHeader for the sticky title bar); PkRecordPage is the config-driven element, PkRecordForm stays the composable Razor template. Fields (field name to a RenderFragment) fills the field-<name> value slots of the view mode (issue 1000); MainBefore, MainAfter and SideAfter fill the main-before, main-after and side-after slots (PkCard sections around the field list or form and after the sidebar cards, issue 1000); Busy and Error are the page-bound surface (PageBase.IsBusy, StatusMessage) and OnDelete shows the Delete button (issue 1000, step 1); a typed Model, Save(TItem) and an edit-mode editor stay open on the issue."
 }

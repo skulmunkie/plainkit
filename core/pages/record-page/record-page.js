@@ -30,6 +30,9 @@ export default Base => class extends Base {
         if (!this.$w || !this.isConnected) return;
         if (name === 'config') { if ((this.config?.id ?? null) !== this.$id) this.fetch(); else { this.bar(); this.draw(); } }
         else if (name === 'mode') this.draw();
+        else if (name === 'deletable') this.part('delete').hidden = this.deleteHidden();
+        else if (name === 'error') this.notice();
+        else if (name === 'busy') this.lock();
     }
 
     refresh() { if (this.$w && this.isConnected) this.fetch(); }
@@ -64,7 +67,7 @@ export default Base => class extends Base {
     // Not named render(): the base class calls render() on every prop change (dirty, mode), which would rebuild the form under the reader on the first keystroke.
     draw() {
         const doc = this.ownerDocument, main = this.part('main'), side = this.part('side'), vals = this.$values ?? {}, editing = this.editing;
-        renderState(this.part('notice'), 'ready');
+        this.notice();
         main.replaceChildren(editing ? this.form(doc, vals) : this.list(doc, this.fields, vals, this.config?.heading));
         side.replaceChildren(...(this.config?.sidebar ?? []).map(s => {
             const card = doc.createElement('pk-card');
@@ -76,11 +79,16 @@ export default Base => class extends Base {
         this.part('edit').hidden = editing || !canEdit;
         this.part('cancel').hidden = !editing || this.$id == null;
         this.part('save').hidden = !editing || !this.fields.length;
-        this.part('delete').hidden = editing || this.$id == null || !this.config?.deletable;
+        this.part('delete').hidden = this.deleteHidden();
         this.part('save').textContent = this.config?.saveLabel || 'Save';
         this.part('layout').hidden = false;
+        this.lock();
         loadElements(this.shadowRoot);
     }
+    deleteHidden() { return this.editing || this.$id == null || !(this.deletable || this.config?.deletable); }
+    // The host's `error` text is the notice above the form (a save's own failure replaces it until the host sets it again); `busy` is the host's work in flight, so every button waits.
+    notice() { if (this.error) showState(this.part('notice'), 'error', { description: this.error }); else renderState(this.part('notice'), 'ready'); }
+    lock() { for (const p of ['edit', 'cancel', 'save', 'delete']) this.part(p).disabled = Boolean(this.busy); this.part('save').busy = Boolean(this.busy || this.$saving); }
     list(doc, fields, vals, heading, dense) {
         const list = doc.createElement('pk-field-list');
         if (heading) list.setAttribute('heading', heading);
@@ -137,7 +145,7 @@ export default Base => class extends Base {
     setDirty(v) { if (v !== Boolean(this.dirty)) { this.dirty = v; this.emit('pk-record-dirty', { dirty: v }); } }
 
     async submit() {
-        if (this.$saving || typeof this.save !== 'function') return;
+        if (this.$saving || this.busy || typeof this.save !== 'function') return;
         const gen = this.$gen, save = this.part('save'), values = this.collect();
         this.$saving = true; save.busy = true;
         renderState(this.part('notice'), 'ready');
@@ -157,6 +165,6 @@ export default Base => class extends Base {
             for (const [c, m] of fields) this.$fields.get(c.getAttribute('name')).setAttribute('error', text(m));
             if (fields.length) fields[0][0].focus();
             else { showState(this.part('notice'), 'error', { heading: 'Could not save', error: err }); }
-        } finally { this.$saving = false; save.busy = false; }
+        } finally { this.$saving = false; this.lock(); }
     }
 };

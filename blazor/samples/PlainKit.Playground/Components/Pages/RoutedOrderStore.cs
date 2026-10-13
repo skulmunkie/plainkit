@@ -24,6 +24,12 @@ internal static class RoutedOrderStore
         return Task.FromResult(result);
     }
 
+    public static Task DeleteAsync(string id)
+    {
+        _rows.RemoveAll(x => x.Id == id);
+        return Task.CompletedTask;
+    }
+
     public static Task SaveAsync(string id, string customer, string note)
     {
         var i = _rows.FindIndex(x => x.Id == id);

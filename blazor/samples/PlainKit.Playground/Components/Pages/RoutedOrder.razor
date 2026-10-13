@@ -1,7 +1,9 @@
 @page "/routed/orders/{Id}"
+@inherits PageBase
+@inject NavigationManager Nav
 
-@* The record half of the routed pair: the route gives the id, Config carries it, Load and Save are your data access. *@
-<PkRecordPage Config="@Config" Load="RoutedOrderStore.GetAsync" Save="SaveAsync" />
+@* The record half of the routed pair: the route gives the id, Config carries it, Load, Save and OnDelete are your data access. Busy and Error bind the page's own state (PageBase.IsBusy and StatusMessage), so a failed delete shows above the record. *@
+<PkRecordPage Config="@Config" Load="RoutedOrderStore.GetAsync" Save="SaveAsync" OnDelete="DeleteAsync" Busy="IsBusy" Error="StatusMessage" />
 
 @code {
     [Parameter] public string Id { get; set; } = "";
@@ -15,4 +17,10 @@
 
     private Task SaveAsync(IReadOnlyDictionary<string, System.Text.Json.JsonElement> values) =>
         RoutedOrderStore.SaveAsync(Id, values["customer"].GetString() ?? "", values["note"].GetString() ?? "");
+
+    private async Task DeleteAsync()
+    {
+        ClearStatus();
+        if (await TryBusyAsync(() => RoutedOrderStore.DeleteAsync(Id), "Deleting")) Nav.NavigateTo("/routed/orders");
+    }
 }

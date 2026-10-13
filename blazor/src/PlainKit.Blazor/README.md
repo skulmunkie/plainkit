@@ -347,7 +347,7 @@ The page types of the app framework take their business logic as a callback the 
 
 - `PkToolPage`: `Run` gets the input values keyed by field key (`JsonElement`) and returns what the outcome shows.
 - `PkSettingsPage`: `Save` gets the values the same way.
-- `PkRecordPage`: `Fields` (field name to a `RenderFragment`) replaces a field's value in view mode through its `field-<name>` slot.
+- `PkRecordPage`: `Fields` (field name to a `RenderFragment`) replaces a field's value in view mode through its `field-<name>` slot. `OnDelete` shows Delete in view mode of an existing record, `Busy` disables its buttons and `Error` is a notice above the record: on a `PageBase` page use `Busy="IsBusy"`, `Error="StatusMessage"` and `TryBusyAsync` in the handler.
 - `PkListPage<TItem>`: `Load` gets a `PkListRequest` (`Page`, `PageSize`, `SortKey`, `Descending`, `Search`, `Filters`, `Skip`) and returns a `PkListResult<TItem>` (`Items`, `Total`), the same types as `PkDataTable`. Column keys in `Config` are the camel-case property names of `TItem`. It reloads on every sort, search, filter and page change. `rowHref` is not available yet (it is synchronous in the element and cannot cross interop).
 
 ```razor
