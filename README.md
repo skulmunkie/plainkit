@@ -62,6 +62,8 @@ scripts/   bootstrap.mjs runs everything below in order; publish-dist.mjs copies
 
 ### Using the skills with an agent
 
+For an app of several pages, the `plainkit-sdk` skill has a **Build an app** workflow (`references/build-an-app.md`, API in `references/app.md`): `mountApp`, modules and page types, including the `custom` escape hatch.
+
 **1. Install them where the agent looks.** Claude Code reads a skill folder from `.claude/skills/` in the project (or `~/.claude/skills/` for every project) and loads a skill on its own when the task matches the skill's `description`; there is nothing to enable. Pick the way you got Plainkit:
 
 | You have | Install (from the project root) |
