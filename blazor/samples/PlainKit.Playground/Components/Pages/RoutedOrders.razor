@@ -1,13 +1,12 @@
 @page "/routed/orders"
-@inject NavigationManager Nav
 
-@* The list half of the routed pair (guide "A routed list and record page"): a row click navigates to the record page. *@
+@* The list half of the routed pair (guide "A routed list and record page"): RowHrefTemplate links each row to the record page. *@
 <PkListPage TItem="Order"
             Config="@_config"
             Columns="_columns"
             Load="RoutedOrderStore.PageAsync"
             IdOf="o => o.Id"
-            OnRowClick="Open" />
+            RowHrefTemplate="/routed/orders/{id}" />
 
 @code {
     private const string _config = """{"label":"Orders","pageSize":10}""";
@@ -17,6 +16,4 @@
         new() { Key = "orderNo", Label = "Order", Sortable = true },
         new() { Key = "customer", Label = "Customer", Cell = o => @<strong>@o.Customer</strong> },
     ];
-
-    private void Open(PkRowClickEventArgs e) => Nav.NavigateTo($"/routed/orders/{Uri.EscapeDataString(e.Id!)}");
 }

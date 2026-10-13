@@ -8,24 +8,21 @@ The usual business screen is a pair of routes: a list at `/orders` and one recor
 
 ## The list page
 
-`PkListPage<TItem>` asks `Load` for one page at a time: the request carries the search, the sort, the page and the page size. `OnRowClick` makes the rows clickable and hands you the row key in `Id`. The element cannot call back into C# to compute a link, so you navigate yourself.
+`PkListPage<TItem>` asks `Load` for one page at a time: the request carries the search, the sort, the page and the page size. `RowHrefTemplate` (an address with `{id}`, the row key) turns the first cell of each row into a real link to the record page: it opens in a new tab, and a plain click navigates through the router. `OnRowClick` is the alternative when you need a handler (it hands you the row key in `Id`).
 
 ```razor
 @page "/routed/orders"
-@inject NavigationManager Nav
 
 <PkListPage TItem="Order"
             Config="@_config"
             Load="LoadAsync"
             IdOf="o => o.Id"
-            OnRowClick="Open" />
+            RowHrefTemplate="/routed/orders/{id}" />
 
 @code {
     private const string _config = """{"label":"Orders","pageSize":10,"columns":[{"key":"orderNo","label":"Order","sortable":true},{"key":"customer","label":"Customer"}]}""";
 
     private Task<PkListResult<Order>> LoadAsync(PkListRequest request) => Orders.PageAsync(request);
-
-    private void Open(PkRowClickEventArgs e) => Nav.NavigateTo($"/routed/orders/{Uri.EscapeDataString(e.Id!)}");
 }
 ```
 
@@ -59,6 +56,6 @@ Build `Config` with a serializer, not by gluing strings, so an id with a quote i
 
 ## What this does not cover
 
-A field value in view mode can be your own markup through `ViewFields` (a field key to a `RenderFragment`), and a list cell through `Cells` (with `IdOf`). `PkListPage` also takes typed `Columns` (`PkTableColumn<TItem>`, as on `PkDataTable`): they replace the columns of `Config`, and a column's `Cell` template fills that cell of every loaded row. Delete, busy and error are bound from the page: `OnDelete` shows the Delete button in view mode of an existing record, and `Busy` and `Error` are the page's own state. On a `PageBase` page set `Busy="IsBusy"` and `Error="StatusMessage"` and run the handler inside `TryBusyAsync`, which logs a failure, shows it through `DescribeError` and keeps the circuit alive; navigate away when it returns true. `When`, `Disabled` and the other per-record members of a field are read once the record is loaded, but they do not follow unsaved edits (the item is written at Save). A spec `Editor` is the body of that field in edit mode: bind its controls to the item's properties. `MainBefore` and `MainAfter` (`PkCard` sections) stay above and below the form in edit mode; for a form with tabs, sections or a sidebar of your own markup use `PkRecordForm` and `PkRecordEditor` (see the Blazor skill's `references/record-form.md`).
+A field value in view mode can be your own markup through `ViewFields` (a field key to a `RenderFragment`), and a list cell through `Cells` (with `IdOf`). `PkListPage` also takes typed `Columns` (`PkTableColumn<TItem>`, as on `PkDataTable`): they replace the columns of `Config`, and a column's `Cell` template fills that cell of every loaded row. Delete, busy and error are bound from the page: `OnDelete` shows the Delete button in view mode of an existing record, and `Busy` and `Error` are the page's own state. On a `PageBase` page set `Busy="IsBusy"` and `Error="StatusMessage"` and run the handler inside `TryBusyAsync`, which logs a failure, shows it through `DescribeError` and keeps the circuit alive; navigate away when it returns true. `When`, `Disabled`, `ReadOnly`, `LabelWhen` and `HelpWhen` are .NET functions of the item, so they are evaluated when the record loads (and after a save), not as the user types; a declarative condition the element can run itself is tracked in #1282. A spec `Editor` is the body of that field in edit mode (the playground's `RoutedOrder` page has a `PkSwitch` for a rush flag): bind its controls to the item's properties. `MainBefore` and `MainAfter` (`PkCard` sections) stay above and below the form in edit mode; for a form with tabs, sections or a sidebar of your own markup use `PkRecordForm` and `PkRecordEditor` (see the Blazor skill's `references/record-form.md`).
 
 The code above runs in the playground sample (`blazor/samples/PlainKit.Playground`, pages `RoutedOrders` and `RoutedOrder`), which is built with the solution, so it cannot drift from the components.

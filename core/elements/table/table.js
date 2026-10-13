@@ -56,9 +56,9 @@ export default Base => class extends Base {
         if (own) { this.part('bulk').hidden = this.part('empty').hidden = true; return; }
         if (this.selectScope === 'all' && !this.wide) this.selectScope = 'page';
         const k = this.list('columns'), r = V.view(this), ids = rowIds(r, this.rowKey), wide = this.wide, s = this.chosen(ids), sel = boxState(ids.filter(i => s.has(i)), r.length);
-        if (this.expandable || this.clickable) this.$x ??= import('../../js/table-expand.js').then(m => { this.$m = m; this.requestUpdate(); }, e => this.log.error('table-expand did not load', e));
-        if (this.total) this.$p ??= import('../../js/table-scope.js').then(m => { this.$s = m; this.requestUpdate(); }, e => this.log.error('table-scope did not load', e));
-        if (this.editable) this.$w ??= import('../../js/table-edit.js').then(m => { this.$e = m; this.requestUpdate(); }, e => this.log.error('table-edit did not load', e));
+        if (this.expandable || this.clickable || this.rowHrefTemplate) this.$x ??= import('../../js/table-expand.js').then(m => { this.$m = m; this.requestUpdate(); }, e => this.log.error('table-expand failed', e));
+        if (this.total) this.$p ??= import('../../js/table-scope.js').then(m => { this.$s = m; this.requestUpdate(); }, e => this.log.error('table-scope failed', e));
+        if (this.editable) this.$w ??= import('../../js/table-edit.js').then(m => { this.$e = m; this.requestUpdate(); }, e => this.log.error('table-edit failed', e));
         const x = this.expandable && this.$m, hx = this.expander != 'none' && x, lead = +this.selectable + !!hx;
         V.frame(this, tb, k.length + lead, r.length);
 

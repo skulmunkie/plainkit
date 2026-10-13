@@ -8,7 +8,7 @@ export { h };
 const STAT_TONE = { ok: 'positive', warn: 'warning', danger: 'critical', '': 'neutral' };
 
 export const card = (doc, heading, ...children) => h(doc, 'pk-card', { heading }, ...children);
-export const note = (doc, text) => h(doc, 'p', { class: 'muted' }, text);
+export const note = (doc, text) => h(doc, 'pk-text', { tone: 'muted', inline: true }, text);
 export const badge = (doc, variant, text) => h(doc, 'pk-badge', { variant }, text);
 export const emptyState = (doc, heading, description) => h(doc, 'pk-empty-state', { heading, description, tone: 'compact' });
 const row = (doc, ...children) => h(doc, 'pk-cluster', {}, ...children);
