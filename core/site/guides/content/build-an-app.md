@@ -76,7 +76,7 @@ Pick the page type for the job before you write any markup. Each draws a finishe
 | Content | `workspace` | `panes`, `labels`, `fill` | `mount(panes, ctx)` |
 | Content | `note` | `heading`, `body`, `cardHeading` | none |
 | Content | `print` | `heading`, `size`, `margin`, `toolbar` | `render(el, ctx)` |
-| Escape hatch | `custom` | none | `mount(host, ctx)` |
+| Escape hatch | `custom` | none | `mount(host, ctx)` (sample: the tour's `clock` route) |
 | States | `states`, `not-found` | `state`, `heading`, `description`, `label` | `retry(ctx)`, `action(ctx)` |
 
 A validation callback or a save rejects, or returns, `{ errors: { field: message } }` to show inline errors. A `load` that rejects shows the built-in error state with Retry; you write neither. The `list` and `record` types run `load`, `save`, `delete` and `onBulk` through the page lifecycle (`js/page-lifecycle.js`): a newer load aborts the older one, whose result is never drawn (your `load` gets an `AbortSignal` as its last argument, pass it to `fetch`), the page is busy while a save or delete runs, and everything in flight is aborted and silenced when the page is left. Write no `AbortController`, busy flag or disposed check of your own. Reach for `custom` only when no other type fits: it is the counted escape hatch, and everything the framework tracks (listeners, timers, the abort signal) still applies to it through `ctx`.
@@ -152,6 +152,8 @@ A tool page is one input and one outcome; a settings page is sections of fields 
 ### Content pages and states
 
 A master-detail page opens the record beside its list on one route (an inbox): declare the route and a child `/inbox/:id` with the same config, give `load` and `rowHref`, and draw the record in `mountDetail(pane, id, ctx)`; the sample's `inbox` route is a running example.
+
+The `custom` escape hatch has a running example too: the sample's `clock` route draws its own DOM in `mount(host, ctx)` and returns a cleanup function.
 
 A doc page shows an article with a table of contents; the route param `id` picks the item and the query `anchor` the heading. A workspace is panes (`nav`, `main`, `aside`) that your callback draws into; return a cleanup function or a `{ destroy() }` handle. A states page shows a loading, empty, error or forbidden state:
 
