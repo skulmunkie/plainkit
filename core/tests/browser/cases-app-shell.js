@@ -351,6 +351,30 @@ export const appShellCases = [
         await app.destroy();
         history.replaceState(null, '', location.pathname + location.search);
     }],
+    // #358: the site's real scorecard module, started and then left mid-run: ctx.signal aborts the run, so no measuring frame survives and none is opened afterwards.
+    ['mountApp: leaving the site scorecard module mid-run aborts it (ctx.signal): the card and every measuring frame are gone and no new frame opens (#358)', async t => {
+        const { mountApp, defineModule } = await src('js/app.js');
+        const el = document.createElement('div'); t.stage('').append(el);
+        const b = defineModule({ id: 'b', routes: [{ path: '/', page: 'custom', config: { mount: h => { h.textContent = 'b page'; } } }] });
+        history.replaceState(null, '', '#/scorecard?concurrency=1');
+        const app = mountApp(el, { modules: [{ id: 'scorecard', title: 'Scorecard', load: () => src('site/modules/scorecard.js').then(m => m.default) }, { id: 'b', title: 'B', load: async () => b }] });
+        const main = () => el.querySelector('#pk-main');
+        const deep = (root, sel) => root.querySelector(sel) ?? [...root.querySelectorAll('*')].map(n => n.shadowRoot && deep(n.shadowRoot, sel)).find(Boolean) ?? null;
+        const frames = () => document.querySelectorAll('[data-sc-frames] iframe').length;
+        const run = await until(() => deep(main(), '[data-sc-run]'), 'the Run scorecard button', 300);
+        await t.load(main());
+        (run.click(), run);
+        await until(() => frames() > 0, 'a measuring frame to open', 300);
+        app.navigate('/b');
+        await until(() => main()?.textContent.includes('b page'), 'module b');
+        await until(() => frames() === 0, 'the measuring frames to be removed', 100);
+        const seen = []; const obs = new MutationObserver(() => seen.push(frames())); obs.observe(document.body, { childList: true, subtree: true });
+        await wait(600); obs.disconnect();
+        t.ok(seen.every(n => n === 0), 'no frame opened after leaving');
+        t.eq(el.querySelectorAll('[data-sc-run]').length, 0, 'the card is gone');
+        await app.destroy();
+        history.replaceState(null, '', location.pathname + location.search);
+    }],
     // #346: a route with persist: true keeps its page element while another route shows, and the same element is shown again on return.
     ['mountApp: a persist route keeps its page element across navigation (hidden while away, same element on return) and leaving the module frees it', async t => {
         const { mountApp, defineModule } = await src('js/app.js');

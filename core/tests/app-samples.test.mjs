@@ -50,6 +50,11 @@ test('the tour\'s callbacks return what their page types read', async () => {
     assert.equal(await cfg('/orders/:id').load('404'), null);
     assert.deepEqual((await cfg('/inbox').load()).rows.map(r => r.id), ['7', '8', '9']);
     assert.equal(cfg('/inbox').rowHref({ id: '8' }), '/inbox/8');
+    const clock = {};
+    const stop = cfg('/clock').mount(clock, { id: 'tour' });
+    assert.match(clock.textContent, /Opened at .* as tour/);
+    stop();
+    assert.equal(clock.textContent, '');
     const pane = {};
     cfg('/inbox').mountDetail(pane, '8');
     assert.match(pane.textContent, /Grace Hopper/);

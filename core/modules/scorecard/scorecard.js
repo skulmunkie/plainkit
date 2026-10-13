@@ -263,12 +263,14 @@ export async function mountScorecard(container, options = {}) {
     ].filter(Boolean);
 
     const ready = Promise.all(cards.map(([, get]) => settled(get))).then(results => {
-        const frames = $('[data-sc-frames]');
+        const frames = $('[data-sc-frames]'), pending = doc.createDocumentFragment();
         cards.forEach(([name, , paint, hint], i) => {
             const r = results[i];
             if (r.ok) paint(r.v); else { log.warn(`the ${name} section could not be filled`, r.err); missing(doc, hosts[name], hint, `${r.err.message}`); }
-            stack.insertBefore(card(doc, heading[name], hosts[name]), frames);
+            pending.append(card(doc, heading[name], hosts[name]));
         });
+        // The cards' own elements (tables, charts) are loaded while the cards are still detached: inserted undefined, they grow when they upgrade and push the cards below them.
+        return loadElements(pending).then(() => stack.insertBefore(pending, frames));
     }).then(() => loadElements(root));
 
     // ---- a run: frames, then (performance) the measurements that need a real browser ---------------------------------------
