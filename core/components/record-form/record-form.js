@@ -83,8 +83,9 @@ export default Base => class extends Base {
     /** Enter in a single-line control of the form submits it as Save does: the Save button is outside the form, so the browser has no submit button to press (#1198). */
     enterSubmits_(e) {
         if (e.key !== 'Enter' || e.isComposing || e.defaultPrevented || e.shiftKey || e.ctrlKey || e.altKey || e.metaKey) return;
-        const form = this.form_(), t = e.composedPath()[0];
-        if (!form || !t?.matches?.('input:not([type=button],[type=submit],[type=reset],[type=checkbox],[type=radio],[type=file],[type=image])') || !form.contains(t.getRootNode().host ?? t)) return;
+        const form = this.form_(), path = e.composedPath(), t = path[0];
+        // The control may sit in a shadow tree inside the form (a pk-field-group draws its fields in its own, #1299), so containment is read off the composed path.
+        if (!form || this.busy || !t?.matches?.('input:not([type=button],[type=submit],[type=reset],[type=checkbox],[type=radio],[type=file],[type=image],[aria-expanded=true])') || !path.includes(form)) return;
         e.preventDefault();
         this.submit();
     }

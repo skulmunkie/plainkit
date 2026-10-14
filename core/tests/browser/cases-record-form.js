@@ -60,6 +60,24 @@ export const recordFormCases = [
         const e3 = enter(el.part('save')); await t.settle(); t.ok(!e3.defaultPrevented && saved.v === 1, 'Enter on a button is left to the button');
     }],
 
+    ['record-form: Enter in a pk-field-group field saves like Save (#1299): invalid blocks it, valid raises once, a textarea and the busy state do not', async t => {
+        const el = await t.mount('<pk-record-form><form><pk-field-group></pk-field-group></form></pk-record-form>');
+        const group = el.querySelector('pk-field-group');
+        group.fields = [{ key: 'name', label: 'Name', required: true }, { key: 'notes', label: 'Notes', kind: 'textarea' }];
+        await t.load(el.shadowRoot); await t.load(group.shadowRoot); await t.settle(); await t.settle();
+        el.querySelector('form').addEventListener('submit', e => e.preventDefault());
+        const saved = count(el, 'pk-record-save');
+        const enter = target => { const e = new KeyboardEvent('keydown', { key: 'Enter', bubbles: true, composed: true, cancelable: true }); target.dispatchEvent(e); return e; };
+        const inner = key => [...group.shadowRoot.querySelectorAll('pk-field')].find(f => f.getAttribute('label') === key).firstElementChild.shadowRoot.querySelector('input,textarea');
+        const name = inner('Name');
+        const e1 = enter(name); await t.settle(); await t.settle();
+        t.ok(e1.defaultPrevented, 'Enter is taken over'); t.eq(saved.v, 0, 'an invalid group blocks it');
+        name.value = 'Acme'; name.dispatchEvent(new Event('input', { bubbles: true, composed: true })); name.dispatchEvent(new Event('change', { bubbles: true, composed: true })); await t.settle();
+        enter(name); await t.settle(); await t.settle(); t.eq(saved.v, 1, 'a valid group saves once');
+        const e2 = enter(inner('Notes')); await t.settle(); t.ok(!e2.defaultPrevented && saved.v === 1, 'a textarea keeps its newline');
+        el.busy = true; await t.settle(); enter(name); await t.settle(); await t.settle(); t.eq(saved.v, 1, 'busy does not save again');
+    }],
+
     ['record-form: Cancel and Delete show only when asked, raise their own event once, Delete is disabled while busy, and Save shows its busy text, label and disabled state', async t => {
         const plain = await mount(t);
         t.ok(button(plain, 'cancel').hidden && button(plain, 'delete').hidden, 'neither shows by default');
