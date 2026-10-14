@@ -6,6 +6,7 @@
 // A field key is the key of another spec; its value is the committed one ('' when empty, true/false for a checkbox or switch). A bare value is true when it is
 // not empty, not false and not 0. == and != compare as text, as the data `when` does, except that two numbers compare as numbers; < and friends compare numbers
 // when both are numbers, else text. There are no function calls and no member access.
+// Text (labelWhenExpr, helpWhenExpr): `expr ? value : expr ? value : value`, e.g. `status == 'paid' ? 'Paid on' : due`; an empty answer leaves the spec's own label or help.
 const cache = new Map();
 const text = v => (v === undefined || v === null ? '' : String(v));
 const num = v => (v === '' || v === null || v === undefined || typeof v === 'boolean' ? NaN : Number(v));
@@ -14,7 +15,7 @@ const eq = (a, b) => { const x = num(a), y = num(b); return Number.isNaN(x) || N
 const order = (a, b) => { const x = num(a), y = num(b); return Number.isNaN(x) || Number.isNaN(y) ? (text(a) < text(b) ? -1 : text(a) > text(b) ? 1 : 0) : Math.sign(x - y); };
 
 function tokens(src) {
-    const out = [], re = /\s*(?:(==|!=|<=|>=|&&|\|\||[<>!()\[\],])|'((?:[^'\\]|\\.)*)'|"((?:[^"\\]|\\.)*)"|(-?\d+(?:\.\d+)?)|([A-Za-z_][\w.-]*))/y;
+    const out = [], re = /\s*(?:(==|!=|<=|>=|&&|\|\||[<>!()\[\],?:])|'((?:[^'\\]|\\.)*)'|"((?:[^"\\]|\\.)*)"|(-?\d+(?:\.\d+)?)|([A-Za-z_][\w.-]*))/y;
     let at = 0;
     while (at < src.length) {
         if (/^\s*$/.test(src.slice(at))) break;
@@ -33,8 +34,9 @@ function tokens(src) {
 }
 
 /** Parses an expression into { run(values) -> boolean, keys: [field keys it reads] }; throws an Error with a message that says what is wrong. */
-export function parse(src) {
-    let hit = cache.get(src);
+export function parse(src, asText) {
+    const ck = asText ? `?${src}` : src;
+    let hit = cache.get(ck);
     if (hit) return hit;
     const t = tokens(String(src)), keys = new Set();
     let i = 0;
@@ -60,10 +62,18 @@ export function parse(src) {
     const not = () => (op('!') ? (e => v => !e(v))(not()) : cmp());
     const and = () => { let a = not(); while (op('&&')) a = ((l, r) => v => l(v) && r(v))(a, not()); return a; };
     const or = () => { let a = and(); while (op('||')) a = ((l, r) => v => l(v) || r(v))(a, and()); return a; };
-    const run = or();
+    // Text mode (labelWhenExpr, helpWhenExpr): `cond ? value : cond ? value : value`, the first true condition's value (a 'text' or another field's value) or the last value.
+    const chain = () => {
+        const at = i, c = or();
+        if (!op('?')) { i = at; return value(); }
+        const a = value(); need(':');
+        const b = chain();
+        return v => (c(v) ? a(v) : b(v));
+    };
+    const run = asText ? chain() : or();
     if (i < t.length) throw new Error(`unexpected "${t[i].op ?? t[i].key ?? t[i].lit}"`);
-    hit = { run: v => Boolean(run(v ?? {})), keys: [...keys] };
-    cache.set(src, hit);
+    hit = { run: asText ? v => text(run(v ?? {})) : v => Boolean(run(v ?? {})), keys: [...keys] };
+    cache.set(ck, hit);
     return hit;
 }
 
@@ -76,5 +86,14 @@ export function evaluate(src, values, known, fallback, warn) {
     try { p = parse(src); } catch (e) { warn(`condition "${src}" is not valid: ${e.message}`); return fallback; }
     const bad = p.keys.find(k => !known.has(k));
     if (bad) { warn(`condition "${src}" names the unknown field "${bad}"`); return fallback; }
+    return p.run(values);
+}
+
+/** The text of a conditional-text expression (see parse, text mode) against the values; '' (so the caller keeps the plain label or help) on a syntax error or an unknown field, warned once. */
+export function evaluateText(src, values, known, warn) {
+    let p;
+    try { p = parse(src, true); } catch (e) { warn(`text "${src}" is not valid: ${e.message}`); return ''; }
+    const bad = p.keys.find(k => !known.has(k));
+    if (bad) { warn(`text "${src}" names the unknown field "${bad}"`); return ''; }
     return p.run(values);
 }
