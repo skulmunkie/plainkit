@@ -7,8 +7,8 @@ export default {
     async setup(frame) {
         history.replaceState(null, '', '#/samples/patterns/notifications');
         for (const css of ['../../../site/site.css', '../../../site/gallery/gallery.css']) document.head.append(Object.assign(document.createElement('link'), { rel: 'stylesheet', href: new URL(css, import.meta.url).href }));
-        frame.classList.add('site');
-        frame.querySelector('#host').className = 'site-body';
+        frame.toggleAttribute('data-site', true);
+        frame.querySelector('#host').toggleAttribute('data-site-body', true);
         const { mountGallery } = await import('../../../site/gallery/gallery.js');
         await mountGallery(frame.querySelector('#host'), { chrome: 'none', init: false });
     },

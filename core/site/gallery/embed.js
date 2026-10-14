@@ -8,7 +8,7 @@ import { on, h, addressOf } from '../../js/mount-support.js';
 const doc = document, win = doc.defaultView, parent = win.parent;
 const options = { chrome: 'full', ...parseQuery(new URL(addressOf(win).href).search) };
 const host = doc.getElementById('gx-host');
-if (options.chrome === 'full') doc.body.classList.add('site');
+if (options.chrome === 'full') doc.body.toggleAttribute('data-site', true);
 
 // The height goes out at most once per frame, and only when it moved by more than a pixel (lazy frames mounting would otherwise
 // flood the parent with jumps). The target is the embedder's origin when the browser reports it, else '*' (the payload is one number).

@@ -8,8 +8,8 @@ export default {
     async setup(frame) {
         history.replaceState(null, '', '#/elements/pk-button');
         for (const css of ['../../../site/site.css', '../../../site/gallery/gallery.css']) document.head.append(Object.assign(document.createElement('link'), { rel: 'stylesheet', href: new URL(css, import.meta.url).href }));
-        frame.classList.add('site'); // the standalone page's own box: the page fills the window, the host fills the page
-        frame.querySelector('#host').className = 'site-body';
+        frame.toggleAttribute('data-site', true); // the standalone page's own box: the page fills the window, the host fills the page
+        frame.querySelector('#host').toggleAttribute('data-site-body', true);
         const { mountGallery } = await import('../../../site/gallery/gallery.js');
         await mountGallery(frame.querySelector('#host'), { chrome: 'full', init: false });
     },

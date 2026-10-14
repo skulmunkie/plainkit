@@ -115,7 +115,7 @@ export function paintApi(doc, host, { baseline, current }) {
 
 // ---- composition by tier --------------------------------------------------------------------------------------------------
 
-const RULE_NAMES = { C1: 'names a higher tier', C4: 'an element renders a pk-* element', D1: 'raw tag with a pk-* equivalent', S3: 'class, className, classList', T1: 'unnamed structural div or span' };
+const RULE_NAMES = { C1: 'names a higher tier', C4: 'an element renders a pk-* element', D1: 'raw tag with a pk-* equivalent', S3: 'class hooks for styling', T1: 'unnamed structural div or span' };
 const cap = s => s[0].toUpperCase() + s.slice(1);
 
 // report: the build's tier report (tiers.current.json): elements per tier and baseline debt per rule and tier.

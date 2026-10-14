@@ -42,8 +42,8 @@ async function sizeFiles(fetchFn = globalThis.fetch) {
 
 // Mounts the card into `root` (the site app's scorecard module, modules/scorecard.js, calls this); resolves to { run, results, report, ready, destroy }.
 export async function startScorecard(root, concurrency, signal, doc = root.ownerDocument) {
-    const intro = doc.createElement('p');
-    intro.className = 'muted';
+    const intro = doc.createElement('pk-text');
+    intro.setAttribute('tone', 'muted');
     intro.textContent = `Scores 0-100 for performance, scale, look and accessibility, from the definitions in scorecard/scoring.data.js (every threshold is a setting there). A run renders every gallery sample at ${SCORING.widths.join(', ')}px in both themes, so it takes a little while.`;
     const host = doc.createElement('div');
     root.replaceChildren(intro, host);
