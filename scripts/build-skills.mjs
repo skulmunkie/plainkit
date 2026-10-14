@@ -760,7 +760,9 @@ function blazorFiles(src) {
         files.set('references/app.md', ['# PkApp: the app frame over the module catalog', '', stamp(src, 'Components/PkApp.razor'), '',
             'A hand-written component that wraps `PkAppFrame`. Register modules with `services.AddPlainKitApp(a => a.Brand("Demo").Module<OrdersModule>().Home("orders").Footer("..."))` (each module is an `IPkModule` whose `Manifest` is a `PkModuleManifest`; a bad or duplicate id throws at startup) and put the router body inside `PkApp`. It draws the brand, the module picker (with more than one module), the side nav of the active module, search over its nav titles, the breadcrumb (`PkNavModel.Locate`), the footer and a theme toggle (`IPkTheme`). Pages stay ordinary `@page` components under `/<moduleId>/...`.', '',
             '```razor', '<Router AppAssembly="typeof(App).Assembly">', '    <Found Context="route"><PkApp><RouteView RouteData="route" /></PkApp></Found>', '</Router>', '```', '',
-            '## `PkApp`', '', table(['Parameter', 'Type', 'Description'], app.params.map(p => [code(p.name), code(p.type), p.doc])), ''].join('\n'));
+            '## `PkApp`', '', table(['Parameter', 'Type', 'Description'], app.params.map(p => [code(p.name), code(p.type), p.doc])), '',
+            '## `PkRouteGuard`', '', 'Wrap the router body: `<PkModuleBoundary><PkRouteGuard><RouteView RouteData="route" /></PkRouteGuard></PkModuleBoundary>`. Each new page asks the module of the address (`IPkModuleGuard.CanAsync(PkModuleContext)`, implemented by the module; a UX guard only, authorization stays `[Authorize]` on the server) and shows a not-allowed state when it answers false. A registered `IPkModuleLoader` runs first (WebAssembly lazy assemblies). `PkModuleBoundary` shows an error with a Try again button when a page throws, and the frame stays.', '',
+            table(['Parameter', 'Type', 'Description'], src.razor.PkRouteGuard.params.map(p => [code(p.name), code(p.type), p.doc])), ''].join('\n'));
     }
 
     // a plain field bound to a model property, from a list of specs: no element of its own (issue 222)
