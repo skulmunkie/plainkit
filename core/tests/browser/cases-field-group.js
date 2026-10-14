@@ -300,6 +300,23 @@ export const fieldGroupCases = [
         t.ok(control('Reference').hasAttribute('disabled') && !el.problems().some(x => x.key === 'ref'), 'disabledExpr disables the control, which takes it out of validation');
         t.eq(keys(el).includes('Paid on'), false, 'Paid on goes again');
     }],
+    ['field-group: labelWhenExpr and helpWhenExpr change the label and help tooltip with the live values, in place, keeping focus (#1282)', async t => {
+        const el = await mountGroup(t, [
+            { key: 'status', label: 'Status', kind: 'select', options: [{ value: 'open', label: 'Open' }, { value: 'paid', label: 'Paid' }] },
+            { key: 'due', label: 'Due date', kind: 'date', labelWhenExpr: "status == 'paid' ? 'Paid on' : 'Due on'", helpWhenExpr: "status == 'paid' ? 'Money arrived.' : ''" },
+            { key: 'who', label: 'Who', kind: 'text', labelWhenExpr: "status == 'paid' ? 'Paid by' : nope" },
+        ], { status: 'open' });
+        await until(() => keys(el)[1] === 'Due on', 'the lazy module to set the label'); await t.settle();
+        const row = i => el.shadowRoot.querySelectorAll('pk-field')[i], tip = i => row(i).querySelector('pk-tooltip[help]');
+        t.eq(keys(el).join('|'), 'Status|Due on|Who', 'an empty answer or an unknown field keeps the plain label'); t.ok(!tip(1), 'no tooltip while the help text is empty');
+        const control = row(1).firstElementChild, before = control.getBoundingClientRect();
+        choose(row(0).firstElementChild, 'paid'); await until(() => keys(el)[1] === 'Paid on', 'the label to follow the status'); await t.settle();
+        t.eq(keys(el).join('|'), 'Status|Paid on|Who', 'the label follows the value; an expression naming an unknown field keeps the plain label'); t.ok(tip(1) && tip(1).getAttribute('text') === 'Money arrived.', 'the help tooltip appears with the text');
+        t.ok(row(1).firstElementChild === control, 'the control is the same node (no rebuild)');
+        const tr = tip(1).getBoundingClientRect(), cr = control.getBoundingClientRect();
+        t.ok(tr.height > 0 && tr.bottom <= cr.top + 1 && Math.abs(cr.left - before.left) < 1, 'the tooltip sits in the label row above the control, which does not move sideways');
+        choose(row(0).firstElementChild, 'open'); await until(() => keys(el)[1] === 'Due on' && !tip(1), 'the label and the tooltip to go back');
+    }],
 ];
 
 // The group in a real form, as the app puts it.

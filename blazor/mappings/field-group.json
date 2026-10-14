@@ -107,6 +107,16 @@
       "name": "RequiredExpr",
       "type": "string?",
       "doc": "A declarative condition (see WhenExpr): the field is required while it is true."
+    },
+    {
+      "name": "LabelWhenExpr",
+      "type": "string?",
+      "doc": "A declarative conditional text the element evaluates against the live values as the user edits: `cond ? 'text' : cond ? 'text' : other`, where a value is a 'text' or another field's key (that field's value), e.g. \"status == 'paid' ? 'Paid on' : due\". The first true condition's text is the label; an empty answer keeps Label. The typed LabelWhen still runs once per load."
+    },
+    {
+      "name": "HelpWhenExpr",
+      "type": "string?",
+      "doc": "A declarative conditional text (see LabelWhenExpr) for the help tooltip beside the label; an empty answer keeps Help (no tooltip when that is empty too). The typed HelpWhen still runs once per load."
     }
   ],
   "specMembers": [

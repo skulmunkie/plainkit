@@ -8,7 +8,7 @@ import { controlTag, commitOf, readValue, writeValue, controlAttrs, messageAttrs
 import { messageFor } from '../../js/validation.js';
 
 // The same value, as the text the controls show.
-const EXPR = ['whenExpr', 'disabledExpr', 'readonlyExpr', 'requiredExpr'];
+const EXPR = ['whenExpr', 'disabledExpr', 'readonlyExpr', 'requiredExpr', 'labelWhenExpr', 'helpWhenExpr'];
 const same = (a, b) => String(a ?? '') === String(b ?? '');
 
 export default Base => class extends Base {
@@ -69,6 +69,22 @@ export default Base => class extends Base {
         if (!mod) return false;
         const known = new Set((Array.isArray(this.fields) ? this.fields : []).map(f => f?.key));
         return mod.evaluate(src, this.$vals, known, name === 'whenExpr', m => this.warnOnce(`cond:${spec.key}:${name}`, m));
+    }
+    // The label and the help tooltip of a field follow labelWhenExpr / helpWhenExpr (conditional text, `cond ? 'text' : other`); an empty answer keeps the spec's own label or help.
+    texts(row, mod) {
+        const { spec, kind, field, control } = row, known = new Set((Array.isArray(this.fields) ? this.fields : []).map(f => f?.key));
+        const ask = name => (typeof spec[name] === 'string' && mod ? mod.evaluateText(spec[name], this.$vals, known, m => this.warnOnce(`cond:${spec.key}:${name}`, m)) : '');
+        if (typeof spec.labelWhenExpr === 'string') {
+            const label = ask('labelWhenExpr') || spec.label || spec.key;
+            if (kind === 'switch') control.textContent = label; else if (kind !== 'custom' && spec.hideLabel) control.setAttribute('aria-label', label); else field.setAttribute('label', label);
+        }
+        if (typeof spec.helpWhenExpr === 'string') {
+            const help = ask('helpWhenExpr') || spec.help || '';
+            let tip = field.querySelector('pk-tooltip[help]');
+            if (!help) tip?.remove();
+            else if (tip) tip.setAttribute('text', help);
+            else { tip = this.ownerDocument.createElement('pk-tooltip'); for (const [k, v] of [['slot', 'label-action'], ['help', ''], ['interactive', ''], ['text', help]]) tip.setAttribute(k, v); (control ?? field.lastElementChild).after(tip); loadElements(this.shadowRoot); }
+        }
     }
     /** Draws the fields again: call it after changing the visible(spec, values) callback property, which nothing watches. */
     refresh() { this.reconcile(); }
@@ -142,6 +158,7 @@ export default Base => class extends Base {
         const mod = this.$cond;
         for (const row of this.$rows.values()) {
             const { spec, kind, control } = row;
+            this.texts(row, mod);
             if (!control) continue;
             row.off = Boolean(this.disabled || spec.disabled || this.test(spec, 'disabledExpr', mod));
             if (kind !== 'range' && typeof spec.requiredExpr === 'string') { const req = Boolean(spec.required || this.test(spec, 'requiredExpr', mod)); control.toggleAttribute('required', req); row.field.toggleAttribute('required', req); }
