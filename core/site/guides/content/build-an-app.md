@@ -249,4 +249,4 @@ A module is plain data, so most of it needs no browser. `defineModule` and `read
 - [Choosing what to build with](choosing-what-to-build-with.md) for the page types and elements to start from.
 - The [app reference](../../dist/skills/plainkit-sdk/references/app.md) for every `ctx` member, the module header and the config header.
 - [Logging](logging.md) for the `app:<id>` scopes a module's errors are logged under.
-- Blazor has no app framework surface yet: a Blazor app keeps `PkAppShell`, `PageBase` and the router, and the [Blazor guide](getting-started-blazor.md) is where to start.
+- In Blazor: [Build an app in Blazor](blazor-build-an-app.md).
