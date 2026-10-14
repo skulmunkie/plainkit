@@ -1,6 +1,7 @@
 <Solution>
   <Folder Name="/blazor/" />
   <Folder Name="/blazor/samples/">
+    <Project Path="blazor/samples/PlainKit.AppSample/PlainKit.AppSample.csproj" />
     <Project Path="blazor/samples/PlainKit.Playground/PlainKit.Playground.csproj" />
   </Folder>
   <Folder Name="/blazor/src/">

@@ -1,0 +1,18 @@
+@page "/orders"
+@page "/orders/open"
+@page "/orders/shipped"
+@inject NavigationManager Nav
+
+@* The list route of the Orders module: one component for the three list routes, the status filter comes from the address. Rows link to /orders/{id} (RowHrefTemplate). *@
+<PkListPage TItem="Order" Config="@_config" Columns="_columns" Load="r => OrderStore.ListAsync(Status, r)" IdOf="o => o.Id" RowHrefTemplate="/orders/{id}" />
+
+@code {
+    private static readonly PkTableColumn<Order>[] _columns =
+    [
+        new() { Key = "id", Label = "Order" }, new() { Key = "customer", Label = "Customer" },
+        new() { Key = "status", Label = "Status" }, new() { Key = "total", Label = "Total" },
+    ];
+
+    private string? Status => Nav.ToBaseRelativePath(Nav.Uri).TrimEnd('/') switch { "orders/open" => "Open", "orders/shipped" => "Shipped", _ => null };
+    private string _config => System.Text.Json.JsonSerializer.Serialize(new { label = Status is null ? "All orders" : Status + " orders" });
+}

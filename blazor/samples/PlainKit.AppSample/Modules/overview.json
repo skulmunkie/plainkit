@@ -1,0 +1,9 @@
+{
+  "id": "overview",
+  "title": "Overview",
+  "icon": "document",
+  "routes": [
+    { "path": "/", "page": "dashboard" },
+    { "path": "*", "page": "not-found" }
+  ]
+}

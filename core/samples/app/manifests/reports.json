@@ -1,0 +1,14 @@
+{
+  "id": "reports",
+  "title": "Reports",
+  "icon": "dashboard",
+  "nav": [
+    { "id": "summary", "title": "Summary", "route": "/", "icon": "dashboard" },
+    { "id": "exports", "title": "Exports", "route": "/exports", "badge": "3" }
+  ],
+  "routes": [
+    { "path": "/", "page": "note" },
+    { "path": "/exports", "page": "note" },
+    { "path": "*", "page": "not-found" }
+  ]
+}
