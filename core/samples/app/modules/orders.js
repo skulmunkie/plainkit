@@ -44,13 +44,15 @@ export default defineModule({
         open: { load: async () => ({ value: String(ORDERS.filter(r => r.status === 'Open').length), subtext: 'waiting to ship', tone: 'neutral' }) },
         revenue: { load: async () => ({ kind: 'bar', data: { labels: ['Jul', 'Aug', 'Sep'], series: [{ name: 'Revenue', values: [410, 520, 511] }] } }) },
     },
-    nav: () => [{ id: 'all', title: 'All orders', route: '/', icon: 'orders' }, { id: 'open', title: 'Open', route: '/open' }, { id: 'shipped', title: 'Shipped', route: '/shipped' }],
+    nav: () => [{ id: 'all', title: 'All orders', route: '/', icon: 'orders' }, { id: 'open', title: 'Open', route: '/open' }, { id: 'shipped', title: 'Shipped', route: '/shipped' }, { id: 'summary', title: 'Summary', route: '/summary', icon: 'dashboard' }],
     // The header search asks the active module: here it finds records (a module without `search` is searched through its nav).
     search: query => ORDERS.filter(o => `order ${o.id} ${o.customer}`.toLowerCase().includes(query.trim().toLowerCase())).map(o => ({ id: o.id, label: `Order ${o.id}`, sub: o.customer, route: `/${o.id}` })),
     routes: [
         { path: '/', label: 'All orders', page: 'list', config: listFor(null), children: [{ path: '/:id', label: p => `Order ${p.id}`, page: 'record', config: recordConfig }] },
         { path: '/open', label: 'Open', page: 'list', config: listFor('Open') },
         { path: '/shipped', label: 'Shipped', page: 'list', config: listFor('Shipped') },
+        // A second dashboard: the widgets whose `for` names 'orders' (app.config.js).
+        { path: '/summary', label: 'Summary', page: 'dashboard', config: { surface: 'orders', heading: 'Orders summary', tabs: [{ id: 'sales', label: 'Sales' }] } },
         { path: '*', page: 'not-found' },
     ],
 });

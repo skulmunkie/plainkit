@@ -744,4 +744,25 @@ export const appShellCases = [
         t.eq(page.shadowRoot.querySelector('[data-key="range"]').value, '30d', 'the filter bar starts on the saved selection');
         await host.destroy();
     }],
+    // #494, step 4: the demo app composes two dashboard surfaces, Overview (tabs, contributions from Orders and Reports) and Orders > Summary (a surface of its own, one module).
+    ['dashboard from modules (#494): the demo app has a second dashboard route whose cards are the widgets naming its surface (one tab, against two on the overview), and fit at 1280 and 375', async t => {
+        for (const width of [1280, 375]) {
+            const s = await demo(t, width, { hash: '#/orders/summary' });
+            const deep = (root, sel) => { const hit = root.querySelector?.(sel); if (hit) return hit; for (const el of root.querySelectorAll?.('*') ?? []) if (el.shadowRoot) { const h = deep(el.shadowRoot, sel); if (h) return h; } return null; };
+            const page = await until(() => deep(s.d, 'pk-dashboard-page'), 'the orders summary dashboard');
+            const cards = () => [...page.shadowRoot.querySelectorAll('pk-card')];
+            await until(() => cards().length === 2 && cards().every(c => c.dataset.state === 'ready'), 'both cards ready', 200);
+            t.eq(cards().map(c => c.dataset.key).join(), 'orders:open,orders:revenue', `only the widgets naming the orders surface are drawn at ${width}px`);
+            t.eq(s.d.querySelector('#pk-main :is(h1, pk-heading[level="1"])').textContent, 'Orders summary', 'the route heading');
+            t.eq(page.shadowRoot.querySelectorAll('pk-tab').length, 1, 'the one declared tab');
+            const [a, b] = cards().map(c => c.getBoundingClientRect());
+            t.ok(b.top >= a.bottom - 1 || b.left >= a.right - 1, 'the two cards do not overlap');
+            t.ok(a.left >= 0 && a.right <= width && b.right <= width, 'both cards sit inside the viewport');
+            t.ok(s.d.documentElement.scrollWidth <= width, `no horizontal scroll at ${width}px`);
+            await s.go('#/overview');
+            const ov = await until(() => deep(s.d, 'pk-dashboard-page'), 'the overview dashboard');
+            await until(() => ov.shadowRoot.querySelectorAll('pk-card').length >= 2, 'the overview cards', 200);
+            t.eq(ov.shadowRoot.querySelectorAll('pk-tab').length, 2, 'the overview surface keeps its own two tabs, Sales and Operations');
+        }
+    }],
 ];

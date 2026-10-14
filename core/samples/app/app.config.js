@@ -6,8 +6,8 @@ export default {
         { id: 'orders', title: 'Orders', icon: 'orders', load: () => import('./modules/orders.js'),
           // Widgets this module offers to the Overview dashboard: static data here, the code in the module's `widgets` (loaded only when the tab is shown).
           contributes: [
-              { key: 'open', for: ['overview'], tab: 'sales', label: 'Open orders', kind: 'stat', order: 10 },
-              { key: 'revenue', for: ['overview'], tab: 'sales', label: 'Revenue by month', kind: 'chart', order: 20 },
+              { key: 'open', for: ['overview', 'orders'], tab: 'sales', label: 'Open orders', kind: 'stat', order: 10 },
+              { key: 'revenue', for: ['overview', 'orders'], tab: 'sales', label: 'Revenue by month', kind: 'chart', order: 20 },
           ] },
         { id: 'reports', title: 'Reports', icon: 'dashboard', load: () => import('./modules/reports.js'),
           contributes: [{ key: 'exports', for: ['overview'], tab: 'ops', label: 'Exports ready', kind: 'stat' }] },

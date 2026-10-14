@@ -7,11 +7,8 @@ const overview = defineModule({
     id: 'overview', title: 'Overview',
     nav: () => [{ id: 'home', title: 'Overview', route: '/', icon: 'dashboard' }],
     routes: [
-        { path: '/', label: 'Overview', page: 'dashboard', config: {
-            heading: 'Overview',
-            widgets: [{ key: 'total', label: 'Messages', kind: 'stat' }, { key: 'unread', label: 'Unread', kind: 'stat' }],
-            load: async key => ({ value: String(key === 'total' ? MESSAGES.length : MESSAGES.filter(m => m.unread).length) }),
-        } },
+        // Composed from what modules contribute (Inbox).
+        { path: '/', label: 'Overview', page: 'dashboard', config: { heading: 'Overview', surface: 'overview' } },
         { path: '*', page: 'not-found' },
     ],
 });
@@ -39,6 +36,10 @@ const messages = {
 
 const inbox = defineModule({
     id: 'inbox', title: 'Inbox',
+    widgets: {
+        total: { load: async () => ({ value: String(MESSAGES.length) }) },
+        unread: { load: async () => ({ value: String(MESSAGES.filter(m => m.unread).length) }) },
+    },
     nav: () => [{ id: 'messages', title: 'Messages', route: '/', icon: 'orders' }],
     routes: [
         { path: '/', label: 'Messages', page: 'master-detail', config: messages, children: [{ path: '/:id', label: p => `Message ${p.id}`, page: 'master-detail', config: messages }] },
@@ -48,5 +49,6 @@ const inbox = defineModule({
 
 mountApp(document.getElementById('app'), { brand: { text: 'My app' }, modules: [
     { id: 'overview', title: 'Overview', icon: 'dashboard', load: async () => ({ default: overview }) },
-    { id: 'inbox', title: 'Inbox', icon: 'orders', load: async () => ({ default: inbox }) },
+    { id: 'inbox', title: 'Inbox', icon: 'orders', load: async () => ({ default: inbox }),
+      contributes: [{ key: 'total', for: ['overview'], label: 'Messages', kind: 'stat' }, { key: 'unread', for: ['overview'], label: 'Unread', kind: 'stat' }] },
 ] });
