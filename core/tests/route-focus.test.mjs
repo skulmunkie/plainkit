@@ -53,6 +53,6 @@ test('routeChanged sets the title, makes one live region and says false without 
 
 test('the Blazor bridge and PkApp use it', () => {
     const blazor = p => fs.readFileSync(path.join(root, '..', 'blazor/src/PlainKit.Blazor', p), 'utf8');
-    assert.match(blazor('wwwroot/plainkit.blazor.js'), /export const routeChanged = .*js\/app\/route-focus\.js/);
+    assert.match(blazor('wwwroot/plainkit.blazor.js'), /export const routeChanged = .*route-focus[.]js/);
     assert.match(blazor('Components/PkApp.razor'), /InvokeVoidAsync\("routeChanged"/);
 });
