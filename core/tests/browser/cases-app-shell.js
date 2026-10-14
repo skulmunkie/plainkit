@@ -201,7 +201,9 @@ export const appShellCases = [
         const after = shifts.filter(e => !e.hadRecentInput).reduce((n, e) => n + e.value, 0);
         po.disconnect();
         t.ok(after > cls, 'the layout-shift observer sees a deliberate shift (the measurement works)');
-        t.ok(cls < 0.001, `layout shift across first load and five route changes is ${cls.toFixed(4)}, expected 0`);
+        // Which rects moved (shadow-tree nodes are not exposed, so rects and heights name them), so a failure says where to reserve space.
+        const who = shifts.filter(e => !e.hadRecentInput && e.value > 0).map(e => `${e.value.toFixed(4)} ${(e.sources || []).map(x => `@${Math.round(x.previousRect.left)},${Math.round(x.previousRect.top)}->${Math.round(x.currentRect.top)} h${Math.round(x.previousRect.height)}->${Math.round(x.currentRect.height)}`).join(',')}`).join('; ');
+        t.ok(cls < 0.001, `layout shift across first load and five route changes is ${cls.toFixed(4)}, expected 0 (${who})`);
         const ms = id => s.win.performance.getEntriesByName(`pk-route:${id}`).map(e => e.duration);
         t.ok(ms('orders')[0] <= first, `the first load of the orders chunk took ${ms('orders')[0]?.toFixed(0)} ms, budget ${first.toFixed(0)}`);
         t.ok(ms('reports')[0] <= first, `the first load of the reports chunk took ${ms('reports')[0]?.toFixed(0)} ms, budget ${first.toFixed(0)}`);
