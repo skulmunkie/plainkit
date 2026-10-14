@@ -1,5 +1,6 @@
 import { loadElements } from '../../js/loader.js';
 import { safeHref } from '../../js/safe-url.js';
+import { mediaBelow } from '../../js/breakpoints.js';
 
 // pk-app-frame: the app frame a Blazor PkApp (or any host) needs, driven by data: the nav rows, the current row and the branches to open, the module list,
 // the breadcrumb trail and the search results come in as props; the page is the default slot, a footer the footer slot. The composition is the one
@@ -19,6 +20,9 @@ export default Base => class extends Base {
         // The footer strip is drawn only while there is something in it (the shell counts a slot), so the forwarding span is attached only with a footer child.
         this.$mo = new MutationObserver(() => this.footer());
         this.$mo.observe(this, { childList: true });
+        // Narrow, the module picker leaves the bar (pk-navbar hides it) and is the drawer's first row, as js/app/app.js drawNav does for mountApp.
+        this.$mq = mediaBelow('tablet');
+        this.$mq.addEventListener('change', this.$mqf ??= () => this.paintNav());
         if (this.$w) return;
         this.$w = true;
         loadElements(this.shadowRoot); // every element in this tree is created by the template, not by the page
@@ -26,7 +30,7 @@ export default Base => class extends Base {
         this.part('picker').addEventListener('pk-select', e => e.stopPropagation());
         this.part('settings').addEventListener('pk-select', e => { e.stopPropagation(); this.emit('pk-theme-toggle', {}, { cancelable: false }); });
     }
-    disconnected() { this.$mo?.disconnect(); }
+    disconnected() { this.$mo?.disconnect(); this.$mq?.removeEventListener('change', this.$mqf); }
 
     footer() {
         const has = !!this.querySelector(':scope > [slot="footer"]'), span = this.$f ??= this.part('footer');
@@ -56,14 +60,16 @@ export default Base => class extends Base {
     paintNav() {
         const nav = this.part('nav'), rows = Array.isArray(this.nav) ? this.nav : [], open = Array.isArray(this.trail) ? this.trail : [];
         const build = (it, slot) => {
-            const row = h('pk-nav-item', { slot, href: safeHref(it.href) || null, current: it.id === this.currentId, expanded: it.id !== this.current && open.includes(it.id) });
+            const row = h('pk-nav-item', { slot, 'data-module': it.module || null, href: safeHref(it.href) || null, current: it.current ?? it.id === this.currentId, expanded: it.id !== this.current && open.includes(it.id) });
             if (it.icon) row.append(h('pk-icon', { slot: 'icon', name: it.icon }));
             row.append(document.createTextNode(it.title ?? ''));
             if (it.badge != null) row.append(h('span', { slot: 'badge' }, String(it.badge)));
             for (const k of Array.isArray(it.children) ? it.children : []) row.append(build(k, 'children'));
             return row;
         };
-        nav.replaceChildren(...rows.map(it => build(it)));
-        nav.hidden = rows.length === 0;
+        const mods = Array.isArray(this.modules) ? this.modules : [];
+        const pick = mods.length > 1 && this.$mq?.matches ? [{ id: 'module:picker', title: this.moduleTitle || 'Modules', children: mods.map(m => ({ id: `module:${m.id}`, module: m.id, title: m.title, href: m.href, current: m.title === this.moduleTitle })) }] : [];
+        nav.replaceChildren(...[...pick, ...rows].map(it => build(it)));
+        nav.hidden = rows.length + pick.length === 0;
     }
 };
