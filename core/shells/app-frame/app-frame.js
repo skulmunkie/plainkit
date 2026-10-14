@@ -27,6 +27,8 @@ export default Base => class extends Base {
         this.$w = true;
         loadElements(this.shadowRoot); // every element in this tree is created by the template, not by the page
         // A menu's own select is not the app's: module links navigate by href, only the search result and the theme item mean something to the host.
+        // A tap on a drawer link closes the drawer at once, as mountApp does on a route change (#1352); a branch row (no href) only expands.
+        this.part('nav').addEventListener('click', e => { const nav = e.currentTarget; if (nav.open && e.target.closest?.('pk-nav-item[href]')) nav.hide(); });
         this.part('picker').addEventListener('pk-select', e => e.stopPropagation());
         this.part('settings').addEventListener('pk-select', e => { e.stopPropagation(); this.emit('pk-theme-toggle', {}, { cancelable: false }); });
     }

@@ -53,4 +53,17 @@ export const appFrameCases = [
         routeChanged('Orders', 'Acme', d);
         t.ok(host.shadowRoot.activeElement === h1, 'focus is on the shadow-root h1');
     }],
+    ['app-frame on a phone (#1352): a tap on a drawer link closes the drawer, a branch row does not', async t => {
+        const { q } = await open(t, 375), nav = q('pk-side-nav'), shell = q('pk-app-shell');
+        nav.open = true;
+        await wait(100);
+        nav.firstElementChild.click(); // the module branch has no href
+        await wait(100);
+        t.ok(nav.open, 'a row with no link leaves the drawer open');
+        const link = [...nav.querySelectorAll('pk-nav-item[href]')].find(r => !r.hasAttribute('data-module'));
+        link.click();
+        await wait(100);
+        t.ok(!nav.open, 'a link closes the drawer');
+        t.ok(!shell.navOpen, 'and the shell mirrors it');
+    }],
 ];
