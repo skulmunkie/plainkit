@@ -56,6 +56,14 @@ test('parseArgs has desktop defaults, takes numbers, and refuses a small window 
     assert.throws(() => parseArgs(['--nope']), /unknown argument/);
 });
 
+test('noReportMessage says what happened: browser exit versus timeout', async () => {
+    const { noReportMessage } = await import('../attest-browser.mjs');
+    const early = noReportMessage({ timeout: 240, url: 'http://localhost:1/', exit: { code: 1, signal: null }, elapsed: 22.6, lines: ['a', 'b'] });
+    assert.match(early, /browser exited \(code 1\) after 23 s/);
+    assert.match(early, /Last server output: a \| b/);
+    assert.match(noReportMessage({ timeout: 240, url: 'u' }), /No report within 240 s/);
+});
+
 test('--filter and --elements narrow the run; a missing value is an error', async () => {
     const { selectionNote } = await import('../attest-browser.mjs');
     const o = parseArgs(['--filter', 'Tabs, focus', '--elements', 'pk-button,card']);
