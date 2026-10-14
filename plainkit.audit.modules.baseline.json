@@ -242,11 +242,6 @@
       "fingerprint": "6b618684d299ef1c"
     },
     {
-      "rule": "S3",
-      "file": "core/site/gallery/gallery.js",
-      "fingerprint": "1409daba11df2b67"
-    },
-    {
       "rule": "S1",
       "file": "core/site/gallery/preview.html",
       "fingerprint": "47161e0c9c4b8730"

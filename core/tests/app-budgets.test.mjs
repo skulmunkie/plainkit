@@ -77,7 +77,7 @@ test('every app framework file stays at or under its line target, and a new file
 });
 
 // The same ratchet for the site's own modules (the Gallery dogfoods the framework with lean modules, #362): equal to today's size, never raised.
-const MODULE_LINES = { 'devtools.js': 13, 'files.js': 18, 'gallery.js': 50, 'guides.js': 33, 'layout-builder.js': 37, 'scorecard.js': 17, 'settings.js': 38, 'theme.js': 19 };
+const MODULE_LINES = { 'devtools.js': 13, 'files.js': 18, 'gallery.js': 25, 'guides.js': 33, 'layout-builder.js': 37, 'scorecard.js': 17, 'settings.js': 38, 'theme.js': 19 };
 test('every core/site/modules/ file stays at or under its line target, and a new module must be listed (ratchet, #362)', () => {
     const files = list('site/modules').map(f => path.posix.basename(f));
     for (const f of files) {

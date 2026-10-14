@@ -96,7 +96,7 @@ export const dataDisplayCases = [
         const old = g.sample(0); let destroyed = 0;
         old.win.addEventListener('pk-sample-destroy', () => { destroyed += 1; });
         old.doc.querySelector('[data-toast="saved"]').click(); await until(() => old.doc.querySelector('pk-toast'), 'a toast');
-        g.win.document.dispatchEvent(new g.win.CustomEvent('site-theme', { detail: 'light' })); await t.settle();
+        g.win.document.documentElement.setAttribute('data-theme', 'light'); await t.settle(); // the host page's theme changes: the frames follow
         t.eq(old.doc.documentElement.dataset.theme, 'light', 'the theme follows');
         t.eq(old.doc.querySelector('[data-unread]').getAttribute('count'), '4', 'the frame was not redrawn: the script keeps its state');
         await g.go('onboarding');

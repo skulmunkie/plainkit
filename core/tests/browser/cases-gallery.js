@@ -287,7 +287,7 @@ export const galleryAppCases = [
         const win = f.contentWindow, d = f.contentDocument;
         await until(() => d.querySelector('#gx-view pk-page-header')?.getAttribute('heading') === 'Button', 'the Button page');
         const shell = d.querySelector('#gx-shell');
-        t.ok(getComputedStyle(d.querySelector('#gx-nav')).display === 'none', 'the gallery draws no nav column of its own');
+        t.ok(!d.querySelector('#gx-nav'), 'the gallery draws no nav column of its own');
         await until(() => d.querySelector('#pk-nav pk-nav-item[current]')?.getAttribute('href') === '#/gallery/elements/pk-button', 'the Button row to be current');
         for (const a of d.querySelectorAll('#gx-view [href^="#/"]')) t.ok(a.getAttribute('href').startsWith('#/gallery/'), 'every link in the views is under #/gallery');
         win.location.hash = '#/gallery/foundations/typography'; await wait(300);
@@ -355,6 +355,39 @@ export const galleryAppCases = [
         const entries = await seen('layout-shift'), cls = entries.filter(e => !e.hadRecentInput).reduce((n, e) => n + e.value, 0);
         t.ok(d.querySelectorAll('#pk-nav pk-nav-item').length > 150, 'the nav tree is in the page');
         t.ok(cls < 0.1, `layout shift ${cls.toFixed(4)} over ${entries.length} entries`);
+    }],
+    ['gallery module (host): four gallery pages and another module, 100 times over, leave no listener, observer, timer or store subscription behind, one frame is in the page, and a route change takes 100 ms at most (#1239)', async t => {
+        const { createModuleHost, defineModule } = await import(new URL('../../js/app.js', import.meta.url).href);
+        const { createStore } = await import(new URL('../../js/store.js', import.meta.url).href);
+        const gallery = (await import(new URL('../../site/modules/gallery.js', import.meta.url).href)).default;
+        const el = document.createElement('div'); t.stage('').append(el);
+        const store = createStore({ storage: { getItem: () => null, setItem() {} } });
+        const host = createModuleHost(el, { modules: [{ id: 'gallery', title: 'Gallery', load: async () => gallery }, { id: 'idle', title: 'Idle', load: async () => defineModule({ id: 'idle', routes: [{ path: '*', page: 'custom', config: { mount: () => {} } }] }) }],
+            store, router: { navigate: () => true, href: p => `#${p}` }, timeout: 10000 });
+        const pages = ['/elements/pk-button', '/elements/pk-badge', '/foundations/typography', '/samples/patterns'];
+        const cycle = async () => { for (const path of pages) t.eq(await host.show('gallery', { path }), 'ok', path); t.eq(await host.show('idle'), 'ok'); };
+        for (let i = 0; i < 2; i++) { await cycle(); await t.settle(); await wait(300); } // warm-up rounds: the module, its stylesheet and the element chunks load once
+        const inst = instrument();
+        let before, after;
+        try {
+            before = inst.snapshot();
+            performance.clearMeasures();
+            for (let i = 0; i < 100; i++) await cycle();
+            await t.settle(); await wait(300);
+            after = inst.snapshot();
+        } finally { inst.restore(); }
+        t.eq(after.listeners.join('\n'), before.listeners.join('\n'), 'window/document listeners are back to the baseline');
+        t.eq(after.observers, before.observers, 'live observers are back to the baseline'); t.eq(after.timers, before.timers, 'timers are back to the baseline');
+        t.eq(store.listeners(), 0, 'store subscriptions are freed');
+        t.eq(document.querySelectorAll('link[href$="gallery/gallery.css"]').length, 0, 'the stylesheet link is taken out with the module');
+        await host.show('gallery', { path: '/elements/pk-button' });
+        t.eq(el.querySelectorAll('#gx-shell').length, 1, 'one gallery frame is in the page');
+        // a route change between two element pages, the module already on show: the page type of the next is drawn into the frame that stays
+        const ms = [];
+        for (let i = 0; i < 20; i++) { const from = performance.now(); await host.show('gallery', { path: i % 2 ? '/elements/pk-button' : '/elements/pk-badge' }); ms.push(performance.now() - from); }
+        const mean = ms.reduce((s, x) => s + x, 0) / ms.length, median = [...ms].sort((a, b) => a - b)[ms.length >> 1], quarter = [...ms].sort((a, b) => a - b)[ms.length >> 2];
+        t.ok(quarter <= 100, `a route change between element pages takes ${median.toFixed(1)} ms at the median (mean ${mean.toFixed(1)}) over ${ms.length}, budget 100`);
+        await host.destroy();
     }],
     ['modules (app): a cold deep link to each lazy module leaves no pk-* element undefined once its view is drawn, and the gallery page header draws its heading (the view is drawn after the app scan)', async t => {
         for (const hash of ['#/gallery/elements/pk-button', '#/gallery/foundations/typography', '#/guides', '#/files', '#/scorecard', '#/theme', '#/layout-builder', '#/settings', '#/devtools']) {

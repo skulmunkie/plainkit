@@ -64,7 +64,8 @@ export const PAGE_TYPES = {
     'gx-overview': inColumn(({ put }, _, ctx) => { put(ctx.views.overviewHtml()); }),
     'gx-foundations': inColumn(({ put }, { id }, ctx) => { put(id ? ctx.views.viewFoundation(id) : foundationsIndex(ctx)); }),
     'gx-elements': inColumn(({ put }, _, ctx) => { put(elementsIndex(ctx)); }),
-    'gx-element': inColumn(({ stack, hold }, { tag }, ctx) => { stack.append(elementSlot(ctx, tag, true, hold)); }),
+    // an address that names no element shows the index
+    'gx-element': inColumn(({ stack, put, hold }, { tag }, ctx) => { if (ELEMENTS.some(e => e.tag === tag)) stack.append(elementSlot(ctx, tag, true, hold)); else put(elementsIndex(ctx)); }),
     'gx-samples': inColumn(({ out, put }, { a, b }, ctx) => { ctx.views.samplesView(out, put, a, b); }),
     'gx-not-found': inColumn(({ put }) => { put(notFound('Not found')); }),
 };
