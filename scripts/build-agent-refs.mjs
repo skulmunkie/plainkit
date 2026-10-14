@@ -95,7 +95,7 @@ function llmsTxt(src, bundle) {
     const out = [
         '# Plainkit', '',
         `> Plainkit ${version}. A dependency-free UI toolkit: \`pk-*\` custom elements, CSS tokens and small ES modules for plain HTML pages with no framework and no build step, plus a Blazor component wrapper (PlainKit.Blazor).`, '',
-        'Everything in one file: `llms-full.txt`, served beside this file on the Pages site and in the release assets (the whole reference, concatenated plainly; the npm package leaves it out, its `skills/` hold the same text). Claude Code loads the skills directly: `skills/plainkit-sdk/SKILL.md`, `skills/plainkit-blazor/SKILL.md`.', '',
+        'Everything in one file: `llms-full.txt`, served beside this file on the Pages site and in the release assets (the whole reference, concatenated plainly; the npm package leaves it out, its `skills/` hold the same text). The long-form element descriptions (every attribute, method, event, slot and part, keyed `tag.prop`, `tag.method()`, `tag@event`, `tag#slot`, `tag::part`, `tag/--css-property`; the editor files carry one-sentence summaries) are in [descriptions.json](https://skulmunkie.github.io/plainkit/dist/descriptions.json), served on the Pages site and in the release assets (`plainkit-dist-<version>.zip`); the npm package leaves it out. Claude Code loads the skills directly: `skills/plainkit-sdk/SKILL.md`, `skills/plainkit-blazor/SKILL.md`.', '',
     ];
     for (const skill of SKILL_NAMES) {
         const { skillMd, refs } = skillFiles(bundle, skill);
