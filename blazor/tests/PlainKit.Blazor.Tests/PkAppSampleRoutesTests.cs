@@ -34,6 +34,25 @@ public sealed class PkAppSampleRoutesTests : BunitContext, IAsyncLifetime
         Assert.Contains("Order 8", cut.Find("pk-record-page").GetAttribute("config"));
     }
 
+    // #1330: the Config attribute must be the JSON itself, not a garbled Razor literal.
+    [Fact]
+    public void The_overview_dashboard_gets_its_json_config()
+    {
+        var config = At("/").Find("pk-dashboard-page").GetAttribute("config");
+        Assert.Equal("""{"heading":"Overview"}""", config);
+    }
+
+    // #1332: the document title is set by the first render (PageTitle), not only after a route change.
+    [Fact]
+    public void A_deep_link_has_a_document_title()
+    {
+        At("/orders/8");
+        var head = Render<Microsoft.AspNetCore.Components.Web.HeadOutlet>();
+        Render<Routes>();
+        head.WaitForAssertion(() => Assert.Contains("<title>", head.Markup));
+        Assert.DoesNotContain("<title></title>", head.Markup);
+    }
+
     [Fact]
     public void An_authorize_page_shows_not_allowed_to_nobody_signed_in()
     {

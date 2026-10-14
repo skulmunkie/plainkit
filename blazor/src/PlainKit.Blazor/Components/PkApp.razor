@@ -17,6 +17,7 @@
     <ChildContent><pk-skip-link href="#pk-main">Skip to content</pk-skip-link><main id="pk-main" tabindex="-1">@ChildContent</main></ChildContent>
     <FooterContent>@Catalog.Footer</FooterContent>
 </PkAppFrame>
+<PageTitle>@Title</PageTitle>
 
 @code {
     private static readonly JsonSerializerOptions Opts = new(JsonSerializerDefaults.Web) { DefaultIgnoreCondition = System.Text.Json.Serialization.JsonIgnoreCondition.WhenWritingNull };
@@ -24,17 +25,14 @@
     private IPkModule? _active;
     private IEnumerable<object> _found = [];
     private bool _moved;
-
     /// <summary>The page: the router's body.</summary>
     [Parameter] public RenderFragment? ChildContent { get; set; }
-
     protected override void OnInitialized() { Where(); Nav.LocationChanged += OnLocationChanged; }
-
     protected override async Task OnAfterRenderAsync(bool firstRender) { if (firstRender) await Theme.InitializeAsync(); else if (_moved) await RouteChangedAsync(); }
 
-    // Once the new page has rendered: title, focus and announcement, which are core's (js/app/route-focus.js), not re-written here.
+    // Once the new page has rendered: title, focus and announcement, which are core's (js/app/route-focus.js), not re-written here. Title is the same text, so a deep link has it on the first render (#1332).
     private async Task RouteChangedAsync() { _moved = false; await (await Runtime.BridgeAsync()).InvokeVoidAsync("routeChanged", _loc?.Crumbs.LastOrDefault()?.Label ?? Catalog.Brand, Catalog.Brand); }
-
+    private string Title => _loc?.Crumbs.LastOrDefault()?.Label is { Length: > 0 } l && l != Catalog.Brand ? $"{l} - {Catalog.Brand}" : Catalog.Brand;
     private void Where()
     {
         _loc = PkNavModel.Locate(Catalog.Modules.Select(m => m.Manifest), Catalog.Brand, "/" + Nav.ToBaseRelativePath(Nav.Uri));

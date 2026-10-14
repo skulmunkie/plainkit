@@ -47,7 +47,12 @@ export default Base => class extends Base {
         if (this.type === 'radio') { for (const r of this.parentElement?.children ?? []) if (r.localName === 'pk-menu-item' && r.type === 'radio') r.checked = r === this; }
         else if (this.type === 'checkbox') this.checked = checked;
         const go = safeLink(this.href);
-        if (this.emit('pk-select', { item: this, value: this.value || labelOf(this).trim(), checked }) && go) location.assign(go);
+        if (this.emit('pk-select', { item: this, value: this.value || labelOf(this).trim(), checked }) && go) this.follow(go);
+    }
+    // Follow the address the way a link does: a real anchor is clicked, so a client router listening for link clicks (Blazor's, #1331) navigates without reloading the document; with none, the browser follows it.
+    follow(url) {
+        const a = Object.assign(this.ownerDocument.createElement('a'), { href: url });
+        this.ownerDocument.body.append(a); a.click(); a.remove();
     }
     key(e) {
         if (e.target.closest('pk-menu-item') !== this) {
