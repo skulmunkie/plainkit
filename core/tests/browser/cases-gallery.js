@@ -299,6 +299,30 @@ export const galleryAppCases = [
         win.location.hash = '#/gallery/elements/pk-badge';
         await until(() => d.querySelector('#gx-view pk-page-header')?.getAttribute('heading') === 'Badge', 'the Badge page');
     }],
+    ['gallery module (app): the old addresses under #/gallery are rewritten to the current ones, an unknown one says so, back and forward walk the views, the header search finds an element and the theme switch reaches the page (#1239)', async t => {
+        const { d, win } = await openApp(t, '#/gallery/controls/forms-inputs/button');
+        const shows = text => until(() => d.querySelector('#gx-view pk-page-header')?.getAttribute('heading') === text || d.querySelector('#gx-view pk-empty-state')?.getAttribute('heading') === text, `the ${text} page (the page says "${d.querySelector('#gx-view pk-page-header')?.getAttribute('heading')}")`);
+        const go = hash => { win.location.hash = hash; };
+        await shows('Button');
+        await until(() => win.location.hash === '#/gallery/elements/pk-button', 'the old control address to become the own address of the element, under the app prefix');
+        go('#/gallery/layouts'); await shows('Layouts');
+        await until(() => win.location.hash === '#/gallery/samples/layouts', 'the old layouts address to become the samples one');
+        go('#/gallery/foundations/colours'); await shows('Colours');
+        go('#/gallery/foundations/typography'); await shows('Typography');
+        win.history.back(); await shows('Colours');
+        win.history.forward(); await shows('Typography');
+        await until(() => /Typography/.test(d.querySelector('#pk-nav pk-nav-item[current]')?.textContent ?? ''), 'the Typography row to be current after forward');
+        go('#/gallery/nonsense/a'); await shows('Not found');
+        go('#/gallery/elements/pk-badge'); await shows('Badge');
+        const search = d.querySelector('pk-app-bar-search'), input = await until(() => search?.shadowRoot?.querySelector('[part="control"]'), 'the header search input');
+        input.value = 'pk-card'; input.dispatchEvent(new win.Event('input', { bubbles: true }));
+        await until(() => search.items?.some(i => i.route === '/elements/pk-card' || i.label === '<pk-card>'), 'the search to offer <pk-card>');
+        const before = d.documentElement.getAttribute('data-theme');
+        d.querySelector('pk-menu-item[value=theme]').dispatchEvent(new win.CustomEvent('pk-select', { bubbles: true, detail: {} }));
+        await until(() => d.documentElement.getAttribute('data-theme') !== before, 'the theme to switch');
+        await shows('Badge');
+        win.localStorage.removeItem('pk.app');
+    }],
     ['gallery module (app): an element deep link with the whole nav tree drawn shifts the layout less than 0.1 (#355)', async t => {
         const { d, win } = await openApp(t, '#/gallery/elements/pk-button');
         await until(() => d.querySelector('#gx-view pk-page-header')?.getAttribute('heading') === 'Button', 'the Button page');
