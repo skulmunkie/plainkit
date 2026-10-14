@@ -25,6 +25,10 @@ export default {
             t.exists('#f >>> pk-dropdown[part="picker"]:not([hidden])');
             t.exists('#f >>> [part="footer"]');
         }
-        if (t.shot === 'moved') t.ok(t.attr('#f >>> pk-nav-item[current]', 'href') === '#shipped', 'the current row follows currentId');
+        if (t.shot === 'drawer') {
+            t.exists('#f >>> pk-nav-item[data-module="support"]');
+            t.ok(t.attr('#f >>> pk-nav-item[data-module][current]', 'data-module') === 'sales', 'the active module is marked in the drawer');
+        }
+        if (t.shot === 'moved') t.ok(t.attr('#f >>> pk-nav-item[current]:not([data-module])', 'href') === '#shipped', 'the current row follows currentId');
     },
 };

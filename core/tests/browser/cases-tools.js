@@ -767,13 +767,18 @@ export const toolCases = [
         file.querySelector('pk-menu-item[data-action=save]').dispatchEvent(new win.MouseEvent('click', { bubbles: true, composed: true }));
         await t.settle();
         t.ok(win.__saved && win.__saved.html === win.__builder.toHtml() && win.__saved.model, 'File > Save calls onsave with { model, html }, no keyboard involved');
-        dock.shadowRoot.querySelector('pk-tab[value="canvas"]').click(); await t.settle();
+        // A click on a tab that has not upgraded yet is lost (a loaded machine upgrades it late, #1247): click until the Canvas panel is really showing, not once.
+        const canvasTab = dock.shadowRoot.querySelector('pk-tab[value="canvas"]');
+        await until(() => { const shown = fdoc.querySelector('.lb-canvas-sortable')?.getBoundingClientRect().width > 0; if (!shown) canvasTab.click(); return shown; }, 'the Canvas panel to show after clicking its tab');
+        await t.settle();
         await until(() => win.customElements.get('pk-sortable-item') && typeof fdoc.querySelector('.lb-canvas-sortable pk-sortable-item')?.part === 'function', 'pk-sortable-item to upgrade in the phone frame');
+        // The Canvas panel can still be hidden here on a loaded machine (the dock redraws its strip late and drops the selection): re-select the tab until the first item is laid out, then take the items.
+        const firstItem = () => fdoc.querySelector('.lb-canvas-sortable pk-sortable-item');
+        // the phone media rule enlarges the handle on the next style/layout pass; wait for it, then the assertion below still decides
+        await until(() => { if (!(firstItem()?.getBoundingClientRect().width > 0)) { canvasTab.click(); return false; } return firstItem().part('handle').getBoundingClientRect().width >= 43.5; }, 'the drag handle to take its phone size');
         const items = [...fdoc.querySelectorAll('.lb-canvas-sortable pk-sortable-item')];
         t.eq(items.length, 2);
         const handle = items[0].part('handle');
-        // the phone media rule enlarges the handle on the next style/layout pass; wait for it, then the assertion below still decides
-        await until(() => handle.getBoundingClientRect().width >= 43.5, 'the drag handle to take its phone size');
         const rh = handle.getBoundingClientRect(); const rl = items[1].getBoundingClientRect();
         t.ok(rh.width >= 43.5 && rh.height >= 43.5, 'the drag handle is a 44px touch target at phone width');
         const ptr = (type, x, y) => handle.dispatchEvent(new win.PointerEvent(type, { pointerId: 41, clientX: x, clientY: y, button: 0, bubbles: true, composed: true }));

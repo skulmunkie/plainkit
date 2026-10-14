@@ -349,6 +349,7 @@ import { canvasCases } from './cases-canvas.js'; cases.push(...canvasCases);
 import { guidesAppCases } from './cases-guides.js'; cases.push(...guidesAppCases);
 import { appCases } from './cases-app.js'; cases.push(...appCases);
 import { navbarCases } from './cases-navbar.js'; cases.push(...navbarCases);
+import { appFrameCases } from './cases-app-frame.js'; cases.push(...appFrameCases);
 import { galleryCases, galleryAppCases } from './cases-gallery.js'; cases.push(...galleryCases, ...galleryAppCases);
 import { appShellCases } from './cases-app-shell.js'; cases.push(...appShellCases);
 
