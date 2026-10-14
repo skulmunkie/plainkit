@@ -2,4 +2,8 @@
 @attribute [Authorize]
 
 @* The real check, next to the module guard (which only hides): AuthorizeRouteView in Routes.razor refuses this page to anyone not signed in. *@
-<PkNotePage Config="""{"heading":"Audit log","body":"Only signed-in users reach this page."}""" />
+<PkNotePage Config="@Config" />
+
+@code {
+    private const string Config = """{"heading":"Audit log","body":"Only signed-in users reach this page."}""";
+}

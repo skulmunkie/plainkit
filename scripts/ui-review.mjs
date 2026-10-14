@@ -212,10 +212,10 @@ export async function loadScenarios(dir = SCENARIO_DIR, known = null) {
 }
 
 const sleep = ms => new Promise(r => setTimeout(r, ms));
-const freePort = () => new Promise((resolve, reject) => { const s = net.createServer(); s.listen(0, '127.0.0.1', () => { const { port } = s.address(); s.close(() => resolve(port)); }); s.on('error', reject); });
+export const freePort = () => new Promise((resolve, reject) => { const s = net.createServer(); s.listen(0, '127.0.0.1', () => { const { port } = s.address(); s.close(() => resolve(port)); }); s.on('error', reject); });
 
 // A DevTools protocol connection to one page: send(method, params) resolves with the result and rejects with the browser's error.
-async function connect(wsUrl) {
+export async function connect(wsUrl) {
     const ws = new WebSocket(wsUrl);
     await new Promise((res, rej) => { ws.onopen = res; ws.onerror = () => rej(new Error('could not open the DevTools connection')); });
     let id = 0; const pending = new Map();
@@ -244,7 +244,7 @@ async function openReview(cdp, vp, url) {
     }
     await cdp.send('Page.navigate', { url });
 }
-async function evaluate(cdp, expression) {
+export async function evaluate(cdp, expression) {
     const r = await cdp.send('Runtime.evaluate', { expression, awaitPromise: true, returnByValue: true });
     if (r.exceptionDetails) throw new Error(r.exceptionDetails.exception?.description ?? r.exceptionDetails.text);
     return r.result.value;
