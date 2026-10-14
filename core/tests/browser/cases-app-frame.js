@@ -30,7 +30,7 @@ export const appFrameCases = [
         t.ok(!q('[part="picker"]').hidden, 'the picker is in the bar');
     }],
     ['route change bridge (#364): the title, focus on the page h1 and one polite announcement, the live region made once', async t => {
-        const { frame } = await open(t, 1280), d = frame.ownerDocument, { routeChanged } = await import('../../js/app/route-focus.js');
+        const { frame } = await open(t, 1280), d = frame.ownerDocument, { routeChanged } = await import('../../js/route-focus.js');
         t.ok(routeChanged('Orders', 'Acme', d), 'a page with a main region is moved into');
         t.eq(d.title, 'Orders - Acme', 'the document title is the page then the site');
         t.eq(d.activeElement, d.querySelector('#pk-main h1'), 'focus is on the page h1');

@@ -1,11 +1,11 @@
-// The route-change behaviour shared by mountApp and the Blazor PkApp (#364, js/app/route-focus.js), on a stub document: the title, where focus goes,
+// The route-change behaviour shared by mountApp and the Blazor PkApp (#364, js/route-focus.js), on a stub document: the title, where focus goes,
 // what is announced. The real-browser measurement is the case "route change bridge" in tests/browser/cases-app-frame.js.
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import fs from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
-import { pageLoaded, routeChanged } from '../js/app/route-focus.js';
+import { pageLoaded, routeChanged } from '../js/route-focus.js';
 
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 const el = (extra = {}) => ({ focused: 0, tabIndex: 0, closest: () => null, focus() { this.focused++; }, ...extra });
@@ -51,9 +51,8 @@ test('routeChanged sets the title, makes one live region and says false without 
     assert.equal(routeChanged('Orders', 'Acme', doc), false);
 });
 
-test('the Blazor bridge and PkApp use it, and the app entry shares it rather than keeping a copy', () => {
+test('the Blazor bridge and PkApp use it', () => {
     const blazor = p => fs.readFileSync(path.join(root, '..', 'blazor/src/PlainKit.Blazor', p), 'utf8');
     assert.match(blazor('wwwroot/plainkit.blazor.js'), /export const routeChanged = .*js\/app\/route-focus\.js/);
     assert.match(blazor('Components/PkApp.razor'), /InvokeVoidAsync\("routeChanged"/);
-    assert.match(fs.readFileSync(path.join(root, 'js/app/app.js'), 'utf8'), /pageLoaded\(ui\.main/);
 });

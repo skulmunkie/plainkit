@@ -1,7 +1,7 @@
 // What a route change does for a reader who cannot see it (#364): focus moves to the page's h1 (else the main region), a polite live region says
-// "<label>, page loaded", and the main region scrolls into view. mountApp calls pageLoaded for its own routes; the Blazor PkApp reaches it through
+// "<label>, page loaded", and the main region scrolls into view. mountApp keeps its own copy of the focus step (the app entry may not grow); the Blazor PkApp reaches this through
 // the bridge's routeChanged, so the behaviour is written once. A module of its own so the Blazor bridge can import it without the app entry.
-import { loadElements } from '../loader.js';
+import { loadElements } from './loader.js';
 
 // `error`: the page failed; the boundary's alert announces itself, so only its own placeholder title takes focus and nothing is announced.
 export function pageLoaded(main, live, label, error = false) {
