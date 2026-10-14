@@ -1,0 +1,13 @@
+@page "/lab/tickets"
+@inject NavigationManager Nav
+
+@* Lab (the harness's paths, scripts/blazor-browser-cases.mjs): a list whose Load can be slow (?slow=1, to leave while it runs) and whose rows go through OnRowClick (a callback), not a link. *@
+<PkListPage TItem="Ticket" Config="@Config" Columns="_columns" Load="Load" IdOf="t => t.Id" OnRowClick="Open" />
+
+@code {
+    private const string Config = """{"heading":"Tickets"}""";
+    private static readonly PkTableColumn<Ticket>[] _columns = [new() { Key = "id", Label = "Ticket" }, new() { Key = "title", Label = "Title" }];
+
+    private Task<PkListResult<Ticket>> Load(PkListRequest r) => TicketStore.ListAsync(r, Nav.Uri.Contains("slow=1"));
+    private void Open(PkRowClickEventArgs e) => Nav.NavigateTo("/lab/tickets/" + e.Id);
+}
