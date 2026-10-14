@@ -20,6 +20,7 @@ import { mountConsole } from '../console/console.js';
 import { mountLogs } from '../logs/logs.js';
 import { mountLogSettings } from '../log-settings/log-settings.js';
 import { mountToolDock } from '../tool-dock/tool-dock.js';
+import { observeElements } from '../../js/loader.js';
 import { qualityPanel, inspectorPanel, themePanel, layoutBuilderPanel } from './panels.js';
 
 // The built-in panels, in the shape a panel of your own takes. Console mounts first so it records from the start.
@@ -38,7 +39,10 @@ export const BUILT_IN = Object.freeze([
     layoutBuilderPanel,
 ]);
 
+// options.loadElements: the tabs draw elements after the page was scanned, so load them as they are added (inline mode on an app page).
 export async function mountDevTools(container, options = {}) {
     const all = [...BUILT_IN, ...(options.panels ?? [])];
-    return mountToolDock(container, { ...options, panels: all, label: 'Dev tools', launcherLabel: 'Dev tools' });
+    const watch = options.loadElements ? observeElements(container) : null;
+    const handle = await mountToolDock(container, { ...options, panels: all, label: 'Dev tools', launcherLabel: 'Dev tools' });
+    return watch ? { ...handle, destroy: () => { watch.disconnect(); handle?.destroy?.(); } } : handle;
 }

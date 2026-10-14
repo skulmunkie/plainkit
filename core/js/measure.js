@@ -8,16 +8,18 @@ import { createLogger } from './log.js';
 const log = createLogger('measure');
 
 // Observe the page's own timings from load (buffered, so late callers still see the whole load). Returns the live object
-// { lcp: ms | null, cls, longTasks, inp: ms }; a metric the browser cannot observe stays at its start value.
+// { lcp: ms | null, cls, longTasks, inp: ms }; a metric the browser cannot observe stays at its start value. v.stop() disconnects the observers (a host that mounts and unmounts calls it).
 export function watchVitals(win = window) {
     const v = { lcp: null, cls: 0, longTasks: 0, inp: 0 };
+    const observers = [];
     const observe = (type, fn, extra = {}) => {
-        try { new win.PerformanceObserver(l => l.getEntries().forEach(fn)).observe({ type, buffered: true, ...extra }); } catch (error) { log.debug(`the ${type} entry type is not supported in this browser: the metric stays unmeasured`, error); }
+        try { const po = new win.PerformanceObserver(l => l.getEntries().forEach(fn)); po.observe({ type, buffered: true, ...extra }); observers.push(po); } catch (error) { log.debug(`the ${type} entry type is not supported in this browser: the metric stays unmeasured`, error); }
     };
     observe('largest-contentful-paint', e => { v.lcp = e.startTime; });
     observe('layout-shift', e => { if (!e.hadRecentInput) v.cls += e.value; });
     observe('longtask', () => { v.longTasks++; });
     observe('event', e => { v.inp = Math.max(v.inp, e.duration); }, { durationThreshold: 16 });
+    Object.defineProperty(v, 'stop', { value: () => observers.splice(0).forEach(po => po.disconnect?.()) }); // not enumerable: the numbers spread and serialise as before
     return v;
 }
 

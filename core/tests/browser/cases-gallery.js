@@ -506,4 +506,31 @@ export const galleryAppCases = [
         win.location.hash = '#/guides';
         await until(() => !nav.hasAttribute('filterable') && nav.querySelector('pk-nav-item[href*="/guides"]'), 'a module without the option: no box');
     }],
+
+    // The site modules besides the Gallery (#1324): each one mounted and unmounted 100 times by the module host leaves the same listeners, observers, timers, nodes and store subscriptions.
+    ['site modules (app): scorecard, guides and settings mounted and unmounted 100 times each leave the listener, observer, timer, node and store-subscription counts where they started', async t => {
+        const { createModuleHost } = await import(new URL('../../js/app.js', import.meta.url).href);
+        const { createStore } = await import(new URL('../../js/store.js', import.meta.url).href);
+        const ids = ['scorecard', 'guides', 'settings'], mods = {};
+        for (const id of ids) mods[id] = (await import(new URL(`../../site/modules/${id}.js`, import.meta.url).href)).default;
+        const el = document.createElement('div'); t.stage('').append(el);
+        const store = createStore({ storage: { getItem: () => null, setItem() {} } }), hash = location.hash;
+        const host = createModuleHost(el, { modules: [...ids.map(id => ({ id, title: id, load: async () => mods[id] })), { id: 'idle', title: 'Idle', load: async () => (await import(new URL('../../js/app.js', import.meta.url).href)).defineModule({ id: 'idle', routes: [{ path: '*', page: 'custom', config: { mount: () => {} } }] }) }], store, timeout: 10000 });
+        const nodes = () => document.getElementsByTagName('*').length;
+        const cycle = async id => { t.eq(await host.show(id), 'ok', id); await until(() => el.querySelector('[data-pk-page]'), `${id} to draw`); await t.settle(); await host.show('idle'); await wait(0); };
+        const inst = instrument();
+        try {
+            for (const id of ids) await cycle(id); // warm up: modules, styles and element definitions load once
+            await wait(300);
+            for (const id of ids) {
+                const before = inst.snapshot(), nodesBefore = nodes(), subs = store.listeners();
+                for (let i = 0; i < 100; i++) await cycle(id);
+                await wait(300);
+                const after = inst.snapshot();
+                t.eq(after.listeners.join('\n'), before.listeners.join('\n'), `${id}: no window or document listener is left after 100 mounts`);
+                t.eq(after.observers, before.observers, `${id}: no observer is left`); t.eq(after.timers, before.timers, `${id}: no long timer is left`);
+                t.eq(nodes(), nodesBefore, `${id}: the document has the same number of nodes`); t.eq(store.listeners(), subs, `${id}: no store subscription is left`);
+            }
+        } finally { inst.restore(); location.hash = hash; }
+    }],
 ];

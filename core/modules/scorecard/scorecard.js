@@ -363,7 +363,7 @@ export async function mountScorecard(container, options = {}) {
     const runButton = $('[data-sc-run]'); if (runButton) on(runButton, 'click', run);
     if (autorun && runs) await run();
     // a run in flight keeps its frames' host until it has stopped (a frame in a detached host never loads), then the card goes
-    const destroy = () => { ac.abort(); if (!running) root.remove(); };
+    const destroy = () => { ac.abort(); vitals?.stop(); if (!running) root.remove(); };
     if (options.signal) { if (options.signal.aborted) destroy(); else on(options.signal, 'abort', destroy, { once: true }); }
     return { run, results: () => items, report: () => last, ready, destroy };
 }
