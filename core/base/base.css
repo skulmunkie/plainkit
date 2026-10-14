@@ -142,3 +142,5 @@ pk-app-shell:not(:defined) {
     display: block;
     height: 100dvh;
 }
+/* A skip link takes no room before it upgrades (it is off-screen once defined), so the app under it does not move up when it does (CLS, issue 1304). */
+pk-skip-link:not(:defined) { display: none; }

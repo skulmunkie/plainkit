@@ -17,7 +17,7 @@ export default Base => class extends Base {
         this.$w = true;
         loadElements(this.shadowRoot);
         // The inner pk-table loads on demand: props set on it before it is defined (clickable above all) are applied again once it is.
-        this.ownerDocument.defaultView?.customElements.whenDefined('pk-table').then(() => this.sync());
+        (this.$ready = this.ownerDocument.defaultView?.customElements.whenDefined('pk-table'))?.then(() => this.sync());
         const table = this.part('table'), filters = this.part('filters'), pagination = this.part('pagination');
         // `narrows`: a search or filter changes WHICH rows the query means, so a selection of "all rows" no longer holds (the ids stay selected).
         const go = (patch, narrows) => {
@@ -145,6 +145,8 @@ export default Base => class extends Base {
             this.emit('pk-load-error', { error: err });
             return;
         }
+        // The loading state stays until the inner pk-table is defined: an undefined one is a few pixels tall, and the rows arriving would push everything under it down (CLS, issue 1304).
+        if (!this.ownerDocument.defaultView?.customElements.get('pk-table')) await this.$ready;
         if (this.$token !== token) return;
         const rows = result?.rows ?? [], total = result?.total ?? rows.length;
         // Rows deleted under the reader: a page past the last one settles on the last page (one more load), not the empty state.
