@@ -18,6 +18,8 @@ export function renderElement(meta, options = {}) {
     const disclose = (title, ...body) => h('pk-accordion-item', { class: 'gx-disclose', heading: title }, ...body);
     // Parsed with an element of the main document, so an pk-* tag is created against its registry and can be upgraded before it is attached.
     const fromHtml = html => { const d = h('div'); d.innerHTML = html; const f = doc.createDocumentFragment(); f.append(...d.childNodes); return f; };
+    const markup = node => node.outerHTML;
+    const contentMarkup = node => markup(h('div', {}, ...[...node.childNodes].map(c => c.cloneNode(true)))).slice('<div>'.length, -'</div>'.length);
     // A code viewer: the code is the element's text content, so a change of text is a change of code.
     const codeBlock = (label, text = '') => h('pk-code-block', { label, wrap: true }, text);
     const stops = []; let gone = false; // every timer the page starts, and whether it has left
@@ -35,7 +37,7 @@ export function renderElement(meta, options = {}) {
     for (const sib of [...(live.parentElement?.children ?? [])]) if (sib !== live && sib.localName === meta.tag) sib.remove();
     const controls = h('pk-grid', { class: 'gx-el-controls', min: '9rem', gap: 'sm' });
     const snippet = codeBlock('Markup');
-    const refresh = () => { snippet.textContent = cleanMarkup(live.outerHTML); options.onChange?.(); };
+    const refresh = () => { snippet.textContent = cleanMarkup(markup(live)); options.onChange?.(); };
     options.onLive?.(live);
 
     // A control starts from the attribute the example carries, else the declared default: read from the markup, so it does not depend on the element being upgraded yet.
@@ -50,8 +52,8 @@ export function renderElement(meta, options = {}) {
         on(input, d.type === 'boolean' || d.type === 'enum' ? 'change' : 'input', () => { live[d.name] = d.type === 'boolean' ? input.checked : input.value; refresh(); });
         controls.append(d.type === 'boolean' ? input : h('pk-field', { label: d.name, title: d.description }, input));
     }
-    const content = h('pk-textarea', { rows: 4, id: `pg-${meta.tag}-content` }); content.setAttribute('value', live.innerHTML.trim());
-    on(content, 'input', () => { live.innerHTML = content.value; refresh(); });
+    const content = h('pk-textarea', { rows: 4, id: `pg-${meta.tag}-content` }); content.setAttribute('value', contentMarkup(live).trim());
+    on(content, 'input', () => { live.replaceChildren(fromHtml(content.value)); refresh(); });
     const slotField = disclose('Content and slots (markup)', h('pk-field', { label: 'Content and slots (markup)' }, content));
 
     const log = h('ol', { class: 'gx-el-log', 'aria-live': 'polite' });
