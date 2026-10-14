@@ -16,6 +16,8 @@ public enum PkFieldKind
     Password,
     /// <summary><c>PkInput</c> Type="date".</summary>
     Date,
+    /// <summary><c>PkInput</c> Type="datetime-local": a date and a time of day with no time zone. The value is text of the form <c>yyyy-MM-ddTHH:mm</c> (a wall-clock time as the user typed it); see <see cref="PkFieldSpec{TItem}.DateTime"/> for a <see cref="System.DateTime"/> property.</summary>
+    DateTime,
     /// <summary><c>PkInput</c> Type="time".</summary>
     Time,
     /// <summary><c>PkInput</c> Type="url".</summary>
@@ -89,14 +91,4 @@ public sealed partial record PkFieldSpec<TItem>
 
     /// <summary>Extra content in the field's <c>label-action</c> slot, beside the label text (adopt-from-source buttons, flag badges). Re-evaluated with the record on every render. It follows the <see cref="Help"/> tooltip when both are set and never replaces the label text.</summary>
     public RenderFragment<TItem>? LabelAction { get; init; }
-
-    /// <summary>A <see cref="PkFieldKind.Checkbox"/> spec over a <see cref="bool"/> property: wraps the string <see cref="Get"/>/<see cref="Set"/> so the caller does not translate "true"/"" by hand. Set the other members with <c>with</c>: <c>PkFieldSpec&lt;T&gt;.Bool("active", "Active", o =&gt; o.Active, (o, v) =&gt; o.Active = v) with { Hint = "..." }</c>.</summary>
-    public static PkFieldSpec<TItem> Bool(string key, string label, Func<TItem, bool> get, Action<TItem, bool> set) => new()
-    {
-        Key = key,
-        Label = label,
-        Kind = PkFieldKind.Checkbox,
-        Get = item => get(item) ? "true" : "",
-        Set = (item, value) => set(item, !string.IsNullOrEmpty(value) && value != "false"),
-    };
 }

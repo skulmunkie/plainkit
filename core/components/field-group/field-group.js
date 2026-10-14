@@ -27,7 +27,7 @@ export default Base => class extends Base {
     changed(name) {
         if (!this.$w) return;
         if (name === 'values') { if (!this.$own) { this.$base = { ...(this.values ?? {}) }; this.$vals = { ...this.$base }; this.reconcile(); this.recheck(); } }
-        else if (name === 'fields') { for (const row of this.$rows.values()) row.field.remove(); this.$rows.clear(); this.reconcile(); }
+        else if (name === 'fields' || name === 'columns') { for (const row of this.$rows.values()) row.field.remove(); this.$rows.clear(); this.reconcile(); }
         else if (name === 'disabled' || name === 'readonly') { this.syncState(); this.sync(); }
         else if (name === 'label') this.aria({ role: 'group', ariaLabel: this.label || null });
     }
@@ -88,6 +88,12 @@ export default Base => class extends Base {
     }
     /** Draws the fields again: call it after changing the visible(spec, values) callback property, which nothing watches. */
     refresh() { this.reconcile(); }
+    // `span` fills the row; `columnSpan` (2 or 3) takes that many columns of a multi-column group, and a span that reaches every column is the whole row.
+    spanOf(field, spec) {
+        const n = Math.floor(Number(spec.columnSpan));
+        if (spec.span || n >= this.columns) field.setAttribute('data-span', '');
+        else if (n > 1) field.setAttribute('data-span', n);
+    }
     build(doc, spec) {
         const kind = spec.kind ?? 'text', tag = controlTag(kind);
         if (kind === 'custom') return this.buildCustom(doc, spec);
@@ -100,7 +106,7 @@ export default Base => class extends Base {
         if (kind === 'switch') { /* the switch's own text is its label */ } else if (spec.hideLabel) control.setAttribute('aria-label', spec.label ?? spec.key); else field.setAttribute('label', spec.label ?? spec.key);
         if (spec.hint) field.setAttribute('help', spec.hint);
         if (spec.required) field.setAttribute('required', '');
-        if (spec.span) field.setAttribute('data-span', '');
+        this.spanOf(field, spec);
         field.append(control);
         if (spec.help) { const tip = doc.createElement('pk-tooltip'); tip.setAttribute('slot', 'label-action'); tip.setAttribute('help', ''); tip.setAttribute('interactive', ''); tip.setAttribute('text', spec.help); field.append(tip); }
         const slot = doc.createElement('slot'); slot.setAttribute('name', `label-action-${spec.key}`); slot.setAttribute('slot', 'label-action'); field.append(slot);
@@ -137,7 +143,7 @@ export default Base => class extends Base {
         const field = doc.createElement('pk-field'), slot = doc.createElement('slot'), row = { spec, kind: 'custom', field, control: null };
         field.setAttribute('label', spec.label ?? spec.key);
         if (spec.hint) field.setAttribute('help', spec.hint);
-        if (spec.span) field.setAttribute('data-span', '');
+        this.spanOf(field, spec);
         slot.setAttribute('name', `editor-${spec.key}`);
         field.append(slot);
         this.$rows.set(spec.key, row);

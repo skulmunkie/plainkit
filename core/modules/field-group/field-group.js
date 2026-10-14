@@ -16,7 +16,7 @@
 //   group.refresh(nextOrder); // load a different record into the same controls
 //   group.destroy();
 //
-// A spec is { key, label, kind ('text'|'number'|'email'|'password'|'date'|'time'|'url'|'tel'|'textarea'|'select'|'checkbox'|'switch'|'range'|'combobox'),
+// A spec is { key, label, kind ('text'|'number'|'email'|'password'|'date'|'datetime-local'|'time'|'url'|'tel'|'textarea'|'select'|'checkbox'|'switch'|'range'|'combobox'),
 // hint, required, min, max, step, minlength, maxlength, pattern, placeholder, options ([{value,label}]), when }. `when` is a function of the data (the
 // element's own `when` is data, { field, equals | in | not }, and is passed through as it is). `data` is mutated in place as the user commits changes, as
 // before. Put the container inside a <form> (a pk-form fits): the element is form-associated, so validation, the form value and a reset work with no wiring.
