@@ -1,2 +1,4 @@
 :host { display: block; }
 [part="frame"] { display: block; inline-size: 100%; block-size: var(--pk-gallery-height, 28rem); border: 0; }
+[part="notice"] { margin: 0; padding: var(--space-3); border: 1px dashed currentcolor; font-size: var(--text-sm); }
+[part="notice"][hidden] { display: none; }
