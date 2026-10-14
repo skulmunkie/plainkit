@@ -69,6 +69,30 @@ export const galleryCases = [
         } finally { inst.restore(); }
     }],
 
+    ['gallery: mounting and destroying it 100 times leaves the listener, observer, timer and node counts where they started, and a mount keeps no state of the one before (#1239)', async t => {
+        const { mountGallery } = await import(new URL('../../site/gallery/gallery.js', import.meta.url).href);
+        const inst = instrument(), hash = location.hash;
+        try {
+            const host = t.stage('');
+            const nodes = () => document.getElementsByTagName('*').length;
+            const one = async (options, to) => { location.hash = to; const g = await mountGallery(host, options); await wait(0); g.destroy(); };
+            await one({ chrome: 'full', init: false }, '#/overview'); // warm up: modules and stylesheets load once
+            const before = inst.snapshot(), nodesBefore = nodes();
+            for (let i = 0; i < 100; i++) await one(i % 2 ? { chrome: 'none', filter: 'button', init: false } : { chrome: 'full', init: false }, i % 3 ? '#/elements/pk-button' : '#/foundations/colours');
+            await wait(3300); // an element page's own 3 s fallback timer (elements-view.js) ends by itself
+            const after = inst.snapshot();
+            t.eq(after.listeners.join('\n'), before.listeners.join('\n'), 'no window or document listener is left after 100 mounts');
+            t.eq(after.observers, before.observers, 'no observer is left'); t.eq(after.timers, before.timers, 'no long timer is left');
+            t.eq(nodes(), nodesBefore, 'the document has the same number of nodes'); t.eq(host.childElementCount, 0, 'the container is empty');
+            // a mount starts from its own defaults: the filter and the bare chrome of the mount before do not carry over
+            location.hash = '#/foundations/colours';
+            const g = await mountGallery(host, { chrome: 'full', init: false });
+            await until(() => host.querySelector('#gx-view')?.firstElementChild, 'the first view');
+            t.ok(host.querySelector('#gx-nav') && host.querySelectorAll('#gx-nav pk-nav-item[href]').length > 20, 'a fresh mount draws the whole nav, unfiltered');
+            g.destroy();
+        } finally { inst.restore(); location.hash = hash; }
+    }],
+
     ['gallery: a deep link opens its view, marks its nav row and names the page, for a foundation, an element, a sample list and a full-page sample', async t => {
         const p = await open(t, '#/foundations/colours');
         await p.shows('Colours');
