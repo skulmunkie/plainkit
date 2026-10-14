@@ -22,7 +22,6 @@ export { kebab, camel, coerce, parseBindings, bindValue };
 // One logger per tag (scope = the tag name), so a warning says which element spoke.
 const loggers = {};
 const loggerFor = tag => loggers[tag] ??= createLogger(tag);
-
 export class PkElement extends HTMLElement {
     static props = {};
     static template = '';
@@ -64,14 +63,14 @@ export class PkElement extends HTMLElement {
     // A lifecycle line at debug; the level check keeps it (and its formatting) free at the default level.
     debug(message, detail) { if (isLogEnabled('debug', this.constructor.tag)) this.log.debug(message, detail); }
     // coerce() for one prop: an unusable value falls back to the default and says so (once per prop).
-    coerceProp(name, def, raw, fromAttr = false) {
+    coerceProp(name, def, raw, fromAttr) {
         return coerce(def, raw, fromAttr, (problem, fallback) => this.warnOnce(`prop:${name}`, `${name}=${JSON.stringify(raw)} ${problem}: using ${JSON.stringify(fallback)}`, { prop: name, value: raw, fallback }));
     }
 
     connectedCallback() {
         this.debug('connected');
         // A property set before the upgrade was adopted in the constructor (no attributes may be written there): reflect it now, like an assignment.
-        this.$u?.forEach(n => { this.$r = n; if (this.constructor.props[n].type === 'boolean') this.toggleAttribute(kebab(n), this.$[n]); else this.setAttribute(kebab(n), this.$[n]); this.$r = null; });
+        this.$u?.forEach(n => reflect(this, n));
         this.update(); this.connected?.();
     }
     disconnectedCallback() { this.disconnected?.(); }
@@ -94,18 +93,18 @@ export class PkElement extends HTMLElement {
 
     render() {
         for (const b of this.$b) {
-            if (b.parts) { const v = bindValue(b.parts, this.$, b.a); if (!b.a) b.n.nodeValue = v; else if (v === null) b.n.removeAttribute(b.a); else b.n.setAttribute(b.a, v); }
+            if (b.parts) { const v = bindValue(b.parts, this.$, b.a); if (v === b.v) continue; b.v = v; if (!b.a) b.n.nodeValue = v; else if (v === null) b.n.removeAttribute(b.a); else b.n.setAttribute(b.a, v); }
             else b.n.hidden = !this.$[b.key] === !b.not;
         }
     }
 
     // A bubbling, composed CustomEvent; false when a listener cancelled it.
-    emit(name, detail, init = {}) { return this.dispatchEvent(new CustomEvent(name, { detail, bubbles: true, composed: true, cancelable: true, ...init })); }
+    emit(name, detail, init) { return this.dispatchEvent(new CustomEvent(name, { detail, bubbles: true, composed: true, cancelable: true, ...init })); }
 
-    slotted(name = '') { return this.shadowRoot.querySelector(name ? `slot[name="${name}"]` : 'slot:not([name])')?.assignedElements({ flatten: true }) ?? []; }
+    slotted(name) { return this.shadowRoot.querySelector(name ? `slot[name="${name}"]` : 'slot:not([name])')?.assignedElements({ flatten: true }) ?? []; }
     watchSlot(name, fn) { const s = this.shadowRoot.querySelector(name ? `slot[name="${name}"]` : 'slot:not([name])'), w = this.$ws ??= new Set(); if (s && !w.has(name)) { w.add(name); s.addEventListener('slotchange', fn); } return s; }
     part(name) { return this.shadowRoot.querySelector(`[part~="${name}"]`); }
-    aria(map) { if (this.internals) Object.assign(this.internals, map); }
+    aria(map) { Object.assign(this.internals ?? {}, map); }
 
     // Form association (static formAssociated = true): value, validity and the reset / disabled / restore callbacks.
     get form() { return this.internals?.form ?? null; }
@@ -119,6 +118,8 @@ export class PkElement extends HTMLElement {
     formStateRestoreCallback(state) { this.onRestore?.(state); }
 }
 
+const reflect = (el, n) => { el.$r = n; el.constructor.props[n].type === 'boolean' ? el.toggleAttribute(kebab(n), el.$[n]) : el.setAttribute(kebab(n), el.$[n]); el.$r = null; };
+
 // Register a class: one accessor per declared prop (assignment reflects to the attribute when reflect is set).
 export function define(cls) {
     for (const [name, def] of Object.entries(cls.props)) {
@@ -129,7 +130,7 @@ export function define(cls) {
                 const n = this.coerceProp(name, def, v);
                 if (n === this.$[name]) return;
                 this.$[name] = n;
-                if (def.reflect) { this.$r = name; if (def.type === 'boolean') this.toggleAttribute(kebab(name), n); else this.setAttribute(kebab(name), n); this.$r = null; }
+                if (def.reflect) reflect(this, name);
                 this.debug(`${name} changed`, n); this.changed?.(name, n); this.requestUpdate();
             },
         });
