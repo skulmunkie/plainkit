@@ -8,7 +8,7 @@
   "homepage": "https://github.com/skulmunkie/plainkit",
   "repository": { "type": "git", "url": "git+https://github.com/skulmunkie/plainkit.git", "directory": "core" },
   "keywords": ["ui", "design-system", "web-components", "custom-elements", "css", "no-dependencies"],
-  "files": ["dist", "!dist/modules", "!dist/AGENTS.md", "!dist/llms-full.txt", "LICENSE", "README.md"],
+  "files": ["dist", "!dist/modules", "!dist/AGENTS.md", "!dist/llms-full.txt", "!dist/descriptions.json", "LICENSE", "README.md"],
   "main": "./dist/plainkit.js",
   "module": "./dist/plainkit.js",
   "exports": {
