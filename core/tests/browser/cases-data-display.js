@@ -1425,4 +1425,19 @@ export const dataDisplayCases = [
             const after = links(); t.ok(after.length > 0 && Number(after[0][0]) > 50 && after.every(([id, h]) => h === `/r/${id}`), 'after a scroll the newly drawn rows have their links too');
         } finally { document.removeEventListener('click', stop); }
     }],
+    ['table (375px, cards): a button with a long unbreakable label wraps inside the card instead of being clipped or widening it (#1288)', async t => {
+        const { sampleDoc } = await import('../../site/gallery/frame.js');
+        const SKU = 'some-long-sku-identifier-with-dashes-and-more-parts';
+        const html = `<pk-table cards label="O" columns='[{"key":"sku","label":"SKU"},{"key":"qty","label":"Qty"}]' rows='[{"id":"1","sku":"x","qty":"12"}]'><pk-button slot="cell-1-sku" variant="plain">${SKU}</pk-button></pk-table>`;
+        const host = t.stage(''), f = document.createElement('iframe');
+        f.title = 'sample'; f.style.width = '375px'; f.style.height = '420px'; f.style.border = '0';
+        const loaded = new Promise(r => f.addEventListener('load', r, { once: true })); host.append(f); f.srcdoc = sampleDoc(html); await loaded;
+        const tb = await until(() => f.contentWindow.customElements.get('pk-button') && f.contentDocument.querySelector('pk-table')?.shadowRoot?.querySelector('tbody td'), 'the table').then(() => f.contentDocument.querySelector('pk-table'));
+        await t.settle(); await new Promise(r => setTimeout(r, 120));
+        const b = f.contentDocument.querySelector('pk-button'), card = tb.shadowRoot.querySelector('tbody tr').getBoundingClientRect(), r = b.getBoundingClientRect();
+        t.ok(b.scrollWidth <= b.clientWidth + 1, `the button clips its label sideways: ${b.scrollWidth} > ${b.clientWidth}`);
+        t.ok(r.left >= card.left && r.right <= card.right + 1, 'the button stays inside the card');
+        t.ok(r.height > 44, 'the long label wrapped onto more than one line');
+        t.ok(f.contentDocument.documentElement.scrollWidth <= f.contentWindow.innerWidth + 1, 'the page does not scroll sideways');
+    }],
 ];

@@ -5,7 +5,7 @@
 /* [part="tile"] is a pk-sortable-item (core/elements/sortable-item/): it owns its own handle and drag/keyboard wiring, so the gallery only
    restyles its exposed parts to fold the handle into the tile as a small corner overlay instead of pk-sortable-item's own side-by-side row,
    and to make its content wrapper transparent so the tile's own children (media, badges, actions) lay out exactly as before. */
-[part="tile"] { position: relative; display: grid; grid-template-rows: auto 1fr; min-inline-size: 0; overflow: hidden; border: 1px solid var(--color-border); border-radius: var(--pk-image-gallery-radius, var(--radius-lg)); background: var(--color-surface-alt); }
+[part="tile"] { container-type: inline-size; position: relative; display: grid; grid-template-rows: auto 1fr; min-inline-size: 0; overflow: hidden; border: 1px solid var(--color-border); border-radius: var(--pk-image-gallery-radius, var(--radius-lg)); background: var(--color-surface-alt); }
 [part="tile"][data-primary] { border: 2px solid var(--color-accent); }
 [part="tile"]::part(root) { display: block; padding: 0; gap: 0; min-inline-size: 0; }
 [part="tile"]::part(content) { display: contents; }
@@ -37,4 +37,13 @@
 @media (--phone) {
     [part="action"] { --pk-button-padding: calc((var(--touch-target) - 1.25 * var(--text-meta)) / 2) var(--space-2); }
     [part="add"]::part(zone) { min-block-size: var(--touch-target); }
+}
+/* A tile too narrow for the handle and a button side by side (three columns on a phone) gives the handle its own row under the buttons instead of reserving room beside them, which pushed the button past the tile's clip. */
+@container (max-width: 9rem) {
+    [part="actions"] { padding-inline-start: var(--space-1); padding-block-end: calc(var(--space-1) + var(--space-6)); }
+}
+@media (pointer: coarse), (--phone) {
+    @container (max-width: 9rem) {
+        [part="actions"] { padding-block-end: calc(var(--space-1) + var(--touch-target)); }
+    }
 }
