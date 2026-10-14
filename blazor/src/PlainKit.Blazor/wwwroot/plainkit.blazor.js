@@ -117,7 +117,8 @@ export async function mountToolDock(container, options, panelHosts) {
 // A call the element can abort (load(query, { signal })) gets an id; its abort signal calls the host's Cancel(id), which cancels the CancellationToken of that call.
 let callIds = 0;
 const abortable = async (host, arg, signal) => {
-    if (!signal) return host.invokeMethodAsync('Invoke', arg);
+    // JS interop ignores C# default parameter values: Invoke(arg, callId) always gets both arguments (0: the element cannot abort the call, #1329).
+    if (!signal) return host.invokeMethodAsync('Invoke', arg, 0);
     const id = ++callIds, cancel = () => host.invokeMethodAsync('Cancel', id);
     signal.addEventListener('abort', cancel, { once: true });
     try { return await host.invokeMethodAsync('Invoke', arg, id); } finally { signal.removeEventListener('abort', cancel); }
