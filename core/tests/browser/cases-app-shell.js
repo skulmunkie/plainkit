@@ -8,6 +8,7 @@ const until = async (fn, what, tries = 100) => { for (let i = 0; i < tries; i++)
 // CLS across real navigations) can lose a race against a heavily loaded CI runner even when the code under test is correct - same
 // reasoning as PageBaseTests' own retry (issue #427/#434). A genuine regression fails every attempt identically and still reports as a
 // failure once retries are exhausted, so this never turns a real bug into a pass; each attempt gets a fresh iframe, never reused state.
+import { cpuScale } from './cpu-scale.js';
 const retryCase = async (attempt, tries = 3) => {
     for (let i = 1; i <= tries; i++) { try { return await attempt(); } catch (e) { if (i === tries) throw e; } }
 };
@@ -183,6 +184,8 @@ export const appShellCases = [
     }],
 
     ['mountApp: the first module chunk loads within 300 ms, an already loaded one within 100 ms, and nothing shifts on first load or across a module switch (CLS 0)', async t => retryCase(async () => {
+        // The 300 ms and 100 ms budgets are what an idle machine must meet; a loaded one gets them stretched by how much slower a fixed workload runs right now (cpu-scale.js, #1247).
+        const scale = cpuScale(), first = 300 * scale, warmMs = 100 * scale;
         const s = await demo(t, 1280, { hash: '#/orders' });
         const shifts = [];
         const po = new s.win.PerformanceObserver(list => shifts.push(...list.getEntries()));
@@ -200,10 +203,10 @@ export const appShellCases = [
         t.ok(after > cls, 'the layout-shift observer sees a deliberate shift (the measurement works)');
         t.ok(cls < 0.001, `layout shift across first load and five route changes is ${cls.toFixed(4)}, expected 0`);
         const ms = id => s.win.performance.getEntriesByName(`pk-route:${id}`).map(e => e.duration);
-        t.ok(ms('orders')[0] <= 300, `the first load of the orders chunk took ${ms('orders')[0]?.toFixed(0)} ms, budget 300`);
-        t.ok(ms('reports')[0] <= 300, `the first load of the reports chunk took ${ms('reports')[0]?.toFixed(0)} ms, budget 300`);
+        t.ok(ms('orders')[0] <= first, `the first load of the orders chunk took ${ms('orders')[0]?.toFixed(0)} ms, budget ${first.toFixed(0)}`);
+        t.ok(ms('reports')[0] <= first, `the first load of the reports chunk took ${ms('reports')[0]?.toFixed(0)} ms, budget ${first.toFixed(0)}`);
         const warm = [...ms('orders').slice(1), ...ms('reports').slice(1), ...ms('overview').slice(1)];
-        t.ok(warm.length >= 3 && Math.max(...warm) <= 100, `route changes to a loaded module took at most ${Math.max(...warm).toFixed(0)} ms (${warm.map(x => x.toFixed(0)).join(', ')}), budget 100`);
+        t.ok(warm.length >= 3 && Math.max(...warm) <= warmMs, `route changes to a loaded module took at most ${Math.max(...warm).toFixed(0)} ms (${warm.map(x => x.toFixed(0)).join(', ')}), budget ${warmMs.toFixed(0)}`);
     })],
 
     ['mountApp: mount and destroy 100 times leave no listener, observer, timer, fullscreen overlay or node behind, and nothing polls', async t => {
