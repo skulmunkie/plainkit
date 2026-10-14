@@ -4,5 +4,5 @@
 //
 //   import { defineModule, moduleFromMount, createModuleHost, mountPage } from './plainkit/js/app.js';
 export { defineModule, moduleFromMount, registerPageType, registerLayout, MODULE_ID, BUILT_IN_PAGE_TYPES, mountPage } from './app/module.js';
-export { createModuleHost } from './app/host.js';
+export { createModuleHost } from './app/host.js'; export { paintNav } from './app/nav.js';
 export { mountApp } from './app/app.js';

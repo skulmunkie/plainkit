@@ -10,7 +10,9 @@
 // (embed.html) takes them by message from the embedding page: <pk-gallery sections='[...]'> does that, or post
 // { type: 'pk-gallery-sections', sections } to the frame after it posts { type: 'pk-gallery-ready' } to its parent.
 
-import { readSetting, writeSetting } from './settings.js';
+import { paintNav } from '../../js/app.js';
+import { createStore } from '../../js/store.js';
+import { GALLERY_STATE, APP_THEME, chromeSettings } from './state.js';
 import { normalizeOptions, isScoped, leaves, filterLeaves, initialHash } from '../../js/gallery-options.js';
 import { currentTheme, setTheme } from '../../js/theme.js';
 import { initPlainkit } from '../../js/plainkit.js';
@@ -26,10 +28,11 @@ export { pagebarTitleAttrs } from './chrome.js';
 
 const doc = globalThis.document, win = doc?.defaultView; // undefined under node, where only the pure helpers are imported
 
-// Everything one mounted gallery owns lives on `m`, made by mountGallery and dropped by destroy(), so nothing outlives a mount: the theme, width, scale, filter and open folds (state), the mount's
-// options (opts), a bare embed (bare), the host page's title, the runtime, the frame (chrome) and the view the pages draw into, the router, the full-page sample on show and its page (leave), the host's sections.
+// Everything one mounted gallery owns lives on `m`, made by mountGallery and dropped by destroy(), so nothing outlives a mount: the theme, width, scale and open folds (state), the store they are kept in
+// (store, the Gallery's namespace g and the app's), the mount's options (opts), a bare embed (bare), the host page's title, the runtime, the frame (chrome) and the view the pages draw into, the nav rows,
+// the router, the full-page sample on show and its page (leave), the host's sections.
 let m = null;
-const mountState = () => ({ state: { theme: 'dark', width: 'desktop', scale: 1, filter: '', open: new Set() }, opts: {}, bare: false, baseTitle: 'Plainkit Gallery', rt: null, chrome: null, view: null, router: null, full: null, leave: null, hostSections: [] });
+const mountState = () => ({ state: { theme: 'dark', width: 'desktop', scale: 1, open: new Set() }, store: null, g: null, app: null, opts: {}, bare: false, baseTitle: 'Plainkit Gallery', rt: null, chrome: null, view: null, rows: null, router: null, full: null, leave: null, hostSections: [] });
 
 const B = () => '#'; // the gallery's addresses: '#' + its own path
 const query = () => m.router?.current()?.query ?? {}; // the address's query (#/path?q=..&nav=..), from the router
@@ -50,36 +53,36 @@ const goTo = (hash, replace = false) => { if (addressOf(win).hash !== hash) m.ro
 const route = () => { const c = m.router?.current(); return { section: c?.label ?? 'overview', a: c?.params.a, b: c?.params.b }; };
 
 // ---- nav -----------------------------------------------------------------------------------------------------------------
-// A pk-side-nav built once from the tree: a section title (a link to its overview), then its items or its folding groups (pk-nav-item
-// branches with a count). The element brings the filter box, the arrow-key tree navigation and, at 1024px and below, the off-canvas drawer.
+// A pk-side-nav whose rows the framework's paintNav (js/app.js) draws from the tree: a section title (a link to its overview), then its items or its folding groups (branches with a count), the current row and
+// the folds that show it. The element brings the filter box, the arrow-key tree navigation and, at 1024px and below, the off-canvas drawer.
 const navEl = () => m.chrome?.nav;
 const navInput = () => navEl()?.shadowRoot?.querySelector('[part="filter-input"]') ?? null;
+const filtering = () => Boolean(navInput()?.value);
+const rowsOf = list => list.map(i => ({ id: i.hash, title: i.title, href: i.hash }));
 
-function buildNav() {
-    const nav = navEl(), tree = m.rt.tree();
-    const item = (it, slot) => h(doc, 'pk-nav-item', { href: it.hash, slot }, it.title);
-    nav.replaceChildren(h(doc, 'a', { slot: 'brand', href: isScoped(m.opts) ? initialHash(tree) || '#/overview' : '#/overview' }, 'Gallery'), ...tree.flatMap(sec => [
-        h(doc, 'a', { class: 'gx-nav-title', href: `#/${sec.id}` }, sec.title),
-        ...(sec.items ? sec.items.map(i => item(i)) : sec.groups.map(g => h(doc, 'pk-nav-item', { 'data-branch': g.id }, g.title, h(doc, 'span', { slot: 'badge' }, String(g.items.length)), ...g.items.map(i => item(i, 'children'))))),
-    ]));
-    syncNav();
+function drawNav() {
+    const nav = navEl(), tree = m.rt.tree(), tmp = h(doc, 'div');
+    m.rows = new Map();
+    const parts = tree.flatMap(sec => {
+        const groups = sec.groups ?? [];
+        for (const [id, row] of paintNav(doc, tmp, [{ items: sec.items ? rowsOf(sec.items) : groups.map(g => ({ id: g.id, title: g.title, badge: g.items.length, children: rowsOf(g.items) })) }])) m.rows.set(id, row);
+        for (const g of groups) m.rows.get(g.id).dataset.branch = g.id;
+        return [h(doc, 'a', { class: 'gx-nav-title', href: `#/${sec.id}` }, sec.title), ...tmp.childNodes];
+    });
+    nav.replaceChildren(h(doc, 'a', { slot: 'brand', href: isScoped(m.opts) ? initialHash(tree) || '#/overview' : '#/overview' }, 'Gallery'), ...parts);
+    markNav();
 }
 
-// The current row and the folds that show it: the branch of the route, or one the reader opened. While a filter is typed the element opens the matches itself.
-function syncNav() {
-    const nav = navEl(); if (!nav) return;
-    const r = route();
-    for (const i of nav.querySelectorAll('pk-nav-item[href]')) setAttr(i, 'current', addressOf(win).hash === i.getAttribute('href') || (Boolean(r.section) && i.getAttribute('href') === `#/${r.section}/${r.a}/${r.b}`));
-    if (m.state.filter) return;
-    for (const b of nav.querySelectorAll('pk-nav-item[data-branch]')) setAttr(b, 'expanded', m.state.open.has(b.dataset.branch) || Boolean(b.querySelector('pk-nav-item[current]')) || (r.section !== 'samples' && r.a === b.dataset.branch));
-}
-
-function setFilter(v) {
-    m.state.filter = v;
-    const input = navInput(), nav = navEl();
-    if (input && input.value !== v) input.value = v;
-    if (typeof nav?.filter === 'function') nav.filter(v);
-    if (!v) syncNav();
+// The current row (the address, or the sample's own route when the address carries a query) and the folds that show it: the branch of the route, or one the reader opened.
+// While a filter is typed the element opens the matches itself.
+function markNav() {
+    if (!navEl()) return;
+    const r = route(), cur = [addressOf(win).hash, r.b && `#/${r.section}/${r.a}/${r.b}`].find(x => x && m.rows.has(x)), busy = filtering();
+    const up = cur && m.rows.get(cur).parentElement.dataset.branch;
+    for (const [id, row] of m.rows) {
+        setAttr(row, 'current', id === cur);
+        if (row.dataset.branch && !busy) setAttr(row, 'expanded', id === up || m.state.open.has(id) || (r.section !== 'samples' && r.a === id));
+    }
 }
 
 // A template, pattern or layout is a whole page, so it is shown as one: the preview fills the gallery's main area (the page scrolls itself, no
@@ -107,7 +110,7 @@ function render() {
     m.view.replaceChildren();
     m.leave = PAGE_TYPES[type](m.view, config, ctx);
     m.view.scrollTop = 0;
-    syncNav();
+    markNav();
     if (!m.bare) {
         doc.title = `${m.full ? `${m.full.title} - ${KIND_LABEL[m.full.kind]}` : route().section} - ${m.baseTitle}`;
         setAttr(navEl(), 'open', false); // a chosen page closes the phone Contents drawer
@@ -132,44 +135,45 @@ export async function mountGallery(container, options = {}) {
     m.hostSections = normalizeSections(options.sections);
     m.baseTitle = doc.title || m.baseTitle;
     m.bare = m.opts.chrome === 'none';
-    const { state } = m, stored = key => readSetting(`pk-gallery-${key}`);
+    // What the reader chose is kept in the store (state.js): the viewport, text size, drawer and folds in the Gallery's namespace, the theme in the app's.
+    m.store = createStore();
+    const { state, g } = Object.assign(m, { g: m.store.module('gallery', GALLERY_STATE), app: m.store.module('app', APP_THEME) });
     state.theme = m.opts.theme ?? currentTheme(doc.documentElement);
-    state.width = m.opts.width ?? (stored('width') === 'phone' ? 'phone' : 'desktop');
-    state.scale = m.bare ? 1 : Number(stored('scale')) || 1;
-    state.filter = m.opts.filter ?? '';
-    state.open = new Set(m.bare ? [] : JSON.parse(stored('open') ?? '[]'));
+    state.width = m.opts.width ?? g.get('width');
+    state.scale = m.bare ? 1 : g.get('scale');
+    state.open = new Set(m.bare ? [] : g.get('open'));
     if (m.opts.theme) setTheme(doc.documentElement, m.opts.theme);
     doc.documentElement.dataset.width = state.width;
     m.router = mountRouter(null, { routes: ROUTES, mode: 'hash', aliases: ALIASES });
     m.rt = createRuntime({ doc, B, opts: m.opts, state, query, root: () => (m.bare ? null : m.view) });
     // A scoped mount with no address of its own opens the first view of its scope (the address says so from then on).
     if (!addressOf(win).hash && isScoped(m.opts) && !collection()) goTo(initialHash(m.rt.tree()), true);
-    const set = (patch, key, value) => { Object.assign(state, patch); if (key) writeSetting(`pk-gallery-${key}`, String(value)); m.rt.refreshFrames(patch); m.chrome?.paint(); };
+    const set = (patch, key) => { Object.assign(state, patch); if (key) g.set(key, patch[key]); m.rt.refreshFrames(patch); m.chrome?.paint(); };
     if (m.bare) {
         m.view = h(doc, 'div', { id: 'gx-view' });
         container.replaceChildren(h(doc, 'pk-stack', { gap: 'none', id: 'gx-shell' }, m.view));
     } else {
         m.chrome = createChrome({ doc, B, hosted: false, state, on, pageUrl: m.rt.pageUrl, navVariant: m.rt.navVariant, sections: () => m.hostSections,
-            settings: { get: stored, set: (key, text) => writeSetting(`pk-gallery-${key}`, text) },
-            act: { go: goTo, theme: next => { setTheme(doc.documentElement, next); writeSetting('pk-site-theme', next); set({ theme: next }); },
-                width: w => { doc.documentElement.dataset.width = w; set({ width: w }, 'width', w); }, scale: v => set({ scale: v }, 'scale', v) } });
+            settings: chromeSettings(g),
+            act: { go: goTo, theme: next => { setTheme(doc.documentElement, next); m.app.set('theme', next); set({ theme: next }); },
+                width: w => { doc.documentElement.dataset.width = w; set({ width: w }, 'width'); }, scale: v => set({ scale: v }, 'scale') } });
         m.view = m.chrome.view;
         container.replaceChildren(m.chrome.shell);
     }
     container.toggleAttribute('data-gx-mount', !m.bare); // the frame fills the host's box (gallery.css)
     await m.rt.load();
-    if (!m.bare) buildNav();
+    if (!m.bare) drawNav();
     render();
     // The chrome and the pages are elements, loaded on demand; a host that only mounts the gallery has not called initPlainkit, so the gallery does (idempotent per root).
     // (A host that has already called it passes init: false: the behaviours must be wired once, or every click toggles twice.)
     if (options.init !== false) initPlainkit(doc);
 
     if (!m.bare) {
-        // The nav's filter box lives in the element: a filter given by the mount waits for the element to exist.
-        customElements.whenDefined('pk-side-nav').then(() => { if (m?.state.filter) setFilter(m.state.filter); });
-        on(navEl(), 'input', e => { const t = e.composedPath()[0]; if (t?.matches?.('[part="filter-input"]')) { m.state.filter = t.value; if (!t.value) syncNav(); } });
+        // The nav's filter box lives in the element: a filter given by the mount waits for the element to exist. Clearing the box shows the folds of the page again.
+        customElements.whenDefined('pk-side-nav').then(() => { const box = m?.opts.filter && navInput(); if (box) { box.value = m.opts.filter; navEl().filter(box.value); } });
+        on(navEl(), 'input', e => { if (!e.composedPath()[0]?.value) markNav(); });
         // A branch the reader opens or folds is remembered (the element also opens matches while a filter is typed: that does not emit).
-        on(navEl(), 'pk-toggle', e => { const b = e.target.closest?.('pk-nav-item[data-branch]'); if (!b) return; if (b.hasAttribute('expanded')) state.open.add(b.dataset.branch); else state.open.delete(b.dataset.branch); writeSetting('pk-gallery-open', JSON.stringify([...state.open])); });
+        on(navEl(), 'pk-toggle', e => { const b = e.target.closest?.('pk-nav-item[data-branch]'); if (!b) return; if (b.hasAttribute('expanded')) state.open.add(b.dataset.branch); else state.open.delete(b.dataset.branch); g.set('open', [...state.open]); });
         // Escape or a tap on the backdrop closes the phone Contents drawer; the element hands focus back to its button.
         on(navEl(), 'pk-close', () => { const btn = doc.querySelector('[data-nav-toggle]'); if (btn) setAttr(btn, 'pressed', false); });
     }
@@ -187,6 +191,7 @@ export async function mountGallery(container, options = {}) {
             m.router?.destroy();
             m.leave?.();
             m.rt.end();
+            m.store.destroy();
             m = null;
             container.replaceChildren(); container.removeAttribute('data-gx-mount');
         },

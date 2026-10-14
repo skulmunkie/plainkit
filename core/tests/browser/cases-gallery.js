@@ -258,6 +258,26 @@ export const galleryCases = [
         t.ok(cells.length === 4 && cells.every((c, i) => c.left >= box.left - 1 && c.right <= box.right + 1 && (i === 0 || c.top >= cells[i - 1].bottom - 1)), 'the four cells stack inside the card without overlapping');
         t.ok([...card.children].every(c => c.getAttribute('data-label')), 'every cell is labelled');
     }],
+    ['gallery: the embed keeps its choices in the store (pk.gallery, pk.app), reads the old pk-gallery-* keys once, and remembers an opened fold and the theme (#1339)', async t => {
+        const keys = ['pk.gallery', 'pk.app', 'pk-gallery-width', 'pk-gallery-scale', 'pk-gallery-open', 'pk-site-theme'], saved = keys.map(k => localStorage.getItem(k));
+        try {
+            for (const k of keys) localStorage.removeItem(k);
+            localStorage.setItem('pk-gallery-width', 'phone'); localStorage.setItem('pk-gallery-scale', '1.3');
+            const p = await open(t, '#/overview');
+            t.eq(p.doc.documentElement.dataset.width, 'phone', 'the old width key is read once');
+            const branch = await until(() => p.doc.querySelector('#gx-nav pk-nav-item[data-branch]'), 'a folding group');
+            await p.win.customElements.whenDefined('pk-nav-item');
+            t.ok(!branch.hasAttribute('expanded'), 'a group is folded until it is opened');
+            branch.shadowRoot.querySelector('[part="link"]').click();
+            await until(() => JSON.parse(localStorage.getItem('pk.gallery') ?? '{}').data?.open?.includes(branch.dataset.branch), 'the opened fold to be saved');
+            t.eq(JSON.parse(localStorage.getItem('pk.gallery')).data.width, 'phone', 'the migrated width is saved with it');
+            p.doc.querySelector('#gx-theme').click();
+            await until(() => JSON.parse(localStorage.getItem('pk.app') ?? '{}').data?.theme === 'light', 'the theme choice in the app namespace');
+            t.eq(localStorage.getItem('pk-site-theme'), null, 'the old theme key is not written any more');
+            const again = await open(t, '#/overview');
+            t.ok(again.doc.querySelector(`#gx-nav pk-nav-item[data-branch="${branch.dataset.branch}"]`)?.hasAttribute('expanded'), 'the fold the reader opened is open on the next visit');
+        } finally { keys.forEach((k, i) => (saved[i] === null ? localStorage.removeItem(k) : localStorage.setItem(k, saved[i]))); }
+    }],
 ];
 
 // The gallery on an element page with the Details drawer open and its first API table (Properties) drawn.
@@ -471,5 +491,19 @@ export const galleryAppCases = [
             await until(() => heights.length > 0, 'the frame to report its height');
             t.ok(Math.abs(heights.at(-1) - box.height) < 400, `the reported height (${heights.at(-1)}) matches the content (${box.height})`);
         } finally { window.removeEventListener('message', listen); }
+    }],
+    ['gallery module (app): navFilter puts the nav\'s filter box on the app side nav, typing narrows the rows to the matches and clearing brings them back, and a module without the option has no box (#1339)', async t => {
+        const { d, win } = await openApp(t, '#/gallery');
+        const nav = d.querySelector('#pk-nav'), rows = () => [...nav.querySelectorAll('pk-nav-item[href]')];
+        await until(() => rows().length > 20, 'the gallery rows');
+        await win.customElements.whenDefined('pk-side-nav');
+        t.ok(nav.hasAttribute('filterable'), 'the gallery module asks for the filter box');
+        const input = await until(() => nav.shadowRoot?.querySelector('[part="filter-input"]'), 'the filter box'), all = rows().filter(r => !r.hidden).length;
+        input.value = 'butt'; input.dispatchEvent(new Event('input', { bubbles: true }));
+        await until(() => rows().filter(r => !r.hidden).length < all / 4 && rows().some(r => !r.hidden && /Button/.test(r.textContent)), 'the rows to narrow to the matches');
+        input.value = ''; input.dispatchEvent(new Event('input', { bubbles: true }));
+        await until(() => rows().filter(r => !r.hidden).length === all, 'every row to come back');
+        win.location.hash = '#/guides';
+        await until(() => !nav.hasAttribute('filterable') && nav.querySelector('pk-nav-item[href*="/guides"]'), 'a module without the option: no box');
     }],
 ];

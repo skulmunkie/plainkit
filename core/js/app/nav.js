@@ -24,12 +24,12 @@ export function navOf(def, ctx) {
     try {
         nav = typeof def.nav === 'function' ? def.nav(ctx) : def.nav;
     } catch (e) {
-        log.error(`nav "${def.id}" threw: no menu`, e);
+        log.error(`nav "${def.id}" threw`, e);
     }
     if (!Array.isArray(nav)) return [];
     if ((nav.length > MAX_TOP || total(nav) > MAX_ALL) && !told.has(def.id)) {
         told.add(def.id);
-        log.warn(`nav "${def.id}": ${nav.length} top-level, ${total(nav)} entries; a nav is structure, records belong in a list page`);
+        log.warn(`nav "${def.id}": ${nav.length} top-level, ${total(nav)} entries; records belong in a list page`);
     }
     return nav;
 }

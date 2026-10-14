@@ -11,7 +11,7 @@
 //
 //   header         ONE menu control (the hamburger: the drawer on a phone or tablet, hide and show the column on a wide screen), the brand, the header search and the settings menu
 //                  (the theme switch and the modules marked menu: 'settings'); the bar's own fold toggle is off (pk-navbar no-fold)
-//   side nav       the ACTIVE module's own nav (def.nav), in full, and nothing else; a module without one leaves the column empty (no reflow), and no drawer body narrow. On a narrow screen the same tree is the drawer.
+//   side nav       the ACTIVE module's own nav (def.nav), in full, and nothing else (def.navFilter: true adds the nav's filter box); a module without one leaves the column empty (no reflow), and no drawer body narrow. On a narrow screen the same tree is the drawer.
 //   module picker  the one way to switch modules (#388): a dropdown in the bar showing the active module's title (the settings menu's popover shape); narrow, the drawer's first row instead.
 //                  Absent with one module. Its title is the ONE value the breadcrumb, the document title and the menu label read
 //   breadcrumbs    App > Module > the nav entry the route belongs to > the route labels (a record route sits under its list in the route tree); the document title is the last crumb and the app title
@@ -103,7 +103,7 @@ export function mountApp(container, config) {
         ui.picker.toggleAttribute('hidden', !pick || inDrawer);
         ui.picker.firstChild.firstChild.textContent = modTitle || 'Modules';
         if (a && !nav.length && !inDrawer && narrow.matches) { ui.sideNav.remove(); ui.toggle.remove(); ui.skipNav.remove(); return; }
-        ui.sideNav.setAttribute('label', modTitle && !inDrawer ? `${modTitle} menu` : 'Menu');
+        ui.sideNav.setAttribute('label', modTitle && !inDrawer ? `${modTitle} menu` : 'Menu'); ui.sideNav.toggleAttribute('filterable', !!a?.def.navFilter);
         const list = mods.map(m => ({ id: `module:${m.id}`, title: m.title, icon: m.icon, module: m.id, href: hrefOf(`/${m.id}`), active: m.id === a?.id }));
         rows = paintNav(doc, ui.sideNav, [{ items: [...(inDrawer ? [{ id: 'module:picker', title: modTitle || 'Modules', children: list }] : []), ...absolute(nav, path => moduleHref(a.id, path))] }]);
         ui.shell.append(ui.sideNav, ui.toggle);

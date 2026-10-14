@@ -49,8 +49,7 @@ export function buildShell(doc, cfg, hrefOf) {
     const main = h(doc, 'main', { id: 'pk-main', tabindex: '-1' });
     main.append(body);
     const shell = h(doc, 'pk-app-shell');
-    shell.append(navbar, main);
-    shell.append(...footerNodes(doc, cfg.footer));
+    shell.append(navbar, main, ...footerNodes(doc, cfg.footer));
     const live = h(doc, 'div', { role: 'status', 'aria-live': 'polite', class: 'u-sr-only' });
     const toasts = h(doc, 'pk-toast-stack', { position: 'bottom-end' });
     const dialogs = h(doc, 'div', { 'data-pk-dialogs': true });
