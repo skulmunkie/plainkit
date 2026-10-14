@@ -1052,6 +1052,15 @@ export const dataDisplayCases = [
         t.eq(Math.round(frame.getBoundingClientRect().height), 300, 'a fixed height wins over the content height');
     }],
 
+    ['gallery: a frame that loads but never says it is ready (the gallery files are absent from the install) shows the notice that names src; a gallery that answers keeps it hidden (#1253)', async t => {
+        const el = await t.mount('<pk-gallery src="about:blank"></pk-gallery>');
+        t.ok(el.part('notice').hidden, 'no notice while the frame is still loading');
+        el.missing();
+        t.ok(!el.part('notice').hidden && /src attribute/.test(el.part('notice').textContent), 'the notice shows and names the src attribute');
+        el.part('notice').hidden = true; el.$ready = true; el.missing(); // a gallery that answered is never reported missing
+        t.ok(el.part('notice').hidden, 'a ready gallery keeps the notice hidden');
+    }],
+
     ['gallery: chrome full keeps the contents nav, cut down to the requested control', async t => {
         const until = async (fn, what) => { for (let i = 0; i < 150; i++) { const v = fn(); if (v) return v; await wait(100); } throw new Error(`timed out waiting for ${what}`); };
         const el = await t.mount('<pk-gallery chrome="full" control="button" height="420"></pk-gallery>');

@@ -101,7 +101,7 @@ The loader imports only the elements the page uses. Props are attributes or prop
 
 ## Embed the gallery in your own page
 
-`dist/gallery/` is the SDK gallery, self-contained. Show all of it, or only what you want, with one element (it loads on demand, in a frame):
+`dist/gallery/` is the SDK gallery, self-contained. It is not in the npm package (it ships on the Pages site, `https://skulmunkie.github.io/plainkit/dist/gallery/embed.html`, and in the release zip `plainkit-dist-<version>.zip`): copy it next to `elements/`, or point `src` at a hosted `embed.html`; a frame that never answers shows a notice saying so. Show all of it, or only what you want, with one element (it loads on demand, in a frame):
 
 ```html
 <pk-gallery kind="elements" group="Form controls" theme="light" width="phone"></pk-gallery>
