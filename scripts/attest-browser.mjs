@@ -90,6 +90,14 @@ export function parseArgs(argv) {
     return o;
 }
 
+// The one-line reason a run ended without a report: the browser exiting early (crash, profile lock, a second instance handing the URL
+// to an already running browser) is not "raise --timeout". `exit` is { code, signal } or null while the browser still runs.
+export function noReportMessage({ timeout, url, exit = null, elapsed = 0, lines = [] }) {
+    const tail = lines.length ? ` Last server output: ${lines.slice(-3).join(' | ')}` : '';
+    if (exit) return `The browser exited (code ${exit.code ?? 'none'}${exit.signal ? `, signal ${exit.signal}` : ''}) after ${Math.round(elapsed)} s without writing a report: it crashed, or another browser took over the URL. Close other Chrome/Edge runs, or try PK_CHROME_FLAGS=--disable-extensions; open ${url} in a visible tab to see the page.${tail}`;
+    return `No report within ${timeout} s (the suite needs about 170 s, more on a busy machine): raise --timeout, and check the browser can open ${url}.${tail}`;
+}
+
 const sleep = ms => new Promise(r => setTimeout(r, ms));
 const readReport = () => { try { return JSON.parse(fs.readFileSync(reportFile, 'utf8')); } catch { return null; } }; // missing or half-written: not there yet
 
@@ -125,7 +133,9 @@ async function main() {
     try {
         server = spawn(process.execPath, [path.join(root, 'core', 'tools', 'serve.mjs'), String(options.port), '--write-reports'], { stdio: ['ignore', 'pipe', 'pipe'] });
         let serverError = '';
+        const serverLines = [];
         server.stderr.on('data', d => { serverError += d; });
+        server.stdout.on('data', d => { for (const l of String(d).split(/\r?\n/)) if (l.trim()) serverLines.push(l.trim()); });
         await new Promise((resolve, reject) => {
             server.once('exit', c => reject(new Error(`the server exited with ${c}: ${serverError.trim() || 'port in use?'}`)));
             server.stdout.on('data', d => { if (String(d).includes('http://localhost')) resolve(); });
@@ -135,20 +145,25 @@ async function main() {
         console.log(`server on ${url}; browser ${chrome}; window ${options.width}x${options.height}`);
         browser = spawn(chrome, chromeArgs({ profile, url, width: options.width, height: options.height, extra: process.env.PK_CHROME_FLAGS }), { stdio: 'ignore', detached: process.platform !== 'win32' });
 
+        let browserExit = null, exitedAt = 0;
+        browser.once('exit', (c, sig) => { browserExit = { code: c, signal: sig }; exitedAt = Date.now(); });
         const started = Date.now(); let current = null;
         while (Date.now() - started < options.timeout * 1000) {
             await sleep(2000);
             current = readReport();
             if (isNewRun(before?.ran ?? null, current)) break;
             current = null;
+            if (browserExit && Date.now() - exitedAt > 6000) break; // a page that finished may still be saving its report: give it a few seconds
         }
-        if (!current) { console.error(`No report within ${options.timeout} s (the suite needs about 170 s): raise --timeout, and check the browser can open ${url}`); return 2; }
+        if (!current) { console.error(noReportMessage({ timeout: options.timeout, url, exit: browserExit, elapsed: (Date.now() - started) / 1000, lines: serverLines })); return 2; }
 
         const sum = summarizeReport(current);
+        if (!sum) { console.error(`${reportFile} is not a valid report (no results/passed/failed); delete it and run again.`); return 2; }
         console.log(`browser run ${sum.ran}: ${sum.passed} passed, ${sum.failed} failed, ${sum.total} cases${selectionNote(current)}`);
         if (current.filter && sum.total === 0) { console.error('The filter matched no case: check --filter / --elements against the case names in core/tests/browser/cases*.js.'); return 1; }
         for (const r of current.results.filter(r => !r.ok)) console.log(`  FAIL ${r.name}: ${r.error ?? ''}`);
         code = sum.ok ? 0 : 1;
+        if (code === 1 && !current.results.some(r => !r.ok)) console.error(`The run failed without a failing case: ${sum.passed} passed + ${sum.failed} failed of ${sum.total} recorded results (the suite may have stopped part way).`);
     } catch (e) {
         console.error(e.message);
         code = 2;
