@@ -9,7 +9,7 @@ public sealed partial record PkFieldDef
     public required string Key { get; init; }
     /// <summary>The field label.</summary>
     public required string Label { get; init; }
-    /// <summary>text, number, email, password, date, time, url, tel, textarea, select, checkbox, switch, range or combobox; text when unset.</summary>
+    /// <summary>text, number, email, password, date, datetime-local, time, url, tel, textarea, select, checkbox, switch, range or combobox; text when unset.</summary>
     public string? Kind { get; init; }
     /// <summary>Help in a tooltip beside the label.</summary>
     public string? Help { get; init; }

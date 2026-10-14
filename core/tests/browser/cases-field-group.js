@@ -93,6 +93,35 @@ export const fieldGroupCases = [
         const grid = el.part('group'); t.eq(grid.getAttribute('columns'), '2');
     }],
 
+    // #1314: fields share a row; the rects are what the user sees.
+    ['field-group: columns=3 puts short fields side by side, columnSpan takes two columns and span the row, and a narrow group stacks them in one column (#1314)', async t => {
+        const host = t.stage('<pk-field-group label="Box" columns="3"></pk-field-group>');
+        const el = host.firstElementChild;
+        el.fields = [{ key: 'w', label: 'W', kind: 'number' }, { key: 'h', label: 'H', kind: 'number' }, { key: 'd', label: 'D', kind: 'number' }, { key: 'n', label: 'N', columnSpan: 2 }, { key: 'u', label: 'U' }, { key: 'x', label: 'X', span: true }, { key: 'y', label: 'Y', columnSpan: 3 }];
+        host.style.width = '900px'; await t.load(host); await t.load(el.shadowRoot); await t.settle(); await t.settle();
+        const r = k => fieldOf(el, k).getBoundingClientRect(), box = el.getBoundingClientRect();
+        t.ok(Math.abs(r('W').top - r('H').top) < 1 && Math.abs(r('H').top - r('D').top) < 1 && r('W').right <= r('H').left && r('H').right <= r('D').left, 'three number fields share one row');
+        t.ok(r('N').width > r('W').width * 1.9 && Math.abs(r('N').top - r('U').top) < 1, 'columnSpan 2 is two columns wide and shares its row with the next field');
+        t.ok(Math.abs(r('X').width - box.width) < 1 && Math.abs(r('Y').width - box.width) < 1, 'span, and a columnSpan that reaches every column, fill the row');
+        host.style.width = '320px'; await t.settle(); await t.settle();
+        t.ok(['W', 'H', 'D', 'N', 'U'].every(k => Math.abs(r(k).left - r('W').left) < 1 && Math.abs(r(k).width - r('W').width) < 1), 'a narrow group is one column, a span does not overflow it');
+        t.ok(el.getBoundingClientRect().width <= 320 && el.scrollWidth <= 320 + 1, 'no horizontal overflow');
+    }],
+
+    // #1313: a datetime-local field.
+    ['field-group: kind datetime-local is a datetime-local input that holds yyyy-MM-ddTHH:mm, commits it and validates min like date (#1313)', async t => {
+        const el = await mountGroup(t, [{ key: 'at', label: 'At', kind: 'datetime-local', required: true, min: '2026-01-01T08:00' }], { at: '2026-10-14T09:30' });
+        const c = el.shadowRoot.querySelector('pk-input');
+        t.eq(c.getAttribute('type'), 'datetime-local'); t.eq(c.value, '2026-10-14T09:30');
+        let got; el.addEventListener('pk-field-change', e => { got = e.detail; });
+        type(c, '2027-02-03T18:30'); await t.settle();
+        t.eq(got?.value, '2027-02-03T18:30', 'the committed value is the wall-clock text'); t.eq(el.values.at, '2027-02-03T18:30');
+        type(c, '2025-12-31T10:00'); await t.settle(); await t.settle();
+        t.ok(el.checkValidity() === false, 'a value before min is invalid');
+        type(c, ''); await t.settle(); await t.settle();
+        t.ok(el.checkValidity() === false, 'required: empty is invalid');
+    }],
+
     // ---- form association (step 2) -------------------------------------------------------------------------------------------------------
     ['field-group: it is in form.elements and its FormData has one entry per shown field: a checkbox only when checked, a hidden field none, a disabled field none', async t => {
         const { el, form } = await inForm(t, FIELDS, { name: 'Acme', qty: '3', status: 'open', rush: true, note: 'kept' });

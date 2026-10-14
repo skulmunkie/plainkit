@@ -64,6 +64,11 @@
       "doc": "The field fills the whole row of a multi-column group."
     },
     {
+      "name": "ColumnSpan",
+      "type": "int?",
+      "doc": "The columns of a multi-column group the field takes (2 or 3); it sits in one column when the group is narrow. Span fills the whole row."
+    },
+    {
       "name": "HideLabel",
       "type": "bool",
       "doc": "Hides the label visually and keeps it as the control's accessible name."
@@ -133,6 +138,12 @@
   ],
   "fieldFactories": [
     {
+      "name": "Bool",
+      "doc": "A Checkbox spec over a bool property: wraps the string Get/Set so the caller does not translate \"true\"/\"\" by hand. Set the other members with with: PkFieldSpec<T>.Bool(\"active\", \"Active\", o => o.Active, (o, v) => o.Active = v) with { Hint = \"...\" }.",
+      "params": "Func<TItem, bool> get, Action<TItem, bool> set",
+      "init": ["Kind = PkFieldKind.Checkbox", "Get = item => get(item) ? \"true\" : \"\"", "Set = (item, value) => set(item, !string.IsNullOrEmpty(value) && value != \"false\")"]
+    },
+    {
       "name": "Async",
       "doc": "A spec whose change is committed by an async call (a service, a dependent reload): the element shows the field busy while it runs, a newer edit replaces a pending one (last wins, a stale answer changes nothing), an exception shows its message as the field's error and keeps the typed text, and ModelChanged is raised only after it succeeds. Get reads the model; the text goes to setAsync, not to Set.",
       "params": "Func<TItem, string?> get, Func<TItem, string?, Task> setAsync",
@@ -149,6 +160,18 @@
         "Min = min?.ToString(System.Globalization.CultureInfo.InvariantCulture)",
         "Max = max?.ToString(System.Globalization.CultureInfo.InvariantCulture)",
         "Step = step?.ToString(System.Globalization.CultureInfo.InvariantCulture)"
+      ]
+    },
+    {
+      "name": "DateTime",
+      "doc": "A DateTime kind spec over a DateTime? property: the value is the wall-clock text yyyy-MM-ddTHH:mm in invariant culture, with no time zone (a read-back value keeps its Kind, a committed one is DateTimeKind.Unspecified; convert in your own Get and Set when the property is UTC or a DateTimeOffset). Min and Max are DateTimes formatted the same way. An empty or unreadable text sets null.",
+      "params": "Func<TItem, System.DateTime?> get, Action<TItem, System.DateTime?> set, System.DateTime? min = null, System.DateTime? max = null",
+      "init": [
+        "Kind = PkFieldKind.DateTime",
+        "Get = item => get(item)?.ToString(\"yyyy-MM-dd'T'HH:mm\", System.Globalization.CultureInfo.InvariantCulture)",
+        "Set = (item, v) => set(item, System.DateTime.TryParseExact(v, new[] { \"yyyy-MM-dd'T'HH:mm\", \"yyyy-MM-dd'T'HH:mm:ss\" }, System.Globalization.CultureInfo.InvariantCulture, System.Globalization.DateTimeStyles.None, out var d) ? d : null)",
+        "Min = min?.ToString(\"yyyy-MM-dd'T'HH:mm\", System.Globalization.CultureInfo.InvariantCulture)",
+        "Max = max?.ToString(\"yyyy-MM-dd'T'HH:mm\", System.Globalization.CultureInfo.InvariantCulture)"
       ]
     },
     {

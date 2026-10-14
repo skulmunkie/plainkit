@@ -218,6 +218,21 @@ public sealed class PkFieldGroupTests : BunitContext, IAsyncLifetime
         spec.Set(new Order(), ""); Assert.Null(price);
     }
 
+    // Issue 1313: DateTime is a datetime-local field over a DateTime? property, as invariant wall-clock text; Issue 1314: ColumnSpan reaches the element.
+    [Fact]
+    public void DateTime_reads_and_writes_wall_clock_text_and_sends_the_datetime_local_kind()
+    {
+        DateTime? due = new DateTime(2026, 10, 14, 9, 5, 0);
+        var spec = PkFieldSpec<Order>.DateTime("due", "Due", _ => due, (_, v) => due = v, new DateTime(2026, 1, 1), new DateTime(2026, 12, 31, 23, 59, 0)) with { ColumnSpan = 2 };
+        Assert.Equal(("2026-10-14T09:05", "2026-01-01T00:00", "2026-12-31T23:59", PkFieldKind.DateTime), (spec.Get(new Order()), spec.Min, spec.Max, spec.Kind));
+        spec.Set(new Order(), "2027-02-03T18:30"); Assert.Equal(new DateTime(2027, 2, 3, 18, 30, 0), due);
+        spec.Set(new Order(), "2027-02-03T18:30:15"); Assert.Equal(new DateTime(2027, 2, 3, 18, 30, 15), due);
+        spec.Set(new Order(), "nope"); Assert.Null(due);
+        var def = Defs(Render([spec]))[0];
+        Assert.Equal("datetime-local", def.GetProperty("kind").GetString()); Assert.Equal(2, def.GetProperty("columnSpan").GetInt32());
+        Assert.Equal("3", Render<PkFieldGroup<Order>>(p => p.Add(x => x.Fields, [spec]).Add(x => x.Model, new Order()).Add(x => x.Columns, 3)).Find("pk-field-group").GetAttribute("columns"));
+    }
+
     // Issue 753 gap 2: PkFieldKind.Combobox, its options from Options or from an async Search callback the element runs as the user types.
     private sealed class Pick { public string Sku { get; set; } = ""; }
 

@@ -113,7 +113,7 @@ export function repoSources(elements, rootDir = coreRoot) {
 }
 
 /** The JSON text the build writes to dist/breakpoints.report.json; `elements` is what loadElementSources returned (their CSS is already resolved). */
-export const reportJson = (elements, rootDir = coreRoot) => JSON.stringify(buildReport(repoSources(elements, rootDir), loadBreakpoints()), null, 1) + '\n';
+export const reportJson = (elements, rootDir = coreRoot) => JSON.stringify(buildReport(repoSources(elements, rootDir), loadBreakpoints())) + '\n';
 
 /** A readable table: one section per breakpoint, one line per element with the properties that change. */
 export function formatTable(report) {

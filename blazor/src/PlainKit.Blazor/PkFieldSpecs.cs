@@ -20,7 +20,7 @@ internal static class PkFieldSpecs
             string? Pick(Func<T, string?>? when, string? fallback) => has && when?.Invoke(model!) is { Length: > 0 } s ? s : fallback;
             return PkFieldGroupMembers.Pass(f) with
             {
-                Label = Pick(f.LabelWhen, f.Label)!, Kind = f.Editor is not null ? "custom" : f.Kind.ToString().ToLowerInvariant(), Help = Pick(f.HelpWhen, f.Help),
+                Label = Pick(f.LabelWhen, f.Label)!, Kind = f.Editor is not null ? "custom" : f.Kind == PkFieldKind.DateTime ? "datetime-local" : f.Kind.ToString().ToLowerInvariant(), Help = Pick(f.HelpWhen, f.Help),
                 Disabled = (has && (f.Disabled?.Invoke(model!) ?? false)) || (readOnly && !text), Readonly = readOnly && text, Options = f.OptionsSource?.Invoke() ?? f.Options,
             };
         }).ToList();

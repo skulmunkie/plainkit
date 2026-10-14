@@ -92,7 +92,7 @@ export async function customizeDist(files, { include, breakpoints, theme }) {
                 for (const n of Object.keys(counts)) counts[n] += r.counts[n];
             }
             if (changed && pageCss(path)) text = rewriteProperties(text, to).text;
-            if (path === 'breakpoints.report.json' && changed) text = eol(JSON.stringify(reportWithWidths(JSON.parse(text.replace(/\r\n/g, '\n')), to), null, 1) + '\n', text);
+            if (path === 'breakpoints.report.json' && changed) text = eol(JSON.stringify(reportWithWidths(JSON.parse(text.replace(/\r\n/g, '\n')), to)) + '\n', text);
             if (themeCss && pageCss(path)) {
                 const compact = path === 'plainkit.min.css';
                 const nl = /\r\n/.test(before) ? '\r\n' : '\n';

@@ -9,7 +9,7 @@
 <pk-field-group fields="@PkAttr.Json(Defs())"
                 values="@Values()"
                 @ref="Element"
-                class="@Css()"
+                columns="@Columns" class="@Css()"
                 @attributes="Splat">
     @foreach (var f in Visible())
     {
@@ -21,10 +21,10 @@
 @code {
     [Inject] private PkRuntime Runtime { get; set; } = default!;
     private readonly PkCallbackSlot _search = new("search"), _commit = new("commit");
-
     /// <summary>The fields to render, in order.</summary>
     [Parameter, EditorRequired] public IReadOnlyList<PkFieldSpec<TItem>> Fields { get; set; } = [];
-
+    /// <summary>How many columns the fields flow into (one on a narrow group); a spec's <c>Span</c> fills the row, its <c>ColumnSpan</c> takes that many columns.</summary>
+    [Parameter] public int? Columns { get; set; }
     /// <summary>The bound record; each field's <c>Get</c> reads it, each commit calls <c>Set</c> then <see cref="ModelChanged"/>.</summary>
     [Parameter, EditorRequired] public TItem Model { get; set; } = default!;
 
