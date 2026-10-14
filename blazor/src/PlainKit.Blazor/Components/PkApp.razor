@@ -6,6 +6,7 @@
 @inject PkModuleCatalog Catalog
 @inject NavigationManager Nav
 @inject IPkTheme Theme
+@inject PkRuntime Runtime
 
 @* Hand-written (#364, step 3), router category: the module catalog and where the reader is (PkNavModel) go into the data of pk-app-frame, which draws
    the shell, nav, picker, search and breadcrumb. The page is the body (ChildContent); links are plain hrefs, so the only handlers are search and theme. *@
@@ -22,28 +23,27 @@
     private PkNavLocation? _loc;
     private IPkModule? _active;
     private IEnumerable<object> _found = [];
+    private bool _moved;
 
     /// <summary>The page: the router's body.</summary>
     [Parameter] public RenderFragment? ChildContent { get; set; }
 
     protected override void OnInitialized() { Where(); Nav.LocationChanged += OnLocationChanged; }
 
-    protected override async Task OnAfterRenderAsync(bool firstRender) { if (firstRender) await Theme.InitializeAsync(); }
+    protected override async Task OnAfterRenderAsync(bool firstRender) { if (firstRender) await Theme.InitializeAsync(); else if (_moved) await RouteChangedAsync(); }
+
+    // Once the new page has rendered: title, focus and announcement, which are core's (js/app/route-focus.js), not re-written here.
+    private async Task RouteChangedAsync() { _moved = false; await (await Runtime.BridgeAsync()).InvokeVoidAsync("routeChanged", _loc?.Crumbs.LastOrDefault()?.Label ?? Catalog.Brand, Catalog.Brand); }
 
     private void Where()
     {
         _loc = PkNavModel.Locate(Catalog.Modules.Select(m => m.Manifest), Catalog.Brand, "/" + Nav.ToBaseRelativePath(Nav.Uri));
         _active = (_loc is null ? null : Catalog.Get(_loc.Module)) ?? (Catalog.Home is { } h ? Catalog.Get(h) : null) ?? Catalog.Modules.FirstOrDefault();
     }
-
-    private void OnLocationChanged(object? sender, LocationChangedEventArgs e) { Where(); _ = InvokeAsync(StateHasChanged); }
-
+    private void OnLocationChanged(object? sender, LocationChangedEventArgs e) { Where(); _moved = true; _ = InvokeAsync(StateHasChanged); }
     private string Url(string appPath) => Nav.ToAbsoluteUri(appPath.TrimStart('/')).ToString();
-
     private static string Json(object? v) => JsonSerializer.Serialize(v, Opts);
-
     private string? Path(PkManifestNavItem n) => n.Route is null ? null : "/" + _active!.Manifest.Id + (n.Route == "/" ? "" : n.Route);
-
     private IEnumerable<object> Rows(IEnumerable<PkManifestNavItem>? items) => (items ?? []).Select(n => new { n.Id, n.Title, href = Path(n) is { } p ? Url(p) : n.Href, n.Icon, n.Badge, children = Rows(n.Children) });
 
     private static IEnumerable<PkManifestNavItem> Flat(IEnumerable<PkManifestNavItem>? items) => (items ?? []).SelectMany(n => new[] { n }.Concat(Flat(n.Children)));
