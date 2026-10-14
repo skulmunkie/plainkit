@@ -52,7 +52,7 @@
       "type": "json",
       "default": [],
       "reflect": false,
-      "description": "The module picker: { id, title, href }[]. Fewer than two draws no picker, and pk-navbar draws none on a phone."
+      "description": "The module picker: { id, title, href }[]. Fewer than two draws no picker. On a phone the list is the first row of the drawer instead, the one titled moduleTitle marked current."
     },
     {
       "name": "moduleTitle",
