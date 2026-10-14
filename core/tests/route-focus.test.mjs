@@ -56,3 +56,11 @@ test('the Blazor bridge and PkApp use it', () => {
     assert.match(blazor('wwwroot/plainkit.blazor.js'), /export const routeChanged = .*route-focus[.]js/);
     assert.match(blazor('Components/PkApp.razor'), /InvokeVoidAsync\("routeChanged"/);
 });
+
+test('a heading drawn inside an open shadow root takes focus (#1335)', () => {
+    const h1 = el(), host = { shadowRoot: { querySelector: () => h1 } };
+    const main = el({ querySelector: () => null, querySelectorAll: () => [{ shadowRoot: null }, host] }), l = live();
+    pageLoaded(main, l, 'Orders');
+    assert.equal(h1.focused, 1);
+    assert.equal(main.focused, 0);
+});

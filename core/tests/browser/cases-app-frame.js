@@ -43,4 +43,14 @@ export const appFrameCases = [
         t.eq(d.title, 'Acme', 'the home page is the site name alone');
         t.eq(d.querySelectorAll('#pk-route-live').length, 1, 'the live region is reused');
     }],
+    ['route change bridge (#1335): a heading inside an open shadow root of a page element takes focus', async t => {
+        const { frame } = await open(t, 1280), d = frame.ownerDocument, { routeChanged } = await import('../../js/route-focus.js'), main = d.getElementById('pk-main');
+        main.querySelector('h1')?.remove();
+        const host = d.createElement('div'), h1 = d.createElement('h1');
+        h1.textContent = 'Orders';
+        host.attachShadow({ mode: 'open' }).append(h1);
+        main.append(host);
+        routeChanged('Orders', 'Acme', d);
+        t.ok(host.shadowRoot.activeElement === h1, 'focus is on the shadow-root h1');
+    }],
 ];
