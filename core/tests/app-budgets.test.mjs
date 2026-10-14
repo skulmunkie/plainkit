@@ -76,6 +76,17 @@ test('every app framework file stays at or under its line target, and a new file
     for (const f of Object.keys(LINES)) assert.ok(files.includes(f), `${f} is gone. FIX: delete its entry from LINES.`);
 });
 
+// The same ratchet for the site's own modules (the Gallery dogfoods the framework with lean modules, #362): equal to today's size, never raised.
+const MODULE_LINES = { 'devtools.js': 13, 'files.js': 18, 'gallery.js': 50, 'guides.js': 33, 'layout-builder.js': 37, 'scorecard.js': 17, 'settings.js': 38, 'theme.js': 19 };
+test('every core/site/modules/ file stays at or under its line target, and a new module must be listed (ratchet, #362)', () => {
+    const files = list('site/modules').map(f => path.posix.basename(f));
+    for (const f of files) {
+        assert.ok(f in MODULE_LINES, `site/modules/${f} has no line target. FIX: add it to MODULE_LINES in core/tests/app-budgets.test.mjs at its current size.`);
+        assert.ok(lineCount(`site/modules/${f}`) <= MODULE_LINES[f], `site/modules/${f} is ${lineCount(`site/modules/${f}`)} lines, target ${MODULE_LINES[f]}. FIX: make it smaller or move code into core; never raise the target.`);
+    }
+    for (const f of Object.keys(MODULE_LINES)) assert.ok(files.includes(f), `site/modules/${f} is gone. FIX: delete its entry from MODULE_LINES.`);
+});
+
 // The framework ships no stylesheet of its own (the shell and elements carry theirs): the app-only CSS budget is zero bytes. Never raise it.
 const APP_CSS_BYTES = 0;
 test('the app framework adds no CSS (app-only CSS budget, #362)', () => {
