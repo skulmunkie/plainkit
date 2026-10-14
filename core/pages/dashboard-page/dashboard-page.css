@@ -14,5 +14,5 @@ pk-tab-panel { padding-block-start: var(--space-4); }
     [part="grid"] > pk-card[data-size="md"] { grid-column: span 2; }
     [part="grid"] > pk-card[data-size="lg"] { grid-column: 1 / -1; }
 }
-[part="grid"] > pk-card[data-kind="stat"] { min-block-size: calc(var(--space-12) * 2); }
-[part="grid"] > pk-card[data-kind="chart"] { min-block-size: calc(var(--space-12) * 4); }
+[part="grid"] > pk-card[data-kind="stat"] { min-block-size: calc(var(--space-12) * 4); }
+[part="grid"] > pk-card[data-kind="chart"] { min-block-size: calc(var(--space-12) * 6); }

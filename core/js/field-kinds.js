@@ -1,7 +1,7 @@
 // The one table of what a field spec becomes: its kind picks the control, the control's own commit event and the way to read and write its value.
 // pk-field-group renders from it, js/page-fields.js (tool-page and settings-page) reads the tag from it, and the rules for a conditional field live here too.
 // Only existing elements (STANDARDS.md): pk-input carries every scalar type through its `type`.
-export const INPUT_KINDS = ['text', 'number', 'email', 'password', 'date', 'time', 'url', 'tel'];
+export const INPUT_KINDS = ['text', 'number', 'email', 'password', 'date', 'datetime-local', 'time', 'url', 'tel'];
 const TAGS = { textarea: 'pk-textarea', select: 'pk-select', checkbox: 'pk-checkbox', switch: 'pk-switch', range: 'pk-range', combobox: 'pk-combobox' };
 
 /** The element tag a field kind renders (pk-input for every scalar type and for a kind it does not know). */
