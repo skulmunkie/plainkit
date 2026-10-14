@@ -75,17 +75,14 @@ public sealed partial class PkRecordEditor<TRecord, TForm, TKey>(
     /// <summary>A blank form for a new record.</summary>
     public void StartNew()
     {
-        Error = null;
-        NotFound = false;
-        Record = null;
+        (Error, NotFound, Record) = (null, false, null);
         Form = toForm(null);
     }
 
     /// <summary>Loads record <paramref name="id"/> for editing. When there is none, <see cref="NotFound"/> is set and <see cref="Form"/> and <see cref="Record"/> are cleared.</summary>
     public async Task LoadAsync(TKey id)
     {
-        Error = null;
-        NotFound = false;
+        (Error, NotFound) = (null, false);
         Exception? failure = null;
         await _life.LoadAsync(_ => load(id), record =>
         {
@@ -125,13 +122,8 @@ public sealed partial class PkRecordEditor<TRecord, TForm, TKey>(
 
     private bool Decides(Exception ex)
     {
-        if (IsUserFacing is null) return false;
-        try { return IsUserFacing(ex); }
-        catch (Exception inner)
-        {
-            logger.LogWarning(inner, "IsUserFacing threw for {Noun}", noun);
-            return false;
-        }
+        try { return IsUserFacing?.Invoke(ex) ?? false; }
+        catch (Exception inner) { logger.LogWarning(inner, "IsUserFacing threw for {Noun}", noun); return false; }
     }
 
     private async Task<bool> RunAsync(Func<Task> action, string verb)
