@@ -1,5 +1,5 @@
 // The Gallery as a module of the site app (#355): the nav is the gallery's whole tree (foundations, the element categories with their elements, samples) as collapsed groups, and ONE
-// route ('*', kept alive) mounts the gallery's views inside the app body. The views write their addresses under #/gallery themselves (B() in gallery-views.js), the route's context names
+// route ('*', kept alive) mounts the gallery's views inside the app body. The views write their addresses under #/gallery themselves (the mount's base option), the route's context names
 // the current row (the branch opens, the row is marked), and the app owns the bar, the theme, the title and the side nav (the gallery's own nav column is hidden, gallery.css, [data-gx-app]).
 // The Elements branch holds 131 rows, over the nav's 40-entry advice: the one deliberate exception, a tree of collapsed groups; the header search still finds an element by name.
 import { defineModule } from '../../js/app.js';

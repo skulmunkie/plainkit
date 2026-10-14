@@ -10,9 +10,6 @@ import { contrast, grade } from '../../js/colour.js';
 import { initPlainkit } from '../../js/plainkit.js';
 import { on, h } from '../../js/mount-support.js';
 
-// the gallery's addresses: '#' + the path the host app mounts it under (empty when it is its own page) + the gallery's own path
-export const where = { prefix: '' };
-export const B = () => '#' + where.prefix;
 export const esc = s => String(s ?? '').replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
 const PAGE_SIZE = 40;
 
@@ -67,9 +64,9 @@ function paged(items, page, render, hashBase) {
 
 // ---- foundations views ---------------------------------------------------------------------------------------------------
 
-// ctx: opts() the mount's options, query() the route's query, css() the stylesheets read at mount (tokens, utilities, spacing, icons), scope(id) what the scope and filter leave of a section (scopeGroup(section, group) and keeps(section, group, id) likewise), slot(sample, control, fixed) a lazy sample frame, state the gallery's theme and width.
+// ctx: B() the gallery's address base ('#' + the host's prefix, per mount), prefix() that prefix, opts() the mount's options, query() the route's query, css() the stylesheets read at mount (tokens, utilities, spacing, icons), scope(id) what the scope and filter leave of a section (scopeGroup(section, group) and keeps(section, group, id) likewise), slot(sample, control, fixed) a lazy sample frame, state the gallery's theme and width.
 export function createViews(ctx) {
-    const { scope, scopeGroup, keeps, slot, state, query } = ctx; // query(): the route's query object, from the router
+    const { scope, scopeGroup, keeps, slot, state, query, B } = ctx; // query(): the route's query object, from the router
     function viewFoundation(id) {
         const tokens = parseTokenBlocks(ctx.css().tokens);
         const val = (node, name) => getComputedStyle(node).getPropertyValue(name).trim();
@@ -140,9 +137,9 @@ export function createViews(ctx) {
             [`${B()}/elements`, 'Elements', `${ELEMENTS.length} custom elements generated from their API data, each with a live playground.`],
             [`${B()}/samples`, 'Samples', `${TEMPLATE_PAGES.length} page templates, ${PATTERNS.length} patterns and ${LAYOUTS.length + 2} layouts, all built only from the SDK.`],
             ...(HAS_SITE && !narrowed ? [
-                [`${where.prefix ? '' : '../../app.html'}#/theme`, 'Theme editor', 'Edit every token live and export the override block.'],
-                [`${where.prefix ? '' : '../../app.html'}#/scorecard`, 'Scorecard', 'Performance, look and accessibility scores, the size sweep and security findings.'],
-                [`${where.prefix ? '' : '../../app.html'}#/files`, 'Files', 'Browse the SDK source in the code explorer.'],
+                [`${ctx.prefix() ? '' : '../../app.html'}#/theme`, 'Theme editor', 'Edit every token live and export the override block.'],
+                [`${ctx.prefix() ? '' : '../../app.html'}#/scorecard`, 'Scorecard', 'Performance, look and accessibility scores, the size sweep and security findings.'],
+                [`${ctx.prefix() ? '' : '../../app.html'}#/files`, 'Files', 'Browse the SDK source in the code explorer.'],
             ] : []),
         ];
         return heading('Plainkit', 'Plain HTML, CSS and JS: no framework, no build step to use it, no runtime dependencies.')

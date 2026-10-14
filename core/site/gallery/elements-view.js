@@ -9,7 +9,8 @@ import { applyDynamic } from '../../js/dynamic.js';
 import { on, later, h as build } from '../../js/mount-support.js';
 
 // options.onLive(element) hands the playground's live element to the caller (the gallery's inspector shows it); options.onChange() runs after
-// every change of its markup; options.doc is the document the page is built in (the gallery's own by default).
+// every change of its markup; options.doc is the document the page is built in (the gallery's own by default). The page's timers and frame
+// callbacks end with its teardown: options.teardown(fn) hands the caller that function (#1326), which a page type returns as its cleanup.
 export function renderElement(meta, options = {}) {
     const doc = options.doc ?? globalThis.document, win = doc.defaultView;
     const h = (tag, attrs, ...kids) => build(doc, tag, attrs, ...kids);
@@ -19,6 +20,9 @@ export function renderElement(meta, options = {}) {
     const fromHtml = html => { const d = h('div'); d.innerHTML = html; const f = doc.createDocumentFragment(); f.append(...d.childNodes); return f; };
     // A code viewer: the code is the element's text content, so a change of text is a change of code.
     const codeBlock = (label, text = '') => h('pk-code-block', { label, wrap: true }, text);
+    const stops = []; let gone = false; // every timer the page starts, and whether it has left
+    const hold = (fn, ms) => { stops.push(later(win, fn, ms)); };
+    options.teardown?.(() => { gone = true; for (const stop of stops.splice(0)) stop(); });
     const page = h('pk-stack', { class: 'gx-page' });
     page.append(h('pk-page-header', { level: 1, heading: meta.title }, h('p', { class: 'muted', slot: 'meta' }, meta.summary), h('p', { class: 'muted', slot: 'meta' }, code(`<${meta.tag}>`), ' - ', meta.group)));
 
@@ -58,7 +62,7 @@ export function renderElement(meta, options = {}) {
         while (log.children.length > 12) log.lastChild.remove();
         refresh();
         // An element that hides itself (an alert's dismiss) would leave an empty stage: bring it back so the playground stays usable.
-        later(win,() => { if (live.hidden) { live.hidden = false; refresh(); } }, 900);
+        hold(() => { if (live.hidden) { live.hidden = false; refresh(); } }, 900);
     });
     const theming = h('pk-stack', { gap: 'sm' });
     // Custom-property overrides go through data-dyn + applyDynamic() (core/js/dynamic.js), never .style directly;
@@ -97,8 +101,8 @@ export function renderElement(meta, options = {}) {
     const tags = new Set(['pk-tabs']); for (const e of tabs.querySelectorAll('*')) if (e.localName.startsWith('pk-')) tags.add(e.localName);
     // Defined is not drawn: a big live element (an app shell, a workspace) fills itself over the next frames, so the page also waits until its height has held for a few frames.
     const release = () => tabs.removeAttribute('data-wait');
-    const settle = (last = -1, still = 0) => win.requestAnimationFrame(() => { const now = tabs.offsetHeight; if (now === last && ++still >= 8) release(); else settle(now, now === last ? still : 0); });
+    const settle = (last = -1, still = 0) => win.requestAnimationFrame(() => { if (gone) return; const now = tabs.offsetHeight; if (now === last && ++still >= 8) release(); else settle(now, now === last ? still : 0); });
     Promise.all([...tags].map(tag => customElements.whenDefined(tag))).then(() => settle());
-    later(win, release, 3000); // a tag that never gets defined must not leave the page blank
+    hold(release, 3000); // a tag that never gets defined must not leave the page blank
     return page;
 }
