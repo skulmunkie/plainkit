@@ -156,12 +156,6 @@ test('readSetting and writeSetting: strings in localStorage, a blocked or full s
     } finally { if (saved === undefined) delete globalThis.localStorage; else globalThis.localStorage = saved; }
 });
 
-test('the gallery settings file re-exports the core helpers unchanged', async () => {
-    const site = await import('../site/gallery/settings.js');
-    assert.equal(site.readSetting, readSetting);
-    assert.equal(site.writeSetting, writeSetting);
-});
-
 test('isolation: a module cannot reach another module\'s private keys; publish keys are a read-only copy', () => {
     const { storage, store } = fresh();
     const a = store.module('a', { defaults: { secret: 's', shared: { n: 1 } }, persist: ['secret'], publish: ['shared'] });

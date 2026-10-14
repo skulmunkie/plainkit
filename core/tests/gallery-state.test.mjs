@@ -2,7 +2,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { createStore } from '../js/store.js';
-import { GALLERY_STATE } from '../site/gallery/state.js';
+import { GALLERY_STATE, APP_THEME, chromeSettings } from '../site/gallery/state.js';
 
 const fake = initial => { const m = new Map(Object.entries(initial)); return { m, getItem: k => m.get(k) ?? null, setItem: (k, v) => void m.set(k, String(v)), removeItem: k => void m.delete(k) }; };
 const open = initial => { const storage = fake(initial); return { storage, gallery: createStore({ storage }).module('gallery', GALLERY_STATE) }; };
@@ -20,4 +20,16 @@ test('nothing stored: the drawer is undecided and the defaults hold; a wrong old
     assert.deepEqual(['width', 'scale', 'inspector', 'w'].map(k => fresh.get(k)), ['desktop', 1, '', 0]);
     const bad = open({ 'pk-gallery-width': 'wide', 'pk-gallery-scale': '9', 'pk-gallery-inspector': 'maybe' }).gallery;
     assert.deepEqual(['width', 'scale', 'inspector'].map(k => bad.get(k)), ['desktop', 1, '']);
+});
+
+test('the embed folds and theme: the old open and pk-site-theme keys are read once, the frame settings map onto the store (#1339)', () => {
+    const { storage, gallery } = open({ 'pk-gallery-open': '["forms","data"]', 'pk-site-theme': 'light' });
+    assert.deepEqual(gallery.get('open'), ['forms', 'data']);
+    assert.equal(createStore({ storage }).module('app', APP_THEME).get('theme'), 'light');
+    const bad = open({ 'pk-gallery-open': '{"x":1}' }).gallery;
+    assert.deepEqual(bad.get('open'), [], 'a wrong old value falls back to the default');
+    const settings = chromeSettings(gallery);
+    assert.equal(settings.get('inspector'), null, 'undecided is null');
+    settings.set('inspector', '1'); settings.set('inspector-w', '420');
+    assert.deepEqual([settings.get('inspector'), settings.get('inspector-w')], ['1', 420]);
 });

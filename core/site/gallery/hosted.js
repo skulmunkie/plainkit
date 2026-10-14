@@ -9,7 +9,7 @@ import { normalizeOptions } from '../../js/gallery-options.js';
 import { PAGE_TYPES } from './pages.js';
 import { createChrome } from './chrome.js';
 import { ALIASES, createRuntime, elementGroups, fullPageOf, viewEvents } from './runtime.js';
-import { GALLERY_STATE } from './state.js';
+import { GALLERY_STATE, chromeSettings } from './state.js';
 
 // What the mounted module holds: the runtime (tree, lazy frames, views) and the frame (chrome). Made by mount, dropped by its cleanup; the layout and the page types read it.
 let g = null;
@@ -50,7 +50,7 @@ const mount = async ctx => {
     const rt = createRuntime({ doc, B, prefix: '/gallery', opts: normalizeOptions({}), state, query: () => ctx.route.query, root: () => g.chrome.view });
     const go = hash => ctx.navigate(hash.slice(B().length) || '/');
     const chrome = createChrome({ doc, B, hosted: true, state, on: ctx.on, pageUrl: rt.pageUrl, navVariant: rt.navVariant,
-        settings: { get: key => (key === 'inspector' ? store.get(key) || null : store.get('w')), set: (key, text) => (key === 'inspector' ? store.set(key, text) : store.set('w', Number(text))) },
+        settings: chromeSettings(store),
         act: { go, theme: ctx.theme.set, width: w => store.set('width', w), scale: v => store.set('scale', v) } });
     g = { rt, chrome, shown: false };
     // the frames follow the app's theme and the store's viewport and text size

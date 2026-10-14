@@ -4,7 +4,7 @@
 //   export default defineModule({
 //       id: 'orders',                                   // ^[a-z][a-z0-9-]{0,39}$; the key the allow-list and the address '#/orders/...' use
 //       title: 'Orders', icon: 'list',
-//       nav: ctx => [{ id: 'all', title: 'All orders', route: '/' }],   // side nav: STRUCTURE (a few stable destinations), never one per record (js/app/nav.js)
+//       nav: ctx => [{ id: 'all', title: 'All orders', route: '/' }],   // side nav: STRUCTURE (a few stable destinations), never one per record (js/app/nav.js); navFilter: true adds the side nav's filter box
 //       routes: [                                        // module-relative; the app adds the module id prefix. page = a type id, or { type, config }
 //           { path: '/', page: 'custom', config: { mount: (el, ctx) => mountOrders(el) } },   // config: data, or ({ path, params, query }, ctx) => data
 //           { path: '/:id', page: 'custom', label: p => `Order ${p.id}`, config: ({ params }) => ({ mount: el => showOrder(el, params.id) }), can: ctx => ctx.auth?.has('orders.read') ?? true },
@@ -69,7 +69,7 @@ export function defineModule(def) {
     if (typeof id !== 'string' || !MODULE_ID.test(id)) fail(id, 'id must match MODULE_ID');
     for (const k of ['can', 'mount', 'unmount']) if (def[k] !== undefined && !isFn(def[k])) fail(id, `${k} must be a function`);
     if (def.nav !== undefined && !isFn(def.nav)) checkNav(id, def.nav);
-    if (def.routes !== undefined && !Array.isArray(def.routes)) fail(id, 'routes must be an array'); if (def.widgets !== undefined && !(def.widgets && typeof def.widgets === 'object' && !Array.isArray(def.widgets) && Object.entries(def.widgets).every(([k, w]) => MODULE_ID.test(k) && isFn(w?.load)))) fail(id, 'widgets must be { key: { load } } with keys like \'churn\'');
+    if (def.routes !== undefined && !Array.isArray(def.routes)) fail(id, 'routes must be an array'); if (def.widgets !== undefined && !(def.widgets && typeof def.widgets === 'object' && !Array.isArray(def.widgets) && Object.entries(def.widgets).every(([k, w]) => MODULE_ID.test(k) && isFn(w?.load)))) fail(id, 'widgets must be { key: { load } }');
     const seen = new Set();
     for (const { node: r } of flattenRoutes(def.routes ?? [])) {
         const path = r?.path;
@@ -90,7 +90,7 @@ export function defineModule(def) {
     }
     for (const [table, what] of [[def.pageTypes, 'pageTypes'], [def.layouts, 'layouts']]) {
         for (const [name, fn] of Object.entries(table ?? {})) {
-            if (!MODULE_ID.test(name) || !isFn(fn)) fail(id, `${what}.${name} must be a function named like 'kanban'`);
+            if (!MODULE_ID.test(name) || !isFn(fn)) fail(id, `${what}.${name} must be an id-named function`);
             if (what === 'pageTypes' && BUILT_IN_PAGE_TYPES.includes(name)) fail(id, `${what}.${name} is a built-in page type`);
         }
     }
