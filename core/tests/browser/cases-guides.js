@@ -23,7 +23,7 @@ async function openApp(t, hash, width = 1280) {
 export const guidesAppCases = [
     ['guides module (app, 1280px): the guide list is the nav, a deep link opens a guide with crumbs, and a heading anchor in the address scrolls to it', async t => {
         const p = await openApp(t, '#/guides/theming');
-        t.eq(p.items().length, 10, 'one nav item per guide');
+        t.eq(p.items().length, 11, 'one nav item per guide');
         t.eq(p.items().filter(i => i.hasAttribute('current')).length, 1, 'the open guide is current');
         t.ok(p.items().every(i => /^#\/guides\/[a-z-]+$/.test(i.getAttribute('href'))), 'every nav link is a router address under #/guides');
         await until(() => p.d.querySelector('.doc-page-title')?.textContent, 'the title');
@@ -47,16 +47,16 @@ export const guidesAppCases = [
             const p = await openApp(t, '#/guides/theming', width);
             const input = await until(() => p.doc().querySelector(':scope > pk-container pk-input'), 'the search box');
             const shown = () => p.items().filter(i => !i.hidden && /\/guides\/[a-z-]+$/.test(i.getAttribute('href') ?? '')).map(i => i.getAttribute('href').split('/').pop());
-            t.eq(shown().length, 10, `${width}: every guide in the nav`);
+            t.eq(shown().length, 11, `${width}: every guide in the nav`);
             const title = p.d.querySelector('.doc-page-title').getBoundingClientRect(), box = input.getBoundingClientRect();
             t.ok(box.top >= title.bottom - 1, `${width}: the search box sits under the title (${box.top} vs ${title.bottom})`);
             input.value = 'logger'; input.dispatchEvent(new Event('input', { bubbles: true, composed: true }));
-            await until(() => shown().length > 0 && shown().length < 10, `${width}: the nav to filter`);
-            t.ok(shown().length < 10 && p.items().filter(i => i.hidden).length > 0, `${width}: only the matching guides stay (${shown().join()})`);
+            await until(() => shown().length > 0 && shown().length < 11, `${width}: the nav to filter`);
+            t.ok(shown().length < 11 && p.items().filter(i => i.hidden).length > 0, `${width}: only the matching guides stay (${shown().join()})`);
             t.ok(/logg/i.test(p.doc().querySelector(':scope > pk-container pk-text').textContent), `${width}: the status line still names them`);
             t.eq(p.win.location.hash, '#/guides/theming', `${width}: the deep link is untouched`);
             input.value = ''; input.dispatchEvent(new Event('input', { bubbles: true, composed: true }));
-            await until(() => shown().length === 10, `${width}: every guide again`);
+            await until(() => shown().length === 11, `${width}: every guide again`);
         }
     }],
     // The behaviours the standalone page had that a module must keep (#357): the address says what is open, focus follows, an unknown guide is a not-found page that is logged, a heading anchor lands at the top of the app's own scroll box.
@@ -183,7 +183,7 @@ export const guidesAppCases = [
         t.eq(shown()[0], 'theming'); t.ok(status().includes('mentioned in') && status().includes('Theming and tokens'), 'the status says it was found in the text');
         type('there-is-no-such-word-in-any-guide');
         await until(() => shown().length === 0, 'no guide to match'); t.ok(status().includes('No guides match'));
-        type(''); await until(() => shown().length === 10, 'every guide again');
+        type(''); await until(() => shown().length === 11, 'every guide again');
     }],
     // The header search (#355): the active module's `search` answers; picking a result navigates.
     ['site app header search (1280px): a body word lists the Guides that mention it, the keyboard picks one and the address and page follow', async t => {
