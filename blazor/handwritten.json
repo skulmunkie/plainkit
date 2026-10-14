@@ -219,6 +219,10 @@
       "category": "router",
       "blazorOnly": "DI registration of the app's module allow-list (IPkModule, PkModuleCatalog, AddPlainKitApp): a .NET host concern with no JS counterpart"
     },
+    "Components/PkApp.razor": {
+      "category": "router",
+      "blazorOnly": "the Blazor app frame (#364): serialises the module catalog and PkNavModel into pk-app-frame and routes search, select and theme; no element of this name"
+    },
     "PkRuntime.cs": {
       "category": "runtime"
     },

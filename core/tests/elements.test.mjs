@@ -60,7 +60,7 @@ test('every element folder has a complete, valid API that matches its template a
 test('composition tiers (#736): every element meta names a tier; shell and page elements are the expected ones', () => {
     for (const el of elements) assert.ok(TIERS.includes(el.meta.tier), `${el.name}: tier ${el.meta.tier}`);
     const of = t => elements.filter(e => e.meta.tier === t).map(e => e.name);
-    assert.deepEqual(of('shell'), ['app-shell']);
+    assert.deepEqual(of('shell'), ['app-frame', 'app-shell']);
     assert.deepEqual(of('page'), elements.filter(e => e.meta.group === 'Page types' && e.name.endsWith('-page')).map(e => e.name));
 });
 

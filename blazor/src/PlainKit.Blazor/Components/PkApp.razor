@@ -1,0 +1,63 @@
+@namespace PlainKit.Blazor
+@using System.Text.Json
+@using Microsoft.AspNetCore.Components.Routing
+@using PlainKit.Blazor.Shells
+@implements IDisposable
+@inject PkModuleCatalog Catalog
+@inject NavigationManager Nav
+@inject IPkTheme Theme
+
+@* Hand-written (#364, step 3), router category: the module catalog and where the reader is (PkNavModel) go into the data of pk-app-frame, which draws
+   the shell, nav, picker, search and breadcrumb. The page is the body (ChildContent); links are plain hrefs, so the only handlers are search and theme. *@
+<PkAppFrame Brand="@Catalog.Brand" BrandHref="@Url("/")" Nav="@Json(Rows(_active?.Manifest.Nav))" CurrentId="@(_loc?.Current ?? "")" Trail="@Json(_loc?.Ids ?? [])"
+            Modules="@Json(Catalog.Modules.Select(m => new { id = m.Manifest.Id, title = m.Manifest.Title, href = Url("/" + m.Manifest.Id) }))"
+            ModuleTitle="@(_active?.Manifest.Title ?? "")" Crumbs="@Json(_loc?.Crumbs.Select(c => new { label = c.Label, href = c.Href is null ? null : Url(c.Href) }) ?? [])"
+            Search="true" SearchItems="@Json(_found)" OnQuery="Search" OnSelect="Go" OnThemeToggle="ToggleTheme">
+    <ChildContent><pk-skip-link href="#pk-main">Skip to content</pk-skip-link><main id="pk-main" tabindex="-1">@ChildContent</main></ChildContent>
+    <FooterContent>@Catalog.Footer</FooterContent>
+</PkAppFrame>
+
+@code {
+    private static readonly JsonSerializerOptions Opts = new(JsonSerializerDefaults.Web) { DefaultIgnoreCondition = System.Text.Json.Serialization.JsonIgnoreCondition.WhenWritingNull };
+    private PkNavLocation? _loc;
+    private IPkModule? _active;
+    private IEnumerable<object> _found = [];
+
+    /// <summary>The page: the router's body.</summary>
+    [Parameter] public RenderFragment? ChildContent { get; set; }
+
+    protected override void OnInitialized() { Where(); Nav.LocationChanged += OnLocationChanged; }
+
+    protected override async Task OnAfterRenderAsync(bool firstRender) { if (firstRender) await Theme.InitializeAsync(); }
+
+    private void Where()
+    {
+        _loc = PkNavModel.Locate(Catalog.Modules.Select(m => m.Manifest), Catalog.Brand, "/" + Nav.ToBaseRelativePath(Nav.Uri));
+        _active = (_loc is null ? null : Catalog.Get(_loc.Module)) ?? (Catalog.Home is { } h ? Catalog.Get(h) : null) ?? Catalog.Modules.FirstOrDefault();
+    }
+
+    private void OnLocationChanged(object? sender, LocationChangedEventArgs e) { Where(); _ = InvokeAsync(StateHasChanged); }
+
+    private string Url(string appPath) => Nav.ToAbsoluteUri(appPath.TrimStart('/')).ToString();
+
+    private static string Json(object? v) => JsonSerializer.Serialize(v, Opts);
+
+    private string? Path(PkManifestNavItem n) => n.Route is null ? null : "/" + _active!.Manifest.Id + (n.Route == "/" ? "" : n.Route);
+
+    private IEnumerable<object> Rows(IEnumerable<PkManifestNavItem>? items) => (items ?? []).Select(n => new { n.Id, n.Title, href = Path(n) is { } p ? Url(p) : n.Href, n.Icon, n.Badge, children = Rows(n.Children) });
+
+    private static IEnumerable<PkManifestNavItem> Flat(IEnumerable<PkManifestNavItem>? items) => (items ?? []).SelectMany(n => new[] { n }.Concat(Flat(n.Children)));
+
+    // The default search: nav entries whose title contains the query, like the SDK's searchNav.
+    private void Search(PkQueryEventArgs e) => _found = (e.Query?.Trim() ?? "") is { Length: > 0 } q
+        ? Flat(_active?.Manifest.Nav).Where(n => Path(n) is not null && n.Title.Contains(q, StringComparison.OrdinalIgnoreCase)).Take(8).Select(n => (object)new { id = Path(n), label = n.Title }).ToList() : [];
+
+    private void Go(PkSelectEventArgs e)
+    {
+        if (e.Item?.TryGetProperty("id", out var id) == true && id.GetString() is { Length: > 0 } path) Nav.NavigateTo(Url(path));
+    }
+
+    private async Task ToggleTheme() => await Theme.ToggleAsync();
+
+    public void Dispose() => Nav.LocationChanged -= OnLocationChanged;
+}
