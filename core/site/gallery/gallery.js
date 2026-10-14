@@ -88,6 +88,10 @@ const ALIASES = {
     '/templates/block/:x': '/samples', '/templates/block': '/samples',
     '/templates/:id': '/samples/templates/:id', '/templates': '/samples/templates',
 };
+// The addresses the gallery answers, declared once (a section, then up to two more segments); the route's label is its section and :a / :b are what follows it.
+// Any other address is the router's own not found (label 'Not found'), which the views draw as such.
+const SECTION_ROUTES = [['overview', 0], ['foundations', 1], ['elements', 1], ['samples', 2]];
+const ROUTES = [{ path: '/', label: 'overview' }, ...SECTION_ROUTES.flatMap(([label, depth]) => Array.from({ length: depth + 1 }, (_, n) => ({ path: `/${label}${[':a', ':b'].slice(0, n).map(x => `/${x}`).join('')}`, label })))];
 let router = null;
 const query = () => router?.current()?.query ?? {}; // the address's query (#/path?q=..&nav=..), from the router
 let mounted = null; // the gallery on show: { destroy() }, so a second mount ends the first instead of stacking on it
@@ -95,11 +99,8 @@ let mounted = null; // the gallery on show: { destroy() }, so a second mount end
 // Every address the gallery writes goes through the router (hash form '#<prefix>/path?query'; the router adds the prefix back). The same address again is not a new entry.
 const goTo = (hash, replace = false) => { const to = hash.slice(B().length); if (addressOf(win).hash !== hash) router?.navigate(to, { replace }); };
 
-// Where the gallery is: the section and up to two more segments of the address (#/samples/templates/page).
-function route() {
-    const [section = 'overview', a, b] = (router?.current()?.url ?? '/').split('/').filter(Boolean);
-    return { section, a, b };
-}
+// Where the gallery is, from the router: the section and up to two more segments of the address (#/samples/templates/page).
+const route = () => { const c = router?.current(); return { section: c?.label ?? 'overview', a: c?.params.a, b: c?.params.b }; };
 
 // ---- nav -----------------------------------------------------------------------------------------------------------------
 // A pk-side-nav built once from the tree: a section title (a link to its overview), then its items or its folding groups (pk-nav-item
@@ -433,7 +434,7 @@ export async function mountGallery(container, options = {}) {
     // A scoped mount with no address of its own opens the first view of its scope (the address says so from then on).
     const first = !addressOf(win).hash && isScoped(opts) && !collection() ? initialHash(tree()) : '';
     router?.destroy();
-    router = mountRouter(null, { routes: [], mode: 'hash', aliases: ALIASES, base: prefix });
+    router = mountRouter(null, { routes: ROUTES, mode: 'hash', aliases: ALIASES, base: prefix });
     if (first) goTo(first, true);
     fillSanitizedHtml(container, bare ? BARE_HTML : chromeHtml());
     container.toggleAttribute('data-gx-mount', !bare); // the frame fills the host's box (gallery.css)
