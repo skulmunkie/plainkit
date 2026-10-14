@@ -35,11 +35,24 @@ public sealed class PkAppSamplePrerenderTests : IClassFixture<WebApplicationFact
         Assert.Contains("current-id=\"all\"", html);
     }
 
-    // A path no @page matches never reaches the Razor endpoint: the host answers a bare 404 (issue filed: the not-found page is not rendered on a first request).
+    // A path no @page matches is re-run through the Razor app (status code pages): the first response keeps the 404 status and carries the frame and the not-found page.
     [Fact]
-    public async Task An_unknown_route_answers_404() => Assert.Equal(System.Net.HttpStatusCode.NotFound, (await _http.GetAsync("/orders/no/such/page")).StatusCode);
+    public async Task An_unknown_route_answers_404_inside_the_frame()
+    {
+        var r = await _http.GetAsync("/orders/no/such/page");
+        Assert.Equal(System.Net.HttpStatusCode.NotFound, r.StatusCode);
+        var html = await r.Content.ReadAsStringAsync();
+        Assert.Contains("<pk-app-frame", html);
+        Assert.Contains("<pk-not-found-page", html);
+    }
 
-    // Issue filed: the endpoint authorization middleware challenges with no IAuthenticationService, so the first request answers 500 instead of the refusal page.
-    [Fact(Skip = "Defect: /secure/audit answers 500 on a first request (no authentication scheme registered in the sample host)")]
-    public async Task The_authorize_page_prerenders_the_refusal_not_the_page() => Assert.Contains("Not allowed", await Get("/secure/audit"));
+    [Fact]
+    public async Task The_authorize_page_prerenders_the_refusal_not_the_page()
+    {
+        var r = await _http.GetAsync("/secure/audit");
+        Assert.Equal(System.Net.HttpStatusCode.Unauthorized, r.StatusCode);
+        var html = await r.Content.ReadAsStringAsync();
+        Assert.Contains("Not allowed", html);
+        Assert.DoesNotContain("Audit log", html);
+    }
 }

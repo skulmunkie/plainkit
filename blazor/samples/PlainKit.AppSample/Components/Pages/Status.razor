@@ -1,0 +1,9 @@
+@page "/status/{Code:int}"
+
+@* Where UseStatusCodePagesWithReExecute lands a first request the host refused (401, 403) or did not match (404); the frame around it comes from Routes.razor. *@
+@if (Code is 401 or 403) { <PkNotFoundPage Heading="Not allowed" Description="Sign in to see this page." /> }
+else { <PkNotFoundPage /> }
+
+@code {
+    [Parameter] public int Code { get; set; }
+}
