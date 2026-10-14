@@ -3,9 +3,21 @@
 // the bridge's routeChanged, so the behaviour is written once. A module of its own so the Blazor bridge can import it without the app entry.
 import { loadElements } from './loader.js';
 
+// The page's level 1: in the light DOM first (mountApp pages), else the first one inside an open shadow root below it (page elements draw their heading in their own shadow tree, #1335).
+const H1 = 'h1,pk-heading[level="1"]';
+export function findHeading(root) {
+    const own = root.querySelector(H1);
+    if (own) return own;
+    for (const host of root.querySelectorAll?.('*') ?? []) {
+        const found = host.shadowRoot && findHeading(host.shadowRoot);
+        if (found) return found;
+    }
+    return null;
+}
+
 // `error`: the page failed; the boundary's alert announces itself, so only its own placeholder title takes focus and nothing is announced.
 export function pageLoaded(main, live, label, error = false) {
-    const target = main.querySelector('h1,pk-heading[level="1"]') ?? main, own = target.closest('pk-empty-state'), go = () => target.focus({ preventScroll: true });
+    const target = findHeading(main) ?? main, own = target.closest('pk-empty-state'), go = () => target.focus({ preventScroll: true });
     if (error && !own) return;
     if (!error) live.textContent = `${label}, page loaded`;
     target.tabIndex = -1;

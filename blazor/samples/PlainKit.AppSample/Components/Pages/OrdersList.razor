@@ -14,5 +14,5 @@
     ];
 
     private string? Status => Nav.ToBaseRelativePath(Nav.Uri).TrimEnd('/') switch { "orders/open" => "Open", "orders/shipped" => "Shipped", _ => null };
-    private string _config => System.Text.Json.JsonSerializer.Serialize(new { label = Status is null ? "All orders" : Status + " orders" });
+    private string _config => System.Text.Json.JsonSerializer.Serialize(new { heading = Status is null ? "All orders" : Status + " orders" });
 }
