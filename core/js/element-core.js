@@ -40,7 +40,7 @@ export function parseBindings(text) {
 
 // The value of a bound text or attribute: a lone binding on an attribute removes it for false/null/undefined and sets '' for true.
 export function bindValue(parts, values, isAttr = false) {
-    const lone = parts.length === 1 && typeof parts[0] === 'object' && !parts[0].str;
+    const lone = parts.length === 1 && parts[0].key && !parts[0].str;
     if (isAttr && lone) { const v = values[parts[0].key]; return v === false || v == null || v === '' ? null : v === true ? '' : String(v); }
     return parts.map(p => (typeof p === 'string' ? p : String(values[p.key] ?? ''))).join('');
 }

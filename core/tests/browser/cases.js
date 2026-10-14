@@ -343,6 +343,7 @@ import { auditDashboardCases } from './cases-audit-dashboard.js'; cases.push(...
 import { dockCases } from './cases-dock.js'; cases.push(...dockCases);
 import { navItemCases } from './cases-nav-item.js'; cases.push(...navItemCases);
 import { emptyPartsCases } from './cases-empty-parts.js'; cases.push(...emptyPartsCases);
+import { slotchangeLoopCases } from './cases-slotchange-loop.js'; cases.push(...slotchangeLoopCases);
 import { trayCases } from './cases-tray.js'; cases.push(...trayCases);
 import { designSurfaceCases } from './cases-design-surface.js'; cases.push(...designSurfaceCases);
 import { canvasCases } from './cases-canvas.js'; cases.push(...canvasCases);
