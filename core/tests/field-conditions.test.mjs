@@ -1,7 +1,7 @@
 // js/field-conditions.js: the declarative condition syntax of a field spec (#1282).
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { parse, evaluate } from '../js/field-conditions.js';
+import { parse, evaluate, evaluateText } from '../js/field-conditions.js';
 
 const run = (src, values) => parse(src).run(values);
 
@@ -41,4 +41,17 @@ test('evaluate: an unknown field or a syntax error warns and gives the fallback'
     assert.equal(seen.length, 3);
     assert.match(seen[0], /unknown field "stat"/);
     assert.match(seen[2], /not valid/);
+});
+
+test('evaluateText: the first true condition picks the text, a field key gives the value of that field, an error keeps the plain text', () => {
+    const seen = [], warn = m => seen.push(m), known = new Set(['status', 'due']);
+    const ask = (src, v) => evaluateText(src, v, known, warn);
+    const src = "status == 'paid' ? 'Paid on' : status == 'void' ? 'Voided on' : due";
+    assert.equal(ask(src, { status: 'paid' }), 'Paid on');
+    assert.equal(ask(src, { status: 'void' }), 'Voided on');
+    assert.equal(ask(src, { status: 'open', due: 'Friday' }), 'Friday');
+    assert.equal(ask("'Plain'", {}), 'Plain');
+    assert.equal(ask('status ? due', {}), '');
+    assert.equal(ask("nope ? 'x' : 'y'", {}), '');
+    assert.equal(seen.length, 2);
 });
