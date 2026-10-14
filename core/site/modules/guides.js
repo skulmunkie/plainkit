@@ -3,25 +3,15 @@
 // Addresses: #/guides (the list), #/guides/<id> (a guide), #/guides/<id>?anchor=<heading> (a place in it).
 import { defineModule } from '../../js/app.js';
 import { GUIDES } from '../guides/guides.data.js';
-import { searchGuides } from '../guides/guides-search.js';
+import { guideSearch, searchGuides } from '../guides/guides-search.js';
 
 const find = id => GUIDES.find(g => g.id === id);
-const search = query => {
-    const results = searchGuides(GUIDES, query);
-    const titled = results.filter(r => r.titleMatch).map(r => r.guide.title), mentioned = results.filter(r => !r.titleMatch && r.bodyMatch).map(r => r.guide.title);
-    return {
-        ids: results.map(r => r.guide.id),
-        status: results.length
-            ? [titled.length && `${titled.length} guide${titled.length === 1 ? '' : 's'} titled “${query.trim()}”: ${titled.join(', ')}`, mentioned.length && `mentioned in ${mentioned.join(', ')}`].filter(Boolean).join('; ')
-            : `No guides match “${query.trim()}”.`,
-    };
-};
 const doc = {
     items: GUIDES.map(({ id, title, summary }) => ({ id, title, summary })), search: true, embedded: true, navLabel: 'Guides', pagerLabel: 'Guide navigation', searchLabel: 'Search guides',
     home: { title: 'Guides', summary: 'Getting started, theming and logging, written from what the repository does today.', cards: true },
     loadItem: (id, ctx) => { const g = find(id); if (!g) { ctx.log.warn(`no guide named "${id}"`, { known: GUIDES.map(x => x.id) }); return null; } return { title: g.title, summary: g.summary, html: g.html }; }, // an unknown guide is a not-found page and a logged warning
     href: (id, anchor) => (id == null ? '/' : `/${id}${anchor ? `?anchor=${encodeURIComponent(anchor)}` : ''}`),
-    searchItems: search,
+    searchItems: query => guideSearch(GUIDES, query),
 };
 
 export default defineModule({

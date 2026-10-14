@@ -43,3 +43,15 @@ export function searchGuides(guides, query) {
     }
     return results.sort((a, b) => b.score - a.score || a.guide.title.localeCompare(b.guide.title));
 }
+
+// The ids to show and the status line of a search (what matched where), for the site app's doc page (site/modules/guides.js).
+export function guideSearch(guides, query) {
+    const results = searchGuides(guides, query), q = query.trim();
+    const titled = results.filter(r => r.titleMatch).map(r => r.guide.title), mentioned = results.filter(r => !r.titleMatch && r.bodyMatch).map(r => r.guide.title);
+    return {
+        ids: results.map(r => r.guide.id),
+        status: results.length
+            ? [titled.length && `${titled.length} guide${titled.length === 1 ? '' : 's'} titled “${q}”: ${titled.join(', ')}`, mentioned.length && `mentioned in ${mentioned.join(', ')}`].filter(Boolean).join('; ')
+            : `No guides match “${q}”.`,
+    };
+}
