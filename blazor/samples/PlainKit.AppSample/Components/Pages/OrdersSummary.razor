@@ -1,0 +1,8 @@
+@page "/orders/summary"
+
+@* The second dashboard route of the demo app. The Blazor host has no module contributions yet (mountApp parity is a later step), so it shows the page type with its heading. *@
+<PkDashboardPage Config="@Config" />
+
+@code {
+    private const string Config = """{"heading":"Orders summary"}""";
+}

@@ -5,12 +5,14 @@
   "nav": [
     { "id": "all", "title": "All orders", "route": "/", "icon": "orders" },
     { "id": "open", "title": "Open", "route": "/open" },
-    { "id": "shipped", "title": "Shipped", "route": "/shipped" }
+    { "id": "shipped", "title": "Shipped", "route": "/shipped" },
+    { "id": "summary", "title": "Summary", "route": "/summary", "icon": "dashboard" }
   ],
   "routes": [
     { "path": "/", "page": "list", "label": "All orders", "children": [{ "path": "/:id", "page": "record", "label": "Order" }] },
     { "path": "/open", "page": "list", "label": "Open" },
     { "path": "/shipped", "page": "list", "label": "Shipped" },
+    { "path": "/summary", "page": "dashboard", "label": "Summary" },
     { "path": "*", "page": "not-found" }
   ]
 }

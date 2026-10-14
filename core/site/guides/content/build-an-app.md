@@ -118,8 +118,8 @@ A dashboard can instead be assembled from what several modules offer, with no ed
         { id: 'orders', title: 'Orders', icon: 'orders', load: () => import('./modules/orders.js'),
           // Widgets this module offers to the Overview dashboard: static data here, the code in the module's `widgets` (loaded only when the tab is shown).
           contributes: [
-              { key: 'open', for: ['overview'], tab: 'sales', label: 'Open orders', kind: 'stat', order: 10 },
-              { key: 'revenue', for: ['overview'], tab: 'sales', label: 'Revenue by month', kind: 'chart', order: 20 },
+              { key: 'open', for: ['overview', 'orders'], tab: 'sales', label: 'Open orders', kind: 'stat', order: 10 },
+              { key: 'revenue', for: ['overview', 'orders'], tab: 'sales', label: 'Revenue by month', kind: 'chart', order: 20 },
           ] },
 ```
 
