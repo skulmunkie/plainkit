@@ -1,0 +1,30 @@
+@namespace PlainKit.Blazor
+@using PlainKit.Blazor.Pages
+@inherits PkComponentBase
+@inject PkModuleCatalog Catalog
+@inject NavigationManager Nav
+@inject IServiceProvider Services
+
+@* Hand-written (#364, step 4), router category: put it around the router body. Each new body (a navigation) asks the module of the address whether the reader may
+   see it (IPkModuleGuard, a UX guard, not security) after the optional IPkModuleLoader ran; PkComponentBase supplies the token, cancelled by the next navigation. *@
+@if (IsLoading) { <pk-spinner label="Loading"></pk-spinner> }
+else if (!_allowed) { <PkNotFoundPage Heading="Not allowed" Description="You do not have access to this page." Label="Go home" OnAction="Home" /> }
+else { @ChildContent }
+
+@code {
+    private bool _allowed = true;
+
+    /// <summary>The page: the router's body.</summary>
+    [Parameter] public RenderFragment? ChildContent { get; set; }
+
+    protected override async Task OnLoadAsync(CancellationToken cancel)
+    {
+        var path = "/" + Nav.ToBaseRelativePath(Nav.Uri).Split('?', '#')[0];
+        var module = path.Split('/', StringSplitOptions.RemoveEmptyEntries).FirstOrDefault() is { } id ? Catalog.Get(id) : null;
+        if (module is null) { _allowed = true; return; }
+        if (Services.GetService(typeof(IPkModuleLoader)) is IPkModuleLoader loader) await loader.LoadAsync(module, cancel);
+        _allowed = module is not IPkModuleGuard g || await g.CanAsync(new PkModuleContext(path, Services));
+    }
+
+    private void Home() => Nav.NavigateTo("");
+}
