@@ -8,6 +8,7 @@ import { controlTag, commitOf, readValue, writeValue, controlAttrs, messageAttrs
 import { messageFor } from '../../js/validation.js';
 
 // The same value, as the text the controls show.
+const EXPR = ['whenExpr', 'disabledExpr', 'readonlyExpr', 'requiredExpr'];
 const same = (a, b) => String(a ?? '') === String(b ?? '');
 
 export default Base => class extends Base {
@@ -37,9 +38,10 @@ export default Base => class extends Base {
         const doc = this.ownerDocument, group = this.part('group'), specs = Array.isArray(this.fields) ? this.fields : [];
         const shown = [];
         let built = false;
+        const mod = this.conditions(specs);
         for (const spec of specs) {
             if (!spec?.key) continue;
-            const seen = isVisible(spec, this.$vals, this.visible);
+            const seen = isVisible(spec, this.$vals, this.visible) && this.test(spec, 'whenExpr', mod) !== false;
             let row = this.$rows.get(spec.key);
             if (!seen) { if (row) { row.field.remove(); this.$rows.delete(spec.key); } continue; }
             if (!row) { row = this.build(doc, spec); built = true; }
@@ -51,6 +53,22 @@ export default Base => class extends Base {
         this.syncState();
         if (built) loadElements(this.shadowRoot).then(() => this.sync());
         this.sync();
+    }
+    // Declarative conditions (#1282): a spec's whenExpr/disabledExpr/readonlyExpr/requiredExpr (or `when` as a string) are run by js/field-conditions.js, which is loaded
+    // only once a spec declares one. Until it is loaded a field with a whenExpr is not drawn and the other conditions read as false; the load draws the fields again.
+    conditions(specs) {
+        if (this.$cond || this.$condLoad || !specs.some(s => s && (typeof s.when === 'string' || EXPR.some(k => typeof s[k] === 'string')))) return this.$cond;
+        this.$condLoad = import('../../js/field-conditions.js').then(m => { this.$cond = m; if (this.isConnected) this.reconcile(); }, e => this.log.error('field-conditions failed', e));
+        return undefined;
+    }
+    // One condition of a spec against the committed values: undefined when the spec declares none, false while the module is not loaded, else the answer
+    // (an unknown field or a syntax error is warned once and reads as true for whenExpr, false for the rest).
+    test(spec, name, mod) {
+        const src = name === 'whenExpr' && typeof spec.when === 'string' ? spec.when : spec[name];
+        if (typeof src !== 'string') return undefined;
+        if (!mod) return false;
+        const known = new Set((Array.isArray(this.fields) ? this.fields : []).map(f => f?.key));
+        return mod.evaluate(src, this.$vals, known, name === 'whenExpr', m => this.warnOnce(`cond:${spec.key}:${name}`, m));
     }
     /** Draws the fields again: call it after changing the visible(spec, values) callback property, which nothing watches. */
     refresh() { this.reconcile(); }
@@ -121,11 +139,15 @@ export default Base => class extends Base {
         row.control.replaceChildren(...(options ?? []).map(o => { const opt = this.ownerDocument.createElement('option'); opt.value = o.value; opt.textContent = o.label ?? o.value; return opt; }));
     }
     syncState() {
-        for (const { spec, kind, control } of this.$rows.values()) {
+        const mod = this.$cond;
+        for (const row of this.$rows.values()) {
+            const { spec, kind, control } = row;
             if (!control) continue;
+            row.off = Boolean(this.disabled || spec.disabled || this.test(spec, 'disabledExpr', mod));
+            if (kind !== 'range' && typeof spec.requiredExpr === 'string') { const req = Boolean(spec.required || this.test(spec, 'requiredExpr', mod)); control.toggleAttribute('required', req); row.field.toggleAttribute('required', req); }
             if (kind === 'combobox') { if (typeof this.search === 'function') control.setAttribute('filtering', 'off'); else control.removeAttribute('filtering'); }
-            control.toggleAttribute('disabled', Boolean(this.disabled || spec.disabled));
-            control.toggleAttribute('readonly', Boolean(this.readonly || spec.readonly));
+            control.toggleAttribute('disabled', row.off);
+            control.toggleAttribute('readonly', Boolean(this.readonly || spec.readonly || this.test(spec, 'readonlyExpr', mod)));
         }
     }
 
@@ -137,7 +159,7 @@ export default Base => class extends Base {
         if (!this.$w) return;
         const rows = [...this.$rows.values()].filter(r => r.control);
         const fd = new FormData();
-        for (const [name, v] of formEntries(rows.map(r => ({ key: r.spec.key, kind: r.kind, value: readValue(r.control, r.kind), disabled: this.disabled || r.spec.disabled })), this.prefix ? this.name : '')) fd.append(name, v);
+        for (const [name, v] of formEntries(rows.map(r => ({ key: r.spec.key, kind: r.kind, value: readValue(r.control, r.kind), disabled: r.off ?? (this.disabled || r.spec.disabled) })), this.prefix ? this.name : '')) fd.append(name, v);
         this.setFormValue(fd, fd);
         const bad = this.invalidRows()[0];
         if (bad) this.setValidity({ customError: true }, messageFor(bad.control), bad.control); else this.setValidity({});

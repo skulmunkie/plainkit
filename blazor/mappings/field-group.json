@@ -87,6 +87,26 @@
       "name": "Locale",
       "type": "string?",
       "doc": "The BCP 47 locale of the money format."
+    },
+    {
+      "name": "WhenExpr",
+      "type": "string?",
+      "doc": "A declarative condition the element evaluates against the live committed values as the user edits, with no server round trip: the field shows while it is true, e.g. \"status == 'paid' && amount > 100\" (field keys, 'text' and number literals, == != < <= > >=, in [a, b], !, && and ||; no function calls). The typed When still runs once per load; use this one for what must follow the user's edits."
+    },
+    {
+      "name": "DisabledExpr",
+      "type": "string?",
+      "doc": "A declarative condition (see WhenExpr): the control is disabled while it is true."
+    },
+    {
+      "name": "ReadonlyExpr",
+      "type": "string?",
+      "doc": "A declarative condition (see WhenExpr): the control is read-only while it is true."
+    },
+    {
+      "name": "RequiredExpr",
+      "type": "string?",
+      "doc": "A declarative condition (see WhenExpr): the field is required while it is true."
     }
   ],
   "specMembers": [

@@ -272,6 +272,34 @@ export const fieldGroupCases = [
         t.eq(el.problems().map(p => p.key + ':' + p.message).join(','), '', 'no problems');
         t.eq(sf.part('summary-list').children.length, 0, 'the summary is gone'); t.eq(valid, 1);
     }],
+    ['field-group: declarative conditions (whenExpr, requiredExpr, disabledExpr, readonlyExpr) follow the live values, keep focus and need no server round trip (#1282)', async t => {
+        const el = await mountGroup(t, [
+            { key: 'status', label: 'Status', kind: 'select', options: [{ value: 'open', label: 'Open' }, { value: 'paid', label: 'Paid' }, { value: 'void', label: 'Void' }] },
+            { key: 'amount', label: 'Amount', kind: 'number' },
+            { key: 'paidon', label: 'Paid on', kind: 'date', whenExpr: "status == 'paid'" },
+            { key: 'ref', label: 'Reference', requiredExpr: 'amount > 100', disabledExpr: "status == 'void'" },
+            { key: 'memo', label: 'Memo', readonlyExpr: "status in ['paid', 'void']" },
+            { key: 'oops', label: 'Oops', whenExpr: "nope == 'x'" },
+        ], { status: 'open' });
+        await until(() => keys(el).includes('Oops'), 'the lazy condition module to load and the fields to draw'); await t.settle();
+        t.eq(keys(el).join('|'), 'Status|Amount|Reference|Memo|Oops', 'Paid on is not drawn while status is not paid; an unknown field in a condition shows the field');
+        const control = key => fieldOf(el, key).firstElementChild;
+        t.ok(!fieldOf(el, 'Reference').hasAttribute('required'), 'not required below 100');
+        choose(control('Status'), 'paid'); await until(() => keys(el).includes('Paid on'), 'Paid on to appear, keys: ' + keys(el).join('|')); await t.settle();
+        t.eq(keys(el).join('|'), 'Status|Amount|Paid on|Reference|Memo|Oops', 'Paid on appears in order');
+        const a = fieldOf(el, 'Amount').getBoundingClientRect(), p = fieldOf(el, 'Paid on').getBoundingClientRect(), r = fieldOf(el, 'Reference').getBoundingClientRect();
+        t.ok(p.height > 0 && p.top >= a.bottom - 1 && r.top >= p.bottom - 1, 'the new field sits between Amount and Reference, in the flow');
+        t.ok(control('Memo').hasAttribute('readonly'), 'readonlyExpr applied');
+        let deep = document.activeElement; control('Amount').focus(); await t.settle();
+        type(control('Amount'), '150'); await t.settle(); await t.settle();
+        deep = document.activeElement; while (deep?.shadowRoot?.activeElement) deep = deep.shadowRoot.activeElement;
+        t.ok(control('Amount').contains(deep) || control('Amount').shadowRoot?.contains(deep), 'focus stays in the field being edited while others change');
+        t.ok(fieldOf(el, 'Reference').hasAttribute('required') && control('Reference').hasAttribute('required'), 'requiredExpr: required above 100');
+        t.ok(el.problems().some(x => x.key === 'ref'), 'and it blocks validation while empty');
+        choose(control('Status'), 'void'); await t.settle(); await t.settle();
+        t.ok(control('Reference').hasAttribute('disabled') && !el.problems().some(x => x.key === 'ref'), 'disabledExpr disables the control, which takes it out of validation');
+        t.eq(keys(el).includes('Paid on'), false, 'Paid on goes again');
+    }],
 ];
 
 // The group in a real form, as the app puts it.
