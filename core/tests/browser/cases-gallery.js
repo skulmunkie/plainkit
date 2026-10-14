@@ -79,7 +79,7 @@ export const galleryCases = [
             await one({ chrome: 'full', init: false }, '#/overview'); // warm up: modules and stylesheets load once
             const before = inst.snapshot(), nodesBefore = nodes();
             for (let i = 0; i < 100; i++) await one(i % 2 ? { chrome: 'none', filter: 'button', init: false } : { chrome: 'full', init: false }, i % 3 ? '#/elements/pk-button' : '#/foundations/colours');
-            await wait(3300); // an element page's own 3 s fallback timer (elements-view.js) ends by itself
+            await wait(100); // an element page's timers end with the page (#1326): nothing to wait out
             const after = inst.snapshot();
             t.eq(after.listeners.join('\n'), before.listeners.join('\n'), 'no window or document listener is left after 100 mounts');
             t.eq(after.observers, before.observers, 'no observer is left'); t.eq(after.timers, before.timers, 'no long timer is left');

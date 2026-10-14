@@ -15,21 +15,21 @@
 import { readSetting, writeSetting } from './settings.js';
 import { TOKENS_CSS, UTILITIES_CSS, SPACING_CSS, ICONS, TEMPLATES_DIR, PREVIEW } from './paths.js';
 import { normalizeOptions, isScoped, restrictTree, leaves, filterLeaves, filterTree, initialHash } from '../../js/gallery-options.js';
-import { LAYOUTS, PATTERNS, ELEMENTS, loadElement } from './gallery.data.js';
+import { LAYOUTS, PATTERNS, ELEMENTS } from './gallery.data.js';
 import { makeFrame, applyToFrame, applyToPage, destroyFrame } from './frame.js';
 import { currentTheme, setTheme } from '../../js/theme.js';
 
 import { applyDynamic } from '../../js/dynamic.js';
 import { initPlainkit } from '../../js/plainkit.js';
 import { fillSanitizedHtml } from '../../js/sanitized-html.js';
-import { renderElement } from './elements-view.js';
+import { PAGE_TYPES, pageFor } from './pages.js';
 import { createElementInspector, sectionFromData } from '../../js/element-inspector.js';
 import { normalizeSections, sectionsFor } from '../../js/gallery-sections.js';
 import { mediaBelow } from '../../js/breakpoints.js';
 import { clampSize, keySize, pointerSize } from '../../js/size.js';
 import { on, later, loadText, h, addressOf } from '../../js/mount-support.js';
 import { mountRouter } from '../../js/router.js';
-import { esc, FOUNDATIONS, LAYOUT_ITEMS, TEMPLATE_PAGES, KIND_LABEL, createViews, B, where, heading, grid, cardLink, notFound, nothing } from './gallery-views.js';
+import { FOUNDATIONS, LAYOUT_ITEMS, TEMPLATE_PAGES, KIND_LABEL, createViews } from './gallery-views.js';
 
 const doc = globalThis.document, win = doc?.defaultView; // undefined under node, where only the pure helpers are imported
 const $ = (s, r = doc) => r.querySelector(s);
@@ -40,8 +40,10 @@ const slug = s => s.replace(/\W+/g, '-').replace(/^-|-$/g, '').toLowerCase();
 // the lazy sample frames and their observer, the stylesheets read at mount, the router, the full-page sample on show (full) and its iframe (stage), what the inspector shows,
 // and what the host added to it (hostSections, see setGallerySections).
 let m = null;
-const mountState = () => ({ state: { theme: 'dark', width: 'desktop', scale: 1, filter: '', open: new Set() }, opts: {}, bare: false, prefix: '', baseTitle: 'Plainkit Gallery', frames: new Set(), css: null, lazy: null, router: null, full: null, stage: null, inspecting: null, inspector: null, hostSections: [], views: null });
+const mountState = () => ({ state: { theme: 'dark', width: 'desktop', scale: 1, filter: '', open: new Set() }, opts: {}, bare: false, prefix: '', baseTitle: 'Plainkit Gallery', frames: new Set(), css: null, lazy: null, router: null, full: null, stage: null, leave: null, inspecting: null, inspector: null, hostSections: [], views: null });
 
+// the gallery's addresses: '#' + the path the host app mounts it under (empty when it is its own page) + the gallery's own path; each mount has its own prefix
+const B = () => '#' + (m?.prefix ?? '');
 const text = path => loadText(new URL(path, import.meta.url));
 
 // A boolean or string prop set through its attribute, so it also lands on an element that is not upgraded yet (the elements load on demand).
@@ -177,7 +179,7 @@ function slot(sample, control, fixed) {
 }
 
 // The views get what they need of the gallery through this: nothing else of its state.
-const makeViews = () => createViews({ doc, opts: () => m.opts, css: () => m.css, scope, scopeGroup, keeps, slot, state: m.state, query });
+const makeViews = () => createViews({ doc, B, prefix: () => m.prefix, opts: () => m.opts, css: () => m.css, scope, scopeGroup, keeps, slot, state: m.state, query });
 
 function refreshFrames(changes) {
     for (const f of m.frames) applyToFrame(f, f.dataset.fixed ? { ...changes, width: undefined } : changes);
@@ -212,17 +214,6 @@ function pageUrl(fp, extra = {}) {
     return url.href;
 }
 
-function fullView(fp) {
-    const box = h(doc, 'div', { class: 'gx-stagebox' });
-    const frame = h(doc, 'iframe', { class: 'gx-page-frame', title: `${fp.title} as a full page` });
-    on(frame, 'load', () => applyToPage(frame, m.state));
-    frame.src = pageUrl(fp);
-    applyToPage(frame, { width: m.state.width });
-    m.stage = frame;
-    box.append(frame);
-    return box;
-}
-
 // The pagebar's title is the page's only heading in a full view (a template, pattern or layout preview has no pk-page-header): it should carry
 // level-1 heading semantics only while that bar is actually showing, or a route that is not full would carry a second, invisible h1 in the DOM
 // (the sweep's h1 count does not look at [hidden] or display: none). Pure, so it is tested without a doc.
@@ -250,54 +241,22 @@ function paintPagebar() {
 }
 
 
-// An element page's data is its own module (issue 282): a placeholder stands in until the chunk arrives, then the playground replaces it. `live` marks the
-// page the inspector follows; a route change before the chunk lands drops the result (the placeholder has left the page).
-function elementSlot(tag, live = false) {
-    const holder = h(doc, 'div', { 'aria-busy': 'true' });
-    loadElement(tag).then(meta => {
-        if (!holder.isConnected) return;
-        holder.replaceWith(renderElement(meta, live ? { doc, onLive: element => { m.inspecting = { meta, element }; }, onChange: () => m?.inspector?.refresh() } : { doc }));
-        if (live) renderInspector();
-    }, err => { holder.textContent = `Could not load ${tag}: ${err.message}`; });
-    return holder;
-}
-
-function view() {
-    const { viewFoundation, overviewHtml, samplesView } = m.views;
-    m.inspecting = null; m.stage = null;
-    m.full = fullPage();
-    if (m.full) { releaseFrames(); return fullView(m.full); }
-    const { section: sec, a, b } = route();
-    // The page column: a pk-container (centred, capped), the views' content in a pk-stack inside it.
-    const out = h(doc, 'pk-container'); out.setAttribute('size', 'lg'); out.setAttribute('padding', 'none');
-    const stack = h(doc, 'pk-stack'); out.append(stack);
-    watchFrames();
-    const put = html => { fillSanitizedHtml(stack, html); applyDynamic(out); return out; };
-    if (collection()) {
-        const shown = filterLeaves(leaves(tree()), m.opts.filter).filter(l => l.section.id === 'elements');
-        if (!shown.length) return put(nothing());
-        for (const l of shown) stack.append(elementSlot(l.id));
-        return out;
-    }
-    // An overview the mount's scope or filter leaves empty says so instead of listing what the embedder cut.
-    if (!a && ['foundations', 'elements', 'samples'].includes(sec) && !scope(sec)) return put(nothing());
-    if (sec === 'foundations') {
-        if (!a) return put(heading('Foundations', 'The tokens every control reads.') + grid(FOUNDATIONS.filter(([id]) => scope('foundations')?.items.some(i => i.id === id)).map(([id, t, d]) => cardLink(`${B()}/foundations/${id}`, t, d)).join('')));
-        return put(viewFoundation(a));
-    }
-    if (sec === 'overview') return put(overviewHtml());
-    if (sec === 'elements') {
-        if (ELEMENTS.some(m => m.tag === a)) { stack.append(elementSlot(a, true)); return out; }
-        return put(heading('Elements', 'Custom elements with Shadow DOM: declared props, slots, events and parts. Each page below is generated from the element\'s API data, with a live playground.') + scope('elements').groups.map(g => `<pk-stack gap="sm"><pk-heading level="2" variant="h4">${esc(g.title)} <pk-text inline tone="muted">${g.items.length}</pk-text></pk-heading>${grid(g.items.map(i => { const m = ELEMENTS.find(x => x.tag === i.id); return cardLink(i.hash, `<${m.tag}>`, m.summary.split('. ')[0].replace(/\.$/, '') + '.'); }).join(''))}</pk-stack>`).join(''));
-    }
-    if (sec === 'samples') return samplesView(out, put, a, b);
-    return put(notFound('Not found'));
-}
+// What the page-type factories (pages.js) get of the gallery, and nothing else of `m`: the document, the views, the scope, the lazy frames, the route and the inspector hooks.
+const pageCtx = () => ({
+    doc, B, state: m.state, views: m.views, scope, route, watchFrames, releaseFrames, pageUrl, applyToPage, setStage: frame => { m.stage = frame; },
+    collection, shown: () => filterLeaves(leaves(tree()), m.opts.filter).filter(l => l.section.id === 'elements').map(l => l.id),
+    inspect: { live: (meta, element) => { m.inspecting = { meta, element }; }, change: () => m?.inspector?.refresh(), shown: () => renderInspector() },
+});
 
 // ---- assembly ------------------------------------------------------------------------------------------------------------
 function render() {
     const body = $('#gx-view');
-    body.replaceChildren(view());
+    m.leave?.(); // the page on show ends what it started before the next is drawn
+    m.inspecting = null; m.stage = null;
+    m.full = fullPage();
+    const ctx = pageCtx(), [type, config] = pageFor(ctx, m.full);
+    body.replaceChildren();
+    m.leave = PAGE_TYPES[type](body, config, ctx);
     body.scrollTop = 0;
     syncNav();
     renderInspector();
@@ -418,7 +377,7 @@ export async function mountGallery(container, options = {}) {
     m.hostSections = normalizeSections(options.sections);
     m.baseTitle = doc.title || m.baseTitle;
     m.bare = m.opts.chrome === 'none';
-    m.prefix = where.prefix = options.base ?? '';
+    m.prefix = options.base ?? '';
     m.state.theme = m.opts.theme ?? currentTheme(doc.documentElement);
     m.state.width = m.opts.width ?? (readSetting('pk-gallery-width') === 'phone' ? 'phone' : 'desktop');
     m.state.scale = m.bare ? 1 : Number(readSetting('pk-gallery-scale')) || 1;
@@ -483,10 +442,11 @@ export async function mountGallery(container, options = {}) {
             for (const off of offs) off();
             for (const form of container.querySelectorAll('form[data-find]')) form._cancel?.();
             m.router?.destroy();
+            m.leave?.();
             m.lazy?.disconnect();
             releaseFrames();
             m = null;
-            where.prefix = ''; container.replaceChildren(); container.removeAttribute('data-gx-mount');
+            container.replaceChildren(); container.removeAttribute('data-gx-mount');
         },
     };
     mounted = handle;
