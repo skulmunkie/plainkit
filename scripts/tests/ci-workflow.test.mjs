@@ -21,8 +21,8 @@ function job(id) {
 }
 
 test('the job table of ci-report.mjs, the groups of verify.mjs and ci.yml agree', () => {
-    // 'browser' is a verify.mjs group with no ci.yml job: a manual-only local check (issue #451), not gated or reported by CI.
-    assert.deepEqual(Object.keys(JOBS).sort(), [...GROUPS].filter(g => g !== 'browser').sort());
+    // 'browser' and 'blazor-browser' are verify.mjs groups with no ci.yml job: manual-only local checks (issues #451, #1320), not gated or reported by CI.
+    assert.deepEqual(Object.keys(JOBS).sort(), [...GROUPS].filter(g => g !== 'browser' && g !== 'blazor-browser').sort());
     for (const [id, meta] of Object.entries(JOBS)) {
         assert.ok(job(id).includes(`    name: ${meta.name}\n`), `job ${id} is named "${meta.name}"`);
         assert.ok(job(id).includes(`node scripts/verify.mjs --only ${id}`), `job ${id} runs its verify group`);

@@ -74,6 +74,10 @@ branch `release/*`), where the owner's branch rule requires it. Run it locally w
 in a visible tab, wait for "report saved"). The report it writes, `core/tests/browser/report.json`, is local scratch output — gitignored, never
 committed. If a case fails, fix the cause; never weaken the case.
 
+### The Blazor sample in a real browser
+
+Nothing else drives `blazor/samples/PlainKit.AppSample`. `node scripts/blazor-browser.mjs` (or `node scripts/verify.mjs --only blazor-browser`; `--blazor-browser` adds it to the default checks) publishes the sample into a temporary folder, starts it on a free port, drives headless Chrome or Edge over the DevTools protocol, runs the measuring cases in `scripts/blazor-browser-cases.mjs` (deep link, 401 and 404 inside the frame, client navigation, back and forward, focus, layout shift, console errors) and writes `review-output/blazor-app__<shot>__<desktop|phone>__<light|dark>.png`, which you open and read like the UI review's. It always stops the host and the browser and deletes both temporary folders. Opt-in and not part of the pull request gate; run it when you change the sample, `PkApp` or the page-type wrappers. A failing case is a defect: file an issue, never weaken the case.
+
 ## When CI fails
 
 Pull request CI is small parallel jobs that each run one group of `scripts/verify.mjs`, so every failure reproduces on your machine with `node scripts/verify.mjs`
@@ -103,6 +107,7 @@ Rules:
 | `dotnet` (job `dotnet`) | a build error, a failing test, or a generated file missing or stale | run `node scripts/bootstrap.mjs`, then `dotnet test PlainKit.slnx --configuration Release` and fix the first error |
 | `browser` (job `browser`) | an element case failed in a real browser (not gated on ordinary pull requests, issue #451; a nightly run files an issue and a release pull request must pass it, issue #752) | run `node scripts/attest-browser.mjs` and fix the element (never weaken the case); `core/tests/browser/report.json` is local-only scratch output, do not commit it |
 | `scorecard` (job `scorecard`) | the SDK Scorecard quality run found an error-severity finding (layout, spacing, touch targets, focus or contrast) on some gallery example | run `node scripts/scorecard-sweep.mjs --only quality`, open the scorecard page it names (`app.html#/scorecard`) to see every finding, and fix the element (never weaken or allow-list a finding); a genuinely pre-existing, already-tracked issue can stay a warning (severity `warn` never fails this check), but a new error does |
+| `blazor-browser` (job `blazor-browser`) | a measuring case failed against blazor/samples/PlainKit.AppSample in a real browser (deep link, refusal or not-found page, client navigation, focus, layout shift, console errors), or the host or browser could not start | run `node scripts/blazor-browser.mjs` and read the failing case and the screenshots in review-output/ (blazor-app__*.png); fix the sample or the framework, never weaken the case; file what is out of scope as an issue |
 | `pack` (job `pack`) | the package has `content/` or `contentFiles/` entries, lacks the static web assets or skills, or has the wrong version | run `dotnet pack blazor/src/PlainKit.Blazor -c Release -o <dir>` then `node scripts/check-package.mjs <dir>`, and change `PlainKit.Blazor.csproj` as the message says |
 <!-- verify-fix-table:end -->
 
