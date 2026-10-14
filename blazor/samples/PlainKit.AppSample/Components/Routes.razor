@@ -1,0 +1,16 @@
+@* The whole frame: PkApp draws the chrome from the module catalog, PkRouteGuard is the UX guard, PkModuleBoundary keeps a failing page from taking the frame down.
+   AuthorizeRouteView is what makes [Authorize] pages (/secure/audit) real. *@
+<PkApp>
+    <PkRouteGuard>
+        <PkModuleBoundary>
+            <Router AppAssembly="typeof(Program).Assembly">
+                <Found Context="routeData">
+                    <AuthorizeRouteView RouteData="routeData">
+                        <NotAuthorized><PkNotFoundPage Heading="Not allowed" Description="Sign in to see this page." /></NotAuthorized>
+                    </AuthorizeRouteView>
+                </Found>
+                <NotFound><PkNotFoundPage /></NotFound>
+            </Router>
+        </PkModuleBoundary>
+    </PkRouteGuard>
+</PkApp>

@@ -1,0 +1,11 @@
+@page "/reports"
+@page "/reports/exports"
+@inject NavigationManager Nav
+
+<PkNotePage Config="@Config" />
+
+@code {
+    private string Config => Nav.Uri.TrimEnd('/').EndsWith("/exports")
+        ? """{"heading":"Exports","body":"Three exports are ready to download.","cardHeading":"About this page"}"""
+        : """{"heading":"Summary","body":"Sales and audit figures at a glance.","cardHeading":"About this page"}""";
+}

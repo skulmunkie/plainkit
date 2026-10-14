@@ -1,0 +1,17 @@
+@page "/orders/{Id}"
+
+@* The record route under the list: an unknown id makes Load return nothing and the page type shows its own error state. *@
+<PkRecordPage TItem="Order" Config="@Config" Fields="_fields" Load="OrderStore.GetAsync" />
+
+@code {
+    [Parameter] public string Id { get; set; } = "";
+
+    private string Config => System.Text.Json.JsonSerializer.Serialize(new { id = Id, heading = "Order " + Id, editable = false });
+
+    private static readonly PkFieldSpec<Order>[] _fields =
+    [
+        new() { Key = "customer", Label = "Customer", Get = o => o.Customer, Set = (_, _) => { } },
+        new() { Key = "status", Label = "Status", Get = o => o.Status, Set = (_, _) => { } },
+        new() { Key = "total", Label = "Total", Get = o => o.Total, Set = (_, _) => { } },
+    ];
+}
