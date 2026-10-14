@@ -52,19 +52,12 @@ public abstract partial class PageBase : ComponentBase, IAsyncDisposable
     /// <summary>Shows a status notice and re-renders.</summary>
     protected void SetStatus(string message, string kind = "info", string? heading = null)
     {
-        StatusMessage = message;
-        StatusKind = kind;
-        StatusHeading = heading;
+        (StatusMessage, StatusKind, StatusHeading) = (message, kind, heading);
         StateHasChanged();
     }
 
     /// <summary>Clears the current status notice and re-renders.</summary>
-    protected void ClearStatus()
-    {
-        StatusMessage = null;
-        StatusHeading = null;
-        StateHasChanged();
-    }
+    protected void ClearStatus() { (StatusMessage, StatusHeading) = (null, null); StateHasChanged(); }
 
     /// <summary>Logs the exception through <see cref="IPkLog"/> (its message and its <see cref="Exception.ToString"/> as detail) and shows the message as a danger status.</summary>
     protected async Task SetErrorAsync(Exception exception, string? message = null)
@@ -118,11 +111,7 @@ public abstract partial class PageBase : ComponentBase, IAsyncDisposable
     /// <summary>Releases every busy token. Disposal does this; a page that disposes itself calls it directly.</summary>
     protected void ReleaseBusy() => _life.ReleaseBusy();
 
-    async ValueTask IAsyncDisposable.DisposeAsync()
-    {
-        _life.Dispose();
-        await OnDisposeAsync();
-    }
+    async ValueTask IAsyncDisposable.DisposeAsync() { _life.Dispose(); await OnDisposeAsync(); }
 
     /// <summary>Creates the page lifecycle.</summary>
     protected PageBase() => _life = new PkLifecycle(() => { if (!_life!.Disposed) StateHasChanged(); });

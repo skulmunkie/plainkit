@@ -74,7 +74,7 @@ test('an empty or missing folder is no guides and no problem', () => {
 test('the shipped guides are valid, ordered, and the generated module is exactly what they convert to', async () => {
     const { guides, problems } = loadGuides();
     assert.deepEqual(problems, []);
-    assert.deepEqual(guides.map(g => g.id), ['getting-started', 'getting-started-blazor', 'choosing-what-to-build-with', 'build-an-app', 'theming', 'responsive-design', 'logging', 'migrating-from-compat', 'conformance-audit', 'blazor-list-and-record']);
+    assert.deepEqual(guides.map(g => g.id), ['getting-started', 'getting-started-blazor', 'choosing-what-to-build-with', 'build-an-app', 'theming', 'responsive-design', 'logging', 'migrating-from-compat', 'conformance-audit', 'blazor-list-and-record', 'blazor-build-an-app']);
     for (const g of guides) {
         assert.ok(g.title && g.summary, `${g.id} has a title and a summary`);
         assert.ok(g.headings.filter(h => h.level === 2).length >= 3, `${g.id} has sections`);

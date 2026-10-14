@@ -20,14 +20,7 @@ public abstract partial class PageBase
     /// </summary>
     protected async Task<bool> TryBusyAsync(Func<Task> action, string? label = null)
     {
-        try
-        {
-            await BusyAsync(action, label);
-            return true;
-        }
-        catch (Exception)
-        {
-            return false; // BusyAsync has already logged it and set the danger status
-        }
+        try { await BusyAsync(action, label); return true; }
+        catch (Exception) { return false; } // BusyAsync has already logged it and set the danger status
     }
 }
