@@ -125,6 +125,8 @@ const abortable = async (host, arg, signal) => {
 export const setCallback = (el, name, host, refresh) => { if (host) { el[name] = (arg, opts) => abortable(host, arg, opts?.signal); if (refresh) el.refresh?.(); } else delete el[name]; };
 
 // Runs an element's load again (PkDataTable.ReloadAsync).
+// A route change in PkApp (#364): the document title, focus on the page's h1 and a polite announcement; the logic is the SDK app's (js/app/route-focus.js), loaded on first use.
+export const routeChanged = async (label, site) => (await import('./plainkit/js/app/route-focus.js')).routeChanged(label, site);
 export const refresh = el => el.refresh?.();
 
 // Calls one of an element's own methods (PkRecordForm.SubmitAsync -> submit()).

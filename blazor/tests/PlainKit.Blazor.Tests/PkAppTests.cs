@@ -82,6 +82,22 @@ public sealed class PkAppTests : BunitContext, IAsyncLifetime
     }
 
     [Fact]
+    public void A_route_change_calls_the_bridge_once_with_the_page_label_and_the_site_not_on_first_render()
+    {
+        var bridge = JSInterop.SetupModule(PkAssets.Bridge);
+        bridge.Mode = JSRuntimeMode.Loose;
+        var nav = Services.GetRequiredService<NavigationManager>();
+        nav.NavigateTo("/orders");
+        var cut = Render<PkApp>();
+        Assert.Empty(bridge.Invocations["routeChanged"]);
+        cut.InvokeAsync(() => nav.NavigateTo("/orders/open"));
+        var call = Assert.Single(bridge.Invocations["routeChanged"]);
+        Assert.Equal(new object?[] { "Open", "Demo app" }, call.Arguments);
+        cut.InvokeAsync(() => nav.NavigateTo("/orders"));
+        Assert.Equal(2, bridge.Invocations["routeChanged"].Count);
+    }
+
+    [Fact]
     public async Task Mounting_and_disposing_leaves_no_location_handler()
     {
         var nav = Services.GetRequiredService<NavigationManager>();

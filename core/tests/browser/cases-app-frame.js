@@ -29,4 +29,18 @@ export const appFrameCases = [
         t.ok(q('pk-side-nav').querySelectorAll('pk-nav-item[data-module]').length === 0, 'no module rows in the side nav');
         t.ok(!q('[part="picker"]').hidden, 'the picker is in the bar');
     }],
+    ['route change bridge (#364): the title, focus on the page h1 and one polite announcement, the live region made once', async t => {
+        const { frame } = await open(t, 1280), d = frame.ownerDocument, { routeChanged } = await import('../../js/app/route-focus.js');
+        t.ok(routeChanged('Orders', 'Acme', d), 'a page with a main region is moved into');
+        t.eq(d.title, 'Orders - Acme', 'the document title is the page then the site');
+        t.eq(d.activeElement, d.querySelector('#pk-main h1'), 'focus is on the page h1');
+        const live = d.querySelectorAll('#pk-route-live');
+        t.eq(live.length, 1, 'one live region');
+        t.ok(live[0].getAttribute('role') === 'status' && live[0].getAttribute('aria-live') === 'polite', 'it is a polite status region');
+        t.eq(live[0].textContent, 'Orders, page loaded', 'it announces the page');
+        t.ok(live[0].getBoundingClientRect().width <= 1, 'and stays off the screen');
+        routeChanged('Acme', 'Acme', d);
+        t.eq(d.title, 'Acme', 'the home page is the site name alone');
+        t.eq(d.querySelectorAll('#pk-route-live').length, 1, 'the live region is reused');
+    }],
 ];

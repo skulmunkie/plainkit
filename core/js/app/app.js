@@ -42,6 +42,7 @@ import { MODULE_ID, loadChunk } from './module.js';
 import { createModuleHost } from './host.js';
 import { lazyServices } from './lazy.js';
 import { readConfig, readFooter } from './config.js';
+import { pageLoaded } from './route-focus.js';
 import { buildShell, footerNodes } from './shell.js';
 import { navOf, absolute, paintNav, pageContext, routeContext, markCurrent } from './nav.js';
 
@@ -144,14 +145,7 @@ export function mountApp(container, config) {
         page.setBreadcrumbs(crumbs);
         page.setTitle(crumbs.length > 1 ? `${label} - ${cfg.title}` : cfg.title);
         if (first) { first = false; return; }
-        const target = ui.main.querySelector('h1,pk-heading[level="1"]') ?? ui.main, own = target.closest('pk-empty-state'), go = () => target.focus({ preventScroll: true });
-        // The boundary's alert announces itself; only its own placeholder title takes focus.
-        if (result === 'error' && !own) return;
-        if (result !== 'error') ui.live.textContent = `${label}, page loaded`;
-        target.tabIndex = -1;
-        // A boundary title's elements may be undefined yet: focus given before they upgrade is lost.
-        own ? loadElements(ui.main).then(go) : go();
-        ui.main.scrollIntoView?.({ block: 'nearest' });
+        pageLoaded(ui.main, ui.live, label, result === 'error');
     }
 
     async function render() {
