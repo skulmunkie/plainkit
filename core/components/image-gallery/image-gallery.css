@@ -32,7 +32,7 @@
 [part="add-text"] { font-size: var(--text-meta); line-height: 1.2; }
 
 @media (pointer: coarse), (--phone) {
-    [part="actions"] { padding-inline-start: calc(var(--space-1) + var(--touch-target)); }
+    [part="actions"] { --_handle-row: var(--touch-target); padding-inline-start: calc(var(--space-1) + var(--touch-target)); }
 }
 @media (--phone) {
     [part="action"] { --pk-button-padding: calc((var(--touch-target) - 1.25 * var(--text-meta)) / 2) var(--space-2); }
@@ -40,10 +40,5 @@
 }
 /* A tile too narrow for the handle and a button side by side (three columns on a phone) gives the handle its own row under the buttons instead of reserving room beside them, which pushed the button past the tile's clip. */
 @container (max-width: 9rem) {
-    [part="actions"] { padding-inline-start: var(--space-1); padding-block-end: calc(var(--space-1) + var(--space-6)); }
-}
-@media (pointer: coarse), (--phone) {
-    @container (max-width: 9rem) {
-        [part="actions"] { padding-block-end: calc(var(--space-1) + var(--touch-target)); }
-    }
+    [part="actions"] { padding-inline-start: var(--space-1); padding-block-end: calc(var(--space-1) + var(--_handle-row, var(--space-6))); }
 }
