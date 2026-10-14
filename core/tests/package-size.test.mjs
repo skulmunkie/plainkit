@@ -10,11 +10,11 @@ import { spawnSync } from 'node:child_process';
 import { fileURLToPath } from 'node:url';
 
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
-const MAX_PACKED_BYTES = 1_450_000;
-const MAX_UNPACKED_BYTES = 5_600_000;
+const MAX_PACKED_BYTES = 1_400_000;
+const MAX_UNPACKED_BYTES = 5_450_000;
 const TOP_LEVEL = new Set(['dist', 'LICENSE', 'README.md', 'package.json']);
 // dist/ is the runtime unit; these are the entries of dist/ the package may carry (dist/modules is the dev-tool unit, a separate download).
-const DIST = new Set(['breakpoints.report.json', 'custom-elements.json', 'elements', 'elements.d.ts', 'elements.vue.d.ts', 'gallery', 'icons.svg', 'js', 'llms-full.txt', 'llms.txt',
+const DIST = new Set(['breakpoints.report.json', 'custom-elements.json', 'descriptions.json', 'elements', 'elements.d.ts', 'elements.vue.d.ts', 'gallery', 'icons.svg', 'js', 'llms-full.txt', 'llms.txt',
     'manifest.json', 'plainkit.css', 'plainkit.js', 'plainkit.min.css', 'skills', 'tools', 'vscode.html-custom-data.json', 'web-types.json']);
 
 const r = spawnSync('npm pack --dry-run --json', { cwd: root, encoding: 'utf8', shell: true, maxBuffer: 64 << 20 });

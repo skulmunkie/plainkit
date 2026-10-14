@@ -163,3 +163,23 @@ test('generated editor artefacts (manifest, VS Code data, web-types, typings) ar
     assert.match(made['elements.d.ts'], /'pk-tab-change': CustomEvent<\{ value: unknown; previous: unknown; fallback\?: unknown \}>/);
     assert.doesNotMatch(made['elements.d.ts'], /'change': CustomEvent/, 'native event names keep their DOM typing');
 });
+
+test('long-form descriptions live in dist/descriptions.json and elements.d.ts tooltips keep the summary (#1253)', async () => {
+    const { summarize, descriptions, typings } = await import('../tools/element-manifests.mjs');
+    assert.equal(summarize('Short one. Second sentence.'), 'Short one.');
+    const cut = summarize('word '.repeat(60));
+    assert.ok(cut.length <= 120 && cut.endsWith('…'));
+    const metas = elements.map(e => e.meta);
+    const full = descriptions(metas);
+    const dts = typings(metas);
+    let longCount = 0;
+    for (const m of metas) for (const p of m.props) {
+        const key = `${m.tag}.${p.name}`;
+        assert.ok(dts.includes(`/** ${summarize(p.description)} */`), `${key}: the typings carry its summary`);
+        if (summarize(p.description) === p.description.trim()) continue;
+        longCount++;
+        assert.equal(full[key], p.description, `${key}: full text kept in descriptions.json`);
+        assert.ok(!dts.includes(p.description), `${key}: full text is not duplicated in the typings`);
+    }
+    assert.ok(longCount > 0);
+});

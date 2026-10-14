@@ -3,6 +3,7 @@
 //   vscode.html-custom-data.json   VS Code HTML tag/attribute completion
 //   web-types.json                 JetBrains IDEs and Vue tooling
 //   elements.d.ts                  TypeScript: HTMLElementTagNameMap, event map, JSX intrinsic elements
+//   descriptions.json              long-form prose by `tag.member`, the one home of text the summaries shorten
 //   elements.vue.d.ts              Vue 3 GlobalComponents typings (include it only in a Vue project)
 // Pure: takes the parsed metas, returns { path: text }.
 
@@ -13,6 +14,31 @@ const pascal = tag => tag.split('-').map(p => p[0].toUpperCase() + p.slice(1)).j
 const tsType = p => (p.type === 'enum' ? p.values.map(v => JSON.stringify(v)).join(' | ') : p.type);
 const defText = p => (p.type === 'string' || p.type === 'enum' ? JSON.stringify(p.default) : String(p.default));
 
+/** One-sentence summary for files an IDE reads directly: the first sentence, at most `max` characters (cut at a word, with an ellipsis). The full text lives in dist/descriptions.json. */
+export function summarize(text, max = 120) {
+    const t = String(text ?? '').replace(/\s+/g, ' ').trim();
+    const first = t.match(/^.*?[.!?](?=\s|$)/)?.[0] ?? t;
+    if (first.length <= max) return first;
+    const cut = first.slice(0, max - 1).replace(/\s+\S*$/, '').replace(/[\s,;:.]+$/, '');
+    return `${cut}…`;
+}
+
+/** dist/descriptions.json: the single home of long-form prose, keyed `tag` (element summary), `tag.prop`, `tag.method()`, `tag@event`, `tag#slot`, `tag::part`, `tag/--css-property`; only texts a summary would shorten are listed. */
+export function descriptions(metas) {
+    const out = {};
+    const add = (key, text) => { if (text && summarize(text) !== String(text).trim()) out[key] = text; };
+    for (const m of metas) {
+        add(m.tag, m.summary);
+        for (const p of m.props) add(`${m.tag}.${p.name}`, p.description);
+        for (const x of m.methods) add(`${m.tag}.${x.name}()`, x.description);
+        for (const e of m.events) add(`${m.tag}@${e.name}`, e.description);
+        for (const s of m.slots) add(`${m.tag}#${s.name || 'default'}`, s.description);
+        for (const p of m.parts) add(`${m.tag}::${p.name}`, p.description);
+        for (const c of m.cssProperties) add(`${m.tag}/${c.name}`, c.description);
+    }
+    return out;
+}
+
 export function customElementsManifest(metas) {
     return {
         schemaVersion: '1.0.0',
@@ -21,17 +47,17 @@ export function customElementsManifest(metas) {
             kind: 'javascript-module',
             path: `elements/${m.tag.slice(3)}.js`,
             declarations: [{
-                kind: 'class', name: `${pascal(m.tag)}Element`, tagName: m.tag, customElement: true, description: m.summary,
+                kind: 'class', name: `${pascal(m.tag)}Element`, tagName: m.tag, customElement: true, description: summarize(m.summary),
                 superclass: { name: 'PkElement', module: 'js/element.js' },
-                attributes: m.props.filter(p => p.reflect || true).map(p => ({ name: kebab(p.name), fieldName: p.name, type: { text: tsType(p) }, default: defText(p), description: p.description })),
+                attributes: m.props.filter(p => p.reflect || true).map(p => ({ name: kebab(p.name), fieldName: p.name, type: { text: tsType(p) }, default: defText(p), description: summarize(p.description) })),
                 members: [
-                    ...m.props.map(p => ({ kind: 'field', name: p.name, type: { text: tsType(p) }, default: defText(p), description: p.description, attribute: kebab(p.name), reflects: p.reflect })),
-                    ...m.methods.map(x => ({ kind: 'method', name: x.name, description: x.description })),
+                    ...m.props.map(p => ({ kind: 'field', name: p.name, type: { text: tsType(p) }, default: defText(p), description: summarize(p.description), attribute: kebab(p.name), reflects: p.reflect })),
+                    ...m.methods.map(x => ({ kind: 'method', name: x.name, description: summarize(x.description) })),
                 ],
-                events: m.events.map(e => ({ name: e.name, type: { text: 'CustomEvent' }, description: `${e.description} detail: ${e.detail}` })),
-                slots: m.slots.map(s => ({ name: s.name, description: s.description })),
-                cssParts: m.parts.map(p => ({ name: p.name, description: p.description })),
-                cssProperties: m.cssProperties.map(c => ({ name: c.name, default: c.default, description: c.description })),
+                events: m.events.map(e => ({ name: e.name, type: { text: 'CustomEvent' }, description: `${summarize(e.description)} detail: ${e.detail}` })),
+                slots: m.slots.map(s => ({ name: s.name, description: summarize(s.description) })),
+                cssParts: m.parts.map(p => ({ name: p.name, description: summarize(p.description) })),
+                cssProperties: m.cssProperties.map(c => ({ name: c.name, default: c.default, description: summarize(c.description) })),
             }],
             exports: [{ kind: 'custom-element-definition', name: m.tag, declaration: { name: `${pascal(m.tag)}Element`, module: `elements/${m.tag.slice(3)}.js` } }],
         })),
@@ -42,8 +68,8 @@ export function vscodeCustomData(metas) {
     return {
         version: 1.1,
         tags: metas.map(m => ({
-            name: m.tag, description: `${m.summary}\n\nSlots: ${m.slots.map(s => s.name || '(default)').join(', ') || 'none'}.`,
-            attributes: m.props.map(p => ({ name: kebab(p.name), description: p.description, ...(p.type === 'enum' ? { values: p.values.map(v => ({ name: v })) } : p.type === 'boolean' ? { valueSet: 'v' } : {}) })),
+            name: m.tag, description: `${summarize(m.summary)}\n\nSlots: ${m.slots.map(s => s.name || '(default)').join(', ') || 'none'}.`,
+            attributes: m.props.map(p => ({ name: kebab(p.name), description: summarize(p.description), ...(p.type === 'enum' ? { values: p.values.map(v => ({ name: v })) } : p.type === 'boolean' ? { valueSet: 'v' } : {}) })),
         })),
         valueSets: [{ name: 'v', values: [] }],
     };
@@ -56,10 +82,10 @@ export function webTypes(metas) {
         contributions: {
             html: {
                 elements: metas.map(m => ({
-                    name: m.tag, description: m.summary,
-                    attributes: m.props.map(p => ({ name: kebab(p.name), description: p.description, value: { type: p.type === 'boolean' ? 'boolean' : p.type === 'number' ? 'number' : 'string', default: defText(p) }, ...(p.type === 'enum' ? { values: p.values } : {}) })),
-                    slots: m.slots.map(s => ({ name: s.name || 'default', description: s.description })),
-                    events: m.events.map(e => ({ name: e.name, description: e.description })),
+                    name: m.tag, description: summarize(m.summary),
+                    attributes: m.props.map(p => ({ name: kebab(p.name), description: summarize(p.description), value: { type: p.type === 'boolean' ? 'boolean' : p.type === 'number' ? 'number' : 'string', default: defText(p) }, ...(p.type === 'enum' ? { values: p.values } : {}) })),
+                    slots: m.slots.map(s => ({ name: s.name || 'default', description: summarize(s.description) })),
+                    events: m.events.map(e => ({ name: e.name, description: summarize(e.description) })),
                 })),
             },
         },
@@ -67,12 +93,12 @@ export function webTypes(metas) {
 }
 
 export function typings(metas) {
-    const out = ['// GENERATED by tools/build.mjs from elements/*/*.meta.json: do not edit.', '// Include in tsconfig ("include" or a /// <reference>) for tag, property, event and JSX autocomplete.', ''];
+    const out = ['// GENERATED by tools/build.mjs from elements/*/*.meta.json: do not edit.', '// Doc comments are one-sentence summaries; the full text is in descriptions.json (keys: tag.prop, tag.method(), tag@event).', '// Include in tsconfig ("include" or a /// <reference>) for tag, property, event and JSX autocomplete.', ''];
     for (const m of metas) {
         const iface = `${pascal(m.tag)}Element`;
         out.push(`export interface ${iface} extends HTMLElement {`);
-        for (const p of m.props) out.push(`    /** ${p.description} */`, `    ${p.name}: ${tsType(p)};`);
-        for (const x of m.methods) out.push(`    /** ${x.description} */`, `    ${x.name}(...args: unknown[]): unknown;`);
+        for (const p of m.props) out.push(`    /** ${summarize(p.description)} */`, `    ${p.name}: ${tsType(p)};`);
+        for (const x of m.methods) out.push(`    /** ${summarize(x.description)} */`, `    ${x.name}(...args: unknown[]): unknown;`);
         out.push('}', '');
     }
     out.push('declare global {', '    interface HTMLElementTagNameMap {');
@@ -100,6 +126,7 @@ export function allManifests(metas) {
         'custom-elements.json': JSON.stringify(customElementsManifest(metas)) + '\n',
         'vscode.html-custom-data.json': JSON.stringify(vscodeCustomData(metas)) + '\n',
         'web-types.json': JSON.stringify(webTypes(metas)) + '\n',
+        'descriptions.json': JSON.stringify(descriptions(metas)) + '\n',
         'elements.d.ts': typings(metas),
         'elements.vue.d.ts': vueTypings(metas),
     };

@@ -97,7 +97,7 @@ Plain HTML, no build step:
 <pk-card heading="Shipping"><pk-button slot="actions" variant="primary">Edit</pk-button>Body</pk-card>
 ```
 
-The loader imports only the elements the page uses. Props are attributes or properties, events are `addEventListener`, forms and `data-theme` work natively. Editor support (`custom-elements.json`, VS Code data, web-types, TypeScript typings) is generated into `dist/`. To write your own element, extend `PkElement` from `js/element.js` and call `define()`; see `STANDARDS.md` and an element folder such as `elements/badge/`. The planned reactive layers (templates with expressions, `defineElement`, app islands, single-file components) are described there and are not built yet.
+The loader imports only the elements the page uses. Props are attributes or properties, events are `addEventListener`, forms and `data-theme` work natively. Editor support (`custom-elements.json`, VS Code data, web-types, TypeScript typings) is generated into `dist/` with one-sentence descriptions; the full text is in `dist/descriptions.json`, keyed by `tag.prop`, `tag.method()`, `tag@event`. To write your own element, extend `PkElement` from `js/element.js` and call `define()`; see `STANDARDS.md` and an element folder such as `elements/badge/`. The planned reactive layers (templates with expressions, `defineElement`, app islands, single-file components) are described there and are not built yet.
 
 ## Embed the gallery in your own page
 
