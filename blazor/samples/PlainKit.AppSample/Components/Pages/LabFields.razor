@@ -1,0 +1,21 @@
+@page "/lab/fields"
+@inject IPkDialogs Dialogs
+@inject IPkNotifications Toasts
+
+@* Lab: a field group of every PkFieldKind (DateTime and a ColumnSpan included) with its change callback, and a dialog and a toast over the real interop. *@
+<h1 tabindex="-1">Lab</h1>
+<PkFieldGroup TItem="Ticket" Fields="Ticket.Specs" Model="_ticket" Columns="3" ModelChanged="Changed" />
+<p id="lab-changed">Changes: @_changes, last title: @_ticket.Title, opened: @_ticket.Opened</p>
+<p id="lab-answer">Answer: @_answer</p>
+<PkButton OnClick="Ask">Ask</PkButton>
+<PkButton OnClick="Toast">Toast</PkButton>
+
+@code {
+    private readonly Ticket _ticket = new() { Id = "x", Title = "Lab" };
+    private int _changes;
+    private string _answer = "none";
+
+    private void Changed() => _changes++;
+    private async Task Ask() => _answer = await Dialogs.ConfirmAsync(new PkDialogOptions { Heading = "Sure?", Message = "Really?" }) ? "yes" : "no";
+    private async Task Toast() => await Toasts.SuccessAsync("Saved from the lab");
+}

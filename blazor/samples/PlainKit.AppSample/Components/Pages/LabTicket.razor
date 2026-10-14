@@ -1,0 +1,18 @@
+@page "/lab/tickets/{Id}"
+@inject NavigationManager Nav
+@inject IPkNotifications Toasts
+
+@* Lab: an editable record. Save fails when the Title is FAIL; Delete removes the ticket, toasts and goes back to the list. *@
+<PkRecordPage TItem="Ticket" Config="@Config" Fields="Ticket.Specs" Load="TicketStore.GetAsync" Save="TicketStore.SaveAsync" OnDelete="Delete" />
+
+@code {
+    [Parameter] public string Id { get; set; } = "";
+    private string Config => System.Text.Json.JsonSerializer.Serialize(new { id = Id, heading = "Ticket " + Id, editable = true });
+
+    private async Task Delete()
+    {
+        TicketStore.Delete(Id);
+        await Toasts.SuccessAsync("Ticket deleted");
+        Nav.NavigateTo("/lab/tickets");
+    }
+}

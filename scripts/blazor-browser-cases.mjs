@@ -2,6 +2,8 @@
 // ctx is makeContext() of the harness. The expectations come from the design spec (docs/superpowers/specs/2026-10-13-blazor-app-framework-design.md, section 13).
 // A failing case is a defect in the sample or the framework: file an issue (screenshot and steps), do not weaken the case.
 
+import { LAB_CASES, LAB_SHOTS } from './blazor-browser-lab-cases.mjs';
+
 const MAIN_TEXT = `window.__deep.text(document.querySelector('#pk-main'))`;
 const MARK = `window.__pkMark = 'still the same document'`;
 const SAME_DOCUMENT = `window.__pkMark === 'still the same document'`;
@@ -133,3 +135,6 @@ export const SHOT_PLAN = [
         await ctx.shot(vp.name === 'phone' ? 'drawer' : 'modules-menu', vp, theme);
     },
 ];
+
+CASES.push(...LAB_CASES); // the JS-interop paths a bUnit test cannot cross (blazor-browser-lab-cases.mjs)
+SHOT_PLAN.push(...LAB_SHOTS);

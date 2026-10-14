@@ -107,7 +107,11 @@ export function errorsIn(events, from = 0, ignore = []) {
 /** The page-side helper: a query that goes through shadow roots, the deep text of a node, the deep focused element. Installed once per document. */
 export const DEEP = `window.__deep = window.__deep || {
     all(sel, root = document) { const out = [...root.querySelectorAll(sel)]; for (const el of root.querySelectorAll('*')) if (el.shadowRoot) out.push(...this.all(sel, el.shadowRoot)); return out; },
-    one(sel) { return this.all(sel)[0] ?? null; },
+    // The control of the field labelled by label (a pk-field with that label, or a checkbox with that text), in a pk-field-group or a pk-record-page.
+    field(label) { const C = 'pk-input, pk-textarea, pk-select, pk-checkbox, pk-combobox'; return this.all('pk-field').find(f => f.getAttribute('label') === label)?.querySelector(C) ?? this.all('pk-checkbox').find(c => c.textContent.trim() === label) ?? null; },
+    one(sel) { return this.q(sel)[0] ?? null; },
+    // scope >>> sel: the matches of sel inside (the light and shadow tree of) the elements matching scope.
+    q(sel) { const [scope, rest] = sel.split(' >>> '); return rest === undefined ? this.all(sel) : this.all(scope).flatMap(s => this.all(rest, s.shadowRoot ?? s)); },
     text(root = document.body) { let t = root.textContent ?? ''; for (const el of root.querySelectorAll('*')) if (el.shadowRoot) t += ' ' + this.text(el.shadowRoot); return t.replace(/\\s+/g, ' '); },
     active() { let a = document.activeElement; while (a?.shadowRoot?.activeElement) a = a.shadowRoot.activeElement; return a; },
 };`;
@@ -125,7 +129,8 @@ export function makeContext({ host, session, out, shots, results }) {
             throw new Error(`timed out after ${seconds} s waiting for ${what}`);
         },
         async viewport(vp, theme) {
-            await cdp.send('Emulation.setDeviceMetricsOverride', { width: vp.width, height: vp.height, deviceScaleFactor: 1, mobile: false });
+            await cdp.send('Emulation.setDeviceMetricsOverride', { width: vp.width, height: vp.height, deviceScaleFactor: vp.touch ? 2 : 1, mobile: !!vp.touch });
+            await cdp.send('Emulation.setTouchEmulationEnabled', vp.touch ? { enabled: true, maxTouchPoints: 5 } : { enabled: false });
             await cdp.send('Emulation.setEmulatedMedia', { features: [{ name: 'prefers-color-scheme', value: theme }] });
         },
         /** A document load of `route` (a fresh page, the server renders it), waiting until the frame is drawn and the circuit connected. */
@@ -146,6 +151,31 @@ export function makeContext({ host, session, out, shots, results }) {
             await ctx.waitFor(`location.href !== ${JSON.stringify(before)}`, `the address to leave ${before}`);
             await ctx.waitFor(`!!window.Blazor && window.__deep.text(document.querySelector('#pk-main')).trim().length > 0`, 'the page after the click');
             await sleep(400);
+        },
+        /** Clicks the first visible element matching `sel` (through shadow roots) whose text includes `label`. */
+        async clickDeep(sel, label = '') {
+            const hit = await ctx.eval(`(() => { const e = window.__deep.q(${JSON.stringify(sel)}).find(x => x.getBoundingClientRect().width > 0 && (x.textContent ?? '').includes(${JSON.stringify(label)})); if (!e) return false; e.click(); return true; })()`);
+            if (!hit) throw new Error(`nothing visible to click: ${sel} ${label}`);
+        },
+        /** A real touch tap (touchstart and touchend through the DevTools input domain) on the first visible element matching `sel` whose text includes `label`. */
+        async tap(sel, label = '') {
+            const r = await ctx.eval(`(() => { const e = window.__deep.q(${JSON.stringify(sel)}).find(x => x.getBoundingClientRect().width > 0 && (x.textContent ?? '').includes(${JSON.stringify(label)})); if (!e) return null; const b = e.getBoundingClientRect(); return { x: b.x + b.width / 2, y: b.y + b.height / 2, w: b.width, h: b.height }; })()`);
+            if (!r) throw new Error(`nothing visible to tap: ${sel} ${label}`);
+            await cdp.send('Input.dispatchTouchEvent', { type: 'touchStart', touchPoints: [{ x: r.x, y: r.y }] });
+            await cdp.send('Input.dispatchTouchEvent', { type: 'touchEnd', touchPoints: [] });
+            return r;
+        },
+        /** Types `value` into the control matching `sel` and raises the events a keystroke does. */
+        async typeInto(sel, value) {
+            const hit = await ctx.eval(`(() => { const c = window.__deep.one(${JSON.stringify(sel)}); if (!c) return false; c.value = ${JSON.stringify(value)}; if (c.fire) c.fire(); else c.dispatchEvent(new Event('input', { bubbles: true, composed: true })); return true; })()`);
+            if (!hit) throw new Error(`no control matches ${sel}`);
+        },
+        /** Commits `value` into the control of the field labelled `label`, as a person's edit does (a checkbox is clicked, the others get the value and their commit event). */
+        async setField(label, value) {
+            const hit = await ctx.eval(`(() => { const c = window.__deep.field(${JSON.stringify(label)}); if (!c) return false;
+                const inner = c.shadowRoot?.querySelector('input, select'); // the native control inside: what a person really operates
+                if (c.tagName === 'PK-CHECKBOX') (inner ?? c).click(); else if (c.tagName === 'PK-SELECT' && inner) { inner.value = ${JSON.stringify(value)}; inner.dispatchEvent(new Event('change', { bubbles: true, composed: true })); } else { c.value = ${JSON.stringify(value)}; if (c.fire) c.fire(); else c.dispatchEvent(new Event('change', { bubbles: true, composed: true })); } return true; })()`);
+            if (!hit) throw new Error(`no field labelled ${label}`);
         },
         async shot(name, vp, theme) {
             if (!shots) return;
