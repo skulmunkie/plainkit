@@ -37,7 +37,7 @@ export const CASES = [
         ctx.ok(await ctx.eval(`!!window.__deep.one('pk-app-frame')`), 'the refusal page is drawn without the app frame');
         ctx.ok(await text(ctx, 'Not allowed'), 'the refusal page does not say "Not allowed"');
         ctx.ok(!(await text(ctx, 'Only signed-in users')), 'the protected content is in the page for an anonymous reader');
-        ctx.noErrors(ctx.openMark, [...BENIGN, /status of 401/]);
+        await ctx.noErrors(ctx.openMark, [...BENIGN, /status of 401/]);
       } },
     { name: 'not-found-404-in-frame',
       async run(ctx) {
@@ -45,7 +45,7 @@ export const CASES = [
         await ctx.open('/nope');
         ctx.ok(await ctx.eval(`!!window.__deep.one('pk-app-frame')`), 'the not-found page is drawn without the app frame');
         ctx.ok(await text(ctx, 'Page not found'), 'the page does not say "Page not found"');
-        ctx.noErrors(ctx.openMark, [...BENIGN, /status of 404/]);
+        await ctx.noErrors(ctx.openMark, [...BENIGN, /status of 404/]);
       } },
     { name: 'nav-link-is-a-client-navigation',
       async run(ctx) {
@@ -118,7 +118,7 @@ export const CASES = [
         ctx.ok(!(await text(ctx, 'Something went wrong')), 'a widget of the Overview dashboard is in its error state');
         await ctx.eval(`(() => { const t = window.__deep.all('pk-tab, [role="tab"]').find(x => /Operations/.test(x.textContent)); t?.click(); })()`);
         await ctx.waitFor(`${MAIN_TEXT}.includes('ready to download')`, 'the Exports ready widget (Reports module) to load on the Operations tab');
-        ctx.noErrors(ctx.openMark, [...BENIGN]);
+        await ctx.noErrors(ctx.openMark, [...BENIGN]);
       } },
     { name: 'no-console-errors',
       async run(ctx) {
@@ -126,6 +126,7 @@ export const CASES = [
         for (const route of ['/overview', '/orders', '/orders/8', '/reports', '/secure/audit', '/nope']) {
                 await ctx.open(route);
             await ctx.sleep(3000); // the circuit connects and the page's load callbacks answer or fail
+            await ctx.flushEvents();
             const errors = ctx.errorsSince(ctx.openMark, [...BENIGN, /status of (401|404)/]);
             if (errors.length) bad.push(`${route}: ${errors[0].split('\n')[0].slice(0, 200)}`);
         }
@@ -161,19 +162,22 @@ export const WASM_CASES = [
         await ctx.open('/overview');
         await ctx.waitFor(OVERVIEW, 'the home module of the WebAssembly sample to draw');
         await ctx.sleep(1500);
+        await ctx.flushEvents(); // the Network events come over their own connection: count after they have all arrived
         ctx.ok(requests() === 0, `the lazy module assembly was requested at startup (${requests()} request/s), before any navigation into /insights`);
         await ctx.eval(MARK);
         await ctx.clickLink('/insights');
         await ctx.waitFor(`${INSIGHTS} || ${MAIN_TEXT}.includes('Something went wrong')`, 'the Insights page to draw or fail');
         ctx.ok(await ctx.eval(INSIGHTS), `the first navigation into /insights did not draw its lazily loaded page; the page says: ${(await ctx.eval(MAIN_TEXT)).trim().slice(0, 160)}`);
+        await ctx.flushEvents(); // the Network events come over their own connection: count after they have all arrived
         ctx.ok(requests() === 1, `the first navigation into /insights requested the module assembly ${requests()} times, expected exactly once`);
         await ctx.clickLink('/overview');
         await ctx.waitFor(OVERVIEW, 'the Overview page again');
         await ctx.clickLink('/insights');
         await ctx.waitFor(INSIGHTS, 'the Insights page again');
+        await ctx.flushEvents(); // the Network events come over their own connection: count after they have all arrived
         ctx.ok(requests() === 1, `the second navigation into /insights requested the module assembly again (${requests()} requests in all)`);
         ctx.ok(await ctx.eval(SAME_DOCUMENT), 'a module switch reloaded the whole document');
-        ctx.noErrors(ctx.openMark, [...BENIGN]);
+        await ctx.noErrors(ctx.openMark, [...BENIGN]);
       } },
     { name: 'wasm-lazy-module-deep-link',
       async run(ctx) {
@@ -181,7 +185,7 @@ export const WASM_CASES = [
         await ctx.open('/insights');
         await ctx.waitFor(`${MAIN_TEXT}.includes("This module's assembly was downloaded") || ${MAIN_TEXT}.includes('Page not found') || ${MAIN_TEXT}.includes('Something went wrong')`, '/insights to draw');
         ctx.ok(await text(ctx, "This module's assembly was downloaded"), `a deep link to the lazy module did not draw its page; the page says: ${(await ctx.eval(MAIN_TEXT)).trim().slice(0, 160)}`);
-        ctx.noErrors(ctx.openMark, [...BENIGN]);
+        await ctx.noErrors(ctx.openMark, [...BENIGN]);
       } },
 ];
 

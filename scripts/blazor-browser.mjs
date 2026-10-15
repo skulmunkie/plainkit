@@ -116,12 +116,21 @@ export async function openBrowser(chrome, profile) {
     // connect() hands out only send/close; the events the cases read come through a second socket that records them.
     const ws = new WebSocket(wsUrl), events = [];
     await new Promise((res, rej) => { ws.onopen = res; ws.onerror = () => rej(new Error('could not open the DevTools event connection')); });
-    ws.onmessage = e => { const m = JSON.parse(e.data); if (m.method) events.push(m); };
+    const waiters = new Map();
+    ws.onmessage = e => { const m = JSON.parse(e.data); if (m.method) events.push(m); else if (waiters.has(m.id)) { waiters.get(m.id)(); waiters.delete(m.id); } };
     let id = 0; const raw = (method, params = {}) => ws.send(JSON.stringify({ id: ++id, method, params }));
+    // A round trip on the event socket: its answer comes after every event the page emitted before it (one socket is in order), so what the page logged or requested up to now is in `events` when this resolves.
+    // The case's own socket and this one are not ordered against each other, so a log line or a request could otherwise land after the check that should have seen it (#1423).
+    const sync = () => new Promise((res, rej) => {
+        const my = ++id;
+        waiters.set(my, res);
+        ws.send(JSON.stringify({ id: my, method: 'Runtime.evaluate', params: { expression: '0' } }));
+        setTimeout(() => { if (waiters.delete(my)) rej(new Error('the browser did not answer a round trip on its event connection within 30 s')); }, 30000 * loadScale());
+    });
     for (const m of ['Runtime.enable', 'Log.enable', 'Network.enable', 'Page.enable']) raw(m);
     await cdp.send('Page.enable');
     await cdp.send('Page.addScriptToEvaluateOnNewDocument', { source: `window.__cls = 0; try { new PerformanceObserver(l => { for (const e of l.getEntries()) if (!e.hadRecentInput) window.__cls += e.value; }).observe({ type: 'layout-shift', buffered: true }); } catch (e) { window.__clsError = String(e); }` });
-    return { browser, cdp, events, close() { ws.close(); cdp.close(); killTree(browser); } };
+    return { browser, cdp, events, sync, close() { ws.close(); cdp.close(); killTree(browser); } };
 }
 
 /** The console errors, uncaught exceptions and failed requests in `events` from index `from` on, as short strings. Pure. */
@@ -148,13 +157,18 @@ export const DEEP = `window.__deep = window.__deep || {
     active() { let a = document.activeElement; while (a?.shadowRoot?.activeElement) a = a.shadowRoot.activeElement; return a; },
 };`;
 
+/** A page-side expression: true when an element matching `sel` (through shadow roots) is laid out and its text includes `label`. */
+const visible = (sel, label) => `window.__deep.q(${JSON.stringify(sel)}).some(x => x.getBoundingClientRect().width > 0 && (x.textContent ?? '').includes(${JSON.stringify(label)}))`;
+
 /** The context a case gets: navigation, evaluation, waiting, the viewport and theme, screenshots. */
 export function makeContext({ host, session, out, shots, results }) {
-    const { cdp, events } = session;
+    const { cdp, events, sync } = session;
     const ctx = {
         host, events, cdp, sleep,
         errorsSince: (mark, ignore) => errorsIn(events, mark, ignore),
-        noErrors(mark, ignore) { const e = ctx.errorsSince(mark, ignore); if (e.length) throw new Error('browser errors:\n    ' + e.join('\n    ')); },
+        /** Resolves once every event the page has emitted so far is in `events`. */
+        flushEvents: sync,
+        async noErrors(mark, ignore) { await sync(); const e = ctx.errorsSince(mark, ignore); if (e.length) throw new Error('browser errors:\n    ' + e.join('\n    ')); },
         eval: expr => evaluate(cdp, `(() => { ${DEEP}; return (${expr}); })()`),
         /** Polls `expr` until truthy. The ceiling (`seconds`: what an idle machine needs, with room to spare) is stretched by the machine's CPU load (loadScale), so a busy runner does not turn a slow load into a failure (#1401, #1423). */
         async waitFor(expr, what, seconds = 20) {
@@ -170,12 +184,17 @@ export function makeContext({ host, session, out, shots, results }) {
         async open(route) {
             await cdp.send('Page.navigate', { url: 'about:blank' }); // drops the page before, so its late errors are not this page's
             await sleep(300);
+            await sync(); // the page just left may log late (a beforeunload block, an echoed failure): that is its line, not this page's
             ctx.openMark = events.length;
             await cdp.send('Page.navigate', { url: host.base + route });
             await ctx.waitFor(`document.readyState === 'complete' && !!window.__deep.one('pk-app-frame') && !!window.Blazor`, `${route} to load`);
             await ctx.waitFor(`!!document.querySelector('#pk-main') && window.__deep.text(document.querySelector('#pk-main')).trim().length > 0`, `the page body of ${route}`);
-            await sleep(400); // the circuit start and a first interactive render
+            await ctx.waitInteractive();
+            await sleep(400); // a first interactive render
         },
+        /** Waits until Blazor has taken the page over: its event delegator has put the handler table (`_blazorEvents_<renderer>`) on a rendered element. Until then the prerendered copy answers no click
+         *  or event (a lost click flaked two-way-bind and phone-touch-list-and-record, #1423) and no callback property is set (a case that needs one waits for it too). */
+        waitInteractive: () => ctx.waitFor(`window.__deep.all('*').some(e => Object.keys(e).some(k => k.startsWith('_blazorEvents_')))`, 'Blazor to take the prerendered page over (its event handlers registered)'),
         /** Clicks the link (an a, or a pk-menu-item with an href) whose path is `href` (through shadow roots) and waits for the address to change. */
         async clickLink(href) {
             const before = await ctx.eval('location.href');
@@ -187,11 +206,13 @@ export function makeContext({ host, session, out, shots, results }) {
         },
         /** Clicks the first visible element matching `sel` (through shadow roots) whose text includes `label`. */
         async clickDeep(sel, label = '') {
+            await ctx.waitFor(visible(sel, label), `something visible to click: ${sel} ${label}`.trim()); // what a callback or a load has yet to reveal (a hidden Edit button) is waited for, not missed
             const hit = await ctx.eval(`(() => { const e = window.__deep.q(${JSON.stringify(sel)}).find(x => x.getBoundingClientRect().width > 0 && (x.textContent ?? '').includes(${JSON.stringify(label)})); if (!e) return false; e.click(); return true; })()`);
             if (!hit) throw new Error(`nothing visible to click: ${sel} ${label}`);
         },
         /** A real touch tap (touchstart and touchend through the DevTools input domain) on the first visible element matching `sel` whose text includes `label`. */
         async tap(sel, label = '') {
+            await ctx.waitFor(visible(sel, label), `something visible to tap: ${sel} ${label}`.trim());
             const r = await ctx.eval(`(() => { const e = window.__deep.q(${JSON.stringify(sel)}).find(x => x.getBoundingClientRect().width > 0 && (x.textContent ?? '').includes(${JSON.stringify(label)})); if (!e) return null; const b = e.getBoundingClientRect(); return { x: b.x + b.width / 2, y: b.y + b.height / 2, w: b.width, h: b.height }; })()`);
             if (!r) throw new Error(`nothing visible to tap: ${sel} ${label}`);
             await cdp.send('Input.dispatchTouchEvent', { type: 'touchStart', touchPoints: [{ x: r.x, y: r.y }] });
