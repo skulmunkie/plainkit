@@ -253,4 +253,12 @@ public sealed class PkTableTests : BunitContext, IAsyncLifetime
         await cut.Find("pk-table").TriggerEventAsync("onpk-row-click", new PkRowClickEventArgs { Id = "1" });
         Assert.Equal("Ada", cut.Instance.Opened?.Name);
     }
+
+    [Fact]
+    public void RowHrefTemplate_is_the_row_href_template_attribute()
+    {
+        var cut = Render<PkTable<Order>>(p => p.Add(x => x.Columns, Columns).Add(x => x.Items, Orders).Add(x => x.RowHrefTemplate, "/orders/{id}"));
+        Assert.Equal("/orders/{id}", cut.Find("pk-table").GetAttribute("row-href-template"));
+        Assert.Null(Render<PkTable<Order>>(p => p.Add(x => x.Columns, Columns).Add(x => x.Items, Orders)).Find("pk-table").GetAttribute("row-href-template"));
+    }
 }

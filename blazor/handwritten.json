@@ -182,6 +182,9 @@
     "PkListPageQuery.cs": {
       "category": "typed-generics"
     },
+    "PkFilterField.cs": {
+      "category": "dto"
+    },
     "PkListTypes.cs": {
       "category": "typed-generics"
     },
