@@ -80,6 +80,18 @@
       "type": "Dictionary<string, object>?",
       "map": "wrapper",
       "note": "Splatted onto the host element."
+    },
+    {
+      "name": "ActionContent",
+      "type": "RenderFragment?",
+      "map": "slot",
+      "slot": "action"
+    },
+    {
+      "name": "IconContent",
+      "type": "RenderFragment?",
+      "map": "slot",
+      "slot": "icon"
     }
   ],
   "methods": [

@@ -35,6 +35,12 @@
       "name": "ChildContent",
       "slot": "",
       "type": "RenderFragment"
+    },
+    {
+      "name": "SummaryTitleContent",
+      "type": "RenderFragment?",
+      "map": "slot",
+      "slot": "summary-title"
     }
   ],
   "methods": [

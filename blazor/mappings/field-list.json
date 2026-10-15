@@ -36,6 +36,12 @@
       "name": "ChildContent",
       "slot": "",
       "type": "RenderFragment?"
+    },
+    {
+      "name": "HeadingContent",
+      "type": "RenderFragment?",
+      "map": "slot",
+      "slot": "heading"
     }
   ],
   "notes": "Keeps Title (heading) and ChildContent. Slotted dt and dd pairs go in ChildContent. Items (issue 527) is a typed JSON attribute (PkFieldListItem: Label, Value, Hidden?, Href?), rendered alongside ChildContent; an Items row with an empty Value hides itself unless ShowEmpty is set and the element hides an empty slotted dt/dd pair the same way (issue 801; PkFieldListRow is removed)."

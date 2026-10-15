@@ -107,6 +107,8 @@ A toast after the add: `<PkToastStack>` plus a conditional `<PkToast OnDismiss="
 ### Give a page a header with breadcrumbs
 `PkPageHeader` draws the title and a `pk-breadcrumb` from a list of `PkCrumb(Label, Href)` (`<PkPageHeader Crumbs="@_crumbs" Title="@_name">`); the last crumb is the current page and is the title unless `Title` overrides it. `BackLink` and `Sticky`: `references/components-navigation.md`. A "..." menu of secondary actions in a card header is `PkCardMenu` (generated from `pk-card-menu`; put it in the card's `ActionsContent` with `PkMenuItem` children and handle `OnSelect`; `Label`, `IconName`, `Placement`, `@bind-Open`): `references/components-overlays.md`.
 
+Every named slot an element declares for rich content is a `RenderFragment` parameter named `<Slot>Content`: `PkAlert` `ActionContent` and `IconContent`, `PkDrawer` `HeaderContent`, `PkForm` `SummaryTitleContent`, `PkFormSection` `HeadingContent` and `DescriptionContent`, `PkFieldList` `HeadingContent`, `PkPageShell` `TitleContent`. The plain `Title`, `Heading` or `Description` string covers the usual case; use the fragment only for markup. The page elements' own `title` and `drawn` slots are made by the page factory, so they have no parameter, and `PkTabs` `tab` and `panel` are filled by `PkTab` and `PkTabPanel`. For `PkDropzone`, put `<InputFile slot="input">` straight in `ChildContent`.
+
 ### Open a dialog from C#
 `Size` (`PkDialogSize`: `Sm`, `Md`, `Lg`, `Xl`, `Fullscreen`) picks the width for a wide list or preview; left off, the element's default applies. `MaxWidthPx` sets an exact width.
 
