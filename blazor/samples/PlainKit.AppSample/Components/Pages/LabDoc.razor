@@ -1,0 +1,9 @@
+@page "/lab/doc"
+
+@* Lab: a doc page whose LoadItem answers through the bridge. *@
+<PkDocPage Config="@Config" LoadItem="Load" />
+
+@code {
+    private const string Config = """{"items":[{"id":"intro","title":"Intro page","summary":"First"}],"id":"intro","level":1}""";
+    private Task<object?> Load(string id) => Task.FromResult<object?>(new { title = "Intro page", summary = "First", html = "<h2>Loaded section</h2><p>Body from the sample.</p>" });
+}

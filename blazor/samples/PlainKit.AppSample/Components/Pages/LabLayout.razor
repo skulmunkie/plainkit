@@ -1,0 +1,31 @@
+@page "/lab/layout"
+
+@* Lab: PkDock (OnLayoutChange and ConfirmLayout), PkTabs (Value) and PkDialog (IsOpen), each bound both ways. *@
+<h1 tabindex="-1">Layout</h1>
+<p id="lab-dock">Dock events: @_events, last: @_reason, confirms: @_confirms</p>
+<PkDock Label="Workspace" OnLayoutChange="Changed" ConfirmLayout="Confirm">
+    <div slot="one" data-heading="One" data-group="g">First panel</div>
+    <div slot="two" data-heading="Two" data-group="g">Second panel</div>
+</PkDock>
+
+<p id="lab-tab">Tab: @_tab, changes: @_tabChanges</p>
+<PkButton OnClick="@(() => _tab = "b")">Select B</PkButton>
+<PkTabs Value="@_tab" OnChange="TabChanged">
+    <PkTab Value="a">Alpha</PkTab><PkTab Value="b">Beta</PkTab>
+    <PkTabPanel Value="a">Alpha body</PkTabPanel><PkTabPanel Value="b">Beta body</PkTabPanel>
+</PkTabs>
+
+<p id="lab-open">Dialog open: @_open, closes: @_closes</p>
+<PkButton OnClick="@(() => _open = true)">Open dialog</PkButton>
+<PkDialog @bind-IsOpen="_open" Title="Bound dialog" OnClose="@(() => _closes++)"><ChildContent>Dialog body</ChildContent><FooterContent><PkButton OnClick="@(() => _open = false)">Done</PkButton></FooterContent></PkDialog>
+
+@code {
+    private int _events, _confirms, _tabChanges, _closes;
+    private string _reason = "none", _tab = "a";
+    private bool _open;
+
+    // PkTabs has no ValueChanged (so no @bind-Value): the element's choice comes back through OnChange.
+    private void TabChanged(PkTabChangeEventArgs e) { _tab = e.Value ?? _tab; _tabChanges++; }
+    private void Changed(PkLayoutChangeEventArgs e) { _events++; _reason = e.Reason ?? ""; }
+    private async Task<string?> Confirm(string layout, string reason) { _confirms++; await InvokeAsync(StateHasChanged); return layout; }
+}
