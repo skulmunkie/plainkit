@@ -1,5 +1,7 @@
 /* pk-breadcrumb: a trail of links with a chevron between them. The element marks folded crumbs with [data-folded]; the fold button shows only then. */
 :host { display: block; font-size: var(--text-read); }
+/* Before its crumbs are set (the app sets them after the module loads) it keeps the one row they take, so the page under it does not move down (CLS, issue 1372). */
+:host(:empty) { min-block-size: 2rem; }
 
 [part="list"] { display: flex; flex-wrap: wrap; align-items: center; gap: var(--space-1) var(--space-2); margin: 0; padding: 0; list-style: none; }
 

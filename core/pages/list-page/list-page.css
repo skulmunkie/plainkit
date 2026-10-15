@@ -2,3 +2,5 @@
 [part="header"] { flex: none; }
 [part="actions"] { display: flex; gap: var(--space-2); align-items: center; }
 [part="header"] { margin-block-end: var(--space-4); }
+/* Until the table upgrades it holds the height its loading state takes (toolbar, gap, a page of skeleton rows), so the table arriving moves nothing (CLS, issue 1372). */
+pk-data-table:not(:defined) { display: block; min-block-size: calc(var(--space-8) + var(--space-2) + var(--space-3) + var(--space-4) + var(--space-12) * 5); }
