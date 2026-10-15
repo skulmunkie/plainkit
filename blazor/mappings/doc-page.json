@@ -16,7 +16,13 @@
       "arg": "string",
       "refresh": true,
       "doc": "Loads the page for an item id (config.items[].id): an object with title, summary and html (the body, trusted markup). Null or nothing shows the 'not found' state; throwing shows the error state with Retry."
+    },
+    {
+      "name": "OnNavigate",
+      "event": "pk-navigate",
+      "type": "EventCallback<PkNavigateEventArgs>",
+      "note": "A same-page link in the article (table of contents, heading permalink) was followed: Id is the current item, Anchor the heading id, Replace false. Rewrite the address yourself (NavigationManager) and put Anchor in the next Config; the element never touches history."
     }
   ],
-  "notes": "New component: App framework step 7 (issue #353), the doc slice only (workspace, master-detail, record, wizard are separate future steps). LoadItem(id) is a callback property, set from script: the generated component hands the element a .NET reference (PkCallbackSlot) that calls the LoadItem parameter (issue #366). Href is synchronous in the element and cannot cross interop, and the pk-navigate event is still unmapped; both wait for a design decision."
+  "notes": "New component: App framework step 7 (issue #353), the doc slice only (workspace, master-detail, record, wizard are separate future steps). LoadItem(id) is a callback property, set from script: the generated component hands the element a .NET reference (PkCallbackSlot) that calls the LoadItem parameter (issue #366). Href is synchronous in the element and cannot cross interop, waits for a design decision."
 }
