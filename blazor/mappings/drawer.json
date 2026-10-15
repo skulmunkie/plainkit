@@ -75,7 +75,7 @@
       "type": "bool",
       "default": true,
       "map": "wrapper",
-      "note": "The SDK has no phone card layout for a drawer."
+      "note": "Re-decided (#1386): stays out. The SDK has no phone card layout for a drawer, so there is nothing to map."
     },
     {
       "name": "Docked",
