@@ -191,6 +191,12 @@ export function makeContext({ host, session, out, shots, results }) {
             const hit = await ctx.eval(`(() => { const c = window.__deep.one(${JSON.stringify(sel)}); if (!c) return false; c.value = ${JSON.stringify(value)}; if (c.fire) c.fire(); else c.dispatchEvent(new Event('input', { bubbles: true, composed: true })); return true; })()`);
             if (!hit) throw new Error(`no control matches ${sel}`);
         },
+        /** Picks `files` (absolute paths) on the file input matching `sel`, as the OS picker would: DevTools sets them and raises input and change on the native input. */
+        async setFiles(sel, files) {
+            const r = await cdp.send('Runtime.evaluate', { expression: `(() => { ${DEEP}; return window.__deep.one(${JSON.stringify(sel)}); })()` });
+            if (!r.result.objectId) throw new Error(`no file input matches ${sel}`);
+            await cdp.send('DOM.setFileInputFiles', { files, objectId: r.result.objectId });
+        },
         /** Commits `value` into the control of the field labelled `label`, as a person's edit does (a checkbox is clicked, the others get the value and their commit event). */
         async setField(label, value) {
             const hit = await ctx.eval(`(() => { const c = window.__deep.field(${JSON.stringify(label)}); if (!c) return false;

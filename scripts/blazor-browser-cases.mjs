@@ -3,6 +3,7 @@
 // A failing case is a defect in the sample or the framework: file an issue (screenshot and steps), do not weaken the case.
 
 import { LAB_CASES, LAB_SHOTS } from './blazor-browser-lab-cases.mjs';
+import { INTEROP_CASES, INTEROP_SHOTS } from './blazor-browser-interop-cases.mjs';
 
 const MAIN_TEXT = `(document.querySelector('#pk-main') ? window.__deep.text(document.querySelector('#pk-main')) : '')`; // #pk-main is absent while a lazy module loads (the guard's spinner)
 const MARK = `window.__pkMark = 'still the same document'`;
@@ -185,3 +186,5 @@ export const WASM_CASES = [
 
 CASES.push(...LAB_CASES); // the JS-interop paths a bUnit test cannot cross (blazor-browser-lab-cases.mjs)
 SHOT_PLAN.push(...LAB_SHOTS);
+CASES.push(...INTEROP_CASES); // callbacks of the page types, JSON re-sync, parameter binding, file picking (#1381)
+SHOT_PLAN.push(...INTEROP_SHOTS);

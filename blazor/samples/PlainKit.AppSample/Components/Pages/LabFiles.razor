@@ -1,0 +1,33 @@
+@page "/lab/files"
+@using Microsoft.AspNetCore.Components.Forms
+
+@* Lab: file picking through Blazor's InputFile, inside a PkDropzone and beside a PkImageGallery (HideAdd), the bytes read over the real stream. *@
+<h1 tabindex="-1">Files</h1>
+<PkDropzone Label="Upload" BrowseLabel="Choose files">
+    <InputFile slot="input" OnChange="Read" />
+    Drop here
+</PkDropzone>
+<p id="lab-read">Read: @_read</p>
+
+<PkImageGallery Images="_images" Editable="true" HideAdd="true">
+    <InputContent><InputFile slot="input" OnChange="Add" accept="image/*" /></InputContent>
+</PkImageGallery>
+<p id="lab-count">Images: @_images.Count</p>
+
+@code {
+    private readonly List<PkGalleryImage> _images = [];
+    private string _read = "none";
+
+    private async Task Read(InputFileChangeEventArgs e)
+    {
+        using var reader = new StreamReader(e.File.OpenReadStream(1024 * 1024));
+        _read = e.File.Name + ":" + await reader.ReadToEndAsync();
+    }
+
+    private async Task Add(InputFileChangeEventArgs e)
+    {
+        using var ms = new MemoryStream();
+        await e.File.OpenReadStream(1024 * 1024).CopyToAsync(ms);
+        _images.Add(new PkGalleryImage { Src = "data:image/png;base64," + Convert.ToBase64String(ms.ToArray()), Alt = e.File.Name });
+    }
+}

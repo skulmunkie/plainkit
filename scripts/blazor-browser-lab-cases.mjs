@@ -3,11 +3,11 @@
 // pages (/lab/*, blazor/samples/PlainKit.AppSample/Components/Pages/Lab*.razor) in a real browser and asserts the visible result and an empty console.
 // Same rules as blazor-browser-cases.mjs: a failing case is a defect in the product or the sample, file an issue, never weaken the case.
 
-const BENIGN = [/favicon\.ico/];
-const MAIN = `window.__deep.text(document.querySelector('#pk-main'))`;
+export const BENIGN = [/favicon\.ico/];
+export const MAIN = `window.__deep.text(document.querySelector('#pk-main'))`;
 const ALL = `window.__deep.text(document.body)`;
 const has = async (ctx, what, scope = MAIN) => ctx.eval(`${scope}.includes(${JSON.stringify(what)})`);
-const waitText = (ctx, what, scope = MAIN, seconds = 15) => ctx.waitFor(`${scope}.includes(${JSON.stringify(what)})`, `"${what}" to appear`, seconds);
+export const waitText = (ctx, what, scope = MAIN, seconds = 15) => ctx.waitFor(`${scope}.includes(${JSON.stringify(what)})`, `"${what}" to appear`, seconds);
 const waitGone = (ctx, what, scope = MAIN) => ctx.waitFor(`!${scope}.includes(${JSON.stringify(what)})`, `"${what}" to go away`);
 const RECORD = 'pk-record-page >>> pk-button';
 const edit = async ctx => { await ctx.clickDeep(`${RECORD}[part="edit"]`); await ctx.waitFor(`!!window.__deep.field('Title')`, 'the record fields to open for editing'); };
@@ -73,6 +73,8 @@ export const LAB_CASES = [
       async run(ctx) {
         await ctx.open('/lab/tickets/5');
         await waitText(ctx, 'Ticket 5');
+        // A click on the prerendered copy is lost when the circuit takes the page over (it flaked): wait for the element's Save callback, which only the circuit sets.
+        await ctx.waitFor(`typeof document.querySelector('pk-record-page')?.save === 'function'`, 'the circuit to take the record page over');
         await ctx.clickDeep(`${RECORD}[part="delete"]`);
         await ctx.waitFor(`location.pathname === '/lab/tickets'`, 'Delete to navigate back to the list');
         await waitText(ctx, 'Ticket deleted', ALL); // the success toast, a bridge call
