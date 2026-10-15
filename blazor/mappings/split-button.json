@@ -19,6 +19,7 @@
     {
       "name": "Open",
       "prop": "open",
+      "bind": {"event":"pk-menu-toggle","value":"detail.open"},
       "type": "bool"
     },
     {

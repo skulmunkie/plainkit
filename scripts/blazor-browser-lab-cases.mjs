@@ -126,6 +126,19 @@ export const LAB_CASES = [
         await waitText(ctx, 'Valid: False');
         ctx.noErrors(ctx.openMark, BENIGN);
       } },
+    { name: 'two-way-bind',
+      async run(ctx) {
+        await ctx.open('/lab/bind');
+        await waitText(ctx, 'Tab: a', ALL);
+        await ctx.clickDeep('pk-tab', 'Beta');
+        await waitText(ctx, 'Tab: b', ALL); // @bind-Value on PkTabs follows pk-tab-change
+        await waitText(ctx, 'Pressed: False', ALL);
+        await ctx.clickDeep('pk-button', 'Bold');
+        await waitText(ctx, 'Pressed: True', ALL); // @bind-Pressed on a toggle PkButton follows pk-toggle
+        await ctx.clickDeep('pk-tab', 'Alpha');
+        await waitText(ctx, 'Tab: a', ALL);
+        ctx.noErrors(ctx.openMark, BENIGN);
+      } },
     { name: 'theme-toggle',
       async run(ctx) {
         await ctx.open('/overview');
