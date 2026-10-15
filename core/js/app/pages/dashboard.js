@@ -4,7 +4,7 @@
 export const PAGE_TYPE = {
     id: 'dashboard',
     summary: 'Tabs, widgets and filterable sections, each loaded on demand by key.',
-    configKeys: ['surface', 'heading', 'breadcrumb', 'actions', 'tabs', 'widgets', 'sections', 'filters', 'empty', 'load'],
+    configKeys: ['surface', 'order', 'allow', 'deny', 'heading', 'breadcrumb', 'actions', 'tabs', 'widgets', 'sections', 'filters', 'empty', 'load'],
     states: ['empty'],
     useWhen: 'An overview of tiles, charts and sections a user filters, not a single record or a list to open.',
 };
