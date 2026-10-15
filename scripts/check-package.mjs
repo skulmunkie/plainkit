@@ -36,7 +36,7 @@ export const FORBIDDEN = [
     // Design-time/editor files (#186): IDE tooling metadata and the exported agent docs are useful to npm/CDN consumers' editors and are shipped
     // separately as skills/dist release assets (#36), but nothing at runtime (no Blazor component, PkRuntime or dev tool) ever fetches them, so
     // scripts/publish-dist.mjs excludes them from the wwwroot/plainkit copy entirely; they must never come back as static web assets here.
-    ...['custom-elements.json', 'web-types.json', 'vscode.html-custom-data.json', 'elements.d.ts', 'elements.vue.d.ts', 'AGENTS.md', 'llms.txt', 'llms-full.txt', 'descriptions.json']
+    ...['custom-elements.json', 'web-types.json', 'vscode.html-custom-data.json', 'elements.d.ts', 'elements.vue.d.ts', 'AGENTS.md', 'llms.txt', 'llms-full.txt', 'descriptions.json', 'elements/api.full.json']
         .map(f => [new RegExp(`^staticwebassets/plainkit/${f.replace(/[.]/g, '\\.')}$`), `staticwebassets/plainkit/${f} (design-time/editor file, must be excluded by scripts/publish-dist.mjs; see #186)`]),
     // The `plainkit audit` CLI is a Node program shipped through npm's `bin` entry (core/package.json); the design
     // (2026-09-28-conformance-audit-cli-design.md, "Blazor package") says the NuGet package does not ship it - the Blazor skill

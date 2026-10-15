@@ -209,7 +209,7 @@ test('JSON round trip and HTML round trip hold on random trees, and HTML output 
 
 test('every SDK element example and pattern sample loads as a valid document, and its markup is a fixed point', () => {
     const sources = [];
-    for (const e of api) for (const ex of e.examples ?? []) sources.push([`${e.tag}: ${ex.title}`, ex.html]);
+    for (const e of JSON.parse(fs.readFileSync(path.join(root, 'dist', 'elements', 'api.full.json'), 'utf8'))) for (const ex of e.examples ?? []) sources.push([`${e.tag}: ${ex.title}`, ex.html]);
     const patterns = path.join(root, 'samples', 'patterns');
     for (const d of fs.readdirSync(patterns)) for (const f of fs.readdirSync(path.join(patterns, d)).filter(x => x.endsWith('.html'))) sources.push([`${d}/${f}`, fs.readFileSync(path.join(patterns, d, f), 'utf8')]);
     assert.ok(sources.length > 100);

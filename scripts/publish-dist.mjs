@@ -27,6 +27,7 @@ const EXCLUDE_FROM_BLAZOR = new Set([
     'llms.txt',
     'llms-full.txt',
     'descriptions.json',
+    'elements/api.full.json',
 ]);
 
 // The `plainkit audit` CLI (dist/tools/**: the audit rule engine and the pure `strict` engine it is built on, #518 A-10a) is a Node program
