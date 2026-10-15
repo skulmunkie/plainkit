@@ -15,6 +15,9 @@ const retryCase = async (attempt, tries = 3) => {
 const src = path => import(new URL(`../../${path}`, import.meta.url).href);
 const MODULES = ['overview', 'orders', 'reports'];
 
+// What the page looked like when a wait gave up: tells a missing route from a missing import from a slow machine (#1359).
+const dump = (win, d) => ({ hash: win.location.hash, ready: d.readyState, alert: d.querySelector('pk-alert[kind="danger"]:not([hidden])')?.textContent.slice(0, 200), busy: !!d.querySelector('pk-loading-overlay[busy]'), shell: !!d.querySelector('pk-app-shell'), navItems: d.querySelectorAll('pk-nav-item').length, main: (d.querySelector('#pk-main')?.innerHTML ?? 'no #pk-main').slice(0, 300), text: (d.body?.textContent ?? '').replace(/\s+/g, ' ').slice(0, 200) });
+
 // The demo app in an iframe `width` wide, at `hash`; resolves when its first module is shown.
 async function demo(t, width, { hash = '#/orders', app = 'index.html', search = '' } = {}) {
     const host = t.stage(''), f = document.createElement('iframe');
@@ -23,7 +26,12 @@ async function demo(t, width, { hash = '#/orders', app = 'index.html', search = 
     f.src = new URL(`../../samples/app/${app}${search}${hash}`, import.meta.url).href;
     await new Promise(resolve => { f.addEventListener('load', resolve, { once: true }); host.append(f); });
     const win = f.contentWindow, d = win.document;
-    await until(() => d.querySelector('#pk-main :is(h1, pk-heading[level="1"])'), 'the first page');
+    // The wait outlasts the app's own load budget (host.js: a 10 s import, one retry after 300 ms, a second 10 s), so a module that cannot load shows as the app's own boundary error
+    // ("Could not load ...") with its message, not as this wait giving up first on a starved machine; and the boundary's heading is not mistaken for a page.
+    try {
+        await until(() => d.querySelector('#pk-main :is(h1, pk-heading[level="1"])'), 'the first page', 700);
+        if (d.querySelector('pk-alert[kind="danger"]:not([hidden])')) throw new Error('the first page is the boundary error');
+    } catch (e) { throw new Error(`${e.message} ${JSON.stringify(dump(win, d))}`); }
     await Promise.all(['pk-app-shell', 'pk-navbar', 'pk-app-bar-search'].map(tag => win.customElements.whenDefined(tag)));
     if (d.querySelector('pk-side-nav')) await win.customElements.whenDefined('pk-side-nav');
     await wait(200);
