@@ -254,6 +254,12 @@ export function modelElement(el, mapping, reg) {
             if (!p.type || !p.doc) { skip(p.name, 'a property needs type and doc in the mapping'); continue; }
             declare({ name: p.name, kind: 'param', cs: stripNull(p.type) + '?', doc: p.doc, note: p.note });
             out.properties.push({ name: p.name, prop: p.property });
+        } else if (map === 'ref') {
+            // A property that holds an element (selected, dropTarget, chipFor, listbox, controls): the parameter is the element's id (a string; space-separated ids give an array), resolved
+            // in the element's own root by the bridge (setRef) after each render in which it changed. property: the element property; doc: the parameter's summary.
+            if (!p.doc) { skip(p.name, 'a ref needs a doc in the mapping'); continue; }
+            declare({ name: p.name, kind: 'param', cs: 'string?', doc: p.doc, note: p.note });
+            out.properties.push({ name: p.name, prop: p.property, ref: true });
         } else if (map === 'cssProperty') {
             skip(p.name, `sets the ${p.cssProperty} custom property; an inline style is blocked by the CSP, so it needs a CSSOM helper`);
         } else if (map === 'slotMap') {
@@ -450,10 +456,10 @@ function resolveProp(el, p, r, comp, enumType, todo, types = new Set()) {
 const doc = (text, indent = '    ') => `${indent}/// <summary>${esc(text) || '&#160;'}</summary>`;
 
 /** The lines that set a `property` parameter on the element after a render, only when its JSON changed (and not before it was ever set). */
-const propSync = x => [`        var json${x.name} = PkAttr.Json(${x.name});`,
+const propSync = x => [`        var json${x.name} = ${x.ref ? x.name : `PkAttr.Json(${x.name})`};`,
     `        if (json${x.name} != _sent${x.name})`, '        {',
     `            _sent${x.name} = json${x.name};`,
-    `            await (await Runtime.BridgeAsync(Assets)).InvokeVoidAsync("setProperty", Element, ${lit(x.prop)}, json${x.name});`, '        }'];
+    `            await (await Runtime.BridgeAsync(Assets)).InvokeVoidAsync("${x.ref ? 'setRef' : 'setProperty'}", Element, ${lit(x.prop)}, json${x.name});`, '        }'];
 
 /** The C# namespace a generated component lives in: its tier (from the element's meta.json, via api.json) decides. Base elements stay in the root (#768). */
 export const TIER_NAMESPACES = { element: 'PlainKit.Blazor', component: 'PlainKit.Blazor.Components', page: 'PlainKit.Blazor.Pages', shell: 'PlainKit.Blazor.Shells' };

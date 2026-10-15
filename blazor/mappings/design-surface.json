@@ -1,16 +1,64 @@
 {
   "component": "PkDesignSurface",
   "params": [
-    { "name": "Width", "prop": "width" },
-    { "name": "Label", "prop": "label" },
-    { "name": "Dragging", "prop": "dragging" },
-    { "name": "Interactive", "prop": "interactive" },
-    { "name": "OnPick", "event": "pk-surface-pick" },
-    { "name": "OnHover", "event": "pk-surface-hover" },
-    { "name": "OnKey", "event": "pk-surface-key" },
-    { "name": "ChildContent", "slot": "" },
-    { "name": "Chip", "slot": "chip" },
-    { "name": "Empty", "slot": "empty" }
+    {
+      "name": "Width",
+      "prop": "width"
+    },
+    {
+      "name": "Label",
+      "prop": "label"
+    },
+    {
+      "name": "Dragging",
+      "prop": "dragging"
+    },
+    {
+      "name": "Interactive",
+      "prop": "interactive"
+    },
+    {
+      "name": "Selected",
+      "map": "ref",
+      "property": "selected",
+      "doc": "The id of the page node framed as selected (a solid accent box). The node is a child of the surface that carries that id; an unknown id clears the frame. The host owns it: the surface never changes it."
+    },
+    {
+      "name": "DropTarget",
+      "map": "ref",
+      "property": "dropTarget",
+      "doc": "The id of the container an external drag would drop into (a dashed accent box)."
+    },
+    {
+      "name": "ChipFor",
+      "map": "ref",
+      "property": "chipFor",
+      "doc": "The id of the node the action chip (the Chip slot) follows; null or an unknown id hides the chip."
+    },
+    {
+      "name": "OnPick",
+      "event": "pk-surface-pick"
+    },
+    {
+      "name": "OnHover",
+      "event": "pk-surface-hover"
+    },
+    {
+      "name": "OnKey",
+      "event": "pk-surface-key"
+    },
+    {
+      "name": "ChildContent",
+      "slot": ""
+    },
+    {
+      "name": "Chip",
+      "slot": "chip"
+    },
+    {
+      "name": "Empty",
+      "slot": "empty"
+    }
   ],
-  "notes": "selected, dropTarget and chipFor are element references (properties, not attributes): they cannot be plain Blazor parameters, so a Blazor page does not set them directly; the module hosting the surface (the layout builder) sets them in script. Marks for hidden and empty nodes come from data-surface-hidden / data-surface-empty on the rendered nodes, which a component can write as ordinary attributes."
+  "notes": "Selected, DropTarget and ChipFor are element properties on the surface; Blazor passes the id of a rendered node (an ordinary id attribute on the node) and the bridge resolves it to the element after each render in which the id changed. Marks for hidden and empty nodes come from data-surface-hidden / data-surface-empty on the rendered nodes, which a component can write as ordinary attributes."
 }

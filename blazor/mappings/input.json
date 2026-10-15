@@ -167,6 +167,12 @@
       "type": "int"
     },
     {
+      "name": "Listbox",
+      "map": "ref",
+      "property": "listbox",
+      "doc": "The id of the listbox element this input drives, making it a combobox (aria-controls, and the option marked aria-selected as the active descendant). Resolved in the input's own tree after each render in which the id changed."
+    },
+    {
       "name": "OnSearch",
       "event": "pk-search",
       "type": "{ value: string }"
@@ -200,6 +206,9 @@
     "field": true
   },
   "methods": [
-    { "name": "FocusAsync", "method": "focus" }
+    {
+      "name": "FocusAsync",
+      "method": "focus"
+    }
   ]
 }

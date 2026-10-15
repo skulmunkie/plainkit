@@ -89,7 +89,10 @@
     {
       "name": "Pressed",
       "prop": "pressed",
-      "bind": {"event":"pk-toggle","value":"detail.pressed"},
+      "bind": {
+        "event": "pk-toggle",
+        "value": "detail.pressed"
+      },
       "type": "bool"
     },
     {
@@ -101,6 +104,12 @@
       "name": "Haspopup",
       "prop": "haspopup",
       "type": "string"
+    },
+    {
+      "name": "Controls",
+      "map": "ref",
+      "property": "controls",
+      "doc": "The id of the element this button controls, set as aria-controls on the control (several ids separated by spaces name several elements). Resolved in the button's own tree after each render in which the id changed."
     },
     {
       "name": "OnClick",
@@ -123,8 +132,13 @@
       "type": "RenderFragment"
     }
   ],
-  "events": ["pk-toggle"],
+  "events": [
+    "pk-toggle"
+  ],
   "methods": [
-    { "name": "FocusAsync", "method": "focus" }
+    {
+      "name": "FocusAsync",
+      "method": "focus"
+    }
   ]
 }

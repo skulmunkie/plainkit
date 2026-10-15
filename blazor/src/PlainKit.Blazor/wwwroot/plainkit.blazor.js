@@ -137,6 +137,13 @@ export const call = async (el, method, args) => { await customElements.whenDefin
 // an unupgraded element does not keep the value as a plain own property that shadows its setter.
 export const setProperty = async (el, name, json) => { await customElements.whenDefined(el.localName); el[name] = json === null ? null : JSON.parse(json); };
 
+// Sets a property that holds an element (PkDesignSurface.Selected -> selected) from an id looked up in the element's own root; several space-separated ids give an array, none or an unknown id null.
+export const setRef = async (el, name, id) => {
+    await customElements.whenDefined(el.localName);
+    const ids = (id ?? '').split(/\s+/).filter(Boolean), root = el.getRootNode(), found = ids.map(i => root.getElementById?.(i)).filter(Boolean);
+    el[name] = found.length === 0 ? null : ids.length === 1 ? found[0] : found;
+};
+
 export const openTools =container => mounted.get(container)?.open?.();
 export const closeTools = container => mounted.get(container)?.close?.();
 export const toggleTools = container => mounted.get(container)?.toggle?.();

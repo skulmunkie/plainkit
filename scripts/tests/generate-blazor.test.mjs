@@ -544,6 +544,19 @@ test('property: a typed parameter for a property with no attribute, set through 
     assert.doesNotMatch(generate([el], { demo: bad }, new Set(), new Set(['DemoRow'])).files.get('PkDemo.razor'), /Items/, 'a property with no doc is skipped');
 });
 
+test('ref: a string id parameter for a property that holds an element, resolved by the bridge (setRef) after a render only when it changed (#1389)', () => {
+    const m = structuredClone(mapping);
+    m.params.push({ name: 'Target', map: 'ref', property: 'target', doc: 'The id of the target.' });
+    const razor = generate([el], { demo: m }, new Set()).files.get('PkDemo.razor');
+    assert.match(razor, /\[Parameter\] public string\? Target \{ get; set; \}/);
+    assert.match(razor, /private string\? _sentTarget;/);
+    assert.match(razor, /var jsonTarget = Target;/);
+    assert.match(razor, /InvokeVoidAsync\("setRef", Element, "target", jsonTarget\)/);
+    assert.doesNotMatch(razor, / target="/, 'it is not an attribute');
+    const bad = structuredClone(m); delete bad.params.at(-1).doc;
+    assert.doesNotMatch(generate([el], { demo: bad }, new Set()).files.get('PkDemo.razor'), /Target/, 'a ref with no doc is skipped');
+});
+
 test('manifest DTOs come from the schema (#364)', () => {
     const cs = real.files.get('PkModuleManifest.cs');
     assert.match(cs, /public sealed record PkModuleManifest/);
