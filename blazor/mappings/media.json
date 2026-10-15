@@ -29,7 +29,7 @@
     {
       "name": "OnOpen",
       "event": "pk-open",
-      "type": "EventCallback<OpenEventArgs>"
+      "type": "EventCallback<PkOpenEventArgs>"
     },
     {
       "name": "ChildContent",

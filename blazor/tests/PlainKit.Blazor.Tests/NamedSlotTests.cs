@@ -47,4 +47,12 @@ public sealed class NamedSlotTests : BunitContext, IAsyncLifetime
     [Fact]
     public void PageShell_title_fills_its_slot()
         => Assert.Equal("T", Render<PkPageShell>(p => p.Add(x => x.TitleContent, "T")).Find("pk-page-shell span[slot=title]").TextContent);
+
+    [Fact]
+    public void Dock_empty_and_toolbar_start_fill_their_slots()
+    {
+        var cut = Render<PkDock>(p => p.Add(x => x.EmptyContent, "E").Add(x => x.ToolbarStartContent, "M"));
+        Assert.Equal("E", cut.Find("pk-dock span[slot=empty]").TextContent);
+        Assert.Equal("M", cut.Find("pk-dock span[slot=toolbar-start]").TextContent);
+    }
 }

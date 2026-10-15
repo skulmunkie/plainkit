@@ -110,7 +110,7 @@
     },
     {
       "name": "OnSelect",
-      "type": "EventCallback<MenuItemSelectEventArgs>",
+      "type": "EventCallback<PkSelectEventArgs>",
       "map": "event",
       "event": "pk-select"
     }

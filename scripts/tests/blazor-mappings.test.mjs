@@ -74,3 +74,18 @@ test('every event a parameter maps to declares a detail (null, a native event, o
         assert.ok(e.detail === null || typeof e.detail === 'string' /* a native event, described */ || (typeof e.detail === 'object' && Object.values(e.detail).every(t => typeof t === 'string')), `${n}.${p.event} detail is typed`);
     }
 });
+
+// Issue 1410: a mapping's EventCallback<T> names a type the build really has: generated (PkGeneratedEvents.cs), hand-written, or a framework one.
+test('every EventCallback type a mapping names is a type the build generates or ships', () => {
+    const declared = new Set(['ChangeEventArgs', 'MouseEventArgs', 'KeyboardEventArgs', 'FocusEventArgs', 'DragEventArgs', 'ProgressEventArgs', 'TouchEventArgs', 'WheelEventArgs', 'PointerEventArgs', 'ClipboardEventArgs', 'ErrorEventArgs', 'EventArgs', 'bool', 'string', 'int', 'double', 'object']);
+    const walk = d => { for (const e of fs.readdirSync(d, { withFileTypes: true })) {
+        const p = path.join(d, e.name);
+        if (e.isDirectory()) { if (!/^(bin|obj|node_modules)$/.test(e.name)) walk(p); }
+        else if (/\.(cs|razor)$/.test(e.name)) for (const m of fs.readFileSync(p, 'utf8').matchAll(/\b(?:class|record|struct)\s+(\w+)/g)) declared.add(m[1]);
+    } };
+    walk(path.join(root, 'blazor', 'src'));
+    assert.ok(declared.has('PkAddEventArgs'), 'the generated event types exist (run node scripts/bootstrap.mjs)');
+    const bad = [];
+    for (const [n, b] of Object.entries(mappings)) for (const p of b.params) for (const m of String(p.type ?? '').matchAll(/EventCallback<(\w+)>/g)) if (!declared.has(m[1])) bad.push(`${n}.${p.name}: ${m[1]}`);
+    assert.deepEqual(bad, [], 'not generated or hand-written; use the name the generator emits (see blazor/src/PlainKit.Blazor/Generated/PkGeneratedEvents.cs)');
+});

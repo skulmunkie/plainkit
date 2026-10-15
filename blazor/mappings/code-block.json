@@ -33,7 +33,7 @@
     {
       "name": "OnCopy",
       "event": "pk-copy",
-      "type": "EventCallback<CopyEventArgs>"
+      "type": "EventCallback<PkCopyEventArgs>"
     },
     {
       "name": "ChildContent",
