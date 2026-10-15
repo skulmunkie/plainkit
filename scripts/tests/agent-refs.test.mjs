@@ -65,15 +65,18 @@ test('AGENTS.md mentions every element tag and every Blazor component', () => {
     for (const e of src.api) assert.ok(agents.includes(`\`${e.tag}\``), e.tag);
 });
 
+// The plainkit-blazor skill is left out of the npm package, so its links are Pages URLs (#1253).
+const PAGES = 'https://skulmunkie.github.io/plainkit/dist/';
+
 test('llms.txt is the short index: a title, a summary, and one link per skill file; every link resolves to a file the skills bundle has', () => {
     const txt = gen.get('llms.txt');
     assert.match(txt, /^# Plainkit\n/);
     assert.match(txt, /^> Plainkit /m);
-    const links = [...txt.matchAll(/\]\(([^)]+)\)/g)].map(m => m[1]).filter(u => u.startsWith('skills/'));
+    const links = [...txt.matchAll(/\]\(([^)]+)\)/g)].map(m => m[1]).filter(u => u.startsWith('skills/') || u.startsWith(PAGES + 'skills/')).map(u => u.replace(PAGES, ''));
     assert.ok(links.length > 20);
     for (const link of links) assert.ok(bundle.has(link.slice('skills/'.length)), link);
     // one line per skill file, so the index is complete
-    for (const [f] of bundle) assert.match(txt, new RegExp(`\\]\\(skills/${f.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}\\)`), f);
+    for (const [f] of bundle) assert.ok(txt.includes(`](skills/${f})`) || txt.includes(`](${PAGES}skills/${f})`), f);
 });
 
 test('llms-full.txt is a flat concatenation: every skill file appears verbatim once, in skill order', () => {
