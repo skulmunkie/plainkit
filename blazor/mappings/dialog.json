@@ -1,5 +1,6 @@
 {
   "component": "PkDialog",
+  "events": ["pk-open"],
   "params": [
     {
       "name": "IsOpen",

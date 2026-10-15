@@ -1,5 +1,6 @@
 {
   "component": "PkSortableItem",
+  "events": ["pk-sortable-grab", "pk-sortable-drag", "pk-sortable-drop"],
   "params": [
     { "name": "Value", "prop": "value" },
     { "name": "Disabled", "prop": "disabled" },

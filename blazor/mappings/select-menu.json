@@ -1,5 +1,6 @@
 {
   "component": "PkSelectMenu",
+  "events": ["pk-open", "pk-close"],
   "params": [
     {
       "name": "Value",

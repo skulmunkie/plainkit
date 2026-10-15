@@ -1,5 +1,6 @@
 {
   "component": "PkLightbox",
+  "events": ["pk-open"],
   "params": [
     {
       "name": "Index",
