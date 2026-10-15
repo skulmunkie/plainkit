@@ -12,6 +12,6 @@ const mount = query => (host, ctx) => {
 };
 
 export default defineModule({
-    id: 'scorecard', title: 'Scorecard', icon: 'chart',
+    id: 'scorecard', title: 'Scorecard', icon: 'chart', widgets: { budgets: { load: async () => ({ value: String(Object.keys((await import('../scorecard/scoring.data.js')).BUDGETS).length), subtext: 'size and speed budgets, each a one-way ratchet' }) } },
     routes: [{ path: '*', page: 'custom', config: ({ query }) => ({ mount: mount(query ?? {}) }) }],
 });
