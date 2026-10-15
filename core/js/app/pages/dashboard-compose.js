@@ -10,9 +10,10 @@
 //     allow(entry, contribution): sync visibility (app/entry/own `can`), default allows all. A hidden widget is dropped, a tab with no widgets is dropped.
 //     Tab labels belong to the route; a contribution naming an undeclared tab gets an implicit tab titled from its id, with one warning.
 //     A `needs` key the route has no filter for warns once and the widget still renders.
-//     Order: `order` (default 100, lower first), then the module's position in `entries`, then declaration order.
+//     Order: `order` (default 100, lower first), then the module's position in `entries`, then declaration order. The route may curate (order/allow/deny by `module:key`): dashboard-curate.js.
 import { createLogger } from '../../log.js';
 import { MODULE_ID } from '../module.js';
+import { curate } from './dashboard-curate.js';
 
 const log = createLogger('app:dashboard');
 const KINDS = ['stat', 'chart'];
@@ -40,25 +41,24 @@ export function compose(entries, route, { allow = () => true } = {}) {
     if (!Array.isArray(entries)) fail('entries', 'must be an array');
     if (!route || typeof route.surface !== 'string' || !route.surface) fail('route.surface', 'must be a non-empty string');
     const declared = new Map((route.tabs ?? []).map(t => [t.id, t.label ?? t.id]));
-    const filters = new Set((route.filters ?? []).map(f => f.key));
-    const first = route.tabs?.[0]?.id ?? 'main';
-    const found = [];
-    const warned = new Set();
+    const filters = new Set((route.filters ?? []).map(f => f.key)), first = route.tabs?.[0]?.id ?? 'main';
+    const found = [], offered = new Set(), warned = new Set();
     const warnOnce = (id, msg) => { if (!warned.has(id)) { warned.add(id); log.warn(msg); } };
+    const finish = curate(route, fail, warnOnce);
     entries.forEach((entry, pos) => {
         const keys = new Set();
         (entry.contributes ?? []).forEach((raw, i) => {
             const c = readContribution(raw, `${entry.id}.contributes[${i}]`);
             if (keys.has(c.key)) fail(`${entry.id}.contributes[${i}].key`, `"${c.key}" is used twice`);
             keys.add(c.key);
-            if (!c.for.includes(route.surface) || !allow(entry, c)) return;
+            if (!c.for.includes(route.surface) || (offered.add(`${entry.id}:${c.key}`), !allow(entry, c))) return;
             const tab = c.tab ?? first;
             if (!declared.has(tab)) { warnOnce(`tab:${tab}`, `dashboard "${route.surface}": tab "${tab}" is not declared on the route, an implicit tab is used`); declared.set(tab, tab); }
             for (const k of c.needs) if (!filters.has(k)) warnOnce(`need:${entry.id}:${c.key}:${k}`, `dashboard "${route.surface}": ${entry.id}:${c.key} needs filter "${k}", which the route does not declare`);
             found.push({ pos, i, w: Object.freeze({ id: `${entry.id}:${c.key}`, module: entry.id, key: c.key, tab, label: c.label, kind: c.kind, size: c.size, order: c.order, needs: Object.freeze([...c.needs]) }) });
         });
     });
-    const widgets = found.sort((a, b) => a.w.order - b.w.order || a.pos - b.pos || a.i - b.i).map(f => f.w);
+    const widgets = finish(found, offered);
     const used = new Set(widgets.map(w => w.tab));
     const tabs = [...declared].filter(([id]) => used.has(id)).map(([id, label]) => Object.freeze({ id, label }));
     return Object.freeze({ tabs: Object.freeze(tabs), widgets: Object.freeze(widgets) });

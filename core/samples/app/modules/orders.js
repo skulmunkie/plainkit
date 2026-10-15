@@ -51,8 +51,8 @@ export default defineModule({
         { path: '/', label: 'All orders', page: 'list', config: listFor(null), children: [{ path: '/:id', label: p => `Order ${p.id}`, page: 'record', config: recordConfig }] },
         { path: '/open', label: 'Open', page: 'list', config: listFor('Open') },
         { path: '/shipped', label: 'Shipped', page: 'list', config: listFor('Shipped') },
-        // A second dashboard: the widgets whose `for` names 'orders' (app.config.js).
-        { path: '/summary', label: 'Summary', page: 'dashboard', config: { surface: 'orders', heading: 'Orders summary', tabs: [{ id: 'sales', label: 'Sales' }] } },
+        // A second dashboard: the widgets whose `for` names 'orders' (app.config.js), curated: `order` lists Revenue first (`allow` and `deny` take the same `module:key` ids).
+        { path: '/summary', label: 'Summary', page: 'dashboard', config: { surface: 'orders', heading: 'Orders summary', tabs: [{ id: 'sales', label: 'Sales' }], order: ['orders:revenue'] } },
         { path: '*', page: 'not-found' },
     ],
 });

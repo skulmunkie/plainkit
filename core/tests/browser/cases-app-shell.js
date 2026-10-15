@@ -762,7 +762,7 @@ export const appShellCases = [
             const page = await until(() => deep(s.d, 'pk-dashboard-page'), 'the orders summary dashboard');
             const cards = () => [...page.shadowRoot.querySelectorAll('pk-card')];
             await until(() => cards().length === 2 && cards().every(c => c.dataset.state === 'ready'), 'both cards ready', 200);
-            t.eq(cards().map(c => c.dataset.key).join(), 'orders:open,orders:revenue', `only the widgets naming the orders surface are drawn at ${width}px`);
+            t.eq(cards().map(c => c.dataset.key).join(), 'orders:revenue,orders:open', `only the widgets naming the orders surface are drawn, in the route's curated order (#1294), at ${width}px`);
             t.eq(s.d.querySelector('#pk-main :is(h1, pk-heading[level="1"])').textContent, 'Orders summary', 'the route heading');
             t.eq(page.shadowRoot.querySelectorAll('pk-tab').length, 1, 'the one declared tab');
             const [a, b] = cards().map(c => c.getBoundingClientRect());

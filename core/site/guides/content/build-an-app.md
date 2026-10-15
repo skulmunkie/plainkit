@@ -134,6 +134,12 @@ A dashboard can instead be assembled from what several modules offer, with no ed
     },
 ```
 
+A dashboard route can curate what modules contribute with `order`, `allow` and `deny`, lists of `module:key` ids. `order` puts those widgets first, in that order, and the rest follow; `allow` keeps only the listed widgets; `deny` removes the listed ones (it wins over `allow`). Curation never adds a widget a module did not offer, and a widget's `can` still applies after it. A well-formed id nothing offers for the surface warns once and is ignored; a list that is not an array of distinct `module:key` strings throws:
+
+```text
+        { path: '/summary', label: 'Summary', page: 'dashboard', config: { surface: 'orders', heading: 'Orders summary', tabs: [{ id: 'sales', label: 'Sales' }], order: ['orders:revenue'] } },
+```
+
 Only the tab on screen loads module code (a second widget of one module shares its import), a widget that fails shows its own error card with Retry beside the others, a contribution a `can` denies is never offered or imported, and leaving the page aborts every widget's `signal`. A widget's `ctx` is a subset (`id`, `log`, `auth`, `settings`, `signal`, `href`): the module is loaded as a definition only, so `mount` has not run. A `needs` key the route has no filter for warns once; a tab the route does not declare gets an implicit one. A contribution's `size` (`sm`, `md` or `lg`) is a column span hint: `md` takes two columns and `lg` the whole row from a tablet width up, and a phone has one column. The open tab is kept in the address (`?tab=`, written without a history entry, so a reload or a shared link opens on it). Filter selections are saved in the owning module's `state` when its `defaults` name the filter key (`state: { defaults: { range: '' }, persist: ['range'] }`). A module whose own `can` denies is only known once it has loaded, so its card is withdrawn then (one layout shift); put the check in the entry's `can` to hide it from the start.
 
 ### Form pages
