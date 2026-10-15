@@ -38,6 +38,8 @@
       "slot": "",
       "note": "The panels: children with slot=\"<panel id>\", so the slot is not a fixed one (the element slots each panel by its own id). slot=\"empty\" and slot=\"toolbar-start\" are reserved (the empty state, and a host app's own top-level toolbar menus) and are never treated as a panel."
     },
+    { "name": "EmptyContent", "slot": "empty", "type": "RenderFragment?", "note": "The empty state shown when no panel is open (the element hides it while there is a layout)." },
+    { "name": "ToolbarStartContent", "slot": "toolbar-start", "type": "RenderFragment?", "note": "The host app own top-level toolbar menus, drawn at the start of the dock toolbar." },
     {
       "name": "ConfirmLayout",
       "callback": "confirmLayout",

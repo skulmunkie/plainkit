@@ -67,7 +67,7 @@
     },
     {
       "name": "OnPaneChange",
-      "type": "EventCallback<WorkspacePaneChangeEventArgs>",
+      "type": "EventCallback<PkPaneChangeEventArgs>",
       "map": "event",
       "event": "pk-pane-change",
       "cancelable": true

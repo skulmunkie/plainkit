@@ -63,7 +63,7 @@
     },
     {
       "name": "OnSelect",
-      "type": "EventCallback<CommandPaletteSelectEventArgs>",
+      "type": "EventCallback<PkSelectEventArgs>",
       "map": "event",
       "event": "pk-select"
     }

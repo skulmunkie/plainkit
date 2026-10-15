@@ -43,14 +43,14 @@
     },
     {
       "name": "OnChange",
-      "type": "EventCallback<LightboxChangeEventArgs>",
+      "type": "EventCallback<PkChangeEventArgs>",
       "map": "event",
       "event": "pk-change",
       "cancelable": true
     },
     {
       "name": "OnClose",
-      "type": "EventCallback<LightboxCloseEventArgs>",
+      "type": "EventCallback<PkCloseEventArgs>",
       "map": "event",
       "event": "pk-close",
       "cancelable": true

@@ -45,7 +45,7 @@
     },
     {
       "name": "OnSectionChange",
-      "type": "EventCallback<TocSectionChangeEventArgs>",
+      "type": "EventCallback<PkSectionChangeEventArgs>",
       "map": "event",
       "event": "pk-section-change"
     }

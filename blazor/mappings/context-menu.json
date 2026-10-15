@@ -30,7 +30,7 @@
     },
     {
       "name": "OnSelect",
-      "type": "EventCallback<ContextMenuSelectEventArgs>",
+      "type": "EventCallback<PkSelectEventArgs>",
       "map": "event",
       "event": "pk-select"
     },

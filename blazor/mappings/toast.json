@@ -56,7 +56,7 @@
     },
     {
       "name": "OnDismiss",
-      "type": "EventCallback<ToastDismissEventArgs>",
+      "type": "EventCallback<PkDismissEventArgs>",
       "map": "event",
       "event": "pk-dismiss",
       "cancelable": true
