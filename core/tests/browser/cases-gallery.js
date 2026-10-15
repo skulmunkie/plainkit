@@ -408,6 +408,7 @@ export const galleryAppCases = [
     }],
     ['gallery module (host): four gallery pages and another module, 100 times over, leave no listener, observer, timer or store subscription behind, one frame is in the page, and a route change takes 100 ms at most (#1239)', async t => {
         const { createModuleHost, defineModule } = await import(new URL('../../js/app.js', import.meta.url).href);
+        const { cpuScale } = await import(new URL('./cpu-scale.js', import.meta.url).href);
         const { createStore } = await import(new URL('../../js/store.js', import.meta.url).href);
         const gallery = (await import(new URL('../../site/modules/gallery.js', import.meta.url).href)).default;
         const el = document.createElement('div'); t.stage('').append(el);
@@ -435,8 +436,8 @@ export const galleryAppCases = [
         // a route change between two element pages, the module already on show: the page type of the next is drawn into the frame that stays
         const ms = [];
         for (let i = 0; i < 20; i++) { const from = performance.now(); await host.show('gallery', { path: i % 2 ? '/elements/pk-button' : '/elements/pk-badge' }); ms.push(performance.now() - from); }
-        const mean = ms.reduce((s, x) => s + x, 0) / ms.length, median = [...ms].sort((a, b) => a - b)[ms.length >> 1], quarter = [...ms].sort((a, b) => a - b)[ms.length >> 2];
-        t.ok(quarter <= 100, `a route change between element pages takes ${median.toFixed(1)} ms at the median (mean ${mean.toFixed(1)}) over ${ms.length}, budget 100`);
+        const sorted = [...ms].sort((x, y) => x - y), median = (sorted[9] + sorted[10]) / 2, p90 = sorted[Math.ceil(ms.length * 0.9) - 1], scale = cpuScale();
+        t.ok(median <= 100 * scale, `a route change between element pages takes ${median.toFixed(1)} ms at the median (p90 ${p90.toFixed(1)}, fastest ${sorted[0].toFixed(1)}) over ${ms.length}, budget 100 ms${scale > 1 ? ` x ${scale.toFixed(2)} for a loaded machine` : ''};${before.listeners.length} window/document listeners before and ${after.listeners.length} after 100 cycles`);
         await host.destroy();
     }],
     ['modules (app): a cold deep link to each lazy module leaves no pk-* element undefined once its view is drawn, and the gallery page header draws its heading (the view is drawn after the app scan)', async t => {
