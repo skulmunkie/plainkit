@@ -1,0 +1,22 @@
+@page "/lab/canvas"
+
+@* Lab: PkCanvas (view bindings, pick, key) and PkDesignSurface (Selected through setRef, OnPick) over the real interop (#1411). *@
+<h1 tabindex="-1">Lab canvas</h1>
+<p id="lab-view">View: zoom @_zoom.ToString("0.##"), changes: @_changes</p>
+<p id="lab-canvas-events">Picks: @_picks, key: @_key</p>
+<PkCanvas Label="Lab canvas" @bind-Zoom="_zoom" OnViewChange="@(() => _changes++)" OnPick="@(() => _picks++)" OnKey="@(e => _key = e.Key ?? "?")">
+    <div id="lab-node">Node</div>
+</PkCanvas>
+
+<p id="lab-surface">Surface: selected @_selected, picks: @_surfacePicks</p>
+<PkButton OnClick="@(() => _selected = _selected == "s-one" ? "s-two" : "s-one")">Select other</PkButton>
+<PkDesignSurface Label="Lab surface" Selected="@_selected" OnPick="@(() => _surfacePicks++)">
+    <div id="s-one">One</div>
+    <div id="s-two">Two</div>
+</PkDesignSurface>
+
+@code {
+    private double _zoom = 1;
+    private int _changes, _picks, _surfacePicks;
+    private string _key = "none", _selected = "s-one";
+}

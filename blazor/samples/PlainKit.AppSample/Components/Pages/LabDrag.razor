@@ -1,0 +1,31 @@
+@page "/lab/drag"
+
+@* Lab: a real pointer drag on PkImageGallery (OnReorder) and PkKanban (OnMove) over the real interop (#1411). *@
+<h1 tabindex="-1">Lab drag</h1>
+<p id="lab-reorder">Gallery: @string.Join(",", _images.Select(i => i.Alt)), reorders: @_reorders</p>
+<PkImageGallery Images="_images" Editable="true" HideAdd="true" OnReorder="Reordered" />
+
+<p id="lab-move">Board: moves: @_moves, last: @_last</p>
+<PkKanban Label="Lab board" OnMove="Moved">
+    <PkKanbanColumn Value="todo" Label="To do">
+        <PkSortableItem Value="t1"><PkCard Heading="First card" Level="3">One</PkCard></PkSortableItem>
+        <PkSortableItem Value="t2"><PkCard Heading="Second card" Level="3">Two</PkCard></PkSortableItem>
+    </PkKanbanColumn>
+    <PkKanbanColumn Value="done" Label="Done" EmptyText="Nothing yet"></PkKanbanColumn>
+</PkKanban>
+
+@code {
+    private const string Dot = "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mP8z8BQDwAEhQGAhKmMIQAAAABJRU5ErkJggg==";
+    private readonly List<PkGalleryImage> _images = [new() { Src = Dot, Alt = "a" }, new() { Src = Dot, Alt = "b" }, new() { Src = Dot, Alt = "c" }];
+    private int _reorders, _moves;
+    private string _last = "none";
+
+    // The element never reorders its own tiles: the host applies the new order.
+    private void Reordered(PkReorderEventArgs e)
+    {
+        _reorders++;
+        if (e.From is { } f && e.To is { } t) { var i = _images[(int)f]; _images.RemoveAt((int)f); _images.Insert((int)t, i); }
+    }
+
+    private void Moved(PkMoveEventArgs e) { _moves++; _last = $"{e.Item} {e.From}>{e.To}"; }
+}

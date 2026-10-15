@@ -4,7 +4,7 @@
 // drives the browser over the DevTools protocol (the plumbing is attest-browser.mjs's and ui-review.mjs's), and ALWAYS stops the host, the browser and deletes both temporary
 // folders on the way out (success, failure, Ctrl+C).
 //
-//   node scripts/blazor-browser.mjs [--out review-output] [--no-shots] [--cases a,b] [--timeout 120] [--keep-publish]
+//   node scripts/blazor-browser.mjs [--out review-output] [--no-shots] [--cases a,b] [--timeout 120] [--publish-timeout 600] [--keep-publish]
 //   verify: node scripts/verify.mjs --only blazor-browser   (opt-in; not part of the pull request gate; see AGENTS.md)
 //
 //   review-output/blazor-app__<shot>__<desktop|phone>__<light|dark>.png   and   review-output/blazor-app.json (the case results)
@@ -21,6 +21,7 @@ import { fileURLToPath } from 'node:url';
 import { chromeArgs, findChrome, killTree, removeDir } from './attest-browser.mjs';
 import { connect, evaluate, freePort } from './ui-review.mjs';
 import { ensureGenerated } from './generated.mjs';
+import { cpuScale } from '../core/tests/browser/cpu-scale.js';
 
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 const SAMPLE = path.join(root, 'blazor', 'samples', 'PlainKit.AppSample');
@@ -29,14 +30,19 @@ export const VIEWPORTS = [{ name: 'desktop', width: 1280, height: 900 }, { name:
 export const THEMES = ['light', 'dark'];
 const sleep = ms => new Promise(r => setTimeout(r, ms));
 
+let scale = 1, measuredAt = -Infinity;
+/** How much slower than an idle machine this one is right now (1 to 4, core/tests/browser/cpu-scale.js), measured at most every 5 s. */
+export const loadScale = () => { if (Date.now() - measuredAt > 5000) { scale = cpuScale(); measuredAt = Date.now(); } return scale; };
+
 export function parseArgs(argv) {
-    const o = { out: path.join(root, 'review-output'), shots: true, cases: [], timeout: 120, keepPublish: false, wasm: true };
+    const o = { out: path.join(root, 'review-output'), shots: true, cases: [], timeout: 120, publishTimeout: 600, keepPublish: false, wasm: true };
     for (let i = 0; i < argv.length; i++) {
         const a = argv[i], v = () => { const x = argv[++i]; if (x === undefined || x.startsWith('--')) throw new Error(`${a} needs a value`); return x; };
         if (a === '--out') o.out = path.resolve(v());
         else if (a === '--no-shots') o.shots = false;
         else if (a === '--cases') o.cases.push(...v().split(',').map(s => s.trim()).filter(Boolean));
         else if (a === '--timeout') { o.timeout = Number(v()); if (!Number.isInteger(o.timeout) || o.timeout <= 0) throw new Error('--timeout needs a positive whole number'); }
+        else if (a === '--publish-timeout') { o.publishTimeout = Number(v()); if (!Number.isInteger(o.publishTimeout) || o.publishTimeout <= 0) throw new Error('--publish-timeout needs a positive whole number of seconds'); }
         else if (a === '--keep-publish') o.keepPublish = true;
         else if (a === '--no-wasm') o.wasm = false;
         else throw new Error(`unknown argument ${a}`);
@@ -47,9 +53,14 @@ export function parseArgs(argv) {
 /** The file name of one screenshot, in the ui-review scenario convention. Pure. */
 export const shotName = (shot, vp, theme) => `blazor-app__${shot}__${vp.name}__${theme}.png`;
 
-/** Publishes the sample (or `project`) into `dir`. Node reuse and the shared compiler are off so no build server outlives the run holding files. */
-export function publish(dir, project = SAMPLE) {
-    const r = spawnSync('dotnet', ['publish', project, '-c', 'Release', '-o', dir, '--nologo', '-v', 'q', '-nodeReuse:false', '-p:UseSharedCompilation=false'], { encoding: 'utf8' });
+/** Publishes the sample (or `project`) into `dir`. Node reuse and the shared compiler are off so no build server outlives the run holding files.
+ *  A publish running longer than `timeoutSec` (a stale build server holding a lock hung one run for 50 minutes, #1411) is killed and fails with a message saying so. */
+export function publish(dir, project = SAMPLE, timeoutSec = 600) {
+    const r = spawnSync('dotnet', ['publish', project, '-c', 'Release', '-o', dir, '--nologo', '-v', 'q', '-nodeReuse:false', '-p:UseSharedCompilation=false'], { encoding: 'utf8', timeout: timeoutSec * 1000, killSignal: 'SIGKILL' });
+    if (r.error?.code === 'ETIMEDOUT') {
+        killUsing(dir); // dotnet's own children (the compiler) outlive the killed parent
+        throw new Error(`dotnet publish of ${path.basename(project)} did not finish within ${timeoutSec} s and was stopped. A stale dotnet build server or a locked bin/obj folder is the usual cause: run "dotnet build-server shutdown", end leftover dotnet processes, and run again (--publish-timeout <seconds> raises the limit).`);
+    }
     if (r.status !== 0) throw new Error(`dotnet publish failed (${r.status}): ${(r.stdout + r.stderr).split('\n').filter(l => /error/i.test(l)).slice(0, 8).join('\n') || r.error}`);
 }
 
@@ -145,9 +156,10 @@ export function makeContext({ host, session, out, shots, results }) {
         errorsSince: (mark, ignore) => errorsIn(events, mark, ignore),
         noErrors(mark, ignore) { const e = ctx.errorsSince(mark, ignore); if (e.length) throw new Error('browser errors:\n    ' + e.join('\n    ')); },
         eval: expr => evaluate(cdp, `(() => { ${DEEP}; return (${expr}); })()`),
+        /** Polls `expr` until truthy. The ceiling (`seconds`: what an idle machine needs, with room to spare) is stretched by the machine's CPU load (loadScale), so a busy runner does not turn a slow load into a failure (#1401, #1423). */
         async waitFor(expr, what, seconds = 20) {
-            for (const t = Date.now(); Date.now() - t < seconds * 1000; await sleep(50)) { try { if (await ctx.eval(expr)) return; } catch (e) { if (!/Execution context|Cannot find context|navigat/i.test(e.message)) throw e; } }
-            throw new Error(`timed out after ${seconds} s waiting for ${what}`);
+            for (const t = Date.now(), limit = seconds * loadScale() * 1000; Date.now() - t < limit; await sleep(50)) { try { if (await ctx.eval(expr)) return; } catch (e) { if (!/Execution context|Cannot find context|navigat/i.test(e.message)) throw e; } }
+            throw new Error(`timed out after ${Math.round(seconds * loadScale())} s waiting for ${what}`);
         },
         async viewport(vp, theme) {
             await cdp.send('Emulation.setDeviceMetricsOverride', { width: vp.width, height: vp.height, deviceScaleFactor: vp.touch ? 2 : 1, mobile: !!vp.touch });
@@ -244,8 +256,8 @@ async function main() {
                 catch (e) { results.cases.push({ name: c.name, ok: false, error: e.message }); console.log(`  FAIL ${c.name}: ${e.message}`); }
             }
         };
-        if (serverCases.length || o.shots) { console.log('publishing the sample ...'); publish(pub); host = await startHost(pub, o.timeout); }
-        if (wasmCases.length) { console.log('publishing the WebAssembly sample ...'); publish(wasmPub, SAMPLE_WASM); wasmHost = await startStaticHost(wasmPub); }
+        if (serverCases.length || o.shots) { console.log('publishing the sample ...'); publish(pub, SAMPLE, o.publishTimeout); host = await startHost(pub, o.timeout); }
+        if (wasmCases.length) { console.log('publishing the WebAssembly sample ...'); publish(wasmPub, SAMPLE_WASM, o.publishTimeout); wasmHost = await startStaticHost(wasmPub); }
         console.log(`host on ${host?.base}${wasmHost ? `, WebAssembly host on ${wasmHost.base}` : ''}; browser ${chrome}`);
         session = await openBrowser(chrome, profile);
         const ctx = makeContext({ host, session, out: o.out, shots: o.shots, results });

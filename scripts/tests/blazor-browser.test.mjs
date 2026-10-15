@@ -9,6 +9,9 @@ test('parseArgs: defaults, the options and a refused one', () => {
     assert.equal(d.shots, true);
     assert.deepEqual(d.cases, []);
     assert.deepEqual(parseArgs(['--no-shots', '--cases', 'a, b', '--timeout', '30']).cases, ['a', 'b']);
+    assert.equal(d.publishTimeout, 600);
+    assert.equal(parseArgs(['--publish-timeout', '90']).publishTimeout, 90);
+    assert.throws(() => parseArgs(['--publish-timeout', '0']), /positive whole number of seconds/);
     assert.throws(() => parseArgs(['--timeout', 'x']), /positive whole number/);
     assert.throws(() => parseArgs(['--cases']), /needs a value/);
     assert.throws(() => parseArgs(['--nope']), /unknown argument/);
