@@ -44,7 +44,7 @@
       "type": "bool",
       "default": true,
       "map": "wrapper",
-      "note": "The framework error bar (#blazor-error-ui) belongs to the host page and its layout CSS, and pk-app-shell has no such feature; keep it in your layout."
+      "note": "Re-decided (#1386): stays out. The framework error bar (#blazor-error-ui) belongs to the host page and its layout CSS, and pk-app-shell has no such feature; keep it in your layout."
     },
     {
       "name": "ErrorOverlayMessage",
