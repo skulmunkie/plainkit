@@ -138,7 +138,7 @@ export const LAB_CASES = [
         await ctx.clickDeep('pk-tab', 'Alpha');
         await waitText(ctx, 'Tab: a', ALL);
         await waitText(ctx, 'Values: {}', ALL);
-        await ctx.clickDeep('pk-switch');
+        await ctx.eval(`(() => { document.querySelector('pk-property-grid').shadowRoot.querySelector('pk-switch').shadowRoot.querySelector('[part=control]').click(); return 1; })()`);
         await waitText(ctx, 'Values: {"enabled":true}', ALL); // @bind-Values on PkPropertyGrid follows pk-property-change as JSON text
         ctx.noErrors(ctx.openMark, BENIGN);
       } },
