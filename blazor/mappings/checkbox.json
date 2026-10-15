@@ -47,6 +47,21 @@
       "type": "string"
     },
     {
+      "name": "Description",
+      "prop": "description",
+      "type": "string"
+    },
+    {
+      "name": "OnInput",
+      "event": "input",
+      "type": "EventCallback<ChangeEventArgs>"
+    },
+    {
+      "name": "OnChange",
+      "event": "change",
+      "type": "EventCallback<ChangeEventArgs>"
+    },
+    {
       "name": "ChildContent",
       "slot": "",
       "type": "RenderFragment"

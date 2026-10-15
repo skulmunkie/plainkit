@@ -247,4 +247,27 @@ public sealed class GeneratedComponentTests : BunitContext, IAsyncLifetime
         Assert.Null(cut.Find("pk-print-page #doc").Closest("[slot]"));
         Assert.Equal("toolbar", cut.Find("#print").Closest("[slot]")!.GetAttribute("slot"));
     }
+
+    [Fact]
+    public void Form_control_states_and_help_text_become_attributes_and_native_input_and_change_are_callbacks()
+    {
+        ChangeEventArgs? seen = null;
+        var cut = Render<PkInput>(p => p
+            .Add(x => x.Description, "Shown under the field")
+            .Add(x => x.Warning, true)
+            .Add(x => x.IsValid, true)
+            .Add(x => x.Decimals, 2)
+            .Add(x => x.InputMode, "decimal")
+            .Add(x => x.OnInput, EventCallback.Factory.Create<ChangeEventArgs>(this, e => seen = e)));
+        var el = cut.Find("pk-input");
+
+        Assert.Equal("Shown under the field", el.GetAttribute("description"));
+        Assert.NotNull(el.GetAttribute("warning"));
+        Assert.NotNull(el.GetAttribute("valid"));
+        Assert.Equal("2", el.GetAttribute("decimals"));
+        Assert.Equal("decimal", el.GetAttribute("inputmode"));
+
+        el.Input("12.5");
+        Assert.Equal("12.5", seen?.Value);
+    }
 }
