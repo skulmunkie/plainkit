@@ -22,6 +22,23 @@ public sealed class PkSideNavTests : BunitContext, IAsyncLifetime
     }
 
     [Fact]
+    public async Task OnOpen_and_OnClose_receive_the_elements_pk_open_and_pk_close()
+    {
+        var opened = 0; string? reason = null; var openChanged = new List<bool>();
+        var cut = Render<PkSideNav>(p => p.Add(x => x.Open, true)
+            .Add(x => x.OnOpen, () => opened++)
+            .Add(x => x.OnClose, (PkCloseEventArgs e) => reason = e.Reason)
+            .Add(x => x.OpenChanged, (bool v) => openChanged.Add(v)));
+
+        await cut.Find("pk-side-nav").TriggerEventAsync("onpk-open", EventArgs.Empty);
+        await cut.Find("pk-side-nav").TriggerEventAsync("onpk-close", new PkCloseEventArgs { Reason = "escape" });
+
+        Assert.Equal(1, opened);
+        Assert.Equal("escape", reason);
+        Assert.Equal(new[] { false }, openChanged);
+    }
+
+    [Fact]
     public void With_no_CurrentPath_the_component_tracks_the_current_route_on_first_render()
     {
         NavigationManager.NavigateTo("/users/42");
