@@ -14,11 +14,13 @@
     {
       "name": "Expanded",
       "prop": "expanded",
+      "bind": {"event":"pk-toggle","value":"detail.expanded"},
       "type": "bool"
     },
     {
       "name": "Selected",
       "prop": "selected",
+      "bind": [{"event":"pk-select","value":true}],
       "type": "bool"
     },
     {

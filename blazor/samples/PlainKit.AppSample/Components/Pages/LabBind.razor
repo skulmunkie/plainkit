@@ -1,0 +1,18 @@
+@page "/lab/bind"
+
+@* Lab: two-way binding of state the element changes itself (a chosen tab, a pressed toggle button), over the real interop (#1378). *@
+<h1 tabindex="-1">Lab bind</h1>
+<PkTabs @bind-Value="_tab">
+    <PkTab Value="a">Alpha</PkTab>
+    <PkTab Value="b">Beta</PkTab>
+    <PkTabPanel Value="a">Panel alpha</PkTabPanel>
+    <PkTabPanel Value="b">Panel beta</PkTabPanel>
+</PkTabs>
+<p>Tab: @_tab</p>
+<PkButton Toggle="true" @bind-Pressed="_pressed">Bold</PkButton>
+<p>Pressed: @_pressed</p>
+
+@code {
+    private string? _tab = "a";
+    private bool _pressed;
+}

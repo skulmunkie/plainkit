@@ -93,7 +93,7 @@ internal static class PkAttr
 
     /// <summary>The date in an ISO string, or null when it is empty or not a date.</summary>
     internal static DateOnly? ParseDate(string? value) =>
-        DateOnly.TryParseExact(value, "yyyy-MM-dd", CultureInfo.InvariantCulture, DateTimeStyles.None, out var d) ? d : null;
+        DateOnly.TryParseExact(value, ["yyyy-MM-dd", "yyyy-MM"], CultureInfo.InvariantCulture, DateTimeStyles.None, out var d) ? d : null;
 
     /// <summary>The value as a JSON attribute (camelCase), or null when unset.</summary>
     internal static string? Json(object? value) => value is null ? null : JsonSerializer.Serialize(value, Web);
