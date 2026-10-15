@@ -81,5 +81,9 @@
       "map": "prop",
       "prop": "docked"
     }
+  ],
+  "methods": [
+    { "name": "ShowAsync", "method": "show" },
+    { "name": "HideAsync", "method": "hide" }
   ]
 }

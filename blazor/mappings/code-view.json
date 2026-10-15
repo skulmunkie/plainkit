@@ -8,6 +8,13 @@
       "prop": "lines"
     },
     {
+      "name": "Segments",
+      "map": "property",
+      "property": "segments",
+      "type": "IReadOnlyList<IReadOnlyList<PkCodeSegment>>",
+      "doc": "Optional colouring: one list of runs per line of Lines, each { text, kind, match, word }. The runs of a line should join to the line's text."
+    },
+    {
       "name": "Start",
       "prop": "start",
       "type": "int",
@@ -39,5 +46,5 @@
       "type": "string"
     }
   ],
-  "notes": "Pass the code as Lines, or as ChildContent text. The per-line colouring (segments) is a script-only property."
+  "notes": "Pass the code as Lines, or as ChildContent text. The per-line colouring is the Segments parameter (a property, set after the render)."
 }

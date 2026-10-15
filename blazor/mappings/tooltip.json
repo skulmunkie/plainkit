@@ -92,5 +92,9 @@
       "map": "wrapper",
       "note": "The element has no click event; put a click handler on the element you wrap."
     }
+  ],
+  "methods": [
+    { "name": "ShowAsync", "method": "show" },
+    { "name": "HideAsync", "method": "hide" }
   ]
 }

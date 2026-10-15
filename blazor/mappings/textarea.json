@@ -73,5 +73,9 @@
     "key": "value",
     "type": "string",
     "field": true
-  }
+  },
+  "methods": [
+    { "name": "SelectAsync", "method": "select" },
+    { "name": "FocusAsync", "method": "focus" }
+  ]
 }

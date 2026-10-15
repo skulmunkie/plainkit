@@ -29,5 +29,8 @@
       "map": "slot",
       "slot": ""
     }
+  ],
+  "methods": [
+    { "name": "PushAsync", "method": "push", "args": [{ "name": "toast", "type": "object" }] }
   ]
 }

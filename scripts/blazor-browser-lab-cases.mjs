@@ -113,6 +113,19 @@ export const LAB_CASES = [
         await waitText(ctx, 'Answer: no');
         ctx.noErrors(ctx.openMark, BENIGN);
       } },
+    { name: 'element-methods',
+      async run(ctx) {
+        await ctx.open('/lab/methods');
+        await ctx.clickDeep('pk-button', 'Open dialog');
+        await waitText(ctx, 'Body of the lab dialog', ALL);
+        await ctx.waitFor(`window.__deep.one('pk-dialog')?.open === true || window.__deep.one('pk-dialog')?.hasAttribute('open')`, 'ShowAsync to open the dialog');
+        await ctx.eval(`window.__deep.one('pk-dialog').hide()`);
+        await ctx.clickDeep('pk-button', 'Focus name');
+        await ctx.waitFor(`(() => { const a = window.__deep.active(); return !!a && !!a.closest('pk-input, [name="name"]') || a?.getRootNode()?.host?.localName === 'pk-input'; })()`, 'FocusAsync to focus the input');
+        await ctx.clickDeep('pk-button', 'Check form');
+        await waitText(ctx, 'Valid: False');
+        ctx.noErrors(ctx.openMark, BENIGN);
+      } },
     { name: 'theme-toggle',
       async run(ctx) {
         await ctx.open('/overview');

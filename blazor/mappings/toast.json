@@ -61,5 +61,8 @@
       "event": "pk-dismiss",
       "cancelable": true
     }
+  ],
+  "methods": [
+    { "name": "DismissAsync", "method": "dismiss" }
   ]
 }
