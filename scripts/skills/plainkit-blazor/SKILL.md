@@ -89,7 +89,7 @@ A toast after the add: `<PkToastStack>` plus a conditional `<PkToast OnDismiss="
             <PkInput @bind-Value="_name" Name="name" Required />
         </PkField>
         <PkFormActions Align="end">
-            <PkButton Type="submit" Variant="ButtonVariant.Primary">Save</PkButton>
+            <PkButton Type="ButtonType.Submit" Variant="ButtonVariant.Primary">Save</PkButton>
         </PkFormActions>
     </form>
 </PkForm>

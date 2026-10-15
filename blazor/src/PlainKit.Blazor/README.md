@@ -468,7 +468,7 @@ The components follow the rules in `core/STANDARDS.md` ("Ownership and reactivit
   <PkForm @ref="_form" OnReset="Resync">
       <form>
           <PkInput @bind-Value="_name" Name="name" />
-          <PkButton Type="reset">Reset</PkButton>
+          <PkButton Type="ButtonType.Reset">Reset</PkButton>
       </form>
   </PkForm>
   @code {

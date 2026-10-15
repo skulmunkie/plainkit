@@ -19,12 +19,12 @@
     {
       "name": "Shape",
       "prop": "shape",
-      "type": "string"
+      "type": "AvatarShape"
     },
     {
       "name": "Status",
       "prop": "status",
-      "type": "string"
+      "type": "AvatarStatus"
     },
     {
       "name": "Colour",

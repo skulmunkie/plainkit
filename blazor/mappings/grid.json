@@ -19,7 +19,7 @@
     {
       "name": "Gap",
       "prop": "gap",
-      "type": "string"
+      "type": "GridGap"
     },
     {
       "name": "ChildContent",

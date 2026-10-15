@@ -9,7 +9,7 @@
     {
       "name": "Padding",
       "prop": "padding",
-      "type": "string"
+      "type": "ContainerPadding"
     },
     {
       "name": "Align",

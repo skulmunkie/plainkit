@@ -4,7 +4,7 @@
     {
       "name": "Gap",
       "prop": "gap",
-      "type": "string"
+      "type": "StackGap"
     },
     {
       "name": "Align",

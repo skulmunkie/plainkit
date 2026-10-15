@@ -14,7 +14,7 @@
     {
       "name": "Status",
       "prop": "status",
-      "type": "string"
+      "type": "TimelineItemStatus"
     },
     {
       "name": "ChildContent",
