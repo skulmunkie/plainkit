@@ -2,8 +2,8 @@
 // pure parts. Same contract as cases.js: [name, async (t) => void]. The demo app (samples/app/) is opened in an iframe of a chosen width, so the media queries answer to that width.
 import { instrument } from './cases-app.js';
 
-const wait = ms => new Promise(r => setTimeout(r, ms));
-const until = async (fn, what, tries = 100) => { for (let i = 0; i < tries; i++) { const v = fn(); if (v) return v; await wait(30); } throw new Error(`timed out waiting for ${what}`); };
+import { wait, until as poll } from './wait.js';
+const until = (fn, what, tries = 100) => poll(fn, what, { tries });
 // Retries a real-timer, real-Chrome case a few times before failing for real: a case that measures wall-clock budgets (route-change ms,
 // CLS across real navigations) can lose a race against a heavily loaded CI runner even when the code under test is correct - same
 // reasoning as PageBaseTests' own retry (issue #427/#434). A genuine regression fails every attempt identically and still reports as a
@@ -38,11 +38,11 @@ export const appShellCases = [
         t.ok(toggle && s.win.getComputedStyle(toggle).display !== 'none', 'the shell hamburger is there');
         t.ok(s.d.querySelector('pk-navbar pk-dropdown').hidden, 'no picker in the bar on a phone: it is in the drawer');
         t.ok(!s.nav().open, 'the drawer starts closed');
-        toggle.click(); await wait(500);
+        toggle.click(); await until(() => s.nav().open, 'the drawer to open');
         t.ok(s.nav().open, 'the hamburger opens the drawer');
         const picker = s.nav().firstElementChild;
         t.ok(picker.querySelector(':scope > pk-nav-item[data-module="reports"]'), 'the first row of the drawer is the picker, holding the modules');
-        picker.shadowRoot.querySelector('[part="link"]').click(); await wait(300);
+        picker.shadowRoot.querySelector('[part="link"]').click(); await until(() => picker.expanded, 'the picker to expand');
         t.ok(picker.expanded, 'tapping the picker opens the module list in place');
         for (const id of MODULES) t.ok(s.d.querySelector(`pk-nav-item[data-module="${id}"]`), `the drawer lists ${id}`);
         s.d.querySelector('pk-nav-item[data-module="reports"]').shadowRoot.querySelector('[part="link"]').click();

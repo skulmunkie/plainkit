@@ -180,6 +180,8 @@ export const toolCases = [
         const host = t.stage('');
         const editor = await mountThemeEditor(host, { target: preview, preview: false, savedKey: false });
         await until(() => host.querySelector('.te-sample'), 'the swatches');
+        // the module loads its pk-tabs/pk-tab-panel without awaiting them; until a panel is upgraded it is not slotted, and its swatches have no computed style at all
+        await until(() => [...host.querySelectorAll('.te-sample')].every(s => getComputedStyle(s).display), 'every swatch to be in the rendered tree');
         const samples = [...host.querySelectorAll('.te-sample')];
         t.ok(samples.length > 0, 'swatches are drawn');
         t.ok(samples.every(s => !s.hasAttribute('style')), 'no swatch has a style attribute');
