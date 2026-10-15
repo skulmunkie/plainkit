@@ -22,6 +22,7 @@ export default Base => class extends Base {
         // `narrows`: a search or filter changes WHICH rows the query means, so a selection of "all rows" no longer holds (the ids stay selected).
         const go = (patch, narrows) => {
             this.$query = { ...this.query, ...patch }; this.$touched = true;
+            const q = this.$query; this.emit('pk-query-change', { sortKey: q.sort, descending: q.sortDir === 'descending', search: q.search, page: q.page, pageSize: q.pageSize, filters: q.filters });
             if (narrows && this.selectScope === 'all') { this.selectScope = 'page'; this.announce(); }
             this.refresh();
         };

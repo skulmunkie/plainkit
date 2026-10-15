@@ -184,6 +184,22 @@ test('sort, search, filter, page and page-size events narrow the query, reset th
     assert.equal(el.query.search, 'widget', 'the query is readable');
 });
 
+test('pk-query-change is raised for a reader sort, search, page and page-size change, not for refresh or a prop (#1420)', async () => {
+    const { el, parts, events } = make();
+    el.load = async () => rowsOf(1);
+    el.connected();
+    await el.refresh(); await el.refresh();
+    assert.equal(events.filter(e => e.name === 'pk-query-change').length, 0);
+    parts.table.fire('pk-sort', { detail: { key: 'name', direction: 'descending' } });
+    parts.filters.fire('pk-search', { detail: { query: 'w' } });
+    parts.pagination.fire('pk-page-size', { detail: { pageSize: 50 } });
+    const d = events.filter(e => e.name === 'pk-query-change').map(e => e.detail);
+    assert.equal(d.length, 3);
+    assert.deepEqual(d[0], { sortKey: 'name', descending: true, search: '', page: 1, pageSize: 25, filters: {} });
+    assert.equal(d[1].search, 'w');
+    assert.deepEqual([d[2].pageSize, d[2].page, d[2].sortKey], [50, 1, 'name']);
+});
+
 test('rowHref makes the table clickable and is called on pk-row-click; without it the table is not clickable', async () => {
     const { el, parts } = make();
     el.load = async () => rowsOf(1);
