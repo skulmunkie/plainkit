@@ -173,6 +173,8 @@ An element prop that takes a structure (`data`, `images`, `columns`) has a publi
 | `PkImageGallery.Images` | `IReadOnlyList<PkGalleryImage>` (`Src`, `Alt`, `Primary`, `Status`) | `images="[{&quot;src&quot;:...,&quot;alt&quot;:...}]"` |
 | the table's columns | `IReadOnlyList<PkTableColumn<TItem>>` for `PkTable`/`PkDataTable` (`Key`, `Label`, `Type`, `Align`, `Sortable`, `HidePhone`, `Text`, `Cell`); the plain `PkTableColumn` record is the JSON shape for a raw `<pk-table>` | `columns="[{&quot;key&quot;:...,&quot;label&quot;:...}]"`; the enums serialise as the element's values (`number`, `end`) |
 
+Some elements take their data only as a JavaScript property, with no attribute: `PkCommandPalette.Items` (`IReadOnlyList<PkCommandPaletteItem>`: `Id`, `Label`, `Group`, `Hint`, `Keywords`, `Href`, `Shortcut`), `PkLightbox.Items` (`IReadOnlyList<PkLightboxItem>`: `Src`, `Alt`, `Caption`) and `PkCodeView.Segments` (`IReadOnlyList<IReadOnlyList<PkCodeSegment>>`, one list of runs per line). The component serialises the value and sets the property after each render in which it changed, so a palette opened with Ctrl+K lists its commands. (A mapping declares one with `"map": "property"`.) Properties that hold element references (`PkInput.Listbox`, `PkButton.Controls`) have no parameter yet.
+
 Fields left at their default are left out of the JSON. Two former parameters became plain element props: `PkDialog.Tint` (`PkDialogTint`: none, product, archived) and the tooltip's `Help` and `Enrich` (booleans) replace the old theme and kind enums. `PkTooltip.Placement` is `PkTooltipPlacement`.
 
 ## Set up

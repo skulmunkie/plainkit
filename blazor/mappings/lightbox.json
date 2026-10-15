@@ -16,6 +16,13 @@
       "prop": "label"
     },
     {
+      "name": "Items",
+      "map": "property",
+      "property": "items",
+      "type": "IReadOnlyList<PkLightboxItem>",
+      "doc": "The images to view: { src, alt, caption }. A property of the element (it has no attribute), set after the render."
+    },
+    {
       "name": "Open",
       "type": "bool",
       "default": false,

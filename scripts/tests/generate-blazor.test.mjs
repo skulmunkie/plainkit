@@ -530,6 +530,20 @@ test('methods: typed arguments and a return value are forwarded to CallAsync (#1
     assert.ok(razor.includes('public Task<bool> ValidateAllAsync() => CallAsync<bool>("validateAll");'));
 });
 
+test('property: a typed parameter for a property with no attribute, set through the bridge after a render only when its JSON changed', () => {
+    const m = structuredClone(mapping);
+    m.params.push({ name: 'Items', map: 'property', property: 'items', type: 'IReadOnlyList<DemoRow>', doc: 'The rows.' });
+    const razor = generate([el], { demo: m }, new Set(), new Set(['DemoRow'])).files.get('PkDemo.razor');
+    assert.match(razor, /\[Parameter\] public IReadOnlyList<DemoRow>\? Items \{ get; set; \}/);
+    assert.match(razor, /private string\? _sentItems;/);
+    assert.match(razor, /var jsonItems = PkAttr\.Json\(Items\);/);
+    assert.match(razor, /if \(jsonItems != _sentItems\)/);
+    assert.match(razor, /InvokeVoidAsync\("setProperty", Element, "items", jsonItems\)/);
+    assert.doesNotMatch(razor, / items="/, 'it is not an attribute');
+    const bad = structuredClone(m); delete bad.params.at(-1).doc;
+    assert.doesNotMatch(generate([el], { demo: bad }, new Set(), new Set(['DemoRow'])).files.get('PkDemo.razor'), /Items/, 'a property with no doc is skipped');
+});
+
 test('manifest DTOs come from the schema (#364)', () => {
     const cs = real.files.get('PkModuleManifest.cs');
     assert.match(cs, /public sealed record PkModuleManifest/);
