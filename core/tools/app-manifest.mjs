@@ -4,8 +4,9 @@
 import { defineModule } from '../js/app/module.js';
 import { pageContext } from '../js/page-context.js';
 import { navRoutes } from '../js/route-tree.js';
+import { readContribution } from '../js/app/pages/dashboard-compose.js';
 
-export const MANIFEST_KEYS = { module: ['id', 'title', 'icon', 'nav', 'routes', 'footer'], nav: ['id', 'title', 'route', 'href', 'icon', 'badge', 'children'], route: ['path', 'page', 'label', 'children'], footer: ['text', 'links'] };
+export const MANIFEST_KEYS = { module: ['id', 'title', 'icon', 'nav', 'routes', 'footer', 'contributes'], nav: ['id', 'title', 'route', 'href', 'icon', 'badge', 'children'], route: ['path', 'page', 'label', 'children'], footer: ['text', 'links'], contribution: ['key', 'for', 'tab', 'label', 'kind', 'size', 'order', 'needs'] };
 const fail = (at, why) => { throw new TypeError(`readManifest: ${at} ${why}`); };
 
 function check(v, kind, at) {
@@ -14,7 +15,7 @@ function check(v, kind, at) {
         if (!MANIFEST_KEYS[kind].includes(k)) fail(at, `has an unknown key "${k}"`);
         if (typeof x === 'function') fail(`${at}.${k}`, 'must be data, not a function');
     }
-    for (const [k, sub] of kind === 'module' ? [['nav', 'nav'], ['routes', 'route']] : [['children', kind]]) {
+    for (const [k, sub] of kind === 'module' ? [['nav', 'nav'], ['routes', 'route'], ['contributes', 'contribution']] : [['children', kind]]) {
         if (v[k] !== undefined) (Array.isArray(v[k]) ? v[k] : fail(`${at}.${k}`, 'must be an array')).forEach((c, i) => check(c, sub, `${at}.${k}[${i}]`));
     }
     if (kind === 'route' && typeof v.page !== 'string') fail(at, 'needs page: a page type id');
@@ -23,7 +24,9 @@ function check(v, kind, at) {
 
 export function readManifest(data) {
     check(data, 'module', 'manifest');
-    return defineModule(data);
+    const { contributes = [], ...rest } = data, keys = new Set();
+    contributes.forEach((c, i) => { if (keys.has(c.key)) fail(`manifest.contributes[${i}].key`, `"${c.key}" is used twice`); keys.add(c.key); readContribution(c, `${data.id}.contributes[${i}]`); });
+    return defineModule(rest);
 }
 
 // The module, nav ids, crumbs and title for an app-wide path ('/orders/open') among manifests: the first segment is the module, the rest module-relative.

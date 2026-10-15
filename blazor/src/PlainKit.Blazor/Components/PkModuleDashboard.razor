@@ -1,0 +1,35 @@
+@namespace PlainKit.Blazor
+@using System.Text.Json
+@using PlainKit.Blazor.Pages
+@inject PkModuleCatalog Catalog
+
+@* Hand-written (#1296), router category: a dashboard composed from what the app's modules contribute. The composition is PkDashboardSurface (a port of the SDK's compose);
+   the card, its states, the lazy start, tabs and filters are pk-dashboard-page's. Load is answered by the module that owns the widget (IPkWidgets). *@
+<PkDashboardPage Config="@Json" Load="Dispatch" />
+
+@code {
+    private static readonly JsonSerializerOptions Opts = new(JsonSerializerDefaults.Web) { DefaultIgnoreCondition = System.Text.Json.Serialization.JsonIgnoreCondition.WhenWritingNull };
+    private PkDashboardWidget[] _widgets = [];
+    private string Json = "{}";
+    /// <summary>The surface id the modules' <c>contributes</c> name in <c>for</c>.</summary>
+    [Parameter, EditorRequired] public string Surface { get; set; } = "";
+    /// <summary>The page heading.</summary>
+    [Parameter] public string? Heading { get; set; }
+    /// <summary>The tabs of this dashboard (the route owns the labels); a contribution naming another tab adds one titled by its id.</summary>
+    [Parameter] public IReadOnlyList<PkDashboardTab>? Tabs { get; set; }
+
+    protected override void OnParametersSet()
+    {
+        var (tabs, widgets) = PkDashboardSurface.Compose(Catalog.Modules.Select(m => m.Manifest), Surface, Tabs);
+        _widgets = [.. widgets];
+        Json = JsonSerializer.Serialize(new { heading = Heading, tabs = Tabs is not null || tabs.Count > 1 ? tabs : null, widgets = widgets.Select(w => new { key = w.Key, label = w.Label, kind = w.Kind, tab = w.Tab, size = w.Size }) }, Opts);
+    }
+
+    // Only a composed widget of an allow-listed module is answered; the id is never trusted to name a module.
+    private Task<object?> Dispatch(string key)
+    {
+        var at = key.IndexOf(':');
+        if (!_widgets.Any(w => w.Key == key) || Catalog.Get(key[..at]) is not IPkWidgets m) throw new InvalidOperationException($"no widget \"{key}\" on dashboard \"{Surface}\"");
+        return m.LoadWidget(key[(at + 1)..]);
+    }
+}

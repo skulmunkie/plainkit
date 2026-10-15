@@ -105,6 +105,19 @@ export const CASES = [
         const shift = (await ctx.eval('window.__cls')) - before;
         ctx.ok(shift < 0.001, `a route change from /orders to /orders/open shifts the layout by ${shift.toFixed(4)}, expected 0`);
       } },
+    { name: 'overview-dashboard-from-modules',
+      async run(ctx) {
+        // #1296: Orders and Reports contribute widgets in their manifests; the Overview page names only the surface. The active tab (Sales) starts its widgets.
+        await ctx.open('/overview');
+        const SALES = `document.querySelector('#pk-main pk-dashboard-page')`;
+        await ctx.waitFor(`${MAIN_TEXT}.includes('Open orders') && ${MAIN_TEXT}.includes('waiting to ship')`, 'the Open orders widget (contributed by the Orders module) to load on the Overview dashboard');
+        ctx.ok(await ctx.eval(`!!${SALES}`), 'the Overview page does not draw a pk-dashboard-page');
+        ctx.ok(await text(ctx, 'Revenue by month'), 'the Revenue by month widget (Orders module) is not on the Overview dashboard');
+        ctx.ok(!(await text(ctx, 'Something went wrong')), 'a widget of the Overview dashboard is in its error state');
+        await ctx.eval(`(() => { const t = window.__deep.all('pk-tab, [role="tab"]').find(x => /Operations/.test(x.textContent)); t?.click(); })()`);
+        await ctx.waitFor(`${MAIN_TEXT}.includes('ready to download')`, 'the Exports ready widget (Reports module) to load on the Operations tab');
+        ctx.noErrors(ctx.openMark, [...BENIGN]);
+      } },
     { name: 'no-console-errors',
       async run(ctx) {
         const bad = [];

@@ -2,6 +2,9 @@
   "id": "reports",
   "title": "Reports",
   "icon": "dashboard",
+  "contributes": [
+    { "key": "exports", "for": ["overview"], "tab": "ops", "label": "Exports ready", "kind": "stat" }
+  ],
   "nav": [
     { "id": "summary", "title": "Summary", "route": "/", "icon": "dashboard" },
     { "id": "exports", "title": "Exports", "route": "/exports", "badge": "3" }
