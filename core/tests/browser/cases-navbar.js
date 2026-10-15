@@ -2,6 +2,8 @@
 // Each case opens tests/browser/navbar-frame.html in an iframe of the width under test, so the phone and tablet media queries answer to that width.
 const WIDTHS = [320, 375, 768, 1024, 1280];
 const wait = ms => new Promise(r => setTimeout(r, ms));
+import { until as poll } from './wait.js';
+const until = (fn, what, tries = 100) => poll(fn, what, { tries });
 
 async function open(t, width, search = '') {
     const host = t.stage(''), f = document.createElement('iframe');
@@ -140,6 +142,34 @@ export const navbarCases = [
                 const r = s.box(el);
                 t.ok(r.width >= 43.5 && r.height >= 43.5, `at ${w}px ${name} is ${r.width.toFixed(1)}x${r.height.toFixed(1)}, the touch target is 44`);
             }
+        }
+    }],
+
+    // #1372: an element that upgrades after the first paint (its module arrives late) must not move what is under it. Each tag is held undefined in turn, then released.
+    ['late upgrade (#1372): the navbar and the breadcrumb take the room before they upgrade that they take after, so the page under them does not move (layout shift 0), at 375 and 1280', async t => {
+        for (const w of [375, 1280]) for (const tag of ['pk-navbar', 'pk-breadcrumb']) {
+            const host = t.stage(''), f = document.createElement('iframe');
+            f.title = `${tag} upgrading late at ${w}px`;
+            f.style.cssText = `width:${w}px;height:600px;border:0;display:block`;
+            f.src = new URL(`./late-upgrade-frame.html?hold=${tag}`, import.meta.url).href;
+            await new Promise(resolve => { f.addEventListener('load', resolve, { once: true }); host.append(f); });
+            const win = f.contentWindow, d = win.document;
+            await until(() => win.ready, `the ${tag} fixture to load`);
+            await Promise.all(['pk-app-shell', 'pk-stack'].map(x => win.customElements.whenDefined(x)));
+            await wait(250);
+            t.ok(!win.customElements.get(tag), `${tag} is still undefined before the release`);
+            const h1 = d.querySelector('h1'), top = () => h1.getBoundingClientRect().top, before = top();
+            const shifts = [], po = new win.PerformanceObserver(list => shifts.push(...list.getEntries()));
+            po.observe({ type: 'layout-shift', buffered: true });
+            const settled = shifts.length;
+            win.release();
+            await win.customElements.whenDefined(tag);
+            await wait(250);
+            po.takeRecords().forEach(e => shifts.push(e));
+            po.disconnect();
+            const cls = shifts.slice(settled).filter(e => !e.hadRecentInput).reduce((n, e) => n + e.value, 0);
+            t.ok(Math.abs(top() - before) < 0.5, `at ${w}px the page heading moved ${(top() - before).toFixed(1)}px when ${tag} upgraded (from ${before.toFixed(1)} to ${top().toFixed(1)}), expected 0. FIX: reserve the element's space with ${tag}:not(:defined) in its css`);
+            t.ok(cls < 0.0001, `at ${w}px upgrading ${tag} gave a layout shift of ${cls.toFixed(4)}, expected 0`);
         }
     }],
 ];
