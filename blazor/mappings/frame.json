@@ -1,5 +1,6 @@
 {
   "component": "PkFrame",
+  "events": ["pk-frame-load", "pk-frame-resize"],
   "params": [
     {
       "name": "Title",

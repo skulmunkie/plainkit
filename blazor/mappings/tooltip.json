@@ -1,5 +1,6 @@
 {
   "component": "PkTooltip",
+  "events": ["pk-show", "pk-hide"],
   "params": [
     {
       "name": "Text",
@@ -84,7 +85,7 @@
       "name": "LoadAsync",
       "type": "Func<CancellationToken, Task<RenderFragment?>>?",
       "map": "wrapper",
-      "note": "Needs component state and an async load run on the first pk-show, and no mapped parameter exposes that event; it would be a hand-written component. Render the content yourself and set it from a handler."
+      "note": "Needs component state and an async load run on the first pk-show, and a hand-written component would break the thin wrapper. Use OnShow (the pk-show event) to start your own load, and set the content from your handler."
     },
     {
       "name": "OnClick",
