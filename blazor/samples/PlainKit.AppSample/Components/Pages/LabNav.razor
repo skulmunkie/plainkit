@@ -1,0 +1,16 @@
+@page "/lab/nav"
+
+@* Lab: PkSideNav Open and Collapsed, driven from C# (the parameters) and by the element (close, collapse) over the real interop (#1411). *@
+<h1 tabindex="-1">Lab nav</h1>
+<p id="lab-nav">Nav: open @_open, collapsed @_collapsed, toggles: @_toggles</p>
+<PkButton OnClick="@(() => _open = true)">Open by parameter</PkButton>
+<PkButton OnClick="@(() => _open = false)">Close by parameter</PkButton>
+<PkSideNav Label="Lab menu" @bind-Open="_open" @bind-Collapsed="_collapsed" OnToggle="@(() => _toggles++)">
+    <PkNavItem Href="/lab/nav">This page</PkNavItem>
+    <PkNavItem Href="/lab/props">Props</PkNavItem>
+</PkSideNav>
+
+@code {
+    private bool _open, _collapsed;
+    private int _toggles;
+}

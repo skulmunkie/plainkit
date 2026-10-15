@@ -528,6 +528,13 @@ test('shows: a callback that is set turns on a boolean prop; methods: an awaitab
     assert.throws(() => generate([el], { demo: m }, new Set()), /does not have/);
 });
 
+test('stopPropagation: an event parameter marked so stops Blazor bubbling to an enclosing handler (#1427)', () => {
+    const m = structuredClone(mapping);
+    m.params.find(p => p.name === 'OnDismiss').stopPropagation = true;
+    assert.match(run(m).files.get('PkDemo.razor'), /@onpk-dismiss:stopPropagation="true"/);
+    assert.doesNotMatch(run(structuredClone(mapping)).files.get('PkDemo.razor'), /stopPropagation/);
+});
+
 test('methods: typed arguments and a return value are forwarded to CallAsync (#1375)', () => {
     const m = structuredClone(mapping);
     m.methods = [{ name: 'FocusFieldAsync', method: 'focusField', args: [{ name: 'key', type: 'string' }] }, { name: 'ValidateAllAsync', method: 'validateAll', returns: 'bool' }];

@@ -47,9 +47,10 @@
     {
       "name": "pk-select",
       "detail": {
-        "item": "object"
+        "item": "object",
+        "id": "string"
       },
-      "description": "A command was chosen; navigates to href when it has one and the event is not cancelled."
+      "description": "A command was chosen (id is the item's id); navigates to href when it has one and the event is not cancelled."
     },
     {
       "name": "pk-open",

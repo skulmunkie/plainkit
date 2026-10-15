@@ -67,7 +67,7 @@ export default Base => class extends Base {
         if (!item) return;
         const go = safeLink(item.href);
         if (this.recentsKey) store.write(this.recentsKey, pushRecent(store.read(this.recentsKey), item.id));
-        const proceed = this.emit('pk-select', { item });
+        const proceed = this.emit('pk-select', { item, id: item.id });
         this.open = false; this.emit('pk-close', { reason: 'select' }, { cancelable: false });
         if (proceed && go) location.assign(go);
     }

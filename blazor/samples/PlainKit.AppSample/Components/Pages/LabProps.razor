@@ -1,0 +1,46 @@
+@page "/lab/props"
+
+@* Lab: element properties and element references over the real interop (#1411): Items and Segments go through setProperty (set after the render), Controls goes through setRef (an id resolved to an element). *@
+<h1 tabindex="-1">Lab props</h1>
+
+<PkButton OnClick="@(() => _palette!.ShowAsync())">Open palette</PkButton>
+<p id="lab-picked">Picked: @_picked</p>
+<PkCommandPalette @ref="_palette" Items="_commands" OnSelect="Picked" NoShortcut="true" />
+
+<PkButton OnClick="@(() => _box!.ShowAsync(1))">Open viewer</PkButton>
+<PkLightbox @ref="_box" Items="_images" />
+
+<PkCodeView Lines="_lines" Segments="_segments" Label="Sample code" />
+
+<PkButton id="lab-controls" OnClick="@(() => _controls = _controls == "lab-first" ? "lab-second" : "lab-first")" Controls="@_controls">Switch target</PkButton>
+<p id="lab-first">First target</p>
+<p id="lab-second">Second target</p>
+
+@code {
+    private PkCommandPalette? _palette;
+    private PkLightbox? _box;
+    private string _picked = "none", _controls = "lab-first";
+
+    private readonly IReadOnlyList<PkCommandPaletteItem> _commands =
+    [
+        new() { Id = "new", Label = "Create a ticket", Group = "Tickets" },
+        new() { Id = "find", Label = "Find a ticket", Group = "Tickets" },
+        new() { Id = "theme", Label = "Switch the theme", Group = "View" },
+    ];
+
+    private const string Dot = "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mP8z8BQDwAEhQGAhKmMIQAAAABJRU5ErkJggg==";
+    private readonly IReadOnlyList<PkLightboxItem> _images =
+    [
+        new() { Src = Dot, Alt = "First", Caption = "First picture" },
+        new() { Src = Dot, Alt = "Second", Caption = "Second picture" },
+    ];
+
+    private readonly IReadOnlyList<string> _lines = ["const x = 1;", "// done"];
+    private readonly IReadOnlyList<IReadOnlyList<PkCodeSegment>> _segments =
+    [
+        [new() { Text = "const", Kind = "keyword" }, new() { Text = " x = " }, new() { Text = "1", Kind = "number" }, new() { Text = ";" }],
+        [new() { Text = "// done", Kind = "comment" }],
+    ];
+
+    private void Picked(PkSelectEventArgs e) => _picked = e.Id ?? "(no id)";
+}

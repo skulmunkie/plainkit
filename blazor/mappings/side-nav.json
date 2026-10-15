@@ -79,9 +79,5 @@
       "map": "event",
       "event": "pk-nav-toggle"
     }
-  ],
-  "methods": [
-    { "name": "ShowAsync", "method": "show" },
-    { "name": "HideAsync", "method": "hide" }
   ]
 }
