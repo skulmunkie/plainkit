@@ -15,7 +15,7 @@ export async function setup(config, ctx) {
     const log = createLogger('app:dashboard');
     const allowed = check => { try { const r = check(); return r === true || r?.allow === true; } catch (e) { log.error('can() threw: denied', e); return false; } };
     const own = (entry, c) => !c.can || allowed(() => c.can({ auth: ctx.auth, id: entry.id, route: ctx.route }));
-    const { tabs, widgets } = compose(entries, { surface: config.surface, tabs: config.tabs, filters: config.filters }, { allow: own });
+    const { tabs, widgets } = compose(entries, { surface: config.surface, tabs: config.tabs, filters: config.filters, order: config.order, allow: config.allow, deny: config.deny }, { allow: own });
     const byId = new Map(widgets.map(w => [w.id, w]));
     const runs = new Map();
     const load = async (id, context) => {
