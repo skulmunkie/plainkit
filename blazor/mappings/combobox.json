@@ -81,5 +81,10 @@
     "key": "value",
     "type": "string",
     "field": true
-  }
+  },
+  "methods": [
+    { "name": "FocusAsync", "method": "focus" },
+    { "name": "ShowAsync", "method": "show" },
+    { "name": "HideAsync", "method": "hide" }
+  ]
 }

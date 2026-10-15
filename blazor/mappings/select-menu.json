@@ -60,5 +60,9 @@
       "event": "pk-change",
       "cancelable": true
     }
+  ],
+  "methods": [
+    { "name": "ShowAsync", "method": "show" },
+    { "name": "HideAsync", "method": "hide" }
   ]
 }

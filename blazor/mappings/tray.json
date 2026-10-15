@@ -94,5 +94,10 @@
       "name": "OnSizeChange",
       "event": "pk-size-change"
     }
+  ],
+  "methods": [
+    { "name": "ShowAsync", "method": "show" },
+    { "name": "HideAsync", "method": "hide" },
+    { "name": "ToggleAsync", "method": "toggle" }
   ]
 }

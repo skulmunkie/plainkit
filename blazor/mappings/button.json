@@ -122,5 +122,8 @@
       "type": "RenderFragment"
     }
   ],
-  "events": ["pk-toggle"]
+  "events": ["pk-toggle"],
+  "methods": [
+    { "name": "FocusAsync", "method": "focus" }
+  ]
 }

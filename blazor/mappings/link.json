@@ -63,5 +63,8 @@
       "event": "pk-navigate",
       "cancelable": true
     }
+  ],
+  "methods": [
+    { "name": "FocusAsync", "method": "focus" }
   ]
 }

@@ -84,5 +84,8 @@
       "type": "EventCallback<MonthEventArgs>"
     }
   ],
-  "notes": "Bind with @bind-Value; dates convert to and from ISO strings. In range mode (Range) bind both ends with @bind-Start and @bind-End (each follows pk-range-change, raised when the second click completes the range), or read OnRangeChange (args carry Start, End, Valid)."
+  "notes": "Bind with @bind-Value; dates convert to and from ISO strings. In range mode (Range) bind both ends with @bind-Start and @bind-End (each follows pk-range-change, raised when the second click completes the range), or read OnRangeChange (args carry Start, End, Valid).",
+  "methods": [
+    { "name": "FocusAsync", "method": "focus" }
+  ]
 }

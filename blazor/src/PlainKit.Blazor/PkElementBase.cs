@@ -8,7 +8,7 @@ namespace PlainKit.Blazor;
 /// The base of the generated element components (<c>Generated/</c>). It makes sure the toolkit's JavaScript is loaded once the first
 /// component is on the page, through <see cref="PkRuntime"/>.
 /// </summary>
-public abstract class PkElementBase : ComponentBase
+public abstract partial class PkElementBase : ComponentBase
 {
     [Inject] private PkRuntime Runtime { get; set; } = default!;
 

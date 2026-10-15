@@ -81,5 +81,8 @@
     "key": "start",
     "type": "DateOnly?"
   },
-  "notes": "Bind both ends with @bind-Start and @bind-End (each follows pk-range-change), and read Valid in OnRangeChange (args carry Start, End, Valid). Dates convert to and from ISO strings."
+  "notes": "Bind both ends with @bind-Start and @bind-End (each follows pk-range-change), and read Valid in OnRangeChange (args carry Start, End, Valid). Dates convert to and from ISO strings.",
+  "methods": [
+    { "name": "FocusAsync", "method": "focus" }
+  ]
 }

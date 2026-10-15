@@ -63,5 +63,9 @@
     "key": "checked",
     "type": "bool",
     "field": true
-  }
+  },
+  "methods": [
+    { "name": "FocusAsync", "method": "focus" },
+    { "name": "ToggleAsync", "method": "toggle" }
+  ]
 }

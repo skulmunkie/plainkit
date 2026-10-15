@@ -96,5 +96,8 @@
       "map": "prop",
       "prop": "step"
     }
+  ],
+  "methods": [
+    { "name": "FocusAsync", "method": "focus" }
   ]
 }

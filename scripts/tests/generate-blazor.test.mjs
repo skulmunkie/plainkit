@@ -517,8 +517,17 @@ test('shows: a callback that is set turns on a boolean prop; methods: an awaitab
     const e2 = structuredClone(el); e2.methods = [{ name: 'submit()', description: 'Submits.' }];
     const razor = generate([e2], { demo: m }, new Set()).files.get('PkDemo.razor');
     assert.match(razor, /open="@OnDismiss\.HasDelegate"/);
-    assert.match(razor, /public async Task SubmitAsync\(\) => await \(await Runtime\.BridgeAsync\(Assets\)\)\.InvokeVoidAsync\("call", Element, "submit"\);/);
+    assert.match(razor, /public Task SubmitAsync\(\) => CallAsync\("submit"\);/);
     assert.throws(() => generate([el], { demo: m }, new Set()), /does not have/);
+});
+
+test('methods: typed arguments and a return value are forwarded to CallAsync (#1375)', () => {
+    const m = structuredClone(mapping);
+    m.methods = [{ name: 'FocusFieldAsync', method: 'focusField', args: [{ name: 'key', type: 'string' }] }, { name: 'ValidateAllAsync', method: 'validateAll', returns: 'bool' }];
+    const e2 = structuredClone(el); e2.methods = [{ name: 'focusField(key)', description: 'Focuses.' }, { name: 'validateAll()', description: 'Checks.' }];
+    const razor = generate([e2], { demo: m }, new Set()).files.get('PkDemo.razor');
+    assert.ok(razor.includes('public Task FocusFieldAsync(string key) => CallAsync("focusField", key);'));
+    assert.ok(razor.includes('public Task<bool> ValidateAllAsync() => CallAsync<bool>("validateAll");'));
 });
 
 test('manifest DTOs come from the schema (#364)', () => {

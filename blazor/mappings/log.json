@@ -20,7 +20,7 @@
       "type": "IReadOnlyList<string>?",
       "map": "prop",
       "prop": "rows",
-      "note": "Strings only. To stream rows, or to give a level and time, call the element's append() from script (the generated components do not expose element methods)."
+      "note": "Strings only. To stream rows, or to give a level and time, call the element's append() from script (CallAsync(\"append\", ...) on an @ref)."
     },
     {
       "name": "Paused",
