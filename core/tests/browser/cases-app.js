@@ -251,6 +251,37 @@ export const appCases = [
         t.eq(calls.slice(2).sort().join(), 'a:30d,b:30d');
     }],
 
+    ['pk-dashboard-page lazy widgets in a scrolling box (#1359): the observer is rooted at the nearest scrolling ancestor, so a card 150px below the box fold starts and one 600px below does not, nothing shifts, and unmounting disconnects', async t => {
+        const real = window.IntersectionObserver, made = [];
+        window.IntersectionObserver = class extends real { constructor(...a) { super(...a); this.off = false; made.push(this); } disconnect() { this.off = true; super.disconnect(); } };
+        try {
+            const calls = [];
+            const dash = key => {
+                const el = document.createElement('pk-dashboard-page');
+                el.config = { widgets: [{ key, label: key }] };
+                el.load = async k => { calls.push(k); return { value: '1' }; };
+                return el;
+            };
+            const host = t.stage('<div></div>'), box = host.firstElementChild;
+            box.style.height = '400px'; box.style.overflow = 'auto';
+            const gap = h => { const d = document.createElement('div'); d.style.height = `${h}px`; return d; };
+            const near = dash('near'), far = dash('far');
+            box.append(gap(550), near, gap(400), far);
+            await t.load(host); await t.settle(); await wait(300);
+            const card = (el, k) => el.shadowRoot.querySelector(`pk-card[data-key="${k}"]`);
+            const top = el => card(el, el.config.widgets[0].key).getBoundingClientRect().top - box.getBoundingClientRect().top - box.clientHeight;
+            t.ok(Math.abs(top(near) - 150) < 40 && top(far) > 550, `the cards sit about 150px and 600px below the box fold (got ${Math.round(top(near))} and ${Math.round(top(far))})`);
+            await until(() => calls.includes('near'), 'the card 150px below the box fold to start');
+            t.eq(calls.join(), 'near', 'the card 600px below the fold has not started');
+            t.ok(card(far, 'far').dataset.state !== 'ready', 'the far card is still waiting');
+            const h = card(far, 'far').getBoundingClientRect().height, y = card(far, 'far').getBoundingClientRect().top;
+            await wait(200);
+            t.ok(Math.abs(card(far, 'far').getBoundingClientRect().height - h) < 1 && Math.abs(card(far, 'far').getBoundingClientRect().top - y) < 1, 'nothing below shifted while the near card loaded');
+            host.remove(); await t.settle();
+            t.ok(made.length > 0 && made.every(o => o.off), 'every IntersectionObserver is disconnected after unmounting');
+        } finally { window.IntersectionObserver = real; }
+    }],
+
     ['pk-dashboard-page lazy widgets (#1295): a card far below the fold does not start until it scrolls near, a tab switch drops the starts still waiting, a late start shifts nothing, and unmounting disconnects the IntersectionObserver', async t => {
         const real = window.IntersectionObserver, made = [];
         window.IntersectionObserver = class extends real { constructor(...a) { super(...a); this.off = false; made.push(this); } disconnect() { this.off = true; super.disconnect(); } };
