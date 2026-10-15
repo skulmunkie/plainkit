@@ -127,9 +127,59 @@
       "type": "int"
     },
     {
+      "name": "Description",
+      "prop": "description",
+      "type": "string"
+    },
+    {
+      "name": "Warning",
+      "prop": "warning",
+      "type": "bool"
+    },
+    {
+      "name": "IsValid",
+      "prop": "valid",
+      "type": "bool"
+    },
+    {
+      "name": "MinLength",
+      "prop": "minlength",
+      "type": "string"
+    },
+    {
+      "name": "InputMode",
+      "prop": "inputmode",
+      "type": "string"
+    },
+    {
+      "name": "Decimals",
+      "prop": "decimals",
+      "type": "int"
+    },
+    {
+      "name": "Locale",
+      "prop": "locale",
+      "type": "string"
+    },
+    {
+      "name": "AutoHide",
+      "prop": "autohide",
+      "type": "int"
+    },
+    {
       "name": "OnSearch",
       "event": "pk-search",
       "type": "{ value: string }"
+    },
+    {
+      "name": "OnInput",
+      "event": "input",
+      "type": "EventCallback<ChangeEventArgs>"
+    },
+    {
+      "name": "OnChange",
+      "event": "change",
+      "type": "EventCallback<ChangeEventArgs>"
     },
     {
       "name": "PrefixContent",

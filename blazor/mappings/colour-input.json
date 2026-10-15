@@ -30,6 +30,26 @@
       "name": "AriaLabel",
       "prop": "label",
       "type": "string"
+    },
+    {
+      "name": "Name",
+      "prop": "name",
+      "type": "string"
+    },
+    {
+      "name": "Description",
+      "prop": "description",
+      "type": "string"
+    },
+    {
+      "name": "OnInput",
+      "event": "input",
+      "type": "EventCallback<ChangeEventArgs>"
+    },
+    {
+      "name": "OnChange",
+      "event": "change",
+      "type": "EventCallback<ChangeEventArgs>"
     }
   ],
   "model": {

@@ -7,6 +7,21 @@
       "type": "DateOnly?"
     },
     {
+      "name": "Name",
+      "prop": "name",
+      "type": "string"
+    },
+    {
+      "name": "Description",
+      "prop": "description",
+      "type": "string"
+    },
+    {
+      "name": "Required",
+      "prop": "required",
+      "type": "bool"
+    },
+    {
       "name": "StartChanged",
       "event": "pk-range-change",
       "type": "EventCallback<DateOnly?>"
@@ -73,6 +88,16 @@
     {
       "name": "OnRangeChange",
       "event": "pk-range-change"
+    },
+    {
+      "name": "OnInput",
+      "event": "input",
+      "type": "EventCallback<ChangeEventArgs>"
+    },
+    {
+      "name": "OnChange",
+      "event": "change",
+      "type": "EventCallback<ChangeEventArgs>"
     }
   ],
   "model": {

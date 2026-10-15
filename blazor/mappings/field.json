@@ -32,6 +32,11 @@
       "type": "string"
     },
     {
+      "name": "Warning",
+      "prop": "warning",
+      "type": "string"
+    },
+    {
       "name": "ChildContent",
       "slot": "",
       "type": "RenderFragment"

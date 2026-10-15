@@ -25,6 +25,21 @@
       "name": "Disabled",
       "prop": "disabled",
       "type": "bool"
+    },
+    {
+      "name": "Name",
+      "prop": "name",
+      "type": "string"
+    },
+    {
+      "name": "OnInput",
+      "event": "input",
+      "type": "EventCallback<ChangeEventArgs>"
+    },
+    {
+      "name": "OnChange",
+      "event": "change",
+      "type": "EventCallback<ChangeEventArgs>"
     }
   ],
   "model": {

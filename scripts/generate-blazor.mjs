@@ -124,7 +124,7 @@ function enumFrom(name, pairs, owner) { return { name, members: pairs.map(([n, v
 export function eventModel(api) {
     const name = api.name;
     if (isNative(api)) {
-        const args = api.detail === 'native MouseEvent' ? 'MouseEventArgs' : 'EventArgs';
+        const args = api.detail === 'native MouseEvent' ? 'MouseEventArgs' : (name === 'input' || name === 'change') ? 'ChangeEventArgs' : 'EventArgs'; // Blazor's oninput/onchange carry the target's value (ChangeEventArgs)
         return { name, attr: 'on' + name.replace(/-/g, ''), native: true, args, fields: [], cancelable: api.cancelable === true, description: api.description };
     }
     const fields = detailFields(api).map(([n, t]) => ({ key: n, cs: fieldType(t), prop: memberName(n), type: t }));
@@ -228,7 +228,7 @@ export function modelElement(el, mapping, reg) {
                 addBind(base, { event: p.event, conv }, p.name, true);
                 continue;
             }
-            if (ev.native) { cs = `EventCallback<${p.type?.includes('MouseEventArgs') || ev.args === 'MouseEventArgs' ? 'MouseEventArgs' : 'EventArgs'}>`; call = 'args'; }
+            if (ev.native) { cs = `EventCallback<${ev.args === 'MouseEventArgs' || p.type?.includes('MouseEventArgs') ? 'MouseEventArgs' : ev.args === 'ChangeEventArgs' ? 'ChangeEventArgs' : 'EventArgs'}>`; call = 'args'; }
             else if (inner && !/EventArgs$/.test(inner) && (SIMPLE.has(stripNull(inner)))) {
                 const src = pickField(ev, null);
                 const conv = src && convert(`e.${src.prop}`, src.cs, inner);

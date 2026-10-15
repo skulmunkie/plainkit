@@ -37,9 +37,34 @@
       "type": "bool"
     },
     {
+      "name": "Name",
+      "prop": "name",
+      "type": "string"
+    },
+    {
+      "name": "Description",
+      "prop": "description",
+      "type": "string"
+    },
+    {
+      "name": "Required",
+      "prop": "required",
+      "type": "bool"
+    },
+    {
+      "name": "IsInvalid",
+      "prop": "invalid",
+      "type": "bool"
+    },
+    {
       "name": "OnFiles",
       "event": "pk-files",
       "type": "{ files: File[], rejected: { file: File, reason: string }[] }"
+    },
+    {
+      "name": "OnChange",
+      "event": "change",
+      "type": "EventCallback<ChangeEventArgs>"
     },
     {
       "name": "ChildContent",

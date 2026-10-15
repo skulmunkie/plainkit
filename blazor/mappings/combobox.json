@@ -56,9 +56,29 @@
       "type": "string"
     },
     {
+      "name": "Name",
+      "prop": "name",
+      "type": "string"
+    },
+    {
+      "name": "Description",
+      "prop": "description",
+      "type": "string"
+    },
+    {
       "name": "OnSearchInput",
       "event": "pk-combo-query",
       "type": "{ query: string }"
+    },
+    {
+      "name": "OnInput",
+      "event": "input",
+      "type": "EventCallback<ChangeEventArgs>"
+    },
+    {
+      "name": "OnChange",
+      "event": "change",
+      "type": "EventCallback<ChangeEventArgs>"
     },
     {
       "name": "ChildContent",

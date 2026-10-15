@@ -65,6 +65,36 @@
       "name": "MaxHeight",
       "prop": "maxHeight",
       "type": "int"
+    },
+    {
+      "name": "Description",
+      "prop": "description",
+      "type": "string"
+    },
+    {
+      "name": "Warning",
+      "prop": "warning",
+      "type": "bool"
+    },
+    {
+      "name": "IsValid",
+      "prop": "valid",
+      "type": "bool"
+    },
+    {
+      "name": "MinLength",
+      "prop": "minlength",
+      "type": "string"
+    },
+    {
+      "name": "OnInput",
+      "event": "input",
+      "type": "EventCallback<ChangeEventArgs>"
+    },
+    {
+      "name": "OnChange",
+      "event": "change",
+      "type": "EventCallback<ChangeEventArgs>"
     }
   ],
   "model": {
