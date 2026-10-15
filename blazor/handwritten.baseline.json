@@ -68,6 +68,7 @@
     "PkAppModules.cs": 60,
     "Components/PkRouteGuard.razor": 30,
     "PkModuleGuard.cs": 16,
+    "PkLazyModuleLoader.cs": 47,
     "PkModuleBoundary.cs": 22,
     "PkDashboardSurface.cs": 47,
     "Components/PkModuleDashboard.razor": 35,

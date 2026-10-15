@@ -1,0 +1,22 @@
+<Project Sdk="Microsoft.NET.Sdk.BlazorWebAssembly">
+
+  <!-- The standalone WebAssembly host of the app framework sample (#1368): the Overview module of PlainKit.AppSample (linked, with its manifest) plus the Insights module, whose pages live in
+       PlainKit.AppSample.Insights and download on the first navigation into /insights (PkLazyModuleLoader over LazyAssemblyLoader). Not packed. Publish it explicitly:
+       dotnet publish blazor/samples/PlainKit.AppSample.Wasm -c Release -o <dir>   (no wasm-tools workload needed; scripts/blazor-browser.mjs publishes and serves it). -->
+  <PropertyGroup>
+    <IsPackable>false</IsPackable>
+    <RootNamespace>PlainKit.AppSample</RootNamespace>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Microsoft.AspNetCore.Components.WebAssembly" />
+    <ProjectReference Include="..\..\src\PlainKit.Blazor\PlainKit.Blazor.csproj" />
+    <ProjectReference Include="..\PlainKit.AppSample.Insights\PlainKit.AppSample.Insights.csproj" />
+    <!-- Not in the first download: fetched through LazyAssemblyLoader. -->
+    <BlazorWebAssemblyLazyLoad Include="PlainKit.AppSample.Insights.wasm" />
+    <Compile Include="..\PlainKit.AppSample\Modules\Modules.cs;..\PlainKit.AppSample\Modules\OrderStore.cs" LinkBase="Modules" />
+    <EmbeddedResource Include="..\PlainKit.AppSample\Modules\overview.json" LinkBase="Modules" />
+    <EmbeddedResource Include="Modules\insights.json" />
+  </ItemGroup>
+
+</Project>

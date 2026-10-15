@@ -5,9 +5,9 @@
 @inject NavigationManager Nav
 @inject IServiceProvider Services
 
-@* Hand-written (#364, step 4), router category: put it around the router body. Each new body (a navigation) asks the module of the address whether the reader may
-   see it (IPkModuleGuard, a UX guard, not security) after the optional IPkModuleLoader ran; PkComponentBase supplies the token, cancelled by the next navigation. *@
+@* Hand-written (#364), router category: around the router body. Each new body asks the module of the address (IPkModuleLoader, then IPkModuleGuard: a UX guard, not security); PkComponentBase supplies the token. A failed load throws to the PkModuleBoundary around this. *@
 @if (IsLoading) { <pk-spinner label="Loading"></pk-spinner> }
+else if (LoadError is { } error) { throw error; }
 else if (!_allowed) { <PkNotFoundPage Heading="Not allowed" Description="You do not have access to this page." Label="Go home" OnAction="Home" /> }
 else { @ChildContent }
 

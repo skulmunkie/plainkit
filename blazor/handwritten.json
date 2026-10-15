@@ -239,6 +239,10 @@
       "category": "router",
       "blazorOnly": "a dashboard composed from the module catalog's contributions (#1296): feeds PkDashboardPage the composed widgets and answers its Load from the owning module; no element of this name"
     },
+    "PkLazyModuleLoader.cs": {
+      "category": "runtime",
+      "blazorOnly": "the WebAssembly IPkModuleLoader of the Blazor app frame (#1368): a .NET DI concern (the host passes LazyAssemblyLoader as a delegate) with no JS counterpart"
+    },
     "PkModuleBoundary.cs": {
       "category": "base",
       "blazorOnly": "the app error boundary with Retry (#364): an ErrorBoundary subclass, no element of this name"
