@@ -68,7 +68,7 @@ export const INTEROP_CASES = [
       async run(ctx) {
         await ctx.open('/lab/pages');
         await ctx.waitFor(`window.__deep.q('pk-dashboard-page >>> pk-card').some(c => c.heading === 'Fine widget' && window.__deep.text(c).includes('42'))`, 'the Fine widget card to show 42 (Load answered through the bridge)');
-        await ctx.waitFor(`window.__deep.q('pk-dashboard-page >>> pk-card').some(c => c.heading === 'Broken widget' && !window.__deep.text(c).includes('42') && window.__deep.text(c).trim().length > 0)`, 'the Broken widget card to show its error state');
+        await ctx.waitFor(`window.__deep.q('pk-dashboard-page >>> pk-card').some(c => c.heading === 'Broken widget' && c.dataset.state === 'error' && window.__deep.text(c).includes('Widget refused'))`, 'the Broken widget card to show its error state');
         ctx.noErrors(ctx.openMark, [...BENIGN, /Widget refused by the sample/]);
       } },
     { name: 'doc-page-loaditem-callback',
