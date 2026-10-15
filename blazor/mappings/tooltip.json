@@ -85,7 +85,7 @@
       "name": "LoadAsync",
       "type": "Func<CancellationToken, Task<RenderFragment?>>?",
       "map": "wrapper",
-      "note": "Needs component state and an async load run on the first pk-show, and a hand-written component would break the thin wrapper. Use OnShow (the pk-show event) to start your own load, and set the content from your handler."
+      "note": "Re-decided after the lifecycle events (#1380): stays out. Needs component state and an async load run on the first pk-show, and a hand-written component would break the thin wrapper. Use OnShow (the pk-show event) to start your own load, and set the content from your handler."
     },
     {
       "name": "OnClick",
