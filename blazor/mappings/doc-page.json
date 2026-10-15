@@ -24,9 +24,5 @@
       "note": "A same-page link in the article (table of contents, heading permalink) was followed: Id is the current item, Anchor the heading id, Replace false. Rewrite the address yourself (NavigationManager) and put Anchor in the next Config; the element never touches history."
     }
   ],
-<<<<<<< HEAD
-  "notes": "The nav, bar and aside slots are deliberately not mapped (#1409): the element builds and owns them itself (the contents side-nav, the menu toggle and the on-this-page toc), so a host fragment there would be clobbered or would fight it. New component: App framework step 7 (issue #353), the doc slice only (workspace, master-detail, record, wizard are separate future steps). LoadItem(id) is a callback property, set from script: the generated component hands the element a .NET reference (PkCallbackSlot) that calls the LoadItem parameter (issue #366). Href is synchronous in the element and cannot cross interop, and the pk-navigate event is still unmapped; both wait for a design decision."
-=======
-  "notes": "New component: App framework step 7 (issue #353), the doc slice only (workspace, master-detail, record, wizard are separate future steps). LoadItem(id) is a callback property, set from script: the generated component hands the element a .NET reference (PkCallbackSlot) that calls the LoadItem parameter (issue #366). Href is synchronous in the element and cannot cross interop, waits for a design decision."
->>>>>>> origin/main
+  "notes": "The nav, bar and aside slots are deliberately not mapped (#1409): the element builds and owns them itself (the contents side-nav, the menu toggle and the on-this-page toc), so a host fragment there would be clobbered or would fight it. New component: App framework step 7 (issue #353), the doc slice only (workspace, master-detail, record, wizard are separate future steps). LoadItem(id) is a callback property, set from script: the generated component hands the element a .NET reference (PkCallbackSlot) that calls the LoadItem parameter (issue #366). Href is synchronous in the element and cannot cross interop, waits for a design decision."
 }
