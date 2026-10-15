@@ -299,6 +299,36 @@ async function openApp(t, hash, width = 1280) {
 
 // The Gallery as a lazy module of the site app (#355, step 4): core/app.html#/gallery/..., the same views under one kept route, the app's own nav and row marking.
 export const galleryAppCases = [
+    // #1297: the site's own modules contribute widgets to the Overview, the way the framework asks every app to.
+    ['site Overview (#1297): the home route composes the cards the modules contribute, in order, shared rows on a wide screen and one column on a phone, each ready with a value', async t => {
+        for (const width of [1280, 375]) {
+            const { d } = await openApp(t, '#/overview', width);
+            const page = await until(() => d.querySelector('pk-dashboard-page'), 'the Overview dashboard');
+            const cards = () => [...page.shadowRoot.querySelectorAll('pk-card')];
+            await until(() => cards().length === 4 && cards().every(c => c.dataset.state === 'ready'), 'four ready cards', 300);
+            t.eq(cards().map(c => c.getAttribute('heading')).join('|'), 'Guides|Elements in the Gallery|Budgets enforced|Colour scheme', width + 'px: the cards in contributed order');
+            for (const c of cards()) t.ok(c.querySelector('pk-stat')?.value, width + 'px: ' + c.getAttribute('heading') + ' shows a value');
+            const r = cards().map(c => c.getBoundingClientRect());
+            if (width > 600) t.ok(Math.abs(r[1].top - r[0].top) < 2 && Math.abs(r[2].top - r[0].top) < 2, 'on a wide screen the small cards share a row (three across, the grid wraps the fourth)');
+            else t.ok(r.every((x, i) => i === 0 || (x.top >= r[i - 1].bottom - 1 && Math.abs(x.left - r[0].left) < 2)), 'on a phone the cards stack in one column');
+        }
+    }],
+    ['site Overview (#1297): a widget the route denies is hidden and its module is never imported', async t => {
+        const { createModuleHost, defineModule } = await import(new URL('../../js/app.js', import.meta.url).href);
+        const { default: site } = await import(new URL('../../site/app.config.js', import.meta.url).href);
+        const loads = [];
+        const el = document.createElement('div'); t.stage('').append(el);
+        const home = defineModule({ id: 'overview', routes: [{ path: '/', page: 'dashboard', config: { surface: 'overview', heading: 'Overview', deny: ['theme:scheme'] } }] });
+        const host = createModuleHost(el, { modules: site.modules.map(m => ({ ...m, load: m.id === 'overview' ? async () => home : () => { loads.push(m.id); return m.load(); } })) });
+        await host.show('overview');
+        const page = await until(() => el.querySelector('pk-dashboard-page'), 'the dashboard');
+        const cards = () => [...page.shadowRoot.querySelectorAll('pk-card')];
+        await until(() => cards().length === 3 && cards().every(c => c.dataset.state === 'ready'), 'three ready cards', 300);
+        t.ok(!cards().some(c => c.getAttribute('heading') === 'Colour scheme'), 'the denied widget is not drawn');
+        t.ok(!loads.includes('theme'), 'the module of a hidden widget was never imported');
+        t.ok(loads.includes('guides') && loads.includes('scorecard') && loads.includes('gallery'), 'the visible widgets loaded their modules');
+        await host.destroy();
+    }],
     ['gallery module (app): a deep link opens the element page, the nav marks the section and no gallery nav column is drawn, a click in the views keeps the app address, and the page is kept (not remounted) while the address changes', async t => {
         const host = t.stage(''), f = document.createElement('iframe');
         f.title = 'Site app'; f.style.cssText = 'width:1280px;height:900px;border:0;display:block';

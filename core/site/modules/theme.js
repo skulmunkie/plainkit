@@ -14,6 +14,6 @@ const mount = async host => {
 };
 
 export default defineModule({
-    id: 'theme', title: 'Theme editor', icon: 'palette',
+    id: 'theme', title: 'Theme editor', icon: 'palette', widgets: { scheme: { load: async ({ ctx }) => ({ value: String(ctx.settings?.get('theme') ?? 'system'), subtext: 'switch it from the settings menu' }) } },
     routes: [{ path: '*', page: 'custom', config: { mount } }],
 });

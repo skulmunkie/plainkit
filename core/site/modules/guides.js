@@ -15,7 +15,7 @@ const doc = {
 };
 
 export default defineModule({
-    id: 'guides', title: 'Guides', icon: 'docs',
+    id: 'guides', title: 'Guides', icon: 'docs', widgets: { count: { load: async () => ({ value: String(GUIDES.length), subtext: `Start with "${GUIDES[0].title}"` }) } },
     nav: () => GUIDES.map(g => ({ id: g.id, title: g.title, route: `/${g.id}` })),
     // the header search (#355): the same body-word matcher, one result per guide, picking one opens it
     search: query => searchGuides(GUIDES, query).slice(0, 8).map(r => ({ id: r.guide.id, label: r.guide.title, sub: r.titleMatch ? 'Title' : 'Mentioned in the text', route: `/${r.guide.id}` })),
