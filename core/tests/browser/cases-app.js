@@ -496,6 +496,22 @@ export const appCases = [
         page.destroy();
     }],
 
+    ['wizard page type (#1415): refresh() runs a load set after the first draw: the wizard starts again at step one with the draft answers in its fields', async t => {
+        const { mountPage } = await dist('js/app.js');
+        const box = document.createElement('div'); t.stage('').append(box);
+        const page = await mountPage(box, { type: 'wizard', config: { steps: [{ id: 'a', label: 'Account', fields: [{ name: 'email', label: 'Email' }] }, { id: 'b', label: 'Plan', fields: [{ name: 'plan', label: 'Plan' }] }] } });
+        const el = box.querySelector('pk-wizard-page');
+        await t.load(box);
+        await until(() => el.part('panes').querySelector('[name=email]'), 'the first step');
+        t.eq(typeof el.refresh, 'function', 'the wizard has refresh()');
+        let calls = 0;
+        el.load = async () => { calls++; return { email: 'draft@x.y' }; };
+        el.refresh();
+        await until(() => el.part('panes').querySelector('[name=email]')?.value === 'draft@x.y', 'the draft answer in the first field');
+        t.eq(calls, 1); t.eq(el.part('heading').textContent, 'Account', 'back at the first step');
+        page.destroy();
+    }],
+
     ['pk-doc-page: a host search (searchItems) draws a search box with a status line and shows only the named items; breadcrumb draws the trail above the title; home.cards draws the home list as cards (#336)', async t => {
         const el = document.createElement('pk-doc-page');
         const items = [{ id: 'a', title: 'Guide A', summary: 'About A' }, { id: 'b', title: 'Guide B', summary: 'About B' }, { id: 'c', title: 'Guide C', summary: 'About C' }];
