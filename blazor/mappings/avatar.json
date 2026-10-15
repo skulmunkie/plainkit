@@ -14,7 +14,7 @@
     {
       "name": "Size",
       "prop": "size",
-      "type": "string"
+      "type": "AvatarSize"
     },
     {
       "name": "Shape",

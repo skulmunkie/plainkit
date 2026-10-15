@@ -2,6 +2,7 @@
   "component": "PkDrawer",
   "events": ["pk-open"],
   "params": [
+    { "name": "Side", "prop": "side", "type": "DrawerSide" },
     {
       "name": "IsOpen",
       "type": "bool",

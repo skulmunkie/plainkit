@@ -3,6 +3,7 @@
   "existing": true,
   "existingReason": "typed-generics and callback: PkFieldGroup<TItem> is the typed wrapper over pk-field-group (Razor cannot bind a markup tag when a generic and a non-generic component share a name, so the typed component is the only PkFieldGroup). PkFieldSpec<TItem> items and the model become the element's fields and values, Search runs through PkCallbackSlot, and committed changes go back through each spec's Set. Missing generator feature: @typeparam generation with a typed model adapter (and a callback parameter kind with an adapter for the element's argument and result), as for PkLookupPicker.",
   "params": [
+    { "name": "Columns", "prop": "columns", "type": "int" },
     { "name": "Fields", "prop": "fields", "type": "IReadOnlyList<PkFieldSpec<TItem>>", "note": "The typed specs; each becomes one entry of the element's fields (PkFieldDef)." },
     { "name": "Model", "prop": "values", "type": "TItem", "note": "The bound record: each spec's Get gives the element's values, each pk-field-change calls Set." },
     { "name": "ModelChanged", "event": "pk-field-change", "type": "EventCallback" }

@@ -1,6 +1,7 @@
 {
   "component": "PkStat",
   "params": [
+    { "name": "DeltaDirection", "prop": "deltaDirection", "type": "StatDeltaDirection" },
     {
       "name": "Label",
       "prop": "label",

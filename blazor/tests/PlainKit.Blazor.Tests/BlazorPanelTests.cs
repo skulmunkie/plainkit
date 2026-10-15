@@ -197,6 +197,14 @@ public sealed class BlazorPanelTests : BunitContext, IAsyncLifetime
     }
 
     [Fact]
+    public void Enum_and_number_props_are_typed_parameters()
+    {
+        Assert.Equal("AvatarSize", PkMappingInfo.Describe("pk-avatar")!.Parameters.Single(p => p.Name == "Size").Type);
+        Assert.Equal("DrawerSide", PkMappingInfo.Describe("pk-drawer")!.Parameters.Single(p => p.Name == "Side").Type);
+        Assert.Equal("int", PkMappingInfo.Describe("pk-empty-state")!.Parameters.Single(p => p.Name == "Level").Type);
+    }
+
+    [Fact]
     public void Razor_markup_binds_the_two_way_parameter_and_falls_back_to_a_bare_component()
     {
         Assert.Equal("<PkInput @bind-Value=\"_value\" Placeholder=\"Name\" />", PkMappingInfo.Describe("pk-input", attributes: Attrs(("value", "Ada"), ("placeholder", "Name")))!.Markup);

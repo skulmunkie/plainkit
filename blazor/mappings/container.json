@@ -4,7 +4,7 @@
     {
       "name": "Size",
       "prop": "size",
-      "type": "string"
+      "type": "ContainerSize"
     },
     {
       "name": "Padding",
