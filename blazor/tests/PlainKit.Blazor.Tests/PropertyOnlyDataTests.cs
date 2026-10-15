@@ -5,8 +5,11 @@ using PlainKit.Blazor;
 namespace PlainKit.Blazor.Tests;
 
 // Elements whose data is a property with no attribute (#1376): the typed parameter reaches the element as el[property] through the bridge, camelCase JSON, once per change.
-public sealed class PropertyOnlyDataTests : BunitContext
+public sealed class PropertyOnlyDataTests : BunitContext, IAsyncLifetime
 {
+    Task IAsyncLifetime.InitializeAsync() => Task.CompletedTask;
+    async Task IAsyncLifetime.DisposeAsync() => await DisposeAsync();
+
     private readonly BunitJSModuleInterop _bridge;
 
     public PropertyOnlyDataTests()
@@ -33,7 +36,7 @@ public sealed class PropertyOnlyDataTests : BunitContext
     public void An_unset_property_is_never_sent_and_a_change_is_sent_once()
     {
         var cut = Render<PkLightbox>();
-        Assert.False(_bridge.Invocations.ContainsKey("setProperty"));
+        Assert.DoesNotContain("setProperty", _bridge.Invocations.Select(i => i.Identifier));
 
         var one = new[] { new PkLightboxItem { Src = "/a.png", Alt = "A" } };
         cut.Render(p => p.Add(x => x.Items, one));
