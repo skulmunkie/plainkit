@@ -104,3 +104,12 @@ test('the host cell-<id>-<key> children are forwarded as slots to the data table
     el.forwardSlots();
     assert.deepEqual(parts.table.children.map(c => c.name), ['cell-2-name']);
 });
+
+test('refresh() loads the data table again, so a load set after the first (empty) draw shows its rows (#1401)', () => {
+    const { el, parts } = make();
+    let n = 0; parts.table.refresh = () => { n++; return 'again'; };
+    el.connected();
+    el.load = async () => ({ rows: [{ id: 1 }], total: 1 });
+    assert.equal(el.refresh(), 'again');
+    assert.equal(n, 1);
+});

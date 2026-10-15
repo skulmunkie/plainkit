@@ -87,6 +87,8 @@ export default Base => class extends Base {
     }
 
     disconnected() { this.stopWatching(); }
+    // Loads every widget that already started again: a `load` set after the first draw (a host that binds callbacks after its first render, #1401) replaces the empty state they drew without it.
+    refresh() { if (!this.$w) return; for (const w of this.config?.widgets ?? []) if (this.$started?.has(w.key)) this.loadWidget(w); }
     stopWatching() { this.$io?.disconnect(); this.$io = null; }
 
     // Starts the widgets of `tab` that have never started: the first time a tab is shown, never on a revisit, never for a tab never opened. A widget starts when its card is

@@ -248,3 +248,17 @@ test('filters: a config change that keeps the same filters keeps the selections'
     el.changed('config');
     assert.deepEqual(el.context, { q: 'x' });
 });
+
+test('refresh() loads again the widgets that drew their empty state before a load callback was set, (#1401)', async () => {
+    const { el, body } = make();
+    el.config = { widgets: [{ key: 'a', label: 'A' }, { key: 'b', label: 'B' }] };
+    el.connected();
+    await flush(); // no IntersectionObserver in the stub: both start at once, and the page has no load yet
+    assert.equal(stateOf(cardFor(body, 'a')), 'empty');
+    const seen = [];
+    el.load = async key => { seen.push(key); return { value: '42' }; };
+    el.refresh(); await flush();
+    assert.deepEqual(seen, ['a', 'b']);
+    assert.equal(stateOf(cardFor(body, 'a')), 'ready');
+    assert.equal(stateOf(cardFor(body, 'b')), 'ready');
+});
