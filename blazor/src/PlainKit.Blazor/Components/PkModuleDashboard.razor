@@ -13,6 +13,7 @@
     private string Json = "{}";
     /// <summary>The surface id the modules' <c>contributes</c> name in <c>for</c>.</summary>
     [Parameter, EditorRequired] public string Surface { get; set; } = "";
+    /// <summary>The page heading.</summary>
     [Parameter] public string? Heading { get; set; }
     /// <summary>The tabs of this dashboard (the route owns the labels); a contribution naming another tab adds one titled by its id.</summary>
     [Parameter] public IReadOnlyList<PkDashboardTab>? Tabs { get; set; }
