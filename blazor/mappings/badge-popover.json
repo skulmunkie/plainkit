@@ -1,7 +1,7 @@
 {
   "component": "PkBadgePopover",
   "params": [
-    { "name": "Variant", "type": "string", "default": "accent", "map": "prop", "prop": "variant" },
+    { "name": "Variant", "type": "BadgeVariant", "default": "accent", "map": "prop", "prop": "variant" },
     { "name": "Heading", "type": "string", "default": "", "map": "prop", "prop": "heading" },
     { "name": "Label", "type": "string", "default": "", "map": "prop", "prop": "label" },
     { "name": "Placement", "type": "string", "default": "bottom-start", "map": "prop", "prop": "placement" },

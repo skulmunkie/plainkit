@@ -14,7 +14,7 @@
     {
       "name": "Tone",
       "prop": "tone",
-      "type": "string"
+      "type": "HintTone"
     },
     {
       "name": "OpenChanged",

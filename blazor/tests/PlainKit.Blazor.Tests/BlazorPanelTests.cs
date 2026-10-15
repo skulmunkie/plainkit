@@ -205,6 +205,16 @@ public sealed class BlazorPanelTests : BunitContext, IAsyncLifetime
     }
 
     [Fact]
+    public void Variant_tone_status_and_gap_props_are_typed_parameters()
+    {
+        Assert.Equal("BadgeVariant", PkMappingInfo.Describe("pk-badge")!.Parameters.Single(p => p.Name == "Variant").Type);
+        Assert.Equal("BadgeVariant", PkMappingInfo.Describe("pk-badge-popover")!.Parameters.Single(p => p.Name == "Variant").Type);
+        Assert.Equal("ProgressSize", PkMappingInfo.Describe("pk-progress")!.Parameters.Single(p => p.Name == "Size").Type);
+        Assert.Equal("StackGap", PkMappingInfo.Describe("pk-stack")!.Parameters.Single(p => p.Name == "Gap").Type);
+        Assert.Equal("ButtonType", PkMappingInfo.Describe("pk-button")!.Parameters.Single(p => p.Name == "Type").Type);
+    }
+
+    [Fact]
     public void Razor_markup_binds_the_two_way_parameter_and_falls_back_to_a_bare_component()
     {
         Assert.Equal("<PkInput @bind-Value=\"_value\" Placeholder=\"Name\" />", PkMappingInfo.Describe("pk-input", attributes: Attrs(("value", "Ada"), ("placeholder", "Name")))!.Markup);

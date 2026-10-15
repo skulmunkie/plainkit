@@ -9,7 +9,7 @@
     {
       "name": "Gap",
       "prop": "gap",
-      "type": "string"
+      "type": "ClusterGap"
     },
     {
       "name": "Align",

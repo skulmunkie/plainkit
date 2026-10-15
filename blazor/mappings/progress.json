@@ -14,12 +14,12 @@
     {
       "name": "Variant",
       "prop": "variant",
-      "type": "string"
+      "type": "ProgressVariant"
     },
     {
       "name": "Size",
       "prop": "size",
-      "type": "string"
+      "type": "ProgressSize"
     },
     {
       "name": "Striped",

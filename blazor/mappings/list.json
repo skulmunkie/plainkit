@@ -14,7 +14,7 @@
     {
       "name": "Gap",
       "prop": "gap",
-      "type": "string"
+      "type": "ListGap"
     },
     {
       "name": "Dense",

@@ -69,7 +69,7 @@ public sealed class HandWrittenElementTests : BunitContext, IAsyncLifetime
         var cut = Render<PkEmptyState>(p => p
             .Add(x => x.Title, "No rows")
             .Add(x => x.Description, "Add one")
-            .Add(x => x.Tone, "compact")
+            .Add(x => x.Tone, EmptyStateTone.Compact)
             .Add(x => x.IconContent, "i")
             .Add(x => x.TitleContent, "Rich title")
             .Add(x => x.ActionContent, "Add")

@@ -22,7 +22,7 @@
     <PkForm @ref="_form" OnReset="Resync">
         <form>
             <PkInput @bind-Value="_name" Name="name" AriaLabel="Name" />
-            <PkButton Type="reset" id="reset-form">Reset</PkButton>
+            <PkButton Type="ButtonType.Reset" id="reset-form">Reset</PkButton>
         </form>
     </PkForm>
     <p>Name in C#: <code id="out-name">@_name</code> (resyncs: <code id="out-resyncs">@_resyncs</code>)</p>

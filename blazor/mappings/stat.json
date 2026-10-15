@@ -35,7 +35,7 @@
     {
       "name": "DeltaUnit",
       "prop": "deltaUnit",
-      "type": "string"
+      "type": "StatDeltaUnit"
     },
     {
       "name": "Invert",

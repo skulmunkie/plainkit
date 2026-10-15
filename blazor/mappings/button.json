@@ -14,7 +14,7 @@
     {
       "name": "Type",
       "prop": "type",
-      "type": "string"
+      "type": "ButtonType"
     },
     {
       "name": "Href",
