@@ -173,7 +173,7 @@ export async function mountLayoutBuilder(container, options = {}) {
         elements.clear();
         const d = current();
         const sortable = doc.createElement('pk-sortable');
-        sortable.className = 'lb-canvas-sortable';
+        sortable.toggleAttribute('data-lb-canvas', true);
         sortable.toggleAttribute('accept-external', true);
         sortable.setAttribute('label', 'Page');
         for (const node of d.nodes) {
@@ -188,7 +188,7 @@ export async function mountLayoutBuilder(container, options = {}) {
         loadElements(canvas);
         paintSelection(false);
     }
-    const canvasSortable = () => canvas.querySelector(':scope > .lb-canvas-sortable');
+    const canvasSortable = () => canvas.querySelector(':scope > [data-lb-canvas]');
 
     function paintSelection(scroll) {
         if (state.selected && !M.findNode(current(), state.selected)) state.selected = null;

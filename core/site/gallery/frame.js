@@ -51,7 +51,7 @@ export function applyToPage(frame, { theme, scale, width }) {
     if (width !== undefined) {
         frame.dataset.dyn = `width:${width === 'phone' ? `${PHONE_WIDTH}px` : '100%'}`;
         applyDynamic(frame);
-        frame.classList.toggle('gx-page-frame--phone', width === 'phone');
+        frame.toggleAttribute('data-phone', width === 'phone');
     }
 }
 

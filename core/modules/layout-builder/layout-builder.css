@@ -25,7 +25,7 @@
 
 /* The top-level canvas order, wired to pk-sortable (see paintCanvas): a plain flex column with no extra gap of its own, so wrapping the
    page's top-level nodes in pk-sortable-item does not add spacing the exported HTML never had. */
-.lb-canvas-sortable { --pk-sortable-gap: 0; }
+[data-lb-canvas] { --pk-sortable-gap: 0; }
 
 @media (--phone) {
     .lb { height: 75vh; }

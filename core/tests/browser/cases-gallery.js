@@ -168,7 +168,7 @@ export const galleryCases = [
         const base = new URL('../../', import.meta.url).href;
         const f = document.createElement('iframe'); f.title = 'Undefined state'; f.style.cssText = 'width:1280px;height:900px;border:0';
         f.srcdoc = `<!doctype html><html data-theme="dark"><head><link rel="stylesheet" href="${base}plainkit.css"><link rel="stylesheet" href="${base}site/site.css"><link rel="stylesheet" href="${base}site/gallery/gallery.css"></head>`
-            + `<body class="site"><div class="site-body" data-gx-mount><pk-app-shell flush>${bar.outerHTML}</pk-app-shell></div></body></html>`;
+            + `<body data-site><div data-site-body data-gx-mount><pk-app-shell flush>${bar.outerHTML}</pk-app-shell></div></body></html>`;
         const loaded = new Promise(r => f.addEventListener('load', r, { once: true })); p.win.frameElement.parentElement.append(f); await loaded; await wait(100);
         const raw = f.contentDocument.querySelector('#gx-bar');
         t.ok(bar.getClientRects().length > 0, `the live preview bar is drawn (display ${p.win.getComputedStyle(bar).display}, ${p.doc.documentElement.className}, ${bar.parentElement?.className})`);
@@ -221,7 +221,7 @@ export const galleryCases = [
         const base = new URL('../../', import.meta.url).href;
         const f = document.createElement('iframe'); f.title = 'Undefined state'; f.style.cssText = 'width:1280px;height:900px;border:0';
         f.srcdoc = `<!doctype html><html data-theme="dark"><head><link rel="stylesheet" href="${base}plainkit.css"><link rel="stylesheet" href="${base}site/site.css"><link rel="stylesheet" href="${base}site/gallery/gallery.css"></head>`
-            + `<body class="site"><div class="site-body" data-gx-mount>${shell.outerHTML}</div></body></html>`;
+            + `<body data-site><div data-site-body data-gx-mount>${shell.outerHTML}</div></body></html>`;
         const loaded = new Promise(r => f.addEventListener('load', r, { once: true })); p.win.frameElement.parentElement.append(f); await loaded; await wait(100);
         const raw = f.contentDocument;
         const box = (d, sel, i = 0) => d.querySelectorAll(sel)[i].getBoundingClientRect();

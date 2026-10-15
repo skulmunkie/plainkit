@@ -695,7 +695,7 @@ export const toolCases = [
         const builder = await mountLayoutBuilder(host, { html: '<h2>One</h2><p>Two</p><pk-badge>Three</pk-badge>' });
         await t.load(host);
         const page = host.querySelector('pk-design-surface');
-        const items = () => [...page.querySelectorAll(':scope > pk-sortable.lb-canvas-sortable > pk-sortable-item')];
+        const items = () => [...page.querySelectorAll(':scope > pk-sortable[data-lb-canvas] > pk-sortable-item')];
         t.eq(items().length, 3, 'each top-level node is a draggable pk-sortable-item');
         const first = items()[0], last = items()[2];
         const handle = first.part('handle'); const rh = handle.getBoundingClientRect(); const rl = last.getBoundingClientRect();
@@ -769,14 +769,14 @@ export const toolCases = [
         t.ok(win.__saved && win.__saved.html === win.__builder.toHtml() && win.__saved.model, 'File > Save calls onsave with { model, html }, no keyboard involved');
         // A click on a tab that has not upgraded yet is lost (a loaded machine upgrades it late, #1247): click until the Canvas panel is really showing, not once.
         const canvasTab = dock.shadowRoot.querySelector('pk-tab[value="canvas"]');
-        await until(() => { const shown = fdoc.querySelector('.lb-canvas-sortable')?.getBoundingClientRect().width > 0; if (!shown) canvasTab.click(); return shown; }, 'the Canvas panel to show after clicking its tab');
+        await until(() => { const shown = fdoc.querySelector('[data-lb-canvas]')?.getBoundingClientRect().width > 0; if (!shown) canvasTab.click(); return shown; }, 'the Canvas panel to show after clicking its tab');
         await t.settle();
-        await until(() => win.customElements.get('pk-sortable-item') && typeof fdoc.querySelector('.lb-canvas-sortable pk-sortable-item')?.part === 'function', 'pk-sortable-item to upgrade in the phone frame');
+        await until(() => win.customElements.get('pk-sortable-item') && typeof fdoc.querySelector('[data-lb-canvas] pk-sortable-item')?.part === 'function', 'pk-sortable-item to upgrade in the phone frame');
         // The Canvas panel can still be hidden here on a loaded machine (the dock redraws its strip late and drops the selection): re-select the tab until the first item is laid out, then take the items.
-        const firstItem = () => fdoc.querySelector('.lb-canvas-sortable pk-sortable-item');
+        const firstItem = () => fdoc.querySelector('[data-lb-canvas] pk-sortable-item');
         // the phone media rule enlarges the handle on the next style/layout pass; wait for it, then the assertion below still decides
         await until(() => { if (!(firstItem()?.getBoundingClientRect().width > 0)) { canvasTab.click(); return false; } return firstItem().part('handle').getBoundingClientRect().width >= 43.5; }, 'the drag handle to take its phone size');
-        const items = [...fdoc.querySelectorAll('.lb-canvas-sortable pk-sortable-item')];
+        const items = [...fdoc.querySelectorAll('[data-lb-canvas] pk-sortable-item')];
         t.eq(items.length, 2);
         const handle = items[0].part('handle');
         const rh = handle.getBoundingClientRect(); const rl = items[1].getBoundingClientRect();
