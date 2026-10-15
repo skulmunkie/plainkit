@@ -130,8 +130,8 @@ export const setCallback = (el, name, host, refresh) => { if (host) { el[name] =
 export const routeChanged = async (label, site) => (await import('./plainkit/js/route-focus.js')).routeChanged(label, site);
 export const refresh = el => el.refresh?.();
 
-// Calls one of an element's own methods (PkRecordForm.SubmitAsync -> submit()).
-export const call = (el, method) => el[method]?.();
+// Calls one of an element's own methods (PkElementBase.CallAsync, the generated ShowAsync -> show()). args is always passed (JS interop ignores C# defaults, #1329); the call waits for the element to be defined.
+export const call = async (el, method, args) => { await customElements.whenDefined(el.localName); return el[method]?.(...(args ?? [])); };
 
 export const openTools =container => mounted.get(container)?.open?.();
 export const closeTools = container => mounted.get(container)?.close?.();

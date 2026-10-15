@@ -17,5 +17,10 @@
     { "name": "AriaLabel", "prop": "label", "type": "string" },
     { "name": "Open", "prop": "open", "type": "bool", "note": "Two-way: @bind-Open." }
   ],
-  "notes": "PkLookupPicker<TItem> (Components/PkLookupPicker.razor) wraps pk-lookup-picker 1:1: Load and Resolve are callback properties, so the component hands the element .NET references (PkCallbackSlot) exactly as PkDataTable does; pk-lookup-select, pk-values-change and pk-lookup-toggle come back as ValueChanged, ValuesChanged and OpenChanged. Keys are strings."
+  "notes": "PkLookupPicker<TItem> (Components/PkLookupPicker.razor) wraps pk-lookup-picker 1:1: Load and Resolve are callback properties, so the component hands the element .NET references (PkCallbackSlot) exactly as PkDataTable does; pk-lookup-select, pk-values-change and pk-lookup-toggle come back as ValueChanged, ValuesChanged and OpenChanged. Keys are strings.",
+  "methods": [
+    { "name": "FocusAsync", "method": "focus" },
+    { "name": "ShowAsync", "method": "show" },
+    { "name": "HideAsync", "method": "hide" }
+  ]
 }

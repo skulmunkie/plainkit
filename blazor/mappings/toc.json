@@ -49,5 +49,8 @@
       "map": "event",
       "event": "pk-section-change"
     }
+  ],
+  "methods": [
+    { "name": "RefreshAsync", "method": "refresh" }
   ]
 }

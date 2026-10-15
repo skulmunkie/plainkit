@@ -46,5 +46,9 @@
       "event": "pk-close",
       "cancelable": true
     }
+  ],
+  "methods": [
+    { "name": "ShowAsync", "method": "show", "args": [{ "name": "index", "type": "int" }] },
+    { "name": "HideAsync", "method": "hide" }
   ]
 }

@@ -47,5 +47,9 @@
       "type": "RenderFragment"
     }
   ],
-  "events": ["pk-menu-toggle"]
+  "events": ["pk-menu-toggle"],
+  "methods": [
+    { "name": "ShowAsync", "method": "show" },
+    { "name": "HideAsync", "method": "hide" }
+  ]
 }

@@ -36,5 +36,8 @@
       "slot": "",
       "type": "RenderFragment"
     }
+  ],
+  "methods": [
+    { "name": "ValidateAllAsync", "method": "validateAll", "returns": "bool" }
   ]
 }

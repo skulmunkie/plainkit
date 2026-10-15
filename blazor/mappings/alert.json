@@ -81,5 +81,8 @@
       "map": "wrapper",
       "note": "Splatted onto the host element."
     }
+  ],
+  "methods": [
+    { "name": "DismissAsync", "method": "dismiss" }
   ]
 }

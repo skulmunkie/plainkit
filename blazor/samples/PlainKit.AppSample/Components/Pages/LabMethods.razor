@@ -1,0 +1,25 @@
+@page "/lab/methods"
+
+@* Lab: the element methods the generated components expose (ShowAsync, FocusAsync, ValidateAllAsync), called over the real interop (#1375). *@
+<h1 tabindex="-1">Lab methods</h1>
+<PkButton OnClick="OpenDialog">Open dialog</PkButton>
+<PkButton OnClick="FocusName">Focus name</PkButton>
+<PkButton OnClick="Check">Check form</PkButton>
+<p id="lab-valid">Valid: @_valid</p>
+<PkDialog @ref="_dialog" Title="Opened from C#">Body of the lab dialog</PkDialog>
+<PkForm @ref="_form">
+    <form>
+        <PkInput @ref="_name" Name="name" AriaLabel="Name" Required="true" />
+    </form>
+</PkForm>
+
+@code {
+    private PkDialog? _dialog;
+    private PkInput? _name;
+    private PkForm? _form;
+    private string _valid = "unknown";
+
+    private Task OpenDialog() => _dialog!.ShowAsync();
+    private Task FocusName() => _name!.FocusAsync();
+    private async Task Check() => _valid = (await _form!.ValidateAllAsync()).ToString();
+}

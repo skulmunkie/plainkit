@@ -181,5 +181,11 @@
       "init": ["Get = _ => null", "Set = (_, _) => { }", "Editor = editor"]
     }
   ],
-  "notes": "PkFieldGroup<TItem> (Components/PkFieldGroup.razor) wraps pk-field-group 1:1: the controls, the conditional rendering, the form value and the validation are the element's. When, Disabled, ReadOnly, HelpWhen, LabelWhen and OptionsSource are read on every render and sent as data; LabelAction is slotted as label-action-<key>; Search is the element's search callback."
+  "notes": "PkFieldGroup<TItem> (Components/PkFieldGroup.razor) wraps pk-field-group 1:1: the controls, the conditional rendering, the form value and the validation are the element's. When, Disabled, ReadOnly, HelpWhen, LabelWhen and OptionsSource are read on every render and sent as data; LabelAction is slotted as label-action-<key>; Search is the element's search callback.",
+  "methods": [
+    { "name": "FocusFieldAsync", "method": "focusField", "args": [{ "name": "key", "type": "string" }] },
+    { "name": "SetErrorAsync", "method": "setError", "args": [{ "name": "key", "type": "string" }, { "name": "message", "type": "string" }] },
+    { "name": "FocusAsync", "method": "focus" },
+    { "name": "RefreshAsync", "method": "refresh" }
+  ]
 }

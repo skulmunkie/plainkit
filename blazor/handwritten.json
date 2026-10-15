@@ -149,6 +149,9 @@
     "PkElementBase.cs": {
       "category": "base"
     },
+    "PkElementBase.Methods.cs": {
+      "category": "base"
+    },
     "PkEnums.cs": {
       "category": "dto"
     },

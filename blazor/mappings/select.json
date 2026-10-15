@@ -55,5 +55,8 @@
     "type": "string",
     "field": true,
     "multi": true
-  }
+  },
+  "methods": [
+    { "name": "FocusAsync", "method": "focus" }
+  ]
 }

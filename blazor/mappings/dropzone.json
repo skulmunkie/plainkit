@@ -51,5 +51,8 @@
       "slot": "hint",
       "type": "RenderFragment"
     }
+  ],
+  "methods": [
+    { "name": "FocusAsync", "method": "focus" }
   ]
 }

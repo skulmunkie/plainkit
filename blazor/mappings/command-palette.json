@@ -60,5 +60,9 @@
       "map": "event",
       "event": "pk-select"
     }
+  ],
+  "methods": [
+    { "name": "ShowAsync", "method": "show" },
+    { "name": "HideAsync", "method": "hide" }
   ]
 }

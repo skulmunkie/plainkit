@@ -58,5 +58,8 @@
     "key": "value",
     "type": "string",
     "field": true
-  }
+  },
+  "methods": [
+    { "name": "FocusAsync", "method": "focus" }
+  ]
 }

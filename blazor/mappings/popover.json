@@ -115,5 +115,10 @@
       "map": "event",
       "event": "pk-confirm"
     }
+  ],
+  "methods": [
+    { "name": "ShowAsync", "method": "show" },
+    { "name": "HideAsync", "method": "hide" },
+    { "name": "ToggleAsync", "method": "toggle" }
   ]
 }
