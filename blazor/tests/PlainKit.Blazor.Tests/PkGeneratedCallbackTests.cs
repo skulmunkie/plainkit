@@ -31,6 +31,18 @@ public sealed class PkGeneratedCallbackTests : BunitContext, IAsyncLifetime
     }
 
     [Fact]
+    public async Task PropertyGrid_bind_Values_follows_the_event_values_as_JSON_text()
+    {
+        var bound = "{}";
+        var cut = Render<PkPropertyGrid>(p => p.Add(x => x.Values, bound).Add(x => x.ValuesChanged, Microsoft.AspNetCore.Components.EventCallback.Factory.Create<string?>(this, v => bound = v!)));
+
+        await cut.Find("pk-property-grid").TriggerEventAsync("onpk-property-change", new PkPropertyChangeEventArgs { Key = "radius", Values = System.Text.Json.JsonDocument.Parse("{\"radius\":8,\"on\":true}").RootElement });
+
+        Assert.Equal("{\"radius\":8,\"on\":true}", bound);
+        Assert.Equal(bound, cut.Instance.Values);
+    }
+
+    [Fact]
     public async Task Button_OnToggle_receives_the_detail_of_pk_toggle()
     {
         PkToggleEventArgs? got = null;

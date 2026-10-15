@@ -11,8 +11,12 @@
 <p>Tab: @_tab</p>
 <PkButton Toggle="true" @bind-Pressed="_pressed">Bold</PkButton>
 <p>Pressed: @_pressed</p>
+<PkPropertyGrid Config="@GridConfig" @bind-Values="_values" />
+<p>Values: @_values</p>
 
 @code {
     private string? _tab = "a";
     private bool _pressed;
+    private string _values = "{}";
+    private const string GridConfig = "{\"groups\":[{\"heading\":\"Look\",\"fields\":[{\"key\":\"enabled\",\"type\":\"switch\",\"label\":\"Enabled\"}]}]}";
 }
