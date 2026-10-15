@@ -2,8 +2,8 @@
 // the old addresses that keep working, back and forward, the query inside the hash (?q ?p) and a scoped mount's first route. Same contract as cases.js: [name, async (t) => void].
 import { instrument } from './cases-app.js';
 
-const wait = ms => new Promise(r => setTimeout(r, ms));
-const until = async (fn, what, tries = 120) => { for (let i = 0; i < tries; i++) { const v = fn(); if (v) return v; await wait(50); } throw new Error(`timed out waiting for ${what}`); };
+import { wait, until as poll } from './wait.js';
+const until = (fn, what, tries = 120) => poll(fn, what, { every: 50, tries });
 
 // Opens the gallery page at a hash (and a query for the mount's options) and waits for its first view.
 async function open(t, hash = '', search = '', width = 1280) {
@@ -106,7 +106,7 @@ export const galleryCases = [
         await until(() => p.doc.querySelector('#gx-view iframe.gx-page-frame'), 'the full-page frame', 400);
         t.ok(/kind=layouts&id=shell/.test(p.doc.querySelector('iframe.gx-page-frame').src), 'the frame loads that layout');
         await until(() => p.doc.querySelector('#gx-title').textContent === 'App shell', 'the slim bar to carry the title', 400);
-        await until(() => p.doc.querySelector('#gx-back').href === '#/samples/layouts', 'and a way back to the list', 400);
+        await until(() => p.doc.querySelector('#gx-back').getAttribute('href') === '#/samples/layouts', 'and a way back to the list', 400);
     }],
 
     ['gallery: the old addresses keep working: a control page is its element, layouts and templates live under samples, blocks and an unknown section are handled', async t => {
