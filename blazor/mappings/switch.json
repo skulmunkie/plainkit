@@ -39,7 +39,7 @@
     {
       "name": "LabelPosition",
       "prop": "labelPosition",
-      "type": "string"
+      "type": "SwitchLabelPosition"
     },
     {
       "name": "ChildContent",

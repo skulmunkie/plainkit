@@ -29,7 +29,7 @@
     {
       "name": "Layout",
       "prop": "layout",
-      "type": "string"
+      "type": "FieldLayout"
     },
     {
       "name": "Warning",

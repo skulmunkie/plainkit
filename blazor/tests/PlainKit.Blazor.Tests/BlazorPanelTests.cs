@@ -215,6 +215,16 @@ public sealed class BlazorPanelTests : BunitContext, IAsyncLifetime
     }
 
     [Fact]
+    public void Layout_and_alignment_props_are_typed_parameters()
+    {
+        Assert.Equal("ClusterAlign", PkMappingInfo.Describe("pk-cluster")!.Parameters.Single(p => p.Name == "Align").Type);
+        Assert.Equal("StackAlign", PkMappingInfo.Describe("pk-stack")!.Parameters.Single(p => p.Name == "Align").Type);
+        Assert.Equal("ContainerScroll", PkMappingInfo.Describe("pk-container")!.Parameters.Single(p => p.Name == "Scroll").Type);
+        Assert.Equal("CardOrientation", PkMappingInfo.Describe("pk-card")!.Parameters.Single(p => p.Name == "Orientation").Type);
+        Assert.Equal("SwitchLabelPosition", PkMappingInfo.Describe("pk-switch")!.Parameters.Single(p => p.Name == "LabelPosition").Type);
+    }
+
+    [Fact]
     public void Razor_markup_binds_the_two_way_parameter_and_falls_back_to_a_bare_component()
     {
         Assert.Equal("<PkInput @bind-Value=\"_value\" Placeholder=\"Name\" />", PkMappingInfo.Describe("pk-input", attributes: Attrs(("value", "Ada"), ("placeholder", "Name")))!.Markup);
