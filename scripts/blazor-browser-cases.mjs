@@ -4,6 +4,7 @@
 
 import { LAB_CASES, LAB_SHOTS } from './blazor-browser-lab-cases.mjs';
 import { INTEROP_CASES, INTEROP_SHOTS } from './blazor-browser-interop-cases.mjs';
+import { ELEMENT_CASES, ELEMENT_SHOTS } from './blazor-browser-element-cases.mjs';
 
 const MAIN_TEXT = `(document.querySelector('#pk-main') ? window.__deep.text(document.querySelector('#pk-main')) : '')`; // #pk-main is absent while a lazy module loads (the guard's spinner)
 const MARK = `window.__pkMark = 'still the same document'`;
@@ -188,3 +189,5 @@ CASES.push(...LAB_CASES); // the JS-interop paths a bUnit test cannot cross (bla
 SHOT_PLAN.push(...LAB_SHOTS);
 CASES.push(...INTEROP_CASES); // callbacks of the page types, JSON re-sync, parameter binding, file picking (#1381)
 SHOT_PLAN.push(...INTEROP_SHOTS);
+CASES.push(...ELEMENT_CASES); // properties and refs, canvas events, side-nav open/close, real pointer drags (#1411)
+SHOT_PLAN.push(...ELEMENT_SHOTS);

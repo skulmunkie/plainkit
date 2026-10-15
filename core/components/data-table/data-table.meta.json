@@ -240,6 +240,13 @@
       "detailProps": { "error": "unknown" }
     },
     {
+      "name": "pk-query-change",
+      "detail": { "sortKey": "string | null", "descending": "boolean", "search": "string", "page": "number", "pageSize": "number", "filters": "object" },
+      "description": "The reader changed the query (sorted, searched, filtered, paged or chose a page size); raised before load() runs for it. Not raised for a prop set from script or for refresh(). Use it to keep SortKey, Search and PageSize in sync with the host (two-way binding).",
+      "cancelable": true,
+      "detailProps": { "sortKey": "string", "descending": "boolean", "search": "string", "page": "number", "pageSize": "number", "filters": "object" }
+    },
+    {
       "name": "pk-row-click",
       "detail": { "id": "string", "row": "object" },
       "description": "pk-table's own event, passed through: a clickable row was activated. id is the row's rowKey value, row the row object from load(). A control inside the row (checkbox, button, link) does not raise it.",

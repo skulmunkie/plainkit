@@ -520,6 +520,18 @@ export const dataDisplayCases = [
         t.ok(b.left >= c.right - 1 || b.top >= c.bottom - 1, 'and does not overlap the count');
     }],
 
+    ['data-table: pk-query-change reaches the host for a reader search and page-size change (#1420)', async t => {
+        const el = await t.mount(`<pk-data-table columns='[{"key":"sku","label":"SKU"}]'></pk-data-table>`), seen = [];
+        el.load = async () => ({ rows: [{ id: 1, sku: 'A' }], total: 1 });
+        el.addEventListener('pk-query-change', e => seen.push(e.detail));
+        el.refresh();
+        await until(() => !el.part('table').hidden, 'the table');
+        t.eq(seen.length, 0, 'loading alone raises nothing');
+        const box = el.part('filters').shadowRoot.querySelector('[part="search"]'); box.value = 'abc'; box.dispatchEvent(new Event('input', { bubbles: true }));
+        await until(() => seen.length === 1, 'the search change');
+        t.eq(seen[0].search, 'abc'); t.eq(seen[0].page, 1); t.eq(seen[0].pageSize, 25); t.eq(seen[0].descending, false);
+    }],
+
     ['data-table: load receives an AbortSignal, a newer query aborts the request in flight, and the aborted one draws no error (#817)', async t => {
         const el = await t.mount(`<pk-data-table columns='[{"key":"sku","label":"SKU"}]'></pk-data-table>`), signals = [], errs = [];
         el.addEventListener('pk-load-error', () => errs.push(1));

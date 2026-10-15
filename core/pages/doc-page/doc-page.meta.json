@@ -24,6 +24,7 @@
     {
       "name": "pk-navigate",
       "detail": "{ id, anchor, replace: false }",
+      "detailProps": { "id": "string", "anchor": "string", "replace": "bool" },
       "description": "A same-page link inside the article body (the table of contents, a heading's own permalink) was followed. The host rewrites the address (history.pushState) and keeps anchor in the config it sets next; the element never touches history itself."
     }
   ],

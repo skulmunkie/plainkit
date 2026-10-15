@@ -236,7 +236,7 @@ export function modelElement(el, mapping, reg) {
                 cs = `EventCallback<${inner}>`; call = `value:${conv}`;
             } else if (!ev.fields.length) { cs = 'EventCallback'; call = 'none'; }
             else { cs = `EventCallback<${ev.args}>`; call = 'args'; }
-            if (declare({ name: p.name, kind: 'param', cs, doc: ev.description, note: p.note, cancelable: ev.cancelable })) handler(ev).callbacks.push({ name: p.name, call });
+            if (declare({ name: p.name, kind: 'param', cs, doc: ev.description, note: p.note, cancelable: ev.cancelable })) { const hh = handler(ev); hh.callbacks.push({ name: p.name, call }); if (p.stopPropagation) hh.stop = true; }
             // `shows`: a boolean prop of the element that is on exactly when the host listens (OnCancel set shows the Cancel button: cancellable).
             if (p.shows) out.attrs.push({ attr: kebab(p.shows), expr: `@${p.name}.HasDelegate`, boolean: true });
         } else if (map === 'callback') {
@@ -519,6 +519,8 @@ export function renderComponent(m, mappingName, ns = 'PlainKit.Blazor') {
     // The element itself (PkElementBase.Element), for PkRuntime.ReadFormValuesAsync and any host that needs a JavaScript handle.
     attrs.push('@ref="Element"');
     for (const h of live.filter(x => x.native)) attrs.push(`@${h.attr}="${handlerName(h)}"`);
+    // stopPropagation: Blazor's own bubbling (it walks the ancestors for onpk-* handlers), so an event the element owns does not reach an enclosing component's handler of the same name.
+    for (const h of live.filter(x => x.stop)) attrs.push(`@${h.attr}:stopPropagation="true"`);
     // Every component takes the attributes it has no parameter for (PkElementBase.AdditionalAttributes): `class` is merged with ExtraClass, the rest
     // is splatted after the generated attributes together with the pk-* event handlers (built once per component, see PkElementBase).
     attrs.push(`class="@Css(${m.usesClass ? 'ExtraClass' : ''})"`);
