@@ -49,6 +49,21 @@
       "note": "The page's error text (bind it to PageBase.StatusMessage, or the text DescribeError gives): a notice above the form; null or empty clears it."
     },
     {
+      "name": "OnAction",
+      "event": "pk-action",
+      "note": "A title-bar action (config.actions entry without an href) was clicked; Key is its key."
+    },
+    {
+      "name": "OnDirty",
+      "event": "pk-record-dirty",
+      "note": "The unsaved-changes state changed (Dirty): confirm before leaving the page."
+    },
+    {
+      "name": "OnSave",
+      "event": "pk-record-save",
+      "note": "Save resolved and the page is back in view mode (Save already received the values)."
+    },
+    {
       "name": "OnDelete",
       "event": "pk-record-delete",
       "shows": "deletable",

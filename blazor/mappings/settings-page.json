@@ -20,6 +20,11 @@
       "arg": "Dictionary<string, JsonElement>",
       "result": false,
       "doc": "Saves the values of the fields, keyed by field key (read text with GetString(), a switch with GetBoolean()). Throwing keeps the unsaved changes and shows the exception message; returning marks them saved."
+    },
+    {
+      "name": "OnAction",
+      "event": "pk-action",
+      "note": "A title-bar action (config.actions entry without an href) was clicked; Key is its key."
     }
   ],
   "notes": "save(values) is a callback property, set from script (config is data, a callback is not): the generated component hands the element a .NET reference (PkCallbackSlot) that calls the Save parameter."

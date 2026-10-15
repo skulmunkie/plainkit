@@ -22,6 +22,11 @@
       "default": false,
       "map": "prop",
       "prop": "fill"
+    },
+    {
+      "name": "OnAction",
+      "event": "pk-action",
+      "note": "A title-bar action (config.actions entry without an href) was clicked; Key is its key."
     }
   ],
   "notes": "New component: App framework step 7 (issue #353). Load, Open, Close and MountDetail are callback properties (business logic), not Blazor parameters mapped here yet; left for the Blazor page-type step (#346 step 20), same as PkListPage's Load and PkWorkspacePage's Mount."
