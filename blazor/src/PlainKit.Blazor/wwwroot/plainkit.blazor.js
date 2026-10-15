@@ -133,6 +133,10 @@ export const refresh = el => el.refresh?.();
 // Calls one of an element's own methods (PkElementBase.CallAsync, the generated ShowAsync -> show()). args is always passed (JS interop ignores C# defaults, #1329); the call waits for the element to be defined.
 export const call = async (el, method, args) => { await customElements.whenDefined(el.localName); return el[method]?.(...(args ?? [])); };
 
+// Sets a property the element has no attribute for (PkCommandPalette.Items -> items) from JSON; null clears it. Waits for the element to be defined so
+// an unupgraded element does not keep the value as a plain own property that shadows its setter.
+export const setProperty = async (el, name, json) => { await customElements.whenDefined(el.localName); el[name] = json === null ? null : JSON.parse(json); };
+
 export const openTools =container => mounted.get(container)?.open?.();
 export const closeTools = container => mounted.get(container)?.close?.();
 export const toggleTools = container => mounted.get(container)?.toggle?.();

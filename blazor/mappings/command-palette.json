@@ -47,6 +47,13 @@
       "prop": "label"
     },
     {
+      "name": "Items",
+      "map": "property",
+      "property": "items",
+      "type": "IReadOnlyList<PkCommandPaletteItem>",
+      "doc": "The commands the palette lists and searches: { id, label, group?, hint?, keywords?, href?, shortcut? }. A property of the element (it has no attribute), set after the render; OnSelect reports the chosen Id."
+    },
+    {
       "name": "OnOpen",
       "event": "pk-open"
     },
