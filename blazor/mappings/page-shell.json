@@ -14,7 +14,8 @@
     { "name": "BreadcrumbContent", "slot": "breadcrumb", "type": "RenderFragment?", "unless": "Crumbs" },
     { "name": "ActionsContent", "slot": "actions", "type": "RenderFragment?" },
     { "name": "MetaContent", "slot": "meta", "type": "RenderFragment?" },
-    { "name": "TabsContent", "slot": "tabs", "type": "RenderFragment?" }
+    { "name": "TabsContent", "slot": "tabs", "type": "RenderFragment?" },
+    { "name": "TitleContent", "slot": "title", "type": "RenderFragment?" }
   ],
   "notes": "Generated. Title maps to heading (the header draws the title); Crumbs is the same typed list as PkPageHeader. State is ready, loading, empty, error or forbidden; OnRetry is pk-page-shell-retry, raised by Retry in the error state. ChildContent is the one content region."
 }

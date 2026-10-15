@@ -15,6 +15,18 @@
       "name": "ChildContent",
       "slot": "",
       "type": "RenderFragment"
+    },
+    {
+      "name": "HeadingContent",
+      "type": "RenderFragment?",
+      "map": "slot",
+      "slot": "heading"
+    },
+    {
+      "name": "DescriptionContent",
+      "type": "RenderFragment?",
+      "map": "slot",
+      "slot": "description"
     }
   ]
 }

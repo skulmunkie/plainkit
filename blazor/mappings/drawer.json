@@ -82,6 +82,12 @@
       "type": "bool",
       "map": "prop",
       "prop": "docked"
+    },
+    {
+      "name": "HeaderContent",
+      "type": "RenderFragment?",
+      "map": "slot",
+      "slot": "header"
     }
   ],
   "methods": [
