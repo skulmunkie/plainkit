@@ -61,5 +61,5 @@
       "html": "<pk-wizard-page id=\"wizard-example\" config='{\"review\":true,\"steps\":[{\"id\":\"account\",\"label\":\"Account\",\"fields\":[{\"name\":\"email\",\"label\":\"Email\",\"type\":\"email\",\"required\":true}]},{\"id\":\"plan\",\"label\":\"Plan\",\"fields\":[{\"name\":\"plan\",\"label\":\"Plan\",\"type\":\"select\",\"options\":[\"Free\",\"Team\"]}]}]}'></pk-wizard-page>"
     }
   ],
-  "methods": []
+  "methods": [{ "name": "refresh()", "description": "Runs load() again and restarts at the first step; called when the load callback is set after the wizard connected (the Blazor wrapper does)." }]
 }

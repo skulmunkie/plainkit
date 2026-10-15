@@ -25,6 +25,8 @@ export default Base => class extends Base {
         this.fetch();
     }
     disconnected() { this.$gen = (this.$gen ?? 0) + 1; window.removeEventListener('beforeunload', this.$leave); }
+    // Run load() again and restart at the first step (the Blazor bridge sets load after the first draw).
+    refresh() { if (this.$w && this.isConnected) this.fetch(); }
     changed(name) { if (name === 'config' && this.$w && this.isConnected) this.fetch(); }
 
     get steps() {

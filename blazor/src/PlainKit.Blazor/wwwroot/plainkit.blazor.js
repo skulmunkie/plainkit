@@ -123,7 +123,7 @@ const abortable = async (host, arg, signal) => {
     signal.addEventListener('abort', cancel, { once: true });
     try { return await host.invokeMethodAsync('Invoke', arg, id); } finally { signal.removeEventListener('abort', cancel); }
 };
-export const setCallback = (el, name, host, refresh) => { if (host) { el[name] = (arg, opts) => abortable(host, arg, opts?.signal); if (refresh) el.refresh?.(); } else delete el[name]; };
+export const setCallback = (el, name, host, refresh, names) => { if (host) { el[name] = names ? (...a) => abortable(host, Object.fromEntries(names.map((n, i) => [n, a[i]]))) : (arg, opts) => abortable(host, arg, opts?.signal); if (refresh) el.refresh?.(); } else delete el[name]; };
 
 // Runs an element's load again (PkDataTable.ReloadAsync).
 // A route change in PkApp (#364): the document title, focus on the page's h1 and a polite announcement; the focus step is the SDK app's (js/route-focus.js), loaded on first use.

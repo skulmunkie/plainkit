@@ -104,7 +104,7 @@ public static class PkMappingInfo
                     if (mm.TryGetProperty("field", out var vf) && vf.ValueKind == JsonValueKind.True) parameters.Add(new("ValuesExpression", "parameter", "Expression<Func<IReadOnlyList<string>>>", null, false, null, reason));
                 }
             }
-            else parameters.Add(new(name, "parameter", type, null, false, null, reason));
+            else { parameters.Add(new(name, "parameter", type, null, false, null, reason)); if (Str(p, "updates") is { } up) parameters.Add(new(up + "Changed", "event", "EventCallback<string>", null, false, null, reason)); } // updates: a callback that also raises <Param>Changed (@bind)
         }
 
         // "events" (a list of event names, or "pk") generates On<Event> callbacks the params list does not name; the component says which exist and their type.

@@ -30,7 +30,25 @@
       "type": "Func<IReadOnlyDictionary<string, JsonElement>, Task<object?>>?",
       "arg": "Dictionary<string, JsonElement>",
       "doc": "Submits all the answers, keyed by field name (read text with GetString(), a switch with GetBoolean()). Throwing shows the exception message above the card and keeps the answers; returning null shows the done message. Return an object with errors (new { errors = new { email = \"Taken\" } }) to mark fields inline: a field of an earlier step takes the wizard back to it."
+    },
+    {
+      "name": "Validate",
+      "callback": "validate",
+      "type": "Func<string, IReadOnlyDictionary<string, JsonElement>, Task<object?>>?",
+      "arg": "Dictionary<string, JsonElement>",
+      "argNames": ["stepId", "values"],
+      "args": "a[\"stepId\"].GetString()!, a[\"values\"].Deserialize<Dictionary<string, JsonElement>>()!",
+      "doc": "Checks the answers of one step when Next is pressed (the step id and the step's values keyed by field name; the review step is not validated). Return null to go on; return an object with errors (new { errors = new { email = \"Taken\" } }) to mark fields inline and stay; throwing shows the exception message above the card."
+    },
+    {
+      "name": "Load",
+      "callback": "load",
+      "type": "Func<Task<IReadOnlyDictionary<string, object?>>>?",
+      "arg": "JsonElement",
+      "args": "",
+      "refresh": true,
+      "doc": "Loads draft answers, keyed by field name, before the first step (the wizard shows its loading state, and an error with Retry when this throws). Once set, the wizard starts again from the first step with the draft."
     }
   ],
-  "notes": "New component: App framework step 7 (issue #353). Submit is a callback property set from script (PkCallbackSlot), as PkSettingsPage does for Save, and OnAction, OnDirty and OnSubmit carry the events (issue #1377). Validate (two arguments, the step id and the values, which the one-argument callback bridge cannot carry), Load (the wizard calls it once while it first draws, before the bridge can set it) and MountStep (receives pane elements) stay open on the issue. A Razor flow composes PkStepper, PkForm and PkButton directly today."
+  "notes": "New component: App framework step 7 (issue #353). Submit is a callback property set from script (PkCallbackSlot), as PkSettingsPage does for Save, and OnAction, OnDirty and OnSubmit carry the events (issue #1377). Validate (two arguments in core: the bridge hands them over as one object, argNames) and Load (the bridge sets it after the first draw, so refresh asks the wizard to start again, issue #1415) are callbacks too; MountStep (receives pane elements) stays open on the issue. A Razor flow composes PkStepper, PkForm and PkButton directly today."
 }

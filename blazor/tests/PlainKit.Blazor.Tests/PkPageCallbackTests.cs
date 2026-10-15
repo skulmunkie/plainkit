@@ -100,6 +100,25 @@ public sealed class PkPageCallbackTests : BunitContext, IAsyncLifetime
     }
 
     [Fact]
+    public async Task SettingsPage_bind_Values_follows_the_saved_values_after_a_successful_save_only()
+    {
+        var bound = "{\"density\":\"cozy\"}"; var fail = false;
+        var cut = Render<PkSettingsPage>(p => p.Add(x => x.Values, bound)
+            .Add(x => x.ValuesChanged, EventCallback.Factory.Create<string?>(this, v => bound = v!))
+            .Add(x => x.Save, v => fail ? throw new InvalidOperationException("no") : Task.CompletedTask));
+        var host = Assert.IsType<DotNetObjectReference<PkCallbackHost<Dictionary<string, JsonElement>>>>(Assert.Single(_bridge.Invocations["setCallback"]).Arguments[2]);
+
+        fail = true;
+        await Assert.ThrowsAsync<InvalidOperationException>(() => cut.InvokeAsync(() => host.Value.Invoke(Values("{\"density\":\"x\"}"))));
+        Assert.Equal("{\"density\":\"cozy\"}", bound);
+
+        fail = false;
+        await cut.InvokeAsync(() => host.Value.Invoke(Values("{\"density\":\"compact\"}")));
+        Assert.Equal("{\"density\":\"compact\"}", bound);
+        Assert.Equal(bound, cut.Instance.Values);
+    }
+
+    [Fact]
     public async Task WizardPage_submit_reaches_the_delegate_and_its_result_goes_back_and_events_are_raised()
     {
         IReadOnlyDictionary<string, JsonElement>? sent = null; string? action = null; bool? dirty = null; var submitted = 0;
@@ -123,6 +142,26 @@ public sealed class PkPageCallbackTests : BunitContext, IAsyncLifetime
         Assert.Equal("help", action);
         Assert.True(dirty);
         Assert.Equal(1, submitted);
+    }
+
+    [Fact]
+    public async Task WizardPage_Validate_gets_the_step_id_and_values_from_one_object_and_Load_asks_the_element_to_start_again()
+    {
+        string? step = null; IReadOnlyDictionary<string, JsonElement>? seen = null;
+        Render<PkWizardPage>(p => p
+            .Add(x => x.Validate, (s, v) => { step = s; seen = v; return Task.FromResult<object?>(null); })
+            .Add(x => x.Load, () => Task.FromResult<IReadOnlyDictionary<string, object?>>(new Dictionary<string, object?> { ["email"] = "a@b.c" })));
+
+        var calls = _bridge.Invocations["setCallback"].ToDictionary(i => (string)i.Arguments[1]!);
+        Assert.Equal(new[] { "stepId", "values" }, (string[])calls["validate"].Arguments[4]!);
+        Assert.Equal(false, calls["validate"].Arguments[3]);
+        Assert.Equal(true, calls["load"].Arguments[3]);   // refresh: the wizard drew before load was set
+        Assert.Null(calls["load"].Arguments[4]);
+        var host = Assert.IsType<DotNetObjectReference<PkCallbackHost<Dictionary<string, JsonElement>>>>(calls["validate"].Arguments[2]);
+        var result = await host.Value.Invoke(Values("{\"stepId\":\"account\",\"values\":{\"email\":\"x@y.z\"}}"));
+        Assert.Null(result);
+        Assert.Equal("account", step);
+        Assert.Equal("x@y.z", seen!["email"].GetString());
     }
 
     [Fact]

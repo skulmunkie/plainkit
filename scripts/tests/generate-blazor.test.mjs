@@ -208,6 +208,13 @@ test('two-way: a bind block and a Changed callback update the parameter, then re
     assert.match(razor, /Label = e\.Value;/);
 });
 
+test('two-way: a JSON bind keeps an object event field as raw text; a callback can update a prop after it succeeds', () => {
+    const grid = fs.readFileSync(path.join(generatedDir, 'PkPropertyGrid.razor'), 'utf8');
+    assert.match(grid, /Values = e\.Values\?\.GetRawText\(\);\s+await ValuesChanged\.InvokeAsync\(Values\);/);
+    const settings = fs.readFileSync(path.join(generatedDir, 'PkSettingsPage.razor'), 'utf8');
+    assert.match(settings, /await Save!\(a\); await InvokeAsync\(async \(\) => \{ Values = JsonSerializer\.Serialize\(a\); await ValuesChanged\.InvokeAsync\(Values\); \}\)/);
+});
+
 test('events: no detail is a plain callback, a detail a typed one, click the native syntax', () => {
     const r = run();
     const razor = r.files.get('PkDemo.razor');
