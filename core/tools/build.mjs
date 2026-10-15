@@ -191,7 +191,8 @@ ${page}`);
     // Every element's module is ./<tag without pk->.js, so the shipped registry lists the names once and builds the same { tag: module } object (about 400 bytes gzip lighter, on every page).
     w('dist/elements/registry.js', `export default Object.fromEntries('${elements.map(e => { if (e.meta.tag !== `pk-${e.name}`) throw new Error(`${e.meta.tag}: the dist registry needs the module name to be the tag without pk-`); return e.name; }).join(' ')}'.split(' ').map(n => ['pk-' + n, './' + n + '.js']));\n`);
     for (const [name, text] of Object.entries(allManifests(elements.map(e => e.meta)))) w(`dist/${name}`, text);
-    w('dist/elements/api.json', JSON.stringify(elements.map(e => e.meta)) + '\n');
+    w('dist/elements/api.json', JSON.stringify(elements.map(({ meta: { examples, ...rest } }) => rest)) + '\n'); // the API every tool reads (layout builder and console fetch it at runtime), without the usage snippets
+    w('dist/elements/api.full.json', JSON.stringify(elements.map(e => e.meta)) + '\n'); // api.json plus `examples`: the package leaves it out; Pages, the release zip and the skills generator use it (#1253)
     // What changes at each named breakpoint (which elements, selectors and properties), from the resolved element CSS and the page layer.
     w('dist/breakpoints.report.json', breakpointReport(elements, root));
     // The version (core/VERSION) is stamped into js/version.js (and its dist copy) and dist/manifest.json, so a file from a CDN, a zip or the

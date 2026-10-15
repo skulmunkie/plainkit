@@ -14,7 +14,7 @@ const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 const dist = path.join(root, 'dist/elements');
 
 test('dist/elements holds exactly one <name>.js per element, plus registry.js and api.json, and no tier folder', () => {
-    const want = [...loadElementSources().map(e => `${e.name}.js`), 'registry.js', 'api.json'].sort();
+    const want = [...loadElementSources().map(e => `${e.name}.js`), 'registry.js', 'api.json', 'api.full.json'].sort();
     const have = fs.readdirSync(dist).sort();
     assert.deepEqual(have, want);
     for (const tierFolder of ['components', 'pages', 'shells']) assert.ok(!fs.existsSync(path.join(root, 'dist', tierFolder)), `dist/${tierFolder} must not exist: the tier folders are source layout only`);
