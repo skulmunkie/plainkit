@@ -207,6 +207,7 @@ export const appCases = [
         const host = t.stage(''); host.append(el);
         await t.load(host);
         await t.settle();
+        await wait(100);   // a widget starts on the first IntersectionObserver callback, one frame after it is drawn (#1295)
         const card = key => el.shadowRoot.querySelector(`pk-card[data-key="${key}"]`);
         const started = performance.now();
         t.ok(card('fast').querySelector('pk-stat'), 'the fast widget rendered without waiting for the slow one');
@@ -234,6 +235,7 @@ export const appCases = [
         const host = t.stage(''); host.append(el);
         await t.load(host);
         await t.settle();
+        await until(() => calls.length, 'the first widget to start');
         t.eq(calls.join(), 'a:', 'only the initial tab loaded');
         const strip = el.shadowRoot.querySelector('pk-tabs');
         const tab = v => [...strip.querySelectorAll('pk-tab')].find(x => x.value === v);
@@ -247,6 +249,33 @@ export const appCases = [
         await until(() => calls.length === 4, 'both loaded widgets to reload');
         t.eq(el.context.range, '30d');
         t.eq(calls.slice(2).sort().join(), 'a:30d,b:30d');
+    }],
+
+    ['pk-dashboard-page lazy widgets (#1295): a card far below the fold does not start until it scrolls near, a tab switch drops the starts still waiting, a late start shifts nothing, and unmounting disconnects the IntersectionObserver', async t => {
+        const real = window.IntersectionObserver, made = [];
+        window.IntersectionObserver = class extends real { constructor(...a) { super(...a); this.off = false; made.push(this); } disconnect() { this.off = true; super.disconnect(); } };
+        try {
+            const el = document.createElement('pk-dashboard-page');
+            el.config = { tabs: [{ id: 'one', label: 'One' }, { id: 'two', label: 'Two' }], widgets: [{ key: 'a', tab: 'one', label: 'A' }, { key: 'b', tab: 'one', label: 'B' }, { key: 'c', tab: 'two', label: 'C' }] };
+            const calls = [];
+            el.load = async key => { calls.push(key); return { value: '1' }; };
+            const host = t.stage('<div></div>'); host.firstElementChild.style.height = '6000px'; host.append(el);
+            const stage = document.getElementById('stage'), was = stage.style.left; stage.style.left = '0';   // content wholly left of the page does not scroll it
+            try {
+            await t.load(host); await t.settle(); await wait(200);
+            t.eq(calls.join(), '', 'nothing below the fold has started');
+            const card = key => el.shadowRoot.querySelector(`pk-card[data-key="${key}"]`);
+            el.shadowRoot.querySelector('pk-tabs').querySelectorAll('pk-tab')[1].click(); await wait(200);
+            t.eq(calls.join(), '', 'switching tabs started nothing off screen');
+            const before = card('c').getBoundingClientRect().height;
+            el.scrollIntoView();await until(() => calls.includes('c'), 'the visible tab to start');
+            await until(() => card('c').querySelector('pk-stat'), 'the widget to draw');
+            t.eq(calls.join(), 'c', 'only the shown tab started: the dropped start of tab one never ran');
+            t.ok(Math.abs(card('c').getBoundingClientRect().height - before) < 1, 'the card kept its reserved height while loading (no layout shift)');
+            el.remove(); await t.settle();
+            t.ok(made.length > 0 && made.every(o => o.off), 'every IntersectionObserver the page made is disconnected after it is removed');
+            } finally { stage.style.left = was; window.scrollTo(0, 0); }
+        } finally { window.IntersectionObserver = real; }
     }],
 
     ['workspace page type (#353): mounted and destroyed 100 times leaves no listener, observer, timer or element behind, and every consumer handle is destroyed exactly once', async t => {
