@@ -242,11 +242,11 @@ export function modelElement(el, mapping, reg) {
         } else if (map === 'callback') {
             // A callback property of the element (set from script, not an attribute): the component hands it a .NET reference (PkCallbackSlot) that calls the delegate parameter.
             // callback: the element property; type: the delegate; arg: what JavaScript passes (deserialised); args: the delegate's arguments, from a (default a); result: false for a Task with
-            // no result; returns: a C# expression over r (the delegate's result) for what JavaScript gets back; refresh: ask the element to redraw once the callback is set; abort: the element's abort
+            // no result; argNames: the element passes several arguments, handed over as one object keyed by these names (arg is then a Dictionary<string, JsonElement>); returns: a C# expression over r (the delegate's result) for what JavaScript gets back; refresh: ask the element to redraw once the callback is set; abort: the element's abort
             // signal as a CancellationToken, passed last (the call is cancelled when the element aborts it, and on dispose).
             if (!p.type || !p.arg || !p.doc) { skip(p.name, 'a callback needs type, arg and doc in the mapping'); continue; }
             declare({ name: p.name, kind: 'param', cs: p.type, doc: p.doc, note: p.note });
-            out.callbacks.push({ name: p.name, prop: p.callback, arg: p.arg, args: p.args ?? 'a', result: p.result !== false, returns: p.returns, refresh: p.refresh === true, abort: p.abort === true });
+            out.callbacks.push({ name: p.name, prop: p.callback, arg: p.arg, args: p.args ?? 'a', result: p.result !== false, returns: p.returns, refresh: p.refresh === true, abort: p.abort === true, names: p.argNames });
         } else if (map === 'property') {
             // A property of the element that has no attribute (items, segments): the typed value is serialised (camelCase JSON) and set as el[property] through the bridge after each
             // render in which it changed (PkAttr.Json), the way a JSON attribute re-syncs. property: the element property; type: a collection or record of simple types or of types
@@ -549,7 +549,7 @@ export function renderComponent(m, mappingName, ns = 'PlainKit.Blazor') {
         for (let c of m.callbacks) {
             const call = `${c.name}!(${c.args}${c.abort ? ', ct' : ''})`;
             if (m.cells?.load === c.name) c = { ...c, returns: `await ShowCellsAsync(r.Items) ?? ${c.returns}` };
-            L.push(`        await ${slotName(c)}.SyncAsync<${c.arg}>(await Runtime.BridgeAsync(Assets), Element, ${c.name} is not null, async ${c.abort ? '(a, ct)' : 'a'} => ${c.returns ? `{ var r = await ${call}; return ${c.returns}; }` : c.result ? `(object?)await ${call}` : `{ await ${call}; return null; }`}${c.refresh ? ', refresh: true' : ''});`);
+            L.push(`        await ${slotName(c)}.SyncAsync<${c.arg}>(await Runtime.BridgeAsync(Assets), Element, ${c.name} is not null, async ${c.abort ? '(a, ct)' : 'a'} => ${c.returns ? `{ var r = await ${call}; return ${c.returns}; }` : c.result ? `(object?)await ${call}` : `{ await ${call}; return null; }`}${c.refresh ? ', refresh: true' : ''}${c.names ? `, names: new[] { ${c.names.map(lit).join(', ')} }` : ''});`);
         }
         L.push('    }', '', '    /// <inheritdoc />', `    public void Dispose() { ${m.callbacks.map(c => slotName(c) + '.Dispose();').join(' ')} }`);
     }

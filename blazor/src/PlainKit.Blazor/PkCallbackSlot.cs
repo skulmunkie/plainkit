@@ -45,11 +45,11 @@ internal sealed class PkCallbackSlot(string name) : IDisposable
     private Action? _cancelAll;
 
     /// <summary>Makes the element's property <c>name</c> call <paramref name="call"/> while <paramref name="wanted"/>, and removes it otherwise. <paramref name="refresh"/> asks the element to redraw once the callback is set (a list that already showed its empty state).</summary>
-    public Task SyncAsync<TArg>(IJSObjectReference bridge, ElementReference element, bool wanted, Func<TArg, Task<object?>> call, bool refresh = false) =>
-        SyncAsync<TArg>(bridge, element, wanted, (arg, _) => call(arg), refresh);
+    public Task SyncAsync<TArg>(IJSObjectReference bridge, ElementReference element, bool wanted, Func<TArg, Task<object?>> call, bool refresh = false, string[]? names = null) =>
+        SyncAsync<TArg>(bridge, element, wanted, (arg, _) => call(arg), refresh, names);
 
     /// <summary>As above, for a callback that takes the <see cref="CancellationToken"/> of the element's abort signal (cancelled when the element aborts the call, and on dispose).</summary>
-    public async Task SyncAsync<TArg>(IJSObjectReference bridge, ElementReference element, bool wanted, Func<TArg, CancellationToken, Task<object?>> call, bool refresh = false)
+    public async Task SyncAsync<TArg>(IJSObjectReference bridge, ElementReference element, bool wanted, Func<TArg, CancellationToken, Task<object?>> call, bool refresh = false, string[]? names = null)
     {
         if (wanted == (_ref is not null)) return;
         if (wanted)
@@ -58,7 +58,7 @@ internal sealed class PkCallbackSlot(string name) : IDisposable
             _cancelAll = host.CancelAll;
             var reference = DotNetObjectReference.Create(host);
             _ref = reference;
-            await bridge.InvokeVoidAsync("setCallback", element, name, reference, refresh);
+            await bridge.InvokeVoidAsync("setCallback", element, name, reference, refresh, names);
         }
         else
         {

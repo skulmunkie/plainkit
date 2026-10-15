@@ -126,6 +126,26 @@ public sealed class PkPageCallbackTests : BunitContext, IAsyncLifetime
     }
 
     [Fact]
+    public async Task WizardPage_Validate_gets_the_step_id_and_values_from_one_object_and_Load_asks_the_element_to_start_again()
+    {
+        string? step = null; IReadOnlyDictionary<string, JsonElement>? seen = null;
+        Render<PkWizardPage>(p => p
+            .Add(x => x.Validate, (s, v) => { step = s; seen = v; return Task.FromResult<object?>(null); })
+            .Add(x => x.Load, () => Task.FromResult<IReadOnlyDictionary<string, object?>>(new Dictionary<string, object?> { ["email"] = "a@b.c" })));
+
+        var calls = _bridge.Invocations["setCallback"].ToDictionary(i => (string)i.Arguments[1]!);
+        Assert.Equal(new[] { "stepId", "values" }, (string[])calls["validate"].Arguments[4]!);
+        Assert.Equal(false, calls["validate"].Arguments[3]);
+        Assert.Equal(true, calls["load"].Arguments[3]);   // refresh: the wizard drew before load was set
+        Assert.Null(calls["load"].Arguments[4]);
+        var host = Assert.IsType<DotNetObjectReference<PkCallbackHost<Dictionary<string, JsonElement>>>>(calls["validate"].Arguments[2]);
+        var result = await host.Value.Invoke(Values("{\"stepId\":\"account\",\"values\":{\"email\":\"x@y.z\"}}"));
+        Assert.Null(result);
+        Assert.Equal("account", step);
+        Assert.Equal("x@y.z", seen!["email"].GetString());
+    }
+
+    [Fact]
     public async Task RecordPage_and_pages_with_a_title_bar_raise_OnAction_OnDirty_OnSave_and_TitleContent_fills_the_title_slot()
     {
         string? action = null; bool? dirty = null; var saved = 0;

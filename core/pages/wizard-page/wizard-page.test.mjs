@@ -110,6 +110,26 @@ test('a rejecting load shows the error state and Retry loads again', async () =>
     assert.equal(calls, 2); assert.equal(parts.state.children.length, 0); assert.equal(parts.card.hidden, false);
 });
 
+test('refresh() runs a load set after the first draw and starts again from the first step; before connecting it does nothing', async () => {
+    const { el, parts } = make();
+    el.refresh(); assert.equal(el.$i, undefined, 'not connected: nothing drawn');
+    el.connected(); await tick();
+    let calls = 0;
+    el.load = async () => { calls++; return { email: 'a@b.c' }; };
+    el.show(1);
+    el.refresh(); await tick();
+    assert.equal(calls, 1); assert.equal(el.$i, 0); assert.equal(el.$draft.email, 'a@b.c'); assert.equal(parts.card.hidden, false);
+});
+
+test('validate is called with the step id and the values as two arguments (the core contract the Blazor bridge packs into one object)', async () => {
+    const { el } = make();
+    let seen;
+    el.validate = async (...a) => { seen = a; };
+    el.connected(); await tick();
+    await el.advance();
+    assert.equal(seen.length, 2); assert.equal(seen[0], el.steps[0].id); assert.equal(typeof seen[1], 'object');
+});
+
 test('dirty fires pk-wizard-dirty once per change and the leave guard follows it and is removed on disconnect', async () => {
     const { el, events, win } = make();
     el.connected(); await tick();
