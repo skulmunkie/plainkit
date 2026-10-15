@@ -452,6 +452,16 @@ public sealed class PkPageCallbackTests : BunitContext, IAsyncLifetime
     }
 
     [Fact]
+    public async Task DocPage_OnNavigate_carries_id_anchor_and_replace()
+    {
+        PkNavigateEventArgs? got = null;
+        var cut = Render<PkDocPage>(p => p.Add(x => x.OnNavigate, EventCallback.Factory.Create<PkNavigateEventArgs>(this, e => got = e)));
+        await cut.Find("pk-doc-page").TriggerEventAsync("onpk-navigate", new PkNavigateEventArgs { Id = "intro", Anchor = "setup", Replace = false });
+        Assert.Equal("intro", got?.Id);
+        Assert.Equal("setup", got?.Anchor);
+        Assert.False(got?.Replace);
+    }
+    [Fact]
     public async Task DocPage_loadItem_gets_the_id_and_null_means_not_found()
     {
         string? id = null;
