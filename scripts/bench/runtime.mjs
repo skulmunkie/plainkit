@@ -10,7 +10,7 @@ import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { withBench, parseArgs, median, round, table, shell, coreDir } from './lib.mjs';
 
-const api = JSON.parse(fs.readFileSync(path.join(coreDir, 'dist', 'elements', 'api.json'), 'utf8'));
+const api = JSON.parse(fs.readFileSync(path.join(coreDir, 'dist', 'elements', 'api.full.json'), 'utf8'));
 const loadAll = `const reg = (await import('/dist/elements/registry.js')).default;
 await Promise.all(Object.values(reg).map(p => import(new URL(p, location.origin + '/dist/elements/registry.js').href)));`;
 const blank = body => shell({ body, script: `import { initPlainkit } from '/dist/plainkit.js'; window.__ready = (async () => { ${loadAll} initPlainkit(); return true; })();` });

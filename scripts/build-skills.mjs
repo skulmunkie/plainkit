@@ -183,8 +183,8 @@ export function section(text, heading) {
 
 export function collect() {
     const version = read(path.join(core, 'VERSION')).trim();
-    const apiFile = path.join(core, 'dist', 'elements', 'api.json');
-    if (!fs.existsSync(apiFile)) throw new Error('core/dist/elements/api.json does not exist: run node core/tools/build.mjs first');
+    const apiFile = path.join(core, 'dist', 'elements', 'api.full.json'); // api.json plus the usage examples the skills print (#1253)
+    if (!fs.existsSync(apiFile)) throw new Error('core/dist/elements/api.full.json does not exist: run node core/tools/build.mjs first');
     const api = readJson(apiFile);
     const mappings = Object.fromEntries(list(path.join(root, 'blazor', 'mappings'), f => f.endsWith('.json')).map(f => [f.replace(/\.json$/, ''), readJson(path.join(root, 'blazor', 'mappings', f))]));
     const manifest = readJson(path.join(pkg, 'Generated', 'generated.manifest.json'));
