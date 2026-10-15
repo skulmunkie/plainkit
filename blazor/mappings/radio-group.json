@@ -39,7 +39,7 @@
     {
       "name": "Direction",
       "prop": "direction",
-      "type": "string"
+      "type": "RadioGroupDirection"
     },
     {
       "name": "Fill",

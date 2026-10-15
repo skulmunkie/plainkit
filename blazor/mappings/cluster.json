@@ -4,7 +4,7 @@
     {
       "name": "Direction",
       "prop": "direction",
-      "type": "string"
+      "type": "ClusterDirection"
     },
     {
       "name": "Gap",
@@ -14,12 +14,12 @@
     {
       "name": "Align",
       "prop": "align",
-      "type": "string"
+      "type": "ClusterAlign"
     },
     {
       "name": "Justify",
       "prop": "justify",
-      "type": "string"
+      "type": "ClusterJustify"
     },
     {
       "name": "NoWrap",

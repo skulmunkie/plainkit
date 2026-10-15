@@ -10,7 +10,7 @@
     {
       "name": "Layout",
       "prop": "layout",
-      "type": "string"
+      "type": "FieldListLayout"
     },
     {
       "name": "Dividers",

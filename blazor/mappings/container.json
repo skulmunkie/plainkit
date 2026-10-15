@@ -14,12 +14,12 @@
     {
       "name": "Align",
       "prop": "align",
-      "type": "string"
+      "type": "ContainerAlign"
     },
     {
       "name": "Scroll",
       "prop": "scroll",
-      "type": "string"
+      "type": "ContainerScroll"
     },
     {
       "name": "Label",

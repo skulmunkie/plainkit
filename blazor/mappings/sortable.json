@@ -2,7 +2,7 @@
   "component": "PkSortable",
   "params": [
     { "name": "Label", "prop": "label" },
-    { "name": "Orientation", "prop": "orientation" },
+    { "name": "Orientation", "prop": "orientation", "type": "SortableOrientation" },
     { "name": "Disabled", "prop": "disabled" },
     { "name": "AcceptExternal", "prop": "acceptExternal" },
     { "name": "Dragging", "prop": "dragging" },

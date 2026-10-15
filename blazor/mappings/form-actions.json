@@ -9,7 +9,7 @@
     {
       "name": "Align",
       "prop": "align",
-      "type": "string"
+      "type": "FormActionsAlign"
     },
     {
       "name": "ChildContent",

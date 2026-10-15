@@ -34,7 +34,7 @@
     {
       "name": "Orientation",
       "prop": "orientation",
-      "type": "string"
+      "type": "CardOrientation"
     },
     {
       "name": "Flush",

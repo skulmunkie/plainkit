@@ -9,7 +9,7 @@
     {
       "name": "LabelPosition",
       "prop": "labelPosition",
-      "type": "string"
+      "type": "DividerLabelPosition"
     },
     {
       "name": "Decorative",

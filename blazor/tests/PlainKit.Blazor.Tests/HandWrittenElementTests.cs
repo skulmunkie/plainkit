@@ -90,7 +90,7 @@ public sealed class HandWrittenElementTests : BunitContext, IAsyncLifetime
     {
         var cut = Render<PkFieldList>(p => p
             .Add(x => x.Title, "Details")
-            .Add(x => x.Layout, "stacked")
+            .Add(x => x.Layout, FieldListLayout.Stacked)
             .Add(x => x.Dividers, true)
             .Add(x => x.ChildContent, builder =>
             {
