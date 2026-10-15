@@ -79,7 +79,7 @@
     {
       "name": "Size",
       "prop": "size",
-      "type": "string"
+      "type": "InputSize"
     },
     {
       "name": "Clearable",

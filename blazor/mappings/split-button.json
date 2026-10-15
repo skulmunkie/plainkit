@@ -1,6 +1,7 @@
 {
   "component": "PkSplitButton",
   "params": [
+    { "name": "Type", "prop": "type", "type": "SplitButtonType" },
     {
       "name": "Variant",
       "prop": "variant",

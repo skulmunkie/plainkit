@@ -59,7 +59,7 @@
     {
       "name": "Size",
       "prop": "size",
-      "type": "string"
+      "type": "FieldSize"
     }
   ]
 }

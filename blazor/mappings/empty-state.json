@@ -1,6 +1,7 @@
 {
   "component": "PkEmptyState",
   "params": [
+    { "name": "Level", "prop": "level", "type": "int" },
     {
       "name": "Title",
       "prop": "heading",

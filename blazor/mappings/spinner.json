@@ -9,7 +9,7 @@
     {
       "name": "Size",
       "prop": "size",
-      "type": "string"
+      "type": "SpinnerSize"
     },
     {
       "name": "Label",

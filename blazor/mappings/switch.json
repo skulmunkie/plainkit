@@ -34,7 +34,7 @@
     {
       "name": "Size",
       "prop": "size",
-      "type": "string"
+      "type": "SwitchSize"
     },
     {
       "name": "LabelPosition",

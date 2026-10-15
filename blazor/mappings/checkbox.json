@@ -69,7 +69,7 @@
     {
       "name": "Size",
       "prop": "size",
-      "type": "string"
+      "type": "CheckboxSize"
     }
   ],
   "model": {
