@@ -4,10 +4,12 @@ import { filterControl } from '../../js/filter-controls.js';
 
 // Which element a widget's kind composes.
 const WIDGET_TAG = { stat: 'pk-stat', chart: 'pk-chart' };
+// How far outside the viewport a card may be and still start (#1295): 200px above and below; the sides are wide open, only the vertical position gates a start.
+const LAZY_MARGIN = '200px 50000px';
 
 export default Base => class extends Base {
     connected() {
-        if (this.$w) return;
+        if (this.$w) { if (this.$started) this.watch(this.$tab); return; }   // moved in the document: the observer was dropped in disconnected()
         this.$w = true;
         loadElements(this.shadowRoot);
         this.part('filters').addEventListener('pk-value-change', e => this.onFilterChange(e));
@@ -26,6 +28,7 @@ export default Base => class extends Base {
         body.replaceChildren();
         this.$cards = {};
         this.$tokens = {};
+        this.stopWatching();
         this.$started = new Set();
         showTitleBar(this, this.part('header'));
         this.buildFilters();
@@ -72,12 +75,32 @@ export default Base => class extends Base {
         showTabs(body, tabs, draw, id => this.activate(id), this.config?.tab);
     }
 
-    // Starts every widget of `tab` that has never started: the first time a tab is shown, never on a revisit, never for a tab never opened.
+    disconnected() { this.stopWatching(); }
+    stopWatching() { this.$io?.disconnect(); this.$io = null; }
+
+    // Starts the widgets of `tab` that have never started: the first time a tab is shown, never on a revisit, never for a tab never opened. A widget starts when its card is
+    // within LAZY_MARGIN of the viewport (the cards keep their reserved min-height, so a late start shifts nothing); leaving a tab drops the starts still waiting in it.
+    // Without IntersectionObserver every widget of the tab starts at once.
     activate(tab) {
         if (tab !== undefined) this.onTab?.(tab);
+        this.watch(tab);
+    }
+    watch(tab) {
+        this.$tab = tab;
+        this.stopWatching();
+        const IO = this.ownerDocument.defaultView?.IntersectionObserver;
+        const io = IO ? new IO(entries => {
+            for (const e of entries) {
+                if (!e.isIntersecting) continue;
+                io.unobserve(e.target);
+                const w = this.config?.widgets?.find(x => x.key === e.target.dataset.key);
+                if (w && !this.$started.has(w.key)) this.loadWidget(w);
+            }
+        }, { rootMargin: LAZY_MARGIN }) : null;
+        this.$io = io;
         for (const w of this.config?.widgets ?? []) {
             const card = this.$cards[w.key];
-            if (card && (card.dataset.tab || undefined) === tab && !this.$started.has(w.key)) this.loadWidget(w);
+            if (card && (card.dataset.tab || undefined) === tab && !this.$started.has(w.key)) io ? io.observe(card) : this.loadWidget(w);
         }
     }
 

@@ -674,7 +674,7 @@ export const appShellCases = [
         await host.show('other'); await wait(100);
         const before = count(), made = signals.length;
         for (let i = 0; i < 100; i++) {
-            await host.show('home');
+            await host.show('home'); await wait(30);   // widgets start on the next frame (#1295): leaving sooner would start none
             await host.show('other');
         }
         await wait(100);
