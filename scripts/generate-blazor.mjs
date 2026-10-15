@@ -519,6 +519,8 @@ export function renderComponent(m, mappingName, ns = 'PlainKit.Blazor') {
     // The element itself (PkElementBase.Element), for PkRuntime.ReadFormValuesAsync and any host that needs a JavaScript handle.
     attrs.push('@ref="Element"');
     for (const h of live.filter(x => x.native)) attrs.push(`@${h.attr}="${handlerName(h)}"`);
+    // stopPropagation: Blazor's own bubbling (it walks the ancestors for onpk-* handlers), so an event the element owns does not reach an enclosing component's handler of the same name.
+    for (const h of live.filter(x => x.stop)) attrs.push(`@${h.attr}:stopPropagation="true"`);
     // Every component takes the attributes it has no parameter for (PkElementBase.AdditionalAttributes): `class` is merged with ExtraClass, the rest
     // is splatted after the generated attributes together with the pk-* event handlers (built once per component, see PkElementBase).
     attrs.push(`class="@Css(${m.usesClass ? 'ExtraClass' : ''})"`);
@@ -589,8 +591,6 @@ export function renderComponent(m, mappingName, ns = 'PlainKit.Blazor') {
         // Called once by PkElementBase, not on every parameter change: the handlers do not depend on the parameters.
         L.push('', '    /// <inheritdoc />', '    protected override void AddEventHandlers(Dictionary<string, object> handlers)', '    {');
         for (const h of custom) L.push(`        handlers[${lit(h.attr)}] = EventCallback.Factory.Create<${h.args}>(this, ${handlerName(h)});`);
-        // stopPropagation: Blazor's own bubbling (it walks the ancestors for onpk-* handlers), so an event the element owns does not reach an enclosing component's handler of the same name.
-        for (const h of custom.filter(x => x.stop)) L.push(`        handlers[${lit(h.attr + ':stopPropagation')}] = true;`);
         L.push('    }');
     }
     for (const h of live) {
