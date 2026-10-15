@@ -15,6 +15,7 @@
                   values="@PkAttr.Json(Values)"
                   selected-labels="@PkAttr.Json(SelectedLabels)"
                   name="@Name"
+                  filters="@PkAttr.Json(Filters)"
                   row-key="id"
                   label-key="pkLabel"
                   multiple="@Multiple"
@@ -80,21 +81,19 @@
     /// <summary>The page size of the popup table (initial). Default 10.</summary>
     [Parameter] public int PageSize { get; set; } = 10;
 
+    /// <summary>Filter fields above the popup table; each value reaches <c>Load</c> in <see cref="PkListRequest.Filters"/> (a multiselect in <c>MultiFilters</c>).</summary>
+    [Parameter] public IReadOnlyList<PkFilterField>? Filters { get; set; }
+
     /// <summary>The form field name.</summary>
     [Parameter] public string? Name { get; set; }
-
     /// <summary>Hint shown while nothing is chosen.</summary>
     [Parameter] public string? Placeholder { get; set; }
-
     /// <summary>Blocks interaction.</summary>
     [Parameter] public bool Disabled { get; set; }
-
     /// <summary>Shows the value but cannot open.</summary>
     [Parameter] public bool Readonly { get; set; }
-
     /// <summary>The form cannot be submitted while nothing is chosen.</summary>
     [Parameter] public bool Required { get; set; }
-
     /// <summary>Shows the invalid state.</summary>
     [Parameter] public bool IsInvalid { get; set; }
 

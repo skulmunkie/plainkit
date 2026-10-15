@@ -93,4 +93,12 @@ public sealed class PkLookupPickerTests : BunitContext, IAsyncLifetime
         Assert.Equal("2", value); Assert.Equal(["1", "2"], values); Assert.True(open);
         Assert.Equal("[\"1\",\"2\"]", cut.Find("pk-lookup-picker").GetAttribute("values"));
     }
+
+    [Fact]
+    public void Filters_become_the_filters_attribute_without_null_members()
+    {
+        var cut = Render(p => p.Add(x => x.Filters, [new PkFilterField("city", "City", "select", [new PkFilterOption("Leeds"), new PkFilterOption("Oslo", "Oslo, NO")]), new PkFilterField("q", "Query")]));
+        Assert.Equal("[{\"key\":\"city\",\"label\":\"City\",\"type\":\"select\",\"options\":[{\"value\":\"Leeds\"},{\"value\":\"Oslo\",\"label\":\"Oslo, NO\"}]},{\"key\":\"q\",\"label\":\"Query\"}]", cut.Find("pk-lookup-picker").GetAttribute("filters"));
+        Assert.Null(Render().Find("pk-lookup-picker").GetAttribute("filters"));
+    }
 }

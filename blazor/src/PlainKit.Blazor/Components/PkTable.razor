@@ -28,6 +28,7 @@ else
           select-scope="@SelectScope"
           select-page-only="@SelectPageOnly"
           clickable="@Clickable"
+          row-href-template="@RowHrefTemplate"
           current-row="@CurrentRow"
           filterable="@Filterable"
           expandable="@Expandable"
@@ -125,6 +126,8 @@ else foreach (var row in _items)
     [Parameter] public bool SelectPageOnly { get; set; }
     /// <summary>Rows are activatable: they show a pointer and raise <see cref="OnRowClick"/>. Each row is a keyboard stop (Enter or Space activates it).</summary>
     [Parameter] public bool Clickable { get; set; }
+    /// <summary>Row links: an address with <c>{id}</c> (and any <c>{field}</c>, URL-encoded), like <c>/orders/{id}</c> or <c>#/orders/{id}</c>. The first cell of each row becomes a real link; a plain click goes through the router (<c>pk-navigate</c>).</summary>
+    [Parameter] public string? RowHrefTemplate { get; set; }
 
     /// <summary>The id of the row whose record is open in a detail pane: it is tinted and marked <c>aria-current</c>. Set it from the route; the table never changes it (there is no event for it).</summary>
     [Parameter] public string? CurrentRow { get; set; }
@@ -205,10 +208,7 @@ else foreach (var row in _items)
 
     private bool SameColumns(IReadOnlyList<PkTableColumn<TItem>> columns)
     {
-        if (columns.Count != _builtColumns.Length) return false;
-        for (var i = 0; i < _builtColumns.Length; i++)
-            if (!_builtColumns[i].Equals(columns[i])) return false;
-        return true;
+        return columns.Count == _builtColumns.Length && !columns.Where((c, i) => !_builtColumns[i].Equals(c)).Any();
     }
 
     /// <summary>How many times the rows were serialised (a test reads it).</summary>

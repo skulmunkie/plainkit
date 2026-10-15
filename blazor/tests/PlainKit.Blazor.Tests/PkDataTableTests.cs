@@ -316,4 +316,14 @@ public sealed class PkDataTableTests : BunitContext, IAsyncLifetime
         await cut.Find("pk-data-table").TriggerEventAsync("onpk-select", new PkTableSelectEventArgs { Value = "edit" });
         Assert.Equal(0, changed);
     }
+
+    [Fact]
+    public void RowHrefTemplate_and_Filters_are_forwarded_to_the_element()
+    {
+        var el = Render(Immediate(_ => Page(1, "Ada")), p => p.Add(x => x.RowHrefTemplate, "/customers/{id}").Add(x => x.Filters, [new PkFilterField("city", "City")])).Find("pk-data-table");
+        Assert.Equal("/customers/{id}", el.GetAttribute("row-href-template"));
+        Assert.Equal("[{\"key\":\"city\",\"label\":\"City\"}]", el.GetAttribute("filters"));
+        var plain = Render(Immediate(_ => Page(1, "Ada")), null).Find("pk-data-table");
+        Assert.Null(plain.GetAttribute("row-href-template")); Assert.Null(plain.GetAttribute("filters"));
+    }
 }
