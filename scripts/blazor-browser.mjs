@@ -8,11 +8,13 @@
 //   verify: node scripts/verify.mjs --only blazor-browser   (opt-in; not part of the pull request gate; see AGENTS.md)
 //
 //   review-output/blazor-app__<shot>__<desktop|phone>__<light|dark>.png   and   review-output/blazor-app.json (the case results)
-// Needs the .NET SDK and Chrome/Edge (PK_CHROME, as attest-browser.mjs). The sample is Server render mode: the lazy-assembly path of WASM is not reachable here (spec section 13, Q8),
-// so the "lazy load" case checks the Server equivalent: a module switch is a client navigation (no document reload).
+// Needs the .NET SDK and Chrome/Edge (PK_CHROME, as attest-browser.mjs). The sample is Server render mode: it has no lazy assemblies (spec section 13, Q8), so its module-switch case checks
+// the Server equivalent (a client navigation, no document reload). The lazy-assembly path is the standalone WebAssembly sample (blazor/samples/PlainKit.AppSample.Wasm, #1368): the run also
+// publishes it (no wasm-tools workload needed), serves the published wwwroot as static files from a tiny node server, and runs WASM_CASES against it (--no-wasm skips it).
 // Exit code: 0 all cases passed, 1 a case failed, 2 the run could not finish.
 import { spawn, spawnSync } from 'node:child_process';
 import fs from 'node:fs';
+import http from 'node:http';
 import os from 'node:os';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
@@ -22,12 +24,13 @@ import { ensureGenerated } from './generated.mjs';
 
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 const SAMPLE = path.join(root, 'blazor', 'samples', 'PlainKit.AppSample');
+const SAMPLE_WASM = path.join(root, 'blazor', 'samples', 'PlainKit.AppSample.Wasm');
 export const VIEWPORTS = [{ name: 'desktop', width: 1280, height: 900 }, { name: 'phone', width: 375, height: 812 }];
 export const THEMES = ['light', 'dark'];
 const sleep = ms => new Promise(r => setTimeout(r, ms));
 
 export function parseArgs(argv) {
-    const o = { out: path.join(root, 'review-output'), shots: true, cases: [], timeout: 120, keepPublish: false };
+    const o = { out: path.join(root, 'review-output'), shots: true, cases: [], timeout: 120, keepPublish: false, wasm: true };
     for (let i = 0; i < argv.length; i++) {
         const a = argv[i], v = () => { const x = argv[++i]; if (x === undefined || x.startsWith('--')) throw new Error(`${a} needs a value`); return x; };
         if (a === '--out') o.out = path.resolve(v());
@@ -35,6 +38,7 @@ export function parseArgs(argv) {
         else if (a === '--cases') o.cases.push(...v().split(',').map(s => s.trim()).filter(Boolean));
         else if (a === '--timeout') { o.timeout = Number(v()); if (!Number.isInteger(o.timeout) || o.timeout <= 0) throw new Error('--timeout needs a positive whole number'); }
         else if (a === '--keep-publish') o.keepPublish = true;
+        else if (a === '--no-wasm') o.wasm = false;
         else throw new Error(`unknown argument ${a}`);
     }
     return o;
@@ -43,9 +47,9 @@ export function parseArgs(argv) {
 /** The file name of one screenshot, in the ui-review scenario convention. Pure. */
 export const shotName = (shot, vp, theme) => `blazor-app__${shot}__${vp.name}__${theme}.png`;
 
-/** Publishes the sample into `dir`. Node reuse and the shared compiler are off so no build server outlives the run holding files. */
-export function publish(dir) {
-    const r = spawnSync('dotnet', ['publish', SAMPLE, '-c', 'Release', '-o', dir, '--nologo', '-v', 'q', '-nodeReuse:false', '-p:UseSharedCompilation=false'], { encoding: 'utf8' });
+/** Publishes the sample (or `project`) into `dir`. Node reuse and the shared compiler are off so no build server outlives the run holding files. */
+export function publish(dir, project = SAMPLE) {
+    const r = spawnSync('dotnet', ['publish', project, '-c', 'Release', '-o', dir, '--nologo', '-v', 'q', '-nodeReuse:false', '-p:UseSharedCompilation=false'], { encoding: 'utf8' });
     if (r.status !== 0) throw new Error(`dotnet publish failed (${r.status}): ${(r.stdout + r.stderr).split('\n').filter(l => /error/i.test(l)).slice(0, 8).join('\n') || r.error}`);
 }
 
@@ -62,6 +66,23 @@ export async function startHost(dir, timeout) {
         try { if ((await fetch(host.base + '/')).status === 200) return host; } catch (e) { if (!/fetch failed/.test(e.message)) throw e; } // not listening yet
     }
     throw Object.assign(new Error(`the host did not answer within ${timeout} s:\n${log.slice(-1500)}`), { host });
+}
+
+const MIME = { '.html': 'text/html', '.js': 'text/javascript', '.mjs': 'text/javascript', '.json': 'application/json', '.css': 'text/css', '.wasm': 'application/wasm', '.svg': 'image/svg+xml', '.png': 'image/png', '.ico': 'image/x-icon', '.map': 'application/json' };
+
+/** Serves the static files of a published WebAssembly app (`<dir>/wwwroot`) from this process on a free port, falling back to index.html for a path with no file (the client router's). `stop()` closes it. */
+export async function startStaticHost(dir) {
+    const web = path.join(dir, 'wwwroot'), port = await freePort();
+    const server = http.createServer((req, res) => {
+        const rel = decodeURIComponent(new URL(req.url, 'http://x').pathname);
+        let file = path.join(web, rel);
+        if (!file.startsWith(web)) { res.writeHead(403).end(); return; }
+        if (!fs.existsSync(file) || fs.statSync(file).isDirectory()) file = path.join(web, 'index.html');
+        res.writeHead(200, { 'content-type': MIME[path.extname(file)] ?? 'application/octet-stream' });
+        fs.createReadStream(file).pipe(res);
+    });
+    await new Promise((res, rej) => server.once('error', rej).listen(port, '127.0.0.1', res));
+    return { port, base: `http://127.0.0.1:${port}`, stop: () => server.close() };
 }
 
 /** Stops whatever is still running with `dir` on its command line (a browser child that outlived taskkill /T keeps the profile locked). */
@@ -149,7 +170,7 @@ export function makeContext({ host, session, out, shots, results }) {
             const clicked = await ctx.eval(`(() => { const m = x => new URL(x.getAttribute('href'), location.href).pathname === ${JSON.stringify(href)}, a = window.__deep.all('a[href]').find(m) ?? window.__deep.all('[href]').find(m); if (!a) return false; a.click(); return true; })()`);
             if (!clicked) throw new Error(`no link to ${href} on the page`);
             await ctx.waitFor(`location.href !== ${JSON.stringify(before)}`, `the address to leave ${before}`);
-            await ctx.waitFor(`!!window.Blazor && window.__deep.text(document.querySelector('#pk-main')).trim().length > 0`, 'the page after the click');
+            await ctx.waitFor(`!!window.Blazor && !!document.querySelector('#pk-main') && window.__deep.text(document.querySelector('#pk-main')).trim().length > 0`, 'the page after the click');
             await sleep(400);
         },
         /** Clicks the first visible element matching `sel` (through shadow roots) whose text includes `label`. */
@@ -199,27 +220,32 @@ async function main() {
     try { chrome = findChrome({ env: process.env, platform: process.platform, pathDirs: (process.env.PATH ?? '').split(path.delimiter).filter(Boolean) }); } catch (e) { console.error(e.message); return 2; }
     if (!chrome) { console.error('No Chrome, Chromium or Edge found. Install one, or set PK_CHROME to its path.'); return 2; }
     ensureGenerated();
-    const { CASES, SHOT_PLAN } = await import('./blazor-browser-cases.mjs');
-    const known = CASES.map(c => c.name), unknown = o.cases.filter(n => !known.includes(n));
+    const { CASES, WASM_CASES, SHOT_PLAN } = await import('./blazor-browser-cases.mjs');
+    const known = [...CASES, ...WASM_CASES].map(c => c.name), unknown = o.cases.filter(n => !known.includes(n));
     if (unknown.length) { console.error(`unknown case ${unknown.join(', ')}; known: ${known.join(', ')}`); return 2; }
+    const picked = list => list.filter(c => !o.cases.length || o.cases.includes(c.name));
+    const serverCases = picked(CASES), wasmCases = o.wasm ? picked(WASM_CASES) : [];
 
-    const pub = fs.mkdtempSync(path.join(os.tmpdir(), 'pk-blazor-pub-')), profile = fs.mkdtempSync(path.join(os.tmpdir(), 'pk-blazor-chrome-'));
-    let host = null, session = null, code = 2;
-    const stop = () => { session?.close(); killTree(host?.child); };
+    const pub = fs.mkdtempSync(path.join(os.tmpdir(), 'pk-blazor-pub-')), wasmPub = fs.mkdtempSync(path.join(os.tmpdir(), 'pk-blazor-wasm-')), profile = fs.mkdtempSync(path.join(os.tmpdir(), 'pk-blazor-chrome-'));
+    let host = null, wasmHost = null, session = null, code = 2;
+    const stop = () => { session?.close(); killTree(host?.child); wasmHost?.stop(); };
     process.once('SIGINT', () => { stop(); process.exit(2); });
     try {
-        console.log('publishing the sample ...');
-        publish(pub);
-        host = await startHost(pub, o.timeout);
-        console.log(`host on ${host.base}; browser ${chrome}`);
-        session = await openBrowser(chrome, profile);
         const results = { cases: [], shots: [] };
+        const runAll = async (ctx, cases) => {
+            for (const c of cases) {
+                try { await c.run(ctx); results.cases.push({ name: c.name, ok: true }); console.log(`  ok   ${c.name}`); }
+                catch (e) { results.cases.push({ name: c.name, ok: false, error: e.message }); console.log(`  FAIL ${c.name}: ${e.message}`); }
+            }
+        };
+        if (serverCases.length || o.shots) { console.log('publishing the sample ...'); publish(pub); host = await startHost(pub, o.timeout); }
+        if (wasmCases.length) { console.log('publishing the WebAssembly sample ...'); publish(wasmPub, SAMPLE_WASM); wasmHost = await startStaticHost(wasmPub); }
+        console.log(`host on ${host?.base}${wasmHost ? `, WebAssembly host on ${wasmHost.base}` : ''}; browser ${chrome}`);
+        session = await openBrowser(chrome, profile);
         const ctx = makeContext({ host, session, out: o.out, shots: o.shots, results });
         await ctx.viewport(VIEWPORTS[0], 'light');
-        for (const c of CASES.filter(c => !o.cases.length || o.cases.includes(c.name))) {
-            try { await c.run(ctx); results.cases.push({ name: c.name, ok: true }); console.log(`  ok   ${c.name}`); }
-            catch (e) { results.cases.push({ name: c.name, ok: false, error: e.message }); console.log(`  FAIL ${c.name}: ${e.message}`); }
-        }
+        await runAll(ctx, serverCases);
+        await runAll(makeContext({ host: wasmHost, session, out: o.out, shots: o.shots, results }), wasmCases);
         if (o.shots) for (const vp of VIEWPORTS) for (const theme of THEMES) {
             await ctx.viewport(vp, theme);
             for (const s of SHOT_PLAN) { try { await s(ctx, vp, theme); } catch (e) { results.cases.push({ name: `shot ${vp.name} ${theme}`, ok: false, error: e.message }); console.log(`  FAIL screenshots ${vp.name}/${theme}: ${e.message}`); } }
@@ -238,7 +264,8 @@ async function main() {
         await sleep(500);
         killUsing(profile);
         killUsing(pub);
-        for (const d of o.keepPublish ? [profile] : [pub, profile]) if (!(await removeDir(d)) && (killUsing(d), !(await removeDir(d)))) console.error(`Could not delete ${d}; delete it by hand.`);
+        killUsing(wasmPub);
+        for (const d of o.keepPublish ? [profile] : [pub, wasmPub, profile]) if (!(await removeDir(d)) && (killUsing(d), !(await removeDir(d)))) console.error(`Could not delete ${d}; delete it by hand.`);
     }
     return code;
 }

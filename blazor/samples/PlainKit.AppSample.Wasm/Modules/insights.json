@@ -1,0 +1,12 @@
+{
+  "id": "insights",
+  "title": "Insights",
+  "icon": "dashboard",
+  "nav": [
+    { "id": "summary", "title": "Summary", "route": "/", "icon": "dashboard" }
+  ],
+  "routes": [
+    { "path": "/", "page": "note" },
+    { "path": "*", "page": "not-found" }
+  ]
+}

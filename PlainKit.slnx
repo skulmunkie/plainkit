@@ -2,6 +2,8 @@
   <Folder Name="/blazor/" />
   <Folder Name="/blazor/samples/">
     <Project Path="blazor/samples/PlainKit.AppSample/PlainKit.AppSample.csproj" />
+    <Project Path="blazor/samples/PlainKit.AppSample.Insights/PlainKit.AppSample.Insights.csproj" />
+    <Project Path="blazor/samples/PlainKit.AppSample.Wasm/PlainKit.AppSample.Wasm.csproj" />
     <Project Path="blazor/samples/PlainKit.Playground/PlainKit.Playground.csproj" />
   </Folder>
   <Folder Name="/blazor/src/">

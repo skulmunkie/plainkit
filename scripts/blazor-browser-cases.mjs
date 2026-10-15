@@ -4,7 +4,7 @@
 
 import { LAB_CASES, LAB_SHOTS } from './blazor-browser-lab-cases.mjs';
 
-const MAIN_TEXT = `window.__deep.text(document.querySelector('#pk-main'))`;
+const MAIN_TEXT = `(document.querySelector('#pk-main') ? window.__deep.text(document.querySelector('#pk-main')) : '')`; // #pk-main is absent while a lazy module loads (the guard's spinner)
 const MARK = `window.__pkMark = 'still the same document'`;
 const SAME_DOCUMENT = `window.__pkMark === 'still the same document'`;
 const IN_MAIN = `(() => { let a = window.__deep.active(); for (let n = a; n; n = n.parentNode ?? n.host) if (n.id === 'pk-main') return true; return false; })()`;
@@ -147,6 +147,40 @@ export const SHOT_PLAN = [
         await ctx.sleep(600);
         await ctx.shot(vp.name === 'phone' ? 'drawer' : 'modules-menu', vp, theme);
     },
+];
+
+/** The cases of the standalone WebAssembly sample (blazor/samples/PlainKit.AppSample.Wasm, #1368), served as static files; ctx.host is that host. */
+export const WASM_CASES = [
+    { name: 'wasm-lazy-module-assembly',
+      async run(ctx) {
+        // The Insights module's pages are in PlainKit.AppSample.Insights.<hash>.wasm (BlazorWebAssemblyLazyLoad): not in the first download, fetched once by PkLazyModuleLoader on the first navigation into /insights.
+        const requests = () => ctx.events.slice(ctx.openMark).filter(e => e.method === 'Network.requestWillBeSent' && /PlainKit\.AppSample\.Insights\.[^/]*\.wasm$/.test(e.params.request.url.split('?')[0])).length;
+        const INSIGHTS = `${MAIN_TEXT}.includes("This module's assembly was downloaded")`, OVERVIEW = `${MAIN_TEXT}.includes('The home module is in the first download')`;
+        await ctx.open('/overview');
+        await ctx.waitFor(OVERVIEW, 'the home module of the WebAssembly sample to draw');
+        await ctx.sleep(1500);
+        ctx.ok(requests() === 0, `the lazy module assembly was requested at startup (${requests()} request/s), before any navigation into /insights`);
+        await ctx.eval(MARK);
+        await ctx.clickLink('/insights');
+        await ctx.waitFor(`${INSIGHTS} || ${MAIN_TEXT}.includes('Something went wrong')`, 'the Insights page to draw or fail');
+        ctx.ok(await ctx.eval(INSIGHTS), `the first navigation into /insights did not draw its lazily loaded page; the page says: ${(await ctx.eval(MAIN_TEXT)).trim().slice(0, 160)}`);
+        ctx.ok(requests() === 1, `the first navigation into /insights requested the module assembly ${requests()} times, expected exactly once`);
+        await ctx.clickLink('/overview');
+        await ctx.waitFor(OVERVIEW, 'the Overview page again');
+        await ctx.clickLink('/insights');
+        await ctx.waitFor(INSIGHTS, 'the Insights page again');
+        ctx.ok(requests() === 1, `the second navigation into /insights requested the module assembly again (${requests()} requests in all)`);
+        ctx.ok(await ctx.eval(SAME_DOCUMENT), 'a module switch reloaded the whole document');
+        ctx.noErrors(ctx.openMark, [...BENIGN]);
+      } },
+    { name: 'wasm-lazy-module-deep-link',
+      async run(ctx) {
+        // A document load straight at /insights: the guard loads the assembly before the router renders, so the page is not "Page not found".
+        await ctx.open('/insights');
+        await ctx.waitFor(`${MAIN_TEXT}.includes("This module's assembly was downloaded") || ${MAIN_TEXT}.includes('Page not found') || ${MAIN_TEXT}.includes('Something went wrong')`, '/insights to draw');
+        ctx.ok(await text(ctx, "This module's assembly was downloaded"), `a deep link to the lazy module did not draw its page; the page says: ${(await ctx.eval(MAIN_TEXT)).trim().slice(0, 160)}`);
+        ctx.noErrors(ctx.openMark, [...BENIGN]);
+      } },
 ];
 
 CASES.push(...LAB_CASES); // the JS-interop paths a bUnit test cannot cross (blazor-browser-lab-cases.mjs)

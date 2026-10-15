@@ -21,24 +21,46 @@ builder.Services.AddPlainKitApp(app => app
 
 ## The frame
 
-`PkApp` draws the brand, the module picker, the side nav, the search, the breadcrumb, the footer and the theme toggle from the catalog. Inside it, `PkRouteGuard` is the UX guard and `PkModuleBoundary` keeps one failing page from taking the frame down (it shows an error with Try again).
+`PkApp` draws the brand, the module picker, the side nav, the search, the breadcrumb, the footer and the theme toggle from the catalog. Inside it, `PkModuleBoundary` keeps one failing page (or a failed module download) from taking the frame down (it shows an error with Try again) and `PkRouteGuard` is the UX guard.
 
 ```text
 <PkApp>
-    <PkRouteGuard>
-        <PkModuleBoundary>
+    <PkModuleBoundary>
+        <PkRouteGuard>
             <Router AppAssembly="typeof(Program).Assembly">
                 <Found Context="routeData">
                     <AuthorizeRouteView RouteData="routeData" />
                 </Found>
                 <NotFound><PkNotFoundPage /></NotFound>
             </Router>
-        </PkModuleBoundary>
-    </PkRouteGuard>
+        </PkRouteGuard>
+    </PkModuleBoundary>
 </PkApp>
 ```
 
 A module that implements `IPkModuleGuard.CanAsync(PkModuleContext)` is hidden from the picker and shows the not-allowed state when it returns false. That is a UX guard only: `[Authorize]` and your API checks stay the source of truth.
+
+## Lazy modules on WebAssembly
+
+On WebAssembly a module's pages can live in their own assembly, downloaded on the first navigation into the module (and never twice). The module class and its manifest stay in the host, so the nav knows the module before anything downloads; the class implements `IPkLazyModule` and names the assembly (the host's `BlazorWebAssemblyLazyLoad` item):
+
+```text
+public sealed class InsightsModule() : SampleModule("insights"), IPkLazyModule
+{
+    public IReadOnlyList<string> Assemblies { get; } = ["PlainKit.AppSample.Insights.wasm"];
+}
+```
+
+The host registers `PkLazyModuleLoader` with the platform's `LazyAssemblyLoader` as its one dependency (the package itself needs no WebAssembly reference), also as the `IPkModuleLoader` the guard calls, and gives the router the loaded assemblies and the hook that loads before routes are matched (an in-app click reaches the router before the guard, and a router that cannot match a route reloads the page):
+
+```text
+builder.Services.AddSingleton(sp => new PkLazyModuleLoader(sp.GetRequiredService<PkModuleCatalog>(), names => sp.GetRequiredService<LazyAssemblyLoader>().LoadAssembliesAsync(names)));
+builder.Services.AddSingleton<IPkModuleLoader>(sp => sp.GetRequiredService<PkLazyModuleLoader>());
+
+<Router AppAssembly="typeof(Program).Assembly" AdditionalAssemblies="Loader.Assemblies" OnNavigateAsync="c => Loader.LoadForPathAsync(c.Path, c.CancellationToken)">
+```
+
+A failed download throws to the `PkModuleBoundary` (Try again loads it again). Server registers no loader and loads nothing. `blazor/samples/PlainKit.AppSample.Wasm` is the working host, and `node scripts/blazor-browser.mjs` checks in a browser that the assembly is requested once, on first use.
 
 ## A dashboard from the modules' widgets
 

@@ -1,0 +1,14 @@
+@* The frame of the Server sample (PkApp, PkModuleBoundary, PkRouteGuard) on WebAssembly. OnNavigateAsync loads the lazy module before the router matches the route (an in-app click reaches the router first;
+   a router that cannot match reloads the page). The guard calls the same loader, which has it already. The boundary wraps the guard so a failed download shows Try again. *@
+@inject PkLazyModuleLoader Loader
+
+<PkApp>
+    <PkModuleBoundary>
+        <PkRouteGuard>
+            <Router AppAssembly="typeof(Program).Assembly" AdditionalAssemblies="Loader.Assemblies" OnNavigateAsync="c => Loader.LoadForPathAsync(c.Path, c.CancellationToken)">
+                <Found Context="routeData"><RouteView RouteData="routeData" /></Found>
+                <NotFound><PkNotFoundPage /></NotFound>
+            </Router>
+        </PkRouteGuard>
+    </PkModuleBoundary>
+</PkApp>
