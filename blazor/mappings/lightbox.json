@@ -6,7 +6,8 @@
       "type": "int",
       "default": 0,
       "map": "prop",
-      "prop": "index"
+      "prop": "index",
+      "bind": {"event":"pk-change","value":"detail.index"}
     },
     {
       "name": "Label",

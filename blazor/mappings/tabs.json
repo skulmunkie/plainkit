@@ -3,7 +3,8 @@
   "params": [
     {
       "name": "Value",
-      "prop": "value"
+      "prop": "value",
+      "bind": {"event":"pk-tab-change","value":"detail.value"}
     },
     {
       "name": "Activation",
