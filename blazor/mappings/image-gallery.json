@@ -63,27 +63,27 @@
     },
     {
       "name": "OnPrimaryChange",
-      "type": "EventCallback<ImageGalleryPrimaryChangeEventArgs>",
+      "type": "EventCallback<PkPrimaryChangeEventArgs>",
       "map": "event",
       "event": "pk-primary-change",
       "cancelable": true
     },
     {
       "name": "OnRemove",
-      "type": "EventCallback<ImageGalleryRemoveEventArgs>",
+      "type": "EventCallback<PkRemoveEventArgs>",
       "map": "event",
       "event": "pk-remove",
       "cancelable": true
     },
     {
       "name": "OnAdd",
-      "type": "EventCallback<ImageGalleryAddEventArgs>",
+      "type": "EventCallback<PkAddEventArgs>",
       "map": "event",
       "event": "pk-add"
     },
     {
       "name": "OnReorder",
-      "type": "EventCallback<ImageGalleryReorderEventArgs>",
+      "type": "EventCallback<PkReorderEventArgs>",
       "map": "event",
       "event": "pk-reorder",
       "cancelable": true

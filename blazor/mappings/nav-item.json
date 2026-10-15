@@ -78,7 +78,7 @@
     },
     {
       "name": "OnToggle",
-      "type": "EventCallback<NavItemToggleEventArgs>",
+      "type": "EventCallback<PkToggleEventArgs>",
       "map": "event",
       "event": "pk-toggle"
     }

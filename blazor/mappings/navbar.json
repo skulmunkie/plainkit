@@ -50,7 +50,7 @@
     },
     {
       "name": "OnToggle",
-      "type": "EventCallback<NavbarToggleEventArgs>",
+      "type": "EventCallback<PkToggleEventArgs>",
       "map": "event",
       "event": "pk-toggle"
     }

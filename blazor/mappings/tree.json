@@ -24,7 +24,7 @@
     {
       "name": "OnToggle",
       "event": "pk-toggle",
-      "type": "EventCallback<ToggleEventArgs>"
+      "type": "EventCallback<PkToggleEventArgs>"
     },
     {
       "name": "ChildContent",

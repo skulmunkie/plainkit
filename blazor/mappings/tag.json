@@ -30,7 +30,7 @@
     {
       "name": "OnRemove",
       "event": "pk-remove",
-      "type": "EventCallback<RemoveEventArgs>"
+      "type": "EventCallback<PkRemoveEventArgs>"
     }
   ]
 }
