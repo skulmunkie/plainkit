@@ -230,8 +230,6 @@ export const appShellCases = [
         const jsCount = () => s.win.performance.getEntriesByType('resource').filter(e => e.initiatorType !== 'fetch' && /\.js(\?|$)/.test(e.name)).length;
         for (const to of ['#/reports', '#/overview', '#/orders/7', '#/reports/exports', '#/orders']) await s.go(to);
         const loaded = jsCount();
-        for (const to of ['#/reports', '#/overview', '#/orders']) await s.go(to);
-        t.eq(jsCount(), loaded, 'a module that is already loaded needs 0 new module requests');
        
         const cls = shifts.filter(e => !e.hadRecentInput).reduce((n, e) => n + e.value, 0);
         // The observer is proved live: a deliberate shift is counted.
@@ -244,6 +242,9 @@ export const appShellCases = [
         // Which rects moved (shadow-tree nodes are not exposed, so rects and heights name them), so a failure says where to reserve space.
         const who = shifts.filter(e => !e.hadRecentInput && e.value > 0).map(e => `${e.value.toFixed(4)} ${(e.sources || []).map(x => `@${Math.round(x.previousRect.left)},${Math.round(x.previousRect.top)}->${Math.round(x.currentRect.top)} h${Math.round(x.previousRect.height)}->${Math.round(x.currentRect.height)}`).join(',')}`).join('; ');
         t.ok(cls < 0.001, `layout shift across first load and five route changes is ${cls.toFixed(4)}, expected 0 (${who})`);
+        // After the CLS reading, so these extra route changes cannot add to it: a module that is already loaded must not be requested again.
+        for (const to of ['#/reports', '#/overview', '#/orders']) await s.go(to);
+        t.eq(jsCount(), loaded, 'a module that is already loaded needs 0 new module requests');
         const ms = id => s.win.performance.getEntriesByName(`pk-route:${id}`).map(e => e.duration);
         t.ok(ms('orders')[0] <= first, `the first load of the orders chunk took ${ms('orders')[0]?.toFixed(0)} ms, budget ${first.toFixed(0)}`);
         t.ok(ms('reports')[0] <= first, `the first load of the reports chunk took ${ms('reports')[0]?.toFixed(0)} ms, budget ${first.toFixed(0)}`);
