@@ -36,6 +36,8 @@ export default Base => class extends Base {
         this.$pending = this.paint();
     }
     disconnected() { clearTimeout(this.$settleTimer); }
+    // Draws the page again so a `loadItem` set after the first draw is used (a host that binds callbacks after its first render, #1401).
+    refresh() { if (this.$w) this.$pending = this.load(this.config?.id ?? null, this.config ?? {}); }
     changed(name) { if (this.$w && name === 'config') this.$pending = this.paint(); }
 
     // Every light-DOM child this element shows is one it creates and owns itself (never a host-given node), slotted into its own shadow

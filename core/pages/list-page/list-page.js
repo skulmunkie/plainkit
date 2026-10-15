@@ -15,6 +15,8 @@ export default Base => class extends Base {
         this.forwardSlots();
     }
     disconnected() { this.$mo?.disconnect(); this.$w = false; }
+    // Loads again: the bridge calls this once a `load` callback is set after the table already drew its first (empty) answer, which a host that binds callbacks after the first render always does (#1401).
+    refresh() { return this.part('table')?.refresh?.(); }
     forwardSlots() {
         const table = this.part('table'), names = [...this.children].map(c => c.slot).filter(s => s?.startsWith('cell-')), have = [...table.children].filter(c => c.name?.startsWith('cell-'));
         if (names.join() === have.map(c => c.name).join()) return;

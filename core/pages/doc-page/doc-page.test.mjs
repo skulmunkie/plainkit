@@ -251,3 +251,14 @@ test('config.level sets the article title heading level (default h1; only 1, 2 o
         assert.equal(el.$title.localName, tag);
     }
 });
+
+test('refresh() loads the current item again, so a loadItem set after the first draw is used (#1401)', async () => {
+    const { el } = make();
+    el.config = { items: [{ id: 'a', title: 'A' }], id: 'a' };
+    el.connected();
+    await el.$pending;
+    el.loadItem = async id => ({ title: `Guide ${id}`, summary: 'S', html: '<p>late</p>' });
+    el.refresh();
+    await el.$pending;
+    assert.equal(el.$title.textContent, 'Guide a');
+});
