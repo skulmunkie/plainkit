@@ -91,4 +91,7 @@ test('samples/app/index.html preloads the static import graph of its entry and e
     for (const l of sample) assert.ok(fs.existsSync(path.join(root, l)), `FIX: samples/app/index.html preloads ${l}, which does not exist`);
     const missing = [...closure('samples/app/app.js')].filter(f => f !== 'samples/app/app.js' && !sample.includes(f));
     assert.deepEqual(missing, [], `FIX: add <link rel="modulepreload" href="../../..."> for these files to samples/app/index.html: ${missing.join(', ')}`);
+    // The elements the first page draws are hinted too, so they upgrade as early as the page does; what they show before that is reserved in their CSS (issue 1372).
+    const elements = ['shells/app-shell/app-shell.element.js', 'elements/navbar/navbar.element.js', 'elements/side-nav/side-nav.element.js', 'components/page-header/page-header.element.js', 'components/data-table/data-table.element.js', 'elements/table/table.element.js', 'elements/breadcrumb/breadcrumb.element.js'];
+    assert.deepEqual(elements.filter(f => !sample.includes(f)), [], 'FIX: add the first page elements to the modulepreload list of samples/app/index.html (issue 1372)');
 });

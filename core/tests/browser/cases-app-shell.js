@@ -36,7 +36,7 @@ const requestDepth = async (win, until = Infinity) => {
     return { depth: Math.max(0, ...level.values()), count: rs.length, preloaded: rs.filter(r => hinted.has(r.name)).length, deepest: deep.slice(0, 3).map(([u, l]) => `${l}:${u.split('/').slice(-2).join('/')}`) };
 };
 const src = path => import(new URL(`../../${path}`, import.meta.url).href);
-const MAX_FIRST_PAGE_DEPTH = 3;
+const MAX_FIRST_PAGE_DEPTH = 1;
 const MODULES = ['overview', 'orders', 'reports'];
 
 // What the page looked like when a wait gave up: tells a missing route from a missing import from a slow machine (#1359).
@@ -221,7 +221,7 @@ export const appShellCases = [
         const scale = cpuScale(), first = 300 * scale, warmMs = 100 * scale;
         const s = await demo(t, 1280, { hash: '#/orders' });
         const firstLoad = await requestDepth(s.win, s.drawnAt);
-        // Measured at #1247: 5 levels with the 8 hints the sample had, 3 with the entry's static graph hinted. Hinting the shell's elements too gave 1 to 2 but made the elements upgrade early enough to expose a 0.014 layout shift (a table block 79->219px tall) that is filed, not hidden.
+        // Measured at #1247: 5 levels with the 8 hints the sample had, 3 with the entry's static graph hinted. With the first page's elements hinted too it is 1 (#1372); what they show before they upgrade is reserved in their CSS (breadcrumb row, data table), so the earlier upgrade shifts nothing.
         t.ok(firstLoad.depth <= MAX_FIRST_PAGE_DEPTH, `the first page needs ${firstLoad.depth} sequential module round trips (${firstLoad.count} files, ${firstLoad.preloaded} hinted), expected at most ${MAX_FIRST_PAGE_DEPTH}; deepest: ${firstLoad.deepest.join(' ')}. FIX: add the file to the modulepreload list of samples/app/index.html`);
         const shifts = [];
         const po = new s.win.PerformanceObserver(list => shifts.push(...list.getEntries()));
