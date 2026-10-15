@@ -7,6 +7,17 @@ const WIDGET_TAG = { stat: 'pk-stat', chart: 'pk-chart' };
 // How far outside the viewport a card may be and still start (#1295): 200px above and below; the sides are wide open, only the vertical position gates a start.
 const LAZY_MARGIN = '200px 50000px';
 
+// The nearest scrolling ancestor (through shadow hosts), or null for the viewport: an observer rooted at the viewport is clipped by an overflow container, so the margin would
+// never pre-load anything there (#1359).
+function scrollParent(el) {
+    const view = el.ownerDocument.defaultView;
+    for (let n = el.parentElement ?? el.getRootNode().host; n; n = n.parentElement ?? n.getRootNode().host) {
+        const y = view.getComputedStyle(n).overflowY;
+        if ((y === 'auto' || y === 'scroll') && n.scrollHeight > n.clientHeight) return n;
+    }
+    return null;
+}
+
 export default Base => class extends Base {
     connected() {
         if (this.$w) { if (this.$started) this.watch(this.$tab); return; }   // moved in the document: the observer was dropped in disconnected()
@@ -96,7 +107,7 @@ export default Base => class extends Base {
                 const w = this.config?.widgets?.find(x => x.key === e.target.dataset.key);
                 if (w && !this.$started.has(w.key)) this.loadWidget(w);
             }
-        }, { rootMargin: LAZY_MARGIN }) : null;
+        }, { root: scrollParent(this), rootMargin: LAZY_MARGIN }) : null;
         this.$io = io;
         for (const w of this.config?.widgets ?? []) {
             const card = this.$cards[w.key];
