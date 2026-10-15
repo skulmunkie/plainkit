@@ -84,7 +84,7 @@ test('every element the shell loads at first paint is preloaded, with what it dr
 });
 
 // The demo app (samples/app/index.html) is what the browser suite measures the first-page waterfall on (cases-app-shell.js, #1247): it measured 5 sequential module round
-// trips with 8 hints and 1 to 2 once the static graph of the entry and the shell's elements are hinted. Keep that list whole, or the case fails on the depth.
+// trips with 8 hints and 3 once the static graph of the entry is hinted. Keep that list whole, or the case fails on the depth.
 test('samples/app/index.html preloads the static import graph of its entry and every hint is a real file', () => {
     const dir = path.join(root, 'samples', 'app');
     const sample = [...fs.readFileSync(path.join(dir, 'index.html'), 'utf8').matchAll(/<link rel="modulepreload" href="([^"]+)">/g)].map(m => path.posix.normalize(path.posix.join('samples/app', m[1])));
