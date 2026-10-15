@@ -100,6 +100,25 @@ public sealed class PkPageCallbackTests : BunitContext, IAsyncLifetime
     }
 
     [Fact]
+    public async Task SettingsPage_bind_Values_follows_the_saved_values_after_a_successful_save_only()
+    {
+        var bound = "{\"density\":\"cozy\"}"; var fail = false;
+        var cut = Render<PkSettingsPage>(p => p.Add(x => x.Values, bound)
+            .Add(x => x.ValuesChanged, EventCallback.Factory.Create<string?>(this, v => bound = v!))
+            .Add(x => x.Save, v => fail ? throw new InvalidOperationException("no") : Task.CompletedTask));
+        var host = Assert.IsType<DotNetObjectReference<PkCallbackHost<Dictionary<string, JsonElement>>>>(Assert.Single(_bridge.Invocations["setCallback"]).Arguments[2]);
+
+        fail = true;
+        await Assert.ThrowsAsync<InvalidOperationException>(() => cut.InvokeAsync(() => host.Value.Invoke(Values("{\"density\":\"x\"}"))));
+        Assert.Equal("{\"density\":\"cozy\"}", bound);
+
+        fail = false;
+        await cut.InvokeAsync(() => host.Value.Invoke(Values("{\"density\":\"compact\"}")));
+        Assert.Equal("{\"density\":\"compact\"}", bound);
+        Assert.Equal(bound, cut.Instance.Values);
+    }
+
+    [Fact]
     public async Task WizardPage_submit_reaches_the_delegate_and_its_result_goes_back_and_events_are_raised()
     {
         IReadOnlyDictionary<string, JsonElement>? sent = null; string? action = null; bool? dirty = null; var submitted = 0;

@@ -16,10 +16,11 @@
     {
       "name": "Save",
       "callback": "save",
+      "updates": "Values",
       "type": "Func<IReadOnlyDictionary<string, JsonElement>, Task>?",
       "arg": "Dictionary<string, JsonElement>",
       "result": false,
-      "doc": "Saves the values of the fields, keyed by field key (read text with GetString(), a switch with GetBoolean()). Throwing keeps the unsaved changes and shows the exception message; returning marks them saved."
+      "doc": "Saves the values of the fields, keyed by field key (read text with GetString(), a switch with GetBoolean()). After a successful save the Values parameter becomes the saved values (JSON) and ValuesChanged is raised (@bind-Values). Throwing keeps the unsaved changes and shows the exception message; returning marks them saved."
     },
     {
       "name": "OnAction",

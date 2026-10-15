@@ -137,6 +137,9 @@ export const LAB_CASES = [
         await waitText(ctx, 'Pressed: True', ALL); // @bind-Pressed on a toggle PkButton follows pk-toggle
         await ctx.clickDeep('pk-tab', 'Alpha');
         await waitText(ctx, 'Tab: a', ALL);
+        await waitText(ctx, 'Values: {}', ALL);
+        await ctx.clickDeep('pk-switch');
+        await waitText(ctx, 'Values: {"enabled":true}', ALL); // @bind-Values on PkPropertyGrid follows pk-property-change as JSON text
         ctx.noErrors(ctx.openMark, BENIGN);
       } },
     { name: 'theme-toggle',
