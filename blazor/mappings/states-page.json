@@ -48,6 +48,12 @@
       "map": "event",
       "event": "pk-retry",
       "cancelable": false
+    },
+    {
+      "name": "TitleContent",
+      "map": "slot",
+      "slot": "title",
+      "type": "RenderFragment?"
     }
   ],
   "notes": "New component: App framework step 5 (issue #351). PageState is a new shared enum (not yet used by another component)."

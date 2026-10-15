@@ -16,6 +16,11 @@
       "arg": "string",
       "refresh": true,
       "doc": "Loads one widget by its key (config.widgets[].key), independently of the others, and returns what the widget draws: for a stat an object with value (and delta, trend...), for a chart the chart properties. Throwing shows that card's error state with Retry; the other widgets are unaffected."
+    },
+    {
+      "name": "OnAction",
+      "event": "pk-action",
+      "note": "A title-bar action (config.actions entry without an href) was clicked; Key is its key."
     }
   ],
   "notes": "New component: App framework step 6 follow-up (issue #436, deferred from #352); reshaped to tabs + widgets + filters in #489 (a breaking change to Config: tiles became widgets). Load(key) is a callback property, set from script: the generated component hands the element a .NET reference (PkCallbackSlot) that calls the Load parameter once per widget key (issue #366). The current filter selections are not passed to it yet."

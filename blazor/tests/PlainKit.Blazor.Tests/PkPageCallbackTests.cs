@@ -99,6 +99,56 @@ public sealed class PkPageCallbackTests : BunitContext, IAsyncLifetime
         Assert.True(saved["beta"].GetBoolean());
     }
 
+    [Fact]
+    public async Task WizardPage_submit_reaches_the_delegate_and_its_result_goes_back_and_events_are_raised()
+    {
+        IReadOnlyDictionary<string, JsonElement>? sent = null; string? action = null; bool? dirty = null; var submitted = 0;
+        var cut = Render<PkWizardPage>(p => p
+            .Add(x => x.Submit, v => { sent = v; return Task.FromResult<object?>(new { errors = new { email = "Taken" } }); })
+            .Add(x => x.OnAction, EventCallback.Factory.Create<PkActionEventArgs>(this, e => action = e.Key))
+            .Add(x => x.OnDirty, EventCallback.Factory.Create<PkWizardDirtyEventArgs>(this, e => dirty = e.Dirty))
+            .Add(x => x.OnSubmit, EventCallback.Factory.Create(this, () => submitted++)));
+
+        var call = Assert.Single(_bridge.Invocations["setCallback"]);
+        Assert.Equal("submit", call.Arguments[1]);
+        var host = Assert.IsType<DotNetObjectReference<PkCallbackHost<Dictionary<string, JsonElement>>>>(call.Arguments[2]);
+        var result = await cut.InvokeAsync(() => host.Value.Invoke(Values("{\"email\":\"a@b.c\"}")));
+        Assert.Equal("a@b.c", sent!["email"].GetString());
+        Assert.NotNull(result?.GetType().GetProperty("errors"));   // the { errors } object goes back to the element as is
+
+        var el = cut.Find("pk-wizard-page");
+        await el.TriggerEventAsync("onpk-action", new PkActionEventArgs { Key = "help" });
+        await el.TriggerEventAsync("onpk-wizard-dirty", new PkWizardDirtyEventArgs { Dirty = true });
+        await el.TriggerEventAsync("onpk-wizard-submit", new EventArgs());
+        Assert.Equal("help", action);
+        Assert.True(dirty);
+        Assert.Equal(1, submitted);
+    }
+
+    [Fact]
+    public async Task RecordPage_and_pages_with_a_title_bar_raise_OnAction_OnDirty_OnSave_and_TitleContent_fills_the_title_slot()
+    {
+        string? action = null; bool? dirty = null; var saved = 0;
+        var cut = Render<PkRecordPage<Person>>(p => p
+            .Add(x => x.OnAction, EventCallback.Factory.Create<PkActionEventArgs>(this, e => action = e.Key))
+            .Add(x => x.OnDirty, EventCallback.Factory.Create<PkRecordDirtyEventArgs>(this, e => dirty = e.Dirty))
+            .Add(x => x.OnSave, EventCallback.Factory.Create(this, () => saved++)));
+        var el = cut.Find("pk-record-page");
+        await el.TriggerEventAsync("onpk-action", new PkActionEventArgs { Key = "print" });
+        await el.TriggerEventAsync("onpk-record-dirty", new PkRecordDirtyEventArgs { Dirty = true });
+        await el.TriggerEventAsync("onpk-record-save", new EventArgs());
+        Assert.Equal("print", action);
+        Assert.True(dirty);
+        Assert.Equal(1, saved);
+
+        var dash = Render<PkDashboardPage>(p => p.Add(x => x.OnAction, EventCallback.Factory.Create<PkActionEventArgs>(this, e => action = e.Key)));
+        await dash.Find("pk-dashboard-page").TriggerEventAsync("onpk-action", new PkActionEventArgs { Key = "refresh" });
+        Assert.Equal("refresh", action);
+
+        var tool = Render<PkToolPage>(p => p.Add(x => x.TitleContent, "<h1>Counter</h1>"));
+        Assert.Contains("slot=\"title\"", tool.Markup);
+    }
+
     private sealed class Person { public string Name { get; set; } = ""; public int Age { get; set; } public bool Active { get; set; } }
 
     private static readonly IReadOnlyList<PkFieldSpec<Person>> PersonFields =

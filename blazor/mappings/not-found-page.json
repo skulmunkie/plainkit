@@ -28,6 +28,12 @@
       "map": "event",
       "event": "pk-action",
       "cancelable": false
+    },
+    {
+      "name": "TitleContent",
+      "map": "slot",
+      "slot": "title",
+      "type": "RenderFragment?"
     }
   ],
   "notes": "New component: App framework step 5e (issue #351), the last page type of step 5. The action callback (business logic - navigating home, going back) is not itself mapped here beyond OnAction; a Blazor consumer wires its own navigation from that event, same as PkStatesPage's OnRetry."
