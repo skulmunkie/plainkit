@@ -40,6 +40,16 @@ builder.Services.AddPlainKitApp(app => app
 
 A module that implements `IPkModuleGuard.CanAsync(PkModuleContext)` is hidden from the picker and shows the not-allowed state when it returns false. That is a UX guard only: `[Authorize]` and your API checks stay the source of truth.
 
+## A dashboard from the modules' widgets
+
+A module can offer widgets to a dashboard without the dashboard knowing it. Add `contributes` to the module's JSON manifest (the fields of the SDK's config entry, no `can`): `{ "key": "open", "for": ["overview"], "tab": "sales", "label": "Open orders", "kind": "stat", "order": 10 }`. Implement `IPkWidgets.LoadWidget(key)` on the module class (the C# analogue of `widgets: { key: { load } }`) and return what the card draws: a stat's `value`, a chart's properties, never markup. The dashboard page names only the surface and owns the tab labels:
+
+```razor
+<PkModuleDashboard Surface="overview" Heading="Overview" Tabs="@Tabs" />
+```
+
+`PkModuleDashboard` composes the widgets (`PkDashboardSurface.Compose`, a port of the SDK's `compose`; `core/tests/fixtures/dashboard-compose.json` runs in both test suites) and gives them to `PkDashboardPage`, which owns the card, loading, empty and error states with Retry, the tabs, filters and lazy start. A widget that throws shows only its own error state. Only a composed widget of a registered module is ever answered. Not carried over yet: route curation (`order`, `allow`, `deny`) and the `needs` warning.
+
 ## Shared state
 
 `IPkStore`, `IPkSettings` and `IPkTheme` write the same `pk.<module>` envelope as the SDK's store (`{v,data}`, the same validation and migration), so a Blazor app and an SDK page on one origin read the same keys and share the theme. One shared fixture, `core/tests/fixtures/store-envelopes.json`, runs in both test suites. There is no cross-tab sync: a second tab sees a change on its next read, not live. Before the first render there is no storage, so a prerender uses the in-memory fallback.

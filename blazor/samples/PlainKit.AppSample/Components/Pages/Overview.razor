@@ -1,8 +1,9 @@
 @page "/"
 @page "/overview"
 
-<PkDashboardPage Config="@Config" />
+<PkModuleDashboard Surface="overview" Heading="Overview" Tabs="@Tabs" />
 
 @code {
-    private const string Config = """{"heading":"Overview"}""";
+    // The route owns the tab labels; Orders and Reports contribute the widgets (their manifests name this surface), so adding one never edits this page.
+    private static readonly PkDashboardTab[] Tabs = [new("sales", "Sales"), new("ops", "Operations")];
 }

@@ -69,6 +69,8 @@
     "Components/PkRouteGuard.razor": 30,
     "PkModuleGuard.cs": 16,
     "PkModuleBoundary.cs": 22,
+    "PkDashboardSurface.cs": 47,
+    "Components/PkModuleDashboard.razor": 34,
     "PkRuntime.cs": 125,
     "PkScoreTarget.cs": 25,
     "PkSelectOption.cs": 20,

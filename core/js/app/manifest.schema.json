@@ -11,7 +11,8 @@
     "icon": { "type": "string", "description": "An icon name." },
     "nav": { "type": "array", "items": { "$ref": "#/$defs/navItem" }, "description": "The side nav: a few stable destinations." },
     "routes": { "type": "array", "items": { "$ref": "#/$defs/route" }, "description": "Module-relative routes; a record route sits under its list." },
-    "footer": { "$ref": "#/$defs/footer" }
+    "footer": { "$ref": "#/$defs/footer" },
+    "contributes": { "type": "array", "items": { "$ref": "#/$defs/contribution" }, "description": "Dashboard widgets this module offers, by surface (same fields as the SDK config entry, minus the can function). The module class supplies the data through IPkWidgets." }
   },
   "$defs": {
     "navItem": {
@@ -37,6 +38,21 @@
         "page": { "type": "string", "description": "A page type id." },
         "label": { "type": "string", "description": "The breadcrumb label." },
         "children": { "type": "array", "items": { "$ref": "#/$defs/route" } }
+      }
+    },
+    "contribution": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["key", "for", "label", "kind"],
+      "properties": {
+        "key": { "type": "string", "pattern": "^[a-z][a-z0-9-]{0,39}$", "description": "The widget key within the module; the identity is module:key." },
+        "for": { "type": "array", "items": { "type": "string" }, "description": "The dashboard surface ids it appears on." },
+        "tab": { "type": "string", "description": "The tab id on the dashboard route." },
+        "label": { "type": "string", "description": "The card title." },
+        "kind": { "type": "string", "enum": ["stat", "chart"], "description": "What the loader returns data for." },
+        "size": { "type": "string", "enum": ["sm", "md", "lg"], "description": "A span hint." },
+        "order": { "type": "number", "description": "Lower first; default 100." },
+        "needs": { "type": "array", "items": { "type": "string" }, "description": "Filter keys of the route the loader reads." }
       }
     },
     "footer": {

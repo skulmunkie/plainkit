@@ -231,6 +231,14 @@
       "category": "router",
       "blazorOnly": "the guard and loader seams of the Blazor app frame (#364): a .NET DI concern with no JS counterpart"
     },
+    "PkDashboardSurface.cs": {
+      "category": "router",
+      "blazorOnly": "C# port of compose (core/js/app/pages/dashboard-compose.js, #494) plus IPkWidgets, the module's widget data (#1296): server rendering has no JS module host to ask; core/tests/fixtures/dashboard-compose.json is read by both test suites"
+    },
+    "Components/PkModuleDashboard.razor": {
+      "category": "router",
+      "blazorOnly": "a dashboard composed from the module catalog's contributions (#1296): feeds PkDashboardPage the composed widgets and answers its Load from the owning module; no element of this name"
+    },
     "PkModuleBoundary.cs": {
       "category": "base",
       "blazorOnly": "the app error boundary with Retry (#364): an ErrorBoundary subclass, no element of this name"

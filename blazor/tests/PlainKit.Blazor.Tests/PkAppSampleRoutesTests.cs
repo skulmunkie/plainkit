@@ -39,7 +39,9 @@ public sealed class PkAppSampleRoutesTests : BunitContext, IAsyncLifetime
     public void The_overview_dashboard_gets_its_json_config()
     {
         var config = At("/").Find("pk-dashboard-page").GetAttribute("config");
-        Assert.Equal("""{"heading":"Overview"}""", config);
+        var json = System.Text.Json.JsonDocument.Parse(config!).RootElement;
+        Assert.Equal("Overview", json.GetProperty("heading").GetString());
+        Assert.Equal(3, json.GetProperty("widgets").GetArrayLength());
     }
 
     // #1332: the document title is set by the first render (PageTitle), not only after a route change.

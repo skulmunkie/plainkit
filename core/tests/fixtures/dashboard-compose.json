@@ -1,0 +1,61 @@
+{
+  "comment": "Shared by core/tests/app-dashboard-compose.test.mjs (compose in js/app/pages/dashboard-compose.js, through readManifest) and the C# PkDashboardSurface test (#1296). Manifests with contributes, a surface and its declared tabs, and the expected tabs and widgets (key is module:key).",
+  "modules": [
+    {
+      "id": "sales",
+      "title": "Sales",
+      "contributes": [
+        { "key": "churn", "for": ["overview"], "tab": "sales", "label": "Churn", "kind": "stat", "order": 20 },
+        { "key": "revenue", "for": ["overview", "finance"], "tab": "sales", "label": "Revenue", "kind": "chart", "size": "lg" }
+      ]
+    },
+    {
+      "id": "ops",
+      "title": "Operations",
+      "contributes": [
+        { "key": "backlog", "for": ["overview"], "tab": "ops", "label": "Backlog", "kind": "stat", "order": 10 },
+        { "key": "late", "for": ["overview"], "tab": "extra", "label": "Late", "kind": "stat", "size": "sm" }
+      ]
+    },
+    { "id": "quiet", "title": "Quiet" }
+  ],
+  "cases": [
+    {
+      "name": "orders by order, then module position, then declaration; the route owns tab labels; an undeclared tab is implicit",
+      "surface": "overview",
+      "tabs": [{ "id": "sales", "label": "Sales" }, { "id": "ops", "label": "Operations" }, { "id": "unused", "label": "Unused" }],
+      "expect": {
+        "tabs": [{ "id": "sales", "label": "Sales" }, { "id": "ops", "label": "Operations" }, { "id": "extra", "label": "extra" }],
+        "widgets": [
+          { "key": "ops:backlog", "label": "Backlog", "kind": "stat", "tab": "ops", "size": "md" },
+          { "key": "sales:churn", "label": "Churn", "kind": "stat", "tab": "sales", "size": "md" },
+          { "key": "sales:revenue", "label": "Revenue", "kind": "chart", "tab": "sales", "size": "lg" },
+          { "key": "ops:late", "label": "Late", "kind": "stat", "tab": "extra", "size": "sm" }
+        ]
+      }
+    },
+    {
+      "name": "a surface only some contributions name",
+      "surface": "finance",
+      "tabs": [{ "id": "sales", "label": "Sales" }],
+      "expect": {
+        "tabs": [{ "id": "sales", "label": "Sales" }],
+        "widgets": [{ "key": "sales:revenue", "label": "Revenue", "kind": "chart", "tab": "sales", "size": "lg" }]
+      }
+    },
+    {
+      "name": "no tabs declared: every tab is implicit, titled by its id",
+      "surface": "overview",
+      "expect": {
+        "tabs": [{ "id": "sales", "label": "sales" }, { "id": "ops", "label": "ops" }, { "id": "extra", "label": "extra" }],
+        "widgets": [
+          { "key": "ops:backlog", "label": "Backlog", "kind": "stat", "tab": "ops", "size": "md" },
+          { "key": "sales:churn", "label": "Churn", "kind": "stat", "tab": "sales", "size": "md" },
+          { "key": "sales:revenue", "label": "Revenue", "kind": "chart", "tab": "sales", "size": "lg" },
+          { "key": "ops:late", "label": "Late", "kind": "stat", "tab": "extra", "size": "sm" }
+        ]
+      }
+    },
+    { "name": "a surface nobody offers is empty", "surface": "nowhere", "expect": { "tabs": [], "widgets": [] } }
+  ]
+}
