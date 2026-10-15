@@ -10,3 +10,5 @@
 :host([align="end"]) { align-items: flex-end; }
 :host([fill]) { block-size: 100%; min-block-size: 0; }
 :host([dividers]) ::slotted(:not(:first-child)) { border-block-start: 1px solid var(--pk-stack-divider, var(--color-border)); padding-block-start: var(--pk-stack-gap, var(--_g)); }
+/* The shell's breadcrumb keeps its one row until it upgrades, so the page under it does not move (CLS, issue 1372). */
+::slotted(pk-breadcrumb:not(:defined)) { min-height: 2rem; }

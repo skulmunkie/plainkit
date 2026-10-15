@@ -20,6 +20,8 @@
 
 /* A pk-navbar in the header slot is the bar itself: it takes the row (its brand left, its actions right) and leaves the borders, background and side padding to the header. */
 ::slotted(pk-navbar) { flex: 1; min-width: 0; background: none; border-bottom: 0; --pk-navbar-padding: 0; }
+/* The bar keeps its row until it upgrades (CLS, issue 1372). */
+::slotted(pk-navbar:not(:defined)) { display: block; min-block-size: max(var(--app-header-h), calc(var(--touch-target) + 0.5em)); }
 
 [part="body"] { flex: 1; min-height: 0; position: relative; overflow-y: auto; scrollbar-gutter: stable; overscroll-behavior: contain; --pk-page-header-sticky-top: calc(-1 * var(--pad-page)); padding: var(--pad-page); padding-inline: max(var(--pad-page), env(safe-area-inset-left)) max(var(--pad-page), env(safe-area-inset-right)); }
 

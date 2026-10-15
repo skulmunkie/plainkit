@@ -1,0 +1,20 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Late element upgrade (browser case fixture)</title>
+<link rel="stylesheet" href="../../plainkit.css">
+</head>
+<body>
+<pk-app-shell>
+  <pk-navbar slot="header" label="Main" no-fold>
+    <a slot="brand" href="#">Plainkit</a>
+    <pk-app-bar-search slot="actions" label="Search" placeholder="Search"></pk-app-bar-search>
+  </pk-navbar>
+  <main id="pk-main"><pk-stack gap="md"><pk-breadcrumb label="Breadcrumb"></pk-breadcrumb><div><h1>Page</h1></div></pk-stack></main>
+  <span slot="footer">Footer</span>
+</pk-app-shell>
+<script type="module" src="late-upgrade-frame.js"></script>
+</body>
+</html>
