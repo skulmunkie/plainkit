@@ -4,15 +4,32 @@ import { instrument } from './cases-app.js';
 
 import { wait, until as poll } from './wait.js';
 const until = (fn, what, tries = 100) => poll(fn, what, { tries });
-// Retries a real-timer, real-Chrome case a few times before failing for real: a case that measures wall-clock budgets (route-change ms,
-// CLS across real navigations) can lose a race against a heavily loaded CI runner even when the code under test is correct - same
-// reasoning as PageBaseTests' own retry (issue #427/#434). A genuine regression fails every attempt identically and still reports as a
-// failure once retries are exhausted, so this never turns a real bug into a pass; each attempt gets a fresh iframe, never reused state.
 import { cpuScale } from './cpu-scale.js';
-const retryCase = async (attempt, tries = 3) => {
-    for (let i = 1; i <= tries; i++) { try { return await attempt(); } catch (e) { if (i === tries) throw e; } }
+// The waterfall of the module requests (#1247), counted from the graph and not from the clock. A file named in a <link rel=modulepreload> is fetched at once (level 1); any other file
+// is found only when an importer (static or dynamic) has arrived, so it is one level deeper than its shallowest importer among the files loaded before the page drew. The result is the
+// number of sequential round trips the first page needs, the same on a fast and a starved machine.
+const requestDepth = async (win, until = Infinity) => {
+    const rs = win.performance.getEntriesByType('resource').filter(e => /\.js(\?|$)/.test(e.name) && e.initiatorType !== 'fetch' && e.startTime <= until), urls = new Set(rs.map(r => r.name)), hinted = new Set([...win.document.querySelectorAll('link[rel=modulepreload]')].map(l => l.href)), level = new Map(), parents = new Map();
+    for (const r of rs) {
+        if (hinted.has(r.name)) level.set(r.name, 1);
+        const text = await (await win.fetch(r.name)).text();
+        for (const m of text.matchAll(/(?:\bfrom|\bimport\s*\(?|^\s*import)\s*['"](\.[^'"]+)['"]/gm)) {
+            const to = new URL(m[1], r.name).href;
+            if (urls.has(to) && to !== r.name) parents.set(to, [...(parents.get(to) ?? []), r.name]);
+        }
+    }
+    for (let changed = true; changed;) {
+        changed = false;
+        for (const u of urls) {
+            const via = (parents.get(u) ?? []).filter(p => level.has(p)).map(p => level.get(p) + 1), best = via.length ? Math.min(...via) : (parents.has(u) ? Infinity : 1);
+            if (best < (level.get(u) ?? Infinity)) { level.set(u, best); changed = true; }
+        }
+    }
+    const deep = [...level].sort((a, b) => b[1] - a[1]);
+    return { depth: Math.max(0, ...level.values()), count: rs.length, preloaded: rs.filter(r => hinted.has(r.name)).length, deepest: deep.slice(0, 3).map(([u, l]) => `${l}:${u.split('/').slice(-2).join('/')}`) };
 };
 const src = path => import(new URL(`../../${path}`, import.meta.url).href);
+const MAX_FIRST_PAGE_DEPTH = 2;
 const MODULES = ['overview', 'orders', 'reports'];
 
 // What the page looked like when a wait gave up: tells a missing route from a missing import from a slow machine (#1359).
@@ -32,11 +49,12 @@ async function demo(t, width, { hash = '#/orders', app = 'index.html', search = 
         await until(() => d.querySelector('#pk-main :is(h1, pk-heading[level="1"])'), 'the first page', 700);
         if (d.querySelector('pk-alert[kind="danger"]:not([hidden])')) throw new Error('the first page is the boundary error');
     } catch (e) { throw new Error(`${e.message} ${JSON.stringify(dump(win, d))}`); }
+    const drawnAt = win.performance.now();
     await Promise.all(['pk-app-shell', 'pk-navbar', 'pk-app-bar-search'].map(tag => win.customElements.whenDefined(tag)));
     if (d.querySelector('pk-side-nav')) await win.customElements.whenDefined('pk-side-nav');
     await wait(200);
     const go = async to => { win.location.hash = to; await wait(50); await until(() => d.querySelector('#pk-main :is(h1, pk-heading[level="1"])') && !d.querySelector('pk-loading-overlay[busy]'), `the page at ${to}`); await wait(120); };
-    return { win, d, go, main: () => d.querySelector('#pk-main'), nav: () => d.querySelector('#pk-nav') };
+    return { win, d, go, drawnAt, main: () => d.querySelector('#pk-main'), nav: () => d.querySelector('#pk-nav') };
 }
 
 export const appShellCases = [
@@ -191,15 +209,22 @@ export const appShellCases = [
         }
     }],
 
-    ['mountApp: the first module chunk loads within 300 ms, an already loaded one within 100 ms, and nothing shifts on first load or across a module switch (CLS 0)', async t => retryCase(async () => {
-        // The 300 ms and 100 ms budgets are what an idle machine must meet; a loaded one gets them stretched by how much slower a fixed workload runs right now (cpu-scale.js, #1247).
+    ['mountApp: the first page needs at most 2 sequential module requests, a loaded module none, chunks stay inside the CPU-scaled 300 ms / 100 ms ceilings, and nothing shifts on first load or across a module switch (CLS 0)', async t => {
+        // The request depth above is the deterministic protection; the 300 ms and 100 ms budgets are a sanity ceiling that an idle machine must meet and a loaded one gets them stretched by how much slower a fixed workload runs right now (cpu-scale.js, #1247).
         const scale = cpuScale(), first = 300 * scale, warmMs = 100 * scale;
         const s = await demo(t, 1280, { hash: '#/orders' });
+        const firstLoad = await requestDepth(s.win, s.drawnAt);
+        // Measured at #1247: 5 levels with the 8 hints the sample had, 1 to 2 with the entry graph and the shell's elements hinted too (the second level is a table's late helper); never more than 2.
+        t.ok(firstLoad.depth <= MAX_FIRST_PAGE_DEPTH, `the first page needs ${firstLoad.depth} sequential module round trips (${firstLoad.count} files, ${firstLoad.preloaded} hinted), expected at most ${MAX_FIRST_PAGE_DEPTH}; deepest: ${firstLoad.deepest.join(' ')}. FIX: add the file to the modulepreload list of samples/app/index.html`);
         const shifts = [];
         const po = new s.win.PerformanceObserver(list => shifts.push(...list.getEntries()));
         po.observe({ type: 'layout-shift', buffered: true });
         await wait(600);
+        const jsCount = () => s.win.performance.getEntriesByType('resource').filter(e => e.initiatorType !== 'fetch' && /\.js(\?|$)/.test(e.name)).length;
         for (const to of ['#/reports', '#/overview', '#/orders/7', '#/reports/exports', '#/orders']) await s.go(to);
+        const loaded = jsCount();
+        for (const to of ['#/reports', '#/overview', '#/orders']) await s.go(to);
+        t.eq(jsCount(), loaded, 'a module that is already loaded needs 0 new module requests');
        
         const cls = shifts.filter(e => !e.hadRecentInput).reduce((n, e) => n + e.value, 0);
         // The observer is proved live: a deliberate shift is counted.
@@ -217,7 +242,7 @@ export const appShellCases = [
         t.ok(ms('reports')[0] <= first, `the first load of the reports chunk took ${ms('reports')[0]?.toFixed(0)} ms, budget ${first.toFixed(0)}`);
         const warm = [...ms('orders').slice(1), ...ms('reports').slice(1), ...ms('overview').slice(1)];
         t.ok(warm.length >= 3 && Math.max(...warm) <= warmMs, `route changes to a loaded module took at most ${Math.max(...warm).toFixed(0)} ms (${warm.map(x => x.toFixed(0)).join(', ')}), budget ${warmMs.toFixed(0)}`);
-    })],
+    }],
 
     ['mountApp: mount and destroy 100 times leave no listener, observer, timer, fullscreen overlay or node behind, and nothing polls', async t => {
         const { mountApp } = await src('js/app.js');
