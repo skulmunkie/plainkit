@@ -1,5 +1,6 @@
 {
   "component": "PkDrawer",
+  "events": ["pk-open"],
   "params": [
     {
       "name": "IsOpen",
