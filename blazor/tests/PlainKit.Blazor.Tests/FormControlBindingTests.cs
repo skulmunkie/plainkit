@@ -84,4 +84,23 @@ public sealed class FormControlBindingTests : BunitContext, IAsyncLifetime
         var cut = Render<PkInput>(p => p.Add(x => x.IsInvalid, true));
         Assert.NotNull(cut.Find("pk-input").GetAttribute("invalid"));
     }
+
+    [Fact]
+    public async Task A_modified_field_without_messages_is_valid_and_the_explicit_IsValid_still_applies()
+    {
+        var cut = Render<FormControlsHost>();
+        var host = cut.Instance;
+        Assert.Null(cut.Find("pk-input").GetAttribute("valid"));
+
+        await cut.Find("pk-input").TriggerEventAsync("onpk-value-change", new PkValueChangeEventArgs { Value = "Ada" });
+        cut.WaitForAssertion(() => Assert.NotNull(cut.Find("pk-input").GetAttribute("valid")));
+        Assert.Null(cut.Find("pk-select").GetAttribute("valid"));
+
+        await cut.InvokeAsync(() => host.Context.NotifyValidationStateChanged());
+        await cut.Find("pk-input").TriggerEventAsync("onpk-value-change", new PkValueChangeEventArgs { Value = "" });
+        await cut.InvokeAsync(() => host.Context.Validate());
+        cut.WaitForAssertion(() => Assert.Null(cut.Find("pk-input").GetAttribute("valid")));
+
+        Assert.NotNull(Render<PkInput>(p => p.Add(x => x.IsValid, true)).Find("pk-input").GetAttribute("valid"));
+    }
 }
