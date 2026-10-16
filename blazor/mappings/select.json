@@ -81,6 +81,7 @@
     "field": true,
     "multi": true
   },
+  "notes": "The element prop `values` (the selection as a string array) is exposed by the model block's multi flag: the generator adds Values, ValuesChanged and ValuesExpression next to the comma-joined Value, bound to the element's own values array, so no separate property parameter is needed (#1404, #804, #850).",
   "methods": [
     { "name": "FocusAsync", "method": "focus" }
   ]
