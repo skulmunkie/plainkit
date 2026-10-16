@@ -10,7 +10,7 @@
       "type": "json",
       "default": [],
       "reflect": false,
-      "description": "pk-table's column definitions ({ key, label, type?, align?, sortable?, hidePhone?, shed? }[]). The table shows nothing without them."
+      "description": "pk-table's column definitions ({ key, label, type?, align?, sortable?, hidePhone?, shed?, title? }[]). The table shows nothing without them."
     },
     {
       "name": "filters",

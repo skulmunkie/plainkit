@@ -4,6 +4,7 @@
 const COLS = ['sku', 'title', 'brand', 'category', 'price', 'stock', 'supplier', 'updated'];
 const columns = JSON.stringify(COLS.map((k, i) => ({ key: k, label: k[0].toUpperCase() + k.slice(1), sortable: i < 2, ...(k === 'price' || k === 'stock' ? { type: 'number' } : {}), ...(k === 'supplier' ? { hidePhone: true } : {}) })));
 const rows = JSON.stringify(Array.from({ length: 40 }, (_, i) => ({ id: i + 1, sku: `AC-${1000 + i}`, title: `Widget number ${i + 1} with a rather long product title`, brand: 'Acme', category: 'Hardware', price: `$${(i + 1) * 3}.99`, stock: String(i * 7), supplier: 'Contoso Wholesale Ltd', updated: '2026-01-07' })));
+const cardColumns = JSON.stringify(JSON.parse(columns).map(c => c.key === 'title' ? { ...c, title: true } : c)); // issue 1445: the title column is the card heading
 const one = JSON.stringify([{ key: 'sku', label: 'SKU' }]);
 const SCROLL = '#t1 >>> [part=scroll]';
 
@@ -15,7 +16,7 @@ export default {
 <pk-table id="t1" label="Products" caption="Stock by product" sticky-header striped max-height="260px" columns='${columns}' rows='${rows}'></pk-table>
 <pk-table id="t2" label="No products" empty-text="No products match these filters" columns='${one}'></pk-table>
 <pk-table id="t3" label="Loading products" loading columns='${one}'></pk-table>
-<pk-table id="t4" label="Products as cards" cards columns='${columns}' rows='${JSON.stringify(JSON.parse(rows).slice(0, 3))}'></pk-table>
+<pk-table id="t4" label="Products as cards" cards columns='${cardColumns}' rows='${JSON.stringify(JSON.parse(rows).slice(0, 3))}'></pk-table>
 </pk-stack></div>`,
     steps: [
         { shot: 'rest' },
@@ -43,6 +44,9 @@ export default {
                 t.within('#t4 >>> tbody tr:nth-child(1)', '#t4', 1);
                 t.ok(t.metric('#t4 >>> [part=scroll]', 'scrollWidth') <= t.metric('#t4 >>> [part=scroll]', 'clientWidth') + 1, 'the cards layout still scrolls sideways');
                 t.hasText('#t4 >>> tbody tr:nth-child(1) td:nth-child(2)', 'Widget number 1');
+                const tc = t.rect('#t4 >>> tbody tr:nth-child(1) td[data-key=title]'), tr = t.rect('#t4 >>> tbody tr:nth-child(1)');
+                t.ok(t.attr('#t4 >>> tbody tr:nth-child(1) td[data-key=title]', 'data-label') == null, 'the title cell carries a label');
+                if (tc && tr) t.ok(tc.width >= tr.width - 40, `the title cell is ${Math.round(tc.width)}px of a ${Math.round(tr.width)}px card: it should span the card`);
             } else t.visible('#t4 >>> thead th', 'the header row of the table (cards are for phones only)');
         }
         if (t.shot === 'scrolled') {
