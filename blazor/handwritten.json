@@ -16,9 +16,6 @@
     "Components/_Imports.razor": {
       "category": "wrapper"
     },
-    "Components/PkAppBarSearch.razor": {
-      "category": "router"
-    },
     "Components/PkCodeExplorer.razor": {
       "category": "mount"
     },
