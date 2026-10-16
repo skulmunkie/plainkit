@@ -149,6 +149,9 @@
     "PkDockTypes.cs": {
       "category": "dto"
     },
+    "PkAttr.JsonText.cs": {
+      "category": "runtime"
+    },
     "PkElementBase.cs": {
       "category": "base"
     },

@@ -524,6 +524,17 @@ test('json: true lets a string element prop that holds JSON take a typed record 
     assert.match(generate(api, { demo: m }, new Set(), new Set(['DemoRow'])).files.get('PkDemo.razor'), /public object\? Label/, 'without json: true a string prop does not take a record list');
 });
 
+test('jsonText: a JSON prop takes JSON text or a typed value (object?, sent through PkAttr.JsonText); a bound one reports the text as a string (#1417)', () => {
+    const m = structuredClone(mapping);
+    const p = m.params.find(x => x.name === 'Label');
+    p.type = 'object'; p.jsonText = true; p.default = '{}';
+    const razor = run(m).files.get('PkDemo.razor');
+    assert.match(razor, /\[Parameter\] public object\? Label \{ get; set; \} = "\{\}";/);
+    assert.match(razor, /label="@PkAttr\.JsonText\(Label\)"/);
+    delete p.jsonText;
+    assert.ok(!/PkAttr\.JsonText/.test(run(m).files.get('PkDemo.razor')), 'without jsonText nothing changes');
+});
+
 test('unless: a slot is dropped once another list parameter has items', () => {
     const m = structuredClone(mapping);
     m.params.find(p => p.name === 'AsideContent').unless = 'Rows';

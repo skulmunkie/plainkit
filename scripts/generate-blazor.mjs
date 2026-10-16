@@ -249,9 +249,9 @@ export function modelElement(el, mapping, reg) {
             // `updates`: a string prop parameter that follows the callback's argument once the delegate succeeds: it becomes the argument as JSON and its Changed callback is raised (@bind-Values).
             if (p.updates) {
                 const tgt = propParam[p.updates];
-                if (!tgt || !/^string\??$/.test(tgt.cs.trim())) { skip(p.name, `updates ${p.updates} must name a string prop parameter`); continue; }
+                if (!tgt || !(/^string\??$/.test(tgt.cs.trim()) || (tgt.p?.jsonText && tgt.cs.trim() === 'object?'))) { skip(p.name, `updates ${p.updates} must name a string prop parameter`); continue; }
                 const changed = `${p.updates}Changed`;
-                if (!names.has(changed)) declare({ name: changed, kind: 'param', cs: `EventCallback<${tgt.cs}>`, doc: `Raised when ${p.updates} changes (two-way binding: <c>@bind-${p.updates}</c>).` });
+                if (!names.has(changed)) declare({ name: changed, kind: 'param', cs: tgt.p?.jsonText ? 'EventCallback<string?>' : `EventCallback<${tgt.cs}>`, doc: `Raised when ${p.updates} changes (two-way binding: <c>@bind-${p.updates}</c>).` });
             }
             out.callbacks.push({ updates: p.updates, name: p.name, prop: p.callback, arg: p.arg, args: p.args ?? 'a', result: p.result !== false, returns: p.returns, refresh: p.refresh === true, abort: p.abort === true, names: p.argNames });
         } else if (map === 'property') {
@@ -378,7 +378,7 @@ export function modelElement(el, mapping, reg) {
         else if (b.json) {
             // `json`: the event's object field is kept as its raw JSON text in a string parameter (PkPropertyGrid.Values), so @bind round-trips it.
             const src = ev.fields.find(f => f.key.toLowerCase() === String(b.path).toLowerCase());
-            if (!src || src.cs !== 'JsonElement?' || !/^string\??$/.test(r.cs.trim())) { out.todo.push({ component: comp, param: r.name, reason: `cannot bind ${r.name} to ${b.event} (${b.path}) as JSON text` }); return; }
+            if (!src || src.cs !== 'JsonElement?' || !(/^string\??$/.test(r.cs.trim()) || (r.p.jsonText && r.cs.trim() === 'object?'))) { out.todo.push({ component: comp, param: r.name, reason: `cannot bind ${r.name} to ${b.event} (${b.path}) as JSON text` }); return; }
             assign = r.cs.trim() === 'string' ? `e.${src.prop}?.GetRawText() ?? ${JSON.stringify(r.p.default ?? '')}` : `e.${src.prop}?.GetRawText()`;
         }
         else if (reg.enums.has(r.cs.trim().replace(/\?$/, ''))) {
@@ -396,10 +396,11 @@ export function modelElement(el, mapping, reg) {
             assign = conv;
         }
         if (h.updates.some(u => u.param === r.name)) return;
-        h.updates.push({ param: r.name, assign, changed: changedName });
+        // a jsonText parameter is an object (JSON text or a typed value) but its two-way callback reports the raw JSON text
+        h.updates.push({ param: r.name, assign, changed: changedName, arg: r.p.jsonText ? `${r.name} as string` : undefined });
         if (!declaredAlready && !declared.has(changedName)) {
             if (names.has(changedName)) { /* the mapping lists it as its own parameter; it is declared when that entry is reached */ }
-            else declare({ name: changedName, kind: 'param', cs: `EventCallback<${r.cs}>`, doc: `Raised when ${r.name} changes (two-way binding: <c>@bind-${r.name}</c>).` });
+            else declare({ name: changedName, kind: 'param', cs: r.p.jsonText ? 'EventCallback<string?>' : `EventCallback<${r.cs}>`, doc: `Raised when ${r.name} changes (two-way binding: <c>@bind-${r.name}</c>).` });
         }
     }
 }
@@ -433,6 +434,9 @@ function resolveProp(el, p, r, comp, enumType, todo, types = new Set()) {
         attr = 'enum';
         r.expr = def ? `@(${p.name}.ToAttr())` : `@(${p.name}?.ToAttr())`;
         if (p.todo) note = `${p.todo} (generated from the mapping's enum)`;
+    } else if (p.jsonText) {
+        // `jsonText`: a JSON-valued prop that takes the JSON text (a string, sent as it is) or any typed value (record, dictionary, JsonElement), serialised camelCase with nulls skipped (#1417).
+        cs = 'object?'; attr = 'jsonText'; if (hasDefault) init = lit(p.default);
     } else if (t === undefined) {
         // No mapping type: derive from the SDK prop.
         if (api.type === 'boolean') { cs = 'bool'; attr = 'bool'; }
@@ -470,7 +474,7 @@ function resolveProp(el, p, r, comp, enumType, todo, types = new Set()) {
     }
     if (p.todo && !r.todo && attr !== 'enum') r.todo = p.todo;
     r.cs = cs; r.attr = attr; r.init = init; r.note = note;
-    r.expr ??= attr === 'bool' || attr === 'str' ? `@${p.name}` : attr === 'num' ? `@PkAttr.Num(${p.name})` : attr === 'date' ? `@PkAttr.Date(${p.name})` : `@PkAttr.Json(${p.name})`;
+    r.expr ??= attr === 'bool' || attr === 'str' ? `@${p.name}` : attr === 'num' ? `@PkAttr.Num(${p.name})` : attr === 'date' ? `@PkAttr.Date(${p.name})` : attr === 'jsonText' ? `@PkAttr.JsonText(${p.name})` : `@PkAttr.Json(${p.name})`;
     return r;
 }
 
@@ -568,7 +572,7 @@ export function renderComponent(m, mappingName, ns = 'PlainKit.Blazor') {
         for (let c of m.callbacks) {
             const call = `${c.name}!(${c.args}${c.abort ? ', ct' : ''})`;
             if (m.cells?.load === c.name) c = { ...c, returns: `await ShowCellsAsync(r.Items) ?? ${c.returns}` };
-            L.push(`        await ${slotName(c)}.SyncAsync<${c.arg}>(await Runtime.BridgeAsync(Assets), Element, ${c.name} is not null, async ${c.abort ? '(a, ct)' : 'a'} => ${c.returns ? `{ var r = await ${call}; return ${c.returns}; }` : c.result ? `(object?)await ${call}` : `{ await ${call};${c.updates ? ` await InvokeAsync(async () => { ${c.updates} = JsonSerializer.Serialize(a); await ${c.updates}Changed.InvokeAsync(${c.updates}); });` : ''} return null; }`}${c.refresh ? ', refresh: true' : ''}${c.names ? `, names: new[] { ${c.names.map(lit).join(', ')} }` : ''});`);
+            L.push(`        await ${slotName(c)}.SyncAsync<${c.arg}>(await Runtime.BridgeAsync(Assets), Element, ${c.name} is not null, async ${c.abort ? '(a, ct)' : 'a'} => ${c.returns ? `{ var r = await ${call}; return ${c.returns}; }` : c.result ? `(object?)await ${call}` : `{ await ${call};${c.updates ? ` await InvokeAsync(async () => { ${c.updates} = JsonSerializer.Serialize(a); await ${c.updates}Changed.InvokeAsync(${c.updates} as string); });` : ''} return null; }`}${c.refresh ? ', refresh: true' : ''}${c.names ? `, names: new[] { ${c.names.map(lit).join(', ')} }` : ''});`);
         }
         L.push('    }', '', '    /// <inheritdoc />', `    public void Dispose() { ${m.callbacks.map(c => slotName(c) + '.Dispose();').join(' ')} }`);
     }
@@ -578,12 +582,12 @@ export function renderComponent(m, mappingName, ns = 'PlainKit.Blazor') {
         '        await InvokeAsync(() => { _cellRows = items.Select(i => (IdOf!(i), i)).ToList(); StateHasChanged(); });',
         '        return null;', '    }');
     if (m.cells?.columns) L.push('', '    private string ConfigWithColumns()', '    {',
-        '        if (Columns is null) return Config ?? "{}";',
-        '        var node = System.Text.Json.Nodes.JsonNode.Parse(Config ?? "{}") as System.Text.Json.Nodes.JsonObject ?? new System.Text.Json.Nodes.JsonObject();',
+        '        if (Columns is null) return PkAttr.JsonText(Config) ?? "{}";',
+        '        var node = System.Text.Json.Nodes.JsonNode.Parse(PkAttr.JsonText(Config) ?? "{}") as System.Text.Json.Nodes.JsonObject ?? new System.Text.Json.Nodes.JsonObject();',
         '        node["columns"] = System.Text.Json.Nodes.JsonNode.Parse(PkAttr.Json(Columns.Select(c => c.ToColumn()))!);',
         '        return node.ToJsonString();', '    }');
     if (m.recordModel) L.push('', '    private TItem? _loaded;', '    private bool _isNew;', '',
-        '    private string ConfigWithFields() => PkFieldSpecs.RecordConfig(Config, Fields, _loaded ?? Model, out _isNew);', '',
+        '    private string ConfigWithFields() => PkFieldSpecs.RecordConfig(PkAttr.JsonText(Config), Fields, _loaded ?? Model, out _isNew);', '',
         '    private object? KeepLoaded(TItem? item)', '    {', '        _loaded = item;', '        _ = InvokeAsync(StateHasChanged);', '        return item is null ? null : PkFieldSpecs.Values(Fields ?? [], item);', '    }', '',
         '    private async Task<TItem> ApplySavedAsync(IReadOnlyDictionary<string, JsonElement> values)', '    {',
         '        var item = (_isNew ? Model : _loaded) ?? throw new InvalidOperationException("A new record needs the Model parameter (the instance to fill); a loaded one is what Load returned.");',
@@ -622,7 +626,7 @@ function handlerLines(m, live) {
         L.push('');
         L.push(`    private async Task ${handlerName(h)}(${h.args} e)`, '    {');
         for (const u of h.updates) L.push(`        ${u.param} = ${u.assign};`);
-        for (const u of h.updates) L.push(`        await ${u.changed}.InvokeAsync(${u.param});`);
+        for (const u of h.updates) L.push(`        await ${u.changed}.InvokeAsync(${u.arg ?? u.param});`);
         if (h.multi) L.push('        if (ValuesChanged.HasDelegate)', '        {', `            Values = ${h.multi.value};`, '            await ValuesChanged.InvokeAsync(Values);', '        }');
         if (m.field && h.updates.some(u => u.param === m.field.param)) L.push('        NotifyFieldChanged();');
         for (const c of h.callbacks) {

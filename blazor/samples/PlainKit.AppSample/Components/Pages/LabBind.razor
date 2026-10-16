@@ -18,5 +18,6 @@
     private string? _tab = "a";
     private bool _pressed;
     private string _values = "{}";
-    private const string GridConfig = "{\"groups\":[{\"heading\":\"Look\",\"fields\":[{\"key\":\"enabled\",\"type\":\"switch\",\"label\":\"Enabled\"}]}]}";
+    // A typed value, not JSON text (#1417): serialised camelCase with nulls skipped by the generated component.
+    private static readonly object GridConfig = new { Groups = new[] { new { Heading = "Look", Fields = new[] { new { Key = "enabled", Type = "switch", Label = "Enabled", Hint = (string?)null } } } } };
 }

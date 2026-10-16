@@ -3,7 +3,8 @@
   "params": [
     {
       "name": "Config",
-      "type": "string",
+      "type": "object",
+      "jsonText": true,
       "prop": "config",
       "note": "Sent as a JSON attribute: { input: [{ key, type, label, placeholder?, required?, options? }], outcome: 'stat'|'table'|'code'|'text' }."
     },
