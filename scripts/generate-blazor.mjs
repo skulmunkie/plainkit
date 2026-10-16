@@ -551,7 +551,7 @@ export function renderComponent(m, mappingName, ns = 'PlainKit.Blazor') {
     // The element itself (PkElementBase.Element), for PkRuntime.ReadFormValuesAsync and any host that needs a JavaScript handle.
     attrs.push('@ref="Element"');
     // `location` (mapping): the parameter (location.param) wins; unset, the path tracked from NavigationManager is sent (see the code block).
-    if (m.location) { const a = kebab(m.location.prop); const i = attrs.findIndex(x => x.startsWith(a + '="')); if (i < 0) throw new Error(`${m.component}: location.prop ${m.location.prop} is not a generated attribute`); attrs[i] = `${a}="@(${m.location.param} ?? _locationPath)"`; }
+    if (m.location?.prop) { const a = kebab(m.location.prop); const i = attrs.findIndex(x => x.startsWith(a + '="')); if (i < 0) throw new Error(`${m.component}: location.prop ${m.location.prop} is not a generated attribute`); attrs[i] = `${a}="@(${m.location.param} ?? _locationPath)"`; }
     for (const h of live.filter(x => x.native && !listened(x))) attrs.push(`@${h.attr}="${handlerName(h)}"`);
     // stopPropagation: Blazor's own bubbling (it walks the ancestors for onpk-* handlers), so an event the element owns does not reach an enclosing component's handler of the same name.
     for (const h of live.filter(x => x.stop)) attrs.push(`@${h.attr}:stopPropagation="true"`);
@@ -596,9 +596,12 @@ export function renderComponent(m, mappingName, ns = 'PlainKit.Blazor') {
         }
         L.push('    }');
     }
-    if (m.location) L.push('', '    [Inject] private NavigationManager LocationNav { get; set; } = default!;', '', '    private string? _locationPath;', '',
-        '    /// <inheritdoc />', '    protected override void OnInitialized()', '    {', '        _locationPath = new Uri(LocationNav.Uri).AbsolutePath;', '        LocationNav.LocationChanged += HandleLocationChanged;', '    }', '',
-        '    private void HandleLocationChanged(object? sender, LocationChangedEventArgs e)', '    {', '        _locationPath = new Uri(e.Location).AbsolutePath;', `        if (${m.location.param} is null) InvokeAsync(StateHasChanged);`, '    }');
+    if (m.location) L.push('', '    [Inject] private NavigationManager LocationNav { get; set; } = default!;', '', ...(m.location.closes ? [] : ['    private string? _locationPath;', '']),
+        '    /// <inheritdoc />', '    protected override void OnInitialized()', '    {', ...(m.location.closes ? [] : ['        _locationPath = new Uri(LocationNav.Uri).AbsolutePath;']), '        LocationNav.LocationChanged += HandleLocationChanged;', '    }', '',
+        ...(m.location.closes
+            // `closes`: a bool parameter (two-way) that is cleared when the route changes (a search that expanded over the header row).
+            ? ['    private async void HandleLocationChanged(object? sender, LocationChangedEventArgs e)', '    {', `        if (!${m.location.closes}) return;`, `        ${m.location.closes} = false;`, `        await InvokeAsync(async () => { await ${m.location.closes}Changed.InvokeAsync(false); StateHasChanged(); });`, '    }']
+            : ['    private void HandleLocationChanged(object? sender, LocationChangedEventArgs e)', '    {', '        _locationPath = new Uri(e.Location).AbsolutePath;', `        if (${m.location.param} is null) InvokeAsync(StateHasChanged);`, '    }']));
     if (m.callbacks.length || m.location) {
         L.push('', '    /// <inheritdoc />', `    public ${m.field ? "new " : ""}void Dispose() { ${m.callbacks.map(c => slotName(c) + ".Dispose();").join(" ")}${m.location ? " LocationNav.LocationChanged -= HandleLocationChanged;" : ""}${m.field ? " base.Dispose();" : ""} }`);
     }

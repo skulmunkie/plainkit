@@ -691,5 +691,8 @@ test('"location": the component tracks NavigationManager and sends the path unle
     assert.match(razor, /if \(Path is null\) InvokeAsync\(StateHasChanged\);/);
     assert.match(razor, /void Dispose\(\) \{\s+LocationNav\.LocationChanged -= HandleLocationChanged;/);
     assert.throws(() => run({ ...m, location: { param: 'Path', prop: 'nothing' } }), /not a generated attribute/);
+    const c = run({ ...mapping, params: [{ name: 'Open', prop: 'open', type: 'bool', bind: { event: 'pk-toggle', value: 'detail.open' } }], location: { closes: 'Open' } }).files.get('PkDemo.razor');
+    assert.match(c, /if \(!Open\) return;/);
+    assert.match(c, /OpenChanged\.InvokeAsync\(false\)/);
     assert.doesNotMatch(run().files.get('PkDemo.razor'), /LocationNav/);
 });
