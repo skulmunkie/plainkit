@@ -11,13 +11,15 @@ const cell = (id, key) => `#g >>> tr[data-pk-context="${id}"] td[data-key=${key}
 
 export default {
     name: 'table-edit-windowed',
-    issue: [1474],
+    issue: [1474, 331],
     elements: ['table'],
     html: `<div class="u-p-1r-1p25r"><pk-table id="g" label="Stock" caption="1200 rows, windowed" editable sticky-header max-height="20rem" columns='${columns}' rows='${rows}'></pk-table></div>`,
     steps: [
         { shot: 'rest' },
         { focus: cell(3, 'name') }, { key: 'Enter' }, { type: ' XL' }, { scroll: frame, to: 20000 }, { wait: 300 }, { shot: 'editing-scrolled-away' },
         { key: 'Escape' }, { key: 'Control+End' }, { wait: 300 }, { shot: 'last-row' },
+        { key: 'Control+Home' }, { wait: 200 }, { key: 'ArrowDown' }, { key: 'Shift+ArrowDown' }, { key: 'Shift+ArrowDown' }, { key: 'Shift+ArrowRight' }, { wait: 200 }, { shot: 'selection' },
+        { key: 'Control+d' }, { wait: 300 }, { shot: 'filled' },
     ],
     expect(t) {
         t.inViewport('#g');
@@ -27,6 +29,12 @@ export default {
             t.visible(`${cell(3, 'name')} input`, 'the editor of a row scrolled far away stays drawn');
             t.ok(t.metric(frame, 'scrollTop') > 5000, 'the frame did not scroll');
         }
+        if (t.shot === 'selection' || t.shot === 'filled') {
+            t.ok(t.attr(cell(4, 'qty'), 'aria-selected') === 'true' && t.attr(cell(2, 'name'), 'aria-selected') === 'true', 'the 3x2 block from row 2 is not selected');
+            t.ok(t.attr(cell(5, 'name'), 'aria-selected') === 'false', 'the selection spills past its block');
+            t.ok(t.attr('#g >>> table', 'aria-multiselectable') === 'true', 'the grid does not say it holds a range');
+        }
+        if (t.shot === 'filled') t.hasText(cell(4, 'name'), 'Widget number 2');
         if (t.shot === 'last-row') {
             t.visible(cell(1200, 'name'), 'the last row is drawn after Ctrl+End');
             t.ok(t.attr(cell(1200, 'name'), 'aria-selected') === 'true', 'the last cell is not the active one');
