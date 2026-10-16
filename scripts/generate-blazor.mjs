@@ -341,6 +341,8 @@ export function modelElement(el, mapping, reg) {
             out.field = { param: r.name, expr: `${r.name}Expression`, cs: r.cs };
             const inv = out.attrs.find(a => a.attr === 'invalid');
             if (inv) inv.expr = '@(IsInvalid || FieldInvalid)';
+            const val = out.attrs.find(a => a.attr === 'valid');
+            if (val) val.expr = '@(IsValid || FieldValid)';
         }
         // `model.multi`: the element has a `values` array prop and an event field `values` next to the comma-joined string model prop (core owns the
         // encoding, #850). Values / ValuesChanged (and ValuesExpression on a form control) are the typed form, sent as the element's JSON `values` attribute.
