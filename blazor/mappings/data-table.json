@@ -8,6 +8,8 @@
     { "name": "Descending", "prop": "sortDir", "type": "bool", "extra": true, "declared": true, "bind": { "event": "pk-query-change", "value": "detail.descending" }, "note": "Two-way: @bind-Descending." },
     { "name": "Search", "prop": "search", "type": "string?", "extra": true, "declared": true, "bind": { "event": "pk-query-change", "value": "detail.search" }, "note": "Two-way: @bind-Search." },
     { "name": "PageSize", "prop": "pageSize", "type": "int", "extra": true, "declared": true, "bind": { "event": "pk-query-change", "value": "detail.pageSize" }, "note": "Two-way: @bind-PageSize." },
+    { "name": "Navigate", "prop": "navigate", "type": "string?", "extra": true, "note": "Who follows a RowHrefTemplate link on a plain click: \"router\" (default, or leave it unset) lets the app router handle the cancelable pk-navigate; \"host\" raises OnNavigate as a notification the router ignores and nothing navigates, so your handler navigates (NavigationManager); \"none\" raises nothing and the browser follows the address." },
+    { "name": "OnNavigate", "event": "pk-navigate", "type": "EventCallback<PkNavigateEventArgs>", "extra": true, "note": "A plain click on a row link: To is the address. A callback cannot cancel it (the browser does not wait for the server): set Navigate to \"host\" and navigate in the handler." },
     {
       "name": "Selectable",
       "prop": "selectable",

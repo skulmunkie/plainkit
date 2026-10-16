@@ -642,6 +642,15 @@ test('a non-generic hand-written component gets a non-generic partial; no extras
     assert.equal(none.files.has('PkExtras.cs'), false);
 });
 
+test('"extrasHook": the hand-written component has its own OnParametersSet, so the companion generates a method it calls instead of an override (#1421)', () => {
+    const r = generate(api, { demo: { ...extraMapping, extrasHook: 'ApplyExtras' } }, new Set(['PkDemo']), new Set(), handInfo('TItem'));
+    const cs = r.files.get('PkDemo.Extra.cs');
+    assert.match(cs, /private void ApplyExtras\(\)/);
+    assert.doesNotMatch(cs, /override void OnParametersSet/);
+    assert.doesNotMatch(cs, /base\.OnParametersSet/);
+    assert.match(cs, /Splat = PkExtras\.Merge\(Splat,/);
+});
+
 test('"declared" extra: the hand-written component keeps the parameter and its attribute; only the Changed callback and the bind handler are generated', () => {
     const m = { ...extraMapping, params: [{ name: 'Count', prop: 'count', type: 'int', extra: true, declared: true, bind: { event: 'pk-page', value: 'detail.page' } }] };
     const cs = generate(api, { demo: m }, new Set(['PkDemo']), new Set(), handInfo('TItem')).files.get('PkDemo.Extra.cs');

@@ -1468,6 +1468,24 @@ export const dataDisplayCases = [
             const after = links(); t.ok(after.length > 0 && Number(after[0][0]) > 50 && after.every(([id, h]) => h === `/r/${id}`), 'after a scroll the newly drawn rows have their links too');
         } finally { document.removeEventListener('click', stop); }
     }],
+    ['table: navigate="host" raises pk-navigate as a non-cancelable notification and does not navigate, "none" raises nothing and leaves the link to the browser, the default stays a cancelable event (#1421)', async t => {
+        const el = await t.mount(`<pk-table label="P" row-href-template="/orders/{id}" columns='[{"key":"po","label":"PO"}]' rows='[{"id":"7","po":"PO 7"}]'></pk-table>`);
+        const link = () => el.shadowRoot.querySelector('a[data-row-link]');
+        await until(() => link(), 'the row link');
+        const seen = [], browser = [];
+        el.addEventListener('pk-navigate', e => { seen.push({ to: e.detail.to, cancelable: e.cancelable }); e.preventDefault(); }); // a router handles a cancelable one; the page must not leave
+        const stop = e => { browser.push(e.defaultPrevented); e.preventDefault(); }; // keeps the runner on this page after the table's own handler
+        document.addEventListener('click', stop);
+        try {
+            link().click(); t.eq(JSON.stringify(seen), '[{"to":"/orders/7","cancelable":true}]', 'default: a cancelable pk-navigate, as before');
+            seen.length = 0; browser.length = 0; el.navigate = 'host'; await t.settle();
+            link().click(); t.eq(JSON.stringify(seen), '[{"to":"/orders/7","cancelable":false}]', 'host: the same event as a notification');
+            t.eq(browser.join(), 'true', 'host: the table took the click, the browser does not follow the address');
+            seen.length = 0; browser.length = 0; el.shadowRoot.querySelector('tbody td').click(); t.eq(seen.length, 1, 'host: a click on the row body reports it too');
+            seen.length = 0; browser.length = 0; el.navigate = 'none'; await t.settle();
+            link().click(); t.eq(seen.length, 0, 'none: no pk-navigate'); t.eq(browser.join(), 'false', 'none: the click is left to the browser');
+        } finally { document.removeEventListener('click', stop); }
+    }],
     ['table (375px, cards): a button with a long unbreakable label wraps inside the card instead of being clipped or widening it (#1288)', async t => {
         const { sampleDoc } = await import('../../site/gallery/frame.js');
         const SKU = 'some-long-sku-identifier-with-dashes-and-more-parts';

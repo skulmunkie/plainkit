@@ -1,7 +1,7 @@
 // Row links of <pk-table> (#366): `rowHrefTemplate` ('/orders/{id}', '#/orders/{id}') turns each row's first cell into a real <a href>, so a routed list opens a record
 // the way any link does (new tab, middle click, copy address). The table imports this on demand, only when the template is set, so its own module stays inside the budget.
 // A plain click on a link or on the row body navigates through the router: a cancelable, composed pk-navigate, the event pk-link reports (js/router.js mountRouter handles it);
-// unhandled, the browser follows the address. A hash address is left to the browser. The table owns the links (shadow tree); the host's rows and cells are never touched.
+// unhandled, the browser follows the address. `navigate` (#1421): router (default), host (the event is a non-cancelable notification, nothing navigates) or none (no event, the browser follows). A hash address is left to the browser. The table owns the links (shadow tree); the host's rows and cells are never touched.
 
 import { sheetFor } from './element.js'; import { rowAt } from './rowset.js';
 
@@ -23,8 +23,10 @@ export function click(table, e) {
     }
     const to = a.getAttribute('href');
     if (e.button || e.metaKey || e.ctrlKey || e.shiftKey || e.altKey || to[0] !== '/') return false;
+    const host = table.navigate === 'host';
+    if (table.navigate === 'none') return false;
     e.preventDefault();
-    if (table.emit('pk-navigate', { to, href: to })) table.ownerDocument.defaultView.location.assign(to);
+    if (table.emit('pk-navigate', { to, href: to }, { cancelable: !host }) && !host) table.ownerDocument.defaultView.location.assign(to);
     return true;
 }
 

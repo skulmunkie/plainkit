@@ -97,6 +97,13 @@
       "description": "Row links: /orders/{id} or #/orders/{id} ({field} too, URL-encoded). The first cell links; a click goes through the router."
     },
     {
+      "name": "navigate",
+      "type": "string",
+      "default": "",
+      "reflect": false,
+      "description": "Who follows a row link: router (default, empty), host (pk-navigate is a notification) or none (the browser)."
+    },
+    {
       "name": "currentRow",
       "type": "string",
       "default": "",
