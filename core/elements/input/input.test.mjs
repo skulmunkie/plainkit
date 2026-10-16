@@ -83,3 +83,11 @@ test('listbox is a property-only element reference that makes the inner input a 
     assert.match(js, /querySelector\('\[aria-selected=true\]'\)/, 'the active option is the one marked aria-selected');
     assert.match(meta.a11y, /Chrome 135, Safari 16\.4 or Firefox 136/, 'the browser floor is documented');
 });
+
+// Issue #1418: select-on-focus is a reflected boolean the real focus event honours, and the mouse-up after the focusing press is cancelled once.
+test('selectOnFocus is a reflected boolean that selects on focus and cancels the following mouse-up once', () => {
+    assert.equal(prop('selectOnFocus').type, 'boolean'); assert.equal(prop('selectOnFocus').default, false); assert.equal(prop('selectOnFocus').reflect, true);
+    const js = read('js');
+    assert.match(js, /addEventListener\('focus', \(\) => \{[^}]*this\.selectOnFocus[^}]*i\.select\(\)/);
+    assert.match(js, /addEventListener\('mouseup', e => \{ if \(this\.\$sel\) \{ e\.preventDefault\(\); this\.\$sel = false;/);
+});

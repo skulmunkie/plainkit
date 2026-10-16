@@ -40,6 +40,16 @@ public sealed class GeneratedComponentTests : BunitContext, IAsyncLifetime
     }
 
     [Fact]
+    public void Select_on_focus_reaches_the_input_as_its_attribute()
+    {
+        var on = Render<PkInput>(p => p.Add(x => x.SelectOnFocus, true));
+        var off = Render<PkInput>();
+
+        Assert.NotNull(on.Find("pk-input").GetAttribute("select-on-focus"));
+        Assert.Null(off.Find("pk-input").GetAttribute("select-on-focus"));
+    }
+
+    [Fact]
     public void An_enum_is_sent_as_its_attribute_value_and_left_off_when_null()
     {
         var set = Render<PkButton>(p => p.Add(x => x.Variant, ButtonVariant.Secondary));
