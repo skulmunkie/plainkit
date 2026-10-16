@@ -28,7 +28,9 @@
       "description": "Take all the room a flex column parent leaves."
     }
   ],
-  "slots": [],
+  "slots": [
+    { "name": "detail", "description": "The record (mountDetail not set), shown only while recordId is set." }
+  ],
   "events": [
     { "name": "pk-action", "detail": "{ key }", "detailProps": { "key": "string" }, "description": "A title-bar action (config.actions entry without an href) was clicked." }
   ],
@@ -52,5 +54,5 @@
       "html": "<pk-master-detail-page id=\"things\" record-id=\"2\"></pk-master-detail-page>"
     }
   ],
-  "methods": []
+  "methods": [{ "name": "refresh()", "description": "Runs the list's load() again (the Blazor wrapper does after setting load)." }]
 }

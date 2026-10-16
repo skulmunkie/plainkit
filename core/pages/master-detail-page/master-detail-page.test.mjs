@@ -89,3 +89,13 @@ test('a rejection shows the error state with Retry that mounts again; a supersed
     await tick();
     assert.equal(destroyed, 2, 'a mount that finished after the selection moved is destroyed');
 });
+
+test('refresh() asks the list to load again once the page is connected (#1415)', () => {
+    const { el, parts } = make();
+    let n = 0;
+    parts.list.refresh = () => { n++; };
+    el.refresh();
+    assert.equal(n, 0, 'not before the first draw');
+    el.connected(); el.refresh();
+    assert.equal(n, 1);
+});

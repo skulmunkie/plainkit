@@ -4,6 +4,7 @@
 [part="master"], [part="detail"] { position: relative; min-inline-size: 0; }
 [part="detail"]:focus-visible { outline: var(--focus-ring); outline-offset: 2px; }
 [part="layout"][data-view="list"] [part="detail"], [part="layout"][data-view="detail"] [part="master"] { display: none; }
+[part="layout"][data-view="list"] slot[name="detail"] { display: none; }
 [part="none"]:empty, [part="record"]:empty, [part="state"]:empty { display: none; }
 [part="state"]:not(:empty) + [part="record"] { display: none; }
 /* Wide: both panes side by side, the record beside its list; the back button is only for the one-pane view. */

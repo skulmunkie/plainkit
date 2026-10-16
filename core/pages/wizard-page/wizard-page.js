@@ -79,7 +79,11 @@ export default Base => class extends Base {
     build(step) {
         const doc = this.ownerDocument, pane = doc.createElement('div'); pane.setAttribute('role', 'group'); pane.setAttribute('aria-label', step.label ?? step.id);
         if (step.review) { this.summarise(pane); return pane; }
-        if (typeof this.mountStep === 'function' && !step.fields) { this.mountStep(pane, step); return pane; }
+        if (!step.fields) { // a step without fields is the app's: mountStep draws it, else the light-DOM child slot="step-<id>" is projected (the Blazor wrapper's way)
+            if (typeof this.mountStep === 'function') this.mountStep(pane, step);
+            else { const slot = doc.createElement('slot'); slot.setAttribute('name', 'step-' + step.id); pane.append(slot); }
+            return pane;
+        }
         const pf = doc.createElement('pk-form'), form = doc.createElement('form');
         pf.setAttribute('summary', '');
         for (const f of step.fields ?? []) {
