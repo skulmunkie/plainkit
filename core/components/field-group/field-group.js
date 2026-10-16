@@ -20,6 +20,8 @@ export default Base => class extends Base {
         this.$vals = { ...this.$base };
         const group = this.part('group');
         for (const type of ['input', 'change']) group.addEventListener(type, () => this.sync());
+        // Enter in a text control commits what was typed first, as leaving the field would: a form that submits on Enter (pk-record-form, #1365) then sees the typed value, not the last committed one.
+        group.addEventListener('keydown', e => { const t = e.composedPath()[0]; if (e.key === 'Enter' && !e.isComposing && t?.matches?.('input:not([type=checkbox],[type=radio],[type=button],[type=range])')) t.dispatchEvent(new Event('change', { bubbles: true, composed: true })); });
         // A failed submit or reportValidity() raises `invalid` on this element, which is not itself focusable: focus goes to the first invalid control.
         this.addEventListener('invalid', () => this.focus());
         this.reconcile();
