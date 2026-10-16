@@ -45,7 +45,9 @@ Only things that exist today are listed. A dash means there is no ready-made pie
 | Toasts and notices | Pattern `notifications`; elements `pk-toast-stack`, `pk-alert` | `ctx.notify.success(title)` | `PkToastStack` |
 | Onboarding checklist | Pattern `onboarding` | Page type `wizard` | `PkStepper`, `PkProgress` |
 | Short list of small records with an add form | Layout `setup` | Page type `list` with a `record` route under it | `PkTable` with `PkField` |
-| Marketing or landing page | None: compose from `pk-stack`, `pk-grid`, `pk-card`, `pk-text` and `pk-button`, and see "Ask for a missing component" | None | same |
+| Marketing or landing page | Template `landing` (hero, feature grid, pricing, FAQ); pattern `pricing-cards`; composed from `pk-container`, `pk-stack`, `pk-grid`, `pk-card`, `pk-text` and `pk-button`, tokens only, no hero background images (imagery goes in `pk-media`). | None | same |
+| Rich text input | Pattern `markdown-editor`: `pk-textarea` holding Markdown plus a `pk-tabs` Write and Preview. | None | `PkTextarea` with `PkTabs` |
+| Panes: `pk-workspace` or `pk-dock` | `pk-workspace` for a content page with a fixed nav, main and aside; `pk-dock` for a tool whose user rearranges, resizes or tabs panels and expects the layout to persist. Keep both until dock's floating and rail steps land (issues 618, 608); then compare dock footprint (a fixed preset over about 2x workspace gzip means keep both), shared phone-strip code, real consumers and Blazor wrappers | Page type `tool`; `workspace` for a multi-pane tool | `PkWorkspace`, `PkDock` |
 
 ## Which list shape
 
