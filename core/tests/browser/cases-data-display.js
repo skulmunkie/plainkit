@@ -1215,6 +1215,116 @@ export const dataDisplayCases = [
         el.addEventListener('pk-cell-edit', e => e.preventDefault()); seen.length = 0; paste(cell(1, 'name'), 'Refused');
         await t.settle(); t.eq(el.rows[0].name, 'Widget', 'a cancelled pk-cell-edit leaves the cell unchanged'); t.eq(sum.at(-1).rejected[0].reason, 'refused');
     }],
+    // Issue 1474: an editable table windows at 500+ rows. The helpers below build a 1000+ row grid and read it by id, never by position in the DOM.
+    ...(() => {
+        const COLS = '[{"key":"sku","label":"SKU","editor":"text"},{"key":"name","label":"Name","editor":"text","sortable":true},{"key":"qty","label":"Qty","type":"number","editor":"number","min":0}]';
+        const rowsOf = n => JSON.stringify(Array.from({ length: n }, (_, i) => ({ id: i + 1, sku: `S${i + 1}`, name: `Item ${i + 1}`, qty: i % 50 })));
+        const grid = async (t, n = 5000, width = 1200) => {
+            const box = await t.mount(`<div style="width:${width}px"><pk-table editable sticky-header max-height="20rem" label="Stock" columns='${COLS}' rows='${rowsOf(n)}'></pk-table></div>`);
+            const el = box.querySelector('pk-table'); await until(() => el.shadowRoot?.querySelector('td[tabindex="0"]') && el.$e, 'the editable grid'); await t.settle();
+            const sr = el.shadowRoot, frame = el.part('scroll');
+            const g = {
+                el, sr, frame,
+                drawn: () => [...sr.querySelectorAll('tbody tr[data-pk-context]')],
+                cell: (id, k) => sr.querySelector(`tr[data-pk-context="${id}"] td[data-key=${k}]`),
+                active: () => sr.querySelector('td[data-key][tabindex="0"]')?.closest('tr').dataset.pkContext,
+                press: (k, mods = {}, n = sr.activeElement) => n.dispatchEvent(new KeyboardEvent('keydown', { key: k, bubbles: true, composed: true, cancelable: true, ...mods })),
+                rowH: () => g.drawn()[0].getBoundingClientRect().height,
+                headH: () => sr.querySelector('thead').getBoundingClientRect().height,
+                visible: c => { const r = c.getBoundingClientRect(), f = frame.getBoundingClientRect(); return r.top >= f.top + g.headH() - 1 && r.bottom <= f.bottom + 1; },
+                scroll: async y => { frame.scrollTop = y; await new Promise(r => requestAnimationFrame(() => requestAnimationFrame(r))); await t.settle(); },
+                pick: async (id, k = 'name') => { g.cell(id, k).click(); await t.settle(); await until(() => g.active() === String(id) && sr.activeElement === g.cell(id, k), `cell ${id}:${k} active and focused`); },
+            };
+            return g;
+        };
+        const paste = (n, text) => n.dispatchEvent(Object.assign(new Event('paste', { bubbles: true, composed: true, cancelable: true }), { clipboardData: { getData: () => text } }));
+        return [
+            ['table (editable, 5000 rows): only a window of rows is drawn, aria-rowcount is the full count and each drawn row has its aria-rowindex (#1474)', async t => {
+                const g = await grid(t);
+                t.ok(g.drawn().length < 60, `drawn ${g.drawn().length} rows`); t.eq(g.el.$virtual, true, 'the editable table windows');
+                t.eq(g.sr.querySelector('table').getAttribute('aria-rowcount'), '5001', 'rowcount is the view length plus the header');
+                t.eq(g.sr.querySelector('thead tr').getAttribute('aria-rowindex'), '1');
+                await g.scroll(3000 * g.rowH());
+                const first = g.drawn().find(r => r.dataset.pkContext !== '1');
+                t.ok(Math.abs(Number(first.dataset.pkContext) - 3000) < 40, 'the window followed the scroll');
+                t.eq(first.getAttribute('aria-rowindex'), String(Number(first.dataset.pkContext) + 1), 'aria-rowindex is the position in the whole view, header first');
+                t.ok(g.sr.querySelector('tr[data-spacer]').getAttribute('aria-hidden') === 'true', 'spacer rows are hidden from assistive technology');
+            }],
+            ['table (editable, 5000 rows): an open editor keeps its row, draft and focus while the table is scrolled far away and back (#1474)', async t => {
+                const g = await grid(t);
+                await g.pick(5); g.press('Enter'); await until(() => g.cell(5, 'name').querySelector('input'), 'the editor');
+                const input = g.cell(5, 'name').querySelector('input'); input.value = 'Draft'; input.dispatchEvent(new Event('input', { bubbles: true, composed: true }));
+                await g.scroll(5000);
+                const e = g.cell(5, 'name')?.querySelector('input'); t.ok(e, 'the edited row is still in the DOM while scrolled away'); t.eq(e.value, 'Draft', 'the draft survived the re-render');
+                await until(() => g.sr.activeElement === g.cell(5, 'name')?.querySelector('input'), 'focus stays in the editor'); t.ok(g.drawn().length < 70, 'still windowed');
+                await g.scroll(0); t.ok(g.cell(5, 'name').querySelector('input'), 'the editor is still open after scrolling back');
+            }],
+            ['table (editable, 5000 rows): ArrowDown past the window edge, PageDown and Ctrl+End/Home move by row id and keep the cell visible and focused (#1474)', async t => {
+                const g = await grid(t);
+                const last = g.drawn().at(-1).dataset.pkContext; await g.pick(last);
+                g.press('ArrowDown'); await until(() => g.active() === String(Number(last) + 1) && g.sr.activeElement === g.cell(Number(last) + 1, 'name'), 'ArrowDown reached the next undrawn row');
+                t.ok(g.visible(g.cell(Number(last) + 1, 'name')), 'the cell is inside the scroll frame, below the sticky header');
+                const vis = Math.floor((g.frame.clientHeight - g.headH()) / g.rowH()), from = Number(g.active());
+                g.press('PageDown'); await until(() => Number(g.active()) === from + vis, `PageDown moved by ${vis} rows`); t.ok(g.visible(g.sr.activeElement), 'the PageDown target is visible');
+                g.press('PageUp'); await until(() => Number(g.active()) === from, 'PageUp moved back');
+                g.press('End', { ctrlKey: true }); await until(() => g.active() === '5000' && g.sr.activeElement === g.cell(5000, 'name'), 'Ctrl+End reached the last row'); t.ok(g.visible(g.sr.activeElement));
+                g.press('Enter'); const i = await until(() => g.cell(5000, 'name').querySelector('input'), 'the last row opens'); i.value = 'Last'; g.press('Enter', {}, i);
+                await until(() => g.el.rows[4999].name === 'Last', 'the last row committed');
+                g.press('Home', { ctrlKey: true }); await until(() => g.active() === '1' && g.sr.activeElement === g.cell(1, 'name'), 'Ctrl+Home reached the first row');
+            }],
+            ['table (editable, 5000 rows): Enter commits and moves down across the window edge, and the new cell is focused and visible (#1474)', async t => {
+                const g = await grid(t);
+                const last = Number(g.drawn().at(-1).dataset.pkContext); await g.pick(last); g.press('Enter');
+                const i = await until(() => g.cell(last, 'name').querySelector('input'), 'the editor'); i.value = 'Edge'; g.press('Enter', {}, i);
+                await until(() => g.el.rows[last - 1].name === 'Edge' && g.active() === String(last + 1) && g.sr.activeElement === g.cell(last + 1, 'name'), 'committed and moved down');
+                t.ok(g.visible(g.cell(last + 1, 'name')), 'the next cell is visible');
+            }],
+            ['table (editable, 5000 rows): the sticky header stays at the top of the scroll frame after scrolling 10000px (#1474)', async t => {
+                const g = await grid(t); await g.scroll(10000);
+                t.ok(g.frame.scrollTop >= 9000, 'it scrolled');
+                t.ok(Math.abs(g.sr.querySelector('thead th').getBoundingClientRect().top - g.frame.getBoundingClientRect().top) < 2, 'the header is flush with the frame top');
+            }],
+            ['table (editable, 5000 rows): a 2000x3 paste commits through pk-cell-edit for rows never drawn, announces the count, and one Ctrl+Z reverts every cell (#1474)', async t => {
+                const g = await grid(t); g.cell(1, 'sku').focus(); let n = 0; const srcs = new Set(); g.el.addEventListener('pk-cell-edit', e => { n++; srcs.add(e.detail.source); });
+                paste(g.sr.activeElement, Array.from({ length: 2000 }, (_, i) => `P${i}\tQ${i}\t${1000 + i}`).join('\n'));
+                await until(() => g.el.rows[1999].qty === 2999, 'the paste to commit', 15000);
+                t.eq(n, 6000, 'one pk-cell-edit per cell'); t.eq([...srcs].join(), 'paste'); t.eq(g.el.rows[1999].name, 'Q1999', 'a row that was never drawn took its value');
+                await until(() => /^6000 cells updated/.test(g.sr.querySelector('[role=status].sr')?.textContent ?? ''), 'the live region');
+                g.press('z', { ctrlKey: true }, g.sr.activeElement); await until(() => g.el.rows[1999].name === 'Item 2000' && g.el.rows[0].sku === 'S1', 'one undo reverted the whole paste', 15000);
+                t.eq(g.el.rows[1500].qty, 1500 % 50, 'including an undrawn row');
+            }],
+            ['table (editable, 5000 rows): undoing an edit on an off-screen row scrolls it into view and focuses it (#1474)', async t => {
+                const g = await grid(t); await g.pick(1); g.press('End', { ctrlKey: true }); await until(() => g.active() === '5000', 'last row');
+                g.press('Enter'); const i = await until(() => g.cell(5000, 'name')?.querySelector('input'), 'editor'); i.value = 'Far'; g.press('Enter', {}, i); await until(() => g.el.rows[4999].name === 'Far', 'committed');
+                g.press('Home', { ctrlKey: true }); await until(() => g.active() === '1' && !g.cell(5000, 'name'), 'back at the top, the far row no longer drawn');
+                g.press('z', { ctrlKey: true }, g.sr.activeElement);
+                await until(() => g.el.rows[4999].name === 'Item 5000' && g.active() === '5000' && g.sr.activeElement === g.cell(5000, 'name'), 'undo focused the far row'); t.ok(g.visible(g.cell(5000, 'name')), 'and it is in view');
+            }],
+            ['table (editable, 5000 rows): sort and filter keep the active row by id, and a cellError for an undrawn row shows once it is drawn (#1474)', async t => {
+                const g = await grid(t); await g.pick(7);
+                g.el.sort = 'name'; g.el.sortDir = 'desc'; await t.settle(); await until(() => g.cell(7, 'name'), 'row 7 stays drawn after the sort'); t.eq(g.active(), '7', 'the active row is still 7');
+                g.el.sort = ''; await t.settle();
+                g.el.cellErrors = { '4000:name': 'Bad name' }; await t.settle(); t.ok(!g.cell(4000, 'name'), 'row 4000 is not drawn');
+                await g.scroll(3990 * g.rowH()); await until(() => g.cell(4000, 'name'), 'row 4000 drawn');
+                t.eq(g.cell(4000, 'name').getAttribute('aria-invalid'), 'true', 'its error shows'); t.eq(g.cell(4000, 'name').textContent.includes('Bad name'), true);
+                g.el.filters = { name: 'Item 1' }; await until(() => g.el.view.length === 1111, 'the filter narrowed the view'); await t.settle(); t.ok(g.drawn().length < 70, 'still windowed');
+                t.eq(g.sr.querySelector('table').getAttribute('aria-rowcount'), String(g.el.view.length + 1), 'aria-rowcount follows the filtered view');
+            }],
+            ['table (editable, 1200 rows): opening an editor does not change the row height or the scroll height, at 375 and 1200 wide (#1474)', async t => {
+                for (const w of [375, 1200]) {
+                    const g = await grid(t, 1200, w); await g.scroll(300); const id = g.drawn()[12].dataset.pkContext; await g.pick(id);
+                    const before = { h: g.cell(id, 'name').closest('tr').getBoundingClientRect().height, sh: g.frame.scrollHeight };
+                    g.press('Enter'); await until(() => g.cell(id, 'name').querySelector('input'), 'editor'); await t.settle();
+                    t.ok(Math.abs(g.cell(id, 'name').closest('tr').getBoundingClientRect().height - before.h) < 1.5, `row height unchanged at ${w}`); t.ok(Math.abs(g.frame.scrollHeight - before.sh) < 2, `scroll height unchanged at ${w}`);
+                }
+            }],
+            ['table (editable, 5000 rows): 200 scroll frames never draw more than a window of rows (#1474)', async t => {
+                const g = await grid(t); let most = 0; const max = g.frame.scrollHeight - g.frame.clientHeight;
+                for (let i = 0; i < 200; i++) { g.frame.scrollTop = (i * 7919) % max; await new Promise(r => requestAnimationFrame(r)); most = Math.max(most, g.drawn().length); }
+                await t.settle(); most = Math.max(most, g.drawn().length); t.ok(most < 70, `at most ${most} rows drawn`);
+            }],
+        ];
+    })(),
     ['table (editable): arrow keys move the active cell, Enter commits and moves down, Tab moves right within the row and leaves the grid at its last cell, and typing a character starts editing with it', async t => {
         const el = await t.mount(`<pk-table editable label="Stock" columns='[{"key":"name","label":"Name","editor":"text"},{"key":"qty","label":"Qty","type":"number","editor":"number"}]' rows='[{"id":1,"name":"Widget","qty":4},{"id":2,"name":"Gadget","qty":9}]'></pk-table>`);
         await t.settle();
