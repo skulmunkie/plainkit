@@ -100,6 +100,17 @@ test('intercept also handles a cancelable pk-navigate (pk-link\'s `to`), and des
     assert.deepEqual(container.handlers, {});
 });
 
+test('a non-cancelable pk-navigate is a notification for the host (navigate="host"): the router leaves it alone (#1421)', () => {
+    fakeWin('/');
+    const container = fakeContainer();
+    const router = mountRouter(container, { routes, intercept: true });
+    const e = { cancelable: false, detail: { to: '/orders' }, preventDefault() { this.prevented = true; } };
+    container.on('pk-navigate')(e);
+    assert.equal(e.prevented, undefined);
+    assert.equal(router.current().label, 'Home');
+    router.destroy();
+});
+
 test('createPage with a router sets breadcrumbs and the title now and on each route change, and destroy stops following', () => {
     fakeWin('/orders/3');
     class El { constructor() { this.children = []; } append(...k) { this.children.push(...k); } replaceChildren(...k) { this.children = k; } }

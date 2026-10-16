@@ -84,6 +84,18 @@ public sealed class PkDataTableTests : BunitContext, IAsyncLifetime
         Assert.Equal(("city", true, "ac", 50), (sort, desc, search, size));
     }
 
+    // OnNavigate and Navigate come from the generated companion (#1421): a notification a .NET callback cannot cancel, so Navigate.Host asks the element not to navigate.
+    [Fact]
+    public async Task OnNavigate_is_a_notification_and_Navigate_is_the_navigate_attribute()
+    {
+        PkNavigateEventArgs? seen = null;
+        var cut = Render(Immediate(_ => Page(0)), p => p.Add(x => x.RowHrefTemplate, "/customers/{id}").Add(x => x.Navigate, "host").Add(x => x.OnNavigate, e => { seen = e; }));
+        Assert.Equal("host", cut.Find("pk-data-table").GetAttribute("navigate"));
+        await cut.Find("pk-data-table").TriggerEventAsync("onpk-navigate", new PkNavigateEventArgs { To = "/customers/3", Href = "/customers/3" });
+        Assert.Equal("/customers/3", seen?.To);
+        Assert.Null(Render(Immediate(_ => Page(0))).Find("pk-data-table").GetAttribute("navigate"));
+    }
+
     [Fact]
     public void It_renders_pk_data_table_with_the_options_as_attributes_and_hands_it_the_load_callback()
     {
