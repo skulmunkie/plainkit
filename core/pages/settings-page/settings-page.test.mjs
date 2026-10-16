@@ -143,23 +143,21 @@ test('a rejecting save() shows the error in the bar status and keeps the bar ope
     assert.equal(parts.saved.hidden, true);
 });
 
-test('the shared title bar draws heading, breadcrumb and actions from config, fires pk-action, and stays hidden when none is set', () => {
+test('the shared title bar fills the page shell with heading, breadcrumb and actions from config, fires pk-action, and draws nothing when none is set', () => {
     const { el, parts } = make();
     el.config = { sections: [] };
     el.connected();
-    assert.equal(parts.header.hidden, true);
+    assert.equal(parts.header.attrs.heading, '');
     assert.equal(parts.header.children.length, 0);
     const events = [];
     el.dispatchEvent = e => events.push(e.detail.key);
     el.config = { heading: 'Settings', breadcrumb: [{ label: 'Home', href: '/' }], actions: [{ key: 'reset', label: 'Reset' }] };
     el.changed('config');
-    assert.equal(parts.header.hidden, false);
-    const [header] = parts.header.children;
-    assert.equal(header.localName, 'pk-page-header');
-    assert.equal(header.heading, 'Settings');
-    assert.equal(header.children[0].localName, 'pk-breadcrumb');
-    const btn = header.children[1];
+    assert.equal(parts.header.attrs.heading, 'Settings');
+    const [crumbs, btn, title] = parts.header.children;
+    assert.equal(crumbs.localName, 'pk-breadcrumb');
     assert.equal(btn.slot, 'actions');
+    assert.equal(title.localName, 'slot');
     btn.fire('click');
     assert.deepEqual(events, ['reset']);
 });
