@@ -220,7 +220,7 @@ export const PK_VERSION = '${version}';
     for (const sub of ['tools/audit', 'tools/strict']) {
         for (const f of fs.readdirSync(path.join(root, sub), { recursive: true })) {
             const src = path.join(root, sub, f);
-            if (fs.statSync(src).isFile() && !f.endsWith('.test.mjs') && !(sub === 'tools/audit' && f === 'data.mjs')) w(`dist/${sub}/${f.replace(/\\/g, '/')}`, read(src));
+            if (fs.statSync(src).isFile() && !f.endsWith('.test.mjs') && !(sub === 'tools/audit' && f === 'data.mjs')) w(`dist/${sub}/${f.replace(/\\/g, '/')}`, minifyJs(read(src))); // minified like dist/js (esbuild keeps the shebang and every export name): comments and whitespace were about a quarter of the package's gzip
         }
     }
     // The API surface as it is now, for the scorecard's API section to diff against the baseline (kept current by the build, checked by a test).
