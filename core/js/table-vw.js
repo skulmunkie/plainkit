@@ -71,7 +71,7 @@ function tr(el, row, id, sel, h) {
     pick.checked = sel.has(id);
     return h('tr', { 'data-pk-context': id, 'data-selected': sel.has(id), 'data-clickable': el.clickable, ...mark(row), 'aria-current': el.currentRow && el.currentRow === id ? 'true' : null },
         ...(el.selectable ? [h('td', { 'data-check': true }, pick)] : []),
-        ...el.list('columns').map(c => { const name = `cell-${id}-${c.key}`; return h('td', { 'data-key': c.key, 'data-label': c.label ?? c.key, 'data-align': al(c), 'data-hide-phone': c.hidePhone, 'data-shed': c.shed }, el.querySelector(`:scope > [slot="${CSS.escape(name)}"]`) ? h('slot', { name }) : String(row[c.key] ?? '')); }));
+        ...el.list('columns').map(c => { const name = `cell-${id}-${c.key}`; return h('td', { 'data-key': c.key, 'data-label': c.title ? null : c.label ?? c.key, 'data-title': c.title, 'data-align': al(c), 'data-hide-phone': c.hidePhone, 'data-shed': c.shed }, el.querySelector(`:scope > [slot="${CSS.escape(name)}"]`) ? h('slot', { name }) : String(row[c.key] ?? '')); }));
 }
 
 // The header rows (the titles, and the filter row when filterable) for table.js, which has no room for them in its gzip budget.
