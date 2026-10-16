@@ -1,0 +1,17 @@
+{
+  "id": "pricing-cards",
+  "title": "Pricing cards",
+  "summary": "Plans side by side: a name, a price, three or four inclusions and one action per card, with a badge on the recommended plan.",
+  "built": "Grid, Card, Badge, List, Text, Button.",
+  "mobile": "The cards stack to one column; each button is full width and keeps 44px.",
+  "used": [
+    "badge",
+    "button",
+    "card",
+    "grid",
+    "list",
+    "stack",
+    "text"
+  ],
+  "order": 9
+}
