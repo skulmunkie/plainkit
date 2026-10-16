@@ -68,3 +68,10 @@ test('the hide-tabs example and its descriptions ship in the meta', () => {
     assert.match(prop('hideTabs').description, /pk-tab-change/);
     assert.match(prop('sectionsAbove').description, /show and hide/);
 });
+
+test('hideNext is a reflected boolean that only hides the Next button (#1433)', () => {
+    assert.equal(prop('hideNext').type, 'boolean');
+    assert.equal(prop('hideNext').default, false);
+    assert.equal(prop('hideNext').reflect, true);
+    assert.ok(read('js').includes('next.hidden = this.hideNext ||'));
+});

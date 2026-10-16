@@ -57,6 +57,13 @@
       "description": "A query parameter name (\"tab\") that keeps the chosen section in the address bar, so a reload or a shared link opens on it. (replaceState, no history entry)."
     },
     {
+      "name": "hideNext",
+      "type": "boolean",
+      "default": false,
+      "reflect": true,
+      "description": "Draws no Next button after the main column. The sections still change from the tab strip (or from section); use it when the strip, on a phone too, is enough."
+    },
+    {
       "name": "nextLabel",
       "type": "string",
       "default": "Next",
@@ -144,6 +151,10 @@
     {
       "title": "Record page with phone tabs",
       "html": "<pk-detail-layout>\n  <pk-card heading=\"Details\" data-pk-section=\"details\"><p>Name, SKU</p></pk-card>\n  <pk-card heading=\"Pricing\" data-pk-section=\"pricing\"><p>Price, cost</p></pk-card>\n  <pk-card slot=\"sidebar\" heading=\"Status\" data-pk-section=\"details\"><p>Active</p></pk-card>\n  <pk-card slot=\"sidebar\" heading=\"Channels\" data-pk-section=\"pricing\"><p>Web, store</p></pk-card>\n</pk-detail-layout>"
+    },
+    {
+      "title": "Phone tabs without the Next button",
+      "html": "<pk-detail-layout hide-next>\n  <pk-card heading=\"Details\" data-pk-section=\"details\"><p>Name, SKU</p></pk-card>\n  <pk-card heading=\"Pricing\" data-pk-section=\"pricing\"><p>Price, cost</p></pk-card>\n</pk-detail-layout>"
     },
     {
       "title": "Tabs from the page header",
