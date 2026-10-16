@@ -94,7 +94,7 @@ public static class PkMappingInfo
                 var def = p.TryGetProperty("default", out var dv) ? (dv.ValueKind == JsonValueKind.String ? dv.GetString() : dv.GetRawText()) : defaults is not null && defaults.TryGetValue(prop, out var d) ? d : null;
                 parameters.Add(new(name, "parameter", type, def, changeEvent is not null, Kebab(prop), reason));
                 if (changeEvent is not null) parameters.Add(new(name + "Changed", "event", $"EventCallback<{type}>", null, false, changeEvent, reason));
-                if (model is { } fm && Str(fm, "prop") == prop && fm.TryGetProperty("field", out var fld) && fld.ValueKind == JsonValueKind.True)
+                if (model is { } fm && (Str(fm, "prop") == prop || Str(fm, "valuesParam") == name) && fm.TryGetProperty("field", out var fld) && fld.ValueKind == JsonValueKind.True)
                     parameters.Add(new(name + "Expression", "parameter", $"Expression<Func<{type}>>", null, false, null, reason));
                 // "multi": the typed list form of the model prop (Values, ValuesChanged and, for a form control, ValuesExpression).
                 if (model is { } mm && Str(mm, "prop") == prop && mm.TryGetProperty("multi", out var multi) && multi.ValueKind == JsonValueKind.True)

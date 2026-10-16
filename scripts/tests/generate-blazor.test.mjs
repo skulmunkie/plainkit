@@ -671,10 +671,13 @@ test('"extra" on a component that is not hand-written is an error: it is generat
     assert.throws(() => generate(api, { demo: extraMapping }, new Set(), new Set(), new Map()), /extra.*exist by hand/);
 });
 
-test('the real PkLookupPicker gets Description, SearchDebounce, OnInput and OnChange from its companion', () => {
-    const cs = real.files.get('PkLookupPicker.Extra.cs');
-    assert.match(cs, /public partial class PkLookupPicker<TItem>/);
-    for (const n of ['Description', 'SearchDebounce', 'OnInput', 'OnChange']) assert.match(cs, new RegExp(`public \\S+ ${n} \\{ get; set; \\}`), n);
-    assert.match(cs, /\["search-debounce"\] = PkAttr\.Num\(SearchDebounce\)/);
-    assert.match(cs, /EventCallback<ChangeEventArgs>/);
+test('the real PkLookupPicker is generated: typed columns, keyed load rows, typed Values, listened native events', () => {
+    const razor = real.files.get('PkLookupPicker.razor');
+    assert.match(razor, /@typeparam TItem/);
+    assert.match(razor, /columns="@PkAttr\.Json\(Columns\.Select\(c => c\.ToColumn\(\)\)\)"/);
+    assert.match(razor, /n\["id"\] = IdOf!\(i\); n\["pkLabel"\] = \(LabelOf \?\? IdOf!\)\(i\)/);
+    assert.match(razor, /Values = e\.Values \?\? \[\];/);
+    for (const n of ['Description', 'SearchDebounce', 'OnInput', 'OnChange']) assert.match(razor, new RegExp(`public \\S+ ${n} \\{ get; set; \\}`), n);
+    assert.match(razor, /search-debounce="@PkAttr\.Num\(SearchDebounce\)"/);
+    assert.match(razor, /if \(OnInput\.HasDelegate\) handlers\["oninput"\]/);
 });

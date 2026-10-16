@@ -1192,6 +1192,29 @@ export const dataDisplayCases = [
         press(cell(1, 'name'), 'z', { ctrlKey: true }); await t.settle();
         t.eq(cell(1, 'name').textContent, 'Widget XL', 'a refused undo keeps the value');
     }],
+    ['table (editable): pasting tab-separated text fills a block from the active cell through pk-cell-edit, skips read-only and off-grid cells, flags invalid ones only, and one Ctrl+Z reverts it all', async t => {
+        const el = await t.mount(`<pk-table editable label="Stock" columns='[{"key":"sku","label":"SKU"},{"key":"name","label":"Name","editor":"text"},{"key":"qty","label":"Qty","type":"number","editor":"number","min":0}]' rows='[{"id":1,"sku":"A","name":"Widget","qty":4},{"id":2,"sku":"B","name":"Gadget","qty":9}]'></pk-table>`);
+        await t.settle();
+        const cell = (r, k) => el.shadowRoot.querySelector(`tbody tr:nth-child(${r}) td[data-key=${k}]`);
+        const seen = [], sum = []; el.addEventListener('pk-cell-edit', e => seen.push(`${e.detail.key}:${e.detail.value}:${e.detail.source}`)); el.addEventListener('pk-cells-paste', e => sum.push(e.detail));
+        const paste = (n, text) => n.dispatchEvent(Object.assign(new Event('paste', { bubbles: true, composed: true, cancelable: true }), { clipboardData: { getData: () => text } }));
+        await until(() => cell(1, 'sku')?.tabIndex === 0, 'the grid');
+        cell(1, 'sku').focus(); cell(1, 'name').click(); await t.settle();
+        const rowsBefore = el.rows.map(r => ({ ...r }));
+        paste(cell(1, 'name'), 'Bolt\t-3\textra\r\nNut\t7\r\nBeyond\t1\n');
+        await until(() => cell(2, 'qty').textContent === '7', 'the paste to show');
+        t.eq(el.rows[0].name, 'Bolt', 'the first cell took its text'); t.eq(el.rows[1].name, 'Nut'); t.eq(el.rows[0].qty, 4, 'the invalid -3 (min 0) was not committed');
+        t.eq(cell(1, 'qty').getAttribute('aria-invalid'), 'true', 'only the invalid cell is aria-invalid'); t.ok(!cell(2, 'qty').hasAttribute('aria-invalid'));
+        t.eq(el.rows[0].sku, 'A', 'a read-only column is not overwritten');
+        t.eq(seen.join(), 'name:Bolt:paste,name:Nut:paste,qty:7:paste', 'each accepted cell raised pk-cell-edit with source paste');
+        t.eq(sum[0].cells.length, 3); t.eq(sum[0].rejected[0].reason, 'At least 0', 'the invalid cell is listed with its message');
+        t.ok(sum[0].rejected.some(r => r.reason === 'outside'), 'cells beyond the grid are listed as outside');
+        cell(1, 'name').focus(); cell(1, 'name').dispatchEvent(new KeyboardEvent('keydown', { key: 'z', ctrlKey: true, bubbles: true, composed: true, cancelable: true }));
+        await until(() => cell(1, 'name').textContent === 'Widget', 'undo');
+        t.eq(JSON.stringify(el.rows), JSON.stringify(rowsBefore), 'one undo reverted the whole paste');
+        el.addEventListener('pk-cell-edit', e => e.preventDefault()); seen.length = 0; paste(cell(1, 'name'), 'Refused');
+        await t.settle(); t.eq(el.rows[0].name, 'Widget', 'a cancelled pk-cell-edit leaves the cell unchanged'); t.eq(sum.at(-1).rejected[0].reason, 'refused');
+    }],
     ['table (editable): arrow keys move the active cell, Enter commits and moves down, Tab moves right within the row and leaves the grid at its last cell, and typing a character starts editing with it', async t => {
         const el = await t.mount(`<pk-table editable label="Stock" columns='[{"key":"name","label":"Name","editor":"text"},{"key":"qty","label":"Qty","type":"number","editor":"number"}]' rows='[{"id":1,"name":"Widget","qty":4},{"id":2,"name":"Gadget","qty":9}]'></pk-table>`);
         await t.settle();
