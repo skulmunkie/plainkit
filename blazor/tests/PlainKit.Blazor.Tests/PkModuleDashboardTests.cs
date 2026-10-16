@@ -85,6 +85,6 @@ public sealed class PkModuleDashboardTests : BunitContext, IAsyncLifetime
     {
         var bridge = Setup();
         var cut = Render<PkModuleDashboard>(p => p.Add(x => x.Surface, "overview").Add(x => x.Tabs, Tabs));
-        await Assert.ThrowsAnyAsync<Exception>(() => Load(bridge, cut, key));
+        Assert.True(System.Text.Json.JsonSerializer.SerializeToElement(await Load(bridge, cut, key)).GetProperty("pkError").GetBoolean());
     }
 }

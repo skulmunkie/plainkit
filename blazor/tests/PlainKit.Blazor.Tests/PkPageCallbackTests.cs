@@ -2,6 +2,7 @@ using System.Text.Json;
 using Bunit;
 using Microsoft.AspNetCore.Components;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Logging;
 using Microsoft.JSInterop;
 using PlainKit.Blazor;
 
@@ -60,8 +61,56 @@ public sealed class PkPageCallbackTests : BunitContext, IAsyncLifetime
         var cut = Render<PkToolPage>(p => p.Add(x => x.Run, _ => throw new InvalidOperationException("boom")));
         var host = Assert.IsType<DotNetObjectReference<PkCallbackHost<Dictionary<string, JsonElement>>>>(Assert.Single(_bridge.Invocations["setCallback"]).Arguments[2]);
 
-        var e = await Assert.ThrowsAsync<InvalidOperationException>(() => cut.InvokeAsync(() => host.Value.Invoke(Values("{}"))));
-        Assert.Equal("boom", e.Message);
+        var e = Envelope(await cut.InvokeAsync(() => host.Value.Invoke(Values("{}"))));
+        Assert.True(e.GetProperty("pkError").GetBoolean());
+        Assert.Equal(Generic, e.GetProperty("message").GetString());
+        Assert.Equal("System.InvalidOperationException", e.GetProperty("detail").GetString());   // the type name only: no text, frame or path leaves the server
+        Assert.DoesNotContain("boom", e.GetRawText());
+        Assert.DoesNotContain(" at ", e.GetRawText());
+    }
+
+    private const string Generic = "Something went wrong. See the log for details.";
+    private sealed class Refusal(string message) : Exception(message), IPkUserFacingException;
+    private static JsonElement Envelope(object? result) => JsonSerializer.SerializeToElement(result);
+
+    private sealed class Capture : ILoggerFactory, ILoggerProvider, ILogger
+    {
+        public readonly List<(LogLevel Level, string Text, Exception? Error)> Entries = [];
+        public ILogger CreateLogger(string categoryName) => this;
+        public void AddProvider(ILoggerProvider provider) { }
+        public IDisposable? BeginScope<TState>(TState state) where TState : notnull => null;
+        public bool IsEnabled(LogLevel logLevel) => true;
+        public void Log<TState>(LogLevel logLevel, EventId eventId, TState state, Exception? exception, Func<TState, Exception?, string> formatter) => Entries.Add((logLevel, formatter(state, exception), exception));
+        public void Dispose() { }
+    }
+
+    [Fact]
+    public async Task The_full_exception_reaches_ILogger_on_the_server_while_the_envelope_has_neither_message_nor_stack()   // #1412
+    {
+        var capture = new Capture();
+        Services.AddSingleton<ILoggerFactory>(capture);
+        var cut = Render<PkToolPage>(p => p.Add(x => x.Run, v => v["who"].GetString() == "me" ? throw new Refusal("Only one location can be primary.") : throw new InvalidOperationException("secret detail")));
+        var host = Assert.IsType<DotNetObjectReference<PkCallbackHost<Dictionary<string, JsonElement>>>>(Assert.Single(_bridge.Invocations["setCallback"]).Arguments[2]);
+
+        var envelope = Envelope(await cut.InvokeAsync(() => host.Value.Invoke(Values("{\"who\":\"x\"}")))).GetRawText();
+        Assert.DoesNotContain("secret detail", envelope);
+        Assert.DoesNotContain(" at ", envelope);
+        var error = Assert.Single(capture.Entries, e => e.Level == LogLevel.Error);
+        Assert.Equal("secret detail", error.Error!.Message);
+        Assert.Contains("PkPageCallbackTests", error.Error.StackTrace);
+
+        await cut.InvokeAsync(() => host.Value.Invoke(Values("{\"who\":\"me\"}")));
+        Assert.Single(capture.Entries, e => e.Level == LogLevel.Error);   // the user-facing one is not an error
+    }
+
+    [Fact]
+    public async Task A_user_facing_exception_keeps_its_message_and_any_other_text_stays_out_of_the_envelope()   // #1412
+    {
+        var cut = Render<PkToolPage>(p => p.Add(x => x.Run, v => v["who"].GetString() == "me" ? throw new Refusal("Only one location can be primary.") : throw new InvalidOperationException("at Foo in C:\\src\\Secret.cs:line 9")));
+        var host = Assert.IsType<DotNetObjectReference<PkCallbackHost<Dictionary<string, JsonElement>>>>(Assert.Single(_bridge.Invocations["setCallback"]).Arguments[2]);
+
+        Assert.Equal("Only one location can be primary.", Envelope(await cut.InvokeAsync(() => host.Value.Invoke(Values("{\"who\":\"me\"}")))).GetProperty("message").GetString());
+        Assert.Equal(Generic, Envelope(await cut.InvokeAsync(() => host.Value.Invoke(Values("{\"who\":\"x\"}")))).GetProperty("message").GetString());
     }
 
     [Fact]
@@ -109,7 +158,7 @@ public sealed class PkPageCallbackTests : BunitContext, IAsyncLifetime
         var host = Assert.IsType<DotNetObjectReference<PkCallbackHost<Dictionary<string, JsonElement>>>>(Assert.Single(_bridge.Invocations["setCallback"]).Arguments[2]);
 
         fail = true;
-        await Assert.ThrowsAsync<InvalidOperationException>(() => cut.InvokeAsync(() => host.Value.Invoke(Values("{\"density\":\"x\"}"))));
+        Assert.True(Envelope(await cut.InvokeAsync(() => host.Value.Invoke(Values("{\"density\":\"x\"}")))).GetProperty("pkError").GetBoolean());
         Assert.Equal("{\"density\":\"cozy\"}", bound);
 
         fail = false;
@@ -445,8 +494,9 @@ public sealed class PkPageCallbackTests : BunitContext, IAsyncLifetime
         var cut = Render<PkListPage<Order>>(p => p.Add(x => x.Load, _ => throw new InvalidOperationException("db down")));
         var host = Assert.IsType<DotNetObjectReference<PkCallbackHost<PkListPageQuery>>>(Assert.Single(_bridge.Invocations["setCallback"]).Arguments[2]);
 
-        var e = await Assert.ThrowsAsync<InvalidOperationException>(() => cut.InvokeAsync(() => host.Value.Invoke(new PkListPageQuery())));
-        Assert.Equal("db down", e.Message);
+        var e = Envelope(await cut.InvokeAsync(() => host.Value.Invoke(new PkListPageQuery())));
+        Assert.Equal(Generic, e.GetProperty("message").GetString());
+        Assert.DoesNotContain("db down", e.GetRawText());
     }
 
     [Fact]
@@ -486,7 +536,7 @@ public sealed class PkPageCallbackTests : BunitContext, IAsyncLifetime
         var cut = Render<PkDashboardPage>(p => p.Add(x => x.Load, k => k == "bad" ? throw new InvalidOperationException("no data") : Task.FromResult<object?>("ok")));
         var host = Assert.IsType<DotNetObjectReference<PkCallbackHost<string>>>(Assert.Single(_bridge.Invocations["setCallback"]).Arguments[2]);
 
-        await Assert.ThrowsAsync<InvalidOperationException>(() => cut.InvokeAsync(() => host.Value.Invoke("bad")));
+        Assert.True(Envelope(await cut.InvokeAsync(() => host.Value.Invoke("bad"))).GetProperty("pkError").GetBoolean());
         Assert.Equal("ok", await cut.InvokeAsync(() => host.Value.Invoke("good")));
     }
 
