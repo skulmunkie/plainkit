@@ -189,9 +189,9 @@ export const appShellCases = [
         const title = s.d.querySelectorAll('#pk-main pk-heading[level="1"]');
         t.eq(title.length, 1, 'one level-1 title');
         t.eq(s.d.querySelectorAll('#pk-main h1').length, 0, 'no raw h1 beside it');
-        const h = title[0], page = h.parentElement, header = page.shadowRoot.querySelector('pk-page-header'), inner = h.shadowRoot.querySelector('h1');
+        const h = title[0], page = h.parentElement, header = page.shadowRoot.querySelector('pk-page-shell')?.shadowRoot.querySelector('pk-page-header'), inner = h.shadowRoot.querySelector('h1');
         t.ok(inner, 'its shadow tree holds a real h1');
-        t.ok(header && h.assignedSlot, 'the page element forwards it into its pk-page-header');
+        t.ok(header && h.assignedSlot, 'the page element forwards it into the pk-page-header of its pk-page-shell');
         t.eq(h.getAttribute('slot'), 'title', 'in the title slot');
         t.eq(h.getAttribute('tabindex'), '-1', 'focusable by script only');
         t.eq(s.d.activeElement, h, 'focus is on the title');
