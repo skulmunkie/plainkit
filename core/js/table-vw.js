@@ -37,14 +37,14 @@ function attach(el) {
 function body(el, rowsAll, h) {
     const prev = el.part('body').querySelector('tr[data-pk-context]');
     el.$rowH = prev?.getBoundingClientRect().height || el.$rowH;
-    if (el.expandable || el.editable || rowsAll.length <= THRESHOLD) return el.$virtual = false, null;
+    if (el.expandable || rowsAll.length <= THRESHOLD) return el.$virtual = false, null;
     if (!el.$vs) { el.$vs = 1; attach(el); }
     el.$virtual = true;
-    const cols = el.list('columns'), lead = Number(el.selectable), sel = el.chosen?.() ?? idSet(el.selected);
-    const s = el.part('scroll'), rowH = el.$rowH || 32, vh = s.clientHeight || 400, span = cols.length + lead;
-    const start = Math.max(0, Math.floor(s.scrollTop / rowH) - 10); // 10 extra rows above and below the viewport, so a fast scroll or a focus move does not flash empty rows
-    const end = Math.min(rowsAll.length, start + Math.ceil(vh / rowH) + 20);
-    const bump = (size, place) => { const td = h('td', { colspan: span }); td.style.cssText = `padding:0;border:0;block-size:${size}px`; return h('tr', { 'data-spacer': place, 'aria-hidden': true }, td); };
+    const sel = el.chosen?.() ?? idSet(el.selected);
+    const s = el.part('scroll'), rowH = el.$rowH || 32, vh = s.clientHeight || 400, span = el.part('foot').colSpan; // frame() has just set it to the column count
+    const win = Math.ceil(vh / rowH) + 20, start = Math.max(0, Math.min(Math.floor(s.scrollTop / rowH) - 10, rowsAll.length - win)); // never past the last window (the frame's own overhead lets scrollTop / rowH run past the rows); 10 extra rows above and below the viewport, so a fast scroll or a focus move does not flash empty rows
+    const end = Math.min(rowsAll.length, start + win);
+    const bump = (size, place) => { const td = h('td', { colspan: span }); td.style.cssText = `padding:0;border:0;block-size:${size}px`; return h('tr', { 'data-spacer': place }, td); };
     const drawn = rowsAll.slice(start, end).map((row, j) => tr(el, row, rowId(row, start + j, el.rowKey), sel, h));
     return [...(start > 0 ? [bump(start * rowH, 'top')] : []), ...drawn, ...(end < rowsAll.length ? [bump((rowsAll.length - end) * rowH, 'bottom')] : [])];
 }

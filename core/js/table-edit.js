@@ -4,7 +4,7 @@
 // A commit raises the cancelable pk-cell-edit; unless the host cancels it the table then holds the new value in a copy of its rows (the host owns them after the event).
 
 import { sheetFor } from './element.js'; import { rowAt } from './rowset.js';
-import { keyStep, stepIndex } from './roving.js';
+import { keyStep, stepIndex } from './roving.js'; import V from './table-vw.js';
 
 const STYLES = ('td[data-key][tabindex]{cursor:cell}td[data-key]:focus-visible{outline:var(--focus-ring);outline-offset:-2px}td[aria-selected="true"]{background:color-mix(in srgb,var(--color-accent) 10%,transparent)}td[aria-invalid="true"]{box-shadow:inset 0 0 0 2px var(--field-error)}td[data-editing]{padding:var(--space-1);position:relative}td[data-editing] :is(input,select){inline-size:0;min-inline-size:100%;font:inherit}[data-cell-error]{display:block;color:var(--field-error);font-size:var(--text-meta);text-align:start}td[data-editing] [data-cell-error]{position:absolute;inset-block-start:100%;inset-inline-start:0;z-index:1;inline-size:max-content;max-inline-size:min(16rem,80vw);padding:var(--space-1) var(--space-2);background:var(--color-bg);border-radius:var(--radius-sm);box-shadow:var(--shadow-card)}@media (max-width:640px){td[data-editing] :is(input,select){min-block-size:var(--touch-target);min-inline-size:max(100%,var(--touch-target));font-size:16px}}');
 let sheet;
@@ -56,20 +56,44 @@ function lockWidths(t, tb, editing) {
     } else if (tb.style.tableLayout) { tb.style.tableLayout = ''; tb.querySelector('colgroup')?.remove(); }
 }
 
+// A windowed table draws only the rows near its viewport (table-vw.js). The active row and the edited row are drawn wherever they are, so focus and an open editor survive scrolling: the
+// rows already drawn are kept, the missing ones built the way the table builds them, and the spacers between are drawn again for the gaps.
+const h = (tag, attrs, ...kids) => { const e = document.createElement(tag); for (const k in attrs) attrs[k] && e.setAttribute(k, attrs[k] === true ? '' : attrs[k]); e.append(...kids); return e; };
+function pin(t, ix) {
+    const s = st(t), body = t.part('body'), have = new Map([...body.querySelectorAll('tr[data-pk-context]')].map(r => [ix.get(r.dataset.pkContext), r]));
+    const miss = [s.a?.id, s.edit?.id].map(id => ix.get(id)).filter(i => i != null && !have.has(i));
+    if (!miss.length || !have.size) return;
+    const sel = t.chosen(), ids = t.ids(), rowH = t.$rowH || 32, out = []; let next = 0;
+    for (const i of miss) have.set(i, V.tr(t, t.view[i], ids[i], sel, h));
+    const gap = (to, place) => { const td = h('td', { colspan: t.part('foot').colSpan }); td.style.cssText = `padding:0;border:0;block-size:${(to - next) * rowH}px`; out.push(h('tr', { 'data-spacer': place }, td)); };
+    for (const i of [...have.keys()].sort((x, y) => x - y)) { if (i > next) gap(i, next ? 'gap' : 'top'); out.push(have.get(i)); next = i + 1; }
+    if (next < ix.size) gap(ix.size, 'bottom');
+    body.replaceChildren(...out);
+}
+
 // After each render: grid roles and states on the body, the active cell's tab stop, the open editor and the error text.
 export function after(t) {
     const root = t.shadowRoot, s = st(t), tb = t.part('table');
     if (!t.editable) { tb.removeAttribute('role'); return; }
     sheet ??= sheetFor(STYLES);
     if (!root.adoptedStyleSheets.includes(sheet)) root.adoptedStyleSheets = [...root.adoptedStyleSheets, sheet];
-    if (!s.on) { s.on = 1; root.addEventListener('keydown', e => keydown(t, e)); root.addEventListener('click', e => click(t, e)); root.addEventListener('change', e => change(t, e)); root.addEventListener('input', e => { if (s.edit && e.target.dataset.cellEditor !== undefined) s.edit.draft = e.target.value; }); root.addEventListener('focusout', e => blur(t, e)); root.addEventListener('paste', e => paste(t, e)); }
+    if (!s.on) { s.on = 1; root.addEventListener('keydown', e => keydown(t, e)); root.addEventListener('click', e => click(t, e)); root.addEventListener('change', e => change(t, e)); root.addEventListener('input', e => { if (s.edit && e.target.dataset.cellEditor !== undefined) s.edit.draft = e.target.value; }); root.addEventListener('focusout', e => blur(t, e)); root.addEventListener('paste', e => paste(t, e)); t.part('scroll').addEventListener('scroll', () => { if (t.part('body').contains(root.activeElement)) s.focus ||= 'keep'; }, { passive: true }); }
     tb.setAttribute('role', 'grid');
     lockWidths(t, tb, !!s.edit);
+    // A windowed grid does not hold every row: say how many there are and which one each drawn row is (the header rows come first).
+    const head = t.part('head').children.length, ix = new Map(t.ids().map((x, i) => [x, i]));
+    if (t.$virtual) {
+        pin(t, ix);
+        tb.setAttribute('aria-rowcount', ix.size + head);
+        [...t.part('head').children].forEach((r, i) => r.setAttribute('aria-rowindex', i + 1));
+        for (const r of t.part('body').children) if (r.dataset.spacer) r.setAttribute('aria-hidden', 'true'); else r.setAttribute('aria-rowindex', ix.get(r.dataset.pkContext) + 1 + head);
+    } else tb.removeAttribute('aria-rowcount');
     const rows = cells(t), ids = t.ids(), errors = { ...s.paste, ...t.cellErrors };
-    if (!rows.flat().some(td => at(td).id === s.a?.id && at(td).key === s.a?.key)) s.a = rows[0]?.[0] ? at(rows[0][0]) : null;
+    // The active cell is kept by id, even when its row is not drawn (a windowed table, #1474); it falls back to the first drawn cell only when its row left the view.
+    if (!(s.a && ids.includes(s.a.id) && t.list('columns').some(c => c.key === s.a.key))) s.a = rows[0]?.[0] ? at(rows[0][0]) : null;
     for (const line of rows) for (const td of line) {
         const id = td.closest('tr').dataset.pkContext, k = td.dataset.key, c = col(t, k), on = s.a?.id === id && s.a?.key === k, ed = s.edit?.id === id && s.edit?.key === k;
-        const slotted = td.firstElementChild?.localName === 'slot', can = c.editor && !slotted, row = t.view[ids.indexOf(id)];
+        const slotted = td.firstElementChild?.localName === 'slot', can = c.editor && !slotted;
         td.tabIndex = on ? 0 : -1;
         td.setAttribute('aria-selected', String(on));
         if (!can) td.setAttribute('aria-readonly', 'true');
@@ -81,7 +105,8 @@ export function after(t) {
             td.dataset.editing = '';
             if (err) { i.setAttribute('aria-invalid', 'true'); const m = document.createElement('span'); m.dataset.cellError = ''; m.id = `pk-e-${id}-${k}`; m.textContent = err; td.append(m); i.setAttribute('aria-describedby', m.id); }
         } else if (err) { const m = document.createElement('span'); m.dataset.cellError = ''; m.textContent = err; td.append(m); }
-        if (s.focus && on) { (td.querySelector('[data-cell-editor]') ?? td).focus(); if (ed) td.querySelector('input')?.select(); s.focus = false; }
+        // s.focus is true after a move (scroll the cell into view) and 'keep' after a windowed re-render replaced the focused cell (restore focus without scrolling or reselecting).
+        if (s.focus && on) { const keep = s.focus === 'keep'; (td.querySelector('[data-cell-editor]') ?? td).focus({ preventScroll: keep }); if (ed && !keep) td.querySelector('input')?.select(); if (!keep && t.$virtual) reveal(t, td); s.focus = false; }
     }
 }
 
@@ -91,15 +116,32 @@ const slot = td => td.firstElementChild?.localName === 'slot' ? td.firstElementC
 const control = td => { const e = slot(td).assignedElements()[0], f = 'button,input,select,textarea,a[href],[tabindex],pk-switch,pk-checkbox'; return e?.matches(f) ? e : e?.querySelector(f); };
 const at = td => ({ id: td.closest('tr').dataset.pkContext, key: td.dataset.key });
 
-// Make a cell the active one (focus moves to it after the next draw, or now when it is already drawn).
-function activate(t, td) { const s = st(t); s.a = at(td); s.focus = true; t.requestUpdate(); }
+// Make a cell the active one by its row id and column key (focus moves to it after the next draw, which draws its row even when it was outside the window).
+function goto(t, id, k) { const s = st(t); s.a = { id, key: k }; s.focus = true; t.requestUpdate(); }
+const activate = (t, td) => { const { id, key: k } = at(td); goto(t, id, k); };
 
-// Arrow keys and Tab: one cell over. Along a row it wraps to the neighbouring row; false at the edge of the grid.
+// A windowed grid draws the active row but may leave it under the sticky header or below the frame: scroll the frame so the cell shows.
+function reveal(t, td) {
+    const f = t.part('scroll'), r = td.getBoundingClientRect(), b = f.getBoundingClientRect(), hh = t.hasAttribute('sticky-header') ? t.shadowRoot.querySelector('thead').getBoundingClientRect().height : 0;
+    if (r.top < b.top + hh) f.scrollTop -= b.top + hh - r.top; else if (r.bottom > b.bottom) f.scrollTop += r.bottom - b.bottom;
+}
+
+// Arrow keys and Tab: one cell over, worked out from the row ids and the column list, not from what is drawn. Along a row it wraps to the neighbouring row; false at the edge of the grid.
 function move(t, td, dx, dy) {
-    const rows = cells(t), y = rows.findIndex(r => r.includes(td)), x = rows[y].indexOf(td) + dx;
-    const target = dy ? rows[y + dy]?.[Math.min(rows[y + dy].length - 1, x)] : rows[y][x] ?? (x < 0 ? rows[y - 1]?.at(-1) : rows[y + 1]?.[0]);
-    if (target) activate(t, target);
-    return !!target;
+    const ids = t.ids(), keys = t.list('columns').map(c => c.key), a = at(td);
+    let y = ids.indexOf(a.id) + dy, x = keys.indexOf(a.key) + dx;
+    if (!dy) { if (x < 0) { y--; x = keys.length - 1; } else if (x >= keys.length) { y++; x = 0; } }
+    if (y < 0 || y >= ids.length) return false;
+    goto(t, ids[y], keys[x]);
+    return true;
+}
+
+// PageUp / PageDown move by the rows that fit the frame, Ctrl+Home / Ctrl+End to the first / last row; the position is announced, since the rows in between were never drawn.
+function jump(t, td, k) {
+    const ids = t.ids(), a = at(td), f = t.part('scroll'), rowH = t.$rowH || td.closest('tr').getBoundingClientRect().height || 32, hh = t.shadowRoot.querySelector('thead').getBoundingClientRect().height;
+    const page = Math.max(1, Math.floor((f.clientHeight - hh) / rowH)), i = ids.indexOf(a.id);
+    const to = k === 'Home' ? 0 : k === 'End' ? ids.length - 1 : Math.min(ids.length - 1, Math.max(0, i + (k === 'PageDown' ? page : -page)));
+    goto(t, ids[to], a.key); say(t, `Row ${to + 1} of ${ids.length}`);
 }
 
 // Opens the cell's editor. `draft`, when given (type-to-edit), replaces the current value instead of starting from it.
@@ -119,18 +161,24 @@ function save(t, td, draft, focus = true) {
     if (error) return stay(error);
     if (changed && !put(t, id, k, value)) return stay(t.cellErrors?.[key(id, k)] ?? 'Value not accepted');
     s.edit = null; s.focus = focus; t.requestUpdate();
-    if (changed) { (s.undo ??= []).push({ id, key: k, from: previous, to: value }); s.undo.splice(0, s.undo.length - 100); s.redo = []; say(t, `${label(t, id, k)}: ${shown(value)}`); }
+    if (changed) { (s.undo ??= []).push({ id, key: k, from: previous, to: value }); trim(s.undo); s.redo = []; say(t, `${label(t, id, k)}: ${shown(value)}`); }
     return true;
 }
 
 const shown = v => v ?? 'empty';
 
-// Offer a value for a cell to the host (pk-cell-edit) and, unless it cancels, hold it in a copy of the rows. False when the row is not drawn or the host refused.
-function put(t, id, k, value, source = 'keyboard') {
-    const i = t.ids().indexOf(id), row = t.view[i];
+// A batch (a paste, an undo step) resolves rows by id once and replaces the table's rows once at the end, so thousands of cells cost one copy, not one each.
+const batch = t => { const ids = t.ids(); return { view: t.view, at: new Map(ids.map((x, i) => [x, i])), ids, patch: new Map() }; };
+const flush = (t, cx) => { if (cx.patch.size) t.rows = t.list('rows').map(r => cx.patch.has(r) ? { ...r, ...cx.patch.get(r) } : r); };
+const trim = u => { let i = Math.max(0, u.length - 100); while (i > 0 && u[i].g && u[i].g === u[i - 1].g) i--; u.splice(0, i); }; // keep the last 100 steps, never cutting a paste in two
+
+// Offer a value for a cell to the host (pk-cell-edit) and, unless it cancels, hold it in a copy of the rows (at once, or at flush() when a batch is given). False when the row is not in the view or the host refused.
+function put(t, id, k, value, source = 'keyboard', cx) {
+    const own = !cx, c = cx ?? batch(t), i = c.at.get(id), row = c.view[i];
     if (!row || !t.emit('pk-cell-edit', { id, index: i, row, key: k, value, previous: row[k], source })) return false;
-    t.rows = t.list('rows').map(r => r === row ? { ...r, [k]: value } : r);
+    c.patch.set(row, { ...c.patch.get(row), [k]: value });
     delete st(t).paste?.[key(id, k)];
+    if (own) flush(t, c);
     return true;
 }
 
@@ -141,10 +189,10 @@ function step(t, back) {
     // A paste is one step: every cell of its group goes back (or forward) together.
     const group = [h]; while (h.g && from.at(-1)?.g === h.g) group.push(from.pop());
     if (back) group.reverse();
-    const done = group.filter(x => put(t, x.id, x.key, back ? x.from : x.to, back ? 'undo' : 'redo'));
+    const cx = batch(t), done = group.filter(x => put(t, x.id, x.key, back ? x.from : x.to, back ? 'undo' : 'redo', cx)); flush(t, cx);
     if (!done.length) { from.push(...group.reverse()); return say(t, `${label(t, h.id, h.key)}: ${back ? 'undo' : 'redo'} not accepted`); }
-    to.push(...(back ? done.reverse() : done)); s.a = { id: h.id, key: h.key }; s.focus = true; t.requestUpdate();
-    say(t, `${back ? 'Undo' : 'Redo'}, ${label(t, h.id, h.key)}: ${shown(value)}`);
+    to.push(...(back ? done.reverse() : done)); s.a = { id: group[0].id, key: group[0].key }; s.focus = true; t.requestUpdate(); // the earliest cell of the step: drawn and scrolled to even when it was far away
+    say(t, `${back ? 'Undo' : 'Redo'}, ${label(t, group[0].id, group[0].key)}: ${shown(back ? group[0].from : group[0].to)}`);
 }
 
 // Paste from a spreadsheet (tab-separated text) into the grid, anchored at the active cell. Each cell goes through the same check and cancelable pk-cell-edit as a typed edit
@@ -154,21 +202,22 @@ function paste(t, e) {
     if (!td || !t.editable || e.defaultPrevented || e.target !== td) return;
     const text = e.clipboardData?.getData('text/plain'); if (!text) return;
     e.preventDefault();
-    const grid = cells(t), y = grid.findIndex(r => r.includes(td)), x = grid[y].indexOf(td), g = (s.gid = (s.gid ?? 0) + 1), done = [], rejected = [];
+    const cx = batch(t), keys = t.list('columns').map(c => c.key), a = at(td), y = cx.at.get(a.id), x = keys.indexOf(a.key), g = (s.gid = (s.gid ?? 0) + 1), done = [], rejected = [];
     const lines = text.replace(/\r\n?/g, '\n').replace(/\n$/, '').split('\n').map(l => l.split('\t'));
     s.paste = {};
     lines.forEach((line, dy) => line.forEach((raw, dx) => {
-        const cell = grid[y + dy]?.[x + dx], ref = { row: y + dy, col: x + dx };
-        if (!cell) return rejected.push({ ...ref, reason: 'outside' });
-        const { id, key: k } = at(cell), c = col(t, k), i = t.ids().indexOf(id), previous = t.view[i]?.[k], err = c.editor && !slot(cell) ? check(c, raw) : 'Read-only';
+        const id = cx.ids[y + dy], k = keys[x + dx], ref = { row: y + dy, col: x + dx };
+        if (id == null || k == null) return rejected.push({ ...ref, reason: 'outside' });
+        const c = col(t, k), previous = cx.view[y + dy][k], err = c.editor && !t.querySelector(`:scope > [slot="${CSS.escape(`cell-${id}-${k}`)}"]`) ? check(c, raw) : 'Read-only';
         if (err === 'Read-only') return rejected.push({ ...ref, id, key: k, reason: 'readonly' });
         if (err) { s.paste[key(id, k)] = err; return rejected.push({ ...ref, id, key: k, reason: err }); }
         const value = typed(c, raw);
         if (same(value, previous)) return;
-        if (!put(t, id, k, value, 'paste')) return rejected.push({ ...ref, id, key: k, reason: 'refused' });
+        if (!put(t, id, k, value, 'paste', cx)) return rejected.push({ ...ref, id, key: k, reason: 'refused' });
         done.push({ id, key: k, from: previous, to: value, g });
     }));
-    if (done.length) { (s.undo ??= []).push(...done); s.undo.splice(0, s.undo.length - 100); s.redo = []; }
+    flush(t, cx);
+    if (done.length) { (s.undo ??= []).push(...done); trim(s.undo); s.redo = []; }
     s.a = at(td); s.focus = true; t.requestUpdate();
     t.emit('pk-cells-paste', { cells: done.map(({ id, key: k, to }) => ({ id, key: k, value: to })), rejected });
     say(t, `${done.length} cells updated, ${rejected.length} rejected`);
@@ -194,6 +243,7 @@ function keydown(t, e) {
     const dx = keyStep(k, { horizontal: true }) | 0, dy = keyStep(k) | 0; // Home / End are 'start' / 'end': not a step
     if (dx || dy) { e.preventDefault(); move(t, td, dx, dy); }
     else if (k === 'Enter' || k === 'F2' || (k === ' ' && slot(td))) { e.preventDefault(); begin(t, td); }
+    else if (k === 'PageDown' || k === 'PageUp' || ((e.ctrlKey || e.metaKey) && (k === 'Home' || k === 'End'))) { e.preventDefault(); jump(t, td, k); }
     else if (k === 'Home' || k === 'End') { e.preventDefault(); const r = cells(t).find(r => r.includes(td)); activate(t, r[stepIndex(k, 0, r.length)]); }
     // Tab moves right along the row only (never wraps to the next row); at the row's last cell it is left alone so focus leaves the grid normally.
     else if (k === 'Tab' && !e.shiftKey) {
