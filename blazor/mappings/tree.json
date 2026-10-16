@@ -9,7 +9,7 @@
     {
       "name": "Selection",
       "prop": "selection",
-      "type": "string"
+      "type": "TreeSelection"
     },
     {
       "name": "Value",

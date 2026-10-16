@@ -19,7 +19,8 @@
     },
     {
       "name": "Only",
-      "prop": "only"
+      "prop": "only",
+      "type": "TabOnly"
     },
     {
       "name": "OnClose",

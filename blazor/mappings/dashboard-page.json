@@ -23,5 +23,5 @@
       "note": "A title-bar action (config.actions entry without an href) was clicked; Key is its key."
     }
   ],
-  "notes": "New component: App framework step 6 follow-up (issue #436, deferred from #352); reshaped to tabs + widgets + filters in #489 (a breaking change to Config: tiles became widgets). Load(key) is a callback property, set from script: the generated component hands the element a .NET reference (PkCallbackSlot) that calls the Load parameter once per widget key (issue #366). The current filter selections are not passed to it yet."
+  "notes": "New component: App framework step 6 follow-up (issue #436, deferred from #352); reshaped to tabs + widgets + filters in #489 (a breaking change to Config: tiles became widgets). Load(key) is a callback property, set from script: the generated component hands the element a .NET reference (PkCallbackSlot) that calls the Load parameter once per widget key (issue #366). The current filter selections are not passed to it yet. The element prop `context` is deliberately not a parameter: it is the page's own output (the filter selections it rebuilds on every change and when it connects), so a value set from Blazor would be overwritten; seed the selections with Config.values instead (#1404)."
 }
