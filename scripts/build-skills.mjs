@@ -705,7 +705,7 @@ function tableFacts(src) {
     if (/tab stop/.test(prop('clickable')?.description ?? '')) facts.push('`Clickable` rows are keyboard stops (Enter or Space activates).');
     if (/cleared/.test(event('pk-sort')?.description ?? '')) facts.push('A third activation of a sortable header clears the sort (`OnSort` reports a null key and direction).');
     if (/in the cards layout too/.test(el.props.find(p => p.name === 'columns')?.description ?? '')) facts.push('A `HidePhone` column is hidden in the `cards` layout too.');
-    if (prop('editable')) facts.push('`Editable` edits cells in place (columns with an `Editor`); it has no paste, undo, column resize or bulk edit yet, and it never windows.');
+    if (prop('editable')) facts.push('`Editable` edits cells in place (columns with an `Editor`); it has no column resize or bulk edit yet. At 500 rows or more it windows like any table (the active and the edited row stay drawn, arrows, PageUp/PageDown and Ctrl+Home/End move by row, paste and undo reach rows that are not drawn), unless the table is expandable.');
     return facts;
 }
 
