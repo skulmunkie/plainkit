@@ -1323,6 +1323,48 @@ export const dataDisplayCases = [
                 for (let i = 0; i < 200; i++) { g.frame.scrollTop = (i * 7919) % max; await new Promise(r => requestAnimationFrame(r)); most = Math.max(most, g.drawn().length); }
                 await t.settle(); most = Math.max(most, g.drawn().length); t.ok(most < 70, `at most ${most} rows drawn`);
             }],
+            // Issue 331: multi-cell selection (Shift+arrows / Shift+click), fill-down (Ctrl+D) and copy as TSV, all by row id so they reach rows that are not drawn.
+            ['table (editable, 1200 rows): Shift+arrows and Shift+click extend a rectangular selection across rows that are not drawn; selected cells are aria-selected and a plain move collapses it', async t => {
+                const g = await grid(t, 1200); await g.pick(3, 'sku');
+                g.press('ArrowDown', { shiftKey: true }); await t.settle(); g.press('ArrowRight', { shiftKey: true }, g.sr.activeElement);
+                await until(() => g.cell(4, 'name')?.getAttribute('aria-selected') === 'true' && g.sr.activeElement === g.cell(4, 'name'), 'a 2x2 block selected, focus on its moving corner');
+                t.eq(g.cell(3, 'sku').getAttribute('aria-selected'), 'true', 'the anchor stays selected'); t.eq(g.cell(3, 'qty').getAttribute('aria-selected'), 'false', 'outside the block');
+                t.eq(g.sr.querySelector('table').getAttribute('aria-multiselectable'), 'true', 'the grid says it holds a range');
+                g.press('PageDown', { shiftKey: true }, g.sr.activeElement); await until(() => Number(g.active()) > 8, 'Shift+PageDown moved the corner');
+                await g.scroll(0); t.eq(g.cell(10, 'name').getAttribute('aria-selected'), 'true', 'rows between were selected though never focused'); t.ok(g.drawn().length < 70, 'still windowed');
+                g.press('ArrowDown', {}, g.sr.activeElement); await until(() => g.cell(10, 'name')?.getAttribute('aria-selected') === 'false', 'a plain move collapsed the range');
+                await g.pick(5, 'sku'); g.cell(8, 'name').dispatchEvent(new MouseEvent('click', { shiftKey: true, bubbles: true, composed: true, cancelable: true }));
+                await until(() => g.cell(8, 'name').getAttribute('aria-selected') === 'true' && g.cell(6, 'sku').getAttribute('aria-selected') === 'true' && g.active() === '8', 'Shift+click selected the block from the active cell');
+                t.ok(!g.cell(8, 'name').querySelector('input'), 'a shift-click does not open an editor');
+            }],
+            ['table (editable, 1200 rows): Ctrl+D fills the top cell of the selection down through pk-cell-edit (source fill) and one Ctrl+Z reverts every cell including undrawn rows', async t => {
+                const g = await grid(t, 1200); await g.pick(1, 'name'); const seen = []; g.el.addEventListener('pk-cell-edit', e => seen.push(`${e.detail.id}:${e.detail.key}:${e.detail.source}`));
+                g.press('ArrowRight', { shiftKey: true }); await t.settle(); g.press('End', { ctrlKey: true, shiftKey: true }, g.sr.activeElement);
+                await until(() => g.active() === '1200', 'the selection reaches the last row');
+                g.press('d', { ctrlKey: true }, g.sr.activeElement);
+                await until(() => g.el.rows[1199].name === 'Item 1' && g.el.rows[1199].qty === 0, 'fill-down committed in a row that was never drawn', 15000);
+                t.eq(seen.length, 1199 + 1176, 'one pk-cell-edit per changed cell (23 rows already hold qty 0)'); t.ok(seen.every(s => s.endsWith(':fill')), 'source is fill');
+                t.eq(g.el.rows[600].name, 'Item 1'); t.eq(g.el.rows[600].qty, 0); t.eq(g.el.rows[600].sku, 'S601', 'the column outside the selection is untouched');
+                await until(() => /cells filled/.test(g.sr.querySelector('[role=status].sr')?.textContent ?? ''), 'the live region');
+                g.press('z', { ctrlKey: true }, g.sr.activeElement);
+                await until(() => g.el.rows[1199].name === 'Item 1200' && g.el.rows[600].qty === 600 % 50 && g.el.rows[1].name === 'Item 2', 'one undo restored every cell', 15000);
+            }],
+            ['table (editable): fill-down honours a cancelled pk-cell-edit and a read-only column, and a single cell has nothing to fill', async t => {
+                const g = await grid(t, 30); await g.pick(1, 'name'); g.press('ArrowDown', { shiftKey: true }); await t.settle(); g.press('ArrowDown', { shiftKey: true }, g.sr.activeElement);
+                await until(() => g.active() === '3', 'a 3-row block');
+                g.el.addEventListener('pk-cell-edit', e => { if (String(e.detail.id) === '2') e.preventDefault(); });
+                g.press('d', { ctrlKey: true }, g.sr.activeElement); await until(() => g.el.rows[2].name === 'Item 1', 'filled');
+                t.eq(g.el.rows[1].name, 'Item 2', 'the cancelled cell is unchanged');
+                await g.pick(10, 'name'); const before = JSON.stringify(g.el.rows); g.press('d', { ctrlKey: true }, g.sr.activeElement); await t.settle(); t.eq(JSON.stringify(g.el.rows), before, 'a single cell has nothing to fill');
+            }],
+            ['table (editable, 1200 rows): copy puts the selection on the clipboard as tab-separated text, rows never drawn included', async t => {
+                const g = await grid(t, 1200); await g.pick(2, 'name'); g.press('ArrowRight', { shiftKey: true }); await t.settle(); g.press('End', { ctrlKey: true, shiftKey: true }, g.sr.activeElement);
+                await until(() => g.active() === '1200', 'selection to the end');
+                let out = ''; const copy = () => { const ev = Object.assign(new Event('copy', { bubbles: true, composed: true, cancelable: true }), { clipboardData: { setData: (m, v) => { out = v; } } }); g.sr.activeElement.dispatchEvent(ev); return ev; };
+                t.ok(copy().defaultPrevented, 'the table took the copy');
+                const lines = out.split('\n'); t.eq(lines.length, 1199); t.eq(lines[0], 'Item 2\t1'); t.eq(lines.at(-1), 'Item 1200\t' + (1199 % 50));
+                await g.scroll(0); await g.pick(4, 'name'); copy(); t.eq(out, 'Item 4', 'a single cell copies its value');
+            }],
         ];
     })(),
     ['table (editable): arrow keys move the active cell, Enter commits and moves down, Tab moves right within the row and leaves the grid at its last cell, and typing a character starts editing with it', async t => {
