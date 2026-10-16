@@ -19,7 +19,7 @@ export const PROFILES = {
 // The recommended wiring (see the "Wire a page" guide): the small entry (js/init.js has initPlainkit alone, not the theming and colour
 // helpers) and modulepreload hints for the loader, its logger, the element registry and the base every element shares, so the browser
 // fetches them in parallel with the entry instead of one at a time as each is discovered.
-const PRELOAD = ['/dist/js/loader.js', '/dist/js/log.js', '/dist/elements/registry.js', '/dist/js/element.js', '/dist/js/element-core.js'];
+const PRELOAD = ['/dist/js/loader.js', '/dist/js/log.js', '/dist/js/element.js', '/dist/js/element-core.js'];
 const pageFor = tags => shell({
     head: PRELOAD.map(f => `<link rel="modulepreload" href="${f}">`).join(''),
     body: tags.map(t => `<${t}></${t}>`).join(''),

@@ -2,7 +2,7 @@
 // three common jobs, wired the recommended way (min CSS, the small entry, modulepreload hints). Plain data, no browser: both users read it.
 import { shell } from './lib.mjs';
 
-const PRELOAD = ['/dist/js/loader.js', '/dist/js/log.js', '/dist/elements/registry.js', '/dist/js/element.js', '/dist/js/element-core.js'];
+const PRELOAD = ['/dist/js/loader.js', '/dist/js/log.js', '/dist/js/element.js', '/dist/js/element-core.js'];
 const head = PRELOAD.map(f => `<link rel="modulepreload" href="${f}">`).join('');
 // Every pk-* on the page is defined and has had two frames to render when window.__marks is set: the wire bench reads it.
 const script = `import { initPlainkit } from '/dist/js/init.js'; initPlainkit();
