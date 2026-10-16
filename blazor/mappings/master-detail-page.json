@@ -28,7 +28,31 @@
       "name": "OnAction",
       "event": "pk-action",
       "note": "A title-bar action (config.actions entry without an href) was clicked; Key is its key."
+    },
+    {
+      "name": "Load",
+      "callback": "load",
+      "type": "Func<JsonElement, Task<object?>>?",
+      "arg": "JsonElement",
+      "refresh": true,
+      "doc": "Loads one page of the list: receives the query (page, pageSize, sort, search, filters as JSON) and returns an object { rows, total }. Throwing shows the list's error state with Retry."
+    },
+    {
+      "name": "Close",
+      "callback": "close",
+      "type": "Func<Task>?",
+      "arg": "JsonElement",
+      "args": "",
+      "result": false,
+      "doc": "Back was pressed in the one-pane view: change the route to the list (NavigationManager.NavigateTo)."
+    },
+    {
+      "name": "DetailContent",
+      "type": "RenderFragment?",
+      "map": "slot",
+      "slot": "detail",
+      "note": "The selected record's content (read RecordId to render it): shown in the record pane only while RecordId is set."
     }
   ],
-  "notes": "New component: App framework step 7 (issue #353). Load, Open, Close and MountDetail are callback properties (business logic), not Blazor parameters mapped here yet; left for the Blazor page-type step (#346 step 20), same as PkListPage's Load and PkWorkspacePage's Mount."
+  "notes": "New component: App framework step 7 (issue #353). Load and Close are callbacks (PkCallbackSlot; Load asks the page to redraw, issue #1415). The record's pane lives in the element's shadow tree, so the mountDetail callback is the DetailContent slot instead: Blazor renders it as a light-DOM child the element projects. open(row) is not mapped: it returns an href synchronously, which cannot cross the interop boundary (PkListPage has the same limit and offers RowHrefTemplate); the row links come from Config list or the app's own list."
 }

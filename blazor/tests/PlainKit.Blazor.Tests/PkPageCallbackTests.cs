@@ -592,6 +592,46 @@ public sealed class PkPageCallbackTests : BunitContext, IAsyncLifetime
         Assert.Throws<ObjectDisposedException>(() => host.Value);
     }
 
+    // #1415: a pane lives in the element's shadow tree, so the Blazor panes are slots Blazor renders as light-DOM children of the page element.
+    [Fact]
+    public void WorkspacePage_NavContent_ChildContent_and_AsideContent_fill_the_nav_default_and_aside_slots()
+    {
+        var cut = Render<PkWorkspacePage>(p => p
+            .Add(x => x.NavContent, "<ul>Files</ul>").Add(x => x.ChildContent, "<p>Editor</p>").Add(x => x.AsideContent, "<p>Outline</p>"));
+
+        Assert.Equal("Files", cut.Find("pk-workspace-page > [slot=nav]").TextContent);
+        Assert.Equal("Outline", cut.Find("pk-workspace-page > [slot=aside]").TextContent);
+        Assert.Contains("Editor", cut.Find("pk-workspace-page").InnerHtml);
+    }
+
+    [Fact]
+    public void WizardPage_ChildContent_carries_the_apps_own_step_elements_and_MasterDetail_DetailContent_the_record()
+    {
+        var wizard = Render<PkWizardPage>(p => p.Add(x => x.ChildContent, "<div slot=\"step-intro\">Welcome</div>"));
+        Assert.Equal("Welcome", wizard.Find("pk-wizard-page > [slot=step-intro]").TextContent);
+
+        var md = Render<PkMasterDetailPage>(p => p.Add(x => x.RecordId, "7").Add(x => x.DetailContent, "<p>Record 7</p>"));
+        Assert.Contains("Record 7", md.Find("pk-master-detail-page").InnerHtml);
+    }
+
+    [Fact]
+    public async Task MasterDetailPage_Load_gets_the_query_and_asks_the_element_to_redraw_and_Close_runs_without_arguments()
+    {
+        JsonElement? query = null; var closed = 0;
+        var cut = Render<PkMasterDetailPage>(p => p
+            .Add(x => x.Load, q => { query = q; return Task.FromResult<object?>(new { rows = Array.Empty<object>(), total = 0 }); })
+            .Add(x => x.Close, () => { closed++; return Task.CompletedTask; }));
+
+        var calls = _bridge.Invocations["setCallback"].ToDictionary(i => (string)i.Arguments[1]!);
+        Assert.Equal(true, calls["load"].Arguments[3]);   // the list drew before load was set
+        var load = Assert.IsType<DotNetObjectReference<PkCallbackHost<JsonElement>>>(calls["load"].Arguments[2]);
+        Assert.Equal(0, JsonSerializer.SerializeToElement(await cut.InvokeAsync(() => load.Value.Invoke(JsonDocument.Parse("{\"page\":2}").RootElement))).GetProperty("total").GetInt32());
+        Assert.Equal(2, query!.Value.GetProperty("page").GetInt32());
+        var close = Assert.IsType<DotNetObjectReference<PkCallbackHost<JsonElement>>>(calls["close"].Arguments[2]);
+        Assert.Null(await cut.InvokeAsync(() => close.Value.Invoke(default)));
+        Assert.Equal(1, closed);
+    }
+
     [Fact]
     public async Task ListPage_passes_selection_and_bulk_actions_to_OnSelect_and_OnBulk()
     {

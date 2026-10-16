@@ -143,3 +143,17 @@ test('dirty fires pk-wizard-dirty once per change and the leave guard follows it
     el.disconnected();
     assert.equal(win.removed[0][1], guard);
 });
+
+test('a step without fields projects slot="step-<id>" unless mountStep draws it (#1415)', () => {
+    const { el } = make();
+    const step = { id: 'intro', label: 'Intro' };
+    const slotted = el.build(step);
+    assert.equal(slotted.children.length, 1);
+    assert.equal(slotted.children[0].localName, 'slot');
+    assert.equal(slotted.children[0].attrs.name, 'step-intro');
+    let got;
+    el.mountStep = (pane, s) => { got = [pane, s]; };
+    const drawn = el.build(step);
+    assert.equal(drawn.children.length, 0, 'mountStep owns the pane: no slot');
+    assert.deepEqual([got[0] === drawn, got[1]], [true, step]);
+});
