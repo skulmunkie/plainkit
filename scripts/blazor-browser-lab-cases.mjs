@@ -20,7 +20,7 @@ export const LAB_CASES = [
         await ctx.typeInto('pk-list-page >>> input[type="search"]', 'Ticket 3');
         await waitGone(ctx, 'Ticket 5'); // a refresh with a new request
         ctx.ok(await has(ctx, 'Ticket 3'), 'the search for "Ticket 3" does not leave Ticket 3 in the list');
-        ctx.noErrors(ctx.openMark, BENIGN);
+        await ctx.noErrors(ctx.openMark, BENIGN);
       } },
     { name: 'list-abort-on-navigation',
       async run(ctx) {
@@ -28,7 +28,7 @@ export const LAB_CASES = [
         await ctx.eval(`Blazor.navigateTo('/orders')`);
         await waitText(ctx, 'Customer');
         await ctx.sleep(2500); // past the slow load: its answer, or its cancellation, must not surface as an error
-        ctx.noErrors(ctx.openMark, BENIGN);
+        await ctx.noErrors(ctx.openMark, BENIGN);
       } },
     { name: 'list-row-click-callback',
       async run(ctx) {
@@ -37,7 +37,7 @@ export const LAB_CASES = [
         await ctx.clickDeep('pk-list-page >>> tr', 'Ticket 2'); // OnRowClick, a callback through the bridge
         await ctx.waitFor(`location.pathname === '/lab/tickets/2'`, 'the row click to navigate to /lab/tickets/2');
         await waitText(ctx, 'Ticket 2');
-        ctx.noErrors(ctx.openMark, BENIGN);
+        await ctx.noErrors(ctx.openMark, BENIGN);
       } },
     { name: 'list-row-href-template',
       async run(ctx) {
@@ -45,7 +45,7 @@ export const LAB_CASES = [
         await waitText(ctx, 'Grace Hopper');
         await ctx.clickLink('/orders/9'); // RowHrefTemplate="/orders/{id}"
         await waitText(ctx, 'Alan Turing');
-        ctx.noErrors(ctx.openMark, BENIGN);
+        await ctx.noErrors(ctx.openMark, BENIGN);
       } },
     { name: 'record-save-success',
       async run(ctx) {
@@ -55,7 +55,7 @@ export const LAB_CASES = [
         await ctx.setField('Title', 'Renamed one');
         await ctx.clickDeep(`${RECORD}[part="save"]`);
         await ctx.waitFor(`!window.__deep.field('Title') && ${MAIN}.includes('Renamed one')`, 'the saved record to show in view mode with its new title');
-        ctx.noErrors(ctx.openMark, BENIGN);
+        await ctx.noErrors(ctx.openMark, BENIGN);
       } },
     // The failed save leaves Ticket 2 titled FAIL (the page applied the values before the callback threw): later cases use other tickets.
     { name: 'record-save-failure',
@@ -67,7 +67,11 @@ export const LAB_CASES = [
         await ctx.clickDeep(`${RECORD}[part="save"]`);
         await waitText(ctx, 'Could not save'); // the callback threw: the page says so and stays in edit mode
         ctx.ok(await ctx.eval(`!!window.__deep.field('Title')`), 'a failed save left edit mode and lost the typed values');
-        ctx.noErrors(ctx.openMark, [...BENIGN, /Save refused by the sample/]); // the failure itself may be echoed once as the bridge's rejected call
+        await ctx.noErrors(ctx.openMark, [...BENIGN, /Save refused by the sample/]); // the failure itself may be echoed once as the bridge's rejected call
+        // Leave the page clean: unsaved edits arm the page's beforeunload guard, and Chrome logs "Blocked attempt to show a beforeunload confirmation panel" (an error) when the next case's navigation leaves a
+        // page that never saw a user gesture, which this harness's clicks are not; a person has had one, so the guard itself is right (#1423). The late log landed in whichever case was running.
+        await ctx.clickDeep(`${RECORD}[part="cancel"]`);
+        await ctx.waitFor(`!window.__deep.field('Title')`, 'Cancel to leave edit mode and drop the unsaved edits');
       } },
     { name: 'record-delete',
       async run(ctx) {
@@ -80,7 +84,7 @@ export const LAB_CASES = [
         await waitText(ctx, 'Ticket deleted', ALL); // the success toast, a bridge call
         await waitText(ctx, 'Ticket 4');
         ctx.ok(!(await has(ctx, 'Ticket 5')), 'the deleted ticket is still in the list');
-        ctx.noErrors(ctx.openMark, BENIGN);
+        await ctx.noErrors(ctx.openMark, BENIGN);
       } },
     { name: 'fields-every-kind-and-column-span',
       async run(ctx) {
@@ -96,7 +100,7 @@ export const LAB_CASES = [
         await ctx.setField('Kind', 'task');
         await ctx.setField('Done', true);
         await waitText(ctx, 'Changes: 4, last title: Changed, opened: 2026-10-14T09:30');
-        ctx.noErrors(ctx.openMark, BENIGN);
+        await ctx.noErrors(ctx.openMark, BENIGN);
       } },
     { name: 'dialog-and-toast',
       async run(ctx) {
@@ -111,7 +115,7 @@ export const LAB_CASES = [
         await waitText(ctx, 'Really?', ALL);
         await ctx.clickDeep('pk-button', 'Cancel');
         await waitText(ctx, 'Answer: no');
-        ctx.noErrors(ctx.openMark, BENIGN);
+        await ctx.noErrors(ctx.openMark, BENIGN);
       } },
     { name: 'element-methods',
       async run(ctx) {
@@ -124,7 +128,7 @@ export const LAB_CASES = [
         await ctx.waitFor(`(() => { const a = window.__deep.active(); return !!a && !!a.closest('pk-input, [name="name"]') || a?.getRootNode()?.host?.localName === 'pk-input'; })()`, 'FocusAsync to focus the input');
         await ctx.clickDeep('pk-button', 'Check form');
         await waitText(ctx, 'Valid: False');
-        ctx.noErrors(ctx.openMark, BENIGN);
+        await ctx.noErrors(ctx.openMark, BENIGN);
       } },
     { name: 'two-way-bind',
       async run(ctx) {
@@ -138,9 +142,11 @@ export const LAB_CASES = [
         await ctx.clickDeep('pk-tab', 'Alpha');
         await waitText(ctx, 'Tab: a', ALL);
         await waitText(ctx, 'Values: {}', ALL);
-        await ctx.eval(`(() => { document.querySelector('pk-property-grid').shadowRoot.querySelector('pk-switch').shadowRoot.querySelector('[part=control]').click(); return 1; })()`);
+        const SWITCH = `document.querySelector('pk-property-grid')?.shadowRoot?.querySelector('pk-switch')?.shadowRoot?.querySelector('[part=control]')`;
+        await ctx.waitFor(`!!${SWITCH}`, 'the property grid to draw its switch'); // its config reaches the element through the bridge after the page text shows
+        await ctx.eval(`(() => { ${SWITCH}.click(); return 1; })()`);
         await waitText(ctx, 'Values: {"enabled":true}', ALL); // @bind-Values on PkPropertyGrid follows pk-property-change as JSON text
-        ctx.noErrors(ctx.openMark, BENIGN);
+        await ctx.noErrors(ctx.openMark, BENIGN);
       } },
     { name: 'theme-toggle',
       async run(ctx) {
@@ -149,7 +155,7 @@ export const LAB_CASES = [
         await ctx.clickDeep('pk-button[label="Settings menu"]');
         await ctx.clickDeep('pk-menu-item', 'Toggle theme');
         await ctx.waitFor(`document.documentElement.getAttribute('data-theme') !== ${JSON.stringify(before)}`, 'the theme attribute to change (applyTheme bridge call)');
-        ctx.noErrors(ctx.openMark, BENIGN);
+        await ctx.noErrors(ctx.openMark, BENIGN);
       } },
     { name: 'app-search-query-and-select',
       async run(ctx) {
@@ -158,7 +164,7 @@ export const LAB_CASES = [
         await ctx.waitFor(`window.__deep.q('pk-app-bar-search >>> [part="option"]').some(o => o.textContent.includes('Open'))`, 'a search result "Open"');
         await ctx.clickDeep('pk-app-bar-search >>> [part="option"]', 'Open'); // OnSelect navigates
         await ctx.waitFor(`location.pathname === '/orders/open'`, 'choosing the result to navigate to /orders/open');
-        ctx.noErrors(ctx.openMark, BENIGN);
+        await ctx.noErrors(ctx.openMark, BENIGN);
       } },
     // Phone cases: a 375 px viewport with touch emulation, real touchstart/touchend taps.
     { name: 'phone-touch-drawer-navigates',
@@ -175,7 +181,7 @@ export const LAB_CASES = [
             await ctx.waitFor(`location.pathname === '/orders/open'`, 'a tap on a drawer link to navigate');
             await ctx.sleep(600);
             ctx.ok(await ctx.eval(`window.__pkMark === 'same'`), 'a tap on a drawer link reloaded the document');
-            ctx.noErrors(ctx.openMark, BENIGN);
+            await ctx.noErrors(ctx.openMark, BENIGN);
         });
       } },
     { name: 'phone-touch-drawer-closes-after-navigation',
@@ -202,7 +208,7 @@ export const LAB_CASES = [
             await ctx.tap('pk-record-page >>> pk-button[part="edit"]');
             await ctx.waitFor(`!!window.__deep.field('Title')`, 'a tap on Edit to open the fields');
             ctx.ok(await ctx.eval(`document.documentElement.scrollWidth <= 375`), 'the record form scrolls sideways on a 375 px phone');
-            ctx.noErrors(ctx.openMark, BENIGN);
+            await ctx.noErrors(ctx.openMark, BENIGN);
         });
       } },
 ];

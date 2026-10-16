@@ -35,7 +35,7 @@ export const INTEROP_CASES = [
         await ctx.typeInto('pk-tool-page >>> pk-input', 'Ann');
         await ctx.clickDeep('pk-tool-page >>> pk-button[part="run"]'); // Run, through the bridge with the field values
         await waitText(ctx, 'Hello Ann');
-        ctx.noErrors(ctx.openMark, BENIGN);
+        await ctx.noErrors(ctx.openMark, BENIGN);
       } },
     { name: 'settings-page-save-callback',
       async run(ctx) {
@@ -57,7 +57,7 @@ export const INTEROP_CASES = [
         await ctx.clickDeep('pk-settings-page >>> pk-button[part="save"]');
         await waitText(ctx, 'Something went wrong');
         ctx.ok(await ctx.eval(`!/Secret\.cs|Boom at/.test(window.__deep.text(document.querySelector('pk-settings-page')))`), 'the non-user-facing exception text reached the page');
-        ctx.noErrors(ctx.openMark, [...BENIGN, /Save refused by the sample/, /Boom at/]);
+        await ctx.noErrors(ctx.openMark, [...BENIGN, /Save refused by the sample/, /Boom at/]);
       } },
     { name: 'json-attribute-resync',
       async run(ctx) {
@@ -68,7 +68,7 @@ export const INTEROP_CASES = [
         await ctx.clickDeep('pk-button', 'Rename'); // Config and Values change after the first render
         await ctx.waitFor(`${nick('label')} === 'Handle'`, 'the field to follow the new Config label');
         await ctx.waitFor(`${nick('value')} === 'second'`, 'the field to follow the new Values');
-        ctx.noErrors(ctx.openMark, BENIGN);
+        await ctx.noErrors(ctx.openMark, BENIGN);
       } },
     { name: 'dashboard-load-callback',
       async run(ctx) {
@@ -78,14 +78,14 @@ export const INTEROP_CASES = [
         // #1412: DetailedErrors=true is the worst case, yet the card shows no exception type, stack frame, drive path or .cs/.dll text.
         const broken = await ctx.eval(`window.__deep.text(window.__deep.q('pk-dashboard-page >>> pk-card').find(c => c.heading === 'Broken widget'))`);
         ctx.ok(!/Exception|at \S+ in |\.cs|\.dll|[A-Za-z]:[\/]|\/home\//.test(broken) && !/Widget refused by the sample/.test(broken), `the Broken widget card leaks exception detail: ${broken.slice(0, 200)}`);
-        ctx.noErrors(ctx.openMark, [...BENIGN, /Widget refused by the sample/]);
+        await ctx.noErrors(ctx.openMark, [...BENIGN, /Widget refused by the sample/]);
       } },
     { name: 'doc-page-loaditem-callback',
       async run(ctx) {
         await ctx.open('/lab/doc');
         await waitText(ctx, 'Body from the sample.'); // LoadItem answered with html
         await waitText(ctx, 'Loaded section');
-        ctx.noErrors(ctx.openMark, BENIGN);
+        await ctx.noErrors(ctx.openMark, BENIGN);
       } },
     { name: 'dock-layout-events-and-confirm',
       async run(ctx) {
@@ -95,7 +95,7 @@ export const INTEROP_CASES = [
         await ctx.clickDeep('pk-dock >>> pk-tab', 'Two'); // activate: held for ConfirmLayout, applied, then OnLayoutChange
         await shown(ctx, 'lab-dock', 'Dock events: 1, last: activate, confirms: 1');
         ctx.ok(await ctx.eval(`window.__deep.text(document.querySelector('pk-dock')).includes('Second panel')`), 'the confirmed layout did not show the second panel');
-        ctx.noErrors(ctx.openMark, BENIGN);
+        await ctx.noErrors(ctx.openMark, BENIGN);
       } },
     { name: 'tabs-value-binding',
       async run(ctx) {
@@ -107,7 +107,7 @@ export const INTEROP_CASES = [
         await ctx.waitFor(`window.__deep.q('pk-tabs > pk-tab-panel').some(p => p.textContent.includes('Beta body') && p.getBoundingClientRect().height > 0)`, 'the Beta panel to show');
         await ctx.clickDeep('pk-tabs > pk-tab', 'Alpha'); // the element to C#
         await shown(ctx, 'lab-tab', 'Tab: a, changes: 1');
-        ctx.noErrors(ctx.openMark, BENIGN);
+        await ctx.noErrors(ctx.openMark, BENIGN);
       } },
     { name: 'dialog-isopen-binding',
       async run(ctx) {
@@ -123,7 +123,7 @@ export const INTEROP_CASES = [
         await ctx.clickDeep('pk-dialog >>> [part="close"]'); // the element to C#: pk-close sets IsOpen false and raises OnClose
         await shown(ctx, 'lab-open', 'Dialog open: False, closes: 1');
         ctx.ok(await ctx.eval(`!(${isOpen})`), 'the dialog stayed open after its close button');
-        ctx.noErrors(ctx.openMark, BENIGN);
+        await ctx.noErrors(ctx.openMark, BENIGN);
       } },
     { name: 'inputfile-in-dropzone',
       async run(ctx) {
@@ -133,7 +133,7 @@ export const INTEROP_CASES = [
             await ctx.setFiles('pk-dropzone input[type="file"]', [file]); // the OS picker's result, onto Blazor's InputFile
             await shown(ctx, 'lab-read', 'Read: note.txt:hello'); // OnChange read the bytes over the real stream
         });
-        ctx.noErrors(ctx.openMark, BENIGN);
+        await ctx.noErrors(ctx.openMark, BENIGN);
       } },
     { name: 'image-gallery-add-by-inputfile',
       async run(ctx) {
@@ -144,7 +144,7 @@ export const INTEROP_CASES = [
             await shown(ctx, 'lab-count', 'Images: 1');
         });
         await ctx.waitFor(`window.__deep.q('pk-image-gallery >>> img').some(i => i.getAttribute('src')?.startsWith('data:image/png') && i.naturalWidth === 1)`, 'the added image to show in the gallery');
-        ctx.noErrors(ctx.openMark, BENIGN);
+        await ctx.noErrors(ctx.openMark, BENIGN);
       } },
 ];
 
