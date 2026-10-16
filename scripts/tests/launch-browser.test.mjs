@@ -9,21 +9,23 @@ import { launchBrowser } from '../attest-browser.mjs';
 
 function setup(failures) {
     const profile = fs.mkdtempSync(path.join(os.tmpdir(), 'pk-launch-test-'));
-    const spawned = [], killed = [], profilesAtSpawn = [];
+    const spawned = [], killed = [], profilesAtSpawn = [], pending = [];
+    let clock = 0; // a fake clock: the wait and the polls cost no real time, so CPU load cannot change how many polls fit in waitMs
     const spawnFn = () => {
         const child = new EventEmitter();
         child.stderr = new EventEmitter();
         spawned.push(child);
         profilesAtSpawn.push(fs.readdirSync(profile).length);
         fs.writeFileSync(path.join(profile, 'stale'), 'x'); // a leftover that must be gone for the next attempt
-        setImmediate(() => child.stderr.emit('data', `line one\nstderr of attempt ${spawned.length}\n`));
+        const n = spawned.length;
+        pending.push(() => child.stderr.emit('data', `line one\nstderr of attempt ${n}\n`)); // delivered by the first fake sleep, once launchBrowser has attached its listener
         child.ready = spawned.length > failures;
         return child;
     };
     const probe = () => (spawned.at(-1)?.ready ? Promise.resolve('9222') : Promise.resolve(null));
     const kill = c => killed.push(c);
     const remove = async d => { fs.rmSync(d, { recursive: true, force: true }); return true; };
-    return { profile, spawned, killed, profilesAtSpawn, opts: { chrome: 'C:\\chrome.exe', profile, args: [], probe, spawnFn, kill, remove, waitMs: 40, pollMs: 5 } };
+    return { profile, spawned, killed, profilesAtSpawn, opts: { chrome: 'C:\\chrome.exe', profile, args: [], probe, spawnFn, kill, remove, waitMs: 40, pollMs: 5, now: () => clock, sleepFn: async ms => { clock += ms; while (pending.length) pending.shift()(); } } };
 }
 
 test('fails twice, then succeeds: the earlier children are killed and each attempt gets an empty profile', async () => {

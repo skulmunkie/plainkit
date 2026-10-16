@@ -119,7 +119,7 @@ export async function removeDir(dir) {
 // Starts a browser and waits until `probe()` returns a value (a DevTools port file, a listening port). A runner starved of CPU sometimes never gets there within the
 // wait (#1457), so the launch alone is retried: up to `attempts`, the previous child killed and the profile folder emptied first. Nothing after the launch retries.
 // Resolves { browser, value, attempts }; rejects naming the attempts, the browser path and the last stderr line.
-export async function launchBrowser({ chrome, profile, args, probe, attempts = 3, waitMs = 15000 * cpuScale(), spawnFn = spawn, kill = killTree, remove = removeDir, pollMs = 150 }) {
+export async function launchBrowser({ chrome, profile, args, probe, attempts = 3, waitMs = 15000 * cpuScale(), spawnFn = spawn, kill = killTree, remove = removeDir, pollMs = 150, now = Date.now, sleepFn = sleep }) {
     let lastErr = '';
     for (let n = 1; n <= attempts; n++) {
         if (n > 1) {
@@ -130,11 +130,11 @@ export async function launchBrowser({ chrome, profile, args, probe, attempts = 3
         lastErr = '';
         browser.stderr?.on('data', d => { lastErr = (lastErr + d).split(/\r?\n/).filter(l => l.trim()).pop()?.slice(0, 300) ?? ''; });
         browser.once?.('error', e => { lastErr = e.message; });
-        for (const end = Date.now() + waitMs; Date.now() < end;) {
+        for (const end = now() + waitMs; now() < end;) {
             let value = null;
             try { value = await probe(); } catch (e) { lastErr = `probe: ${e.message}`.slice(0, 300); } // a port file still being written (EBUSY on Windows) is not ready yet; the message is kept for the final error
             if (value) return { browser, value, attempts: n };
-            await sleep(pollMs);
+            await sleepFn(pollMs);
         }
         kill(browser);
     }
