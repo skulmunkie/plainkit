@@ -22,7 +22,7 @@ const fakeEl = tag => ({
 });
 
 const make = () => {
-    const parts = Object.fromEntries(['table', 'filters', 'pagination', 'state', 'empty', 'add'].map(n => [n, fakeEl(n)]));
+    const parts = Object.fromEntries(['table', 'filters', 'pagination', 'state', 'empty', 'noResults', 'add'].map(n => [n, fakeEl(n)]));
     const events = [];
     const el = new (behaviour(class {
         children = [];

@@ -182,7 +182,10 @@
       "description": "Whether the popup is open."
     }
   ],
-  "slots": [],
+  "slots": [
+    { "name": "empty", "description": "Content for the popup's empty state (no rows, nothing searched); replaces the empty prop. Read when the popup first opens." },
+    { "name": "no-results", "description": "Content for the popup when a search or filter matches nothing; replaces the noResults prop. Read when the popup first opens." }
+  ],
   "events": [
     {
       "name": "input",

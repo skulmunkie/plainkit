@@ -74,6 +74,8 @@
       "note": "Two-way: @bind-Open.",
       "bind": { "event": "pk-lookup-toggle", "value": "detail.open" }
     },
+    { "name": "EmptyContent", "slot": "empty", "type": "RenderFragment?", "note": "The popup's empty state; read when the popup first opens." },
+    { "name": "NoResultsContent", "slot": "no-results", "type": "RenderFragment?", "note": "The popup when a search or filter matches nothing; read when the popup first opens." },
     {
       "name": "Load",
       "callback": "load",
