@@ -28,9 +28,9 @@ export default {
     ],
     expect(t) {
         t.inViewport(MD);
-        t.visible(`${PARTS}[part=header] pk-page-header`, 'the shared title bar');
-        t.noOverlap(`${PARTS}[part=header]`, `${PARTS}[part=layout]`);
-        if (t.shot === 'none' || !(t.viewport.name !== 'desktop')) t.visible(`${PARTS}[part=list] >>> [part=header] pk-page-header`, "the list page's own title bar"); // hidden with the master on a phone once a record is open
+        t.visible(`${PARTS}[part=header] >>> [part=header]`, 'the shared title bar');
+        t.noOverlap(`${PARTS}[part=header] >>> [part=header]`, `${PARTS}[part=layout]`);
+        if (t.shot === 'none' || !(t.viewport.name !== 'desktop')) t.visible(`${PARTS}[part=list] >>> [part=header] >>> [part=header]`, "the list page's own title bar"); // hidden with the master on a phone once a record is open
         const phone = t.viewport.name !== 'desktop';
         if (t.shot === 'none') {
             t.visible(`${PARTS}[part=master]`, 'the list');

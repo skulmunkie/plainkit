@@ -4,4 +4,3 @@
 [part="notice"] { margin-block-end: var(--space-4); }
 [part="column"], [part="aside"], [part="side"] { display: flex; flex-direction: column; gap: var(--space-4); }
 [part="main"] form { display: flex; flex-direction: column; gap: var(--space-4); }
-[part="header"] { margin-block-end: var(--space-4); }

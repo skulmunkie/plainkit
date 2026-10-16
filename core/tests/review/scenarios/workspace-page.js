@@ -25,8 +25,8 @@ export default {
     ],
     expect(t) {
         t.inViewport(WS);
-        t.visible(`${WS} >>> [part=header] pk-page-header`, 'the shared title bar');
-        t.noOverlap(`${WS} >>> [part=header]`, `${WS} >>> pk-workspace`);
+        t.visible(`${WS} >>> [part=header] >>> [part=header]`, 'the shared title bar');
+        t.noOverlap(`${WS} >>> [part=header] >>> [part=header]`, `${WS} >>> pk-workspace`);
         if (t.shot === 'panes') {
             t.hasText(MAIN, 'Main pane');
             t.absent(`${WS} >>> [part=state] pk-alert`);

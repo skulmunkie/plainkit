@@ -38,7 +38,7 @@ export function mountTitled(host, el, text, opts) {
     // Appended once the elements the title bar needs are defined (found in a detached tree), so the bar is drawn with the page and the content under it never shifts down.
     const probe = doc.createElement('div'), tags = text ? [el.localName, 'pk-heading'] : [el.localName];
     probe.append(el);
-    if (text && !opts?.plain) { probe.append(doc.createElement('pk-page-header')); tags.push('pk-page-header'); }
+    if (text && !opts?.plain) { for (const n of ['pk-page-shell', 'pk-page-header']) { probe.append(doc.createElement(n)); tags.push(n); } }
     loadElements(probe);
     const ready = Promise.all(tags.map(n => win.customElements.whenDefined(n))).then(() => { if (!dead) host.append(el); });
     // The cleanup is also a thenable: awaiting the factory (mountPage does) waits until the page is in, then yields a plain cleanup.
@@ -46,23 +46,22 @@ export function mountTitled(host, el, text, opts) {
 }
 
 /**
- * The title bar: a pk-page-header in `box` drawn from `host.config` { heading?, breadcrumb?: [{ label, href? }], actions?: [{ key, label, href?, variant?, hint? }] }.
- * `cfg` overrides `host.config` for a page whose own config already uses `heading` or `actions` for something else (record, list).
- * Nothing is drawn (and `box` stays hidden) when none is set. An action's `hint` shows as a tooltip on the button. A click on an action fires `pk-action` on the host with { key }; the host never owns the markup.
+ * The title bar, filled into the page's pk-page-shell `shell` (a child of the page's shadow tree) from `host.config` { heading?, breadcrumb?: [{ label, href? }], actions?: [{ key, label, href?, variant?, hint? }] }:
+ * the shell draws the pk-page-header; the breadcrumb, actions and title are its slotted children. `cfg` overrides `host.config` for a page whose own config already uses `heading` or `actions` for something else (record, list).
+ * Nothing is drawn when none is set (the shell hides an empty header). An action's `hint` shows as a tooltip on the button. A click on an action fires `pk-action` on the host with { key }; the host never owns the markup.
  */
-export function showTitleBar(host, box, cfg = host.config) {
+export function showTitleBar(host, shell, cfg = host.config) {
     const { heading, breadcrumb = [], actions = [] } = cfg ?? {};
     const doc = host.ownerDocument;
-    box.hidden = !heading && !breadcrumb.length && !actions.length;
-    box.replaceChildren();
-    if (box.hidden) return;
-    const header = doc.createElement('pk-page-header');
-    if (heading) header.heading = heading;
+    for (const n of shell.$bar ?? []) n.remove();
+    const kids = shell.$bar = [];
+    shell.setAttribute('heading', heading ?? '');
+    shell.setAttribute('data-bare', String(!heading && !breadcrumb.length && !actions.length)); // nothing to draw: the shell drops its empty header
     if (breadcrumb.length) {
         const nav = doc.createElement('pk-breadcrumb');
         nav.slot = 'breadcrumb';
         for (const c of breadcrumb) { const a = doc.createElement('a'); a.textContent = c.label; if (c.href) a.href = c.href; nav.append(a); }
-        header.append(nav);
+        kids.push(nav);
     }
     for (const a of actions) {
         const btn = doc.createElement('pk-button');
@@ -75,17 +74,17 @@ export function showTitleBar(host, box, cfg = host.config) {
             const tip = doc.createElement('pk-tooltip');
             tip.text = a.hint; tip.slot = 'actions'; btn.removeAttribute('slot');
             tip.append(btn);
-            header.append(tip);
-        } else header.append(btn);
+            kids.push(tip);
+        } else kids.push(btn);
     }
     if (heading) { // the host's own pk-heading (titleHeading, appended by the page factory) fills this slot; used on its own, the fallback draws the same title
         const fwd = doc.createElement('slot');
         fwd.setAttribute('name', 'title'); fwd.slot = 'title';
         fwd.append(titleHeading(doc, heading, { focusable: false }));
-        header.append(fwd);
+        kids.push(fwd);
     }
-    box.append(header);
-    loadElements(box);
+    shell.append(...kids);
+    loadElements(shell);
 }
 
 /**
