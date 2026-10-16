@@ -363,6 +363,7 @@ import { trayCases } from './cases-tray.js'; cases.push(...trayCases);
 import { designSurfaceCases } from './cases-design-surface.js'; cases.push(...designSurfaceCases);
 import { canvasCases } from './cases-canvas.js'; cases.push(...canvasCases);
 import { guidesAppCases } from './cases-guides.js'; cases.push(...guidesAppCases);
+import { landingCases } from './cases-landing.js'; cases.push(...landingCases);
 import { appCases } from './cases-app.js'; cases.push(...appCases);
 import { navbarCases } from './cases-navbar.js'; cases.push(...navbarCases);
 import { appFrameCases } from './cases-app-frame.js'; cases.push(...appFrameCases);
