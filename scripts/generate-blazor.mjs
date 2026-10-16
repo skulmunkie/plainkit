@@ -381,6 +381,14 @@ export function modelElement(el, mapping, reg) {
             if (!src || src.cs !== 'JsonElement?' || !/^string\??$/.test(r.cs.trim())) { out.todo.push({ component: comp, param: r.name, reason: `cannot bind ${r.name} to ${b.event} (${b.path}) as JSON text` }); return; }
             assign = r.cs.trim() === 'string' ? `e.${src.prop}?.GetRawText() ?? ${JSON.stringify(r.p.default ?? '')}` : `e.${src.prop}?.GetRawText()`;
         }
+        else if (reg.enums.has(r.cs.trim().replace(/\?$/, ''))) {
+            // an enum parameter follows a string field of the event: the wire value is parsed back to the member (a value the enum does not list keeps the current one).
+            const src = ev.fields.find(f => f.key.toLowerCase() === String(b.path).toLowerCase());
+            if (!src || !/^string\??$/.test(src.cs)) { out.todo.push({ component: comp, param: r.name, reason: `cannot bind ${r.name} to ${b.event} (${b.path}) as ${r.cs}: the field is not a string` }); return; }
+            const en = reg.enums.get(r.cs.trim().replace(/\?$/, ''));
+            en.parse = true;
+            assign = `e.${src.prop}.To${en.name}()${r.cs.trim().endsWith('?') ? '' : ` ?? ${r.name}`}`;
+        }
         else {
             const src = ev.fields.find(f => f.key.toLowerCase() === String(b.path).toLowerCase());
             const conv = src && convert(`e.${src.prop}`, src.cs, r.cs);
@@ -679,6 +687,12 @@ export function renderEnums(enums) {
         L.push(`    internal static string ToAttr(this ${e.name} value) => value switch`, '    {');
         for (const m of e.members) L.push(`        ${e.name}.${m.name} => ${lit(m.value)},`);
         L.push('        _ => throw new ArgumentOutOfRangeException(nameof(value)),', '    };', '');
+        if (e.parse) {
+            // the reverse, for a two-way bound enum parameter: the wire string the element reports back to the member (null when it is not one)
+            L.push(`    internal static ${e.name}? To${e.name}(this string? value) => value switch`, '    {');
+            for (const m of e.members) L.push(`        ${lit(m.value)} => ${e.name}.${m.name},`);
+            L.push('        _ => null,', '    };', '');
+        }
     }
     if (list.length) L.pop();
     L.push('}');
