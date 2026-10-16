@@ -37,7 +37,7 @@ public enum PkTableEditor
 }
 
 /// <summary>A column of a <c>pk-table</c>.</summary>
-/// <remarks>Sent to the element's <c>columns</c> attribute (JSON, camelCase): <c>{ "key", "label", "type", "align", "sortable", "hidePhone", "shed" }</c>.</remarks>
+/// <remarks>Sent to the element's <c>columns</c> attribute (JSON, camelCase): <c>{ "key", "label", "type", "align", "sortable", "hidePhone", "shed", "title" }</c>.</remarks>
 public sealed record PkTableColumn
 {
     /// <summary>The field of a row that this column shows.</summary>
@@ -61,15 +61,14 @@ public sealed record PkTableColumn
     /// <summary>Leave the column out of the card layout on a phone.</summary>
     [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingDefault)]
     public bool HidePhone { get; init; }
-
+    /// <summary>The column that names the row (put it first): in the phone card layout its cell is the heading, without a label.</summary>
+    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingDefault)] public bool Title { get; init; }
     /// <summary>Drop the column when the table itself is narrower than 24rem (1), 36rem (2) or 48rem (3).</summary>
     [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
     public int? Shed { get; init; }
-
     /// <summary>The editor of the column's cells in an editable table; null leaves the column read-only.</summary>
     [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
     public PkTableEditor? Editor { get; init; }
-
     /// <summary>The choices of a <see cref="PkTableEditor.Select"/> editor.</summary>
     [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
     public IReadOnlyList<string>? Options { get; init; }

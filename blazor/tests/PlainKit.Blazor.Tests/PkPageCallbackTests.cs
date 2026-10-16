@@ -392,6 +392,20 @@ public sealed class PkPageCallbackTests : BunitContext, IAsyncLifetime
     private sealed record Order(string OrderNo, int Total);
 
     [Fact]
+    public void ListPage_Load_with_Columns_IdOf_and_RowHrefTemplate_asks_the_element_to_load_on_first_render()
+    {
+        // #1364: the element drew its empty state before the bridge set Load, so setCallback must ask it to refresh (the load runs without a typed search).
+        Render<PkListPage<Order>>(p => p
+            .Add(x => x.Columns, [new() { Key = "orderNo", Label = "No" }])
+            .Add(x => x.IdOf, o => o.OrderNo)
+            .Add(x => x.RowHrefTemplate, "/orders/{id}")
+            .Add(x => x.Load, r => Task.FromResult(new PkListResult<Order>([new("A-1", 5)], 1))));
+        var call = Assert.Single(_bridge.Invocations["setCallback"]);
+        Assert.Equal("load", call.Arguments[1]);
+        Assert.Equal(true, call.Arguments[3]);
+    }
+
+    [Fact]
     public async Task ListPage_load_gets_the_query_as_a_request_and_returns_rows_and_total()
     {
         PkListRequest? seen = null;

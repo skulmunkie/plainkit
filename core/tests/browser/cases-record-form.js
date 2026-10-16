@@ -78,6 +78,23 @@ export const recordFormCases = [
         el.busy = true; await t.settle(); enter(name); await t.settle(); await t.settle(); t.eq(saved.v, 1, 'busy does not save again');
     }],
 
+    // #1365: typing then Enter, without leaving the field, must hand the typed value to the group's values (and pk-field-change) before pk-record-save is raised.
+    ['record-form: Enter straight after typing commits the focused field before pk-record-save (#1365)', async t => {
+        const el = await t.mount('<pk-record-form><form><pk-field-group></pk-field-group></form></pk-record-form>');
+        const group = el.querySelector('pk-field-group');
+        group.fields = [{ key: 'name', label: 'Name', required: true }];
+        await t.load(el.shadowRoot); await t.load(group.shadowRoot); await t.settle(); await t.settle();
+        el.querySelector('form').addEventListener('submit', e => e.preventDefault());
+        const seen = [], changes = [];
+        el.addEventListener('pk-record-save', () => seen.push(group.values.name));
+        group.addEventListener('pk-field-change', e => changes.push(e.detail.value));
+        const name = [...group.shadowRoot.querySelectorAll('pk-field')][0].firstElementChild.shadowRoot.querySelector('input');
+        name.value = 'Acme'; name.dispatchEvent(new Event('input', { bubbles: true, composed: true })); await t.settle(); // typed, never blurred: no change event
+        name.dispatchEvent(new KeyboardEvent('keydown', { key: 'Enter', bubbles: true, composed: true, cancelable: true }));
+        await t.settle(); await t.settle();
+        t.eq(seen.length, 1, 'one save'); t.eq(seen[0], 'Acme', 'the model holds the typed value when the save is raised'); t.eq(changes[0], 'Acme', 'pk-field-change carried it');
+    }],
+
     ['record-form: Cancel and Delete show only when asked, raise their own event once, Delete is disabled while busy, and Save shows its busy text, label and disabled state', async t => {
         const plain = await mount(t);
         t.ok(button(plain, 'cancel').hidden && button(plain, 'delete').hidden, 'neither shows by default');
@@ -199,6 +216,17 @@ export const recordFormCases = [
         t.eq(seen.length, 1, 'one pk-row-click reaches the page host'); t.eq(seen[0].id, 'a2'); t.eq(seen[0].row.sku, 'SKU-2');
     }],
 
+    // #1364/#1401: a host that binds load after the page drew its first (empty) answer, then calls the page's own refresh(), gets its first page without a typed search.
+    ['list-page: a load set after the first draw is called by refresh() on the page, no search needed (#1364)', async t => {
+        const el = await t.mount(`<pk-list-page config='{"columns":[{"key":"sku","label":"SKU"}]}' row-href-template="/p/{id}"></pk-list-page>`);
+        await t.load(el.shadowRoot); await t.settle();
+        let calls = 0;
+        el.load = async () => { calls++; return { rows: [{ id: 'a1', sku: 'SKU-1' }], total: 1 }; };
+        el.refresh();
+        const rows = () => el.part('table').part('table')?.shadowRoot?.querySelectorAll('tbody tr') ?? [];
+        await until(() => rows().length === 1, 'the first page after refresh()');
+        t.ok(calls >= 1, 'load was called');
+    }],
     // #436: the acceptance criteria #352 named for pk-list-page. A search string is data end to end: never markup, never script.
     ['list-page: a search string with markup and script text reaches load() verbatim and is drawn only as text - no element or handler is created from it (#436)', async t => {
         const evil = '<img src=x onerror="window.__pkXss=1"><script>window.__pkXss=1</scr' + 'ipt>';
