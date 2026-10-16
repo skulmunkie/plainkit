@@ -1,0 +1,41 @@
+@page "/lab/extras"
+
+@* Lab: the generated "extra" parameters of two hand-written components, over the real interop (#1449, #1407, #1431): PkLookupPicker OnInput, OnChange and SearchDebounce, and
+   PkDataTable @bind-SortKey, @bind-Descending, @bind-Search and @bind-PageSize through pk-query-change. *@
+<h1 tabindex="-1">Lab extras</h1>
+<PkLookupPicker TItem="Fruit" Load="LoadPicker" Columns="_columns" IdOf="f => f.Key" LabelOf="f => f.Name" AriaLabel="Fruit" SearchDebounce="600"
+                @bind-Value="_fruit" OnInput="Input" OnChange="Change" />
+<p id="lab-picker">Value: @_fruit, input: @_input, change: @_change, changes: @_changes, loads: @_pickerLoads, last search: @_pickerSearch</p>
+<PkDataTable TItem="Fruit" Load="LoadTable" Columns="_columns" IdOf="f => f.Key" Label="Fruit table" SearchDebounceMs="100" PageSizeOptions="@(new[] { 10, 25 })"
+             @bind-SortKey="_sort" @bind-Descending="_descending" @bind-Search="_search" @bind-PageSize="_pageSize" />
+<p id="lab-query">Sort: @(_sort ?? "none"), descending: @_descending, search: @(_search ?? "none"), page size: @_pageSize</p>
+
+@code {
+    private sealed record Fruit(string Key, string Name);
+
+    private static readonly PkTableColumn<Fruit>[] _columns = [new() { Key = "key", Label = "Key", Sortable = true }, new() { Key = "name", Label = "Name", Sortable = true }];
+    private static readonly Fruit[] _all = Enumerable.Range(1, 30).Select(i => new Fruit("k" + i, (i % 2 == 0 ? "Plum " : "Pear ") + i)).ToArray();
+
+    private string? _fruit, _input, _change, _pickerSearch, _sort, _search;
+    private bool _descending;
+    private int _changes, _pickerLoads, _pageSize = 10;
+
+    private void Input(ChangeEventArgs e) => _input = (string?)e.Value;
+
+    private void Change(ChangeEventArgs e) { _change = (string?)e.Value; _changes++; }
+
+    private Task<PkListResult<Fruit>> LoadPicker(PkListRequest r)
+    {
+        _pickerLoads++; _pickerSearch = r.Search;
+        InvokeAsync(StateHasChanged);
+        return LoadTable(r);
+    }
+
+    private static Task<PkListResult<Fruit>> LoadTable(PkListRequest r)
+    {
+        var rows = _all.Where(f => string.IsNullOrEmpty(r.Search) || f.Name.Contains(r.Search, StringComparison.OrdinalIgnoreCase));
+        rows = r.SortKey == "name" ? (r.Descending ? rows.OrderByDescending(f => f.Name) : rows.OrderBy(f => f.Name)) : rows;
+        var all = rows.ToList();
+        return Task.FromResult(new PkListResult<Fruit>(all.Skip((r.Page - 1) * r.PageSize).Take(r.PageSize).ToList(), all.Count));
+    }
+}

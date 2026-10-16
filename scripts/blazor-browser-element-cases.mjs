@@ -1,6 +1,6 @@
 // More measuring cases of scripts/blazor-browser.mjs (#1411): what the earlier lab cases still left to bUnit, which mocks the JS side. Element properties set after the render
 // (setProperty: PkCommandPalette.Items, PkLightbox.Items, PkCodeView.Segments), element references (setRef: PkButton.Controls, PkDesignSurface.Selected), the PkCanvas events,
-// PkSideNav open and close, and a real mouse drag (DevTools Input.dispatchMouseEvent, so real pointer events) on PkImageGallery and PkKanban. They drive the lab pages /lab/props,
+// PkSideNav open and close, and a real mouse drag (DevTools Input.dispatchMouseEvent, so real pointer events) on PkImageGallery and PkKanban. They drive the lab pages /lab/extras (#1449), /lab/props,
 // /lab/canvas, /lab/nav and /lab/drag (blazor/samples/PlainKit.AppSample/Components/Pages/Lab*.razor). Same rules as blazor-browser-cases.mjs: a failing case is a defect in the
 // product or the sample, file an issue, never weaken the case. Every wait is on a state (ctx.waitFor, stretched by the CPU load), never a fixed delay.
 import { BENIGN } from './blazor-browser-lab-cases.mjs';
@@ -115,6 +115,44 @@ export const ELEMENT_CASES = [
         await shown(ctx, 'lab-nav', 'collapsed True, toggles: 1');
         await ctx.noErrors(ctx.openMark, BENIGN);
       } },
+    { name: 'lookup-picker-extra-events-and-debounce',
+      async run(ctx) {
+        await ctx.open('/lab/extras');
+        const picker = 'pk-lookup-picker', text = () => ctx.eval(`document.getElementById('lab-picker').textContent`);
+        await live(ctx, picker, 'load'); // the circuit has set the Load callback
+        await ctx.eval(`document.querySelector('${picker}').show()`);
+        await shown(ctx, 'lab-picker', 'loads: 1'); // the popup table's first load
+        // SearchDebounce="600": typing in the popup's search box loads once, 600 ms later, not on the keystroke.
+        const typed = Date.now();
+        await ctx.typeInto(`${picker} >>> input[type="search"]`, 'Plum');
+        await ctx.flushEvents();
+        ctx.ok((await text()).includes('loads: 1,'), `the search loaded straight away instead of after the debounce: ${await text()}`);
+        await shown(ctx, 'lab-picker', 'last search: Plum');
+        const waited = Date.now() - typed;
+        ctx.ok(waited >= 500, `SearchDebounce="600" loaded after only ${waited} ms`);
+        // A row pick raises input and change on the element: OnInput and OnChange carry its value, the chosen key, and the bound Value agrees.
+        await ctx.clickDeep(`${picker} >>> tr`, 'Plum 2');
+        await shown(ctx, 'lab-picker', 'Value: k2, input: k2, change: k2, changes: 1');
+        await ctx.noErrors(ctx.openMark, BENIGN);
+      } },
+    { name: 'data-table-query-binds',
+      async run(ctx) {
+        await ctx.open('/lab/extras');
+        const table = 'pk-data-table[label="Fruit table"]';
+        await live(ctx, table, 'load');
+        await shown(ctx, 'lab-query', 'Sort: none, descending: False, search: none, page size: 10'); // the initial values
+        await ctx.clickDeep(`${table} >>> th[data-key="name"] button`); // sort ascending
+        await shown(ctx, 'lab-query', 'Sort: name, descending: False');
+        await ctx.clickDeep(`${table} >>> th[data-key="name"] button`); // and descending
+        await shown(ctx, 'lab-query', 'Sort: name, descending: True');
+        await ctx.typeInto(`${table} >>> input[type="search"]`, 'Plum');
+        await shown(ctx, 'lab-query', 'search: Plum');
+        const size = `${table} >>> [part="size-select"]`;
+        await ctx.waitFor(`!!window.__deep.one(${JSON.stringify(size)})`, 'the pager page-size choice');
+        await ctx.eval(`(() => { const s = window.__deep.one(${JSON.stringify(size)}); s.value = '25'; s.dispatchEvent(new Event('change', { bubbles: true, composed: true })); })()`);
+        await shown(ctx, 'lab-query', 'Sort: name, descending: True, search: Plum, page size: 25'); // all four follow the reader
+        await ctx.noErrors(ctx.openMark, BENIGN);
+      } },
     { name: 'image-gallery-pointer-reorder',
       async run(ctx) {
         await ctx.open('/lab/drag');
@@ -144,4 +182,5 @@ export const ELEMENT_SHOTS = [
     async (ctx, vp, theme) => { await ctx.open('/lab/canvas'); await ctx.waitFor(`!!document.querySelector('pk-design-surface')?.selected`, 'the surface selection'); await ctx.shot('lab-canvas', vp, theme); },
     async (ctx, vp, theme) => { await ctx.open('/lab/drag'); await ctx.waitFor(`document.querySelector('pk-image-gallery').shadowRoot.querySelectorAll('pk-sortable-item').length === 3`, 'the gallery tiles'); await ctx.shot('lab-drag', vp, theme); },
     async (ctx, vp, theme) => { await ctx.open('/lab/nav'); await ctx.shot('lab-nav', vp, theme); },
+    async (ctx, vp, theme) => { await ctx.open('/lab/extras'); await live(ctx, 'pk-data-table', 'load'); await ctx.waitFor(`window.__deep.q('pk-data-table >>> tbody tr').length > 0`, 'the table rows'); await ctx.shot('lab-extras', vp, theme); },
 ];
