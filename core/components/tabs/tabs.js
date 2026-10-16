@@ -1,4 +1,5 @@
 import { loadElements } from '../../js/loader.js';
+import { paramGet, paramKeep } from '../../js/tab-param.js';
 const ids = { n: 0 };
 // Which tabs collapse behind the overflow menu (overflow="menu") when the strip is narrower than the tabs need. Pure, so it is
 // tested without a DOM: given each tab's width (already including its share of the gap), the space available for the strip and
@@ -40,6 +41,8 @@ export default Base => class extends Base {
     sync() {
         const tabs = this.tabs;
         if (!tabs.length) return;
+        const win = this.tabParam ? this.ownerDocument.defaultView : null;
+        if (win && this.$p === undefined) { const want = paramGet(win, this.tabParam); if (tabs.some(t => t.value === want && !t.disabled)) this.value = want; } // tab-param: the address wins over value on the first sync
         if (this.value && !tabs.some(t => t.value === this.value)) this.warnOnce(`value:${this.value}`, `value="${this.value}" matches no <pk-tab value>: falling back to the first enabled tab`, { value: this.value, tabs: tabs.map(t => t.value) });
         if (!this.noneActive && !tabs.some(t => t.value === this.value && !t.disabled)) { const previous = this.value; this.value = (tabs.find(t => !t.disabled) ?? tabs[0]).value; if (this.value !== previous) this.emit('pk-tab-change', { value: this.value, previous, fallback: true }, { cancelable: false }); }
         for (const t of tabs) {
@@ -50,6 +53,7 @@ export default Base => class extends Base {
             if (p) { p.id ||= 'pk-panel-' + (++ids.n); t.setAttribute('aria-controls', p.id); p.setAttribute('aria-labelledby', t.id); }
         }
         for (const p of this.panels) { p.selected = !this.noneActive && p.value === this.value; p.tabIndex = p.selected ? 0 : -1; }
+        if (win && !this.noneActive) { if (this.$p !== undefined && this.$p !== this.value) paramKeep(win, this.tabParam, this.value); this.$p = this.value; } // later changes are written with replaceState
         this.reveal(this.tabs.find(t => t.selected), this.$s);
         this.$s = true; this.fade(); this.overflowMenu();
     }
