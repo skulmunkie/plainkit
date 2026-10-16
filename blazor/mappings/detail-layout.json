@@ -35,6 +35,11 @@
       "prop": "tabParam"
     },
     {
+      "name": "HideNext",
+      "prop": "hideNext",
+      "type": "bool"
+    },
+    {
       "name": "NextLabel",
       "prop": "nextLabel"
     },

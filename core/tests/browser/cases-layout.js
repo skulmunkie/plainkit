@@ -254,6 +254,18 @@ export const layoutCases = [
         t.ok(!shown('a') && shown('b'), 'choosing a tab on the header shows that section');
     }],
 
+    ['detail-layout: hide-next removes the Next button after the main column; without it the button shows in the collapsed layout (#1433)', async t => {
+        const root = await t.mount('<div><pk-detail-layout id="a"><pk-card heading="A" data-pk-section="details">a</pk-card><pk-card heading="B" data-pk-section="pricing">b</pk-card></pk-detail-layout><pk-detail-layout id="b" hide-next><pk-card heading="A" data-pk-section="details">a</pk-card><pk-card heading="B" data-pk-section="pricing">b</pk-card></pk-detail-layout></div>');
+        const [on, off] = [root.querySelector('#a'), root.querySelector('#b')];
+        size(on, rem(30)); size(off, rem(30)); await t.settle(); await new Promise(r => requestAnimationFrame(() => setTimeout(r, 50)));
+        const box = el => el.part('next').getBoundingClientRect();
+        t.ok(getComputedStyle(on.part('next')).display !== 'none' && box(on).width > 0 && on.part('next').textContent.startsWith('Next: '), 'the Next button shows by default');
+        t.ok(getComputedStyle(off.part('next')).display === 'none' && box(off).width === 0, 'hide-next draws no Next button');
+        t.ok(getComputedStyle(off.part('tabs')).display !== 'none', 'the tab strip is unaffected');
+        off.removeAttribute('hide-next'); await t.settle(); await new Promise(r => requestAnimationFrame(() => setTimeout(r, 50)));
+        t.ok(box(off).width > 0, 'removing hide-next brings the button back');
+    }],
+
     ['detail-layout: sections-above hides and shows a tagged sibling before the layout with the section (#1241)', async t => {
         const root = await t.mount('<div><pk-card id="top" heading="Top" data-pk-section="details">t</pk-card><pk-detail-layout sections-above tabs-from="always"><pk-card id="a" heading="A" data-pk-section="details">a</pk-card><pk-card id="b" heading="B" data-pk-section="pricing">b</pk-card></pk-detail-layout></div>');
         const el = root.querySelector('pk-detail-layout');

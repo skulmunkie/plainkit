@@ -23,7 +23,7 @@ export default Base => class extends Base {
         this.sync();
     }
     disconnected() { this.$ro?.disconnect(); this.$mo?.disconnect(); this.$mq?.removeEventListener('change', this.$sync); this.$mq = null; }
-    changed(name) { if (name === 'section' || name === 'nextLabel' || name === 'tabsFrom' || name === 'hideTabs' || name === 'sectionsAbove') this.sync(); }
+    changed(name) { if (name === 'section' || name === 'nextLabel' || name === 'tabsFrom' || name === 'hideTabs' || name === 'hideNext' || name === 'sectionsAbove') this.sync(); }
     pick(name) {
         const previous = this.$active;
         if (!name || name === previous) return;
@@ -69,7 +69,7 @@ export default Base => class extends Base {
         if (on) tabs.value = active;
         const after = names[names.indexOf(active) + 1];
         this.$next = after;
-        next.hidden = !collapsed || !after;
+        next.hidden = this.hideNext || !collapsed || !after;
         if (after) next.textContent = this.nextLabel + ': ' + (cards.find(c => c.dataset.pkSection === after).dataset.pkSectionLabel || after[0].toUpperCase() + after.slice(1)) + ' \u2192';
         for (const c of cards) {
             const off = collapsed && c.dataset.pkSection !== active;
