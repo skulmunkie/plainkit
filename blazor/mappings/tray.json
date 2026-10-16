@@ -20,7 +20,7 @@
     },
     {
       "name": "Size",
-      "type": "TraySize",
+      "type": "string",
       "default": "medium",
       "map": "prop",
       "prop": "size",
