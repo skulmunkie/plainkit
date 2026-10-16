@@ -225,6 +225,16 @@ public sealed class BlazorPanelTests : BunitContext, IAsyncLifetime
     }
 
     [Fact]
+    public void Page_and_app_props_are_typed_parameters()
+    {
+        Assert.Equal("PageHeaderVariant", PkMappingInfo.Describe("pk-page-header")!.Parameters.Single(p => p.Name == "Variant").Type);
+        Assert.Equal("PageShellState", PkMappingInfo.Describe("pk-page-shell")!.Parameters.Single(p => p.Name == "State").Type);
+        Assert.Equal("RecordPageMode", PkMappingInfo.Describe("pk-record-page")!.Parameters.Single(p => p.Name == "Mode").Type);
+        Assert.Equal("TrayEdge", PkMappingInfo.Describe("pk-tray")!.Parameters.Single(p => p.Name == "Edge").Type);
+        Assert.Equal("ChartKind", PkMappingInfo.Describe("pk-chart")!.Parameters.Single(p => p.Name == "Kind").Type);
+    }
+
+    [Fact]
     public void Razor_markup_binds_the_two_way_parameter_and_falls_back_to_a_bare_component()
     {
         Assert.Equal("<PkInput @bind-Value=\"_value\" Placeholder=\"Name\" />", PkMappingInfo.Describe("pk-input", attributes: Attrs(("value", "Ada"), ("placeholder", "Name")))!.Markup);

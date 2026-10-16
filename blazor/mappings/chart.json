@@ -4,7 +4,7 @@
     {
       "name": "Kind",
       "prop": "kind",
-      "type": "string"
+      "type": "ChartKind"
     },
     {
       "name": "Caption",

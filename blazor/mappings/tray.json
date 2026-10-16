@@ -20,7 +20,7 @@
     },
     {
       "name": "Size",
-      "type": "string",
+      "type": "TraySize",
       "default": "medium",
       "map": "prop",
       "prop": "size",
@@ -59,7 +59,7 @@
     },
     {
       "name": "Edge",
-      "type": "string",
+      "type": "TrayEdge",
       "default": "bottom",
       "map": "prop",
       "prop": "edge"

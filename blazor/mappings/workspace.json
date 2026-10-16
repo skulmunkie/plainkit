@@ -10,7 +10,7 @@
     },
     {
       "name": "ActivePane",
-      "type": "string",
+      "type": "WorkspaceActivePane",
       "default": "main",
       "map": "prop",
       "prop": "activePane",

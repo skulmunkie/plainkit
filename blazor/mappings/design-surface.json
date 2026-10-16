@@ -3,7 +3,8 @@
   "params": [
     {
       "name": "Width",
-      "prop": "width"
+      "prop": "width",
+      "type": "DesignSurfaceWidth"
     },
     {
       "name": "Label",

@@ -6,7 +6,7 @@
     { "name": "Crumbs", "prop": "crumbs", "type": "IReadOnlyList<PkCrumb>?", "json": true, "note": "Typed list of PkCrumb: sent as the element's crumbs attribute, as on PkPageHeader." },
     { "name": "BackLink", "prop": "backLink", "type": "bool" },
     { "name": "Sticky", "prop": "sticky", "type": "bool" },
-    { "name": "State", "prop": "state", "type": "string" },
+    { "name": "State", "prop": "state", "type": "PageShellState" },
     { "name": "StateHeading", "prop": "stateHeading", "type": "string" },
     { "name": "StateDescription", "prop": "stateDescription", "type": "string" },
     { "name": "OnRetry", "event": "pk-page-shell-retry" },

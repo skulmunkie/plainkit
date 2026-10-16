@@ -30,7 +30,7 @@
     {
       "name": "Preset",
       "prop": "preset",
-      "type": "string"
+      "type": "FramePreset"
     },
     {
       "name": "Height",
@@ -40,12 +40,12 @@
     {
       "name": "Theme",
       "prop": "theme",
-      "type": "string"
+      "type": "FrameTheme"
     },
     {
       "name": "Loading",
       "prop": "loading",
-      "type": "string"
+      "type": "FrameLoading"
     }
   ],
   "notes": "New component (issue #523). Replaces raw iframe/srcdoc writes in the gallery sample stage and the layout builder and theme editor previews."
