@@ -225,7 +225,7 @@ export const LAB_CASES = [
 const OPEN_LINK_SHOWN = `window.__deep.all('a[href]').some(a => new URL(a.href).pathname === '/orders/open' && a.getBoundingClientRect().right > 0)`;
 
 /** Runs `fn` with a 375 x 812 touch viewport, and puts the desktop one back whatever happens. */
-async function onPhone(ctx, fn) {
+export async function onPhone(ctx, fn) {
     await ctx.viewport({ name: 'phone', width: 375, height: 812, touch: true }, 'light');
     try { await fn(); } finally { await ctx.viewport({ name: 'desktop', width: 1280, height: 900 }, 'light'); }
 }

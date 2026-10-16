@@ -6,7 +6,7 @@
 import fs from 'node:fs';
 import os from 'node:os';
 import path from 'node:path';
-import { BENIGN, MAIN, waitText } from './blazor-browser-lab-cases.mjs';
+import { BENIGN, MAIN, onPhone, waitText } from './blazor-browser-lab-cases.mjs';
 
 const BODY = `window.__deep.text(document.body)`;
 const PNG = Buffer.from('iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mP8z8BQDwAEhQGAhKmMIQAAAABJRU5ErkJggg==', 'base64'); // a 1 x 1 PNG
@@ -41,7 +41,7 @@ export const INTEROP_CASES = [
       async run(ctx) {
         await ctx.open('/lab/pages');
         await live(ctx, 'pk-settings-page', 'save');
-        await ctx.waitFor(`${nick('value')} === 'first'`, 'the field to hold its Values');
+        await ctx.waitFor(`${nick('value')} === 'first' && typeof ${nick('fire')} === 'function'`, 'the field to hold its Values and be defined (a keystroke on an element that is not yet upgraded raises no value event)');
         await ctx.typeInto(NICK, 'Zed');
         await ctx.waitFor(SAVE_SHOWN, 'the Save bar to appear for the unsaved change');
         await ctx.clickDeep('pk-settings-page >>> pk-button[part="save"]');
@@ -58,6 +58,31 @@ export const INTEROP_CASES = [
         await waitText(ctx, 'Something went wrong');
         ctx.ok(await ctx.eval(`!/Secret\.cs|Boom at/.test(window.__deep.text(document.querySelector('pk-settings-page')))`), 'the non-user-facing exception text reached the page');
         await ctx.noErrors(ctx.openMark, [...BENIGN, /Save refused by the sample/, /Boom at/]);
+      } },
+    // #334: three sections turn the section nav on through the Config JSON alone. Choosing one scrolls its card in and marks it, an edit survives the switch, and a phone has tabs instead.
+    { name: 'settings-page-section-nav',
+      async run(ctx) {
+        const NAV = 'pk-settings-page >>> [part="nav"]', ITEM = 'pk-settings-page >>> pk-nav-item';
+        const marked = `window.__deep.q(${JSON.stringify(ITEM)}).filter(i => i.hasAttribute('current')).map(i => i.textContent.trim()).join()`;
+        await ctx.open('/lab/pages');
+        await live(ctx, 'pk-settings-page', 'save');
+        await ctx.waitFor(`window.__deep.q(${JSON.stringify(ITEM)}).length === 3`, 'one nav item per section');
+        ctx.ok(await ctx.eval(`window.__deep.one(${JSON.stringify(NAV)}).getBoundingClientRect().width > 0`), 'the section nav is not drawn on a desktop');
+        ctx.ok(await ctx.eval(`${marked} === 'Profile'`), 'the first section is not the current one');
+        await ctx.waitFor(`typeof ${nick('fire')} === 'function'`, 'the field to be defined');
+        await ctx.typeInto(NICK, 'Zed');
+        await ctx.waitFor(SAVE_SHOWN, 'the Save bar to appear for the unsaved change');
+        await ctx.clickDeep(ITEM, 'Billing');
+        await ctx.waitFor(`${marked} === 'Billing'`, 'Billing to become the current section');
+        ctx.ok(await ctx.eval(`window.__deep.q('pk-settings-page >>> pk-card').some(c => c.heading === 'Billing' && c.getBoundingClientRect().bottom > 0 && c.getBoundingClientRect().top < innerHeight)`), 'the Billing card is not in view');
+        ctx.ok(await ctx.eval(`${SAVE_SHOWN} && ${nick('value')} === 'Zed'`), 'switching section lost the unsaved edit or the Save bar');
+        await onPhone(ctx, async () => {
+            await ctx.open('/lab/pages');
+            await live(ctx, 'pk-settings-page', 'save');
+            await ctx.waitFor(`window.__deep.q('pk-settings-page >>> pk-tab').length === 3`, 'the section tabs on a phone');
+            ctx.ok(await ctx.eval(`window.__deep.one(${JSON.stringify(NAV)}).getBoundingClientRect().width === 0`), 'the nav column is still drawn on a phone');
+        });
+        await ctx.noErrors(ctx.openMark, BENIGN);
       } },
     { name: 'json-attribute-resync',
       async run(ctx) {

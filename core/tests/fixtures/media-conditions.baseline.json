@@ -165,6 +165,9 @@
  "select": [
   "(max-width: 640px)"
  ],
+ "settings-page": [
+  "(max-width: 640px)"
+ ],
  "side-nav": [
   "(max-width: 1024px)",
   "(prefers-reduced-motion: reduce)"

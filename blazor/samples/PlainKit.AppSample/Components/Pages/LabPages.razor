@@ -17,7 +17,7 @@
 
     // Config follows a C# field: Rename changes the label of the field after the first render.
     private string _label = "Nickname";
-    private string SettingsConfig => JsonSerializer.Serialize(new { sections = new[] { new { heading = "Profile", fields = new[] { new { key = "nick", type = "text", label = _label } } } } });
+    private string SettingsConfig => JsonSerializer.Serialize(new { sections = new[] { new { heading = "Profile", fields = new[] { new { key = "nick", type = "text", label = _label } } }, new { heading = "Notifications", fields = new[] { new { key = "digest", type = "text", label = "Digest address" } } }, new { heading = "Billing", fields = new[] { new { key = "tax", type = "text", label = "Tax number" } } } } });
 
     private void Rename() { _label = "Handle"; _values = """{"nick":"second"}"""; }
     private Task<object?> RunTool(IReadOnlyDictionary<string, JsonElement> v) => Task.FromResult<object?>("Hello " + v["name"].GetString());
