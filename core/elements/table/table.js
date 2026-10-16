@@ -6,7 +6,7 @@ import { rowId, rowIds, rowAt, idSet, toggleId, setPage, boxState } from '../../
 export { sortKey, sortRows, filterRows };
 
 // h('td', { 'data-x': 1 }, 'text' | node ...) builds an element; null, undefined and false attributes are skipped.
-const h = (tag, attrs, ...kids) => { const e = document.createElement(tag); for (const k in attrs) attrs[k] && e.setAttribute(k, attrs[k] === true ? '' : attrs[k]); e.append(...kids); return e; };
+const h = (tag, attrs = {}, ...kids) => { const e = document.createElement(tag); for (const k in attrs) if (attrs[k]) e.setAttribute(k, attrs[k] === true ? '' : attrs[k]); e.append(...kids); return e; };
 
 export default Base => class extends Base {
     connected() {
@@ -51,11 +51,11 @@ export default Base => class extends Base {
 
     updated() {
         const own = this.slotted().some(e => e.localName === 'table'), tb = this.part('table');
-        this.part('toolbar').hidden = !this.slotted('toolbar').length;
+        this.part('toolbar').hidden = this.slotted('toolbar').length === 0;
         tb.hidden = own;
         if (own) { this.part('bulk').hidden = this.part('empty').hidden = true; return; }
-        if (this.selectScope === 'all' && !this.selected.length) this.selectScope = 'page';
-        const k = this.list('columns'), r = V.view(this), ids = rowIds(r, this.rowKey), s =this.chosen(ids), sel = boxState(ids.filter(i => s.has(i)), r.length);
+        if (this.selectScope === 'all' && !this.wide) this.selectScope = 'page';
+        const k = this.list('columns'), r = V.view(this), ids = rowIds(r, this.rowKey), wide = this.wide, s = this.chosen(ids), sel = boxState(ids.filter(i => s.has(i)), r.length);
         if (this.expandable || this.clickable || this.rowHrefTemplate) this.$x ??= import('../../js/table-expand.js').then(m => { this.$m = m; this.requestUpdate(); }, e => this.log.error('table-expand failed', e));
         if (this.total) this.$p ??= import('../../js/table-scope.js').then(m => { this.$s = m; this.requestUpdate(); }, e => this.log.error('table-scope failed', e));
         if (this.editable) this.$w ??= import('../../js/table-edit.js').then(m => { this.$e = m; this.requestUpdate(); }, e => this.log.error('table-edit failed', e));
