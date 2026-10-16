@@ -54,9 +54,6 @@
     "Components/PkScorecard.razor": {
       "category": "mount"
     },
-    "Components/PkSideNav.razor": {
-      "category": "router"
-    },
     "Components/PkStyles.razor": {
       "category": "wrapper",
       "blazorOnly": "writes the stylesheet link; there is no element"
