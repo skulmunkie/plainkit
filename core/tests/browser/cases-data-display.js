@@ -730,6 +730,28 @@ export const dataDisplayCases = [
         const wide = await at(1200); t.ok(wide.card > 40, `the card has a width on desktop (${wide.card}px)`);
     }],
 
+    ['table (375px): a title column in the cards layout has no label, starts at the start edge, wraps, and an empty label omits data-label; at 1200px it is an ordinary cell (#1445)', async t => {
+        const { sampleDoc } = await import('../../site/gallery/frame.js');
+        const html = `<pk-table cards label="T" columns='[{"key":"name","label":"Product","title":true},{"key":"sku","label":""},{"key":"qty","label":"Qty","type":"number"}]' rows='[{"id":1,"name":"A rather long product title that has to wrap onto a second line on a phone","sku":"AC-1000","qty":3}]'></pk-table>`;
+        const at = async width => {
+            const host = t.stage(''), f = document.createElement('iframe');
+            f.title = 'sample'; f.style.width = `${width}px`; f.style.height = '420px'; f.style.border = '0';
+            const loaded = new Promise(r => f.addEventListener('load', r, { once: true })); host.append(f); f.srcdoc = sampleDoc(html); await loaded;
+            const tb = await until(() => f.contentDocument.querySelector('pk-table')?.shadowRoot?.querySelector('tbody td') && f.contentDocument.querySelector('pk-table'), 'the table');
+            await new Promise(r => setTimeout(r, 200));
+            const r = tb.shadowRoot, w = f.contentWindow, cell = r.querySelector('td[data-key="name"]'), row = r.querySelector('tbody tr').getBoundingClientRect(), box = cell.getBoundingClientRect();
+            const text = w.document.createRange(); text.selectNodeContents(cell.firstChild);
+            return { title: cell.hasAttribute('data-title'), label: cell.hasAttribute('data-label'), before: w.getComputedStyle(cell, '::before').content, align: w.getComputedStyle(cell).textAlign, weight: +w.getComputedStyle(cell).fontWeight, left: text.getClientRects()[0].left - row.left, boxW: box.width, rowW: row.width, lines: text.getClientRects().length, skuLabel: r.querySelector('td[data-key="sku"]').hasAttribute('data-label'), qtyLabel: r.querySelector('td[data-key="qty"]').getAttribute('data-label') };
+        };
+        const phone = await at(375);
+        t.ok(phone.title && !phone.label, 'the title cell carries data-title and no data-label');
+        t.ok(phone.before === 'none' || phone.before === 'normal', `no label is drawn before the title (${phone.before})`);
+        t.eq(phone.align, 'start', 'the title is start-aligned'); t.ok(phone.weight >= 600, `the title has heading weight (${phone.weight})`);
+        t.ok(phone.left < 24, `the title starts at the start edge of the card (${phone.left}px in)`); t.ok(phone.boxW >= phone.rowW - 40, `the title spans the card (${phone.boxW}px of ${phone.rowW}px)`);
+        t.ok(phone.lines >= 2, 'a long title wraps onto more than one line'); t.ok(!phone.skuLabel, 'an empty label omits data-label'); t.eq(phone.qtyLabel, 'Qty', 'other columns keep their label');
+        const wide = await at(1200); t.ok(wide.title, 'the flag reaches the cell on a wide screen'); t.eq(wide.align, 'start', 'a wide table is unchanged');
+    }],
+
     ['table: the foot slot is a tfoot cell spanning every column after the rows on a desktop, and a full-width trailing card on a phone (#1020)', async t => {
         const { sampleDoc } = await import('../../site/gallery/frame.js');
         const html = `<pk-table cards selectable label="F" columns='[{"key":"sku","label":"SKU"},{"key":"qty","label":"Qty","type":"number"}]' rows='[{"id":1,"sku":"A","qty":1},{"id":2,"sku":"B","qty":2}]'><span slot="foot">Total 3</span></pk-table>`;
