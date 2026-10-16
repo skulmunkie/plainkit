@@ -1,0 +1,21 @@
+{
+  "id": "landing",
+  "title": "Landing page",
+  "summary": "A marketing page composed from existing elements: hero, feature grid, pricing cards and FAQ. Colours and sizes come from tokens; imagery, if any, goes in pk-media.",
+  "slots": "hero (one h1, two actions), feature grid, pricing cards, FAQ",
+  "used": [
+    "accordion",
+    "accordion-item",
+    "badge",
+    "button",
+    "card",
+    "cluster",
+    "container",
+    "grid",
+    "heading",
+    "list",
+    "stack",
+    "text"
+  ],
+  "order": 10
+}
