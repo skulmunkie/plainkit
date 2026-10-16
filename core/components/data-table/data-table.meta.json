@@ -228,7 +228,8 @@
   ],
   "slots": [
     { "name": "actions", "description": "Toolbar buttons at the end of the search row." },
-    { "name": "empty", "description": "Content shown instead of the built-in empty state when load() returns no rows and no search or filter is active (an illustration, a call to action). With a search active the built-in no-results state shows." },
+    { "name": "empty", "description": "Content shown instead of the built-in empty state when load() returns no rows and no search or filter is active (an illustration, a call to action). With a search active the no-results slot, else the built-in state, shows." },
+    { "name": "no-results", "description": "Content shown instead of the built-in no-results state when a search or filter is active and nothing matches." },
     { "name": "bulk", "description": "Bulk actions (buttons) shown in the bar that appears while rows are selected, beside the count; act on the pk-select detail (the ids, or the query for scope 'all'). Needs selectable." },
     { "name": "cell-<rowId>-<key>", "dynamic": true, "description": "Custom content for one cell, exactly as pk-table's cell slots: the row's id (its rowKey field) and the column key. A row with no such child shows the plain value. Column options (align, type, hidePhone) in columns apply as in pk-table." },
     { "name": "header-<key>", "dynamic": true, "description": "Content beside one column header's title (a help tooltip, an icon button), exactly as pk-table's header slots; the text title and the sort button stay." }
@@ -282,6 +283,7 @@
     { "name": "add", "description": "The primary add button, after the actions slot (shown when addLabel is set)." },
     { "name": "pagination", "description": "The pk-pagination, in the table's footer." },
     { "name": "empty", "description": "Holds the empty slot while it is shown." },
+    { "name": "noResults", "description": "Holds the no-results slot while shown." },
     { "name": "state", "description": "Holds the loading/empty/error state while load() is in flight or the result is empty; the table is hidden while this is shown." }
   ],
   "cssProperties": [],

@@ -117,10 +117,11 @@ export default Base => class extends Base {
         for (const k of ['rowHrefTemplate', 'navigate', 'selectPageOnly', 'cards', 'striped', 'density', 'maxHeight', 'stickyHeader']) table[k] = this[k];
     }
 
-    // Zero rows: while a search or filter is active `noResults` (when set), else `empty`; with nothing active a host child in the `empty` slot replaces the built-in state.
+    // Zero rows: while a search or filter is active `noResults` (when set), else `empty`; with nothing active a host child in the `empty` slot (`no-results` while searching) replaces the built-in state.
     showEmpty(q) {
         const state = this.part('state'), noResults = this.opt('noResults'), searching = q.search || Object.values(q.filters).some(v => String(v ?? '').trim() !== '');
-        if (!searching && this.querySelector(':scope > [slot="empty"]')) { showState(state, 'ready'); this.part('empty').hidden = false; }
+        const slot = searching ? 'no-results' : 'empty';
+        if (this.querySelector(`:scope > [slot="${slot}"]`)) { showState(state, 'ready'); this.part(searching ? 'noResults' : 'empty').hidden = false; }
         else showState(state, 'empty', searching && noResults ? noResults : this.opt('empty') ?? undefined);
     }
 
@@ -134,7 +135,7 @@ export default Base => class extends Base {
         // A new request cancels the one still in flight: load(query, { signal }) can pass the signal on to fetch.
         this.$abort?.abort();
         const { signal } = (this.$abort = new AbortController());
-        table.hidden = this.part('empty').hidden = true;
+        table.hidden = this.part('empty').hidden = this.part('noResults').hidden = true;
         showState(state, 'loading', { label: 'Loading' });
         if (typeof this.load !== 'function') { this.showEmpty(q); return; }
         let result;

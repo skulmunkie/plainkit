@@ -18,6 +18,18 @@ const search = el => { const d = dt(el); return typeof d?.part === 'function' ? 
 const key = (target, k) => target.dispatchEvent(new KeyboardEvent('keydown', { key: k, bubbles: true, composed: true, cancelable: true }));
 
 export const lookupPickerCases = [
+    ['lookup-picker: empty and no-results slots replace the popup states (#1421)', async t => {
+        const el = await t.mount(`<pk-lookup-picker label="Customer" ${CFG}><p slot="empty" id="e">Nobody yet</p><p slot="no-results" id="n">No match</p></pk-lookup-picker>`);
+        await t.load(el.shadowRoot);
+        el.load = async q => ({ rows: [], total: 0 });
+        el.open = true;
+        const shown = id => { const s = dt(el)?.shadowRoot?.querySelector(`slot[name="${id}"]`)?.parentElement; return s && !s.hidden; };
+        await until(() => shown('empty'), 'the empty slot shown');
+        t.ok(!shown('no-results'), 'no-results stays hidden while nothing is searched');
+        const box = search(el); box.value = 'zz'; box.dispatchEvent(new Event('input', { bubbles: true, composed: true }));
+        await until(() => shown('no-results'), 'the no-results slot shown');
+        t.ok(!shown('empty'), 'empty hides while searching');
+    }],
     ['lookup-picker: plain props give the popup its columns, page size, search label, empty state and load error (#805)', async t => {
         const el = await t.mount(`<pk-lookup-picker label="Customer" label-key="name" columns='[{"key":"name","label":"Name"}]' page-size="3" search-label="Find a customer"></pk-lookup-picker>`);
         await t.load(el.shadowRoot); const queries = [];
