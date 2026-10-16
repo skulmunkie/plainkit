@@ -19,7 +19,7 @@
     {
       "name": "Mode",
       "prop": "mode",
-      "type": "string"
+      "type": "ButtonGroupMode"
     },
     {
       "name": "ChildContent",

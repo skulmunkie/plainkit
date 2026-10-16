@@ -9,7 +9,7 @@
     {
       "name": "Type",
       "prop": "type",
-      "type": "string"
+      "type": "InputType"
     },
     {
       "name": "Name",
@@ -104,7 +104,7 @@
     {
       "name": "Format",
       "prop": "format",
-      "type": "string"
+      "type": "InputFormat"
     },
     {
       "name": "Currency",
