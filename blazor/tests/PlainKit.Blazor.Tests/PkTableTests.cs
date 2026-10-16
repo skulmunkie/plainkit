@@ -254,6 +254,19 @@ public sealed class PkTableTests : BunitContext, IAsyncLifetime
         Assert.Equal("Ada", cut.Instance.Opened?.Name);
     }
 
+    // OnNavigate and Navigate come from the generated companion (#1421): a notification, never a cancelation; Navigate.Host tells the element up front not to navigate.
+    [Fact]
+    public async Task OnNavigate_receives_the_address_and_Navigate_is_the_navigate_attribute()
+    {
+        PkNavigateEventArgs? seen = null;
+        var cut = Render<PkTable<Order>>(p => p.Add(x => x.Columns, Columns).Add(x => x.Items, Orders).Add(x => x.RowHrefTemplate, "/orders/{id}")
+            .Add(x => x.Navigate, "host").Add(x => x.OnNavigate, e => { seen = e; }));
+        Assert.Equal("host", cut.Find("pk-table").GetAttribute("navigate"));
+        await cut.Find("pk-table").TriggerEventAsync("onpk-navigate", new PkNavigateEventArgs { To = "/orders/1042", Href = "/orders/1042" });
+        Assert.Equal("/orders/1042", seen?.To);
+        Assert.Null(Render<PkTable<Order>>(p => p.Add(x => x.Columns, Columns).Add(x => x.Items, Orders)).Find("pk-table").GetAttribute("navigate"));
+    }
+
     [Fact]
     public void RowHrefTemplate_is_the_row_href_template_attribute()
     {

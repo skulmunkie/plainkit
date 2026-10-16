@@ -1,6 +1,7 @@
 {
   "component": "PkTable",
   "existing": true,
+  "extrasHook": "ApplyExtras",
   "existingReason": "typed-generics: PkTable<TItem> typed columns, cell templates and row JSON Missing generator features: @typeparam generation (a typed component), typed columns and typed rows turned into JSON props, and per-row cell and detail slot templates (RenderFragment<TItem>).",
   "params": [
     {
@@ -242,6 +243,8 @@
       "type": "EventCallback<PkTableRowClickArgs<TItem>>",
       "note": "Raised by a click and, on a clickable row, by Enter or Space on the focused row (each row is a tab stop)."
     },
+    { "name": "Navigate", "prop": "navigate", "type": "string?", "extra": true, "note": "Who follows a RowHrefTemplate link on a plain click: \"router\" (default, or leave it unset) lets the app router handle the cancelable pk-navigate; \"host\" raises OnNavigate as a notification the router ignores and nothing navigates, so your handler navigates (NavigationManager); \"none\" raises nothing and the browser follows the address." },
+    { "name": "OnNavigate", "event": "pk-navigate", "type": "EventCallback<PkNavigateEventArgs>", "extra": true, "note": "A plain click on a row link: To is the address. A callback cannot cancel it (the browser does not wait for the server): set Navigate to \"host\" and navigate in the handler." },
     {
       "name": "OnRowExpand",
       "event": "pk-row-expand",
