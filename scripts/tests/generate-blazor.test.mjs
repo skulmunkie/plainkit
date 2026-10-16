@@ -187,7 +187,7 @@ test('no generated parameter is an unexplained object: each one is in the manife
     const listed = new Set(manifest.typesToDefine.map(t => `${t.component}.${t.param}`));
     for (const f of fs.readdirSync(generatedDir).filter(x => x.endsWith('.razor')))
         for (const m of fs.readFileSync(path.join(generatedDir, f), 'utf8').matchAll(/\[Parameter\] public object\? (\w+)/g))
-            assert.ok(listed.has(`${f.replace('.razor', '')}.${m[1]}`), `${f} ${m[1]} is object? and not explained in the manifest`);
+            assert.ok(listed.has(`${f.replace('.razor', '')}.${m[1]}`) || fs.readFileSync(path.join(generatedDir, f), 'utf8').includes(`PkAttr.JsonText(${m[1]})`), `${f} ${m[1]} is object? and not explained in the manifest (a jsonText parameter is explained by its helper)`);
     assert.deepEqual(manifest.typesToDefine, [], 'today every JSON parameter has a type');
 });
 
@@ -210,9 +210,9 @@ test('two-way: a bind block and a Changed callback update the parameter, then re
 
 test('two-way: a JSON bind keeps an object event field as raw text; a callback can update a prop after it succeeds', () => {
     const grid = fs.readFileSync(path.join(generatedDir, 'PkPropertyGrid.razor'), 'utf8');
-    assert.match(grid, /Values = e\.Values\?\.GetRawText\(\);\s+await ValuesChanged\.InvokeAsync\(Values\);/);
+    assert.match(grid, /Values = e\.Values\?\.GetRawText\(\);\s+await ValuesChanged\.InvokeAsync\(Values as string\);/);
     const settings = fs.readFileSync(path.join(generatedDir, 'PkSettingsPage.razor'), 'utf8');
-    assert.match(settings, /await Save!\(a\); await InvokeAsync\(async \(\) => \{ Values = JsonSerializer\.Serialize\(a\); await ValuesChanged\.InvokeAsync\(Values\); \}\)/);
+    assert.match(settings, /await Save!\(a\); await InvokeAsync\(async \(\) => \{ Values = JsonSerializer\.Serialize\(a\); await ValuesChanged\.InvokeAsync\(Values as string\); \}\)/);
 });
 
 test('two-way: an enum parameter follows a string event field through a generated parser and reports the enum (#1444)', () => {
