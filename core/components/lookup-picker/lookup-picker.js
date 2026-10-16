@@ -74,6 +74,7 @@ export default Base => class extends Base {
             } finally { queueMicrotask(() => this.tryFocus()); }
         };
         dt.addEventListener('pk-row-click', e => { e.stopPropagation(); this.pick(e.detail); });
+        for (const s of dt.querySelectorAll('slot')) if (!this.querySelector(`:scope > [slot="${s.name}"]`)) s.remove(); // the table sees only the states the host fills
         const first = tableProps(this);
         this.$cfg = JSON.stringify(first);
         Object.assign(dt, first); // before it is connected: the table's first load already has its columns, page size and states
