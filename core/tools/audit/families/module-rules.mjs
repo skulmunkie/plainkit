@@ -90,11 +90,51 @@ const REUSED_S_RULES = S_RULES.filter(row => REUSED_IDS.has(row.id)).map(row => 
     docs: MODULE_DOCS,
 })).map(row => (row.id === 'S7' || row.id === 'S8' ? withWrapperExempt(row) : row));
 
+// Module-owned styling and markup (#1485, owner decision). A lazy module is a folder directly under core/modules/ or
+// core/site/ (e.g. core/modules/code-explorer/, core/site/gallery/), and it may own .css and .html files inside its own
+// folder: S1 (the "own CSS file", @import, <link rel=stylesheet>, <style> findings in such a file) and S10 (the anatomy
+// extension check) no longer fire for them. S9 (tokens only, no literal colours) still applies to every one of those
+// files, and a .css/.html file anywhere else (a loose file in core/, a nested helper outside a module folder) still fails.
+// The one site-level stylesheet outside a module folder is listed by name, not by pattern.
+const MODULE_FOLDER = /^core\/(?:modules|site)\/[^/]+\/.+/;
+const SITE_STYLESHEETS = new Set(['core/site/site.css']);
+const normPath = p => p.replaceAll('\\', '/');
+export const ownsModuleAsset = file => {
+    const p = normPath(file.path);
+    return /\.(css|html)$/i.test(p) && (SITE_STYLESHEETS.has(p) || MODULE_FOLDER.test(p));
+};
+// Reviewed srcdoc exception (#1485): sandboxed preview frames whose document is built from the SDK's own example markup.
+// An explicit list of files with the number of `srcdoc` mentions each may hold; a new file, or one more mention in a
+// listed file, is a finding. Only the `srcdoc` sink is covered: innerHTML/outerHTML and the rest of S5 are untouched.
+// The counts only shrink.
+export const SRCDOC_ALLOW = {
+    'core/modules/scorecard/scorecard.js': 7,
+    'core/modules/theme-editor/theme-editor.js': 1,
+    'core/site/gallery/frame.js': 1,
+    'core/site/gallery/elements/frame.data.js': 2,
+    'core/site/scorecard/scorecard.js': 2,
+    'core/site/scorecard/sweep.js': 1,
+};
+function withModuleAllowances(row) {
+    return {
+        ...row,
+        scan(file) {
+            const hits = row.scan(file);
+            if (row.id === 'S1' || row.id === 'S10') return ownsModuleAsset(file) ? [] : hits;
+            if (row.id === 'S5') {
+                let budget = SRCDOC_ALLOW[normPath(file.path)] ?? 0;
+                return hits.filter(hit => !(hit.found === 'srcdoc' && budget-- > 0));
+            }
+            return hits;
+        },
+    };
+}
+
 // S10: anatomy (design section 2.1). A strict module tree has no `.css` file (S1 already flags the content;
 // this flags the file itself for any extension the anatomy forbids outright: `.html` other than `app.html`,
 // and any stray top-level extension the layout does not name). Per-file, so it needs no directory listing.
 const ALLOWED_EXTENSIONS = ['.js', '.mjs', '.json', '.razor', '.cshtml', '.md'];
-const s10 = {
+const s10 = withModuleAllowances({
     id: 'S10',
     category: 'module',
     detects: 'a file the module anatomy does not allow (stray extension, or an .html file other than app.html)',
@@ -111,7 +151,7 @@ const s10 = {
         const ext = name.includes('.') ? name.slice(name.lastIndexOf('.')) : name;
         return [hitAt(file.text, 0, `a stray ${ext} file`, { found: `a stray ${ext} file` })];
     },
-};
+});
 
 // S11 and S12 are, by the design's own admission (section 3.1's "check" column), not static-scannable per file:
 // S11 ("every strict module has module.test.mjs, at least one scenario...") needs the module's whole directory,
@@ -142,4 +182,4 @@ const s12 = {
     scan: () => [],
 };
 
-export const MODULE_RULES = [...REUSED_S_RULES, s10, s11, s12];
+export const MODULE_RULES = [...REUSED_S_RULES.map(row => (['S1', 'S5'].includes(row.id) ? withModuleAllowances(row) : row)), s10, s11, s12];
