@@ -58,6 +58,7 @@ A list and its record are two routed pages. A single page that shows a list and 
 | Rows you draw yourself, no paging or search | `pk-table` |
 | One dataset with search, sort, paging and selection inside a page of your own layout | `pk-data-table` (pattern `filter-table`) |
 | A form field that picks one record from a long list (customers, products, users) in a popup table | `pk-lookup-picker` (the list is too long for `pk-combobox`) |
+| A form field for formatted text stored as Markdown (bold, italic, lists, links, a preview) | `pk-markdown-editor` (render stored text elsewhere with `renderMarkdown` from `js/markdown/render.js`, never by writing the text into markup) |
 | A whole route that lists a collection (title bar, filters, row links) | Page type `list` |
 | A list and its record | `list` and `record` as two routes (template `routed-pair`). The list fills the viewport and is the only thing that scrolls |
 | A peek at context that is not a record of its own | A flyout over the list (`pk-drawer`) |
