@@ -76,7 +76,8 @@
       "detail": {
         "reason": "string"
       },
-      "description": "A close was asked for (Escape, outside press, choosing, the trigger). Cancelable: preventDefault keeps it open."
+      "description": "A close was asked for (Escape, outside press, choosing, the trigger). Cancelable: preventDefault keeps it open.",
+      "cancelable": true
     }
   ],
   "parts": [
