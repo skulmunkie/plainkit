@@ -180,7 +180,7 @@
       "type": "boolean",
       "default": false,
       "reflect": true,
-      "description": "Inline cell editing: the table becomes an ARIA grid with one active cell (arrow keys, Home, End move it; Tab moves it right along the row, then leaves the grid at the row's last cell rather than trapping focus), and a cell of a column that has an editor opens with Enter, F2, a second click or tap on the active cell, or by typing a printable character (which replaces the cell's content, as in a spreadsheet). While editing, Enter commits the draft and moves the active cell down one row, Tab commits and moves it right, Escape cancels, and leaving the cell commits. A cell the host fills through a cell-<rowId>-<key> slot is read-only to the table and owned by the host (a pk-switch there toggles itself): give the control tabindex=\"-1\" so the cell stays the one tab stop, and an accessible name; Space or Enter on the cell moves focus to the control, and Escape in the control returns focus to the cell. Ctrl/Cmd+Z undoes the last committed edit of this table (up to 100) and Ctrl+Y or Ctrl/Cmd+Shift+Z redoes it; each step goes through pk-cell-edit, so the host may refuse it. A commit raises pk-cell-edit, and unless the host cancels it the row holds the new value. Turns windowing off (see the summary): a table this size edits every row it draws."
+      "description": "Inline cell editing: the table becomes an ARIA grid with one active cell (arrow keys, Home, End move it; Tab moves it right along the row, then leaves the grid at the row's last cell rather than trapping focus), and a cell of a column that has an editor opens with Enter, F2, a second click or tap on the active cell, or by typing a printable character (which replaces the cell's content, as in a spreadsheet). While editing, Enter commits the draft and moves the active cell down one row, Tab commits and moves it right, Escape cancels, and leaving the cell commits. A cell the host fills through a cell-<rowId>-<key> slot is read-only to the table and owned by the host (a pk-switch there toggles itself): give the control tabindex=\"-1\" so the cell stays the one tab stop, and an accessible name; Space or Enter on the cell moves focus to the control, and Escape in the control returns focus to the cell. Ctrl/Cmd+Z undoes the last committed edit of this table (up to 100) and Ctrl+Y or Ctrl/Cmd+Shift+Z redoes it; each step goes through pk-cell-edit, so the host may refuse it. Pasting tab-separated text (copied from a spreadsheet) with a cell active fills a block from that cell: each cell is checked and offered through pk-cell-edit (source paste), read-only columns and cells beyond the grid are skipped, invalid cells show aria-invalid and the rest commit, one undo takes the whole paste back, and pk-cells-paste summarises it. A commit raises pk-cell-edit, and unless the host cancels it the row holds the new value. Turns windowing off (see the summary): a table this size edits every row it draws."
     },
     {
       "name": "cellErrors",
@@ -382,10 +382,20 @@
         "row": "object",
         "key": "string",
         "value": "object",
-        "previous": "object"
+        "previous": "object",
+        "source": "string"
       },
-      "description": "An edited cell is about to be committed (an editable table). value is typed by the column (a number for a number editor, else text) and previous is the value it replaces; the event only fires when they differ, after the element checked required, min, max and maxLength. Cancel it to reject the value: the editor stays open showing cellErrors for the cell, or \"Value not accepted\". Undo and redo raise it too, with the value being restored. Not cancelled, the table replaces its rows with a copy that holds the value and the host takes it from there.",
+      "description": "An edited cell is about to be committed (an editable table). value is typed by the column (a number for a number editor, else text) and previous is the value it replaces; the event only fires when they differ, after the element checked required, min, max and maxLength. Cancel it to reject the value: the editor stays open showing cellErrors for the cell, or \"Value not accepted\". source says where it came from: keyboard, paste, undo or redo (undo and redo carry the value being restored); a paste raises it once per cell. Not cancelled, the table replaces its rows with a copy that holds the value and the host takes it from there.",
       "cancelable": true
+    },
+    {
+      "name": "pk-cells-paste",
+      "detail": {
+        "cells": "object",
+        "rejected": "object"
+      },
+      "description": "A paste into an editable table finished. cells lists the cells that took a value ({ id, key, value }); rejected lists those that did not ({ row, col, reason }: outside the grid, readonly, a failed check message, or refused by a cancelled pk-cell-edit). Each accepted cell already raised pk-cell-edit with source paste.",
+      "cancelable": false
     }
   ],
   "parts": [
