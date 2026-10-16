@@ -122,6 +122,13 @@ export async function startScenario({ name, root, state, measure, settle, pendin
             return {};
         },
         settle: quiet,
+        /** Until the selector matches an element with a box (polled each frame, about 10 s at most), then quiet: the readiness signal that replaces a fixed wait for content that loads. */
+        async waitFor(sel) {
+            for (let i = 0; i < 150 && !boxed(find(sel)); i++) await tick();
+            const found = boxed(find(sel));
+            await quiet();
+            return found ? {} : { error: `${sel} did not appear within 10 s` };
+        },
         /** Runs the scenario's expectations for one shot and measures the frame. */
         async check(shot, ctx) {
             await quiet();
