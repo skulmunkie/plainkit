@@ -60,15 +60,14 @@ public sealed record PkTableColumn<TItem>
     public bool Sortable { get; init; }
     /// <summary>Leave the column out of the card layout on a phone.</summary>
     public bool HidePhone { get; init; }
+    /// <summary>The column that names the row (put it first): in the phone card layout its cell is the heading, without a label.</summary>
+    public bool Title { get; init; }
     /// <summary>Drop the column when the table itself is narrower than 24rem (1), 36rem (2) or 48rem (3); null keeps it. The card layout keeps every column.</summary>
     public int? Shed { get; init; }
-
     /// <summary>The editor of the column's cells when the table is <c>Editable</c>; null leaves the column read-only. A column with a <see cref="Cell"/> template is not editable.</summary>
     public PkTableEditor? Editor { get; init; }
-
     /// <summary>The choices of a <see cref="PkTableEditor.Select"/> editor. A new list on every render counts as a changed column and re-sends the rows; keep it in a field.</summary>
     public IReadOnlyList<string>? Options { get; init; }
-
     /// <summary>An empty value is refused.</summary>
     public bool Required { get; init; }
     /// <summary>The smallest value of a <see cref="PkTableEditor.Number"/> editor.</summary>
@@ -96,6 +95,7 @@ public sealed record PkTableColumn<TItem>
         Align = Align,
         Sortable = Sortable,
         HidePhone = HidePhone,
+        Title = Title,
         Shed = Shed,
         Editor = Cell is null ? Editor : null,
         Options = Options,

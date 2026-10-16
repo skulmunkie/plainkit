@@ -6,7 +6,7 @@ import { rowId, rowIds, rowAt, idSet, toggleId, setPage, boxState } from '../../
 export { sortKey, sortRows, filterRows };
 
 // h('td', { 'data-x': 1 }, 'text' | node ...) builds an element; null, undefined and false attributes are skipped.
-const h = (tag, attrs = {}, ...kids) => { const e = document.createElement(tag); for (const k in attrs) if (attrs[k] != null && attrs[k] !== false) e.setAttribute(k, attrs[k] === true ? '' : attrs[k]); e.append(...kids); return e; };
+const h = (tag, attrs = {}, ...kids) => { const e = document.createElement(tag); for (const k in attrs) if (attrs[k]) e.setAttribute(k, attrs[k] === true ? '' : attrs[k]); e.append(...kids); return e; };
 
 export default Base => class extends Base {
     connected() {
