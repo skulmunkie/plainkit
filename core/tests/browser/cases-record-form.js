@@ -216,6 +216,17 @@ export const recordFormCases = [
         t.eq(seen.length, 1, 'one pk-row-click reaches the page host'); t.eq(seen[0].id, 'a2'); t.eq(seen[0].row.sku, 'SKU-2');
     }],
 
+    // #1364/#1401: a host that binds load after the page drew its first (empty) answer, then calls the page's own refresh(), gets its first page without a typed search.
+    ['list-page: a load set after the first draw is called by refresh() on the page, no search needed (#1364)', async t => {
+        const el = await t.mount(`<pk-list-page config='{"columns":[{"key":"sku","label":"SKU"}]}' row-href-template="/p/{id}"></pk-list-page>`);
+        await t.load(el.shadowRoot); await t.settle();
+        let calls = 0;
+        el.load = async () => { calls++; return { rows: [{ id: 'a1', sku: 'SKU-1' }], total: 1 }; };
+        el.refresh();
+        const rows = () => el.part('table').part('table')?.shadowRoot?.querySelectorAll('tbody tr') ?? [];
+        await until(() => rows().length === 1, 'the first page after refresh()');
+        t.ok(calls >= 1, 'load was called');
+    }],
     // #436: the acceptance criteria #352 named for pk-list-page. A search string is data end to end: never markup, never script.
     ['list-page: a search string with markup and script text reaches load() verbatim and is drawn only as text - no element or handler is created from it (#436)', async t => {
         const evil = '<img src=x onerror="window.__pkXss=1"><script>window.__pkXss=1</scr' + 'ipt>';
