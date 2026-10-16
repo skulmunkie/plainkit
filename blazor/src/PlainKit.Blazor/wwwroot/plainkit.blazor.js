@@ -116,12 +116,19 @@ export async function mountToolDock(container, options, panelHosts) {
 // that already drew without the callback (a list showing its empty state) redraws now; one not yet defined draws with it when it upgrades.
 // A call the element can abort (load(query, { signal })) gets an id; its abort signal calls the host's Cancel(id), which cancels the CancellationToken of that call.
 let callIds = 0;
+// A callback that threw in C# answers with an envelope (PkCallbackError, #1412): the element shows err.message to the user, so it gets only the message .NET chose
+// (an IPkUserFacingException's own, otherwise a generic line); the exception detail (stack, paths) goes to the SDK log, the developer's console and ILogger.
+const unwrap = async r => {
+    if (!r?.pkError) return r;
+    (await import('./plainkit/js/log.js')).log('warn', 'blazor.callback', 'A callback raised an exception', r.detail);
+    throw new Error(r.message);
+};
 const abortable = async (host, arg, signal) => {
     // JS interop ignores C# default parameter values: Invoke(arg, callId) always gets both arguments (0: the element cannot abort the call, #1329).
-    if (!signal) return host.invokeMethodAsync('Invoke', arg, 0);
+    if (!signal) return unwrap(await host.invokeMethodAsync('Invoke', arg, 0));
     const id = ++callIds, cancel = () => host.invokeMethodAsync('Cancel', id);
     signal.addEventListener('abort', cancel, { once: true });
-    try { return await host.invokeMethodAsync('Invoke', arg, id); } finally { signal.removeEventListener('abort', cancel); }
+    try { return await unwrap(await host.invokeMethodAsync('Invoke', arg, id)); } finally { signal.removeEventListener('abort', cancel); }
 };
 export const setCallback = (el, name, host, refresh, names) => { if (host) { el[name] = names ? (...a) => abortable(host, Object.fromEntries(names.map((n, i) => [n, a[i]]))) : (arg, opts) => abortable(host, arg, opts?.signal); if (refresh) el.refresh?.(); } else delete el[name]; };
 

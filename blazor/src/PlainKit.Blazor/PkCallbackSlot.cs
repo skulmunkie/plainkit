@@ -15,9 +15,9 @@ internal sealed class PkCallbackHost<TArg>(Func<TArg, CancellationToken, Task<ob
     public async Task<object?> Invoke(TArg argument, int callId = 0)
     {
         using var cancel = new CancellationTokenSource();
-        lock (_calls) callId = callId != 0 ? callId : -(++_anonymous);   // every call is tracked, so CancelAll reaches it
-        lock (_calls) _calls[callId] = cancel;
+        lock (_calls) _calls[callId = callId != 0 ? callId : -(++_anonymous)] = cancel;   // every call is tracked, so CancelAll reaches it
         try { return await call(argument, cancel.Token); }
+        catch (Exception e) when (e is not OperationCanceledException) { return PkCallbackError.Of(e); }   // an envelope the bridge turns into the element's error (#1412)
         finally { lock (_calls) _calls.Remove(callId); }
     }
 

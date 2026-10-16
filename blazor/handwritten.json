@@ -128,6 +128,9 @@
     "PkAssets.cs": {
       "category": "runtime"
     },
+    "PkCallbackError.cs": {
+      "category": "callback-slot"
+    },
     "PkCallbackSlot.cs": {
       "category": "callback-slot",
       "allows": [

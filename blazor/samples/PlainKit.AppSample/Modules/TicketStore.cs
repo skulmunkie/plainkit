@@ -55,7 +55,7 @@ public static class TicketStore
 
     public static Task<Ticket?> GetAsync(string id) => Task.FromResult(_all.FirstOrDefault(t => t.Id == id));
 
-    public static Task SaveAsync(Ticket t) => t.Title == "FAIL" ? throw new InvalidOperationException("Save refused by the sample") : Task.CompletedTask;
+    public static Task SaveAsync(Ticket t) => t.Title == "FAIL" ? throw new SampleUserFacingException("Save refused by the sample") : Task.CompletedTask;
 
     public static void Delete(string id) => _all.RemoveAll(t => t.Id == id);
 }

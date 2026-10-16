@@ -51,7 +51,13 @@ export const INTEROP_CASES = [
         await ctx.clickDeep('pk-settings-page >>> pk-button[part="save"]');
         await waitText(ctx, 'Save refused by the sample'); // the thrown message is the element's error text, the changes stay unsaved
         ctx.ok(await ctx.eval(`!document.getElementById('lab-log').textContent.includes('FAIL')`), 'the refused save was reported as saved');
-        ctx.noErrors(ctx.openMark, [...BENIGN, /Save refused by the sample/]);
+        // #1412: an exception that is not user-facing shows the generic line, never its text or path.
+        await ctx.typeInto(NICK, 'BOOM');
+        await ctx.waitFor(SAVE_SHOWN, 'the Save bar to appear for the BOOM change');
+        await ctx.clickDeep('pk-settings-page >>> pk-button[part="save"]');
+        await waitText(ctx, 'Something went wrong');
+        ctx.ok(await ctx.eval(`!/Secret\.cs|Boom at/.test(window.__deep.text(document.querySelector('pk-settings-page')))`), 'the non-user-facing exception text reached the page');
+        ctx.noErrors(ctx.openMark, [...BENIGN, /Save refused by the sample/, /Boom at/]);
       } },
     { name: 'json-attribute-resync',
       async run(ctx) {
@@ -68,7 +74,10 @@ export const INTEROP_CASES = [
       async run(ctx) {
         await ctx.open('/lab/pages');
         await ctx.waitFor(`window.__deep.q('pk-dashboard-page >>> pk-card').some(c => c.heading === 'Fine widget' && window.__deep.text(c).includes('42'))`, 'the Fine widget card to show 42 (Load answered through the bridge)');
-        await ctx.waitFor(`window.__deep.q('pk-dashboard-page >>> pk-card').some(c => c.heading === 'Broken widget' && c.dataset.state === 'error' && window.__deep.text(c).includes('Widget refused'))`, 'the Broken widget card to show its error state');
+        await ctx.waitFor(`window.__deep.q('pk-dashboard-page >>> pk-card').some(c => c.heading === 'Broken widget' && c.dataset.state === 'error')`, 'the Broken widget card to show its error state');
+        // #1412: DetailedErrors=true is the worst case, yet the card shows no exception type, stack frame, drive path or .cs/.dll text.
+        const broken = await ctx.eval(`window.__deep.text(window.__deep.q('pk-dashboard-page >>> pk-card').find(c => c.heading === 'Broken widget'))`);
+        ctx.ok(!/Exception|at \S+ in |\.cs|\.dll|[A-Za-z]:[\/]|\/home\//.test(broken) && !/Widget refused by the sample/.test(broken), `the Broken widget card leaks exception detail: ${broken.slice(0, 200)}`);
         ctx.noErrors(ctx.openMark, [...BENIGN, /Widget refused by the sample/]);
       } },
     { name: 'doc-page-loaditem-callback',

@@ -24,7 +24,8 @@
     private async Task SaveSettings(IReadOnlyDictionary<string, JsonElement> v)
     {
         var nick = v["nick"].GetString();
-        if (nick == "FAIL") throw new InvalidOperationException("Save refused by the sample");
+        if (nick == "FAIL") throw new PlainKit.AppSample.Modules.SampleUserFacingException("Save refused by the sample");
+        if (nick == "BOOM") throw new InvalidOperationException(@"Boom at C:uild\Secret.cs:line 7");
         _log = "saved " + nick;
         await InvokeAsync(StateHasChanged); // a bridge callback is not a UI event: nothing re-renders for it
     }
