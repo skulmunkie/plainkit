@@ -87,7 +87,7 @@ public sealed class PkRuntime(IJSRuntime js, PkOptions? options = null, ILoggerF
     internal async ValueTask<IJSObjectReference> BridgeAsync(ResourceAssetCollection? assets = null)
     {
         _bridgeAssets ??= assets;
-        return await Bridge;
+        return new PkLoggedBridge(await Bridge, loggerFactory?.CreateLogger("PlainKit.blazor.callback"));
     }
 
     /// <summary>The version of the Plainkit JavaScript the page loaded (<c>PK_VERSION</c> in <c>js/version.js</c>). It equals <see cref="PkAssets.Version"/> unless the app serves an older or newer copy of the assets.</summary>

@@ -117,7 +117,7 @@ export async function mountToolDock(container, options, panelHosts) {
 // A call the element can abort (load(query, { signal })) gets an id; its abort signal calls the host's Cancel(id), which cancels the CancellationToken of that call.
 let callIds = 0;
 // A callback that threw in C# answers with an envelope (PkCallbackError, #1412): the element shows err.message to the user, so it gets only the message .NET chose
-// (an IPkUserFacingException's own, otherwise a generic line); only the exception type name (detail) goes to the SDK log, the developer's console and ILogger.
+// (an IPkUserFacingException's own, otherwise a generic line); the exception type name (detail) goes to the SDK log; the full exception was already written to ILogger on the server, the developer's console and ILogger.
 const unwrap = async r => {
     if (!r?.pkError) return r;
     (await import('./plainkit/js/log.js')).log('warn', 'blazor.callback', 'A callback raised an exception', r.detail);
