@@ -18,7 +18,7 @@ import http from 'node:http';
 import os from 'node:os';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
-import { chromeArgs, findChrome, killTree, removeDir } from './attest-browser.mjs';
+import { chromeArgs, findChrome, killTree, launchBrowser, removeDir } from './attest-browser.mjs';
 import { connect, evaluate, freePort } from './ui-review.mjs';
 import { ensureGenerated } from './generated.mjs';
 import { cpuScale } from '../core/tests/browser/cpu-scale.js';
@@ -105,11 +105,7 @@ export function killUsing(dir) {
 
 /** A headless browser over DevTools with the listeners every case needs: console errors, page errors, layout shifts. */
 export async function openBrowser(chrome, profile) {
-    const browser = spawn(chrome, [...chromeArgs({ profile, url: 'about:blank', extra: process.env.PK_CHROME_FLAGS }).slice(0, -1), '--remote-debugging-port=0', 'about:blank'], { stdio: 'ignore', detached: process.platform !== 'win32' });
-    const portFile = path.join(profile, 'DevToolsActivePort');
-    for (let i = 0; i < 100 && !fs.existsSync(portFile); i++) await sleep(150);
-    if (!fs.existsSync(portFile)) { killTree(browser); throw new Error('the browser did not open a DevTools port within 15 s'); }
-    const debugPort = fs.readFileSync(portFile, 'utf8').split('\n')[0].trim();
+    const { browser, value: debugPort } = await launchBrowser({ chrome, profile, args: [...chromeArgs({ profile, url: 'about:blank', extra: process.env.PK_CHROME_FLAGS }).slice(0, -1), '--remote-debugging-port=0', 'about:blank'], probe: () => { const f = path.join(profile, 'DevToolsActivePort'); return fs.existsSync(f) ? fs.readFileSync(f, 'utf8').split('\n')[0].trim() : null; } });
     const pages = await (await fetch(`http://127.0.0.1:${debugPort}/json/list`)).json();
     const wsUrl = pages.find(p => p.type === 'page').webSocketDebuggerUrl;
     const cdp = await connect(wsUrl);
