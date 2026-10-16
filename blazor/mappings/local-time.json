@@ -9,12 +9,12 @@
     {
       "name": "Format",
       "prop": "format",
-      "type": "string"
+      "type": "LocalTimeFormat"
     },
     {
       "name": "Length",
       "prop": "length",
-      "type": "string"
+      "type": "LocalTimeLength"
     },
     {
       "name": "Locale",

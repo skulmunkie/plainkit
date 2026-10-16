@@ -35,7 +35,7 @@
     },
     {
       "name": "Live",
-      "type": "string",
+      "type": "LogLive",
       "default": "polite",
       "map": "prop",
       "prop": "live"

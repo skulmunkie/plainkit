@@ -7,7 +7,7 @@
     { "name": "SaveDisabled", "prop": "saveDisabled", "type": "bool" },
     { "name": "Busy", "prop": "busy", "type": "bool" },
     { "name": "Error", "prop": "error", "type": "string" },
-    { "name": "TabsFrom", "prop": "tabsFrom", "type": "string" },
+    { "name": "TabsFrom", "prop": "tabsFrom", "type": "RecordFormTabsFrom" },
     { "name": "TabParam", "prop": "tabParam", "type": "string" },
     { "name": "TabItems", "prop": "tabs", "type": "IReadOnlyList<PkRecordTab>" },
     { "name": "ActionsInHeader", "prop": "actionsInHeader", "type": "bool" },

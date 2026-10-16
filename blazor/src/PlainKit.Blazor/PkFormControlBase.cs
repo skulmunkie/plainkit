@@ -7,8 +7,7 @@ namespace PlainKit.Blazor;
 /// <summary>
 /// The base of the generated form controls (a mapping whose <c>model</c> block has <c>"field": true</c>): the part of Blazor's <c>InputBase</c> that
 /// ties a bound value to an <see cref="EditContext"/>. The generated <c>ValueExpression</c> (or <c>CheckedExpression</c>) names the field; the control
-/// then marks it modified when the user changes it and shows the field's validation messages through the element's <c>invalid</c> state
-/// (<c>&lt;ValidationMessage For="..."/&gt;</c> prints the text). Outside an <c>EditForm</c>, or without an expression, nothing of this applies.
+/// then marks it modified when the user changes it and shows the field's validation messages through the element's <c>invalid</c> state (and <c>valid</c> once changed and clean). Outside an <c>EditForm</c> nothing of this applies.
 /// </summary>
 public abstract class PkFormControlBase<T> : PkElementBase, IDisposable
 {
@@ -19,7 +18,6 @@ public abstract class PkFormControlBase<T> : PkElementBase, IDisposable
     private bool _hasField;
 
     [CascadingParameter] private EditContext? CascadedEditContext { get; set; }
-
     /// <summary>The expression the generated component takes for the bound value.</summary>
     protected abstract Expression<Func<T>>? FieldExpression { get; }
 
@@ -28,6 +26,8 @@ public abstract class PkFormControlBase<T> : PkElementBase, IDisposable
 
     /// <summary>True when the bound field has validation messages in the surrounding <c>EditContext</c>.</summary>
     protected bool FieldInvalid => _hasField && _context!.GetValidationMessages(_field).Any();
+    /// <summary>True when the bound field was changed and has no validation messages (the element's <c>valid</c> state); <c>Warning</c> stays explicit, the EditContext has no severity.</summary>
+    protected bool FieldValid => _hasField && _context!.IsModified(_field) && !FieldInvalid;
 
     /// <summary>Tells the <c>EditContext</c> the bound field changed (marks it modified, runs field validation). Called after the bound value is set.</summary>
     protected void NotifyFieldChanged()

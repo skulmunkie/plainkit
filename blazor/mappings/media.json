@@ -9,7 +9,7 @@
     {
       "name": "Fit",
       "prop": "fit",
-      "type": "string"
+      "type": "MediaFit"
     },
     {
       "name": "Caption",

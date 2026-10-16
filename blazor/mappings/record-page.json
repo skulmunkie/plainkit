@@ -11,7 +11,7 @@
     },
     {
       "name": "Mode",
-      "type": "string",
+      "type": "RecordPageMode",
       "default": "view",
       "map": "prop",
       "prop": "mode",
