@@ -1,4 +1,10 @@
 :host { display: block; inline-size: 100%; min-inline-size: 0; }
+[part="body"] { display: grid; grid-template-columns: minmax(0, 1fr); gap: var(--space-6); align-items: start; }
+[part="body"][data-nav] { grid-template-columns: var(--pk-settings-page-nav-width, 12rem) minmax(0, 1fr); }
+[part="nav"] { position: sticky; inset-block-start: 0; }
+[part="nav"][hidden] { display: none; }
 [part="sections"] { display: flex; flex-direction: column; gap: var(--space-4); }
 [part="empty"] { color: var(--color-muted); }
 [part="saved"] { margin-block-end: var(--space-4); }
+/* A phone has no nav column: pk-detail-layout (tabs-from="phone") draws its tab strip over the cards instead. */
+@media (--phone) { [part="body"][data-nav] { grid-template-columns: minmax(0, 1fr); } [part="nav"] { display: none; } }

@@ -186,7 +186,7 @@ test("'settings' (step 5, #351) creates a pk-settings-page, splits config into t
     const cleanup1 = factory(host1, { sections: [{ heading: 'Store' }] }, {});
     const el1 = host1.children[0];
     assert.equal(el1.localName, 'pk-settings-page');
-    assert.deepEqual(el1.config, { heading: undefined, breadcrumb: undefined, actions: undefined, sections: [{ heading: 'Store' }] });
+    assert.deepEqual(el1.config, { heading: undefined, breadcrumb: undefined, actions: undefined, sections: [{ heading: 'Store' }], nav: undefined });
     assert.equal(el1.values, undefined, 'no values given, none set');
     assert.equal(el1.save, undefined, 'no save given, none set');
     cleanup1();

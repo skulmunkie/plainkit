@@ -11,7 +11,7 @@
       "type": "json",
       "default": {},
       "reflect": false,
-      "description": "{ sections: [{ heading, fields: [{ key, type: 'text'|'email'|'number'|'date'|'textarea'|'select'|'switch'|'range', label, placeholder?, required?, options?, min?, max?, step?, hint? }] }] }. A field's hint (or help) draws an info button beside its label that opens a tooltip; a field without one is unchanged. Each section draws as a pk-card; a select's options are [{ value, label? }] or plain strings. Optional title bar from the shared page shell: heading?: string, breadcrumb?: [{ label, href? }], actions?: [{ key, label, href?, variant?, hint? }] (a hint shows as a tooltip on the button) (an action without href fires pk-action). Nothing is drawn when none is set."
+      "description": "{ sections: [{ heading, fields: [{ key, type: 'text'|'email'|'number'|'date'|'textarea'|'select'|'switch'|'range', label, placeholder?, required?, options?, min?, max?, step?, hint? }] }] }. A field's hint (or help) draws an info button beside its label that opens a tooltip; a field without one is unchanged. Each section draws as a pk-card; a select's options are [{ value, label? }] or plain strings. Section nav: nav?: true | false | 'auto' (default 'auto': a list of the sections beside the cards from three sections up; false keeps the plain stack, true forces it at one or two), and each section's key? (its anchor, default a slug of its heading). The list is sticky and marks the section in view with aria-current; choosing one scrolls its card to the top and moves focus onto it; on a phone the list is replaced by pk-detail-layout's tab strip, one section at a time. Optional title bar from the shared page shell: heading?: string, breadcrumb?: [{ label, href? }], actions?: [{ key, label, href?, variant?, hint? }] (a hint shows as a tooltip on the button) (an action without href fires pk-action). Nothing is drawn when none is set."
     },
     {
       "name": "values",
@@ -38,13 +38,18 @@
     { "name": "saved", "description": "A success message shown after save(), hidden again once a field changes." },
     { "name": "empty", "description": "A placeholder message shown in place of the sections while config.sections is empty." },
     { "name": "form", "description": "Wraps the sections and the save bar; submitting it (click Save or Enter) saves." },
+    { "name": "body", "description": "The grid of the section nav and the cards; carries data-nav while the nav is on." },
+    { "name": "nav", "description": "The sticky section nav (a nav landmark of pk-nav-item rows); hidden while the nav is off, and on a phone." },
+    { "name": "layout", "description": "The pk-detail-layout around the cards: on a phone it draws the tab strip of sections." },
     { "name": "sections", "description": "Holds one pk-card per config.sections entry." },
     { "name": "bar", "description": "The sticky Save/Discard bar; hidden while nothing has changed." },
     { "name": "status", "description": "The bar's own message: \"Unsaved changes\", or a save error." },
     { "name": "save", "description": "The Save button." },
     { "name": "discard", "description": "The Discard button; restores the last saved values." }
   ],
-  "cssProperties": [],
+  "cssProperties": [
+    { "name": "--pk-settings-page-nav-width", "description": "Width of the section nav column beside the cards (default 12rem)." }
+  ],
   "a11y": "Every field is a labelled real control (pk-input/pk-textarea/pk-select showLabel on, pk-switch's own slotted label, pk-range wrapped in a labelled pk-field); the bar's status uses pk-alert's own role and announcement.",
   "examples": [
     {
