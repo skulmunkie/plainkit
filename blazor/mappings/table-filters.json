@@ -12,6 +12,11 @@
       "type": "int"
     },
     {
+      "name": "Debounce",
+      "prop": "debounce",
+      "type": "int"
+    },
+    {
       "name": "Open",
       "prop": "open",
       "type": "bool",

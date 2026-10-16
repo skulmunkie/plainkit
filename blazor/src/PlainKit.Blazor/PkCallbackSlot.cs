@@ -5,7 +5,7 @@ namespace PlainKit.Blazor;
 
 /// <summary>What JavaScript calls when a page element runs a callback property: the one argument the element passes (its values for <c>run</c> and <c>save</c>, a query for <c>load</c>) in, an optional result out. A call the element can abort carries an id: <c>Cancel</c> cancels the token that call was given.</summary>
 /// <typeparam name="TArg">What the element passes, deserialised from JSON.</typeparam>
-internal sealed class PkCallbackHost<TArg>(Func<TArg, CancellationToken, Task<object?>> call)
+internal sealed class PkCallbackHost<TArg>(Func<TArg, CancellationToken, Task<object?>> call, Microsoft.Extensions.Logging.ILogger? log = null)
 {
     private readonly Dictionary<int, CancellationTokenSource> _calls = [];
     private int _anonymous;
@@ -15,9 +15,9 @@ internal sealed class PkCallbackHost<TArg>(Func<TArg, CancellationToken, Task<ob
     public async Task<object?> Invoke(TArg argument, int callId = 0)
     {
         using var cancel = new CancellationTokenSource();
-        lock (_calls) callId = callId != 0 ? callId : -(++_anonymous);   // every call is tracked, so CancelAll reaches it
-        lock (_calls) _calls[callId] = cancel;
+        lock (_calls) _calls[callId = callId != 0 ? callId : -(++_anonymous)] = cancel;   // every call is tracked, so CancelAll reaches it
         try { return await call(argument, cancel.Token); }
+        catch (Exception e) when (e is not OperationCanceledException) { return PkCallbackError.Of(e, log); }   // an envelope the bridge turns into the element's error (#1412)
         finally { lock (_calls) _calls.Remove(callId); }
     }
 
@@ -54,7 +54,7 @@ internal sealed class PkCallbackSlot(string name) : IDisposable
         if (wanted == (_ref is not null)) return;
         if (wanted)
         {
-            var host = new PkCallbackHost<TArg>(call);
+            var host = new PkCallbackHost<TArg>(call, (bridge as PkLoggedBridge)?.Log);
             _cancelAll = host.CancelAll;
             var reference = DotNetObjectReference.Create(host);
             _ref = reference;

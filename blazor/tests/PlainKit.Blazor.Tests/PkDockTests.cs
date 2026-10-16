@@ -61,8 +61,8 @@ public sealed class PkDockTests : BunitContext, IAsyncLifetime
         var cut = Render<PkDock>(p => p.Add(x => x.ConfirmLayout, (_, _) => throw new InvalidOperationException("rejected")));
         var host = Assert.IsType<DotNetObjectReference<PkCallbackHost<PkLayoutChangingRequest>>>(Assert.Single(_bridge.Invocations["setCallback"]).Arguments[2]);
 
-        var e = await Assert.ThrowsAsync<InvalidOperationException>(() => cut.InvokeAsync(() => host.Value.Invoke(new PkLayoutChangingRequest("{}", "resize"))));
-        Assert.Equal("rejected", e.Message);
+        var e = System.Text.Json.JsonSerializer.SerializeToElement(await cut.InvokeAsync(() => host.Value.Invoke(new PkLayoutChangingRequest("{}", "resize"))));
+        Assert.True(e.GetProperty("pkError").GetBoolean());
     }
 
     [Fact]

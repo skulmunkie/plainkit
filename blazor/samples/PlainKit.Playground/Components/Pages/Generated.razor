@@ -21,7 +21,7 @@
     <PkButton Variant="_variant" Size="ButtonSize.Lg" OnClick="CycleVariant">Cycle variant (<span id="out-variant">@_variant</span>)</PkButton>
     <p>Clicks: <code id="out-clicks">@_clicks</code></p>
 
-    <PkInput Type="search" Placeholder="Search" AriaLabel="Search" OnSearch="OnSearch" />
+    <PkInput Type="InputType.Search" Placeholder="Search" AriaLabel="Search" OnSearch="OnSearch" />
     <p>Last search: <code id="out-search">@_search</code></p>
 
     <PkButton OnClick="@(() => _open = true)">Open dialog</PkButton>

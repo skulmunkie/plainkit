@@ -8,7 +8,8 @@
     },
     {
       "name": "Activation",
-      "prop": "activation"
+      "prop": "activation",
+      "type": "TabsActivation"
     },
     {
       "name": "NoneActive",
@@ -16,7 +17,8 @@
     },
     {
       "name": "Overflow",
-      "prop": "overflow"
+      "prop": "overflow",
+      "type": "TabsOverflow"
     },
     {
       "name": "OnChange",

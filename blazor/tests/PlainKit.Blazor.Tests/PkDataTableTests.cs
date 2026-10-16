@@ -184,8 +184,9 @@ public sealed class PkDataTableTests : BunitContext, IAsyncLifetime
         Assert.Null(reported);
 
         _pending[1].SetException(new InvalidOperationException("db down"));
-        var e = await Assert.ThrowsAsync<InvalidOperationException>(() => second);          // the rejection is the element's error state with Retry
-        Assert.Same(e, reported);
+        var e = System.Text.Json.JsonSerializer.SerializeToElement(await second);          // the envelope the bridge turns into the element's error state with Retry
+        Assert.True(e.GetProperty("pkError").GetBoolean());
+        Assert.Equal("db down", reported!.Message);
     }
 
     [Fact]

@@ -215,13 +215,18 @@ public sealed class BlazorPanelTests : BunitContext, IAsyncLifetime
     }
 
     [Fact]
-    public void Layout_and_alignment_props_are_typed_parameters()
+    public void Layout_alignment_and_form_props_are_typed_parameters()
     {
         Assert.Equal("ClusterAlign", PkMappingInfo.Describe("pk-cluster")!.Parameters.Single(p => p.Name == "Align").Type);
         Assert.Equal("StackAlign", PkMappingInfo.Describe("pk-stack")!.Parameters.Single(p => p.Name == "Align").Type);
         Assert.Equal("ContainerScroll", PkMappingInfo.Describe("pk-container")!.Parameters.Single(p => p.Name == "Scroll").Type);
         Assert.Equal("CardOrientation", PkMappingInfo.Describe("pk-card")!.Parameters.Single(p => p.Name == "Orientation").Type);
         Assert.Equal("SwitchLabelPosition", PkMappingInfo.Describe("pk-switch")!.Parameters.Single(p => p.Name == "LabelPosition").Type);
+
+        Assert.Equal("InputType", PkMappingInfo.Describe("pk-input")!.Parameters.Single(p => p.Name == "Type").Type);
+        Assert.Equal("ComboboxMode", PkMappingInfo.Describe("pk-combobox")!.Parameters.Single(p => p.Name == "Mode").Type);
+        Assert.Equal("TabsOverflow", PkMappingInfo.Describe("pk-tabs")!.Parameters.Single(p => p.Name == "Overflow").Type);
+        Assert.Equal("TreeSelection", PkMappingInfo.Describe("pk-tree")!.Parameters.Single(p => p.Name == "Selection").Type);
     }
 
     [Fact]

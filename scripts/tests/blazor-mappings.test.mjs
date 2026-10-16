@@ -89,3 +89,12 @@ test('every EventCallback type a mapping names is a type the build generates or 
     for (const [n, b] of Object.entries(mappings)) for (const p of b.params) for (const m of String(p.type ?? '').matchAll(/EventCallback<(\w+)>/g)) if (!declared.has(m[1])) bad.push(`${n}.${p.name}: ${m[1]}`);
     assert.deepEqual(bad, [], 'not generated or hand-written; use the name the generator emits (see blazor/src/PlainKit.Blazor/Generated/PkGeneratedEvents.cs)');
 });
+
+test('PkSelect.Values is covered by the multi model binding and PkDashboardPage.Context is a documented non-parameter (#1404)', () => {
+    assert.equal(mappings.select.model.multi, true);
+    assert.ok(metas.select.props.some(p => p.name === 'values'));
+    assert.match(mappings.select.notes, /values/);
+    assert.ok(metas['dashboard-page'].props.some(p => p.name === 'context'));
+    assert.ok(!mappings['dashboard-page'].params.some(p => p.prop === 'context' || p.property === 'context'));
+    assert.match(mappings['dashboard-page'].notes, /context/);
+});
