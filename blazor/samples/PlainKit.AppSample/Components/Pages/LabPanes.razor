@@ -2,18 +2,23 @@
 
 @* Lab (#1415): the page types' panes as slots. A wizard step without fields, the workspace's three panes and a master-detail's record are light-DOM children the elements project; Load and Close are callbacks. *@
 <h1 tabindex="-1">Panes</h1>
-<PkWizardPage Config="""{"steps":[{"id":"welcome","label":"Welcome"}]}""">
+<PkWizardPage Config="@WizardConfig">
     <div slot="step-welcome" id="lab-step">Welcome step, slotted</div>
 </PkWizardPage>
-<PkWorkspacePage Config="""{"panes":["nav","aside"]}""">
+<PkWorkspacePage Config="@WorkspaceConfig">
     <NavContent><p id="lab-nav">Nav pane</p></NavContent>
     <ChildContent><p id="lab-main">Main pane</p></ChildContent>
     <AsideContent><p id="lab-aside">Aside pane</p></AsideContent>
 </PkWorkspacePage>
-<PkMasterDetailPage Config="""{"list":{"columns":[{"key":"title","label":"Title"}]}}""" RecordId="1" Load="Load" Close="@(() => Task.CompletedTask)">
+<PkMasterDetailPage Config="@MasterConfig" RecordId="1" Load="Load" Close="Close">
     <DetailContent><p id="lab-detail">Record 1 detail</p></DetailContent>
 </PkMasterDetailPage>
 
 @code {
+    private const string WizardConfig = """{"steps":[{"id":"welcome","label":"Welcome"}]}""";
+    private const string WorkspaceConfig = """{"panes":["nav","aside"]}""";
+    private const string MasterConfig = """{"list":{"columns":[{"key":"title","label":"Title"}]}}""";
+
     private static Task<object?> Load(System.Text.Json.JsonElement query) => Task.FromResult<object?>(new { rows = new[] { new { id = "1", title = "Loaded row" } }, total = 1 });
+    private static Task Close() => Task.CompletedTask;
 }
