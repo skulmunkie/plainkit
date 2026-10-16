@@ -27,7 +27,7 @@ public abstract partial class PkElementBase : ComponentBase
     /// What the element is splatted with after its generated attributes: the <c>pk-*</c> event handlers (built once per component) and the
     /// <see cref="AdditionalAttributes"/> (without <c>class</c>, see <see cref="Css"/>).
     /// </summary>
-    protected Dictionary<string, object> Splat { get; private set; } = new();
+    protected Dictionary<string, object> Splat { get; set; } = new();
 
     /// <summary>Adds the component's <c>pk-*</c> event handlers. Called once, the first time the parameters are set.</summary>
     protected virtual void AddEventHandlers(Dictionary<string, object> handlers) { }

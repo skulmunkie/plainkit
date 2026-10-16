@@ -42,6 +42,41 @@ public sealed class PkLookupPickerTests : BunitContext, IAsyncLifetime
 
     private object CallbackRef(string name) => _bridge.Invocations["setCallback"].Single(i => (string)i.Arguments[1]! == name).Arguments[2]!;
 
+    // Description, SearchDebounce, OnInput and OnChange come from the generated companion (blazor/mappings/lookup-picker.json "extra": true, #1407).
+    [Fact]
+    public void Description_and_SearchDebounce_reach_the_element_and_an_unset_description_is_left_off()
+    {
+        var el = Render(p => p.Add(x => x.Description, "Pick the customer").Add(x => x.SearchDebounce, 400)).Find("pk-lookup-picker");
+        Assert.Equal("Pick the customer", el.GetAttribute("description"));
+        Assert.Equal("400", el.GetAttribute("search-debounce"));
+        Assert.Null(Render().Find("pk-lookup-picker").GetAttribute("description"));
+    }
+
+    [Fact]
+    public void OnInput_and_OnChange_receive_the_native_events_with_their_value()
+    {
+        string? input = null, change = null;
+        var el = Render(p => p.Add(x => x.OnInput, (ChangeEventArgs e) => { input = (string?)e.Value; }).Add(x => x.OnChange, (ChangeEventArgs e) => { change = (string?)e.Value; })).Find("pk-lookup-picker");
+        el.TriggerEvent("oninput", new ChangeEventArgs { Value = "2" });
+        el.TriggerEvent("onchange", new ChangeEventArgs { Value = "3" });
+        Assert.Equal(("2", "3"), (input, change));
+    }
+
+    [Fact]
+    public void Without_a_listener_no_native_input_handler_is_attached()
+    {
+        // an attached oninput is a round trip per keystroke on Blazor Server: bUnit refuses to trigger an event nothing handles
+        var el = Render().Find("pk-lookup-picker");
+        Assert.ThrowsAny<Exception>(() => el.TriggerEvent("oninput", new ChangeEventArgs { Value = "x" }));
+    }
+
+    [Fact]
+    public void A_caller_attribute_still_wins_over_the_generated_one()
+    {
+        var el = Render(p => p.Add(x => x.Description, "mine").AddUnmatched("description", "theirs")).Find("pk-lookup-picker");
+        Assert.Equal("theirs", el.GetAttribute("description"));
+    }
+
     [Fact]
     public void It_renders_pk_lookup_picker_with_columns_page_size_and_search_label_and_the_options_as_attributes()
     {
