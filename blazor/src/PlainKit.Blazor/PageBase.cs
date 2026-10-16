@@ -78,6 +78,8 @@ public abstract partial class PageBase : ComponentBase, IAsyncDisposable
 
     /// <summary>Whether a changed parameter starts a new load (default true; the previous load's token is cancelled either way).</summary>
     protected virtual bool ReloadOnParameters => true;
+    /// <summary>The parameters whose change means another record and starts a load; null (default) means any parameter, empty means load once. A <c>?tab=</c> parameter left out no longer reloads.</summary>
+    protected virtual IReadOnlyCollection<string>? ReloadParameters => null;
 
     /// <summary>Cancelled when the next load starts and when the page is disposed; pass it to calls started outside <see cref="OnLoadAsync"/>.</summary>
     protected CancellationToken LoadCancellation => _life.Token;
@@ -97,15 +99,13 @@ public abstract partial class PageBase : ComponentBase, IAsyncDisposable
     /// <inheritdoc />
     public override async Task SetParametersAsync(ParameterView parameters)
     {
-        var next = parameters.ToDictionary();
+        var keys = ReloadParameters;
+        var next = parameters.ToDictionary().Where(p => keys is null || keys.Contains(p.Key)).ToDictionary(p => p.Key, p => p.Value);
         var reload = ReloadOnParameters && (_parameters is null || next.Count != _parameters.Count || next.Any(p => !_parameters.TryGetValue(p.Key, out var old) || !Equals(old, p.Value)));
-        _parameters = next;
-        if (reload) _life.Expect();
-        await base.SetParametersAsync(parameters);
-        if (!reload) return;
+        _parameters = next; if (reload) _life.Expect();
+        await base.SetParametersAsync(parameters); if (!reload) return;
         var load = _life.LoadAsync<object?>(async c => { await OnLoadAsync(c); return null; }, null, e => SetErrorAsync(e));
-        if (load.IsCompleted) await InvokeStateChanged();
-        else _ = load.ContinueWith(_ => InvokeStateChanged(), TaskScheduler.Default);
+        if (load.IsCompleted) await InvokeStateChanged(); else _ = load.ContinueWith(_ => InvokeStateChanged(), TaskScheduler.Default);
     }
 
     /// <summary>Releases every busy token. Disposal does this; a page that disposes itself calls it directly.</summary>

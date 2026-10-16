@@ -121,6 +121,36 @@ public sealed class PkLifecycleTests : BunitContext
         Assert.True(first.IsCancellationRequested);
     }
 
+    // ReloadParameters is read before the parameters are applied, so it is a constant of the page type.
+    private sealed class KeyedHost : LifecyclePageHost { protected override IReadOnlyCollection<string>? ReloadParameters => new[] { "Key" }; }
+    private sealed class OnceHost : LifecyclePageHost { protected override IReadOnlyCollection<string>? ReloadParameters => Array.Empty<string>(); }
+
+    private IRenderedComponent<T> Host<T>() where T : LifecyclePageHost
+    {
+        JSInterop.Mode = JSRuntimeMode.Loose;
+        Services.AddPlainKit();
+        Services.AddSingleton<IPkLog>(new FakeLog());
+        return Render<T>(p => p.Add(x => x.Key, 1).Add(x => x.Tab, "a"));
+    }
+
+    [Fact]
+    public void ReloadParameters_names_the_parameters_that_mean_another_record()
+    {
+        var cut = Host<KeyedHost>();
+        cut.Render(p => p.Add(x => x.Key, 1).Add(x => x.Tab, "b"));
+        Assert.Equal(1, cut.Instance.Loads);
+        cut.Render(p => p.Add(x => x.Key, 2).Add(x => x.Tab, "b"));
+        cut.WaitForAssertion(() => Assert.Equal(2, cut.Instance.Loads));
+    }
+
+    [Fact]
+    public void An_empty_ReloadParameters_loads_once()
+    {
+        var cut = Host<OnceHost>();
+        cut.Render(p => p.Add(x => x.Key, 2).Add(x => x.Tab, "b"));
+        Assert.Equal(1, cut.Instance.Loads);
+    }
+
     [Fact]
     public async Task Dispose_cancels_the_load_and_a_state_change_afterwards_does_not_throw()
     {

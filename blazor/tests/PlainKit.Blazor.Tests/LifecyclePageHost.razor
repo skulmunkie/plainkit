@@ -6,6 +6,7 @@
 @code {
     [Parameter] public int Key { get; set; }
     [Parameter] public Func<CancellationToken, Task>? Load { get; set; }
+    [Parameter] public string? Tab { get; set; }
     public int Loads { get; private set; }
     public List<CancellationToken> Tokens { get; } = [];
     public bool Disposed => LoadCancellation.IsCancellationRequested;
