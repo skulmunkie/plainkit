@@ -33,7 +33,7 @@ import { fileURLToPath, pathToFileURL } from 'node:url';
 import { ensureGenerated } from './generated.mjs';
 import { elementOfPath } from '../core/tools/element-folders.mjs';
 import { createCache } from './ui-review-cache.mjs';
-import { chromeArgs, findChrome, killTree, removeDir } from './attest-browser.mjs';
+import { chromeArgs, findChrome, killTree, launchBrowser, removeDir } from './attest-browser.mjs';
 import { auditFacts, summarize } from '../core/tests/review/audit.js';
 import { combinations, expectationFinding, keyEvents, mediaParams, mouseEvents, scenarioShotName, selectScenarios, stepsFor, validateScenario } from '../core/tests/review/scenario.js';
 
@@ -440,11 +440,9 @@ async function main() {
         });
         server.removeAllListeners('exit');
         stopChildren = () => { killTree(browser); killTree(server); };
-        browser = spawn(chrome, [...chromeArgs({ profile, url: 'about:blank', extra: process.env.PK_CHROME_FLAGS }).slice(0, -1), '--remote-debugging-port=0', 'about:blank'], { stdio: 'ignore', detached: process.platform !== 'win32' });
-        const portFile = path.join(profile, 'DevToolsActivePort');
-        for (let i = 0; i < 100 && !fs.existsSync(portFile); i++) await sleep(150);
-        if (!fs.existsSync(portFile)) throw new Error('the browser did not open a DevTools port within 15 s');
-        const debugPort = fs.readFileSync(portFile, 'utf8').split('\n')[0].trim();
+        const launched = await launchBrowser({ chrome, profile, args: [...chromeArgs({ profile, url: 'about:blank', extra: process.env.PK_CHROME_FLAGS }).slice(0, -1), '--remote-debugging-port=0', 'about:blank'], probe: () => { const f = path.join(profile, 'DevToolsActivePort'); return fs.existsSync(f) ? fs.readFileSync(f, 'utf8').split('\n')[0].trim() : null; } });
+        browser = launched.browser;
+        const debugPort = launched.value;
         const pages = await (await fetch(`http://127.0.0.1:${debugPort}/json/list`)).json();
         cdp = await connect(pages.find(p => p.type === 'page').webSocketDebuggerUrl);
         await cdp.send('Page.enable');

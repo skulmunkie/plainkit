@@ -27,7 +27,7 @@ import os from 'node:os';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { ensureGenerated } from './generated.mjs';
-import { findChrome, chromeArgs } from './attest-browser.mjs';
+import { findChrome, chromeArgs, launchBrowser } from './attest-browser.mjs';
 
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 const DEFAULT_WIDTHS = [320, 375, 640, 1024, 1280, 1920];
@@ -375,13 +375,9 @@ async function main() {
         server.removeAllListeners('exit');
         const start = `http://localhost:${options.port}/app.html#/scorecard${options.concurrency ? '?concurrency=' + options.concurrency : ''}`;
         const extra = `--remote-debugging-port=${debugPort} --remote-allow-origins=* ${process.env.PK_CHROME_FLAGS ?? ''}`;
-        browser = spawn(chrome, chromeArgs({ profile, url: 'about:blank', width: 1280, height: 900, extra }), { stdio: 'ignore', detached: process.platform !== 'win32' });
-        let target = null;
-        for (let i = 0; i < 40 && !target; i++) {
-            await sleep(500);
-            target = await fetch(`http://127.0.0.1:${debugPort}/json/list`).then(r => r.json()).then(l => l.find(t => t.type === 'page'), () => null); // not listening yet: try again
-        }
-        if (!target) throw new Error('the browser did not open a DevTools page within 20 s');
+        const launched = await launchBrowser({ chrome, profile, args: chromeArgs({ profile, url: 'about:blank', width: 1280, height: 900, extra }), probe: () => fetch(`http://127.0.0.1:${debugPort}/json/list`).then(r => r.json()).then(l => l.find(t => t.type === 'page') ?? null, () => null) }); // not listening yet: null, try again
+        browser = launched.browser;
+        const target = launched.value;
         cdp = await new Cdp(target.webSocketDebuggerUrl).open();
         log(`server on http://localhost:${options.port}/; browser ${chrome}; stages ${options.only.join(', ')}`);
 

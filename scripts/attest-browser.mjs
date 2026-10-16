@@ -19,6 +19,7 @@ import os from 'node:os';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { ensureGenerated } from './generated.mjs';
+import { cpuScale } from '../core/tests/browser/cpu-scale.js';
 import { parseList } from '../core/tests/browser/case-filter.js';
 
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
@@ -113,6 +114,30 @@ export async function removeDir(dir) {
         try { fs.rmSync(dir, { recursive: true, force: true }); return true; } catch { await sleep(500); } // a browser child may still hold a file: retry
     }
     return false;
+}
+
+// Starts a browser and waits until `probe()` returns a value (a DevTools port file, a listening port). A runner starved of CPU sometimes never gets there within the
+// wait (#1457), so the launch alone is retried: up to `attempts`, the previous child killed and the profile folder emptied first. Nothing after the launch retries.
+// Resolves { browser, value, attempts }; rejects naming the attempts, the browser path and the last stderr line.
+export async function launchBrowser({ chrome, profile, args, probe, attempts = 3, waitMs = 15000 * cpuScale(), spawnFn = spawn, kill = killTree, remove = removeDir, pollMs = 150 }) {
+    let lastErr = '';
+    for (let n = 1; n <= attempts; n++) {
+        if (n > 1) {
+            if (!(await remove(profile))) throw new Error(`could not delete the browser profile ${profile} before attempt ${n}`);
+            fs.mkdirSync(profile, { recursive: true });
+        }
+        const browser = spawnFn(chrome, args, { stdio: ['ignore', 'ignore', 'pipe'], detached: process.platform !== 'win32' });
+        lastErr = '';
+        browser.stderr?.on('data', d => { lastErr = (lastErr + d).split(/\r?\n/).filter(l => l.trim()).pop()?.slice(0, 300) ?? ''; });
+        browser.once?.('error', e => { lastErr = e.message; });
+        for (const end = Date.now() + waitMs; Date.now() < end;) {
+            const value = await probe();
+            if (value) return { browser, value, attempts: n };
+            await sleep(pollMs);
+        }
+        kill(browser);
+    }
+    throw new Error(`the browser did not open a DevTools port within ${Math.round(waitMs / 1000)} s in ${attempts} attempts (${chrome}; last stderr: ${lastErr || 'none'})`);
 }
 
 async function main() {
