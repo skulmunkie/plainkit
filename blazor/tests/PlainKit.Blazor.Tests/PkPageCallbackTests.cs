@@ -63,7 +63,9 @@ public sealed class PkPageCallbackTests : BunitContext, IAsyncLifetime
         var e = Envelope(await cut.InvokeAsync(() => host.Value.Invoke(Values("{}"))));
         Assert.True(e.GetProperty("pkError").GetBoolean());
         Assert.Equal(Generic, e.GetProperty("message").GetString());
-        Assert.Contains("boom", e.GetProperty("detail").GetString());   // for the SDK log only
+        Assert.Equal("System.InvalidOperationException", e.GetProperty("detail").GetString());   // the type name only: no text, frame or path leaves the server
+        Assert.DoesNotContain("boom", e.GetRawText());
+        Assert.DoesNotContain(" at ", e.GetRawText());
     }
 
     private const string Generic = "Something went wrong. See the log for details.";
@@ -463,7 +465,7 @@ public sealed class PkPageCallbackTests : BunitContext, IAsyncLifetime
 
         var e = Envelope(await cut.InvokeAsync(() => host.Value.Invoke(new PkListPageQuery())));
         Assert.Equal(Generic, e.GetProperty("message").GetString());
-        Assert.Contains("db down", e.GetProperty("detail").GetString());
+        Assert.DoesNotContain("db down", e.GetRawText());
     }
 
     [Fact]
