@@ -172,4 +172,28 @@ export const navbarCases = [
             t.ok(cls < 0.0001, `at ${w}px upgrading ${tag} gave a layout shift of ${cls.toFixed(4)}, expected 0`);
         }
     }],
+
+    // #1439: opening the drawer while the rows have not upgraded yet must not throw (focusRow is not a function); the first row takes focus once it upgrades.
+    ['late upgrade (#1439): opening the side-nav drawer before its pk-nav-item rows upgrade does not throw, and focuses the first row once they do', async t => {
+        const host = t.stage(''), f = document.createElement('iframe');
+        f.title = 'side-nav with rows upgrading late';
+        f.style.cssText = 'width:375px;height:600px;border:0;display:block';
+        f.src = new URL('./late-upgrade-sidenav-frame.html?hold=pk-nav-item', import.meta.url).href;
+        await new Promise(resolve => { f.addEventListener('load', resolve, { once: true }); host.append(f); });
+        const win = f.contentWindow, d = win.document, errors = [];
+        win.addEventListener('error', e => errors.push(e.message));
+        win.addEventListener('unhandledrejection', e => errors.push(String(e.reason)));
+        await until(() => win.ready, 'the side-nav fixture to load');
+        await win.customElements.whenDefined('pk-side-nav');
+        t.ok(!win.customElements.get('pk-nav-item'), 'pk-nav-item is still undefined before the release');
+        const nav = d.querySelector('pk-side-nav');
+        try { nav.open = true; } catch (e) { errors.push(e.message); }
+        await wait(100);
+        t.ok(!errors.length, `opening the drawer before the rows upgrade raised: ${errors.join(' | ')}. FIX: wait for customElements.whenDefined('pk-nav-item') before focusing a row`);
+        win.release();
+        await win.customElements.whenDefined('pk-nav-item');
+        await wait(250);
+        t.ok(!errors.length, `upgrading the rows raised: ${errors.join(' | ')}`);
+        t.ok(nav.contains(d.activeElement), 'the first row takes focus once it upgrades, while the drawer is open');
+    }],
 ];

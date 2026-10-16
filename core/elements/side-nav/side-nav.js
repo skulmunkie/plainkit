@@ -59,7 +59,7 @@ export default Base => class extends Base {
         this.part('collapse').setAttribute('aria-label', this.collapsed ? 'Expand the menu' : 'Collapse the menu');
     }
     drawer() {
-        if (this.open) { this.$from = document.activeElement; rowsOf(this).find(i => !i.hidden && !i.disabled)?.focusRow(); this.emit('pk-open', {}); }
+        if (this.open) { this.$from = document.activeElement; customElements.whenDefined('pk-nav-item').then(() => this.open && rowsOf(this).find(i => !i.hidden && !i.disabled)?.focusRow()); this.emit('pk-open', {}); }
         else { this.$from?.focus?.({ preventScroll: true }); this.$from = null; }
     }
     disconnected() { this.$from = null; this.$mq?.removeEventListener('change', this.$sync); }
