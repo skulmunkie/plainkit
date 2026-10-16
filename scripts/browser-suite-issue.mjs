@@ -16,22 +16,22 @@ export function failedCases(report) {
 }
 
 /** The comment for a failing run. `failed` is failedCases() output, or null when the suite could not run (exit code 2, no report). */
-export function failureComment({ runUrl, sha, failed, passed = null, total = null }) {
-    const lines = [FAIL_MARKER, `The in-browser element suite failed on \`main\` (${sha ? sha.slice(0, 8) : 'unknown commit'}). Run: ${runUrl}`, ''];
-    if (failed === null) lines.push('The suite could not finish (no report: no browser, port in use or timeout). See the run log.');
+export function failureComment({ runUrl, sha, failed, passed = null, total = null, marker = FAIL_MARKER, subject = 'The in-browser element suite', reproduce = 'node scripts/verify.mjs --browser', unfinished = 'The suite could not finish (no report: no browser, port in use or timeout). See the run log.' }) {
+    const lines = [marker, `${subject} failed on \`main\` (${sha ? sha.slice(0, 8) : 'unknown commit'}). Run: ${runUrl}`, ''];
+    if (failed === null) lines.push(unfinished);
     else {
         if (passed !== null && total !== null) lines.push(`${passed} of ${total} cases passed; ${failed.length} failed:`, '');
         for (const f of failed) lines.push(`- ${f.name}${f.error ? `: ${f.error.replace(/\s+/g, ' ').slice(0, 300)}` : ''}`);
     }
-    lines.push('', 'Reproduce: `node scripts/verify.mjs --browser` (Chrome or Edge installed). This issue is closed by the owner, not automatically.');
+    lines.push('', `Reproduce: \`${reproduce}\` (Chrome or Edge installed). This issue is closed by the owner, not automatically.`);
     return lines.join('\n');
 }
 
 /** The comment for the first green run after a failure. */
-export const greenComment = ({ runUrl, sha }) => [GREEN_MARKER, `The in-browser element suite is green again on \`main\` (${sha ? sha.slice(0, 8) : 'unknown commit'}). Run: ${runUrl}`, '', 'Close this issue when you are satisfied it stays green.'].join('\n');
+export const greenComment = ({ runUrl, sha, marker = GREEN_MARKER, subject = 'The in-browser element suite' }) => [marker, `${subject} is green again on \`main\` (${sha ? sha.slice(0, 8) : 'unknown commit'}). Run: ${runUrl}`, '', 'Close this issue when you are satisfied it stays green.'].join('\n');
 
 /** Does the issue's latest comment (the list is oldest first) already say "green"? Then a green night adds nothing. */
-export const alreadyGreen = comments => comments.length > 0 && String(comments[comments.length - 1].body ?? '').includes(GREEN_MARKER);
+export const alreadyGreen = (comments, marker = GREEN_MARKER) => comments.length > 0 && String(comments[comments.length - 1].body ?? '').includes(marker);
 
 /** Read core/tests/browser/report.json; null (with a warning) when it is missing or half-written. */
 export function readReport(file, core) {
@@ -39,20 +39,21 @@ export function readReport(file, core) {
 }
 
 /** `failed`: the suite step did not succeed. Finds the open tracking issue by title; files it on the first failure. */
-export async function reportToIssue({ github, context, core, failed, report, sha, runUrl }) {
+/** Optional `title`, `subject`, `failMarker`, `greenMarker`, `reproduce` let another nightly (the Blazor harness) reuse this; the defaults are the in-browser suite's. */
+export async function reportToIssue({ github, context, core, failed, report, sha, runUrl, title = TITLE, subject, failMarker = FAIL_MARKER, greenMarker = GREEN_MARKER, reproduce, unfinished }) {
     const { owner, repo } = context.repo;
     const issues = await github.paginate(github.rest.issues.listForRepo, { owner, repo, state: 'open', per_page: 100 });
-    const existing = issues.find(i => !i.pull_request && i.title === TITLE);
+    const existing = issues.find(i => !i.pull_request && i.title === title);
     if (failed) {
         const cases = failedCases(report);
-        const body = failureComment({ runUrl, sha, failed: cases, passed: report?.passed ?? null, total: Array.isArray(report?.results) ? report.results.length : null });
+        const body = failureComment({ runUrl, sha, marker: failMarker, ...(subject && { subject }), ...(reproduce && { reproduce }), ...(unfinished && { unfinished }), failed: cases, passed: report?.passed ?? null, total: Array.isArray(report?.results) ? report.results.length : null });
         if (existing) { await github.rest.issues.createComment({ owner, repo, issue_number: existing.number, body }); core.info(`commented on #${existing.number}`); }
-        else { const made = await github.rest.issues.create({ owner, repo, title: TITLE, body }); core.info(`opened #${made.data.number}`); }
+        else { const made = await github.rest.issues.create({ owner, repo, title, body }); core.info(`opened #${made.data.number}`); }
         return;
     }
     if (!existing) { core.info('green, and no open tracking issue'); return; }
     const comments = await github.paginate(github.rest.issues.listComments, { owner, repo, issue_number: existing.number, per_page: 100 });
-    if (alreadyGreen(comments)) { core.info(`green, #${existing.number} already says so`); return; }
-    await github.rest.issues.createComment({ owner, repo, issue_number: existing.number, body: greenComment({ runUrl, sha }) });
+    if (alreadyGreen(comments, greenMarker)) { core.info(`green, #${existing.number} already says so`); return; }
+    await github.rest.issues.createComment({ owner, repo, issue_number: existing.number, body: greenComment({ runUrl, sha, marker: greenMarker, ...(subject && { subject }) }) });
     core.info(`commented green on #${existing.number}`);
 }

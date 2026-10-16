@@ -1,0 +1,88 @@
+name: Blazor browser harness (nightly)
+
+# The Blazor sample driven in a real browser (scripts/blazor-browser.mjs: publishes the server and WebAssembly samples, runs the measuring cases) on main,
+# every night and on demand. Not a pull request gate. On a failure it opens or updates ONE tracking issue titled "Blazor browser harness failing on main"
+# (run URL) and keeps the screenshots as an artifact; on a later green run it comments that it is green again. It never closes the issue: the owner does.
+# The issue logic is shared with browser-nightly.yml (scripts/browser-suite-issue.mjs); the harness writes no report.json, so the comment carries the run URL.
+on:
+  schedule:
+    - cron: '47 4 * * *'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  blazor-browser:
+    name: Blazor browser harness (nightly)
+    # The schedule always runs on the default branch; a manual run on another branch would report to the main tracking issue, so it is kept to main.
+    if: github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+    timeout-minutes: 40
+    permissions:
+      contents: read
+      issues: write
+    env:
+      PK_CHROME: /usr/bin/google-chrome
+      PK_CHROME_FLAGS: --no-sandbox
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          fetch-depth: 1
+          persist-credentials: false
+
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
+        with:
+          node-version: '22'
+
+      # No NuGet cache: PlainKit.Blazor has no package references (see the pack job in ci.yml).
+      - uses: actions/setup-dotnet@a98b56852c35b8e3190ac28c8c2271da59106c68 # v6.0.0
+        with:
+          global-json-file: global.json
+
+      - name: Install build dependencies (esbuild)
+        run: npm ci
+
+      - name: Bootstrap
+        run: node scripts/bootstrap.mjs
+
+      # continue-on-error: the issue is filed or updated below whatever happened here; the last step then fails the run.
+      # --publish-timeout is the harness default (600 s per publish), stated so a change of the default does not shorten this job silently.
+      - name: Blazor harness (node scripts/blazor-browser.mjs)
+        id: harness
+        continue-on-error: true
+        run: node scripts/blazor-browser.mjs --publish-timeout 600
+
+      - name: Keep the screenshots
+        if: always()
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        with:
+          name: blazor-browser-review-output
+          path: review-output/
+          if-no-files-found: ignore
+
+      - name: Open or update the tracking issue
+        if: always()
+        uses: actions/github-script@3a2844b7e9c422d3c10d287c895573f7108da1b3 # v9.0.0
+        env:
+          HARNESS_OUTCOME: ${{ steps.harness.outcome }}
+        with:
+          script: |
+            const m = await import(`${process.env.GITHUB_WORKSPACE}/scripts/browser-suite-issue.mjs`);
+            const failed = process.env.HARNESS_OUTCOME !== 'success';
+            const runUrl = `${context.serverUrl}/${context.repo.owner}/${context.repo.repo}/actions/runs/${context.runId}`;
+            await m.reportToIssue({
+              github, context, core, failed, report: null, sha: context.sha, runUrl,
+              title: 'Blazor browser harness failing on main',
+              subject: 'The Blazor browser harness',
+              failMarker: '<!-- blazor-browser: failing -->',
+              greenMarker: '<!-- blazor-browser: green -->',
+              reproduce: 'node scripts/blazor-browser.mjs',
+              unfinished: 'No case list is kept (the harness writes no report): see the run log for the failing cases and the artifact blazor-browser-review-output for the screenshots.',
+            });
+
+      - name: Fail the run when the harness failed
+        if: steps.harness.outcome != 'success'
+        run: |
+          echo "the Blazor browser harness did not pass (see the tracking issue and the harness step's log)"
+          exit 1

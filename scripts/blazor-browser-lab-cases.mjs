@@ -13,6 +13,15 @@ const RECORD = 'pk-record-page >>> pk-button';
 const edit = async ctx => { await ctx.clickDeep(`${RECORD}[part="edit"]`); await ctx.waitFor(`!!window.__deep.field('Title')`, 'the record fields to open for editing'); };
 
 export const LAB_CASES = [
+    { name: 'page-type-panes-are-slots',
+      async run(ctx) {
+        await ctx.open('/lab/panes'); // #1415: each pane's content is a light-DOM child the element projects; Load (refresh) fills the master list
+        await waitText(ctx, 'Loaded row', ALL);
+        for (const id of ['lab-step', 'lab-nav', 'lab-main', 'lab-aside', 'lab-detail']) {
+            ctx.ok(await ctx.eval(`(() => { const e = document.getElementById(${JSON.stringify(id)}); return !!(e?.assignedSlot || e?.parentElement?.assignedSlot) && e.getBoundingClientRect().width > 0; })()`), `#${id} is not projected into a pane (no assigned slot or no size)`);
+        }
+        await ctx.noErrors(ctx.openMark, BENIGN);
+      } },
     { name: 'list-load-search-refresh',
       async run(ctx) {
         await ctx.open('/lab/tickets');

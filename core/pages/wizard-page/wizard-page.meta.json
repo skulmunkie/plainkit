@@ -21,7 +21,9 @@
       "description": "Answers were typed and not yet submitted. Read it; the element sets it."
     }
   ],
-  "slots": [],
+  "slots": [
+    { "name": "step-<id>", "dynamic": true, "description": "The step with that id (no fields, no mountStep). The app owns it; its controls are not collected or validated." }
+  ],
   "events": [
     { "name": "pk-action", "detail": "{ key }", "detailProps": { "key": "string" }, "description": "A title-bar action (config.actions entry without an href) was clicked." },
     {

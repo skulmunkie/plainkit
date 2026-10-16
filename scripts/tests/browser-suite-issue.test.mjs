@@ -29,3 +29,23 @@ test('green comments are posted once per recovery', () => {
     assert.ok(greenComment({ runUrl: 'u', sha: 'abc' }).includes(GREEN_MARKER));
     assert.equal(TITLE, 'In-browser suite failing on main');
 });
+
+test('title, markers, subject and reproduce command can be overridden (the Blazor harness nightly)', () => {
+    const o = { marker: '<!-- x: failing -->', subject: 'The Blazor browser harness', reproduce: 'node scripts/blazor-browser.mjs', unfinished: 'No cases ran.' };
+    const body = failureComment({ runUrl: 'https://r/1', sha: 'abcdef123456', failed: null, ...o });
+    assert.ok(body.startsWith('<!-- x: failing -->'));
+    assert.match(body, /The Blazor browser harness failed on `main` \(abcdef12\)/);
+    assert.match(body, /No cases ran\./);
+    assert.match(body, /Reproduce: `node scripts\/blazor-browser\.mjs`/);
+    const green = greenComment({ runUrl: 'u', sha: 'abc', marker: '<!-- x: green -->', subject: 'The Blazor browser harness' });
+    assert.match(green, /^<!-- x: green -->\r?\nThe Blazor browser harness is green again/);
+    assert.equal(alreadyGreen([{ body: green }], '<!-- x: green -->'), true);
+    assert.equal(alreadyGreen([{ body: green }]), false);
+});
+
+test('defaults keep the in-browser suite wording', () => {
+    const body = failureComment({ runUrl: 'u', sha: 'abc', failed: null });
+    assert.match(body, /The in-browser element suite failed on `main`/);
+    assert.match(body, /Reproduce: `node scripts\/verify\.mjs --browser`/);
+    assert.match(body, /The suite could not finish \(no report/);
+});

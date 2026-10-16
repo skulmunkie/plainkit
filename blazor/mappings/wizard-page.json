@@ -49,7 +49,14 @@
       "args": "",
       "refresh": true,
       "doc": "Loads draft answers, keyed by field name, before the first step (the wizard shows its loading state, and an error with Retry when this throws). Once set, the wizard starts again from the first step with the draft."
+    },
+    {
+      "name": "ChildContent",
+      "type": "RenderFragment?",
+      "map": "slot",
+      "slot": "",
+      "note": "The app's own steps: one element with slot=\"step-<id>\" per step that has no fields (a step id without spaces), projected into that step's pane. Its controls are not collected into the answers or validated; the app owns them (a Razor flow with fields is a Config step)."
     }
   ],
-  "notes": "New component: App framework step 7 (issue #353). Submit is a callback property set from script (PkCallbackSlot), as PkSettingsPage does for Save, and OnAction, OnDirty and OnSubmit carry the events (issue #1377). Validate (two arguments in core: the bridge hands them over as one object, argNames) and Load (the bridge sets it after the first draw, so refresh asks the wizard to start again, issue #1415) are callbacks too; MountStep (receives pane elements) stays open on the issue. A Razor flow composes PkStepper, PkForm and PkButton directly today."
+  "notes": "New component: App framework step 7 (issue #353). Submit is a callback property set from script (PkCallbackSlot), as PkSettingsPage does for Save, and OnAction, OnDirty and OnSubmit carry the events (issue #1377). Validate (two arguments in core: the bridge hands them over as one object, argNames) and Load (the bridge sets it after the first draw, so refresh asks the wizard to start again, issue #1415) are callbacks too; MountStep (receives a pane element) is the ChildContent slot, one slot=\"step-<id>\" child per fieldless step: a pane lives in the element's shadow tree, which Blazor cannot render into, but it renders the light-DOM children the element projects (issue #1415). A Razor flow composes PkStepper, PkForm and PkButton directly today."
 }

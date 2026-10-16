@@ -21,7 +21,10 @@
       "name": "OnAction",
       "event": "pk-action",
       "note": "A title-bar action (config.actions entry without an href) was clicked; Key is its key."
-    }
+    },
+    { "name": "NavContent", "type": "RenderFragment?", "map": "slot", "slot": "nav" },
+    { "name": "ChildContent", "type": "RenderFragment?", "map": "slot", "slot": "" },
+    { "name": "AsideContent", "type": "RenderFragment?", "map": "slot", "slot": "aside" }
   ],
-  "notes": "New component: App framework step 7 (issue #353). Mount is a callback property (business logic) that receives the pane elements, not a Blazor parameter mapped here yet - it needs JS interop from the component (a RenderFragment per pane is the likely shape); left for the Blazor page-type step (#346 step 20), same as PkToolPage's Run and PkListPage's Load."
+  "notes": "New component: App framework step 7 (issue #353). The element's mount(panes) callback hands the app pane elements that live in a shadow tree, so the Blazor panes are slots instead (issue #1415): NavContent, ChildContent (main) and AsideContent are rendered as light-DOM children the element projects into its panes; Config panes lists the optional panes to create."
 }

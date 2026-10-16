@@ -15,6 +15,8 @@ export default Base => class extends Base {
         }
         this.sync(true);
     }
+    // Run load() again (the Blazor bridge sets it after the first draw).
+    refresh() { if (this.$w && this.isConnected) this.part('list').refresh?.(); }
     // The record's handle is destroyed when the element leaves the page, so a route change never leaves its content running.
     disconnected() { this.stop(); }
     changed(name) { if (this.$w && this.isConnected && (name === 'config' || name === 'recordId')) this.sync(name === 'recordId'); }
