@@ -295,6 +295,8 @@ async function playScenario(cdp, { port, sc, vp, theme, out, manifest, timeout, 
         } else if ('media' in step) {
             await cdp.send('Emulation.setEmulatedMedia', mediaParams(step.media));
             await settle();
+        } else if ('waitFor' in step) {
+            r = await timed('wait', () => evaluate(cdp, `window.__rv.waitFor(${JSON.stringify(step.waitFor)})`));
         } else if ('wait' in step) {
             if (step.wait === 'settle') await settle(); else await timed('wait', () => sleep(step.wait));
         } else {

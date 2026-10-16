@@ -14,8 +14,8 @@ export default {
         await mountGallery(frame.querySelector('#host'), { chrome: 'full', init: false });
     },
     steps: [
-        { wait: 'settle' }, { wait: 2500 },
-        { click: '#gx-inspect', on: ['phone'] }, { wait: 800 },
+        { waitFor: '#gx-inspect' },
+        { click: '#gx-inspect', on: ['phone'] }, { waitFor: '#gx-inspector-body pk-table' },
         { set: '#gx-inspector-body pk-accordion-item', prop: 'open', value: false }, { set: '#gx-inspector-body h2', prop: 'hidden', value: true }, { set: '#gx-inspector-body p.muted', prop: 'hidden', value: true }, { set: '#gx-inspector-body pk-stack > p:not(.muted)', prop: 'hidden', value: true }, { shot: 'properties' },
     ],
     expect(t) {

@@ -16,9 +16,6 @@
     "Components/_Imports.razor": {
       "category": "wrapper"
     },
-    "Components/PkAppBarSearch.razor": {
-      "category": "router"
-    },
     "Components/PkCodeExplorer.razor": {
       "category": "mount"
     },
@@ -53,9 +50,6 @@
     },
     "Components/PkScorecard.razor": {
       "category": "mount"
-    },
-    "Components/PkSideNav.razor": {
-      "category": "router"
     },
     "Components/PkStyles.razor": {
       "category": "wrapper",

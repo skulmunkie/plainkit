@@ -15,9 +15,9 @@ export default {
         await mountThemeEditor(a, { target: a, storageKey: false, height: '34rem' });
     },
     steps: [
-        { wait: 800 }, { shot: 'tokens' },
-        { click: `${A} pk-tab[value=presets]` }, { wait: 300 }, { shot: 'presets' },
-        { click: `${A} pk-tab[value=preview]`, on: ['desktop'] }, { wait: 1200, on: ['desktop'] }, { shot: 'preview', on: ['desktop'] },
+        { waitFor: `${A} pk-input, ${A} pk-colour-input` }, { shot: 'tokens' },
+        { click: `${A} pk-tab[value=presets]` }, { shot: 'presets' },
+        { click: `${A} pk-tab[value=preview]`, on: ['desktop'] }, { waitFor: `${A} iframe`, on: ['desktop'] }, { shot: 'preview', on: ['desktop'] },
     ],
     expect(t) {
         t.ok(t.metric('html', 'scrollWidth') <= t.metric('html', 'clientWidth') + 1, 'the page scrolls sideways');

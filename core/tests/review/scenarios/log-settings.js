@@ -10,7 +10,7 @@ export default {
     elements: ['table', 'heading', 'container'],
     html: '<pk-card heading="Logging"><div id="ls-host"></div></pk-card>',
     async setup(frame) { await mountLogSettings(frame.querySelector(HOST), {}); },
-    steps: [{ wait: 600 }, { shot: 'panel' }],
+    steps: [{ waitFor: `${HOST} pk-table` }, { shot: 'panel' }],
     expect(t) {
         t.ok(t.metric('html', 'scrollWidth') <= t.metric('html', 'clientWidth') + 1, 'the page scrolls sideways');
         t.visible(`${HOST} pk-table`, 'the scope table'); t.inViewport(`${HOST} pk-button`);
