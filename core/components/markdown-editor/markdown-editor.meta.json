@@ -1,0 +1,236 @@
+{
+  "tag": "pk-markdown-editor",
+  "a11yRequires": [
+    "label"
+  ],
+  "title": "Markdown editor",
+  "group": "Form controls",
+  "tier": "component",
+  "summary": "A field for writing Markdown: a real textarea whose value is the Markdown text, a formatting toolbar (bold, italic, bulleted and numbered lists, link) and a Write / Preview switch. The preview is built from the parsed text with DOM calls only: raw HTML is shown as text and a link must be http, https, mailto or a relative address. Form-associated like pk-textarea. The Markdown subset is paragraphs, bold, italic, code, fenced code, headings 1 to 3, quotes, lists and links; the same parser and renderer are in js/markdown/ for showing stored text elsewhere (never write the value into markup yourself).",
+  "delegatesFocus": true,
+  "formAssociated": true,
+  "props": [
+    {
+      "name": "name",
+      "type": "string",
+      "default": "",
+      "reflect": true,
+      "description": "The form field name."
+    },
+    {
+      "name": "value",
+      "type": "string",
+      "default": "",
+      "reflect": false,
+      "description": "The Markdown text; what the form submits. A form reset sets it back to its initial value without raising pk-change, as a native control does.",
+      "commit": "pk-change"
+    },
+    {
+      "name": "placeholder",
+      "type": "string",
+      "default": "",
+      "reflect": true,
+      "description": "Hint shown while empty."
+    },
+    {
+      "name": "label",
+      "type": "string",
+      "default": "",
+      "reflect": true,
+      "description": "The accessible name of the writing area. pk-field fills it from its own label when this is empty."
+    },
+    {
+      "name": "description",
+      "type": "string",
+      "default": "",
+      "reflect": false,
+      "description": "Help and error text, exposed as aria-description; pk-field fills it."
+    },
+    {
+      "name": "disabled",
+      "type": "boolean",
+      "default": false,
+      "reflect": true,
+      "description": "Blocks editing and commands and takes the toolbar out of the tab order."
+    },
+    {
+      "name": "readonly",
+      "type": "boolean",
+      "default": false,
+      "reflect": true,
+      "description": "The text can be read, selected and previewed, but not edited; the toolbar does nothing."
+    },
+    {
+      "name": "required",
+      "type": "boolean",
+      "default": false,
+      "reflect": true,
+      "description": "The form cannot submit while the text is empty."
+    },
+    {
+      "name": "maxlength",
+      "type": "string",
+      "default": "",
+      "reflect": true,
+      "description": "Maximum text length; a command that would exceed it does nothing."
+    },
+    {
+      "name": "rows",
+      "type": "number",
+      "default": 6,
+      "reflect": false,
+      "description": "Visible rows of the writing area."
+    },
+    {
+      "name": "mode",
+      "type": "enum",
+      "default": "write",
+      "reflect": true,
+      "description": "Which pane shows: write or preview. The Write / Preview tabs change it.",
+      "values": [
+        "write",
+        "preview"
+      ]
+    },
+    {
+      "name": "layout",
+      "type": "enum",
+      "default": "tabs",
+      "reflect": true,
+      "description": "tabs: one pane at a time. split: write and preview side by side while the field is at least 640px wide (the tabs return when narrower).",
+      "values": [
+        "tabs",
+        "split"
+      ]
+    },
+    {
+      "name": "toolbar",
+      "type": "string",
+      "default": "bold italic ul ol link",
+      "reflect": true,
+      "description": "The toolbar commands, space separated, in order: bold, italic, ul, ol, link. Ctrl/Cmd+B, I and K work in the textarea for the commands that are listed."
+    }
+  ],
+  "slots": [],
+  "events": [
+    {
+      "name": "input",
+      "detail": "native Event",
+      "description": "The text changed by typing (native, composed)."
+    },
+    {
+      "name": "change",
+      "detail": "native Event",
+      "description": "The user left the field after editing (native)."
+    },
+    {
+      "name": "pk-change",
+      "detail": "{ value: string }",
+      "detailProps": {
+        "value": "string"
+      },
+      "description": "The user committed a new value: the field lost focus after typing, or a toolbar command or shortcut changed the text."
+    }
+  ],
+  "parts": [
+    {
+      "name": "head",
+      "description": "The tab strip and toolbar row."
+    },
+    {
+      "name": "tabs",
+      "description": "The Write / Preview tabs."
+    },
+    {
+      "name": "bar",
+      "description": "The toolbar wrapper."
+    },
+    {
+      "name": "commands",
+      "description": "The formatting buttons (role toolbar, one tab stop, arrow keys move)."
+    },
+    {
+      "name": "linkbar",
+      "description": "The link address row, shown by the link command."
+    },
+    {
+      "name": "url",
+      "description": "The link address input."
+    },
+    {
+      "name": "link-ok",
+      "description": "The button that adds the link."
+    },
+    {
+      "name": "link-cancel",
+      "description": "The button that closes the link row."
+    },
+    {
+      "name": "error",
+      "description": "The inline error (a refused link)."
+    },
+    {
+      "name": "panes",
+      "description": "The write and preview panes."
+    },
+    {
+      "name": "write",
+      "description": "The writing pane."
+    },
+    {
+      "name": "control",
+      "description": "The textarea."
+    },
+    {
+      "name": "preview",
+      "description": "The rendered preview (a named region)."
+    }
+  ],
+  "cssProperties": [
+    {
+      "name": "--pk-control-bg",
+      "description": "Background of the panes.",
+      "default": "var(--color-input)"
+    },
+    {
+      "name": "--pk-control-border",
+      "description": "Border colour.",
+      "default": "var(--color-input-border)"
+    },
+    {
+      "name": "--pk-control-radius",
+      "description": "Corner radius.",
+      "default": "var(--radius-sm)"
+    }
+  ],
+  "methods": [
+    {
+      "name": "focus()",
+      "description": "Moves focus to the textarea."
+    },
+    {
+      "name": "select()",
+      "description": "Selects the text."
+    }
+  ],
+  "a11y": "The writing area is a native textarea named by label. The formatting buttons form one toolbar with a name, one Tab stop and Left/Right, Home and End to move; Escape returns to the textarea. Ctrl/Cmd+B, I and K are announced with aria-keyshortcuts and do nothing during IME composition. The preview is a named region.",
+  "examples": [
+    {
+      "title": "Basic",
+      "html": "<pk-markdown-editor label=\"Description\" name=\"description\" value=\"Write **bold** or *italic* text.\"></pk-markdown-editor>"
+    },
+    {
+      "title": "Split layout, shorter toolbar",
+      "html": "<pk-markdown-editor label=\"Notes\" layout=\"split\" toolbar=\"bold italic link\" rows=\"5\" value=\"# Notes\n\n- one\n- two\"></pk-markdown-editor>"
+    }
+  ],
+  "writes": [
+    {
+      "target": "the pk-button commands in its toolbar",
+      "attributes": [
+        "tabindex"
+      ],
+      "why": "The editor builds the formatting buttons in its own shadow tree and keeps one of them in the tab order (roving tabindex on the real button inside each)."
+    }
+  ]
+}
