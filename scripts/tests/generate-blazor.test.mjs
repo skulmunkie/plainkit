@@ -215,6 +215,19 @@ test('two-way: a JSON bind keeps an object event field as raw text; a callback c
     assert.match(settings, /await Save!\(a\); await InvokeAsync\(async \(\) => \{ Values = JsonSerializer\.Serialize\(a\); await ValuesChanged\.InvokeAsync\(Values\); \}\)/);
 });
 
+test('two-way: an enum parameter follows a string event field through a generated parser and reports the enum (#1444)', () => {
+    const m = structuredClone(mapping);
+    m.params = m.params.filter(p => p.name !== 'Tone');
+    m.params.push({ name: 'Tone', prop: 'tone', type: 'DemoTone', default: 'info', bind: { event: 'pk-value-change', value: 'detail.value' } });
+    const r = run(m);
+    const razor = r.files.get('PkDemo.razor');
+    assert.match(razor, /\[Parameter\] public EventCallback<DemoTone> ToneChanged/);
+    assert.match(razor, /Tone = e\.Value\.ToDemoTone\(\) \?\? Tone;[\s\S]*await ToneChanged\.InvokeAsync\(Tone\);/);
+    assert.match(r.files.get('PkGeneratedEnums.cs'), /internal static DemoTone\? ToDemoTone\(this string\? value\) => value switch[\s\S]*"info" => DemoTone\.Info,[\s\S]*_ => null,/);
+    // an enum nothing binds gets no parser
+    assert.doesNotMatch(run().files.get('PkGeneratedEnums.cs'), /ToDemoTone|ToTone\(/);
+});
+
 test('events: no detail is a plain callback, a detail a typed one, click the native syntax', () => {
     const r = run();
     const razor = r.files.get('PkDemo.razor');
