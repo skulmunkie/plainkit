@@ -21,13 +21,6 @@
       "description": "Row links: an address with {id} (and any {field}, URL-encoded), like /orders/{id} or #/orders/{id}. The first cell of each row becomes a real link; a plain click on it or the row goes through the router (pk-navigate). Plain data, so a wrapper can set it (rowHref is a callback)."
     },
     {
-      "name": "navigate",
-      "type": "string",
-      "default": "",
-      "reflect": false,
-      "description": "Who follows a row link: router (default, empty), host or none."
-    },
-    {
       "name": "config",
       "type": "json",
       "default": {},
