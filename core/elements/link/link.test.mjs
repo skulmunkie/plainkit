@@ -120,3 +120,19 @@ test('focus() focuses the inner anchor', () => {
     el.focus();
     assert.equal(link.focused, true);
 });
+
+test('navigate="host" emits a non-cancelable notification and does not navigate; navigate="none" leaves the click to the browser', () => {
+    const h = makeLink({ to: '/orders/7', navigate: 'host' });
+    h.el.connected();
+    const e = { button: 0, preventDefault() { this.defaultPrevented = true; } };
+    h.link.listeners[0](e);
+    assert.equal(e.defaultPrevented, true);
+    assert.equal(h.emitted.length, 1);
+    assert.equal(h.win.location.went, undefined);
+    const n = makeLink({ to: '/orders/7', navigate: 'none' });
+    n.el.connected();
+    const e2 = { button: 0, preventDefault() { this.defaultPrevented = true; } };
+    n.link.listeners[0](e2);
+    assert.equal(e2.defaultPrevented, undefined);
+    assert.equal(n.emitted.length, 0);
+});
