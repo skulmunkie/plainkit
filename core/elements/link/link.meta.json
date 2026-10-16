@@ -20,13 +20,6 @@
       "description": "A module-relative route. A plain click is intercepted and reported as a cancelable pk-navigate for the app router (js/router.js mountRouter, mounted with mountApp) to handle; a modified click (middle, ctrl, shift, alt), target or download, or a router that does not cancel the event, falls back to a normal navigation."
     },
     {
-      "name": "navigate",
-      "type": "string",
-      "default": "",
-      "reflect": false,
-      "description": "Who follows a to link: router (default, empty), host or none."
-    },
-    {
       "name": "target",
       "type": "string",
       "default": "",

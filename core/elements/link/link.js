@@ -1,7 +1,7 @@
 // pk-link: a router-aware text link. `href` is a real anchor that navigates natively (external site, or a same-document address); `to` is an
 // app-relative route the app router resolves. A plain click on a `to` link is intercepted (same as a native link: not a modified click, no
 // target, no download) and reported as a cancelable, composed `pk-navigate` so the app router (mountRouter's own click intercept, js/router.js)
-// can handle it and call preventDefault (`navigate` #1421: router is the default, host raises a non-cancelable notification and nothing navigates, none leaves the browser to follow the link); nothing listening (outside mountApp, or the event left uncancelled) falls back to a normal navigation.
+// can handle it and call preventDefault; nothing listening (outside mountApp, or the event left uncancelled) falls back to a normal navigation.
 import { safeHref } from '../../js/safe-url.js';
 
 export default Base => class extends Base {
@@ -10,9 +10,8 @@ export default Base => class extends Base {
         if (e.defaultPrevented || e.button || e.metaKey || e.ctrlKey || e.shiftKey || e.altKey) return;
         const to = this.to;
         if (!to || this.target || this.download || this.hasAttribute('download')) return;
-        if (this.navigate === 'none') return;
         e.preventDefault();
-        const host = this.navigate === 'host', unhandled = this.emit('pk-navigate', { to, href: safeHref(to) || to }, { cancelable: !host }) && !host;
+        const unhandled = this.emit('pk-navigate', { to, href: safeHref(to) || to });
         if (unhandled) { const win = this.ownerDocument?.defaultView ?? globalThis.window; win?.location?.assign(to); }
     }
     updated() {

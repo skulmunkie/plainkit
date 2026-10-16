@@ -16,14 +16,6 @@
       "prop": "to"
     },
     {
-      "name": "Navigate",
-      "type": "string?",
-      "map": "prop",
-      "prop": "navigate",
-      "extra": true,
-      "note": "Who follows a To link on a plain click: \"router\" (default), \"host\" (OnNavigate is a notification and nothing navigates) or \"none\" (the browser follows the address)."
-    },
-    {
       "name": "Target",
       "type": "string",
       "default": "",
