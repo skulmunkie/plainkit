@@ -78,6 +78,23 @@ export const recordFormCases = [
         el.busy = true; await t.settle(); enter(name); await t.settle(); await t.settle(); t.eq(saved.v, 1, 'busy does not save again');
     }],
 
+    // #1365: typing then Enter, without leaving the field, must hand the typed value to the group's values (and pk-field-change) before pk-record-save is raised.
+    ['record-form: Enter straight after typing commits the focused field before pk-record-save (#1365)', async t => {
+        const el = await t.mount('<pk-record-form><form><pk-field-group></pk-field-group></form></pk-record-form>');
+        const group = el.querySelector('pk-field-group');
+        group.fields = [{ key: 'name', label: 'Name', required: true }];
+        await t.load(el.shadowRoot); await t.load(group.shadowRoot); await t.settle(); await t.settle();
+        el.querySelector('form').addEventListener('submit', e => e.preventDefault());
+        const seen = [], changes = [];
+        el.addEventListener('pk-record-save', () => seen.push(group.values.name));
+        group.addEventListener('pk-field-change', e => changes.push(e.detail.value));
+        const name = [...group.shadowRoot.querySelectorAll('pk-field')][0].firstElementChild.shadowRoot.querySelector('input');
+        name.value = 'Acme'; name.dispatchEvent(new Event('input', { bubbles: true, composed: true })); await t.settle(); // typed, never blurred: no change event
+        name.dispatchEvent(new KeyboardEvent('keydown', { key: 'Enter', bubbles: true, composed: true, cancelable: true }));
+        await t.settle(); await t.settle();
+        t.eq(seen.length, 1, 'one save'); t.eq(seen[0], 'Acme', 'the model holds the typed value when the save is raised'); t.eq(changes[0], 'Acme', 'pk-field-change carried it');
+    }],
+
     ['record-form: Cancel and Delete show only when asked, raise their own event once, Delete is disabled while busy, and Save shows its busy text, label and disabled state', async t => {
         const plain = await mount(t);
         t.ok(button(plain, 'cancel').hidden && button(plain, 'delete').hidden, 'neither shows by default');
