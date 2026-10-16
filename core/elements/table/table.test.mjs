@@ -280,7 +280,7 @@ test('the edit props and the pk-cell-edit event are in the meta, and an editable
     assert.ok(meta.props.some(p => p.name === 'cellErrors'));
     const ev = meta.events.find(e => e.name === 'pk-cell-edit');
     assert.equal(ev.cancelable, true);
-    assert.deepEqual(Object.keys(ev.detail), ['id', 'index', 'row', 'key', 'value', 'previous']);
+    assert.deepEqual(Object.keys(ev.detail), ['id', 'index', 'row', 'key', 'value', 'previous', 'source']);
     assert.match(readFileSync(new URL('../../js/table-vw.js', import.meta.url), 'utf8'), /if \(el\.expandable \|\| el\.editable \|\|/);
 });
 
