@@ -138,7 +138,7 @@
   ],
   "methods": [],
   "a11y": "A layout primitive only: no landmark or role of its own. Give the main content and the sidebar their own headings so assistive technology can navigate between them.",
-  "mobile": "Below the container's own 48rem, not the viewport: one column, the sidebar no longer sticky (in the two-column layout it docks by its bottom edge when taller than the viewport), in document order unless sidebarFirst. Elements carrying data-pk-section (optionally data-pk-section-label on the first of a section) become tabs when there are two or more sections: only the selected one shows, a Next button moves on, and a required control in a hidden section is revealed on submit.",
+  "mobile": "Below the container's own 48rem, not the viewport: one column, the sidebar no longer sticky (in the two-column layout it docks by its bottom edge when taller than the viewport), in document order unless sidebarFirst. Elements carrying data-pk-section (optionally data-pk-section-label, data-pk-section-order and data-pk-section-count on the first element of a section: order is a number, ascending, stable, sections without one follow in document order; count is the tab's badge, like pk-tab count) become tabs when there are two or more sections: only the selected one shows, a Next button moves on, and a required control in a hidden section is revealed on submit.",
   "examples": [
     {
       "title": "Order detail",
