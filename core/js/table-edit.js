@@ -6,7 +6,7 @@
 import { sheetFor } from './element.js'; import { rowAt } from './rowset.js';
 import { keyStep, stepIndex } from './roving.js'; import V from './table-vw.js';
 
-const STYLES = ('td[data-key][tabindex]{cursor:cell}td[data-key]:focus-visible{outline:var(--focus-ring);outline-offset:-2px}td[aria-selected="true"]{background:color-mix(in srgb,var(--color-accent) 10%,transparent)}td[aria-invalid="true"]{box-shadow:inset 0 0 0 2px var(--field-error)}td[data-editing]{padding:var(--space-1);position:relative}td[data-editing] :is(input,select){inline-size:0;min-inline-size:100%;font:inherit}[data-cell-error]{display:block;color:var(--field-error);font-size:var(--text-meta);text-align:start}td[data-editing] [data-cell-error]{position:absolute;inset-block-start:100%;inset-inline-start:0;z-index:1;inline-size:max-content;max-inline-size:min(16rem,80vw);padding:var(--space-1) var(--space-2);background:var(--color-bg);border-radius:var(--radius-sm);box-shadow:var(--shadow-card)}@media (max-width:640px){td[data-editing] :is(input,select){min-block-size:var(--touch-target);min-inline-size:max(100%,var(--touch-target));font-size:16px}}');
+const STYLES = ('td[data-key][tabindex]{cursor:cell;user-select:none}td[data-key]:focus-visible{outline:var(--focus-ring);outline-offset:-2px}td[aria-selected="true"]{background:color-mix(in srgb,var(--color-accent) 10%,transparent)}td[aria-invalid="true"]{box-shadow:inset 0 0 0 2px var(--field-error)}td[data-editing]{padding:var(--space-1);position:relative}td[data-editing] :is(input,select){inline-size:0;min-inline-size:100%;font:inherit}[data-cell-error]{display:block;color:var(--field-error);font-size:var(--text-meta);text-align:start}td[data-editing] [data-cell-error]{position:absolute;inset-block-start:100%;inset-inline-start:0;z-index:1;inline-size:max-content;max-inline-size:min(16rem,80vw);padding:var(--space-1) var(--space-2);background:var(--color-bg);border-radius:var(--radius-sm);box-shadow:var(--shadow-card)}@media (max-width:640px){td[data-editing] :is(input,select){min-block-size:var(--touch-target);min-inline-size:max(100%,var(--touch-target));font-size:16px}}');
 let sheet;
 
 // The message a draft breaks, or '' when it is fine. Pure: `col` is the column definition ({ editor, required, min, max, maxLength }), `text` the draft as typed.
@@ -77,7 +77,7 @@ export function after(t) {
     if (!t.editable) { tb.removeAttribute('role'); return; }
     sheet ??= sheetFor(STYLES);
     if (!root.adoptedStyleSheets.includes(sheet)) root.adoptedStyleSheets = [...root.adoptedStyleSheets, sheet];
-    if (!s.on) { s.on = 1; root.addEventListener('keydown', e => keydown(t, e)); root.addEventListener('click', e => click(t, e)); root.addEventListener('change', e => change(t, e)); root.addEventListener('input', e => { if (s.edit && e.target.dataset.cellEditor !== undefined) s.edit.draft = e.target.value; }); root.addEventListener('focusout', e => blur(t, e)); root.addEventListener('paste', e => paste(t, e)); t.part('scroll').addEventListener('scroll', () => { if (t.part('body').contains(root.activeElement)) s.focus ||= 'keep'; }, { passive: true }); }
+    if (!s.on) { s.on = 1; root.addEventListener('keydown', e => keydown(t, e)); root.addEventListener('click', e => click(t, e)); root.addEventListener('change', e => change(t, e)); root.addEventListener('input', e => { if (s.edit && e.target.dataset.cellEditor !== undefined) s.edit.draft = e.target.value; }); root.addEventListener('focusout', e => blur(t, e)); root.addEventListener('paste', e => paste(t, e)); root.addEventListener('copy', e => copy(t, e)); t.part('scroll').addEventListener('scroll', () => { if (t.part('body').contains(root.activeElement)) s.focus ||= 'keep'; }, { passive: true }); }
     tb.setAttribute('role', 'grid');
     lockWidths(t, tb, !!s.edit);
     // A windowed grid does not hold every row: say how many there are and which one each drawn row is (the header rows come first).
@@ -91,11 +91,14 @@ export function after(t) {
     const rows = cells(t), ids = t.ids(), errors = { ...s.paste, ...t.cellErrors };
     // The active cell is kept by id, even when its row is not drawn (a windowed table, #1474); it falls back to the first drawn cell only when its row left the view.
     if (!(s.a && ids.includes(s.a.id) && t.list('columns').some(c => c.key === s.a.key))) s.a = rows[0]?.[0] ? at(rows[0][0]) : null;
+    const rg = range(t), many = rg && (rg.y1 > rg.y0 || rg.x1 > rg.x0), kix = new Map(rg?.keys.map((x, i) => [x, i]));
+    if (many) tb.setAttribute('aria-multiselectable', 'true'); else tb.removeAttribute('aria-multiselectable');
     for (const line of rows) for (const td of line) {
         const id = td.closest('tr').dataset.pkContext, k = td.dataset.key, c = col(t, k), on = s.a?.id === id && s.a?.key === k, ed = s.edit?.id === id && s.edit?.key === k;
+        const yy = ix.get(id), xx = kix.get(k), inside = many && yy >= rg.y0 && yy <= rg.y1 && xx >= rg.x0 && xx <= rg.x1;
         const slotted = td.firstElementChild?.localName === 'slot', can = c.editor && !slotted;
         td.tabIndex = on ? 0 : -1;
-        td.setAttribute('aria-selected', String(on));
+        td.setAttribute('aria-selected', String(on || inside));
         if (!can) td.setAttribute('aria-readonly', 'true');
         const err = ed ? s.edit.error ?? errors[key(id, k)] : errors[key(id, k)];
         if (err) td.setAttribute('aria-invalid', 'true');
@@ -117,7 +120,15 @@ const control = td => { const e = slot(td).assignedElements()[0], f = 'button,in
 const at = td => ({ id: td.closest('tr').dataset.pkContext, key: td.dataset.key });
 
 // Make a cell the active one by its row id and column key (focus moves to it after the next draw, which draws its row even when it was outside the window).
-function goto(t, id, k) { const s = st(t); s.a = { id, key: k }; s.focus = true; t.requestUpdate(); }
+// With `ext` (Shift) the cell where the move started stays as the anchor of a rectangular selection; without it the selection collapses to the cell.
+function goto(t, id, k, ext) { const s = st(t); s.anc = ext ? s.anc ?? s.a : null; s.a = { id, key: k }; s.focus = true; t.requestUpdate(); if (ext) { const r = range(t); say(t, `${r.y1 - r.y0 + 1} rows by ${r.x1 - r.x0 + 1} columns selected`); } }
+
+// The selection as indexes into the view and the column list (a rectangle from the anchor to the active cell); a single cell when nothing is extended. Worked out from ids, never from the DOM.
+function range(t) {
+    const s = st(t), ids = t.ids(), keys = t.list('columns').map(c => c.key), a = s.a && [ids.indexOf(s.a.id), keys.indexOf(s.a.key)], b = s.anc && [ids.indexOf(s.anc.id), keys.indexOf(s.anc.key)] || a;
+    if (!a || a[0] < 0 || a[1] < 0 || b[0] < 0 || b[1] < 0) return null;
+    return { ids, keys, y0: Math.min(a[0], b[0]), y1: Math.max(a[0], b[0]), x0: Math.min(a[1], b[1]), x1: Math.max(a[1], b[1]) };
+}
 const activate = (t, td) => { const { id, key: k } = at(td); goto(t, id, k); };
 
 // A windowed grid draws the active row but may leave it under the sticky header or below the frame: scroll the frame so the cell shows.
@@ -127,21 +138,21 @@ function reveal(t, td) {
 }
 
 // Arrow keys and Tab: one cell over, worked out from the row ids and the column list, not from what is drawn. Along a row it wraps to the neighbouring row; false at the edge of the grid.
-function move(t, td, dx, dy) {
+function move(t, td, dx, dy, ext) {
     const ids = t.ids(), keys = t.list('columns').map(c => c.key), a = at(td);
     let y = ids.indexOf(a.id) + dy, x = keys.indexOf(a.key) + dx;
     if (!dy) { if (x < 0) { y--; x = keys.length - 1; } else if (x >= keys.length) { y++; x = 0; } }
     if (y < 0 || y >= ids.length) return false;
-    goto(t, ids[y], keys[x]);
+    goto(t, ids[y], keys[x], ext);
     return true;
 }
 
 // PageUp / PageDown move by the rows that fit the frame, Ctrl+Home / Ctrl+End to the first / last row; the position is announced, since the rows in between were never drawn.
-function jump(t, td, k) {
+function jump(t, td, k, ext) {
     const ids = t.ids(), a = at(td), f = t.part('scroll'), rowH = t.$rowH || td.closest('tr').getBoundingClientRect().height || 32, hh = t.shadowRoot.querySelector('thead').getBoundingClientRect().height;
     const page = Math.max(1, Math.floor((f.clientHeight - hh) / rowH)), i = ids.indexOf(a.id);
     const to = k === 'Home' ? 0 : k === 'End' ? ids.length - 1 : Math.min(ids.length - 1, Math.max(0, i + (k === 'PageDown' ? page : -page)));
-    goto(t, ids[to], a.key); say(t, `Row ${to + 1} of ${ids.length}`);
+    goto(t, ids[to], a.key, ext); say(t, `Row ${to + 1} of ${ids.length}`);
 }
 
 // Opens the cell's editor. `draft`, when given (type-to-edit), replaces the current value instead of starting from it.
@@ -150,7 +161,7 @@ function begin(t, td, draft) {
     if (slot(td)) return void control(td)?.focus();
     if (!c.editor) return;
     const v = rowAt(t.view, t.ids(), id)?.[k];
-    s.a = { id, key: k }; s.edit = { id, key: k, draft: draft ?? String(v ?? ''), error: null }; s.focus = true; t.requestUpdate();
+    s.a = { id, key: k }; s.anc = null; s.edit = { id, key: k, draft: draft ?? String(v ?? ''), error: null }; s.focus = true; t.requestUpdate();
 }
 
 // Commit a draft (the text as typed): checked, then offered to the host, which may cancel. False when the cell stays open.
@@ -191,7 +202,7 @@ function step(t, back) {
     if (back) group.reverse();
     const cx = batch(t), done = group.filter(x => put(t, x.id, x.key, back ? x.from : x.to, back ? 'undo' : 'redo', cx)); flush(t, cx);
     if (!done.length) { from.push(...group.reverse()); return say(t, `${label(t, h.id, h.key)}: ${back ? 'undo' : 'redo'} not accepted`); }
-    to.push(...(back ? done.reverse() : done)); s.a = { id: group[0].id, key: group[0].key }; s.focus = true; t.requestUpdate(); // the earliest cell of the step: drawn and scrolled to even when it was far away
+    to.push(...(back ? done.reverse() : done)); s.anc = null; s.a ={ id: group[0].id, key: group[0].key }; s.focus = true; t.requestUpdate(); // the earliest cell of the step: drawn and scrolled to even when it was far away
     say(t, `${back ? 'Undo' : 'Redo'}, ${label(t, group[0].id, group[0].key)}: ${shown(back ? group[0].from : group[0].to)}`);
 }
 
@@ -223,6 +234,40 @@ function paste(t, e) {
     say(t, `${done.length} cells updated, ${rejected.length} rejected`);
 }
 
+// Ctrl/Cmd+D: the top cell of each selected column is copied down the selected rows. Each cell goes through the same check and cancelable pk-cell-edit (source: 'fill'); read-only
+// columns and refused values are skipped and counted, and one undo step takes the whole fill back. Rows come from ids, so rows that are not drawn are filled too.
+function fill(t) {
+    const r = range(t), s = st(t);
+    if (!r || r.y1 === r.y0) return say(t, 'Select two or more rows to fill down');
+    const cx = batch(t), g = (s.gid = (s.gid ?? 0) + 1), done = []; let rejected = 0;
+    s.paste = {};
+    for (let x = r.x0; x <= r.x1; x++) {
+        const k = r.keys[x], c = col(t, k), src = cx.view[r.y0][k], text = String(src ?? '');
+        for (let y = r.y0 + 1; y <= r.y1; y++) {
+            const id = r.ids[y], previous = cx.view[y][k];
+            if (!c.editor || t.querySelector(`:scope > [slot="${CSS.escape(`cell-${id}-${k}`)}"]`)) { rejected++; continue; }
+            const err = check(c, text);
+            if (err) { s.paste[key(id, k)] = err; rejected++; continue; }
+            if (same(src, previous)) continue;
+            if (put(t, id, k, src, 'fill', cx)) done.push({ id, key: k, from: previous, to: src, g }); else rejected++;
+        }
+    }
+    flush(t, cx);
+    if (done.length) { (s.undo ??= []).push(...done); trim(s.undo); s.redo = []; }
+    s.focus = true; t.requestUpdate();
+    say(t, `${done.length} cells filled, ${rejected} rejected`);
+}
+
+// Copy: the selection (or the active cell) as tab-separated text, one line per row, the way a spreadsheet reads it.
+function copy(t, e) {
+    const td = cellOf(e), r = range(t);
+    if (!td || !t.editable || e.defaultPrevented || e.target !== td || !r || !e.clipboardData) return;
+    const cx = batch(t), lines = [];
+    for (let y = r.y0; y <= r.y1; y++) lines.push(r.keys.slice(r.x0, r.x1 + 1).map(k => String(cx.view[y][k] ?? '').replace(/[\t\r\n]+/g, ' ')).join('\t'));
+    e.clipboardData.setData('text/plain', lines.join('\n')); e.preventDefault();
+    say(t, `${lines.length * (r.x1 - r.x0 + 1)} cells copied`);
+}
+
 function cancel(t) { const s = st(t); if (!s.edit) return; s.a = { id: s.edit.id, key: s.edit.key }; s.edit = null; s.focus = true; t.requestUpdate(); say(t, 'Edit cancelled'); }
 
 function keydown(t, e) {
@@ -241,9 +286,11 @@ function keydown(t, e) {
     if (e.target !== td) return;
     if ((e.ctrlKey || e.metaKey) && !e.altKey && /^[zy]$/i.test(k)) { e.preventDefault(); step(t, k.toLowerCase() === 'z' && !e.shiftKey); return; }
     const dx = keyStep(k, { horizontal: true }) | 0, dy = keyStep(k) | 0; // Home / End are 'start' / 'end': not a step
-    if (dx || dy) { e.preventDefault(); move(t, td, dx, dy); }
+    if ((e.ctrlKey || e.metaKey) && !e.altKey && k.toLowerCase() === 'd') { e.preventDefault(); fill(t); }
+    else if (k === 'Escape' && s.anc) { e.preventDefault(); goto(t, s.a.id, s.a.key); }
+    else if (dx || dy) { e.preventDefault(); move(t, td, dx, dy, e.shiftKey); }
     else if (k === 'Enter' || k === 'F2' || (k === ' ' && slot(td))) { e.preventDefault(); begin(t, td); }
-    else if (k === 'PageDown' || k === 'PageUp' || ((e.ctrlKey || e.metaKey) && (k === 'Home' || k === 'End'))) { e.preventDefault(); jump(t, td, k); }
+    else if (k === 'PageDown' || k === 'PageUp' || ((e.ctrlKey || e.metaKey) && (k === 'Home' || k === 'End'))) { e.preventDefault(); jump(t, td, k, e.shiftKey); }
     else if (k === 'Home' || k === 'End') { e.preventDefault(); const r = cells(t).find(r => r.includes(td)); activate(t, r[stepIndex(k, 0, r.length)]); }
     // Tab moves right along the row only (never wraps to the next row); at the row's last cell it is left alone so focus leaves the grid normally.
     else if (k === 'Tab' && !e.shiftKey) {
@@ -262,7 +309,8 @@ function click(t, e) {
     const td = cellOf(e), s = st(t);
     if (!td || !t.editable || td.hasAttribute('data-editing')) return;
     const c = col(t, td.dataset.key), a = at(td), was = s.a?.id === a.id && s.a?.key === a.key;
-    if (was && !s.edit) begin(t, td); else activate(t, td);
+    if (e.shiftKey && s.a && !s.edit) goto(t, a.id, a.key, true); // Shift+click extends the selection from the active cell
+    else if (was && !s.edit && !s.anc) begin(t, td); else activate(t, td);
 }
 
 // A select commits when its choice changes.
