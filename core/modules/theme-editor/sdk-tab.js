@@ -12,6 +12,7 @@ import { fetchDist, exportSdk, exportTheme } from '../../js/custom-sdk.js';
 import { PK_VERSION } from '../../js/version.js';
 import { createLogger } from '../../js/log.js';
 import { runtimeUrl, h, loadJson, on as listen } from '../../js/mount-support.js';
+import { loadElements } from '../../js/loader.js';
 const log = createLogger('theme-editor.sdk');
 
 /** The runtime dist folder (two levels above this module in the release layout, where the modules sit in dist/modules/); the source tree points at core/dist (the build rewrites this line). */
@@ -69,6 +70,7 @@ export function createSdkTab({ doc, win, theme, importTheme, dist = runtimeUrl(D
                 })()));
             return h(doc, 'pk-accordion-item', { heading: head, ...(r.changed ? { open: true } : {}), 'data-breakpoint': r.name }, body);
         })));
+        loadElements(deltaBox); // pk-accordion and pk-table are built here, after the editor's own load pass, so nothing else may have defined them
     }
 
     function paint() {
