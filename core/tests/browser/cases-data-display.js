@@ -1192,6 +1192,29 @@ export const dataDisplayCases = [
         press(cell(1, 'name'), 'z', { ctrlKey: true }); await t.settle();
         t.eq(cell(1, 'name').textContent, 'Widget XL', 'a refused undo keeps the value');
     }],
+    ['table (editable): pasting tab-separated text fills a block from the active cell through pk-cell-edit, skips read-only and off-grid cells, flags invalid ones only, and one Ctrl+Z reverts it all', async t => {
+        const el = await t.mount(`<pk-table editable label="Stock" columns='[{"key":"sku","label":"SKU"},{"key":"name","label":"Name","editor":"text"},{"key":"qty","label":"Qty","type":"number","editor":"number","min":0}]' rows='[{"id":1,"sku":"A","name":"Widget","qty":4},{"id":2,"sku":"B","name":"Gadget","qty":9}]'></pk-table>`);
+        await t.settle();
+        const cell = (r, k) => el.shadowRoot.querySelector(`tbody tr:nth-child(${r}) td[data-key=${k}]`);
+        const seen = [], sum = []; el.addEventListener('pk-cell-edit', e => seen.push(`${e.detail.key}:${e.detail.value}:${e.detail.source}`)); el.addEventListener('pk-cells-paste', e => sum.push(e.detail));
+        const paste = (n, text) => n.dispatchEvent(Object.assign(new Event('paste', { bubbles: true, composed: true, cancelable: true }), { clipboardData: { getData: () => text } }));
+        await until(() => cell(1, 'sku')?.tabIndex === 0, 'the grid');
+        cell(1, 'sku').focus(); cell(1, 'name').click(); await t.settle();
+        const rowsBefore = el.rows.map(r => ({ ...r }));
+        paste(cell(1, 'name'), 'Bolt\t-3\textra\r\nNut\t7\r\nBeyond\t1\n');
+        await until(() => cell(2, 'qty').textContent === '7', 'the paste to show');
+        t.eq(el.rows[0].name, 'Bolt', 'the first cell took its text'); t.eq(el.rows[1].name, 'Nut'); t.eq(el.rows[0].qty, 4, 'the invalid -3 (min 0) was not committed');
+        t.eq(cell(1, 'qty').getAttribute('aria-invalid'), 'true', 'only the invalid cell is aria-invalid'); t.ok(!cell(2, 'qty').hasAttribute('aria-invalid'));
+        t.eq(el.rows[0].sku, 'A', 'a read-only column is not overwritten');
+        t.eq(seen.join(), 'name:Bolt:paste,name:Nut:paste,qty:7:paste', 'each accepted cell raised pk-cell-edit with source paste');
+        t.eq(sum[0].cells.length, 3); t.eq(sum[0].rejected[0].reason, 'At least 0', 'the invalid cell is listed with its message');
+        t.ok(sum[0].rejected.some(r => r.reason === 'outside'), 'cells beyond the grid are listed as outside');
+        cell(1, 'name').focus(); cell(1, 'name').dispatchEvent(new KeyboardEvent('keydown', { key: 'z', ctrlKey: true, bubbles: true, composed: true, cancelable: true }));
+        await until(() => cell(1, 'name').textContent === 'Widget', 'undo');
+        t.eq(JSON.stringify(el.rows), JSON.stringify(rowsBefore), 'one undo reverted the whole paste');
+        el.addEventListener('pk-cell-edit', e => e.preventDefault()); seen.length = 0; paste(cell(1, 'name'), 'Refused');
+        await t.settle(); t.eq(el.rows[0].name, 'Widget', 'a cancelled pk-cell-edit leaves the cell unchanged'); t.eq(sum.at(-1).rejected[0].reason, 'refused');
+    }],
     ['table (editable): arrow keys move the active cell, Enter commits and moves down, Tab moves right within the row and leaves the grid at its last cell, and typing a character starts editing with it', async t => {
         const el = await t.mount(`<pk-table editable label="Stock" columns='[{"key":"name","label":"Name","editor":"text"},{"key":"qty","label":"Qty","type":"number","editor":"number"}]' rows='[{"id":1,"name":"Widget","qty":4},{"id":2,"name":"Gadget","qty":9}]'></pk-table>`);
         await t.settle();
@@ -1466,6 +1489,24 @@ export const dataDisplayCases = [
             t.ok(links().every(([id, h]) => h === `/r/${id}`), 'every drawn row has its link');
             big.shadowRoot.querySelector('[part="scroll"]').scrollTop = 4000; await wait(150); await t.settle();
             const after = links(); t.ok(after.length > 0 && Number(after[0][0]) > 50 && after.every(([id, h]) => h === `/r/${id}`), 'after a scroll the newly drawn rows have their links too');
+        } finally { document.removeEventListener('click', stop); }
+    }],
+    ['table: navigate="host" raises pk-navigate as a non-cancelable notification and does not navigate, "none" raises nothing and leaves the link to the browser, the default stays a cancelable event (#1421)', async t => {
+        const el = await t.mount(`<pk-table label="P" row-href-template="/orders/{id}" columns='[{"key":"po","label":"PO"}]' rows='[{"id":"7","po":"PO 7"}]'></pk-table>`);
+        const link = () => el.shadowRoot.querySelector('a[data-row-link]');
+        await until(() => link(), 'the row link');
+        const seen = [], browser = [];
+        el.addEventListener('pk-navigate', e => { seen.push({ to: e.detail.to, cancelable: e.cancelable }); e.preventDefault(); }); // a router handles a cancelable one; the page must not leave
+        const stop = e => { browser.push(e.defaultPrevented); e.preventDefault(); }; // keeps the runner on this page after the table's own handler
+        document.addEventListener('click', stop);
+        try {
+            link().click(); t.eq(JSON.stringify(seen), '[{"to":"/orders/7","cancelable":true}]', 'default: a cancelable pk-navigate, as before');
+            seen.length = 0; browser.length = 0; el.navigate = 'host'; await t.settle();
+            link().click(); t.eq(JSON.stringify(seen), '[{"to":"/orders/7","cancelable":false}]', 'host: the same event as a notification');
+            t.eq(browser.join(), 'true', 'host: the table took the click, the browser does not follow the address');
+            seen.length = 0; browser.length = 0; el.shadowRoot.querySelector('tbody td').click(); t.eq(seen.length, 1, 'host: a click on the row body reports it too');
+            seen.length = 0; browser.length = 0; el.navigate = 'none'; await t.settle();
+            link().click(); t.eq(seen.length, 0, 'none: no pk-navigate'); t.eq(browser.join(), 'false', 'none: the click is left to the browser');
         } finally { document.removeEventListener('click', stop); }
     }],
     ['table (375px, cards): a button with a long unbreakable label wraps inside the card instead of being clipped or widening it (#1288)', async t => {

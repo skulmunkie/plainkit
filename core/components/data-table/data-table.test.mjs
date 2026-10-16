@@ -237,6 +237,14 @@ test('clickable (no rowHref) makes rows clickable and currentRow reaches the tab
     assert.deepEqual([parts.table.clickable, parts.table.currentRow], [false, '']);
 });
 
+test('navigate and rowHrefTemplate reach the table (#1421)', async () => {
+    const { el, parts } = make();
+    el.load = async () => rowsOf(1);
+    el.rowHrefTemplate = '/orders/{id}'; el.navigate = 'host';
+    await el.refresh();
+    assert.deepEqual([parts.table.rowHrefTemplate, parts.table.navigate], ['/orders/{id}', 'host']);
+});
+
 test('the props feed the pager, search, table labels and the initial sort and page size; settings that arrive late still count until the reader changes the query (#817)', async () => {
     const { el, parts } = make();
     const queries = [];

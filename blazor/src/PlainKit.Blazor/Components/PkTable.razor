@@ -191,7 +191,7 @@ else foreach (var row in _items)
     /// <inheritdoc />
     protected override void OnParametersSet()
     {
-        base.OnParametersSet();
+        base.OnParametersSet(); ApplyExtras();
         // The columns and rows are serialised only when Items (reference or count), Columns (by value) or IdOf changed; an item changed inside the same list needs a new list or Refresh().
         var columns = Columns ?? [];
         var items = Items ?? [];

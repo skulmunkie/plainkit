@@ -62,10 +62,10 @@ export function after(t) {
     if (!t.editable) { tb.removeAttribute('role'); return; }
     sheet ??= sheetFor(STYLES);
     if (!root.adoptedStyleSheets.includes(sheet)) root.adoptedStyleSheets = [...root.adoptedStyleSheets, sheet];
-    if (!s.on) { s.on = 1; root.addEventListener('keydown', e => keydown(t, e)); root.addEventListener('click', e => click(t, e)); root.addEventListener('change', e => change(t, e)); root.addEventListener('input', e => { if (s.edit && e.target.dataset.cellEditor !== undefined) s.edit.draft = e.target.value; }); root.addEventListener('focusout', e => blur(t, e)); }
+    if (!s.on) { s.on = 1; root.addEventListener('keydown', e => keydown(t, e)); root.addEventListener('click', e => click(t, e)); root.addEventListener('change', e => change(t, e)); root.addEventListener('input', e => { if (s.edit && e.target.dataset.cellEditor !== undefined) s.edit.draft = e.target.value; }); root.addEventListener('focusout', e => blur(t, e)); root.addEventListener('paste', e => paste(t, e)); }
     tb.setAttribute('role', 'grid');
     lockWidths(t, tb, !!s.edit);
-    const rows = cells(t), ids = t.ids(), errors = t.cellErrors ?? {};
+    const rows = cells(t), ids = t.ids(), errors = { ...s.paste, ...t.cellErrors };
     if (!rows.flat().some(td => at(td).id === s.a?.id && at(td).key === s.a?.key)) s.a = rows[0]?.[0] ? at(rows[0][0]) : null;
     for (const line of rows) for (const td of line) {
         const id = td.closest('tr').dataset.pkContext, k = td.dataset.key, c = col(t, k), on = s.a?.id === id && s.a?.key === k, ed = s.edit?.id === id && s.edit?.key === k;
@@ -126,10 +126,11 @@ function save(t, td, draft, focus = true) {
 const shown = v => v ?? 'empty';
 
 // Offer a value for a cell to the host (pk-cell-edit) and, unless it cancels, hold it in a copy of the rows. False when the row is not drawn or the host refused.
-function put(t, id, k, value) {
+function put(t, id, k, value, source = 'keyboard') {
     const i = t.ids().indexOf(id), row = t.view[i];
-    if (!row || !t.emit('pk-cell-edit', { id, index: i, row, key: k, value, previous: row[k] })) return false;
+    if (!row || !t.emit('pk-cell-edit', { id, index: i, row, key: k, value, previous: row[k], source })) return false;
     t.rows = t.list('rows').map(r => r === row ? { ...r, [k]: value } : r);
+    delete st(t).paste?.[key(id, k)];
     return true;
 }
 
@@ -137,10 +138,40 @@ function put(t, id, k, value) {
 function step(t, back) {
     const s = st(t), from = back ? s.undo : s.redo, to = back ? (s.redo ??= []) : (s.undo ??= []), h = from?.pop();
     if (!h) return say(t, back ? 'Nothing to undo' : 'Nothing to redo');
-    const value = back ? h.from : h.to, c = col(t, h.key);
-    if (!put(t, h.id, h.key, value)) { from.push(h); return say(t, `${label(t, h.id, h.key)}: ${back ? 'undo' : 'redo'} not accepted`); }
-    to.push(h); s.a = { id: h.id, key: h.key }; s.focus = true; t.requestUpdate();
+    // A paste is one step: every cell of its group goes back (or forward) together.
+    const group = [h]; while (h.g && from.at(-1)?.g === h.g) group.push(from.pop());
+    if (back) group.reverse();
+    const done = group.filter(x => put(t, x.id, x.key, back ? x.from : x.to, back ? 'undo' : 'redo'));
+    if (!done.length) { from.push(...group.reverse()); return say(t, `${label(t, h.id, h.key)}: ${back ? 'undo' : 'redo'} not accepted`); }
+    to.push(...(back ? done.reverse() : done)); s.a = { id: h.id, key: h.key }; s.focus = true; t.requestUpdate();
     say(t, `${back ? 'Undo' : 'Redo'}, ${label(t, h.id, h.key)}: ${shown(value)}`);
+}
+
+// Paste from a spreadsheet (tab-separated text) into the grid, anchored at the active cell. Each cell goes through the same check and cancelable pk-cell-edit as a typed edit
+// (source: 'paste'); cells off the grid, cells of read-only columns and refused values are skipped and counted, and one undo step takes the whole paste back.
+function paste(t, e) {
+    const td = cellOf(e), s = st(t);
+    if (!td || !t.editable || e.defaultPrevented || e.target !== td) return;
+    const text = e.clipboardData?.getData('text/plain'); if (!text) return;
+    e.preventDefault();
+    const grid = cells(t), y = grid.findIndex(r => r.includes(td)), x = grid[y].indexOf(td), g = (s.gid = (s.gid ?? 0) + 1), done = [], rejected = [];
+    const lines = text.replace(/\r\n?/g, '\n').replace(/\n$/, '').split('\n').map(l => l.split('\t'));
+    s.paste = {};
+    lines.forEach((line, dy) => line.forEach((raw, dx) => {
+        const cell = grid[y + dy]?.[x + dx], ref = { row: y + dy, col: x + dx };
+        if (!cell) return rejected.push({ ...ref, reason: 'outside' });
+        const { id, key: k } = at(cell), c = col(t, k), i = t.ids().indexOf(id), previous = t.view[i]?.[k], err = c.editor && !slot(cell) ? check(c, raw) : 'Read-only';
+        if (err === 'Read-only') return rejected.push({ ...ref, id, key: k, reason: 'readonly' });
+        if (err) { s.paste[key(id, k)] = err; return rejected.push({ ...ref, id, key: k, reason: err }); }
+        const value = typed(c, raw);
+        if (same(value, previous)) return;
+        if (!put(t, id, k, value, 'paste')) return rejected.push({ ...ref, id, key: k, reason: 'refused' });
+        done.push({ id, key: k, from: previous, to: value, g });
+    }));
+    if (done.length) { (s.undo ??= []).push(...done); s.undo.splice(0, s.undo.length - 100); s.redo = []; }
+    s.a = at(td); s.focus = true; t.requestUpdate();
+    t.emit('pk-cells-paste', { cells: done.map(({ id, key: k, to }) => ({ id, key: k, value: to })), rejected });
+    say(t, `${done.length} cells updated, ${rejected.length} rejected`);
 }
 
 function cancel(t) { const s = st(t); if (!s.edit) return; s.a = { id: s.edit.id, key: s.edit.key }; s.edit = null; s.focus = true; t.requestUpdate(); say(t, 'Edit cancelled'); }

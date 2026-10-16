@@ -31,8 +31,8 @@ export default {
     ],
     expect(t) {
         t.inViewport(RP);
-        t.visible(`${RP} >>> [part=header] pk-page-header`, 'the shared title bar');
-        t.noOverlap(`${RP} >>> [part=header]`, `${RP} >>> [part=bar]`);
+        t.visible(`${RP} >>> [part=header] >>> [part=header]`, 'the shared title bar');
+        t.noOverlap(`${RP} >>> [part=header] >>> [part=header]`, `${RP} >>> [part=bar]`);
         if (t.shot === 'view') {
             t.hasText(MAIN, 'Widget 1 Cover A');
             t.visible(`${RP} >>> [part=edit]`, 'the Edit button');

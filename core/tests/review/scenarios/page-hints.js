@@ -3,7 +3,7 @@
 const SP = '#sp';
 const FIELD_TIP = '#sp >>> pk-field pk-tooltip';
 const FIELD_HELP = '#sp >>> pk-field pk-tooltip >>> [part=help]';
-const SAVE = '#sp >>> pk-page-header pk-tooltip pk-button';
+const SAVE = '#sp >>> pk-page-shell > pk-tooltip > pk-button';
 
 export default {
     name: 'page-hints',

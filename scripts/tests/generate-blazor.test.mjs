@@ -642,6 +642,15 @@ test('a non-generic hand-written component gets a non-generic partial; no extras
     assert.equal(none.files.has('PkExtras.cs'), false);
 });
 
+test('"extrasHook": the hand-written component has its own OnParametersSet, so the companion generates a method it calls instead of an override (#1421)', () => {
+    const r = generate(api, { demo: { ...extraMapping, extrasHook: 'ApplyExtras' } }, new Set(['PkDemo']), new Set(), handInfo('TItem'));
+    const cs = r.files.get('PkDemo.Extra.cs');
+    assert.match(cs, /private void ApplyExtras\(\)/);
+    assert.doesNotMatch(cs, /override void OnParametersSet/);
+    assert.doesNotMatch(cs, /base\.OnParametersSet/);
+    assert.match(cs, /Splat = PkExtras\.Merge\(Splat,/);
+});
+
 test('"declared" extra: the hand-written component keeps the parameter and its attribute; only the Changed callback and the bind handler are generated', () => {
     const m = { ...extraMapping, params: [{ name: 'Count', prop: 'count', type: 'int', extra: true, declared: true, bind: { event: 'pk-page', value: 'detail.page' } }] };
     const cs = generate(api, { demo: m }, new Set(['PkDemo']), new Set(), handInfo('TItem')).files.get('PkDemo.Extra.cs');
@@ -662,10 +671,13 @@ test('"extra" on a component that is not hand-written is an error: it is generat
     assert.throws(() => generate(api, { demo: extraMapping }, new Set(), new Set(), new Map()), /extra.*exist by hand/);
 });
 
-test('the real PkLookupPicker gets Description, SearchDebounce, OnInput and OnChange from its companion', () => {
-    const cs = real.files.get('PkLookupPicker.Extra.cs');
-    assert.match(cs, /public partial class PkLookupPicker<TItem>/);
-    for (const n of ['Description', 'SearchDebounce', 'OnInput', 'OnChange']) assert.match(cs, new RegExp(`public \\S+ ${n} \\{ get; set; \\}`), n);
-    assert.match(cs, /\["search-debounce"\] = PkAttr\.Num\(SearchDebounce\)/);
-    assert.match(cs, /EventCallback<ChangeEventArgs>/);
+test('the real PkLookupPicker is generated: typed columns, keyed load rows, typed Values, listened native events', () => {
+    const razor = real.files.get('PkLookupPicker.razor');
+    assert.match(razor, /@typeparam TItem/);
+    assert.match(razor, /columns="@PkAttr\.Json\(Columns\.Select\(c => c\.ToColumn\(\)\)\)"/);
+    assert.match(razor, /n\["id"\] = IdOf!\(i\); n\["pkLabel"\] = \(LabelOf \?\? IdOf!\)\(i\)/);
+    assert.match(razor, /Values = e\.Values \?\? \[\];/);
+    for (const n of ['Description', 'SearchDebounce', 'OnInput', 'OnChange']) assert.match(razor, new RegExp(`public \\S+ ${n} \\{ get; set; \\}`), n);
+    assert.match(razor, /search-debounce="@PkAttr\.Num\(SearchDebounce\)"/);
+    assert.match(razor, /if \(OnInput\.HasDelegate\) handlers\["oninput"\]/);
 });

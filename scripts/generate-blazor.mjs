@@ -42,7 +42,7 @@ export const argsName = eventName => 'Pk' + pascal(eventName.replace(/^pk-/, '')
 
 const NUMERIC = new Set(['int', 'long', 'double', 'float', 'decimal']);
 const SIMPLE = new Set(['string', 'bool', 'DateOnly', 'object', ...NUMERIC]);
-const COLLECTION = /^(IReadOnlyList|IReadOnlyCollection|IEnumerable|List|IDictionary|Dictionary|HashSet)</;
+const COLLECTION = /^(IReadOnlyList|IReadOnlyCollection|IReadOnlyDictionary|IEnumerable|List|IDictionary|Dictionary|HashSet)</;
 const stripNull = t => t.replace(/\?$/, '');
 
 /**
@@ -110,6 +110,8 @@ export function convert(expr, from, to) {
         if (t === 'float') return `(float)(${expr} ?? 0)`;
         if (t === 'float?') return `(float?)${expr}`;
     }
+    // a string-array field (the keys of a multiple selection) drives a typed list; no keys is an empty list
+    if (/^string\[\]\??$/.test(from) && t === 'IReadOnlyList<string>?') return `${expr} ?? []`;
     if (from === 'string?' && (t === 'DateOnly?')) return `PkAttr.ParseDate(${expr})`;
     return null;
 }
@@ -152,7 +154,7 @@ export function noteEventInto(reg, ev, owner) {
  */
 export function modelElement(el, mapping, reg) {
     const comp = mapping.component;
-    const out = { component: comp, tag: el.tag, summary: el.summary, params: [], attrs: [], children: [], handlers: new Map(), callbacks: [], properties: [], methods: [], typeparam: mapping.typeparam, todo: [], notGenerated: [], usesClass: false, usesAttributes: false };
+    const out = { component: comp, tag: el.tag, summary: el.summary, params: [], attrs: [], children: [], handlers: new Map(), callbacks: [], properties: [], methods: [], typeparam: mapping.typeparam, listenedNative: mapping.listenedNative === true, todo: [], notGenerated: [], usesClass: false, usesAttributes: false };
     const names = new Set(mapping.params.map(p => p.name));
     const declared = new Set();
     const propParam = {}; // C# name -> resolved prop param (for Changed pairing)
@@ -253,7 +255,7 @@ export function modelElement(el, mapping, reg) {
                 const changed = `${p.updates}Changed`;
                 if (!names.has(changed)) declare({ name: changed, kind: 'param', cs: tgt.p?.jsonText ? 'EventCallback<string?>' : `EventCallback<${tgt.cs}>`, doc: `Raised when ${p.updates} changes (two-way binding: <c>@bind-${p.updates}</c>).` });
             }
-            out.callbacks.push({ updates: p.updates, name: p.name, prop: p.callback, arg: p.arg, args: p.args ?? 'a', result: p.result !== false, returns: p.returns, refresh: p.refresh === true, abort: p.abort === true, names: p.argNames });
+            out.callbacks.push({ updates: p.updates, name: p.name, prop: p.callback, arg: p.arg, args: p.args ?? 'a', result: p.result !== false, returns: p.returns, refresh: p.refresh === true, abort: p.abort === 'args' ? 'args' : p.abort === true, names: p.argNames });
         } else if (map === 'property') {
             // A property of the element that has no attribute (items, segments): the typed value is serialised (camelCase JSON) and set as el[property] through the bridge after each
             // render in which it changed (PkAttr.Json), the way a JSON attribute re-syncs. property: the element property; type: a collection or record of simple types or of types
@@ -274,6 +276,11 @@ export function modelElement(el, mapping, reg) {
             if (!p.slotPrefix || !p.type || !p.doc) { skip(p.name, 'a slotMap needs slotPrefix, type and doc in the mapping'); continue; }
             declare({ name: p.name, kind: 'param', cs: p.type, doc: p.doc });
             (out.slotMaps ??= []).push({ name: p.name, prefix: p.slotPrefix });
+        } else if (map === 'columns') {
+            // Typed columns of the element (a PkTableColumn<TItem> list): the parameter is turned into the element's columns JSON attribute (ToColumn of each column).
+            if (!p.prop || !p.doc) { skip(p.name, 'a columns parameter needs prop and doc in the mapping'); continue; }
+            declare({ name: p.name, kind: 'param', cs: 'IReadOnlyList<PkTableColumn<TItem>>', init: '[]', doc: p.doc, note: p.note });
+            out.attrs.push({ attr: kebab(p.prop), expr: `@PkAttr.Json(${p.name}.Select(c => c.ToColumn()))` });
         } else if (map === 'cells') {
             // Cells and IdOf of a `cells` mapping: plain parameters the generated code reads (see 2a); the generator renders the slots.
             declare({ name: p.name, kind: 'param', cs: p.type, doc: p.doc });
@@ -283,6 +290,9 @@ export function modelElement(el, mapping, reg) {
             else skip(p.name, p.todo ? `${p.todo}` : `wrapper behaviour, not a property of the element (${p.note})`);
         }
     }
+
+    // `staticAttrs`: attributes that are not parameters (a literal, a Razor expression starting with @, or true for a bare marker attribute such as data-pk-ranges).
+    for (const [attr, v] of Object.entries(mapping.staticAttrs ?? {})) out.attrs.push(v === true ? { attr, bare: true } : { attr, expr: String(v) });
 
     // ---- 2a. `cells`: { load, doc }: typed per-column cell templates. Cells (column key -> template) and IdOf (the row key of an item) fill the element's
     // `cell-<id>-<key>` slots for the rows the `load` callback just returned.
@@ -343,6 +353,12 @@ export function modelElement(el, mapping, reg) {
             if (inv) inv.expr = '@(IsInvalid || FieldInvalid)';
             const val = out.attrs.find(a => a.attr === 'valid');
             if (val) val.expr = '@(IsValid || FieldValid)';
+        }
+        // `model.valuesParam`: the typed list parameter (bound through its own event, as its prop's `bind`) names the EditContext field with <Name>Expression in place of ValueExpression.
+        if (out.field && mapping.model.valuesParam) {
+            const vp = mapping.model.valuesParam;
+            declare({ name: `${vp}Expression`, kind: 'param', cs: `Expression<Func<${propParam[vp].cs}>>?`, doc: `The expression that names the bound list (<c>@bind-${vp}</c> sets it); it names the EditContext field in place of ValueExpression.` });
+            out.field.values = `${vp}Expression`; out.field.valuesParam = vp;
         }
         // `model.multi`: the element has a `values` array prop and an event field `values` next to the comma-joined string model prop (core owns the
         // encoding, #850). Values / ValuesChanged (and ValuesExpression on a form control) are the typed form, sent as the element's JSON `values` attribute.
@@ -527,12 +543,14 @@ export function renderComponent(m, mappingName, ns = 'PlainKit.Blazor') {
     // go in a dictionary that is splatted on the element; the value is an EventCallback and the name is the on-prefixed event (registered in
     // PkGeneratedEvents.cs). Native events (click) use the normal syntax.
     const live = [...m.handlers.values()].filter(h => h.updates.length || h.callbacks.length);
-    const custom = live.filter(h => !h.native);
+    // `listenedNative` (mapping): a native handler that only raises callbacks is attached (in AddEventHandlers, once) only while the host listens: a native input event is a round trip per keystroke on Blazor Server.
+    const listened = h => m.listenedNative && h.native && !h.updates.length;
+    const custom = live.filter(h => !h.native || listened(h));
     const attrs = [];
-    for (const a of m.attrs) attrs.push(`${a.attr}="${m.cells?.columns && a.attr === 'config' ? '@ConfigWithColumns()' : m.recordModel && a.attr === 'config' ? '@ConfigWithFields()' : a.expr}"`);
+    for (const a of m.attrs) if (a.bare) attrs.push(a.attr); else attrs.push(`${a.attr}="${m.cells?.columns && a.attr === 'config' ? '@ConfigWithColumns()' : m.recordModel && a.attr === 'config' ? '@ConfigWithFields()' : a.expr}"`);
     // The element itself (PkElementBase.Element), for PkRuntime.ReadFormValuesAsync and any host that needs a JavaScript handle.
     attrs.push('@ref="Element"');
-    for (const h of live.filter(x => x.native)) attrs.push(`@${h.attr}="${handlerName(h)}"`);
+    for (const h of live.filter(x => x.native && !listened(x))) attrs.push(`@${h.attr}="${handlerName(h)}"`);
     // stopPropagation: Blazor's own bubbling (it walks the ancestors for onpk-* handlers), so an event the element owns does not reach an enclosing component's handler of the same name.
     for (const h of live.filter(x => x.stop)) attrs.push(`@${h.attr}:stopPropagation="true"`);
     // Every component takes the attributes it has no parameter for (PkElementBase.AdditionalAttributes): `class` is merged with ExtraClass, the rest
@@ -570,11 +588,11 @@ export function renderComponent(m, mappingName, ns = 'PlainKit.Blazor') {
         L.push('', '    /// <inheritdoc />', '    protected override async Task OnAfterRenderAsync(bool firstRender)', '    {', '        await base.OnAfterRenderAsync(firstRender);');
         for (const x of m.properties) L.push(...propSync(x));
         for (let c of m.callbacks) {
-            const call = `${c.name}!(${c.args}${c.abort ? ', ct' : ''})`;
+            const call = `${c.name}!(${c.args}${c.abort === true ? ', ct' : ''})`;
             if (m.cells?.load === c.name) c = { ...c, returns: `await ShowCellsAsync(r.Items) ?? ${c.returns}` };
             L.push(`        await ${slotName(c)}.SyncAsync<${c.arg}>(await Runtime.BridgeAsync(Assets), Element, ${c.name} is not null, async ${c.abort ? '(a, ct)' : 'a'} => ${c.returns ? `{ var r = await ${call}; return ${c.returns}; }` : c.result ? `(object?)await ${call}` : `{ await ${call};${c.updates ? ` await InvokeAsync(async () => { ${c.updates} = JsonSerializer.Serialize(a); await ${c.updates}Changed.InvokeAsync(${c.updates} as string); });` : ''} return null; }`}${c.refresh ? ', refresh: true' : ''}${c.names ? `, names: new[] { ${c.names.map(lit).join(', ')} }` : ''});`);
         }
-        L.push('    }', '', '    /// <inheritdoc />', `    public void Dispose() { ${m.callbacks.map(c => slotName(c) + '.Dispose();').join(' ')} }`);
+        L.push('    }', '', '    /// <inheritdoc />', `    public ${m.field ? "new " : ""}void Dispose() { ${m.callbacks.map(c => slotName(c) + ".Dispose();").join(" ")}${m.field ? " base.Dispose();" : ""} }`);
     }
     if (m.cells) L.push('', '    private List<(string Id, TItem Item)> _cellRows = [];', '',
         '    private async Task<object?> ShowCellsAsync(IReadOnlyList<TItem> items)', '    {',
@@ -598,7 +616,7 @@ export function renderComponent(m, mappingName, ns = 'PlainKit.Blazor') {
     if (custom.length) {
         // Called once by PkElementBase, not on every parameter change: the handlers do not depend on the parameters.
         L.push('', '    /// <inheritdoc />', '    protected override void AddEventHandlers(Dictionary<string, object> handlers)', '    {');
-        for (const h of custom) L.push(`        handlers[${lit(h.attr)}] = EventCallback.Factory.Create<${h.args}>(this, ${handlerName(h)});`);
+        for (const h of custom) L.push(`        ${listened(h) ? `if (${h.callbacks.map(c => `${c.name}.HasDelegate`).join(' || ')}) ` : ''}handlers[${lit(h.attr)}] = EventCallback.Factory.Create<${h.args}>(this, ${handlerName(h)});`);
         L.push('    }');
     }
     L.push(...handlerLines(m, live));
@@ -628,7 +646,7 @@ function handlerLines(m, live) {
         for (const u of h.updates) L.push(`        ${u.param} = ${u.assign};`);
         for (const u of h.updates) L.push(`        await ${u.changed}.InvokeAsync(${u.arg ?? u.param});`);
         if (h.multi) L.push('        if (ValuesChanged.HasDelegate)', '        {', `            Values = ${h.multi.value};`, '            await ValuesChanged.InvokeAsync(Values);', '        }');
-        if (m.field && h.updates.some(u => u.param === m.field.param)) L.push('        NotifyFieldChanged();');
+        if (m.field && h.updates.some(u => u.param === m.field.param || u.param === m.field.valuesParam)) L.push('        NotifyFieldChanged();');
         for (const c of h.callbacks) {
             if (c.call === 'args') L.push(`        await ${c.name}.InvokeAsync(e);`);
             else if (c.call === 'none') L.push(`        await ${c.name}.InvokeAsync();`);
@@ -643,12 +661,13 @@ function handlerLines(m, live) {
  * The companion of a hand-written ("existing") component (#1407): the mapping entries marked "extra": true, generated as a partial class beside the hand-written
  * razor. Parameters, handlers and one OnParametersSet that adds the extra attributes and event handlers to Splat (the caller's own attributes still win); the razor changes nothing.
  */
-export function renderExtras(m, mappingName, ns, className) {
+export function renderExtras(m, mappingName, ns, className, hook) {
     const live = [...m.handlers.values()].filter(h => h.updates.length || h.callbacks.length);
     const cs = e => (e.startsWith('@(') && e.endsWith(')') ? e.slice(2, -1) : e.slice(1));
     const L = ['// Generated by ' + GENERATOR + ` from the "extra" entries of blazor/mappings/${mappingName}.json (the hand-written component keeps only its logic). Do not edit.`, '',
         'using System.Text.Json;', 'using Microsoft.AspNetCore.Components;', 'using Microsoft.AspNetCore.Components.Web;', '', `namespace ${ns};`, '', `public partial class ${className}`, '{'];
-    L.push(...paramLines(m), '', '    /// <inheritdoc />', '    protected override void OnParametersSet()', '    {', '        base.OnParametersSet();',
+    // `extrasHook` (a mapping key): the hand-written component already overrides OnParametersSet, so the companion writes a private method of that name, which that override calls.
+    L.push(...paramLines(m), '', ...(hook ? [`    private void ${hook}()`, '    {'] : ['    /// <inheritdoc />', '    protected override void OnParametersSet()', '    {', '        base.OnParametersSet();']),
         '        var handlers = new Dictionary<string, object>();',
         // A handler that only raises callbacks is attached only while the host listens (a native input event is a round trip per keystroke on Blazor Server); one that binds a parameter always is.
         ...live.map(h => `        ${h.updates.length ? '' : `if (${h.callbacks.map(c => `${c.name}.HasDelegate`).join(' || ')}) `}handlers[${lit(h.attr)}] = EventCallback.Factory.Create<${h.args}>(this, ${handlerName(h)});`),
@@ -863,7 +882,7 @@ export function generate(api, mappings, handWritten = new Set(), types = new Set
                 const own = extras.filter(p => p.declared === true);
                 m.params = m.params.filter(d => !own.some(p => p.name === d.name));
                 m.attrs = m.attrs.filter(a => !own.some(p => kebab(p.prop) === a.attr));
-                files.set(`${mapping.component}.Extra.cs`, renderExtras(m, name, tierNamespace(el), mapping.component + (info.typeparam ? `<${info.typeparam}>` : '')));
+                files.set(`${mapping.component}.Extra.cs`, renderExtras(m, name, tierNamespace(el), mapping.component + (info.typeparam ? `<${info.typeparam}>` : ''), mapping.extrasHook));
                 todo.push(...m.todo);
                 notGenerated.push(...m.notGenerated);
                 usesExtras = true;
