@@ -162,6 +162,11 @@
       "type": "string"
     },
     {
+      "name": "SelectOnFocus",
+      "prop": "selectOnFocus",
+      "type": "bool"
+    },
+    {
       "name": "AutoHide",
       "prop": "autohide",
       "type": "int"

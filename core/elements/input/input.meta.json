@@ -258,6 +258,13 @@
       "description": "Property only: the listbox element this input drives, making it a combobox (aria-controls through ariaControlsElements; the option marked aria-selected='true' is the aria-activedescendant). The listbox may sit in the host's shadow tree. Call requestUpdate() after changing it. Needs Chrome 135, Safari 16.4 or Firefox 136."
     },
     {
+      "name": "selectOnFocus",
+      "type": "boolean",
+      "default": false,
+      "reflect": true,
+      "description": "Selects the whole value when the control gains focus (keyboard, tap or click), so typing replaces it; the mouse-up that follows the focusing press does not clear the selection. Useful for number inputs on a phone."
+    },
+    {
       "name": "autohide",
       "type": "number",
       "default": 0,
@@ -387,7 +394,7 @@
     },
     {
       "title": "Add-ons, money and stepper",
-      "html": "<pk-input label=\"Price\" format=\"money\" value=\"1234.5\"></pk-input>\n<pk-input label=\"Quantity\" type=\"number\" stepper min=\"0\" max=\"10\" value=\"3\"></pk-input>\n<pk-input label=\"Domain\" value=\"example\"><span slot=\"prefix\">https://</span><span slot=\"suffix\">.com</span></pk-input>"
+      "html": "<pk-input label=\"Price\" format=\"money\" value=\"1234.5\"></pk-input>\n<pk-input label=\"Quantity\" type=\"number\" select-on-focus stepper min=\"0\" max=\"10\" value=\"3\"></pk-input>\n<pk-input label=\"Domain\" value=\"example\"><span slot=\"prefix\">https://</span><span slot=\"suffix\">.com</span></pk-input>"
     },
     {
       "title": "Search, password and floating label",

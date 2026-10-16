@@ -79,6 +79,17 @@ export const formCases = [
         n.part('step-down').click(); n.part('step-down').click(); await t.settle(); t.eq(n.value, '0'); t.ok(n.part('step-down').disabled);
     }],
 
+    ['input: select-on-focus selects the value on focus and keeps it through the mouse-up', async t => {
+        const el = await t.mount('<pk-input label="Qty" type="number" select-on-focus value="12345"></pk-input>'); const i = el.part('control');
+        i.focus(); await t.settle();
+        const up = new MouseEvent('mouseup', { bubbles: true, cancelable: true }); i.dispatchEvent(up); t.ok(up.defaultPrevented, 'the mouse-up after the focusing press is cancelled so the selection stays');
+        const up2 = new MouseEvent('mouseup', { bubbles: true, cancelable: true }); i.dispatchEvent(up2); t.ok(!up2.defaultPrevented, 'only the first one');
+        const off = await t.mount('<pk-input label="Qty" value="abc"></pk-input>'); off.part('control').focus(); await t.settle();
+        t.ok(off.part('control').selectionStart === off.part('control').selectionEnd, 'nothing selected without the attribute');
+        const txt = await t.mount('<pk-input label="Name" select-on-focus value="abcdef"></pk-input>'); const ti = txt.part('control'); ti.focus(); await t.settle();
+        t.eq(ti.selectionStart, 0); t.eq(ti.selectionEnd, 6);
+    }],
+
     ['input: copyable copies the value, gives transient feedback, and disables itself while empty', async t => {
         const el = await t.mount('<pk-input type="password" label="API key" reveal copyable value="sk_live_1"></pk-input>');
         const copy = el.part('copy'); t.ok(!copy.disabled, 'a value makes the button live');
