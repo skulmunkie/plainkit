@@ -29,7 +29,7 @@
     {
       "name": "Mode",
       "prop": "mode",
-      "type": "string"
+      "type": "ComboboxMode"
     },
     {
       "name": "Free",
@@ -39,7 +39,7 @@
     {
       "name": "Filtering",
       "prop": "filtering",
-      "type": "string"
+      "type": "ComboboxFiltering"
     },
     {
       "name": "Open",

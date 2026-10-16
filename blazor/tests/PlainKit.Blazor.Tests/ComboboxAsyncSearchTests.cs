@@ -26,7 +26,7 @@ public sealed class ComboboxAsyncSearchTests : BunitContext, IAsyncLifetime
         var options = new List<string> { "Seed" };
         string? query = null, value = null;
         var cut = Render<PkCombobox>(p => p
-            .Add(x => x.Filtering, "off")
+            .Add(x => x.Filtering, ComboboxFiltering.Off)
             .Add(x => x.OnSearchInput, EventCallback.Factory.Create<PkComboQueryEventArgs>(this, e => query = e.Query))
             .Bind(x => x.Value, value, v => value = v)
             .AddUnmatched("name", "customer")
