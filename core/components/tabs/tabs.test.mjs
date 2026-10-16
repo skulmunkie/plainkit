@@ -228,3 +228,18 @@ test('a click on a tab in the strip chooses it; changed() re-syncs for value and
     el.changed('value'); el.changed('noneActive'); el.changed('activation');
     assert.equal(syncs, 2);
 });
+
+test('tab-param: the address picks the first tab, later changes are written with replaceState, an unknown value is ignored (#1461)', () => {
+    const calls = [];
+    const win = { location: { href: 'http://x/p?x=1&tab=b#h' }, history: { state: { s: 1 }, replaceState: (...a) => calls.push(a) } };
+    const [a, b] = [tab('a'), tab('b')];
+    const { el } = make({ value: 'a', tabParam: 'tab' }, [a, b]); el.ownerDocument = { defaultView: win };
+    el.sync();
+    assert.equal(el.value, 'b'); assert.equal(calls.length, 0, 'nothing is written on the first sync');
+    el.value = 'a'; el.sync();
+    assert.equal(calls.length, 1); assert.deepEqual(calls[0][0], { s: 1 }); assert.equal(String(calls[0][2]), 'http://x/p?x=1&tab=a#h');
+    const bad = make({ value: 'a', tabParam: 'tab' }, [tab('a'), tab('b')]); bad.el.ownerDocument = { defaultView: { ...win, location: { href: 'http://x/?tab=zz' } } };
+    bad.el.sync(); assert.equal(bad.el.value, 'a');
+    const off = make({ value: 'a', tabParam: '' }, [tab('a'), tab('b')]); off.el.ownerDocument = { defaultView: win };
+    off.el.sync(); off.el.value = 'b'; off.el.sync(); assert.equal(calls.length, 1, 'no tab-param: nothing is written');
+});

@@ -40,6 +40,16 @@ public sealed class GeneratedComponentTests : BunitContext, IAsyncLifetime
     }
 
     [Fact]
+    public void Tab_param_reaches_the_tabs_as_its_attribute()
+    {
+        var on = Render<PkTabs>(p => p.Add(x => x.TabParam, "tab"));
+        var off = Render<PkTabs>();
+
+        Assert.Equal("tab", on.Find("pk-tabs").GetAttribute("tab-param"));
+        Assert.Null(off.Find("pk-tabs").GetAttribute("tab-param"));
+    }
+
+    [Fact]
     public void Select_on_focus_reaches_the_input_as_its_attribute()
     {
         var on = Render<PkInput>(p => p.Add(x => x.SelectOnFocus, true));

@@ -1,5 +1,6 @@
 import { loadElements } from '../../js/loader.js';
 import { mediaBelow } from '../../js/breakpoints.js';
+import { paramGet, paramKeep } from '../../js/tab-param.js';
 // Sticky sidebar: measure it so a sidebar taller than the viewport docks by its bottom edge instead of its top (issue 281).
 // Phone tabs (issue 272): elements carrying data-pk-section are grouped into tabs when the layout has collapsed to one column and names two or more sections.
 // tabsFrom (issue 342) moves that point: 'collapse' (default, the container query), 'phone' or 'tablet' (the viewport at or below it), or 'always' (the two-column layout keeps its tabs).
@@ -34,7 +35,7 @@ export default Base => class extends Base {
     /** tab-param (issue 1241): the first sync opens the section the query parameter names; a later change writes it with replaceState (other parameters and the hash kept, no history entry). */
     keep_(active) {
         const win = this.ownerDocument.defaultView;
-        if (this.$last !== undefined && this.$last !== active) { const url = new URL(win.location.href); url.searchParams.set(this.tabParam, active); win.history.replaceState(win.history.state, '', url); }
+        if (this.$last !== undefined && this.$last !== active) paramKeep(win, this.tabParam, active);
         this.$last = active;
     }
     /** sections-above (issue 1241): the tagged preceding siblings, in document order. */
@@ -57,7 +58,7 @@ export default Base => class extends Base {
         tabs.toggleAttribute('data-on', on && (from === 'always' || !!this.$mq?.matches));
         const collapsed = on && (this.hideTabs || getComputedStyle(tabs).display !== 'none');
         if (this.section && on && !names.includes(this.section)) this.warnOnce('section:' + this.section, `section="${this.section}" matches no data-pk-section: showing the first`, { section: this.section, sections: names });
-        if (on && this.tabParam && this.$last === undefined) { const want = new URL(this.ownerDocument.defaultView.location.href).searchParams.get(this.tabParam); if (names.includes(want)) this.section = want; }
+        if (on && this.tabParam && this.$last === undefined) { const want = paramGet(this.ownerDocument.defaultView, this.tabParam); if (names.includes(want)) this.section = want; }
         const active = this.$active = names.includes(this.section) ? this.section : names[0];
         if (on && this.tabParam) this.keep_(active);
         const key = names.map(n => n + '\n' + (cards.find(c => c.dataset.pkSection === n).dataset.pkSectionLabel || '')).join('\r');

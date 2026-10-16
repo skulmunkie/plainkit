@@ -5,6 +5,7 @@
 // the shadow tree is outside it), the same way pk-record-page does.
 import { loadElements } from '../../js/loader.js';
 import { mediaBelow } from '../../js/breakpoints.js';
+import { paramGet, paramKeep } from '../../js/tab-param.js';
 
 export default Base => class extends Base {
     connected() {
@@ -69,16 +70,14 @@ export default Base => class extends Base {
     keepTab_(e) {
         const key = this.tabParam, win = this.ownerDocument.defaultView;
         if (!key || !win?.history || e?.detail?.fallback) return;
-        const url = new URL(win.location.href);
         const strip = this.strip_();
-        if (e) url.searchParams.set(key, e.detail?.value ?? strip?.value ?? '');
+        if (e) paramKeep(win, key, e.detail?.value ?? strip?.value ?? '');
         else if (strip && this.$strip !== strip) {
             this.$strip = strip;
-            const want = url.searchParams.get(key);
+            const want = paramGet(win, key);
             if (want && [...strip.querySelectorAll('pk-tab')].some(t => t.getAttribute('value') === want && !t.hasAttribute('disabled'))) strip.value = want;
             return;
-        } else return;
-        win.history.replaceState(win.history.state, '', url);
+        }
     }
     /** Enter in a single-line control of the form submits it as Save does: the Save button is outside the form, so the browser has no submit button to press (#1198). */
     enterSubmits_(e) {

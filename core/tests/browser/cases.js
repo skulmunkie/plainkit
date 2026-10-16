@@ -123,6 +123,20 @@ export const cases = [
         t.ok(c.disabled);
     }],
 
+    ['tabs: tab-param keeps the selected tab in the query (replaceState, no history entry), opens on the tab a link names and ignores an unknown one (#1461)', async t => {
+        const html = '<pk-tabs tab-param="tab" value="a"><pk-tab value="a">A</pk-tab><pk-tab value="b">B</pk-tab><pk-tab-panel value="a">PA</pk-tab-panel><pk-tab-panel value="b">PB</pk-tab-panel></pk-tabs>';
+        const before = location.href, len = history.length;
+        try {
+            history.replaceState(null, '', '?x=1#h');
+            const el = await t.mount(html);
+            t.eq(location.search, '?x=1', 'nothing is written on load');
+            el.querySelector('pk-tab[value=b]').click(); await t.settle();
+            t.eq(location.search, '?x=1&tab=b', 'the chosen tab is written, other parameters kept'); t.eq(location.hash, '#h', 'the hash is kept'); t.eq(history.length, len, 'no history entry is added');
+            t.eq((await t.mount(html)).value, 'b', 'a link carrying the parameter opens on that tab');
+            history.replaceState(null, '', '?tab=nope');
+            t.eq((await t.mount(html)).value, 'a', 'an unknown value falls back to value');
+        } finally { history.replaceState(null, '', before); }
+    }],
     ['tabs: clicking selects, emits a composed cancelable event, and preventDefault keeps the old tab', async t => {
         const el = await t.mount(t.tabsHtml());
         const [, b] = el.querySelectorAll('pk-tab');
