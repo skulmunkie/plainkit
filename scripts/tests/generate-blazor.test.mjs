@@ -618,6 +618,22 @@ test('a non-generic hand-written component gets a non-generic partial; no extras
     assert.equal(none.files.has('PkExtras.cs'), false);
 });
 
+test('"declared" extra: the hand-written component keeps the parameter and its attribute; only the Changed callback and the bind handler are generated', () => {
+    const m = { ...extraMapping, params: [{ name: 'Count', prop: 'count', type: 'int', extra: true, declared: true, bind: { event: 'pk-page', value: 'detail.page' } }] };
+    const cs = generate(api, { demo: m }, new Set(['PkDemo']), new Set(), handInfo('TItem')).files.get('PkDemo.Extra.cs');
+    assert.match(cs, /\[Parameter\] public EventCallback<int> CountChanged \{ get; set; \}/);
+    assert.doesNotMatch(cs, /\[Parameter\] public int Count /);
+    assert.doesNotMatch(cs, /\["count"\]/);
+    assert.match(cs, /Count = \(int\)\(e\.Page \?\? 0\);\s+await CountChanged\.InvokeAsync\(Count\);/);
+    assert.match(cs, /handlers\["onpk-page"\] = /);
+});
+
+test('the real PkDataTable binds SortKey, Descending, Search and PageSize on pk-query-change (#1431)', () => {
+    const cs = real.files.get('PkDataTable.Extra.cs');
+    for (const n of ['SortKey', 'Descending', 'Search', 'PageSize']) assert.match(cs, new RegExp(`${n}Changed \\{ get; set; \\}`), n);
+    assert.match(cs, /handlers\["onpk-query-change"\]/);
+});
+
 test('"extra" on a component that is not hand-written is an error: it is generated whole', () => {
     assert.throws(() => generate(api, { demo: extraMapping }, new Set(), new Set(), new Map()), /extra.*exist by hand/);
 });

@@ -840,7 +840,11 @@ export function generate(api, mappings, handWritten = new Set(), types = new Set
             if (extras.length) {
                 const info = handInfo.get(mapping.component);
                 if (!hand || !info) throw new Error(`${mapping.component}: "extra" entries need the component to exist by hand in Components/ (it is generated otherwise)`);
-                const m = modelElement(el, { component: mapping.component, params: extras.map(({ extra, ...p }) => p) }, reg);
+                const m = modelElement(el, { component: mapping.component, params: extras.map(({ extra, declared, ...p }) => p) }, reg);
+                // `declared`: true: the hand-written component already has the parameter and sends its attribute; only its bind (the Changed callback and the handler) is generated.
+                const own = extras.filter(p => p.declared === true);
+                m.params = m.params.filter(d => !own.some(p => p.name === d.name));
+                m.attrs = m.attrs.filter(a => !own.some(p => kebab(p.prop) === a.attr));
                 files.set(`${mapping.component}.Extra.cs`, renderExtras(m, name, tierNamespace(el), mapping.component + (info.typeparam ? `<${info.typeparam}>` : '')));
                 todo.push(...m.todo);
                 notGenerated.push(...m.notGenerated);

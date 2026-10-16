@@ -70,6 +70,20 @@ public sealed class PkDataTableTests : BunitContext, IAsyncLifetime
 
     private static PkListRequest Plain(PkListRequest r) => r with { CancellationToken = default };
 
+    // SortKey, Descending, Search and PageSize bind two-way on pk-query-change (#1431): the callbacks come from the generated companion.
+    [Fact]
+    public async Task The_query_the_reader_changes_flows_back_into_the_bound_parameters()
+    {
+        string? sort = "x"; var desc = false; string? search = null; var size = 25;
+        var cut = Render(Immediate(_ => Page(0)), p => p
+            .Add(x => x.SortKey, sort).Add(x => x.SortKeyChanged, v => { sort = v; })
+            .Add(x => x.Descending, desc).Add(x => x.DescendingChanged, v => { desc = v; })
+            .Add(x => x.Search, search).Add(x => x.SearchChanged, v => { search = v; })
+            .Add(x => x.PageSize, size).Add(x => x.PageSizeChanged, v => { size = v; }));
+        await cut.Find("pk-data-table").TriggerEventAsync("onpk-query-change", new PkQueryChangeEventArgs { SortKey = "city", Descending = true, Search = "ac", Page = 2, PageSize = 50 });
+        Assert.Equal(("city", true, "ac", 50), (sort, desc, search, size));
+    }
+
     [Fact]
     public void It_renders_pk_data_table_with_the_options_as_attributes_and_hands_it_the_load_callback()
     {
