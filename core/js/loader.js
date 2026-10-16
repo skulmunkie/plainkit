@@ -8,6 +8,7 @@ const log = createLogger('loader');
 const loaded = new Map();
 const reported = new Set();
 const observed = new WeakSet();
+const BY_NAME = /*dist*/ false; // true in dist/js/loader.js (tools/build.mjs): ./<tag without pk->.js, no registry fetch (#1502); the registry only words a failure
 
 // Which modules to import: the pk-* tags in `tags` that the registry knows and `have` does not hold yet. Pure.
 export function planLoad(tags, registry, have = new Set()) {
@@ -24,16 +25,22 @@ export async function loadElements(root = document, { registry = new URL('../ele
     const tags = (() => { try { return tagsIn(root); } catch (error) { log.debug('could not scan for pk-* tags', error); return []; } })();
     if (!tags.length) return [];
     let reg;
-    try { reg = await registryOf(registry); } catch (error) { log.error(`could not load the element registry from ${registry}`, error); return []; }
-    // A pk-* tag the registry does not know is usually a typo: say so once instead of leaving an inert element on the page.
-    for (const tag of new Set(tags)) if (tag.startsWith('pk-') && !reg[tag] && !reported.has(tag)) { reported.add(tag); log.warn(`<${tag}> is not a Plainkit element: check the spelling`, { tag }); }
-    const plan = planLoad(tags, reg, new Set(loaded.keys()));
+    const typo = tag => { reported.add(tag); log.warn(`<${tag}> is not a Plainkit element: check the spelling`, { tag }); }; // usually a typo: say so once instead of leaving an inert element
+    if (!BY_NAME) {
+        try { reg = await registryOf(registry); } catch (error) { log.error(`could not load the element registry from ${registry}`, error); return []; }
+        for (const tag of new Set(tags)) if (tag.startsWith('pk-') && !reg[tag] && !reported.has(tag)) typo(tag);
+    }
+    const plan = BY_NAME ? [...new Set(tags)].filter(t => !loaded.has(t) && !reported.has(t)).map(tag => ({ tag, path: `./${tag.slice(3)}.js` })) : planLoad(tags, reg, new Set(loaded.keys()));
     await Promise.all(plan.map(({ tag, path }) => {
         const started = globalThis.performance?.now?.() ?? Date.now();
         const p = import(new URL(path, registry).href);
         loaded.set(tag, p);
         // Both outcomes are logged here, so the promise handed back never rejects.
-        return p.then(() => { if (isLogEnabled('debug', 'loader')) log.debug(`loaded <${tag}> in ${Math.round((globalThis.performance?.now?.() ?? Date.now()) - started)} ms`, { tag, path }); }, error => { loaded.delete(tag); log.error(`could not load <${tag}> from ${path}`, error); });
+        return p.then(() => { if (isLogEnabled('debug', 'loader')) log.debug(`loaded <${tag}> in ${Math.round((globalThis.performance?.now?.() ?? Date.now()) - started)} ms`, { tag, path }); }, async error => {
+            loaded.delete(tag);
+            if (BY_NAME && !(await registryOf(registry).then(m => m[tag], () => 1))) return typo(tag);
+            log.error(`could not load <${tag}> from ${path}`, error);
+        });
     }));
     return plan.map(p => p.tag);
 }
