@@ -131,7 +131,8 @@ export async function launchBrowser({ chrome, profile, args, probe, attempts = 3
         browser.stderr?.on('data', d => { lastErr = (lastErr + d).split(/\r?\n/).filter(l => l.trim()).pop()?.slice(0, 300) ?? ''; });
         browser.once?.('error', e => { lastErr = e.message; });
         for (const end = Date.now() + waitMs; Date.now() < end;) {
-            const value = await probe();
+            let value = null;
+            try { value = await probe(); } catch (e) { lastErr = `probe: ${e.message}`.slice(0, 300); } // a port file still being written (EBUSY on Windows) is not ready yet; the message is kept for the final error
             if (value) return { browser, value, attempts: n };
             await sleep(pollMs);
         }

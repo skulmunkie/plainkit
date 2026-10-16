@@ -58,3 +58,21 @@ test('fails three times: the message names the attempts, the path and the last s
     assert.equal(t.killed.length, 3);
     fs.rmSync(t.profile, { recursive: true, force: true });
 });
+
+test('a probe that throws (a port file still being written, EBUSY on Windows) is not ready yet, and succeeds on the next poll', async () => {
+    const t = setup(0);
+    let calls = 0;
+    t.opts.probe = () => { if (++calls < 3) throw Object.assign(new Error('EBUSY: resource busy or locked'), { code: 'EBUSY' }); return '9222'; };
+    const r = await launchBrowser(t.opts);
+    assert.equal(r.value, '9222');
+    assert.equal(r.attempts, 1);
+    assert.equal(t.killed.length, 0);
+    fs.rmSync(t.profile, { recursive: true, force: true });
+});
+
+test('a probe that always throws is reported with its message in the final error', async () => {
+    const t = setup(0);
+    t.opts.probe = () => { throw new Error('EBUSY: resource busy or locked'); };
+    await assert.rejects(launchBrowser(t.opts), e => /last stderr: .*EBUSY/.test(e.message));
+    fs.rmSync(t.profile, { recursive: true, force: true });
+});
