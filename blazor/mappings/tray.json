@@ -59,7 +59,7 @@
     },
     {
       "name": "Edge",
-      "type": "string",
+      "type": "TrayEdge",
       "default": "bottom",
       "map": "prop",
       "prop": "edge"
