@@ -1,0 +1,17 @@
+{
+  "id": "markdown-editor",
+  "title": "Markdown editor (Write and Preview)",
+  "summary": "The supported answer to rich text: a pk-textarea holding Markdown, a Preview tab that draws it, no contenteditable and no HTML stored.",
+  "built": "Card, Tabs, Field, Textarea, Stack.",
+  "mobile": "The tabs stay one row and the textarea fills the width at 16px text.",
+  "used": [
+    "card",
+    "field",
+    "stack",
+    "tab",
+    "tab-panel",
+    "tabs",
+    "textarea"
+  ],
+  "order": 10
+}
