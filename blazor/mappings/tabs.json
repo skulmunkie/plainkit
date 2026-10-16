@@ -21,6 +21,10 @@
       "type": "TabsOverflow"
     },
     {
+      "name": "TabParam",
+      "prop": "tabParam"
+    },
+    {
       "name": "OnChange",
       "event": "pk-tab-change"
     },
