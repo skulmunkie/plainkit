@@ -105,7 +105,7 @@ export const ownsModuleAsset = file => {
 };
 // Reviewed srcdoc exception (#1485): sandboxed preview frames whose document is built from the SDK's own example markup.
 // An explicit list of files with the number of `srcdoc` mentions each may hold; a new file, or one more mention in a
-// listed file, is a finding. Only the `srcdoc` sink is covered: innerHTML/outerHTML and the rest of S5 are untouched.
+// listed file, is a finding. Only that one sink is covered; the other S5 sinks (HTML-string assignment) are untouched.
 // The counts only shrink.
 export const SRCDOC_ALLOW = {
     'core/modules/scorecard/scorecard.js': 7,

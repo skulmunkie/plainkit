@@ -681,3 +681,15 @@ test('the real PkLookupPicker is generated: typed columns, keyed load rows, type
     assert.match(razor, /search-debounce="@PkAttr\.Num\(SearchDebounce\)"/);
     assert.match(razor, /if \(OnInput\.HasDelegate\) handlers\["oninput"\]/);
 });
+
+test('"location": the component tracks NavigationManager and sends the path unless the parameter is set; the subscription is disposed (#805)', () => {
+    const m = { ...mapping, params: [{ name: 'Path', prop: 'label', type: 'string?' }], location: { param: 'Path', prop: 'label' } };
+    const razor = run(m).files.get('PkDemo.razor');
+    assert.match(razor, /@implements IDisposable/);
+    assert.match(razor, /label="@\(Path \?\? _locationPath\)"/);
+    assert.match(razor, /LocationNav\.LocationChanged \+= HandleLocationChanged;/);
+    assert.match(razor, /if \(Path is null\) InvokeAsync\(StateHasChanged\);/);
+    assert.match(razor, /void Dispose\(\) \{\s+LocationNav\.LocationChanged -= HandleLocationChanged;/);
+    assert.throws(() => run({ ...m, location: { param: 'Path', prop: 'nothing' } }), /not a generated attribute/);
+    assert.doesNotMatch(run().files.get('PkDemo.razor'), /LocationNav/);
+});
