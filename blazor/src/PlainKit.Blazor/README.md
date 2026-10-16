@@ -444,6 +444,8 @@ A concrete page (a list-detail page, a form page, a `PkWorkspace` pane) tends to
 
 `Crumbs` is host-supplied (`IReadOnlyList<PkCrumb>`, the same shape `PkPageHeader` already takes), not derived from a route tree: core has no router today, and `PkSideNav`/`PkAppBarSearch` above resolve their own route state the same explicit way. A route-derived breadcrumb (and other route-driven page state) is tracked as a separate, later piece of work — see issue 219.
 
+**Reloading.** By default any changed parameter restarts `OnLoadAsync`. A page that keeps a tab or filter in the query string (`[SupplyParameterFromQuery] string? Tab`) names the parameters that mean another record: `protected override IReadOnlyCollection<string>? ReloadParameters => [nameof(Id)];` (null is the default rule, empty loads once). It is read before the parameters are applied, so return a constant.
+
 ## Declaring events and bindings in a mapping
 
 A mapping (`blazor/mappings/<name>.json`) stays declarative; `scripts/generate-blazor.mjs` writes the C# from it:
