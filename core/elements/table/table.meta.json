@@ -101,7 +101,7 @@
       "type": "string",
       "default": "",
       "reflect": false,
-      "description": "Who follows a row link: router (default, empty), host (pk-navigate is a notification) or none (the browser)."
+      "description": "Who follows a row link: router (default, empty), host or none."
     },
     {
       "name": "currentRow",
