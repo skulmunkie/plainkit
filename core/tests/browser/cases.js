@@ -350,6 +350,7 @@ import { layoutCases } from './cases-layout.js'; cases.push(...layoutCases);
 import { iconTimeCases } from './cases-icon-time.js'; cases.push(...iconTimeCases);
 import { workspaceCases } from './cases-workspace.js'; cases.push(...workspaceCases);
 import { lookupPickerCases } from './cases-lookup-picker.js'; cases.push(...lookupPickerCases);
+import { markdownEditorCases } from './cases-markdown-editor.js'; cases.push(...markdownEditorCases);
 import { settingsNavCases } from './cases-settings-nav.js'; cases.push(...settingsNavCases);
 import { fieldGroupCases } from './cases-field-group.js'; cases.push(...fieldGroupCases);
 import { recordFormCases } from './cases-record-form.js'; cases.push(...recordFormCases);
