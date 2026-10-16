@@ -187,7 +187,7 @@ test('no generated parameter is an unexplained object: each one is in the manife
     const listed = new Set(manifest.typesToDefine.map(t => `${t.component}.${t.param}`));
     for (const f of fs.readdirSync(generatedDir).filter(x => x.endsWith('.razor')))
         for (const m of fs.readFileSync(path.join(generatedDir, f), 'utf8').matchAll(/\[Parameter\] public object\? (\w+)/g))
-            assert.ok(listed.has(`${f.replace('.razor', '')}.${m[1]}`), `${f} ${m[1]} is object? and not explained in the manifest`);
+            assert.ok(listed.has(`${f.replace('.razor', '')}.${m[1]}`) || fs.readFileSync(path.join(generatedDir, f), 'utf8').includes(`PkAttr.JsonText(${m[1]})`), `${f} ${m[1]} is object? and not explained in the manifest (a jsonText parameter is explained by its helper)`);
     assert.deepEqual(manifest.typesToDefine, [], 'today every JSON parameter has a type');
 });
 
@@ -210,9 +210,9 @@ test('two-way: a bind block and a Changed callback update the parameter, then re
 
 test('two-way: a JSON bind keeps an object event field as raw text; a callback can update a prop after it succeeds', () => {
     const grid = fs.readFileSync(path.join(generatedDir, 'PkPropertyGrid.razor'), 'utf8');
-    assert.match(grid, /Values = e\.Values\?\.GetRawText\(\);\s+await ValuesChanged\.InvokeAsync\(Values\);/);
+    assert.match(grid, /Values = e\.Values\?\.GetRawText\(\);\s+await ValuesChanged\.InvokeAsync\(Values as string\);/);
     const settings = fs.readFileSync(path.join(generatedDir, 'PkSettingsPage.razor'), 'utf8');
-    assert.match(settings, /await Save!\(a\); await InvokeAsync\(async \(\) => \{ Values = JsonSerializer\.Serialize\(a\); await ValuesChanged\.InvokeAsync\(Values\); \}\)/);
+    assert.match(settings, /await Save!\(a\); await InvokeAsync\(async \(\) => \{ Values = JsonSerializer\.Serialize\(a\); await ValuesChanged\.InvokeAsync\(Values as string\); \}\)/);
 });
 
 test('two-way: an enum parameter follows a string event field through a generated parser and reports the enum (#1444)', () => {
@@ -522,6 +522,17 @@ test('json: true lets a string element prop that holds JSON take a typed record 
     assert.match(razor, /label="@PkAttr\.Json\(Label\)"/);
     delete p.json;
     assert.match(generate(api, { demo: m }, new Set(), new Set(['DemoRow'])).files.get('PkDemo.razor'), /public object\? Label/, 'without json: true a string prop does not take a record list');
+});
+
+test('jsonText: a JSON prop takes JSON text or a typed value (object?, sent through PkAttr.JsonText); a bound one reports the text as a string (#1417)', () => {
+    const m = structuredClone(mapping);
+    const p = m.params.find(x => x.name === 'Label');
+    p.type = 'object'; p.jsonText = true; p.default = '{}';
+    const razor = run(m).files.get('PkDemo.razor');
+    assert.match(razor, /\[Parameter\] public object\? Label \{ get; set; \} = "\{\}";/);
+    assert.match(razor, /label="@PkAttr\.JsonText\(Label\)"/);
+    delete p.jsonText;
+    assert.ok(!/PkAttr\.JsonText/.test(run(m).files.get('PkDemo.razor')), 'without jsonText nothing changes');
 });
 
 test('unless: a slot is dropped once another list parameter has items', () => {

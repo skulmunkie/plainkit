@@ -3,13 +3,15 @@
   "params": [
     {
       "name": "Config",
-      "type": "string",
+      "type": "object",
+      "jsonText": true,
       "prop": "config",
       "note": "Sent as a JSON attribute: { sections: [{ heading, fields: [{ key, type, label, placeholder?, required?, options?, min?, max?, step? }] }] }."
     },
     {
       "name": "Values",
-      "type": "string",
+      "type": "object",
+      "jsonText": true,
       "prop": "values",
       "note": "Sent as a JSON attribute: the current values keyed by field key."
     },

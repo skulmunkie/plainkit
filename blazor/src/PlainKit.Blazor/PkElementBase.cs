@@ -55,7 +55,7 @@ public abstract partial class PkElementBase : ComponentBase
 }
 
 /// <summary>Attribute values the generated components send to an element: invariant text for numbers and dates, JSON for structures.</summary>
-internal static class PkAttr
+internal static partial class PkAttr
 {
     private static readonly JsonSerializerOptions Web = new(JsonSerializerDefaults.Web);
 
