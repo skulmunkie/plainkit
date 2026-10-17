@@ -38,6 +38,16 @@ Every rule belongs to one of six families; the id's letter says which. Full ids,
 
 Most rules are a warning in normal mode and an error in strict mode - useful during day-to-day work, a hard gate before a release. A few rules that *guess* rather than prove something (an inferred page type, a heuristic reduced-motion override) stay warnings even in strict mode, so a build never fails on a guess. Two flags narrow a run to specific ids (one to select, one to exclude); a `plainkit.audit.json` config file can set per-rule severity, an allow-list (an entry that can only shrink over time, never grow silently) and a baseline so an existing app can adopt the audit gradually instead of fixing everything on day one.
 
+## Safe fixes
+
+Three edits are deterministic and reversible, and run only when you name them. The first rewrites `<hr>` to `<pk-divider>` and an empty `<progress value max>` to `<pk-progress value max>` when the tag has no other attribute. The second adds `label` to an icon-only `<pk-button>` from its static `title` (the title stays). The third removes a dead entry and lowers a stale `count` in `plainkit.audit.json`. Add the dry-run flag to print a diff and write nothing. A line carrying, or right after, a `plainkit-audit-ignore` comment is never rewritten; everything else stays a suggestion.
+
+```bash
+npx plainkit audit --fix D1-simple --dry-run
+npx plainkit audit --fix D1-simple,A1-label
+npx plainkit audit --update-allow
+```
+
 ## Running it before it is published
 
 Until the CLI ships as part of the npm/NuGet packages, it only exists in a plainkit source checkout: `node
