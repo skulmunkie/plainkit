@@ -41,6 +41,7 @@ export default Base => class extends Base {
         const cfg = this.config ?? {};
         for (const k of TABLE_KEYS) table[k] = cfg[k];
         table.hideSearch = cfg.searchable === false;
+        table.cards = cfg.cards !== false;
     }
 
     // Host content in the `actions` slot (a menu, a button wired to app logic) sits in the title bar, which showTitleBar hides when the config sets nothing to draw.

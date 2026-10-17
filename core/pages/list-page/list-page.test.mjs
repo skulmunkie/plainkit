@@ -138,3 +138,15 @@ test('the shadow template forwards the actions slot to the title bar and the too
     assert.match(html, /<slot name="actions" slot="actions"><\/slot><pk-data-table/);
     assert.match(html, /<slot name="toolbar" slot="actions"><\/slot>/);
 });
+
+test('rows are cards on a phone unless config.cards is false', () => {
+    const { el, parts } = make();
+    el.connected();
+    assert.equal(parts.table.cards, true);
+    el.config = { cards: false };
+    el.changed('config');
+    assert.equal(parts.table.cards, false);
+    el.config = { cards: true };
+    el.changed('config');
+    assert.equal(parts.table.cards, true);
+});

@@ -726,6 +726,8 @@ export function renderComponent(m, mappingName, ns = 'PlainKit.Blazor') {
         `        if ((Cells is null${m.cells.columns ? ' && Columns is null' : ''}) || IdOf is null) return null;`,
         '        await InvokeAsync(() => { _cellRows = items.Select(i => (IdOf!(i), i)).ToList(); StateHasChanged(); });',
         '        return null;', '    }');
+    // Typed columns: a column's Text (and the property fallback, as PkDataTable) fills the row it names, so the rows the callback returns are built through the same PkTableRows as PkDataTable's.
+    if (m.cells?.columns) L.push('', '    private object RowsOf(IReadOnlyList<TItem> items)', '    {', '        if (Columns is null) return items;', '        var rows = new System.Text.Json.Nodes.JsonArray();', '        foreach (var item in items) rows.Add(PkTableRows.Serialize(item, Columns));', '        return rows;', '    }');
     if (m.cells?.columns) L.push('', '    private string ConfigWithColumns()', '    {',
         '        if (Columns is null) return PkAttr.JsonText(Config) ?? "{}";',
         '        var node = System.Text.Json.Nodes.JsonNode.Parse(PkAttr.JsonText(Config) ?? "{}") as System.Text.Json.Nodes.JsonObject ?? new System.Text.Json.Nodes.JsonObject();',
