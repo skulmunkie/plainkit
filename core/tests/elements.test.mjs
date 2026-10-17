@@ -153,7 +153,11 @@ test('generated editor artefacts (manifest, VS Code data, web-types, typings) ar
     const cem = JSON.parse(made['custom-elements.json']);
     assert.deepEqual(cem.modules.map(m => m.declarations[0].tagName).sort(), metas.map(m => m.tag).sort());
     const button = cem.modules.find(m => m.declarations[0].tagName === 'pk-button').declarations[0];
-    assert.ok(button.attributes.some(a => a.name === 'variant' && a.type.text.includes('"ghost"')));
+    // an attribute names its field; the type, default and description are on the field once (the CEM spec resolves fieldName)
+    const variant = button.attributes.find(a => a.name === 'variant');
+    assert.equal(variant.fieldName, 'variant');
+    assert.ok(button.members.find(f => f.kind === 'field' && f.name === variant.fieldName && f.attribute === 'variant').type.text.includes('"ghost"'));
+    assert.ok(button.attributes.every(a => button.members.some(f => f.kind === 'field' && f.name === a.fieldName && f.attribute === a.name)));
     assert.ok(button.slots.some(s => s.name === 'start') && button.cssParts.some(p => p.name === 'control'));
     const vs = JSON.parse(made['vscode.html-custom-data.json']);
     assert.ok(vs.tags.find(t => t.name === 'pk-button').attributes.find(a => a.name === 'variant').values.some(v => v.name === 'warn'));
