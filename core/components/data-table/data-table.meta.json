@@ -62,6 +62,20 @@
       "description": "The search term to start with, for example from a query string: it fills the search box and the first load, and typing replaces it. Changing it later replaces the term and loads page 1."
     },
     {
+      "name": "filterValues",
+      "type": "json",
+      "default": {},
+      "reflect": false,
+      "description": "The filter values to start with, { [filter key]: value } (a multiselect takes an array), for example from a query string: each fills its control in the filter panel and the first load, and the reader changing or clearing a filter replaces it. A key that names no filter is still sent to load(query) as query.filters[key]."
+    },
+    {
+      "name": "page",
+      "type": "number",
+      "default": 1,
+      "reflect": false,
+      "description": "The 1-based page to load first (initial only; a page past the last settles on the last page)."
+    },
+    {
       "name": "searchLabel",
       "type": "string",
       "default": "",

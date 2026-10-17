@@ -154,7 +154,7 @@ export function noteEventInto(reg, ev, owner) {
  */
 export function modelElement(el, mapping, reg) {
     const comp = mapping.component;
-    const out = { component: comp, tag: el.tag, summary: el.summary, params: [], attrs: [], children: [], handlers: new Map(), callbacks: [], properties: [], methods: [], typeparam: mapping.typeparam, inherits: mapping.inherits, location: mapping.location ?? null, listenedNative: mapping.listenedNative === true, todo: [], notGenerated: [], usesClass: false, usesAttributes: false };
+    const out = { component: comp, tag: el.tag, summary: el.summary, params: [], attrs: [], children: [], handlers: new Map(), callbacks: [], properties: [], methods: [], configKeys: [], typeparam: mapping.typeparam, inherits: mapping.inherits, location: mapping.location ?? null, listenedNative: mapping.listenedNative === true, todo: [], notGenerated: [], usesClass: false, usesAttributes: false };
     const names = new Set(mapping.params.map(p => p.name));
     const declared = new Set();
     const propParam = {}; // C# name -> resolved prop param (for Changed pairing)
@@ -310,6 +310,11 @@ export function modelElement(el, mapping, reg) {
             declare({ name: p.name, kind: 'param', cs: role[0], init: role[1], required: role[2] === true, doc: p.doc });
             // Setting the row click callback makes the rows clickable.
             if (p.role === 'rowClick') out.attrs.push({ attr: 'clickable', expr: `@${p.name}.HasDelegate`, boolean: true });
+        } else if (map === 'configKey') {
+            // A typed parameter written into the config JSON under `key` (an initial search, filter or page of a list page); `when` and `value` are C# expressions, by default 'set' and the parameter itself.
+            if (!p.type || !p.key || !p.doc || !mapping.cells?.columns) { skip(p.name, 'a configKey parameter needs type, key and doc in the mapping, and a cells mapping with columns (it is written by ConfigWithColumns)'); continue; }
+            declare({ name: p.name, kind: 'param', cs: p.type, doc: p.doc, note: p.note });
+            out.configKeys.push({ name: p.name, key: p.key, when: p.when ?? `${p.name} is not null`, value: p.value ?? p.name });
         } else if (map === 'cells') {
             // Cells and IdOf of a `cells` mapping: plain parameters the generated code reads (see 2a); the generator renders the slots.
             declare({ name: p.name, kind: 'param', cs: p.type, doc: p.doc });
@@ -729,9 +734,10 @@ export function renderComponent(m, mappingName, ns = 'PlainKit.Blazor') {
     // Typed columns: a column's Text (and the property fallback, as PkDataTable) fills the row it names, so the rows the callback returns are built through the same PkTableRows as PkDataTable's.
     if (m.cells?.columns) L.push('', '    private object RowsOf(IReadOnlyList<TItem> items)', '    {', '        if (Columns is null) return items;', '        var rows = new System.Text.Json.Nodes.JsonArray();', '        foreach (var item in items) rows.Add(PkTableRows.Serialize(item, Columns));', '        return rows;', '    }');
     if (m.cells?.columns) L.push('', '    private string ConfigWithColumns()', '    {',
-        '        if (Columns is null) return PkAttr.JsonText(Config) ?? "{}";',
+        `        if (Columns is null${m.configKeys.map(k => ` && !(${k.when})`).join('')}) return PkAttr.JsonText(Config) ?? "{}";`,
         '        var node = System.Text.Json.Nodes.JsonNode.Parse(PkAttr.JsonText(Config) ?? "{}") as System.Text.Json.Nodes.JsonObject ?? new System.Text.Json.Nodes.JsonObject();',
-        '        node["columns"] = System.Text.Json.Nodes.JsonNode.Parse(PkAttr.Json(Columns.Select(c => c.ToColumn()))!);',
+        '        if (Columns is not null) node["columns"] = System.Text.Json.Nodes.JsonNode.Parse(PkAttr.Json(Columns.Select(c => c.ToColumn()))!);',
+        ...m.configKeys.map(k => `        if (${k.when}) node[${lit(k.key)}] = System.Text.Json.JsonSerializer.SerializeToNode(${k.value});`),
         '        return node.ToJsonString();', '    }');
     if (m.recordModel) L.push('', '    private TItem? _loaded;', '    private bool _isNew;', '',
         '    private string ConfigWithFields() => PkFieldSpecs.RecordConfig(PkAttr.JsonText(Config), Fields, _loaded ?? Model, out _isNew);', '',

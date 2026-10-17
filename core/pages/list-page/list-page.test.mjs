@@ -150,3 +150,10 @@ test('rows are cards on a phone unless config.cards is false', () => {
     el.changed('config');
     assert.equal(parts.table.cards, true);
 });
+
+test('the initial query of the config (search, filterValues, sort, sortDir, page) is handed to the data table', () => {
+    const { el, parts } = make();
+    el.config = { search: 'acme', filterValues: { channel: 'ebay' }, sort: 'total', sortDir: 'descending', page: 3 };
+    el.connected();
+    assert.deepEqual([parts.table.search, parts.table.filterValues, parts.table.sort, parts.table.sortDir, parts.table.page], ['acme', { channel: 'ebay' }, 'total', 'descending', 3]);
+});

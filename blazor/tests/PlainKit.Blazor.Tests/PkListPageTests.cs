@@ -68,6 +68,64 @@ public sealed class PkListPageTests : BunitContext, IAsyncLifetime
         Assert.Contains("A-1", row.GetRawText());
     }
 
+    private static JsonElement ConfigOf(IRenderedComponent<PkListPage<Order>> cut) => JsonDocument.Parse(cut.Find("pk-list-page").GetAttribute("config")!).RootElement;
+
+    [Fact]
+    public void The_Initial_parameters_go_into_the_config_next_to_the_columns()
+    {
+        var cut = Render<PkListPage<Order>>(p => p
+            .Add(x => x.Config, "{\"label\":\"Orders\",\"search\":\"old\"}")
+            .Add(x => x.Columns, [new() { Key = "orderNo", Label = "No" }])
+            .Add(x => x.InitialSearch, "acme")
+            .Add(x => x.InitialFilters, new Dictionary<string, string> { ["channel"] = "ebay" })
+            .Add(x => x.InitialSortKey, "total")
+            .Add(x => x.InitialDescending, true)
+            .Add(x => x.InitialPage, 3));
+
+        var config = ConfigOf(cut);
+
+        Assert.Equal("Orders", config.GetProperty("label").GetString());
+        Assert.Equal("acme", config.GetProperty("search").GetString());
+        Assert.Equal("ebay", config.GetProperty("filterValues").GetProperty("channel").GetString());
+        Assert.Equal("total", config.GetProperty("sort").GetString());
+        Assert.Equal("descending", config.GetProperty("sortDir").GetString());
+        Assert.Equal(3, config.GetProperty("page").GetInt32());
+        Assert.Equal("orderNo", config.GetProperty("columns")[0].GetProperty("key").GetString());
+    }
+
+    [Fact]
+    public void Without_Initial_parameters_the_config_carries_no_query_keys()
+    {
+        var cut = Render<PkListPage<Order>>(p => p.Add(x => x.Columns, [new() { Key = "orderNo", Label = "No" }]).Add(x => x.InitialDescending, false));
+
+        var config = ConfigOf(cut);
+
+        foreach (var key in new[] { "search", "filterValues", "sort", "sortDir", "page" }) Assert.False(config.TryGetProperty(key, out _), key);
+    }
+
+    [Fact]
+    public void Initial_parameters_alone_leave_a_plain_config_intact()
+    {
+        var cut = Render<PkListPage<Order>>(p => p.Add(x => x.Config, "{\"label\":\"Orders\"}").Add(x => x.InitialSearch, "acme"));
+
+        var config = ConfigOf(cut);
+
+        Assert.Equal("Orders", config.GetProperty("label").GetString());
+        Assert.Equal("acme", config.GetProperty("search").GetString());
+    }
+
+    [Fact]
+    public async Task ReloadAsync_asks_the_element_to_load_the_current_page_again()
+    {
+        var cut = Render<PkListPage<Order>>();
+
+        await cut.InvokeAsync(() => cut.Instance.ReloadAsync());
+
+        var call = Assert.Single(_bridge.Invocations["call"]);
+        Assert.IsType<ElementReference>(call.Arguments[0]);
+        Assert.Equal("refresh", call.Arguments[1]);
+    }
+
     [Fact]
     public void Without_them_no_slot_wrapper_is_drawn()
     {
