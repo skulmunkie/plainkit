@@ -88,3 +88,23 @@ test('case-filter keeps cases by substring or by whole-word element name', async
     assert.equal(namesElement('pk-tabs: x', 'pk-tabs'), true);
     assert.deepEqual(parseList(' A, ,b '), ['a', 'b']);
 });
+
+test('progress lines: parsed, recorded, and a case whose heartbeat stopped is named as frozen (#1509)', async () => {
+    const { parseProgressLine, newProgress, applyProgress, frozenCase, whereMessage, summarizeProgress, FREEZE_MS } = await import('../attest-browser.mjs');
+    assert.equal(parseProgressLine('SDK site on http://localhost:1/'), null);
+    assert.equal(parseProgressLine('progress {not json'), null);
+    assert.equal(parseProgressLine('progress {"state":"other"}'), null);
+    const run = newProgress(1000);
+    applyProgress(run, parseProgressLine('progress {"state":"start","i":1,"n":2,"name":"a"}'), 1000);
+    applyProgress(run, parseProgressLine('progress {"state":"end","i":1,"n":2,"ok":true,"ms":5,"name":"a"}'), 1100);
+    applyProgress(run, parseProgressLine('progress {"state":"start","i":2,"n":2,"name":"b"}'), 1200);
+    assert.equal(frozenCase(run, 1200 + FREEZE_MS), null, 'a beat is still fresh at the limit');
+    assert.equal(frozenCase(run, 1200 + FREEZE_MS + 1).name, 'b');
+    applyProgress(run, parseProgressLine('progress {"state":"beat","i":2,"n":2,"step":"t.load"}'), 5000);
+    assert.equal(frozenCase(run, 5000 + FREEZE_MS), null, 'a beat resets the clock');
+    assert.match(whereMessage(run), /case 2\/2 "b".*last helper t\.load/);
+    run.results.set(2, { name: 'b', ok: false, error: 'froze' });
+    assert.deepEqual(summarizeProgress(run), { passed: 1, failed: 1, total: 2, ok: false });
+    const idle = newProgress(0);
+    assert.equal(frozenCase(idle, 10 * FREEZE_MS), null, 'no case open: nothing is frozen');
+});
