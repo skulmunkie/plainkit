@@ -52,6 +52,7 @@ _site/
 /core/site/scorecard/tiers.current.json
 # The size-sweep report: an empty marker from the build until node scripts/scorecard-sweep.mjs --write-report replaces it with the last full sweep (it goes stale with every gallery edit, so it is not tracked).
 /core/site/scorecard/sweep-report.json
+/core/site/scorecard/quality-report.json
 /core/icons.svg
 /core/icons/icons.json
 /core/icons/icons.d.ts

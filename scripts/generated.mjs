@@ -35,6 +35,7 @@ export const GENERATED_PATTERNS = [
     ['/core/site/scorecard/api.current.json', /^core\/site\/scorecard\/api\.current\.json$/, 'core/tools/build.mjs'],
     ['/core/site/scorecard/tiers.current.json', /^core\/site\/scorecard\/tiers\.current\.json$/, 'core/tools/build.mjs (from core/tools/tier-report.mjs)'],
     ['/core/site/scorecard/sweep-report.json', /^core\/site\/scorecard\/sweep-report\.json$/, 'core/tools/build.mjs (an empty marker; scripts/scorecard-sweep.mjs --write-report replaces it with the last sweep)'],
+    ['/core/site/scorecard/quality-report.json', /^core\/site\/scorecard\/quality-report\.json$/, 'core/tools/build.mjs (an empty marker; scripts/scorecard-sweep.mjs --write-report replaces it with the last quality run)'],
     ['/core/icons.svg', /^core\/icons\.svg$/, 'core/icons/build.mjs (from core/icons/src/*.svg)'],
     ['/core/icons/icons.json', /^core\/icons\/icons\.json$/, 'core/icons/build.mjs (from core/icons/src/*.svg)'],
     ['/core/icons/icons.d.ts', /^core\/icons\/icons\.d\.ts$/, 'core/icons/build.mjs (from core/icons/src/*.svg)'],

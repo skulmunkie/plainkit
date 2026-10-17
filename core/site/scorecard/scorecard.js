@@ -44,7 +44,7 @@ async function sizeFiles(fetchFn = globalThis.fetch) {
 export async function startScorecard(root, concurrency, signal, doc = root.ownerDocument) {
     const intro = doc.createElement('pk-text');
     intro.setAttribute('tone', 'muted');
-    intro.textContent = `Scores 0-100 for performance, scale, look and accessibility, from the definitions in scorecard/scoring.data.js (every threshold is a setting there). A run renders every gallery sample at ${SCORING.widths.join(', ')}px in both themes, so it takes a little while.`;
+    intro.textContent = `Scores 0-100 for performance, scale, look and accessibility, from the definitions in scorecard/scoring.data.js (every threshold is a setting there). The page opens on the report the last build-time sweep recorded, when there is one; Run live renders every gallery sample at ${SCORING.widths.join(', ')}px in both themes, so it takes a little while.`;
     const host = doc.createElement('div');
     root.replaceChildren(intro, host);
     return mountScorecard(host, {
@@ -70,6 +70,7 @@ export async function startScorecard(root, concurrency, signal, doc = root.owner
             api: here('api.current.json'),
             tiers: here('tiers.current.json'),
             sweep: here('sweep-report.json'),
+            quality: here('quality-report.json'), // the last full sweep's scores: shown first, the Run live button measures again
         },
     });
 }
