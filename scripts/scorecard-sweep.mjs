@@ -33,6 +33,7 @@ import { makeTempDir, removeTreeAsync } from '../core/tools/tempdir.mjs';
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 const DEFAULT_WIDTHS = [320, 375, 640, 1024, 1280, 1920];
 const DEFAULT_THEMES = ['dark', 'light'];
+const qualityReportFile = path.join(root, 'core', 'site', 'scorecard', 'quality-report.json');
 const sweepReportFile = path.join(root, 'core', 'site', 'scorecard', 'sweep-report.json');
 export const STAGES = ['sweep', 'quality', 'pages'];
 export const SWEEP_KINDS = ['views', 'templates', 'samples'];
@@ -218,7 +219,7 @@ const IN_PAGE = {
         await new Promise(r => setTimeout(r, 1500));
         const poll = setInterval(() => { const p = document.querySelector('[data-sc-progress]'); window.__pk = { text: p ? p.textContent : '' }; }, 500);
         await card.run(); clearInterval(poll); const rep = card.report(); if (!rep) throw new Error('the run produced no report');
-        return { overall: rep.overall, categories: Object.fromEntries(Object.entries(rep.scores?.categories ?? {}).map(([k, c]) => [k, c.score])), scores: rep.scores ?? null, measured: rep.measured ?? null,
+        return { overall: rep.overall, categories: Object.fromEntries(Object.entries(rep.scores?.categories ?? {}).map(([k, c]) => [k, c.score])), scores: rep.scores ?? null, measured: rep.measured ?? null, perFile: rep.perFile ?? [],
             items: rep.items.map(i => ({ id: i.id, name: i.name, kind: i.kind, score: i.score, findings: i.findings })) }; })()`,
     routes: `(async () => { const m = await import(location.origin + '/site/scorecard/sweep.js'); return m.routes(); })()`,
     // After a page has loaded: the SDK quality checks on the live page, and what the injected observers collected.
@@ -405,6 +406,10 @@ async function main() {
         if (options.writeReport && result.sweep) {
             fs.writeFileSync(sweepReportFile, JSON.stringify(sweepReport(result.sweep), null, 1) + '\n');
             console.log(`wrote ${path.relative(root, sweepReportFile)}`);
+        }
+        if (options.writeReport && result.quality) {
+            fs.writeFileSync(qualityReportFile, JSON.stringify({ at: new Date().toISOString(), ...result.quality }, null, 1) + '\n');
+            console.log(`wrote ${path.relative(root, qualityReportFile)}`);
         }
         const failing = verdict(result);
         for (const f of failing) console.log(`FAIL ${f}`);
