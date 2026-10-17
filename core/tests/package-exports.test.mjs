@@ -10,6 +10,7 @@ import path from 'node:path';
 import { spawnSync } from 'node:child_process';
 import { fileURLToPath, pathToFileURL } from 'node:url';
 import { build } from 'esbuild';
+import { makeTempDir } from '../tools/tempdir.mjs';
 
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 const pkg = JSON.parse(fs.readFileSync(path.join(root, 'package.json'), 'utf8'));
@@ -36,7 +37,7 @@ test('sideEffects names the element modules and CSS, not false', () => {
 });
 
 test('a bundler import of plainkit/elements/button from the packed output registers pk-button', async () => {
-    const tmp = fs.mkdtempSync(path.join(os.tmpdir(), 'pk-exports-'));
+    const tmp = makeTempDir('pk-exports-');
     try {
         const packDir = path.join(tmp, 'pack');
         fs.mkdirSync(packDir);

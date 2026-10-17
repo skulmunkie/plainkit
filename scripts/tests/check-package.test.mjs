@@ -6,6 +6,7 @@ import os from 'node:os';
 import path from 'node:path';
 import zlib from 'node:zlib';
 import { checkPackage, checkNpmPackage, listZip, readEntry, inspectNupkg, findNupkg } from '../check-package.mjs';
+import { makeTempDir } from '../../core/tools/tempdir.mjs';
 
 const GOOD = ['PlainKit.Blazor.nuspec', 'README.md', 'lib/net10.0/PlainKit.Blazor.dll', 'lib/net10.0/PlainKit.Blazor.xml', 'staticwebassets/plainkit/manifest.json', 'staticwebassets/plainkit/modules/manifest.json', ...['devtools/devtools.js', 'theme-editor/theme-editor.js', 'logs/logs.js', 'layout-builder/layout-builder.js', 'scorecard/scorecard.js'].map(f => `staticwebassets/plainkit/modules/${f}`),
     'staticwebassets/plainkit/plainkit.css', 'staticwebassets/plainkit/skills/plainkit-sdk/SKILL.md', 'staticwebassets/plainkit/skills/plainkit-blazor/SKILL.md', 'buildTransitive/PlainKit.Blazor.targets'];
@@ -103,7 +104,7 @@ test('the zip reader lists entries and reads stored and deflated ones', () => {
 });
 
 test('a .nupkg in a folder is inspected end to end', () => {
-    const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'pk-check-package-'));
+    const dir = makeTempDir('pk-check-package-');
     try {
         const file = path.join(dir, 'PlainKit.Blazor.1.2.3-alpha.1.nupkg');
         fs.writeFileSync(file, makeZip(GOOD.map(n => [n, n.endsWith('.nuspec') ? nuspec('1.2.3-alpha.1') : n.endsWith('.targets') ? TARGETS : 'x', n.endsWith('.nuspec')])));

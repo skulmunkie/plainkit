@@ -14,6 +14,7 @@ import { decide } from '../../scripts/ci-changes.mjs';
 import { changedFromFiles, dependentsFromIndex } from '../../scripts/ui-review.mjs';
 import { isGenerated } from '../../scripts/generated.mjs';
 import { elementCssPaths } from '../site/scorecard/css-paths.js';
+import { makeTempDir } from '../tools/tempdir.mjs';
 
 const core = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 const FOLDERS = TIER_FOLDERS;
@@ -59,7 +60,7 @@ test('the usage index classifies the files of an element in any tier folder', ()
 });
 
 test('the usage index counts an element composed by an element that lives in a tier folder', () => {
-    const tmp = fs.mkdtempSync(path.join(os.tmpdir(), 'pk-tier-usage-'));
+    const tmp = makeTempDir('pk-tier-usage-');
     try {
         const put = (rel, text) => { fs.mkdirSync(path.dirname(path.join(tmp, rel)), { recursive: true }); fs.writeFileSync(path.join(tmp, rel), text); };
         put('core/elements/button/button.html', '<slot></slot>');

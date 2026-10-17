@@ -6,6 +6,7 @@ import fs from 'node:fs';
 import os from 'node:os';
 import path from 'node:path';
 import { fingerprint, loadBaseline, writeBaseline, applyBaseline, BaselineError, DEFAULT_BASELINE_NAME } from './baseline.mjs';
+import { makeTempDir } from '../tempdir.mjs';
 
 test('fingerprint ignores whitespace differences and is stable for the same rule/message/file', () => {
     const a = { rule: 'D1', message: 'writes <table>', file: 'a.html' };
@@ -25,7 +26,7 @@ test('loadBaseline: a missing file is an empty baseline, not an error', () => {
 });
 
 test('loadBaseline: malformed JSON or a missing entries array throws BaselineError', () => {
-    const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'plainkit-audit-'));
+    const dir = makeTempDir('plainkit-audit-');
     const badJson = path.join(dir, 'a.json');
     fs.writeFileSync(badJson, '{not json');
     assert.throws(() => loadBaseline(badJson), BaselineError);
@@ -36,7 +37,7 @@ test('loadBaseline: malformed JSON or a missing entries array throws BaselineErr
 });
 
 test('writeBaseline then loadBaseline round-trips the same findings, sorted', () => {
-    const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'plainkit-audit-'));
+    const dir = makeTempDir('plainkit-audit-');
     const file = path.join(dir, DEFAULT_BASELINE_NAME);
     const findings = [
         { rule: 'D1', file: 'b.html', message: 'writes <table>' },

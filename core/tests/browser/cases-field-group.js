@@ -302,6 +302,18 @@ export const fieldGroupCases = [
         t.eq(el.problems().map(p => p.key + ':' + p.message).join(','), '', 'no problems');
         t.eq(sf.part('summary-list').children.length, 0, 'the summary is gone'); t.eq(valid, 1);
     }],
+    ['field-group: a spec autocomplete reaches the drawn pk-input (text, password, email, tel, url); other kinds ignore it (#1501)', async t => {
+        const el = await mountGroup(t, [
+            { key: 'u', label: 'User', autocomplete: 'off' }, { key: 'p', label: 'Pass', kind: 'password', autocomplete: 'new-password' },
+            { key: 'e', label: 'Mail', kind: 'email', autocomplete: 'email' }, { key: 't', label: 'Tel', kind: 'tel', autocomplete: 'tel' }, { key: 'w', label: 'Web', kind: 'url', autocomplete: 'url' },
+            { key: 'plain', label: 'Plain' }, { key: 'n', label: 'Num', kind: 'number', autocomplete: 'off' }, { key: 'a', label: 'Area', kind: 'textarea', autocomplete: 'off' },
+        ], {});
+        const ctl = k => [...el.shadowRoot.querySelectorAll('pk-field')].find(f => f.getAttribute('label') === k).firstElementChild;
+        t.eq(['User', 'Pass', 'Mail', 'Tel', 'Web'].map(k => ctl(k).getAttribute('autocomplete')).join('|'), 'off|new-password|email|tel|url', 'the spec token is the control attribute');
+        t.ok(!ctl('Plain').hasAttribute('autocomplete'), 'no spec key, no attribute');
+        t.ok(!ctl('Num').hasAttribute('autocomplete') && !ctl('Area').hasAttribute('autocomplete'), 'number and textarea are unchanged');
+        t.eq(ctl('Pass').shadowRoot.querySelector('input').getAttribute('autocomplete'), 'new-password', 'the inner input carries it');
+    }],
     ['field-group: declarative conditions (whenExpr, requiredExpr, disabledExpr, readonlyExpr) follow the live values, keep focus and need no server round trip (#1282)', async t => {
         const el = await mountGroup(t, [
             { key: 'status', label: 'Status', kind: 'select', options: [{ value: 'open', label: 'Open' }, { value: 'paid', label: 'Paid' }, { value: 'void', label: 'Void' }] },

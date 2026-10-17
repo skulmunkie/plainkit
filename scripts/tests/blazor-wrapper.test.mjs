@@ -85,5 +85,5 @@ test('every mapping marked existing states why, from a fixed set of reasons', ()
         assert.ok(reason.length > 0, `${f}: "existing": true needs an existingReason. FIX: say why the generator cannot produce it (start with ${kinds.join(', ')}), or remove "existing"`);
         assert.ok(kinds.some(k => reason.startsWith(k)), `${f}: existingReason must start with one of ${kinds.join(', ')}: "${reason}"`);
     }
-    assert.ok(existing > 0, 'existing mappings were found');
+    assert.ok(existing >= 0); // none is the goal (#1473): every component is generated; the rule stays for a future exception
 });

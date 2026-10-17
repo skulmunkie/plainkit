@@ -1,47 +1,302 @@
 {
   "component": "PkDataTable",
-  "existing": true,
-  "existingReason": "typed-generics and callback: PkDataTable<TItem> is a thin typed wrapper; Load runs through PkCallbackSlot, rows and cell slots come from typed columns (issue 801 step 5). The callback kind, @typeparam generation and typed columns to JSON (map \"columns\") exist in the generator (PkLookupPicker is generated with them, #1473); still missing: per-row cell slots and the typed row model (rows from the loaded items, selection by key).",
   "params": [
-    { "name": "Density", "prop": "density", "type": "PkTableDensity?" },
-    { "name": "SortKey", "prop": "sort", "type": "string?", "extra": true, "declared": true, "bind": { "event": "pk-query-change", "value": "detail.sortKey" }, "note": "Two-way: @bind-SortKey follows the reader's sort (pk-query-change)." },
-    { "name": "Descending", "prop": "sortDir", "type": "bool", "extra": true, "declared": true, "bind": { "event": "pk-query-change", "value": "detail.descending" }, "note": "Two-way: @bind-Descending." },
-    { "name": "Search", "prop": "search", "type": "string?", "extra": true, "declared": true, "bind": { "event": "pk-query-change", "value": "detail.search" }, "note": "Two-way: @bind-Search." },
-    { "name": "PageSize", "prop": "pageSize", "type": "int", "extra": true, "declared": true, "bind": { "event": "pk-query-change", "value": "detail.pageSize" }, "note": "Two-way: @bind-PageSize." },
-    { "name": "Navigate", "prop": "navigate", "type": "string?", "extra": true, "note": "Who follows a RowHrefTemplate link on a plain click: \"router\" (default, or leave it unset) lets the app router handle the cancelable pk-navigate; \"host\" raises OnNavigate as a notification the router ignores and nothing navigates, so your handler navigates (NavigationManager); \"none\" raises nothing and the browser follows the address." },
-    { "name": "OnNavigate", "event": "pk-navigate", "type": "EventCallback<PkNavigateEventArgs>", "extra": true, "note": "A plain click on a row link: To is the address. A callback cannot cancel it (the browser does not wait for the server): set Navigate to \"host\" and navigate in the handler." },
+    {
+      "name": "Load",
+      "map": "dataTable",
+      "role": "load",
+      "doc": "Loads one page. It gets the search, the sort, the 1-based page and the page size (PkListRequest) and returns the items of that page and the total of the whole searched list (PkListResult{T}). Called for the first page, and again for every search, sort, page or page-size change and for ReloadAsync; a request that a newer one replaces has its CancellationToken cancelled and its result ignored."
+    },
+    {
+      "name": "Columns",
+      "map": "columns",
+      "prop": "columns",
+      "required": true,
+      "doc": "The columns. A column Cell template fills the element's cell-<rowId>-<key> slot of each loaded row."
+    },
+    {
+      "name": "IdOf",
+      "map": "param",
+      "type": "Func<TItem, string>",
+      "required": true,
+      "csDefault": "default!",
+      "doc": "The id of an item: names the row for click, current-row, selection and the cell slots. Ids must not contain a double quote."
+    },
+    {
+      "name": "PageSize",
+      "prop": "pageSize",
+      "type": "int",
+      "default": 25,
+      "doc": "The page size to start with (initial only; the user changes it in the pager). Default 25. Two-way: @bind-PageSize follows the reader's page size (pk-query-change).",
+      "bind": {
+        "event": "pk-query-change",
+        "value": "detail.pageSize"
+      }
+    },
+    {
+      "name": "PageSizeOptions",
+      "prop": "pageSizeOptions",
+      "type": "int[]?",
+      "csDefault": "[10, 25, 50, 100]",
+      "doc": "The page sizes the pager offers. Default 10, 25, 50, 100; an empty array hides the choice."
+    },
+    {
+      "name": "SortKey",
+      "prop": "sort",
+      "type": "string?",
+      "doc": "The key of the column to sort by first (initial only). Null loads the default order. Two-way: @bind-SortKey follows the reader's sort (pk-query-change).",
+      "bind": {
+        "event": "pk-query-change",
+        "value": "detail.sortKey"
+      }
+    },
+    {
+      "name": "Descending",
+      "prop": "sortDir",
+      "type": "bool",
+      "attrExpr": "@(Descending ? \"descending\" : \"ascending\")",
+      "doc": "Sort SortKey descending first (initial only). Two-way: @bind-Descending.",
+      "bind": {
+        "event": "pk-query-change",
+        "value": "detail.descending"
+      }
+    },
+    {
+      "name": "Search",
+      "prop": "search",
+      "type": "string?",
+      "doc": "The search term to start with, for example from a query string: it fills the search box and the first Load request, and typing replaces it. Changing it later replaces the term and loads page 1. Two-way: @bind-Search.",
+      "bind": {
+        "event": "pk-query-change",
+        "value": "detail.search"
+      }
+    },
+    {
+      "name": "Searchable",
+      "prop": "hideSearch",
+      "type": "bool",
+      "invert": true,
+      "default": true,
+      "doc": "Show the search box. Default true."
+    },
+    {
+      "name": "SearchPlaceholder",
+      "map": "param",
+      "type": "string?",
+      "doc": "The placeholder of the search box."
+    },
+    {
+      "name": "SearchLabel",
+      "prop": "searchLabel",
+      "type": "string?",
+      "attrExpr": "@(SearchLabel ?? SearchPlaceholder ?? \"Search\")",
+      "doc": "The accessible name of the search box; defaults to the placeholder, then \"Search\"."
+    },
+    {
+      "name": "SearchDebounceMs",
+      "prop": "searchDebounce",
+      "type": "int",
+      "default": 300,
+      "doc": "Milliseconds to wait after the last keystroke before searching (the element's own timer). Default 300."
+    },
+    {
+      "name": "EmptyText",
+      "prop": "empty",
+      "type": "string",
+      "nonNull": true,
+      "default": "Nothing to show.",
+      "attrExpr": "@PkAttr.Json(new { heading = EmptyText })",
+      "doc": "The text shown when the list is empty and there is no search."
+    },
+    {
+      "name": "NoResultsText",
+      "prop": "noResults",
+      "type": "string",
+      "nonNull": true,
+      "default": "Nothing matches your search.",
+      "attrExpr": "@PkAttr.Json(new { heading = NoResultsText })",
+      "doc": "The text shown when a search matched nothing."
+    },
+    {
+      "name": "EmptyContent",
+      "slot": "empty",
+      "slotTag": "div",
+      "type": "RenderFragment?",
+      "doc": "Your own empty state (for example a PkEmptyState), shown instead of the text when the list is empty and there is no search."
+    },
+    {
+      "name": "LoadErrorText",
+      "prop": "loadError",
+      "type": "string",
+      "nonNull": true,
+      "default": "The list could not be loaded.",
+      "doc": "The heading of the failed-load message. The element shows it with a Retry button when Load throws."
+    },
+    {
+      "name": "OnLoadError",
+      "map": "dataTable",
+      "role": "loadError",
+      "doc": "Raised when Load throws (not for a cancelled request), so you can log it."
+    },
+    {
+      "name": "AddLabel",
+      "prop": "addLabel",
+      "type": "string?",
+      "doc": "The label of the primary action button after the search box (for example \"+ Add customer\"). Empty shows no button."
+    },
+    {
+      "name": "OnAdd",
+      "event": "pk-add",
+      "type": "EventCallback",
+      "plain": true,
+      "listened": true,
+      "doc": "The primary action button was pressed."
+    },
+    {
+      "name": "OnRowClick",
+      "map": "dataTable",
+      "role": "rowClick",
+      "doc": "A row was activated (a click, or Enter or Space on the focused row): the item of that row. Setting it makes the rows clickable."
+    },
+    {
+      "name": "CurrentRow",
+      "prop": "currentRow",
+      "type": "string?",
+      "doc": "The id (IdOf) of the row whose record is open in a detail pane: it is tinted and marked aria-current. Set it from the route; the list never changes it."
+    },
     {
       "name": "Selectable",
       "prop": "selectable",
-      "type": "bool"
+      "type": "bool",
+      "doc": "A checkbox column with select-all for the page, and \"Select all N rows\" when the searched list has more. The selection is kept by id across pages and searches (see Selected)."
     },
     {
       "name": "SelectPageOnly",
       "prop": "selectPageOnly",
       "type": "bool",
-      "note": "Suppresses the Select all N rows offer; the header checkbox still selects the page and SelectScope stays page."
-    },
-    {
-      "name": "RowKey",
-      "prop": "rowKey",
-      "type": "string"
+      "doc": "Never offer \"Select all N rows\": the header checkbox selects the loaded page and SelectScope stays page. For a list whose bulk action works only on explicit ids. Default false."
     },
     {
       "name": "Selected",
       "prop": "selected",
       "type": "IReadOnlyList<string>?",
-      "note": "The ids of the selected rows across every page and search; follows OnSelect."
+      "doc": "The ids (IdOf) of the selected rows, across every page and search the user visited (two-way: @bind-Selected). The order carries no meaning. After \"Select all N rows\" (SelectScope all) it holds only the loaded page: the rest is the query."
+    },
+    {
+      "name": "SelectedChanged",
+      "map": "dataTable",
+      "role": "selectedChanged",
+      "doc": "Raised with the new value of Selected (two-way)."
     },
     {
       "name": "SelectScope",
       "prop": "selectScope",
       "type": "string?",
-      "note": "page or all: all after the user chose Select all N rows; OnSelect then carries the query (Scope, Query, read with PkSelectQuery.ToRequest) to run the bulk action against on the server. No ids of other pages are ever sent."
+      "doc": "page or all: all after the user chose \"Select all N rows\", when every row of the query counts as selected. It follows the element and goes back to page when the selection changes."
+    },
+    {
+      "name": "OnSelect",
+      "map": "dataTable",
+      "role": "select",
+      "doc": "The selection changed: Selected holds the ids (every selected id across pages, or the loaded page for scope all), Scope is page or all and Query the search and sort it refers to (read it with ToRequest). For scope all run the bulk action against that query on the server: the ids of the other pages are never sent."
+    },
+    {
+      "name": "BulkContent",
+      "slot": "bulk",
+      "type": "RenderFragment?",
+      "doc": "Actions shown while rows are selected (the element's bulk slot)."
+    },
+    {
+      "name": "ToolbarContent",
+      "slot": "actions",
+      "type": "RenderFragment?",
+      "doc": "Extra toolbar content, after the search box and before the add button (the element's actions slot)."
+    },
+    {
+      "name": "Cards",
+      "prop": "cards",
+      "type": "bool",
+      "default": true,
+      "doc": "Each row becomes a card below 640px, columns marked HidePhone dropped. Default true."
+    },
+    {
+      "name": "Striped",
+      "prop": "striped",
+      "type": "bool",
+      "doc": "Alternate row tint."
+    },
+    {
+      "name": "Density",
+      "prop": "density",
+      "type": "PkTableDensity?",
+      "existingEnum": true,
+      "nullable": true,
+      "attrExpr": "@(Density?.ToAttr())",
+      "doc": "The cell padding step; null leaves the element's default."
+    },
+    {
+      "name": "MaxHeight",
+      "prop": "maxHeight",
+      "type": "string?",
+      "doc": "Bounds the table's height (a CSS length); with StickyHeader the header stays while the rows scroll."
+    },
+    {
+      "name": "StickyHeader",
+      "prop": "stickyHeader",
+      "type": "bool",
+      "doc": "Pin the header row (needs MaxHeight)."
+    },
+    {
+      "name": "Label",
+      "prop": "label",
+      "type": "string?",
+      "attrExpr": "@(Label ?? \"List\")",
+      "doc": "The accessible name of the table. Default \"List\"; give each list its own."
+    },
+    {
+      "name": "PagerLabel",
+      "prop": "pagerLabel",
+      "type": "string?",
+      "attrExpr": "@(PagerLabel ?? \"List pages\")",
+      "doc": "The accessible name of the pager. Default \"List pages\"."
+    },
+    {
+      "name": "Caption",
+      "prop": "caption",
+      "type": "string?",
+      "doc": "The table caption, as text."
+    },
+    {
+      "name": "RowHrefTemplate",
+      "prop": "rowHrefTemplate",
+      "type": "string?",
+      "doc": "Row links: an address with {id} (and any {field}, URL-encoded), like /orders/{id}. The first cell of each row becomes a real link; a plain click goes through the router."
+    },
+    {
+      "name": "Filters",
+      "prop": "filters",
+      "type": "IReadOnlyList<PkFilterField>?",
+      "json": true,
+      "doc": "The filter fields beside the search box; each value reaches Load in Filters (a multiselect in MultiFilters)."
+    },
+    {
+      "name": "Navigate",
+      "prop": "navigate",
+      "type": "string?",
+      "doc": "Who follows a RowHrefTemplate link on a plain click: \"router\" (default, or leave it unset) lets the app router handle the cancelable pk-navigate; \"host\" raises OnNavigate as a notification the router ignores and nothing navigates, so your handler navigates (NavigationManager); \"none\" raises nothing and the browser follows the address."
+    },
+    {
+      "name": "OnNavigate",
+      "event": "pk-navigate",
+      "type": "EventCallback<PkNavigateEventArgs>",
+      "listened": true,
+      "doc": "A plain click on a row link: To is the address. A callback cannot cancel it (the browser does not wait for the server): set Navigate to \"host\" and navigate in the handler."
     }
   ],
-  "notes": "PkDataTable<TItem> (Components/PkDataTable.razor) wraps pk-data-table 1:1: Load is a callback property, so the component hands the element a .NET reference (PkCallbackSlot, bridge setCallback) exactly as PkListPage does; cell templates fill the cell-<id>-<key> slots; AddLabel is the element's add-label and OnAdd its pk-add; EmptyContent, BulkContent and ToolbarContent fill the empty, bulk and actions slots; OnSelect, SelectedChanged and OnRowClick come from pk-select and pk-row-click. A selection of 64 rows or more of the loaded page crosses the wire as runs of row indexes (data-pk-ranges).",
-  "methods": [
-    { "name": "FocusAsync", "method": "focus" },
-    { "name": "RefreshAsync", "method": "refresh" }
-  ]
+  "staticAttrs": {
+    "data-pk-ranges": true
+  },
+  "dataTableModel": true,
+  "typeparam": "TItem",
+  "notes": "PkDataTable<TItem> (generated, dataTableModel) wraps pk-data-table 1:1: Load is a callback property, so the component hands the element a .NET reference (PkCallbackSlot, bridge setCallback) exactly as PkListPage does; cell templates fill the cell-<id>-<key> slots; AddLabel is the element's add-label and OnAdd its pk-add; EmptyContent, BulkContent and ToolbarContent fill the empty, bulk and actions slots; OnSelect, SelectedChanged and OnRowClick come from pk-select and pk-row-click. A selection of 64 rows or more of the loaded page crosses the wire as runs of row indexes (data-pk-ranges)."
 }

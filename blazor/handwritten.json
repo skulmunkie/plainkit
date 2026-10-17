@@ -22,9 +22,6 @@
     "Components/PkConsole.razor": {
       "category": "mount"
     },
-    "Components/PkDataTable.razor": {
-      "category": "typed-generics"
-    },
     "Components/PkDevTools.razor": {
       "category": "mount",
       "blazorOnly": "mounts the devtools module (core/modules/devtools); the tag pk-devtools has no dash"
@@ -32,9 +29,6 @@
     "Components/PkDevToolsPage.razor": {
       "category": "wrapper",
       "blazorOnly": "Blazor page that hosts the dev tools modules; no element of its own"
-    },
-    "Components/PkFieldGroup.razor": {
-      "category": "typed-generics"
     },
     "Components/PkLogs.razor": {
       "category": "mount"
@@ -54,9 +48,6 @@
     "Components/PkStyles.razor": {
       "category": "wrapper",
       "blazorOnly": "writes the stylesheet link; there is no element"
-    },
-    "Components/PkTable.razor": {
-      "category": "typed-generics"
     },
     "Components/PkTableBase.cs": {
       "category": "base"

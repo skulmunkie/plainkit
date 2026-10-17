@@ -6,6 +6,7 @@ import os from 'node:os';
 import path from 'node:path';
 import { spawnSync } from 'node:child_process';
 import { plan, apply, listElements, FOLDER, root } from '../move-tiers.mjs';
+import { makeTempDir } from '../../core/tools/tempdir.mjs';
 
 const elements = [{ name: 'button', tier: 'element' }, { name: 'tabs', tier: 'component' }, { name: 'tab-x', tier: 'element' }];
 const files = {
@@ -28,7 +29,7 @@ test('plan lists the moves, rewrites only moving names (never dist/ or a longer 
 });
 
 test('apply moves the folders and rewrites the references, keeping CRLF', () => {
-    const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'move-tiers-'));
+    const dir = makeTempDir('move-tiers-');
     const run = (...a) => assert.equal(spawnSync('git', a, { cwd: dir }).status, 0, a.join(' '));
     for (const [f, t] of Object.entries(files)) { fs.mkdirSync(path.dirname(path.join(dir, f)), { recursive: true }); fs.writeFileSync(path.join(dir, f), t.replace(/\n/g, '\r\n')); }
     fs.writeFileSync(path.join(dir, 'core/elements/tabs/tabs.meta.json'), '{"tier":"component"}');

@@ -6,6 +6,7 @@ import path from 'node:path';
 import net from 'node:net';
 import { spawn } from 'node:child_process';
 import { fileURLToPath } from 'node:url';
+import { makeTempDir } from '../tools/tempdir.mjs';
 
 export const source = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 // The copy runs the other tests with CARVEOUT_CHILD=1 so the carveout files do not recurse.
@@ -15,7 +16,7 @@ export const walk = d => fs.readdirSync(d, { withFileTypes: true }).flatMap(e =>
 export const rel = (root, f) => path.relative(root, f).split(path.sep).join('/');
 
 export function makeCopy() {
-    const copy = fs.mkdtempSync(path.join(os.tmpdir(), 'pk-carve-'));
+    const copy = makeTempDir('pk-carve-');
     if (path.resolve(copy).startsWith(path.resolve(source, '..'))) throw new Error('the copy must be outside the repo');
     fs.cpSync(source, copy, { recursive: true });
     if (!fs.existsSync(path.join(copy, 'tools', 'build.mjs'))) throw new Error('the copy has no tools/build.mjs');

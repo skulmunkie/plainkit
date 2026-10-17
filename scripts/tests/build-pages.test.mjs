@@ -6,12 +6,13 @@ import os from 'node:os';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { spawnSync } from 'node:child_process';
+import { makeTempDir } from '../../core/tools/tempdir.mjs';
 
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..', '..');
 const isLocal = s => s && !/^([a-z][a-z0-9+.-]*:|\/\/|#|\/)/i.test(s);
 
 test('the Pages artifact contains everything index.html and app.html load', () => {
-    const out = fs.mkdtempSync(path.join(os.tmpdir(), 'pk-pages-'));
+    const out = makeTempDir('pk-pages-');
     try {
         const r = spawnSync(process.execPath, [path.join(root, 'scripts', 'build-pages.mjs'), out], { encoding: 'utf8' });
         assert.equal(r.status, 0, r.stderr);
