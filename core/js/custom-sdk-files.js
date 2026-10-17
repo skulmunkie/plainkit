@@ -22,12 +22,12 @@ export function manifestText({ version, files, provenance = DEFAULT_PROVENANCE, 
 /** What the modules unit needs from the runtime, as the modules manifest states it. */
 export const modulesRequires = version => `plainkit ${version}: the modules import ../../js/*.js and use ../../plainkit.css and ../../elements/api.json of the runtime unit (see the plainkit-runtime meta tag and import map in docs/tool-modules.md)`;
 
-/** The SRI value for some bytes, `sha384-<base64>`, from SubtleCrypto (the build's Node hash gives the same). */
+/** The SRI value for some bytes, `sha256-<base64>`, from SubtleCrypto (the build's Node hash gives the same). */
 export async function integrityOf(bytes) {
-    const digest = new Uint8Array(await globalThis.crypto.subtle.digest('SHA-384', bytes));
+    const digest = new Uint8Array(await globalThis.crypto.subtle.digest('SHA-256', bytes));
     let binary = '';
     for (const b of digest) binary += String.fromCharCode(b);
-    return `sha384-${btoa(binary)}`;
+    return `sha256-${btoa(binary)}`;
 }
 
 // ---- the settings file, the README
@@ -81,7 +81,7 @@ export function readmeText({ version, include, breakpoints, shipped, overrideCou
             'The `dist/` folder has the release layout: use it wherever the release `dist/` is used (copy it next to your page, or serve it, and point the `<link>` and `<script>` at it). The dev-tool modules, when the export carries them, are `dist/modules/` (their own unit and manifest; they import the runtime next to them).',
             '', include.theme ? '- The theme is baked into `dist/plainkit.css` and `dist/plainkit.min.css` (after the token blocks).' : '',
             include.breakpoints ? '- The breakpoint widths are rewritten in `dist/plainkit.css`, `dist/plainkit.min.css`, `dist/elements/*.js` and the stylesheets of the tools, and `--pk-bp-*` on `:root` carries them for scripts.' : '',
-            '- `dist/manifest.json` (and `dist/modules/manifest.json` for the modules) was recomputed: each file has its size and SRI hash (`integrity="sha384-..."`).', '');
+            '- `dist/manifest.json` (and `dist/modules/manifest.json` for the modules) was recomputed: each file has its size and SRI hash (`integrity="sha256-..."`).', '');
     }
     return lines.filter((l, i, a) => l !== '' || a[i - 1] !== '').join('\n').replace(/\n*$/, '\n');
 }

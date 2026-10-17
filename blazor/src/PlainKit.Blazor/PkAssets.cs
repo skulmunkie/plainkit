@@ -34,7 +34,7 @@ public static class PkAssets
 
     /// <summary>
     /// The URL of one of the toolkit's files with a cache-busting query built from the file's content hash: <c>?v=</c> and the first 12
-    /// characters of its SHA-384 digest (base64url). The hash comes from the package's <c>manifest.json</c>, which travels inside the assembly and
+    /// characters of its SHA-256 digest (base64url). The hash comes from the package's <c>manifest.json</c>, which travels inside the assembly and
     /// is read once, so a call does no file access and the URL changes exactly when the file's content does. Pass a path relative to
     /// <see cref="Root"/> (<c>plainkit.css</c>, <c>js/plainkit.js</c>) or a full one (<see cref="Css"/>, <see cref="GalleryEmbed"/>). A file the
     /// manifest does not know is returned unchanged.
@@ -44,15 +44,15 @@ public static class PkAssets
         ArgumentNullException.ThrowIfNull(path);
         var (file, url) = Normalise(path);
         var digest = Digest(file);
-        return digest is null ? url : url + "?v=" + digest.Replace('+', '-').Replace('/', '_').Replace("=", "")[..Math.Min(12, digest.Length)];
+        return digest is null ? url : url + "?v=" + digest[(digest.IndexOf('-') + 1)..].Replace('+', '-').Replace('/', '_').Replace("=", "")[..12];
     }
 
-    /// <summary>The Subresource Integrity value (<c>sha384-...</c>) of one of the toolkit's files, for an <c>integrity</c> attribute, or null when the manifest does not list it. Same paths as <see cref="Versioned"/>.</summary>
+    /// <summary>The Subresource Integrity value (<c>sha256-...</c>) of one of the toolkit's files, for an <c>integrity</c> attribute, or null when the manifest does not list it. Same paths as <see cref="Versioned"/>.</summary>
     public static string? Integrity(string path)
     {
         ArgumentNullException.ThrowIfNull(path);
         var digest = Digest(Normalise(path).File);
-        return digest is null ? null : "sha384-" + digest;
+        return digest;
     }
 
     private static (string File, string Url) Normalise(string path)
@@ -64,7 +64,7 @@ public static class PkAssets
 
     private static string? Digest(string file) => Hashes.Value.TryGetValue(file, out var v) ? v : null;
 
-    // The manifest is an embedded copy of wwwroot/plainkit/manifest.json (the file list of core/dist with each file's SHA-384). Read once.
+    // The manifest is an embedded copy of wwwroot/plainkit/manifest.json (the file list of core/dist with each file's SHA-256). Read once.
     private static readonly Lazy<Dictionary<string, string>> Hashes = new(() =>
     {
         var map = new Dictionary<string, string>(StringComparer.Ordinal);
@@ -77,8 +77,8 @@ public static class PkAssets
             {
                 var integrity = f.GetProperty("integrity").GetString();
                 var path = f.GetProperty("path").GetString();
-                if (path is not null && integrity is not null && integrity.StartsWith("sha384-", StringComparison.Ordinal))
-                    map[path] = integrity["sha384-".Length..];
+                if (path is not null && integrity is not null && integrity.StartsWith("sha256-", StringComparison.Ordinal))
+                    map[path] = integrity;
             }
         }
         catch (Exception e) when (e is System.Text.Json.JsonException or KeyNotFoundException or InvalidOperationException) { }
