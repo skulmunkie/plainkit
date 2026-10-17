@@ -139,7 +139,7 @@ test('the shadow template forwards the actions slot to the title bar and the too
     assert.match(html, /<slot name="toolbar" slot="actions"><\/slot>/);
 });
 
-test('rows are cards on a phone unless config.cards is false', () => {
+test('rows are cards on a phone unless config.cards is false or the list is selectable (a card has no select-all)', () => {
     const { el, parts } = make();
     el.connected();
     assert.equal(parts.table.cards, true);
@@ -147,6 +147,12 @@ test('rows are cards on a phone unless config.cards is false', () => {
     el.changed('config');
     assert.equal(parts.table.cards, false);
     el.config = { cards: true };
+    el.changed('config');
+    assert.equal(parts.table.cards, true);
+    el.config = { selectable: true };
+    el.changed('config');
+    assert.equal(parts.table.cards, false);
+    el.config = { selectable: true, cards: true };
     el.changed('config');
     assert.equal(parts.table.cards, true);
 });

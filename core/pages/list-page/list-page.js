@@ -41,7 +41,7 @@ export default Base => class extends Base {
         const cfg = this.config ?? {};
         for (const k of TABLE_KEYS) table[k] = cfg[k];
         table.hideSearch = cfg.searchable === false;
-        table.cards = cfg.cards !== false;
+        table.cards = cfg.cards ?? !cfg.selectable; // a card has no select-all
     }
 
     // Slotted actions keep the title bar that showTitleBar hides when the config draws nothing.
