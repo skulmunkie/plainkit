@@ -113,7 +113,7 @@ export default Base => class extends Base {
         this.aria({ role: 'tree', ariaLabel: this.label || null });
         const all = Array.from(this.querySelectorAll('pk-tree-item'));
         // Items parsed before pk-tree-item is defined are not upgraded yet (no aria(), no props): wait for the definition, then update again.
-        // Once defined, upgrade them here; items still un-upgraded after that (a tree in a detached tree, whose innerHTML children are not upgraded) wait for a slot change: waiting again would re-queue an update for them forever.
+        // Once defined, upgrade them here; items still un-upgraded after that (a tree in a detached tree, whose children are not upgraded) wait for a slot change: waiting again would re-queue an update for them forever.
         if (all.some(it => typeof it.aria !== 'function')) { if (!this.$defd) { this.$defd = true; customElements.whenDefined('pk-tree-item').then(() => { customElements.upgrade?.(this); this.requestUpdate(); }); } return; }
         const items = this.nodes, pos = ariaPositions(items);
         for (const it of all) { const sel = this.selection !== 'none' && this.value !== '' && (it.value || it.label) === this.value; if (it.selected !== sel) it.selected = sel; }
