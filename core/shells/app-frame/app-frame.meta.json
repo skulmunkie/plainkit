@@ -83,6 +83,20 @@
       "description": "The search field placeholder and name."
     },
     {
+      "name": "busy",
+      "type": "boolean",
+      "default": false,
+      "reflect": false,
+      "description": "Blocks the page behind a loading overlay."
+    },
+    {
+      "name": "busyLabel",
+      "type": "string",
+      "default": "",
+      "reflect": false,
+      "description": "Its label."
+    },
+    {
       "name": "searchItems",
       "type": "json",
       "default": [],
