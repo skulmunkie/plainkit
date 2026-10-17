@@ -55,6 +55,31 @@
       "prop": "disabled"
     },
     {
+      "name": "Collapsible",
+      "type": "bool",
+      "default": false,
+      "map": "prop",
+      "prop": "collapsible"
+    },
+    {
+      "name": "Collapsed",
+      "type": "bool",
+      "default": false,
+      "map": "prop",
+      "prop": "collapsed",
+      "bind": {
+        "event": "pk-collapse-change",
+        "value": "detail.collapsed"
+      }
+    },
+    {
+      "name": "ToggleLabel",
+      "type": "string",
+      "default": "",
+      "map": "prop",
+      "prop": "toggleLabel"
+    },
+    {
       "name": "StartContent",
       "type": "RenderFragment?",
       "map": "slot",

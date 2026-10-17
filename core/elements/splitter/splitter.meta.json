@@ -59,6 +59,28 @@
       "default": false,
       "reflect": true,
       "description": "Fixes the size: the separator no longer takes focus or moves."
+    },
+    {
+      "name": "collapsible",
+      "type": "boolean",
+      "default": false,
+      "reflect": true,
+      "description": "Shows a toggle on the separator that collapses the end pane; Enter, Space and a double click on the separator toggle it too."
+    },
+    {
+      "name": "collapsed",
+      "type": "boolean",
+      "default": false,
+      "reflect": true,
+      "commit": "pk-collapse-change",
+      "description": "The end pane is collapsed: zero size and inert, its content kept, size kept so expanding restores it. Needs collapsible. The element owns it while the user toggles; after pk-collapse-change the host does."
+    },
+    {
+      "name": "toggleLabel",
+      "type": "string",
+      "default": "",
+      "reflect": false,
+      "description": "The toggle button's accessible name; empty is \"Collapse panel\" or \"Expand panel\"."
     }
   ],
   "slots": [
@@ -84,6 +106,14 @@
         "size": "number"
       },
       "description": "The user committed a new size: a drag ended, or an arrow, Home or End key moved it. Raised once per key press and once per drag, never for a size the host set; not cancelable."
+    },
+    {
+      "name": "pk-collapse-change",
+      "detail": "{ collapsed: boolean }",
+      "detailProps": {
+        "collapsed": "boolean"
+      },
+      "description": "The user collapsed or restored the end pane. Never raised for a value the host set; not cancelable."
     }
   ],
   "parts": [
@@ -98,6 +128,10 @@
     {
       "name": "handle",
       "description": "The separator: a role=separator control with its own focus ring and a 44px hit area on a touch screen."
+    },
+    {
+      "name": "toggle",
+      "description": "The collapse button on the separator (with collapsible); 44px on a touch screen."
     },
     {
       "name": "end",
@@ -122,7 +156,7 @@
     }
   ],
   "methods": [],
-  "a11y": "The separator is role=separator, focusable, with aria-orientation, aria-valuenow, aria-valuemin, aria-valuemax and aria-controls (the start pane): the window splitter pattern. Arrow keys along the axis move it by step (Left and Right side by side, mirrored in a right-to-left page; Up and Down stacked), Home and End go to the minimum and maximum. A pointer drag is captured by the separator, so it follows the pointer out of the element and ends cleanly on release or cancel. The line grows and takes the accent colour on hover, drag and keyboard focus, so state is never colour alone.",
+  "a11y": "The separator is role=separator, focusable, with aria-orientation, aria-valuenow, aria-valuemin, aria-valuemax and aria-controls (the start pane): the window splitter pattern. Arrow keys along the axis move it by step (Left and Right side by side, mirrored in a right-to-left page; Up and Down stacked), Home and End go to the minimum and maximum. A pointer drag is captured by the separator, so it follows the pointer out of the element and ends cleanly on release or cancel. The line grows and takes the accent colour on hover, drag and keyboard focus, so state is never colour alone. With collapsible, aria-valuenow is 0 while collapsed, Enter or Space toggles, the toggle button has aria-expanded and aria-controls, and the collapsed pane is inert.",
   "mobile": "On a touch screen the separator's hit area is 44px in the resize direction (the line stays thin), and touch-action is off on it so a drag resizes instead of scrolling.",
   "examples": [
     {
@@ -132,6 +166,10 @@
     {
       "title": "Stacked",
       "html": "<pk-splitter orientation=\"vertical\" size=\"60\" label=\"Resize the console\"><div slot=\"start\">Editor</div><div slot=\"end\">Console</div></pk-splitter>"
+    },
+    {
+      "title": "Collapsible end pane",
+      "html": "<pk-splitter size=\"65\" min=\"30\" max=\"80\" collapsible label=\"Resize the inspector\"><div slot=\"start\" class=\"stack\"><strong>Document</strong><span>Use the button on the bar.</span></div><div slot=\"end\" class=\"stack\"><strong>Inspector</strong><span>Collapsing keeps this content.</span></div></pk-splitter>"
     }
   ]
 }
