@@ -1,99 +1,143 @@
 {
   "component": "PkTable",
-  "existing": true,
-  "extrasHook": "ApplyExtras",
-  "existingReason": "typed-generics: PkTable<TItem> typed columns, cell templates and row JSON Missing generator features: @typeparam generation (a typed component), typed columns and typed rows turned into JSON props, and per-row cell and detail slot templates (RenderFragment<TItem>).",
+  "typeparam": "TItem",
+  "inherits": "PkTableBase",
+  "tableModel": true,
+  "staticAttrs": {
+    "data-pk-ranges": true,
+    "row-key": "id"
+  },
   "params": [
     {
       "name": "Columns",
+      "map": "param",
       "prop": "columns",
-      "type": "IReadOnlyList<PkTableColumn<TItem>>",
+      "type": "IReadOnlyList<PkTableColumn<TItem>>?",
+      "attrExpr": "@_columns",
+      "doc": "The columns: what the header says, how it sorts, and what fills the cells. A key names an item property in any casing (or is any name, when the column has a Text or a Cell) and is used exactly as given: in the column definition, the row, the cell slot and the sort and filter keys the table reports (Sort, OnSort, Filters).",
       "note": "Sent as a JSON attribute ([{ key, label, type, align, sortable, hidePhone, shed, title, editor, options, required, min, max, maxLength }], camelCase). A column with a Cell template also fills the slot cell-<rowId>-<key> of each row; a column with a Header fragment fills the slot header-<key> beside the title."
     },
     {
       "name": "Items",
+      "map": "param",
       "prop": "rows",
-      "type": "IReadOnlyList<TItem>",
+      "type": "IReadOnlyList<TItem>?",
+      "attrExpr": "@_rows",
+      "doc": "The rows, one item each. In manual mode these are the rows the server returned for the current page. They are sent to the element as JSON (camelCase), so a row holds the item's public properties; a cell template can use the whole item.",
       "note": "Sent as a JSON attribute (camelCase, one object per item, plus the row key \"id\" from IdOf). An item property named Tone (warning, positive, accent or critical) or Indent (1 or 2) marks the row, tint and leading rule included, as in the element."
     },
     {
       "name": "IdOf",
-      "type": "Func<TItem, string>",
+      "map": "param",
+      "type": "Func<TItem, string>?",
+      "doc": "The id of an item: the row key the element reports (pk-row-click, selection, expansion) and the name of the row's slots. Without it the row's index is the id, which is only stable while the list keeps its order. Ids must not contain a double quote.",
       "note": "Wrapper parameter: writes the row key (the element is always given rowKey \"id\") and names each row's slots; without it the row index is the id."
     },
     {
       "name": "Manual",
       "prop": "manual",
-      "type": "bool"
+      "type": "bool",
+      "doc": "The host sorts, filters and pages: the element shows Items exactly as given and only reports the user's sort and filter (OnSort, OnFilter). Set it whenever you load one page at a time."
     },
     {
       "name": "Sort",
+      "map": "param",
       "prop": "sort",
-      "type": "string?"
+      "type": "string?",
+      "attrExpr": "@Sort",
+      "doc": "The key of the column the table is sorted by (two-way: @bind-Sort). Null or empty means no column."
     },
     {
       "name": "SortDirection",
+      "map": "param",
       "prop": "sortDir",
-      "type": "PkSortDirection?"
+      "type": "PkSortDirection?",
+      "attrExpr": "@(SortDirection?.ToAttr())",
+      "doc": "The sort direction; null leaves the element's default (ascending)."
     },
     {
       "name": "Filters",
+      "map": "param",
       "prop": "filters",
-      "type": "Dictionary<string, string>?"
+      "type": "Dictionary<string, string>?",
+      "attrExpr": "@PkAttr.JsonVerbatimKeys(Filters)",
+      "doc": "Text per column key that the rows are filtered by (two-way: @bind-Filters; the filter row needs Filterable)."
     },
     {
       "name": "Selected",
+      "map": "param",
       "prop": "selected",
-      "type": "IReadOnlyList<string>?"
+      "type": "IReadOnlyList<string>?",
+      "attrExpr": "@PkAttr.Json(Selected)",
+      "doc": "The ids of the selected rows (two-way: @bind-Selected; the checkbox column needs Selectable)."
     },
     {
       "name": "Expanded",
+      "map": "param",
       "prop": "expanded",
-      "type": "IReadOnlyList<string>?"
+      "type": "IReadOnlyList<string>?",
+      "attrExpr": "@PkAttr.Json(Expanded)",
+      "doc": "The ids of the expanded rows (two-way: @bind-Expanded; needs Expandable and a DetailTemplate)."
     },
     {
       "name": "Selectable",
       "prop": "selectable",
-      "type": "bool"
+      "type": "bool",
+      "doc": "A checkbox column with select-all."
     },
     {
       "name": "SelectAllTotal",
+      "map": "param",
       "prop": "total",
       "type": "int",
+      "attrExpr": "@(SelectAllTotal > 0 ? SelectAllTotal : null)",
+      "doc": "How many rows match the current query across all pages (the total attribute). Once every loaded row is selected the table offers \"Select all N rows\" and raises OnSelectAll. 0 (the default) means not paged: no button. Selected keeps the ids of other pages when you replace Items in manual mode.",
       "note": "Rows matching the query across all pages (0 = not paged, no button). Once every loaded row is selected the bulk bar offers Select all N rows and OnSelectAll is raised; Selected keeps the ids of other pages when Items is replaced in manual mode."
     },
     {
       "name": "SelectScope",
       "prop": "selectScope",
       "type": "string?",
-      "note": "page or all: all after the user chose Select all N rows (every row of the query counts as selected; Selected holds only the loaded ids). It follows the element and returns to page when the selection changes."
+      "note": "page or all: all after the user chose Select all N rows (every row of the query counts as selected; Selected holds only the loaded ids). It follows the element and returns to page when the selection changes.",
+      "doc": "\"page\" or \"all\" (the select-scope attribute): \"all\" after the user chose \"Select all N rows\", when every row of the query counts as selected though Selected holds only the loaded ids. It follows the table and goes back to \"page\" when the selection changes."
     },
     {
       "name": "SelectPageOnly",
       "prop": "selectPageOnly",
       "type": "bool",
-      "note": "Never offer Select all N rows (it needs SelectAllTotal): the header checkbox selects the loaded page and SelectScope stays page."
+      "note": "Never offer Select all N rows (it needs SelectAllTotal): the header checkbox selects the loaded page and SelectScope stays page.",
+      "doc": "Never offer \"Select all N rows\" (the select-page-only attribute): the header checkbox selects the loaded page and SelectScope stays \"page\". For a list whose bulk action works only on explicit ids."
     },
     {
       "name": "Clickable",
       "prop": "clickable",
-      "type": "bool"
+      "type": "bool",
+      "doc": "Rows are activatable: they show a pointer and raise OnRowClick. Each row is a keyboard stop (Enter or Space activates it)."
+    },
+    {
+      "name": "RowHrefTemplate",
+      "prop": "rowHrefTemplate",
+      "type": "string?",
+      "doc": "Row links: an address with {id} (and any {field}, URL-encoded), like /orders/{id} or #/orders/{id}. The first cell of each row becomes a real link; a plain click goes through the router (pk-navigate)."
     },
     {
       "name": "CurrentRow",
       "prop": "currentRow",
-      "type": "string",
-      "note": "The id of the row whose record is open in a detail pane: it is tinted and gets aria-current. Set it from the route; the table never changes it."
+      "type": "string?",
+      "note": "The id of the row whose record is open in a detail pane: it is tinted and gets aria-current. Set it from the route; the table never changes it.",
+      "doc": "The id of the row whose record is open in a detail pane: it is tinted and marked aria-current. Set it from the route; the table never changes it (there is no event for it)."
     },
     {
       "name": "Filterable",
       "prop": "filterable",
-      "type": "bool"
+      "type": "bool",
+      "doc": "A filter input under each header."
     },
     {
       "name": "Expandable",
       "prop": "expandable",
-      "type": "bool"
+      "type": "bool",
+      "doc": "Rows get a toggle that shows their DetailTemplate under them."
     },
     {
       "name": "Expander",
@@ -105,157 +149,267 @@
       "name": "Editable",
       "prop": "editable",
       "type": "bool",
-      "note": "Inline cell editing. A column gets an Editor (Text, Number, Select with Options) and optionally Required, Min, Max, MaxLength; a column without an Editor, or with a Cell template, is read-only. For a switch in a cell put a PkSwitch with tabindex=\"-1\" and its own name (its text, in a u-sr-only span) in the column's Cell template and update your item from its CheckedChanged. Update the item in OnCellEdit."
+      "note": "Inline cell editing. A column gets an Editor (Text, Number, Select with Options) and optionally Required, Min, Max, MaxLength; a column without an Editor, or with a Cell template, is read-only. For a switch in a cell put a PkSwitch with tabindex=\"-1\" and its own name (its text, in a u-sr-only span) in the column's Cell template and update your item from its CheckedChanged. Update the item in OnCellEdit.",
+      "doc": "Cells of columns that have an Editor edit in place (Enter, F2, or a second tap), and OnCellEdit reports each accepted value. Update your item in the handler (then Refresh, or pass a new list): the element already shows the value. Never windows."
     },
     {
       "name": "CellErrors",
+      "map": "param",
       "prop": "cellErrors",
       "type": "Dictionary<string, string>?",
+      "attrExpr": "@PkAttr.JsonVerbatimKeys(CellErrors)",
+      "doc": "Cells to mark invalid, by \"<rowId>:<columnKey>\", with the message to show (server-side validation of an edit). The table never changes it.",
       "note": "Cells to mark invalid, keyed \"<rowId>:<columnKey>\", with the message. The table never changes it."
     },
     {
       "name": "Loading",
       "prop": "loading",
-      "type": "bool"
+      "type": "bool",
+      "doc": "Show a placeholder row instead of the rows, announce Loading and mark the table busy."
     },
     {
       "name": "EmptyText",
       "prop": "emptyText",
-      "type": "string?"
+      "type": "string?",
+      "doc": "The text shown when there are no rows; EmptyContent replaces it. Null leaves the element's own text."
     },
     {
       "name": "Cards",
       "prop": "cards",
-      "type": "bool"
+      "type": "bool",
+      "doc": "Each row becomes a card below 640px."
     },
     {
       "name": "Striped",
       "prop": "striped",
-      "type": "bool"
+      "type": "bool",
+      "inherited": true
     },
     {
       "name": "Hover",
       "prop": "hover",
-      "type": "bool"
+      "type": "bool",
+      "inherited": true
     },
     {
       "name": "Bordered",
       "prop": "bordered",
-      "type": "bool"
+      "type": "bool",
+      "inherited": true
     },
     {
       "name": "Density",
       "prop": "density",
-      "type": "PkTableDensity?"
+      "type": "PkTableDensity?",
+      "inherited": true,
+      "attrExpr": "@(Density?.ToAttr())"
     },
     {
       "name": "StickyHeader",
       "prop": "stickyHeader",
-      "type": "bool"
+      "type": "bool",
+      "inherited": true
     },
     {
       "name": "StickyColumn",
       "prop": "stickyColumn",
-      "type": "bool"
+      "type": "bool",
+      "inherited": true
     },
     {
       "name": "MaxHeight",
       "prop": "maxHeight",
-      "type": "string?"
+      "type": "string?",
+      "inherited": true
     },
     {
       "name": "Caption",
       "prop": "caption",
-      "type": "string?"
+      "type": "string?",
+      "inherited": true
     },
     {
       "name": "Label",
       "prop": "label",
-      "type": "string?"
+      "type": "string?",
+      "inherited": true
     },
     {
       "name": "Flow",
       "prop": "flow",
-      "type": "bool"
+      "type": "bool",
+      "inherited": true
     },
     {
       "name": "ToolbarContent",
       "slot": "toolbar",
-      "type": "RenderFragment"
+      "type": "RenderFragment",
+      "inherited": true,
+      "slotTag": "pk-cluster",
+      "slotPlain": true
     },
     {
       "name": "BulkContent",
       "slot": "bulk",
-      "type": "RenderFragment"
+      "type": "RenderFragment",
+      "doc": "Actions shown while rows are selected (the bulk slot; raw mode has no rows to select, so it stays here rather than in PkTableBase)."
     },
     {
       "name": "CaptionContent",
       "slot": "caption",
-      "type": "RenderFragment"
+      "type": "RenderFragment",
+      "inherited": true
     },
     {
       "name": "EmptyContent",
       "slot": "empty",
-      "type": "RenderFragment"
+      "type": "RenderFragment",
+      "slotTag": "div",
+      "doc": "The empty state, for example a PkEmptyState (the empty slot). It replaces EmptyText (raw mode has no empty state of its own, so this stays here rather than in PkTableBase)."
     },
     {
       "name": "FooterContent",
       "slot": "footer",
-      "type": "RenderFragment"
+      "type": "RenderFragment",
+      "inherited": true,
+      "slotTag": "div"
     },
     {
       "name": "FootContent",
       "slot": "foot",
       "type": "RenderFragment",
-      "note": "Data-driven: a footer or summary row (one cell spanning every column; a trailing card on a phone). Raw mode (ChildContent set) renders it as the tfoot of the authored table instead."
+      "note": "Data-driven: a footer or summary row (one cell spanning every column; a trailing card on a phone). Raw mode (ChildContent set) renders it as the tfoot of the authored table instead.",
+      "slotTag": "div",
+      "when": "ChildContent is null",
+      "doc": "The tfoot (not FooterContent, the slot below the table). Raw mode: the tfoot rows. Data-driven: a footer or summary row, one cell spanning every column (a trailing card on a phone)."
     },
     {
       "name": "DetailTemplate",
-      "slot": "detail-<rowId>",
-      "type": "RenderFragment<TItem>",
+      "map": "param",
+      "type": "RenderFragment<TItem>?",
+      "doc": "The detail of one row, shown under it when the user expands it (the element's detail-<rowId> slot). Needs Expandable.",
       "note": "The slot name is dynamic: the component renders one slot=\"detail-<rowId>\" per row when Expandable is set, and only those rows get a toggle."
+    },
+    {
+      "name": "ChildContent",
+      "map": "param",
+      "type": "RenderFragment?",
+      "doc": "Raw mode: the table's tbody rows (typically a @foreach over your own collection). Set, the table is not data-driven: Columns and Items are ignored, and use TItem=\"object\"."
+    },
+    {
+      "name": "HeadContent",
+      "map": "param",
+      "type": "RenderFragment?",
+      "doc": "Raw mode: the thead, e.g. one tr of th cells. Left off, no header row."
+    },
+    {
+      "name": "TableClass",
+      "map": "param",
+      "type": "string?",
+      "doc": "Raw mode: a class for the inner table (the frame takes class and other attributes)."
+    },
+    {
+      "name": "IsEmpty",
+      "map": "param",
+      "type": "bool",
+      "doc": "Raw mode: no rows. With EmptyContent or EmptyText set, that is shown instead of the table."
     },
     {
       "name": "OnSort",
       "event": "pk-sort",
       "type": "EventCallback<PkSortEventArgs>",
-      "note": "A third activation of the same header clears the sort: the event then carries a null key and direction, and the wrapper restores the data source's natural order."
+      "note": "A third activation of the same header clears the sort: the event then carries a null key and direction, and the wrapper restores the data source's natural order.",
+      "custom": true,
+      "doc": "The user chose a sortable header: Key and Direction (ascending or descending). Sort and SortDirection already follow it. In manual mode, load the rows in that order."
     },
     {
       "name": "OnFilter",
       "event": "pk-filter",
-      "type": "EventCallback<PkFilterEventArgs>"
+      "type": "EventCallback<PkFilterEventArgs>",
+      "custom": true,
+      "doc": "A filter input changed (debounced by the element): Filters holds the text per column key."
     },
     {
       "name": "OnSelect",
       "event": "pk-select",
-      "type": "EventCallback<PkSelectEventArgs>"
+      "type": "EventCallback<PkSelectEventArgs>",
+      "custom": true,
+      "doc": "The selection changed: Selected holds the ids."
     },
     {
       "name": "OnSelectAll",
       "event": "pk-select-all",
       "type": "EventCallback<PkSelectAllEventArgs>",
-      "note": "Scope (page or all) and Count. No ids are sent for all: run the action from the query you hold."
+      "note": "Scope (page or all) and Count. No ids are sent for all: run the action from the query you hold.",
+      "custom": true,
+      "doc": "The user selected every loaded row (Scope \"page\", Count the rows on the page) or chose \"Select all N rows\" (Scope \"all\", Count the total; no ids are sent: run the action from your query). Needs SelectAllTotal."
     },
     {
       "name": "OnRowClick",
       "event": "pk-row-click",
       "type": "EventCallback<PkTableRowClickArgs<TItem>>",
-      "note": "Raised by a click and, on a clickable row, by Enter or Space on the focused row (each row is a tab stop)."
+      "note": "Raised by a click and, on a clickable row, by Enter or Space on the focused row (each row is a tab stop).",
+      "custom": true,
+      "doc": "A row of a Clickable table was activated: its id and item."
     },
-    { "name": "Navigate", "prop": "navigate", "type": "string?", "extra": true, "note": "Who follows a RowHrefTemplate link on a plain click: \"router\" (default, or leave it unset) lets the app router handle the cancelable pk-navigate; \"host\" raises OnNavigate as a notification the router ignores and nothing navigates, so your handler navigates (NavigationManager); \"none\" raises nothing and the browser follows the address." },
-    { "name": "OnNavigate", "event": "pk-navigate", "type": "EventCallback<PkNavigateEventArgs>", "extra": true, "note": "A plain click on a row link: To is the address. A callback cannot cancel it (the browser does not wait for the server): set Navigate to \"host\" and navigate in the handler." },
+    {
+      "name": "Navigate",
+      "prop": "navigate",
+      "type": "string?",
+      "note": "Who follows a RowHrefTemplate link on a plain click: \"router\" (default, or leave it unset) lets the app router handle the cancelable pk-navigate; \"host\" raises OnNavigate as a notification the router ignores and nothing navigates, so your handler navigates (NavigationManager); \"none\" raises nothing and the browser follows the address."
+    },
+    {
+      "name": "OnNavigate",
+      "event": "pk-navigate",
+      "type": "EventCallback<PkNavigateEventArgs>",
+      "note": "A plain click on a row link: To is the address. A callback cannot cancel it (the browser does not wait for the server): set Navigate to \"host\" and navigate in the handler.",
+      "listened": true
+    },
     {
       "name": "OnRowExpand",
       "event": "pk-row-expand",
-      "type": "EventCallback<PkTableRowExpandArgs<TItem>>"
+      "type": "EventCallback<PkTableRowExpandArgs<TItem>>",
+      "custom": true,
+      "doc": "The user expanded or collapsed a row: its id, item and the new state. Expanded already follows it."
     },
     {
       "name": "OnCellEdit",
       "event": "pk-cell-edit",
       "type": "EventCallback<PkTableCellEditArgs<TItem>>",
-      "note": "An edited cell was accepted. Blazor cannot cancel the event (the browser does not wait for the server): to refuse a value, put a message in CellErrors and put the previous value back in your item. A paste from a spreadsheet or a Ctrl+D fill-down raises it once per accepted cell (Source is paste or fill) (the summary event pk-cells-paste has no callback yet)."
+      "note": "An edited cell was accepted. Blazor cannot cancel the event (the browser does not wait for the server): to refuse a value, put a message in CellErrors and put the previous value back in your item. A paste from a spreadsheet or a Ctrl+D fill-down raises it once per accepted cell (Source is paste or fill) (the summary event pk-cells-paste has no callback yet).",
+      "custom": true,
+      "doc": "The user edited a cell of an Editable table: the row's id and item, the column key, and the new and previous values. The event cannot be cancelled from Blazor (the browser does not wait); to refuse a value, set CellErrors and reset your item."
+    },
+    {
+      "name": "SortChanged",
+      "map": "param",
+      "type": "EventCallback<string?>",
+      "doc": "Raised with the new value of Sort (two-way: Sort follows it)."
+    },
+    {
+      "name": "SortDirectionChanged",
+      "map": "param",
+      "type": "EventCallback<PkSortDirection?>",
+      "doc": "Raised with the new value of SortDirection (two-way: SortDirection follows it)."
+    },
+    {
+      "name": "FiltersChanged",
+      "map": "param",
+      "type": "EventCallback<Dictionary<string, string>?>",
+      "doc": "Raised with the new value of Filters (two-way: Filters follows it)."
+    },
+    {
+      "name": "SelectedChanged",
+      "map": "param",
+      "type": "EventCallback<IReadOnlyList<string>?>",
+      "doc": "Raised with the new value of Selected (two-way: Selected follows it)."
+    },
+    {
+      "name": "ExpandedChanged",
+      "map": "param",
+      "type": "EventCallback<IReadOnlyList<string>?>",
+      "doc": "Raised with the new value of Expanded (two-way: Expanded follows it)."
     }
   ],
-  "notes": "Hand-written, generic: PkTable<TItem> (Components/PkTable.razor). Attributes down: the columns and the rows are JSON attributes (camelCase) rebuilt when the parameters are set, never per render and never through JavaScript. Events up: pk-sort, pk-filter, pk-select, pk-select-all, pk-row-click and pk-row-expand reach the callbacks; the two-way parameters Sort, SortDirection, Filters, Selected and Expanded follow them (@bind-Sort and so on). Manual mode: the host owns the order, the filter and the page; the component shows Items as given and reports OnSort and OnFilter, and a PkPagination in FooterContent does the paging. Cell content: a column's Cell template is rendered as <span slot=\"cell-<rowId>-<key>\"> per row, and DetailTemplate as <div slot=\"detail-<rowId>\">; Blazor renders these as ordinary children of the element (the element reads them and never rewrites them), so a change of rows re-renders them together with the rows attribute. Without manual the element sorts, filters and pages its own rows. The toolbar slot lays its items out in a wrapping row; the item that should sit at the far end (an action beside a search box) takes the attribute data-end, which the wrapper can pass through on the element it renders into HeaderActionsTemplate. A column's type only decides how it sorts and filters (cells show the value the row holds, text as given, with no locale or time zone formatting), so a wrapper that sends dates or numbers as display strings should sort on the source data. The Blazor PkTable keeps owning the data source. It renders the element with manual set, so the element does not sort, filter or page by itself: it reacts to pk-sort, pk-filter and the pk-page and pk-page-size events of the pagination in its footer by fetching the matching rows and assigning them to the rows property. Each column is passed in columns as { key, label, sortable, align: end } (align end for numeric columns); a hidden column is left out. Row template cells become slots named cell-<rowId>-<key>, one per cell. Without manual the element sorts, filters and pages its own rows. EmptyText is the emptyText prop (the empty slot still replaces it). Expandable rows: the wrapper sets expandable, renders the DetailTemplate of each expandable row as a slot named detail-<rowId>, and follows pk-row-expand ({ id, index, expanded }) to keep ExpandedKeys, which it assigns back to the expanded property. Windowing (issue 131): at 500 rows or more, a non-expandable element draws only the rows near the scroll frame's viewport (core/js/table-vw.js); it is a fixed constant, not a parameter, so the element's own module stays inside its gzip budget. Sort, filter and selection still act on every row."
+  "notes": "PkTable<TItem> (generated, tableModel; shares its chrome parameters with PkTableBase). Attributes down: the columns and the rows are JSON attributes (camelCase) rebuilt when the parameters are set, never per render and never through JavaScript. Events up: pk-sort, pk-filter, pk-select, pk-select-all, pk-row-click and pk-row-expand reach the callbacks; the two-way parameters Sort, SortDirection, Filters, Selected and Expanded follow them (@bind-Sort and so on). Manual mode: the host owns the order, the filter and the page; the component shows Items as given and reports OnSort and OnFilter, and a PkPagination in FooterContent does the paging. Cell content: a column's Cell template is rendered as <span slot=\"cell-<rowId>-<key>\"> per row, and DetailTemplate as <div slot=\"detail-<rowId>\">; Blazor renders these as ordinary children of the element (the element reads them and never rewrites them), so a change of rows re-renders them together with the rows attribute. Without manual the element sorts, filters and pages its own rows. The toolbar slot lays its items out in a wrapping row; the item that should sit at the far end (an action beside a search box) takes the attribute data-end, which the wrapper can pass through on the element it renders into HeaderActionsTemplate. A column's type only decides how it sorts and filters (cells show the value the row holds, text as given, with no locale or time zone formatting), so a wrapper that sends dates or numbers as display strings should sort on the source data. The Blazor PkTable keeps owning the data source. It renders the element with manual set, so the element does not sort, filter or page by itself: it reacts to pk-sort, pk-filter and the pk-page and pk-page-size events of the pagination in its footer by fetching the matching rows and assigning them to the rows property. Each column is passed in columns as { key, label, sortable, align: end } (align end for numeric columns); a hidden column is left out. Row template cells become slots named cell-<rowId>-<key>, one per cell. Without manual the element sorts, filters and pages its own rows. EmptyText is the emptyText prop (the empty slot still replaces it). Expandable rows: the wrapper sets expandable, renders the DetailTemplate of each expandable row as a slot named detail-<rowId>, and follows pk-row-expand ({ id, index, expanded }) to keep ExpandedKeys, which it assigns back to the expanded property. Windowing (issue 131): at 500 rows or more, a non-expandable element draws only the rows near the scroll frame's viewport (core/js/table-vw.js); it is a fixed constant, not a parameter, so the element's own module stays inside its gzip budget. Sort, filter and selection still act on every row."
 }

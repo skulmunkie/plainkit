@@ -260,7 +260,7 @@ public sealed class BlazorPanelTests : BunitContext, IAsyncLifetime
     public void Hand_written_components_say_that()
     {
         var table = PkMappingInfo.Describe("pk-table")!;
-        Assert.Equal("hand-written", table.Status);   // the last element without a component, hand-written now (Components/PkTable.razor)
+        Assert.Equal("generated", table.Status);   // was hand-written until #1473 (the last one)
         Assert.Equal("generated", PkMappingInfo.Describe("pk-side-nav")!.Status);   // was hand-written until #805 (location hook)
         Assert.Equal("generated", PkMappingInfo.Describe("pk-gallery")!.Status);   // was hand-written until #805
         Assert.Null(PkMappingInfo.Describe("pk-nonsense"));

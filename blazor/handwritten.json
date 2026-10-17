@@ -49,9 +49,6 @@
       "category": "wrapper",
       "blazorOnly": "writes the stylesheet link; there is no element"
     },
-    "Components/PkTable.razor": {
-      "category": "typed-generics"
-    },
     "Components/PkTableBase.cs": {
       "category": "base"
     },
