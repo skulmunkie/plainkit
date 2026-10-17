@@ -149,8 +149,8 @@
       "name": "Editable",
       "prop": "editable",
       "type": "bool",
-      "note": "Inline cell editing. A column gets an Editor (Text, Number, Select with Options) and optionally Required, Min, Max, MaxLength; a column without an Editor, or with a Cell template, is read-only. For a switch in a cell put a PkSwitch with tabindex=\"-1\" and its own name (its text, in a u-sr-only span) in the column's Cell template and update your item from its CheckedChanged. Update the item in OnCellEdit.",
-      "doc": "Cells of columns that have an Editor edit in place (Enter, F2, or a second tap), and OnCellEdit reports each accepted value. Update your item in the handler (then Refresh, or pass a new list): the element already shows the value. Never windows."
+      "note": "Inline cell editing. A column gets an Editor (Text, Number, Select with Options, Date: the item's value is an ISO date string such as 2026-01-07) and optionally Required, Min, Max, MaxLength; a column without an Editor, or with a Cell template, is read-only. For a switch in a cell put a PkSwitch with tabindex=\"-1\" and its own name (its text, in a u-sr-only span) in the column's Cell template and update your item from its CheckedChanged. Update the item in OnCellEdit.",
+      "doc": "Cells of columns that have an Editor edit in place (Enter, F2, or a second tap), and OnCellEdit reports each accepted value. Update your item in the handler (then Refresh, or pass a new list): the element already shows the value. An editable table of 500 or more rows windows like a read-only one (the active and edited rows stay drawn)."
     },
     {
       "name": "CellErrors",
@@ -376,9 +376,16 @@
       "name": "OnCellEdit",
       "event": "pk-cell-edit",
       "type": "EventCallback<PkTableCellEditArgs<TItem>>",
-      "note": "An edited cell was accepted. Blazor cannot cancel the event (the browser does not wait for the server): to refuse a value, put a message in CellErrors and put the previous value back in your item. A paste from a spreadsheet or a Ctrl+D fill-down raises it once per accepted cell (Source is paste or fill) (the summary event pk-cells-paste has no callback yet).",
+      "note": "An edited cell was accepted. Blazor cannot cancel the event (the browser does not wait for the server): to refuse a value, put a message in CellErrors and put the previous value back in your item. A paste from a spreadsheet or a Ctrl+D fill-down raises it once per accepted cell (Source is paste or fill) (OnCellsPaste summarises the paste).",
       "custom": true,
       "doc": "The user edited a cell of an Editable table: the row's id and item, the column key, and the new and previous values. The event cannot be cancelled from Blazor (the browser does not wait); to refuse a value, set CellErrors and reset your item."
+    },
+    {
+      "name": "OnCellsPaste",
+      "event": "pk-cells-paste",
+      "type": "EventCallback<PkCellsPasteEventArgs>",
+      "note": "A paste into an Editable table finished: Cells lists the cells that took a value ({ id, key, value }), Rejected those that did not ({ row, col, reason }). Each accepted cell has already raised OnCellEdit (Source is paste).",
+      "listened": true
     },
     {
       "name": "SortChanged",
