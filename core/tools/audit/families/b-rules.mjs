@@ -31,6 +31,12 @@ const PASSTHROUGH_ATTRS = new Set(['Class', 'Style', 'id', 'key']);
 // so without this, every generic component usage was flagged as an "unknown parameter" (issue #686, B3).
 const isTypeParam = name => /^T[A-Z]\w*$/.test(name);
 
+// B8: a [Parameter]/[CascadingParameter] auto-property in a .razor @code block or a .cs file; the overlap is
+// shared names over the larger of the two parameter lists, with at least two shared so a lone Label never fires.
+const B8_PARAM = /\[(?:Parameter|CascadingParameter)\b[^\]]*\]\s*(?:\[[^\]]+\]\s*)*public\s+[^;{=()]+?\s+(\w+)\s*\{/g;
+const B8_THRESHOLD = 0.8;
+const B8_MIN_MATCHED = 2;
+
 // B5's JS-interop hint table (D7's counterpart, design section 2.6): an IJSRuntime call by string name that
 // duplicates behaviour a component already owns. Hand-written like D7's own API_PATTERNS (core/tools/audit/
 // hints.mjs) - these are Blazor interop call names, not an element catalogue field.
@@ -182,6 +188,31 @@ export const B_RULES = [
                 return [hitAt(t, init.index, 'OnInitializedAsync', { found: 'hand-rolls busy and error fields around OnInitializedAsync' })];
             }
             return [];
+        },
+    },
+    {
+        id: 'B8',
+        category: 'B',
+        detects: 'a hand-written component whose [Parameter] names overlap an existing Pk* component by 80% or more (a probable duplicate, #653)',
+        severity: { normal: 'warn', strict: 'warn' },
+        docs: 'docs/superpowers/specs/2026-09-29-duplicate-component-detection-design.md',
+        fixTemplate: 'FIX: {file}:{line} {found}. [B8]',
+        applies: file => isRazor(file) || fileIs(file, ['.cs']),
+        scan(file) {
+            const t = file.text;
+            const decls = [...t.matchAll(B8_PARAM)];
+            const own = [...new Set(decls.map(m => m[1]))];
+            if (own.length < B8_MIN_MATCHED) return [];
+            let best = null;
+            for (const [component, params] of Object.entries(PARAMS_BY_COMPONENT)) {
+                const matched = own.filter(n => params.includes(n)).length;
+                if (matched < B8_MIN_MATCHED) continue;
+                const score = matched / Math.max(own.length, params.length);
+                if (score >= B8_THRESHOLD && (!best || score > best.score)) best = { component, score, matched };
+            }
+            if (!best) return [];
+            const pct = Math.round(best.score * 100);
+            return [hitAt(t, decls[0].index, '[Parameter]', { found: `declares ${own.join(', ')}: a ${pct}% match for ${best.component}'s parameters (${best.matched} shared). Consider using <${best.component}> instead of this component` })];
         },
     },
 ];
