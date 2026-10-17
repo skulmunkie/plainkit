@@ -999,6 +999,14 @@ export const dataDisplayCases = [
         t.eq(b.open, true); t.eq(ev.open, true); t.eq(a.open, false, 'exclusive closed the first'); t.eq(a.part('details').open, false);
     }],
 
+    ['tree: a tree built in a detached tree (template content moved in is not upgraded until it is connected) does not re-queue updates forever', async t => {
+        const el = await t.mount('<pk-tree label="Cats"><pk-tree-item label="Books"></pk-tree-item></pk-tree>'); await t.settle();
+        const loose = document.createElement('pk-tree'); const tpl = document.createElement('template'); tpl.innerHTML = '<pk-tree-item label="A"></pk-tree-item>'; loose.append(tpl.content);
+        let n = 0; const real = loose.requestUpdate; loose.requestUpdate = function () { n++; return real.call(this); };
+        loose.requestUpdate();
+        await new Promise(r => setTimeout(r, 100));
+        t.ok(n < 50, 'the loose tree asked for ' + n + ' updates in 100 ms');
+    }],
     ['tree: roving focus, arrow keys, expand and collapse, selection and aria attributes', async t => {
         const el = await t.mount('<pk-tree label="Cats"><pk-tree-item label="Books"><pk-tree-item label="Green"></pk-tree-item><pk-tree-item label="DC"></pk-tree-item></pk-tree-item><pk-tree-item label="Cards"></pk-tree-item></pk-tree>');
         await t.settle();
