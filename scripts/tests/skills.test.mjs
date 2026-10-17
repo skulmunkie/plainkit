@@ -163,8 +163,8 @@ test('the Blazor skill states the alpha status from the manifest: WebAssembly, m
     const gaps = gen.get('plainkit-blazor/references/known-gaps.md');
     assert.match(skill, /Blazor Server and standalone Blazor WebAssembly are verified/);
     assert.match(gaps, /Standalone Blazor WebAssembly is verified.*Not run: AOT/);
-    // PkTable is hand-written now (the last element without a component), and so is PkDataTable (the wrapper of pk-data-table).
-    assert.ok(src.manifest.skipped.some(s => s.component === 'PkTable' && s.handWritten), 'PkTable is hand-written');
+    // PkTable and PkDataTable are generated from their mappings now (#1473): components, and not in the skipped list.
+    assert.ok(src.razor.PkTable && !src.manifest.skipped.some(s => s.component === 'PkTable'), 'PkTable is a generated component');
     assert.ok(src.manifest.skipped.every(s => s.handWritten), 'every element has a component');
     for (const c of ['PkTable', 'PkDataTable']) assert.ok(skill.includes(`\`${c}\``), c);
     assert.match(gaps, /None: every element has a component/);
@@ -315,7 +315,7 @@ test('razorParams reads every [Parameter], including one whose doc has a remarks
     const dir = path.join(root, 'blazor', 'src', 'PlainKit.Blazor', 'Generated');
     for (const f of fs.readdirSync(dir).filter(n => n.endsWith('.razor'))) {
         const text = read(path.join(dir, f));
-        assert.equal(razorParams(text).length, (text.match(/\[Parameter[\]( ]/g) ?? []).length, `${f}: every [Parameter] is parsed`);
+        assert.equal(razorParams(text).length, (text.match(/\[Parameter[\],( ]/g) ?? []).length, `${f}: every [Parameter] is parsed`);
     }
 });
 

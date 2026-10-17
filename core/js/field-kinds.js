@@ -26,6 +26,8 @@ export function writeValue(el, kind, value) {
     else el.value = kind === 'range' ? (value ?? el.min ?? 0) : (value ?? '');
 }
 
+const AUTOCOMPLETE = ['text', 'password', 'email', 'tel', 'url']; // the kinds whose control takes an autofill token
+
 /** The attributes a spec puts on its control (only the ones that are set): constraints, placeholder, rows, the kind's `type`. */
 export function controlAttrs(spec) {
     const kind = spec.kind ?? 'text', a = {};
@@ -34,7 +36,7 @@ export function controlAttrs(spec) {
     else if (kind === 'select' || isChecked(kind)) set('required', spec.required);
     else if (kind === 'combobox') { set('required', spec.required); set('placeholder', spec.placeholder); set('free', spec.free); }
     else if (kind === 'textarea') { for (const k of ['required', 'minlength', 'maxlength', 'placeholder', 'rows']) set(k, spec[k]); }
-    else { a.type = INPUT_KINDS.includes(kind) ? kind : 'text'; for (const k of ['required', 'min', 'max', 'step', 'minlength', 'maxlength', 'pattern', 'placeholder', 'format', 'decimals', 'currency', 'locale']) set(k, spec[k]); }
+    else { a.type = INPUT_KINDS.includes(kind) ? kind : 'text'; for (const k of ['required', 'min', 'max', 'step', 'minlength', 'maxlength', 'pattern', 'placeholder', 'format', 'decimals', 'currency', 'locale']) set(k, spec[k]); if (AUTOCOMPLETE.includes(kind)) set('autocomplete', spec.autocomplete); }
     return a;
 }
 

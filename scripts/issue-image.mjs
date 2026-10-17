@@ -10,6 +10,7 @@ import os from 'node:os';
 import path from 'node:path';
 import { execFileSync } from 'node:child_process';
 import { fileURLToPath } from 'node:url';
+import { makeTempDir } from '../core/tools/tempdir.mjs';
 
 export const BRANCH = 'issue-images';
 export const REPO = 'skulmunkie/plainkit';
@@ -64,7 +65,7 @@ export const markdown = rel => `![${path.basename(rel, path.extname(rel))}](${ra
 const git = (args, cwd) => execFileSync('git', args, { cwd, encoding: 'utf8', stdio: ['ignore', 'pipe', 'pipe'] });
 
 function publish(file, rel) {
-    const tmp = fs.mkdtempSync(path.join(os.tmpdir(), 'issue-images-'));
+    const tmp = makeTempDir('issue-images-');
     const wt = path.join(tmp, 'wt');
     try {
         git(['fetch', 'origin', BRANCH]);

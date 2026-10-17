@@ -5,9 +5,10 @@ import fs from 'node:fs';
 import os from 'node:os';
 import path from 'node:path';
 import { listElementFolders, existingTierFolders, findElementFolder, elementFile, CORE } from '../tools/element-folders.mjs';
+import { makeTempDir } from '../tools/tempdir.mjs';
 
 const make = layout => {
-    const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'pk-folders-'));
+    const dir = makeTempDir('pk-folders-');
     for (const rel of layout) fs.mkdirSync(path.join(dir, rel), { recursive: true });
     return dir;
 };

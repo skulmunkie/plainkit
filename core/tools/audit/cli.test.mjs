@@ -8,6 +8,7 @@ import os from 'node:os';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { run, parseArgs } from './cli.mjs';
+import { makeTempDir } from '../tempdir.mjs';
 
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..', '..', '..');
 const FIXTURES = path.join(root, 'core', 'tests', 'audit-fixtures');
@@ -16,7 +17,7 @@ const FIXTURES = path.join(root, 'core', 'tests', 'audit-fixtures');
 // a finding's `file` is relative to it), so a baseline/allow-list test can add its own config or baseline file
 // and see plain fixture-relative paths (`index.html`) without ever writing into the real fixtures directory.
 function scratchFixture(name) {
-    const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'plainkit-audit-'));
+    const dir = makeTempDir('plainkit-audit-');
     for (const file of fs.readdirSync(path.join(FIXTURES, name))) {
         fs.copyFileSync(path.join(FIXTURES, name, file), path.join(dir, file));
     }
