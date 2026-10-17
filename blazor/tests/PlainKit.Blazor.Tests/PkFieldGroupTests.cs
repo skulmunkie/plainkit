@@ -63,6 +63,18 @@ public sealed class PkFieldGroupTests : BunitContext, IAsyncLifetime
     }
 
     [Fact]
+    public void AutoComplete_reaches_the_element_under_the_attribute_name_and_is_left_out_when_unset()
+    {
+        var d = Defs(Render([
+            new PkFieldSpec<Order> { Key = "p", Label = "P", Kind = PkFieldKind.Password, AutoComplete = "new-password", Get = _ => "", Set = (_, _) => { } },
+            new PkFieldSpec<Order> { Key = "n", Label = "N", Get = _ => "", Set = (_, _) => { } },
+        ]));
+        Assert.Equal("new-password", d[0].GetProperty("autocomplete").GetString());
+        Assert.False(d[0].TryGetProperty("autoComplete", out _));
+        Assert.True(!d[1].TryGetProperty("autocomplete", out var none) || none.ValueKind == JsonValueKind.Null);
+    }
+
+    [Fact]
     public void The_specs_become_the_elements_fields_and_the_model_its_values()
     {
         var cut = Render(Fields(), new Order { Name = "Acme", Qty = 3, Active = true, Status = "open" });
