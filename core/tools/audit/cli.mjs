@@ -18,6 +18,7 @@ import { findConfig, loadConfig, ConfigError } from './config.mjs';
 import { collectFiles } from './glob.mjs';
 import { formatText, formatJson, formatSarif, formatRuleList, formatExplain } from './format.mjs';
 import { scanIgnores, applyIgnores } from './ignore.mjs';
+import { FIX_IDS, FIXABLE_EXTENSIONS, applyFixes, updateAllowText, formatDiff } from './fix.mjs';
 import { DEFAULT_BASELINE_NAME, loadBaseline, writeBaseline, applyBaseline, BaselineError } from './baseline.mjs';
 
 const SUPPORTED_EXTENSIONS = ['.html', '.htm', '.js', '.mjs', '.jsx', '.ts', '.tsx', '.css', '.razor', '.cshtml', '.cs'];
@@ -37,6 +38,7 @@ export function parseArgs(argv) {
         paths: [], strict: false, format: 'text', rule: null, skip: null, config: null,
         maxWarnings: -1, explain: null, listRules: false, quiet: false, color: true, version: false,
         baseline: null, updateBaseline: false, strictBaseline: false, listSuppressions: false,
+        fix: null, dryRun: false, updateAllow: false,
     };
     const errors = [];
     for (let i = 0; i < argv.length; i++) {
@@ -62,6 +64,9 @@ export function parseArgs(argv) {
             case '--baseline': opts.baseline = next() || null; break;
             case '--update-baseline': opts.updateBaseline = true; break;
             case '--strict-baseline': opts.strictBaseline = true; break;
+            case '--fix': opts.fix = (next() || '').split(',').map(s => s.trim()).filter(Boolean); break;
+            case '--dry-run': opts.dryRun = true; break;
+            case '--update-allow': opts.updateAllow = true; break;
             case '--explain': opts.explain = next(); break;
             case '--list-suppressions': opts.listSuppressions = true; break;
             case '--list-rules': opts.listRules = true; break;
@@ -74,6 +79,9 @@ export function parseArgs(argv) {
         }
     }
     if (opts.updateBaseline && opts.strictBaseline) errors.push('--update-baseline and --strict-baseline are mutually exclusive');
+    for (const id of opts.fix || []) if (!FIX_IDS.includes(id)) errors.push(`--fix must name ${FIX_IDS.join(', ')}, got "${id}"`);
+    if (opts.fix && !opts.fix.length) errors.push(`--fix needs ${FIX_IDS.join(' and/or ')}`);
+    if (opts.dryRun && !opts.fix && !opts.updateAllow) errors.push('--dry-run only previews --fix or --update-allow');
     return { opts, errors };
 }
 
@@ -152,7 +160,7 @@ export async function run(argv, { cwd = process.cwd(), stdout = console.log, std
         if (entry.skipped) { skippedUnsupported.push(entry.rel); continue; }
         const read = readFile(entry);
         if (read.skip) { skippedOther.push(`${entry.rel} (${read.skip})`); continue; }
-        files.push({ path: entry.rel, text: read.text });
+        files.push({ path: entry.rel, abs: entry.abs, text: read.text });
     }
 
     const allRules = getRuleset(strict ? 'consumer-strict' : 'consumer');
@@ -172,6 +180,8 @@ export async function run(argv, { cwd = process.cwd(), stdout = console.log, std
         return 3;
     }
     const seconds = Math.round(Number(process.hrtime.bigint() - start) / 1e8) / 10;
+
+    if (opts.fix || opts.updateAllow) return applyFixCommands({ opts, files, config, raw, cwd, stdout, stderr });
 
     let findings = raw.map(f => {
         const meta = getRuleMeta(f.rule);
@@ -270,6 +280,32 @@ export async function run(argv, { cwd = process.cwd(), stdout = console.log, std
     const overWarnings = opts.maxWarnings >= 0 && warningsCount > opts.maxWarnings;
     const staleBaselineFails = opts.strictBaseline && staleBaseline.length > 0;
     if (errorsCount > 0 || overWarnings || allowIssues.length > 0 || staleBaselineFails || scanned.problems.length > 0) return 1;
+    return 0;
+}
+
+// --fix / --update-allow (design 5.4, #1519): edits only what the named fixes cover; --dry-run prints a diff.
+function applyFixCommands({ opts, files, config, raw, cwd, stdout, stderr }) {
+    const verb = opts.dryRun ? 'would change' : 'changed';
+    const write = (abs, before, after, label) => {
+        if (opts.dryRun) stdout(formatDiff(label, before, after));
+        else fs.writeFileSync(abs, after);
+    };
+    for (const file of files) {
+        if (!opts.fix || !FIXABLE_EXTENSIONS.some(ext => file.path.toLowerCase().endsWith(ext))) continue;
+        const { text, counts } = applyFixes(file.text, opts.fix);
+        if (text === file.text) continue;
+        write(file.abs, file.text, text, file.path);
+        stdout(`plainkit audit: ${verb} ${file.path} (${Object.entries(counts).filter(([, n]) => n).map(([id, n]) => `${id} x${n}`).join(', ')})`);
+    }
+    if (opts.updateAllow) {
+        if (!config.file) { stderr('plainkit audit: --update-allow needs a plainkit.audit.json.'); stderr('FIX: create plainkit.audit.json or pass --config <file>.'); return 2; }
+        const before = fs.readFileSync(config.file, 'utf8');
+        const { text, removed, lowered } = updateAllowText(before, raw.allowReport || []);
+        if (removed || lowered) {
+            write(config.file, before, text, path.relative(cwd, config.file).split(path.sep).join('/'));
+            stdout(`plainkit audit: ${verb} ${path.relative(cwd, config.file)} (${removed} dead allow entr${removed === 1 ? 'y' : 'ies'} removed, ${lowered} count${lowered === 1 ? '' : 's'} lowered)`);
+        }
+    }
     return 0;
 }
 

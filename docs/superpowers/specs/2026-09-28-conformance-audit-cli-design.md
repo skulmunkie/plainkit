@@ -274,7 +274,7 @@ JSON: `{ version, mode: "normal"|"strict", parser: "none"|"acorn", findings: [{ 
 - **Baseline (ratchet):** `--update-baseline` writes `plainkit.audit.baseline.json`: `{ rule, file, fingerprint }` per finding, the fingerprint a hash of rule id + normalised offending text + the file path (not the line number, so moving code does not resurface it). A run fails only for findings not in the baseline; a baseline entry that no longer occurs is reported as "fixed: remove it" (info; `--strict-baseline` makes stale entries fail so the baseline can only shrink). This lets an existing app adopt the audit on day one with CI green and tighten forever. Rules of the config file also hold in CI: the baseline file is committed.
 - Config errors name the file and key, and print a FIX line.
 
-### 5.4 Autofix: none by default
+### 5.4 Autofix: three opt-in fixes (implemented in #1519: `--fix D1-simple,A1-label`, `--update-allow`, `--dry-run`)
 
 `--fix` is **not** shipped in v1. The rules propose replacements, but a `<button>` to `<pk-button>` rewrite changes event wiring, styling and accessibility, and a wrong autofix is worse than a finding. Design of the only safe candidates, for a possible v2, each individually opt-in (`--fix D1-simple`) and previewed with `--fix --dry-run` as a diff:
 
