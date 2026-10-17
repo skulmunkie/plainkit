@@ -30,6 +30,7 @@ import { fileURLToPath } from 'node:url';
 import { JOBS, budgetNote } from './ci-report.mjs';
 import { isGenerated } from './generated.mjs';
 import { planChanged, buildChecks, describePlan, defaultBase, changedSince, gatherContext } from './verify-changed.mjs';
+import { makeTempDir } from '../core/tools/tempdir.mjs';
 
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 const NODE = process.execPath;
@@ -49,7 +50,7 @@ const AUDIT_TEST_ARGS = ['core/tools/audit/*.test.mjs'];
 // and are slower; a later issue can add them once this stage is a required check. `verdict()` in scorecard-sweep.mjs fails on error-severity
 // findings only, so a pre-existing, already-tracked warning (see core/tests/review/scenarios/*.js) does not fail a pull request that never touched it.
 function scorecardCmd() {
-    const out = fs.mkdtempSync(path.join(os.tmpdir(), 'pk-scorecard-ci-'));
+    const out = makeTempDir('pk-scorecard-ci-');
     return [NODE, 'scripts/scorecard-sweep.mjs', '--only', 'quality', '--out', out];
 }
 
@@ -284,7 +285,7 @@ async function releasePr(ctx) {
     if (!ctx.base) return { skip: 'no base branch: pass --base <ref>' };
     const show = git(['show', `${ctx.base}:core/site/scorecard/api.baseline.json`], ctx.root);
     if (show.status !== 0) return { skip: `${ctx.base} has no API baseline` };
-    const baseline = path.join(fs.mkdtempSync(path.join(os.tmpdir(), 'pk-baseline-')), 'base-baseline.json');
+    const baseline = path.join(makeTempDir('pk-baseline-'), 'base-baseline.json');
     fs.writeFileSync(baseline, show.stdout);
     let output = '';
     const step = async args => { const r = await runCmd([NODE, ...args], ctx.root); output += `$ node ${args.join(' ')}\n${r.out}`; return r.code === 0; };
@@ -317,7 +318,7 @@ async function generatedTree(ctx) {
 }
 
 async function packCheck(ctx) {
-    const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'pk-pack-'));
+    const dir = makeTempDir('pk-pack-');
     try {
         // The dotnet check (ordered before this one) already built PlainKit.Blazor in Release; when it passed in this run, pack reuses that build (same output, no second compile).
         const reuse = ctx.passed?.has('dotnet') ? ['--no-build'] : [];

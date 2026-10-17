@@ -8,10 +8,11 @@ import { spawnSync } from 'node:child_process';
 import { SENTINELS } from '../generated.mjs';
 import { shortCircuit } from '../bootstrap.mjs';
 import { sourceHash, writeStamp, clearStamp } from '../bootstrap-stamp.mjs';
+import { makeTempDir } from '../../core/tools/tempdir.mjs';
 
 const git = (cwd, ...args) => assert.equal(spawnSync('git', args, { cwd, encoding: 'utf8' }).status, 0, `git ${args.join(' ')}`);
 function fixture() {
-    const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'pk-stamp-'));
+    const dir = makeTempDir('pk-stamp-');
     git(dir, 'init', '-q');
     fs.mkdirSync(path.join(dir, 'core'), { recursive: true });
     fs.writeFileSync(path.join(dir, 'core', 'a.js'), 'one');
@@ -60,7 +61,7 @@ test('miss: no stamp, force, PK_BOOTSTRAP_FORCE, CI, or not a git checkout', () 
     assert.equal(shortCircuit(dir, { env: { CI: 'true' } }).skip, false, 'CI always does the full bootstrap');
     clearStamp(dir);
     assert.equal(shortCircuit(dir, { env }).skip, false, 'stamp cleared');
-    const plain = fs.mkdtempSync(path.join(os.tmpdir(), 'pk-stamp-nogit-'));
+    const plain = makeTempDir('pk-stamp-nogit-');
     assert.equal(sourceHash(plain), null);
     assert.equal(shortCircuit(plain, { env }).skip, false, 'not a git checkout');
 });

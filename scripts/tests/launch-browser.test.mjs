@@ -6,9 +6,10 @@ import os from 'node:os';
 import path from 'node:path';
 import { EventEmitter } from 'node:events';
 import { launchBrowser } from '../attest-browser.mjs';
+import { makeTempDir } from '../../core/tools/tempdir.mjs';
 
 function setup(failures) {
-    const profile = fs.mkdtempSync(path.join(os.tmpdir(), 'pk-launch-test-'));
+    const profile = makeTempDir('pk-launch-test-');
     const spawned = [], killed = [], profilesAtSpawn = [], pending = [];
     let clock = 0; // a fake clock: the wait and the polls cost no real time, so CPU load cannot change how many polls fit in waitMs
     const spawnFn = () => {

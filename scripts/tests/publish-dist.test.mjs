@@ -7,6 +7,7 @@ import fs from 'node:fs';
 import os from 'node:os';
 import path from 'node:path';
 import { differences, publish, KEEP_FROM_TOOLS } from '../publish-dist.mjs';
+import { makeTempDir } from '../../core/tools/tempdir.mjs';
 
 function makeTree(dir, files) {
     for (const [rel, content] of files) {
@@ -17,7 +18,7 @@ function makeTree(dir, files) {
 }
 
 test('publish() excludes dist/tools/** (the audit CLI) from wwwroot/plainkit', () => {
-    const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'pk-publish-dist-'));
+    const dir = makeTempDir('pk-publish-dist-');
     try {
         const from = path.join(dir, 'from'), to = path.join(dir, 'to');
         makeTree(from, [
@@ -33,7 +34,7 @@ test('publish() excludes dist/tools/** (the audit CLI) from wwwroot/plainkit', (
 });
 
 test('differences() reports nothing missing or extra once tools/ is excluded on both sides', () => {
-    const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'pk-publish-dist-'));
+    const dir = makeTempDir('pk-publish-dist-');
     try {
         const from = path.join(dir, 'from'), to = path.join(dir, 'to');
         makeTree(from, [['plainkit.js', 'x'], ['tools/audit/cli.mjs', 'x']]);
@@ -43,7 +44,7 @@ test('differences() reports nothing missing or extra once tools/ is excluded on 
 });
 
 test('differences() still flags a real gap (a tracked non-tools file missing from the copy)', () => {
-    const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'pk-publish-dist-'));
+    const dir = makeTempDir('pk-publish-dist-');
     try {
         const from = path.join(dir, 'from'), to = path.join(dir, 'to');
         makeTree(from, [['plainkit.js', 'x'], ['plainkit.css', 'x']]);
@@ -53,7 +54,7 @@ test('differences() still flags a real gap (a tracked non-tools file missing fro
 });
 
 test('publish() keeps the one tools file the browser code imports, and every static import of the shipped JavaScript resolves inside the package', () => {
-    const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'pk-publish-dist-'));
+    const dir = makeTempDir('pk-publish-dist-');
     try {
         const from = path.join(dir, 'from'), to = path.join(dir, 'to');
         makeTree(from, [['plainkit.js', 'x'], ['tools/audit/cli.mjs', 'x'], ['tools/audit/scanners/literals.mjs', 'x']]);
