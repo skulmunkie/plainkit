@@ -58,7 +58,7 @@ test('the SDK has no dependencies and no lockfile (a package.json may exist for 
 test('the dist manifest lists every file with a correct SRI hash (that a rebuild is byte-identical to the files on disk is generated-current.test.mjs)', () => {
     const manifest = JSON.parse(read('dist/manifest.json'));
     assert.ok(manifest.files.length > 60);
-    for (const f of manifest.files.slice(0, 40)) assert.equal(f.integrity, 'sha384-' + crypto.createHash('sha384').update(fs.readFileSync(path.join(root, 'dist', f.path))).digest('base64'), f.path);
+    for (const f of manifest.files.slice(0, 40)) assert.equal(f.integrity, 'sha256-' + crypto.createHash('sha256').update(fs.readFileSync(path.join(root, 'dist', f.path))).digest('base64'), f.path);
 });
 
 test('hostile override input cannot pollute a prototype and is validated like PkThemeOverrides', () => {

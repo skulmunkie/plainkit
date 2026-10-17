@@ -121,12 +121,12 @@ test('the manifest is recomputed: every hash matches the bundle, the manifest li
     for (const f of manifest.files) {
         const bytes = Buffer.from(out.get(f.path));
         assert.equal(f.bytes, bytes.length, f.path);
-        assert.equal(f.integrity, 'sha384-' + crypto.createHash('sha384').update(bytes).digest('base64'), f.path);
+        assert.equal(f.integrity, 'sha256-' + crypto.createHash('sha256').update(bytes).digest('base64'), f.path);
     }
     const changed = manifest.files.filter(f => shippedManifest.files.find(s => s.path === f.path)?.integrity !== f.integrity).map(f => f.path);
     assert.ok(changed.includes('plainkit.css') && changed.includes('breakpoints.report.json') && !changed.includes('icons.svg'));
     assert.match(manifest.provenance, /Customised export of Plainkit/);
-    assert.equal(await integrityOf(enc.encode('abc')), 'sha384-' + crypto.createHash('sha384').update('abc').digest('base64'));
+    assert.equal(await integrityOf(enc.encode('abc')), 'sha256-' + crypto.createHash('sha256').update('abc').digest('base64'));
     // the build uses the same function: the shipped manifest text is what manifestText makes of the shipped files
     assert.equal(manifestText({ version: shippedManifest.version, files: shippedManifest.files }).replace(/\n/g, '\r\n'), fs.readFileSync(dist + 'manifest.json', 'utf8'));
 });

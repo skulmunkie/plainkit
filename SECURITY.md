@@ -40,4 +40,4 @@ Out of scope:
 
 The CSP-compatible design (no inline script or style, no third-party requests), the repository scanner (`node core/tools/security.mjs`), the tests under
 `core/tests/` (`security.test.mjs`, `safe-url.test.mjs`, `serve-security.test.mjs`) and `scripts/tests/supply-chain.test.mjs`, dependency updates through Dependabot,
-and a scheduled code scanning workflow. Releases are built by CI from a version tag; the package and the `core/dist` manifest carry SHA-384 hashes.
+and a scheduled code scanning workflow. Releases are built by CI from a version tag; the package and the `core/dist` manifest carry SHA-256 hashes.
