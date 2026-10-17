@@ -47,6 +47,8 @@ export default Base => class extends Base {
         else if (name === 'value' || name === 'multiple') this.$.values = this.value === '' ? [] : this.multiple ? splitValues(this.value) : [this.value];
     }
     updated() {
+        // width: a size token (xs to 2xl: --field-w-*) or a CSS length, set as the host's inline-size; an unknown word leaves it auto.
+        const w = this.width; this.style.inlineSize = w && `var(--field-w-${w},${w})`;
         const s = this.part('control');
         s.multiple = this.multiple;
         if (this.$opts ?? true) {
@@ -56,19 +58,16 @@ export default Base => class extends Base {
                 if ([...this.children].some(c => c.localName === 'option' || c.localName === 'optgroup')) this.warnOnce('options', 'options is set: slotted option/optgroup children are ignored');
                 s.replaceChildren(...buildOptions(this.ownerDocument ?? document, data));
             } else s.replaceChildren(...[...this.children].filter(c => c.localName === 'option' || c.localName === 'optgroup').map(c => c.cloneNode(true)));
-            this.$pushed = false;
         }
         if (!this.$typing) {
             const wanted = this.multiple ? splitValues(this.value) : [this.value];
             if ([...s.options].some(o => wanted.includes(o.value))) for (const o of s.options) o.selected = wanted.includes(o.value);
-            this.$pushed = true;
         }
         this.$typing = false;
-        if (this.value === '' && s.options.length && !this.multiple) { const first = s.options[s.selectedIndex]; if (first) this.$auto = first.value; }
         this.setValidity(s.willValidate ? flagsOf(s.validity) : {}, s.validationMessage, s);
         if (this.multiple) { const fd = new FormData(); for (const v of selectedValues([...s.options])) fd.append(this.name, v); this.setFormValue(fd); } else this.setFormValue(s.value);
     }
-    onReset() { this.value = this.$initial ?? ''; this.$pushed = false; }
-    onRestore(state) { this.value = typeof state === 'string' ? state : this.value; this.$pushed = false; }
+    onReset() { this.value = this.$initial ?? ''; }
+    onRestore(state) { this.value = typeof state === 'string' ? state : this.value; }
     focus(o) { this.part('control').focus(o); }
 };

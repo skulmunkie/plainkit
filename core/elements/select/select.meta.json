@@ -74,6 +74,13 @@
       "description": "Shows the valid state."
     },
     {
+      "name": "width",
+      "type": "string",
+      "default": "",
+      "reflect": false,
+      "description": "A compact width: xs, sm, md, lg, xl or 2xl (4 to 24rem), or a CSS length. Default: fill the column."
+    },
+    {
       "name": "multiple",
       "type": "boolean",
       "default": false,

@@ -429,7 +429,7 @@
 }
 
 /* Form control tokens: control height, field-state colours per theme (each passes 4.5:1 on its theme's input surface), rating star, native control colour scheme. */
-:root { --ctl-h: 2.5rem; }
+:root { --ctl-h: 2.5rem; --field-w-xs: 4rem; --field-w-sm: 6rem; --field-w-md: 8rem; --field-w-lg: 12rem; --field-w-xl: 16rem; --field-w-2xl: 24rem; }
 :root,
 [data-theme="dark"] { color-scheme: dark; --color-critical: #f87171; --color-warning: #fbbf24; --color-positive: #4ade80; --field-error: var(--color-notice-error); --field-warn: var(--color-warning); --field-ok: var(--color-positive); --rating-on: var(--field-warn); --field-muted: color-mix(in srgb, var(--color-text) 72%, var(--color-input)); }
 [data-theme="light"] { color-scheme: light; --color-critical: #b91c1c; --color-warning: #92400e; --color-positive: #15803d; --field-error: var(--color-critical); --color-notice-error: var(--field-error); --field-warn: var(--color-warning); --field-ok: var(--color-positive); --rating-on: var(--field-warn); --field-muted: color-mix(in srgb, var(--color-text) 72%, var(--color-input)); }
