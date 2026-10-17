@@ -47,8 +47,8 @@ export default Base => class extends Base {
         else if (name === 'value' || name === 'multiple') this.$.values = this.value === '' ? [] : this.multiple ? splitValues(this.value) : [this.value];
     }
     updated() {
-        // width: a size token (xs to 2xl: --field-w-*) or a CSS length, set as the host's inline-size; an unknown word leaves it auto.
-        const w = this.width; this.style.inlineSize = w && `var(--field-w-${w},${w})`;
+        // width: xs to 2xl (4 to 24rem) or a CSS length, set as the host's inline-size; an unknown word is ignored by the browser.
+        const w = this.width, r = { xs: 4, sm: 6, md: 8, lg: 12, xl: 16, '2xl': 24 }[w]; this.style.inlineSize = r ? r + 'rem' : w;
         const s = this.part('control');
         s.multiple = this.multiple;
         if (this.$opts ?? true) {
