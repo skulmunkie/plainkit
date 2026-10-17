@@ -688,6 +688,28 @@ test('the real PkDataTable keeps its typed surface: required Load, Columns and I
     assert.match(razor, /handlers\["onpk-row-click"\]/);
 });
 
+test('the real PkTable is generated (#1473): typed surface, raw mode, row slots, handlers and the rebuild cache', () => {
+    const razor = real.files.get('PkTable.razor');
+    assert.equal(real.files.has('PkTable.Extra.cs'), false);
+    assert.match(razor, /@typeparam TItem/);
+    assert.match(razor, /@inherits PkTableBase/);
+    assert.match(razor, /\[Parameter\] public IReadOnlyList<TItem>\? Items \{ get; set; \}/);
+    assert.match(razor, /\[Parameter\] public RenderFragment<TItem>\? DetailTemplate \{ get; set; \}/);
+    assert.match(razor, /\[Parameter\] public EventCallback<PkTableCellEditArgs<TItem>> OnCellEdit \{ get; set; \}/);
+    assert.match(razor, /\[Parameter\] public EventCallback<IReadOnlyList<string>\?> ExpandedChanged \{ get; set; \}/);
+    assert.match(razor, /rows="@_rows"/);
+    assert.match(razor, /row-key="id"/);
+    assert.match(razor, /data-pk-ranges/);
+    assert.match(razor, /<pk-cluster slot="toolbar">@ToolbarContent<\/pk-cluster>/);
+    assert.match(razor, /slot="@\(\$"cell-\{row\.Id\}-\{column\.Key\}"\)"/);
+    assert.match(razor, /slot="@\(\$"detail-\{row\.Id\}"\)"/);
+    assert.match(razor, /<tbody>@ChildContent<\/tbody>/);
+    assert.match(razor, /if \(OnNavigate\.HasDelegate\) handlers\["onpk-navigate"\]/);
+    for (const ev of ['sort', 'filter', 'select', 'select-all', 'row-click', 'row-expand', 'cell-edit']) assert.match(razor, new RegExp(`handlers\\["onpk-${ev}"\\]`), ev);
+    assert.match(razor, /_builtIdOf == IdOf && SameColumns\(columns\)/);
+    assert.match(razor, /internal int RebuildCount/);
+});
+
 test('"extra" on a component that is not hand-written is an error: it is generated whole', () => {
     assert.throws(() => generate(api, { demo: extraMapping }, new Set(), new Set(), new Map()), /extra.*exist by hand/);
 });
