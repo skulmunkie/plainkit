@@ -43,7 +43,6 @@ relative paths, so the folder can be served under any prefix (`/sdk/<version>/`)
 | `samples/templates/<id>/`, `samples/patterns/<id>/` | Full-page templates and composed patterns, each in its own folder with `.html`, `.meta.json` (and `.js`: a template's page script, a pattern's optional `mount(root)` script) |
 | `site/` | The site: `site.css`, `app.config.js` and the app modules in `modules/` (gallery, theme, scorecard, files, guides, ...), opened through `app.html`; `gallery/` also holds the embed, preview and frame hosts and `guides/content/*.md` are the guides |
 | `app.html`, `app.js` | The entry of the site as one `mountApp` app (#355): the shell, router and modules (`site/modules/`, `site/app.config.js`); the old per-page entries redirect to it |
-| `site2/` | The Site V2 / strict-module-mode rebuild target (`docs/superpowers/specs/2026-09-28-site-v2-strict-modules-design.md`, tracker #346); empty until the design's open questions are answered. `site/` (above) is the live Gallery App and is not touched by this work until cutover |
 | `STANDARDS.md` | The rules: naming, tokens, modules, the dist pattern, CSP, and keeping SDK and Blazor in step |
 | `HANDOFF.md` | State of the tool-module work: what is built, what is left, the gotchas |
 | `modules/<tool>/` | The tool modules (`mountCodeExplorer`, ...): source of `dist/modules/<tool>/` (their own unit, see "Tool modules"); the site pages are thin hosts on them |
