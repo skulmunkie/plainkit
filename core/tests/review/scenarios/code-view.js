@@ -16,8 +16,9 @@ beta();
 gamma();
 delta();</pk-code-view>
 </div>
+<div id="hbox" class="rv-bounded u-mt-1r"><pk-code-view id="h" fill header label="src/Orders/OrderService.cs" language="C#" highlight="3"><pk-badge slot="header-start">read-only</pk-badge><pk-button slot="actions" size="mini" variant="ghost">Outline</pk-button><pk-button slot="actions" size="mini" variant="ghost">Usages of Total</pk-button>${LINES}</pk-code-view></div>
 <div id="box" class="rv-bounded u-mt-1r"><pk-code-view id="f" fill label="fill.js" max-height="4rem">${LINES}</pk-code-view></div>`,
-    steps: [{ shot: 'highlight' }, { scroll: '#f >>> [part=body]', to: 400 }, { shot: 'fill-scrolled' }],
+    steps: [{ shot: 'highlight' }, { scroll: '#f >>> [part=body]', to: 400 }, { shot: 'fill-scrolled' }, { scroll: '#h >>> [part=body]', to: 300 }, { shot: 'header' }],
     expect(t) {
         t.visible(BODY, 'the scrolling body'); t.visible(HL, 'the highlighted line');
         t.ok(t.metric(BODY, 'scrollTop') > 0, 'the highlighted line was not scrolled into view: the body is still at the top');
@@ -33,6 +34,11 @@ delta();</pk-code-view>
         if (box && host) t.ok(Math.abs(host.height - box.height) <= 2 + 2, `the fill view (height ${Math.round(host.height)}) does not take its container's height (${Math.round(box.height)})`);
         t.ok(t.metric('#f >>> [part=body]', 'scrollHeight') > t.metric('#f >>> [part=body]', 'clientHeight') + 1, 'the fill view body does not scroll: the lines are not taller than the view');
         t.ok(t.metric('#box', 'scrollHeight') <= t.metric('#box', 'clientHeight') + 1, 'the container scrolls: the fill view grew past it');
+        // Header (#1523): the title, language, count and both slots sit in one bar inside the host, which does not overflow.
+        t.visible('#h >>> .header', 'the header'); t.visible('#h >>> .count', 'the line count'); t.visible('#h [slot=actions]', 'an action');
+        t.within('#h [slot=actions]', '#h >>> .header'); t.within('#h [slot=header-start]', '#h >>> .header');
+        t.ok(t.metric('#h >>> .header', 'scrollWidth') <= t.metric('#h >>> .header', 'clientWidth') + 1, 'the header overflows sideways');
+        t.ok(t.text('#h >>> .count') === '80 lines', 'the line count is not derived from the lines');
         if (t.shot === 'fill-scrolled') t.ok(t.metric('#f >>> [part=body]', 'scrollTop') > 0, 'the fill view body did not scroll');
     },
 };
