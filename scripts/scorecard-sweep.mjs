@@ -28,6 +28,7 @@ import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { ensureGenerated } from './generated.mjs';
 import { findChrome, chromeArgs, launchBrowser } from './attest-browser.mjs';
+import { makeTempDir, removeTreeAsync } from '../core/tools/tempdir.mjs';
 
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 const DEFAULT_WIDTHS = [320, 375, 640, 1024, 1280, 1920];
@@ -243,10 +244,7 @@ function killTree(child) {
     if (process.platform === 'win32') spawnSync('taskkill', ['/pid', String(child.pid), '/T', '/F'], { stdio: 'ignore' });
     else { try { process.kill(-child.pid, 'SIGKILL'); } catch { child.kill('SIGKILL'); } }
 }
-async function removeDir(dir) {
-    for (let i = 0; i < 20; i++) { try { fs.rmSync(dir, { recursive: true, force: true }); return true; } catch { await sleep(500); } }
-    return false;
-}
+const removeDir = dir => removeTreeAsync(dir);
 const log = (...a) => console.log(`[${new Date().toISOString().slice(11, 19)}]`, ...a);
 
 // Runs one in-page expression that takes minutes and prints its progress every 15 s.
@@ -359,7 +357,7 @@ async function main() {
 
     ensureGenerated();
     const t0 = Date.now(); const deadline = t0 + options.timeout * 1000;
-    const profile = fs.mkdtempSync(path.join(os.tmpdir(), 'pk-scorecard-'));
+    const profile = makeTempDir('pk-scorecard-');
     const debugPort = options.port + 1000;
     let server = null, browser = null, cdp = null, code = 2;
     const result = {}; const timings = {};

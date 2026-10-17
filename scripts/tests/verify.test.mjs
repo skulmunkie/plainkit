@@ -8,6 +8,7 @@ import { fileURLToPath } from 'node:url';
 import { CHECKS, GROUPS, parseArgs, selectChecks, fixTable, withFixTable, TABLE_START, TABLE_END, usefulLines, failedTests, failureSummary, formatResult, failuresOf, resolveBase, runChecks } from '../verify.mjs';
 import os from 'node:os';
 import { spawnSync } from 'node:child_process';
+import { makeTempDir } from '../../core/tools/tempdir.mjs';
 
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..', '..');
 const ids = list => list.map(c => c.id);
@@ -128,7 +129,7 @@ test('runChecks records the passed checks on the context', async () => {
 
 // #780: a failing test is never hidden. A fixture of real runner output: several failures in several files, stderr noise from passing tests, and a missing esbuild.
 function runFixture() {
-    const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'pk-verify-fixture-'));
+    const dir = makeTempDir('pk-verify-fixture-');
     fs.writeFileSync(path.join(dir, 'a.test.mjs'), "import test from 'node:test';\nimport assert from 'node:assert/strict';\ntest('passes but is noisy', () => { console.error('[pk:app] page threw Error: boom'); });\ntest('first real failure', () => assert.equal(1, 2));\ntest('second real failure', () => { throw new Error('nope'); });\n");
     fs.writeFileSync(path.join(dir, 'b.test.mjs'), "import test from 'node:test';\nimport assert from 'node:assert/strict';\ntest('a failure in another file', () => assert.ok(false, 'esbuild cannot be resolved'));\ntest('fine', () => {});\n");
     const r = spawnSync(process.execPath, ['--test', '--test-reporter=spec', path.join(dir, 'a.test.mjs'), path.join(dir, 'b.test.mjs')], { encoding: 'utf8', env: Object.fromEntries(Object.entries(process.env).filter(([k]) => k !== 'NODE_TEST_CONTEXT')) });
@@ -157,7 +158,7 @@ test('failureSummary shows all failing tests, no noise from passing ones, and on
 });
 
 test('failedTests also reads TAP output (Node 22 default reporter), leaf failures only, no noise', () => {
-    const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'pk-verify-tap-'));
+    const dir = makeTempDir('pk-verify-tap-');
     fs.writeFileSync(path.join(dir, 'a.test.mjs'), "import test from 'node:test';\nimport assert from 'node:assert/strict';\ntest('noisy pass', () => { console.error('[pk:app] threw Error: boom'); });\ntest('suite', async t => { await t.test('inner fail', () => assert.equal(1, 2)); });\ntest('top fail', () => { throw new Error('x'); });\n");
     const r = spawnSync(process.execPath, ['--test', '--test-reporter=tap', path.join(dir, 'a.test.mjs')], { encoding: 'utf8', env: Object.fromEntries(Object.entries(process.env).filter(([k]) => k !== 'NODE_TEST_CONTEXT')) });
     const got = failedTests(r.stdout + r.stderr).map(t => `${path.basename(t.file)}: ${t.name}`).sort();

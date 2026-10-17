@@ -8,6 +8,7 @@ import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { loadGuides, guidesModule } from '../tools/guides.mjs';
 import { htmlToText, indexWords, guideWords, searchGuides } from '../site/guides/guides-search.js';
+import { makeTempDir } from '../tools/tempdir.mjs';
 
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 const read = f => fs.readFileSync(path.join(root, f), 'utf8').replace(/\r\n/g, '\n');
@@ -15,7 +16,7 @@ const front = (title, order, summary = 'A summary.') => `---\ntitle: ${title}\no
 
 /** A folder of guides: { 'a.md': text, 'img/x.png': 'bytes' }; the callback gets its path and it is removed afterwards. */
 function withGuides(files, fn) {
-    const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'pk-guides-'));
+    const dir = makeTempDir('pk-guides-');
     try {
         for (const [name, text] of Object.entries(files)) { fs.mkdirSync(path.dirname(path.join(dir, name)), { recursive: true }); fs.writeFileSync(path.join(dir, name), text); }
         return fn(dir);

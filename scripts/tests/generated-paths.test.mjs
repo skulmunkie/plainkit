@@ -9,6 +9,7 @@ import path from 'node:path';
 import { spawnSync } from 'node:child_process';
 import { GENERATED_PATTERNS, SENTINELS, BOOTSTRAP_MESSAGE, isGenerated, missingGenerated, requireGenerated, generatedCurrent, root } from '../generated.mjs';
 import { STEPS } from '../bootstrap.mjs';
+import { makeTempDir } from '../../core/tools/tempdir.mjs';
 
 const git = args => spawnSync('git', args, { cwd: root, encoding: 'utf8', maxBuffer: 1 << 28 });
 const inGit = git(['rev-parse', '--is-inside-work-tree']).status === 0;
@@ -47,7 +48,7 @@ test('the bootstrap runs build, audit data, generate-blazor, build-skills, build
 });
 
 test('a missing generated file is reported with the one instruction, from a tree that has none', () => {
-    const empty = fs.mkdtempSync(path.join(os.tmpdir(), 'pk-gen-'));
+    const empty = makeTempDir('pk-gen-');
     try {
         assert.deepEqual(missingGenerated(empty), SENTINELS);
         assert.throws(() => requireGenerated(empty), e => e.message.startsWith(BOOTSTRAP_MESSAGE) && /node scripts\/bootstrap\.mjs/.test(e.message));
