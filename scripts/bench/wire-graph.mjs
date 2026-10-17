@@ -18,7 +18,7 @@ export function pageGraph(html, pagePath) {
     const add = url => { const b = !files.has(url) && read(url); if (b) { files.set(url, b); if (url.endsWith('.js')) queue.push(url); } };
     for (const m of html.matchAll(/<link[^>]+href="([^"]+)"/g)) add(m[1]);
     for (const m of html.matchAll(/from '([^']+)'/g)) add(m[1]);
-    add(REGISTRY);
+    // The shipped loader finds modules by name and never fetches the registry (#1502), so it is read here to resolve tags but is not a request of the page.
     const registry = Object.fromEntries(read(REGISTRY).toString().match(/fromEntries\('([^']*)'/)[1].split(' ').map(n => [`pk-${n}`, `./${n}.js`])); // the registry lists the names once (tools/build.mjs)
     const tags = new Set([...html.matchAll(/<(pk-[\w-]+)/g)].map(m => m[1]));
     const loaded = new Set();

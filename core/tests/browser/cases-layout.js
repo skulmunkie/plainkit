@@ -225,6 +225,20 @@ export const layoutCases = [
         size(el, rem(60)); await settle(); t.ok(shown(a) && shown(b) && shown(c) && !b.hasAttribute('data-pk-section-hidden'), 'widening shows everything again');
     }],
 
+    ['detail-layout: data-pk-section-order sorts the tab strip across main and sidebar, data-pk-section-count is the badge and both update live (#1471)', async t => {
+        const el = await t.mount('<pk-detail-layout><pk-card id="a" heading="A" data-pk-section="details" data-pk-section-order="1">a</pk-card><pk-card id="b" heading="B" data-pk-section="notes" data-pk-section-order="3">b</pk-card><div slot="sidebar"><pk-card id="c" heading="C" data-pk-section="history" data-pk-section-order="2" data-pk-section-count="7">c</pk-card></div></pk-detail-layout>');
+        const settle = async () => { await t.settle(); await new Promise(r => requestAnimationFrame(() => setTimeout(r, 50))); };
+        const tabs = () => [...el.part('tabs').querySelectorAll('pk-tab')];
+        size(el, rem(30)); await settle();
+        t.eq(tabs().map(x => x.value).join(), 'details,history,notes', 'order interleaves the sidebar section');
+        t.eq(tabs()[1].getAttribute('count'), '7', 'count reaches the tab'); t.ok(!tabs()[0].hasAttribute('count'), 'no count, no badge');
+        t.ok(/7/.test(tabs()[1].shadowRoot?.textContent || tabs()[1].textContent || ''), 'badge text rendered');
+        el.querySelector('#c').setAttribute('data-pk-section-count', '9'); el.querySelector('#c').setAttribute('data-pk-section-order', '5'); await settle();
+        t.eq(tabs().map(x => x.value).join(), 'details,notes,history', 'a changed order re-sorts live'); t.eq(tabs()[2].getAttribute('count'), '9', 'a changed count updates live');
+        el.querySelectorAll('[data-pk-section-order],[data-pk-section-count]').forEach(x => { x.removeAttribute('data-pk-section-order'); x.removeAttribute('data-pk-section-count'); }); await settle();
+        t.eq(tabs().map(x => x.value).join(), 'details,notes,history', 'absent attributes: document order, main then sidebar'); t.ok(tabs().every(x => !x.hasAttribute('count')), 'no badges');
+    }],
+
     ['detail-layout: tabs-from=always shows the strip and one section at a time in the two-column layout; tabs-from=phone shows every section on a wide viewport (#342)', async t => {
         const el = await t.mount('<pk-detail-layout tabs-from="always"><pk-card id="a" heading="A" data-pk-section="details">a</pk-card><pk-card id="b" heading="B" data-pk-section="pricing">b</pk-card><div slot="sidebar"><pk-card id="c" heading="C" data-pk-section="pricing">c</pk-card></div></pk-detail-layout>');
         const shown = id => getComputedStyle(el.querySelector('#' + id)).display !== 'none';

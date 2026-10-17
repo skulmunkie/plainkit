@@ -7,6 +7,7 @@ import path from 'node:path';
 import { spawnSync } from 'node:child_process';
 import { fileURLToPath } from 'node:url';
 import { parseFragment, checkFragments, isDocsOnly, checkPr, classifyLegacy, splitBullets, compileChangelog, requiresCrlf, slugify, run, FRAGMENT_NAME } from '../changelog.mjs';
+import { makeTempDir } from '../../core/tools/tempdir.mjs';
 
 const script = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..', 'changelog.mjs');
 
@@ -145,7 +146,7 @@ Intro.
 });
 
 function tmpRepo(changelog, crlf = false) {
-    const root = fs.mkdtempSync(path.join(os.tmpdir(), 'pk-changelog-'));
+    const root = makeTempDir('pk-changelog-');
     fs.mkdirSync(path.join(root, 'changelog', 'unreleased'), { recursive: true });
     fs.writeFileSync(path.join(root, 'changelog', 'unreleased', '.gitkeep'), '');
     fs.writeFileSync(path.join(root, 'CHANGELOG.md'), crlf ? changelog.replace(/\n/g, '\r\n') : changelog);

@@ -8,6 +8,7 @@ import { ensureStyles, styleUrls, loadJson, runtimeUrl } from '../js/mount-suppo
 import { collectSnapshot, collectFileList, symbolsOf } from '../tools/snapshot.mjs';
 import { SnapshotProvider } from '../modules/code-explorer/providers.js';
 import { mountCodeExplorer } from '../modules/code-explorer/code-explorer.js';
+import { makeTempDir } from '../tools/tempdir.mjs';
 
 // A document just big enough for the mount code: links load the moment they are appended.
 function fakeDoc(existing = []) {
@@ -61,7 +62,7 @@ test('symbolsOf lists top-level JS declarations and CSS class rules, nothing els
 });
 
 test('collectSnapshot reads a folder into the explorer format and the explorer reads it back', async () => {
-    const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'snap-'));
+    const dir = makeTempDir('snap-');
     try {
         fs.mkdirSync(path.join(dir, 'src')); fs.mkdirSync(path.join(dir, 'node_modules'));
         fs.writeFileSync(path.join(dir, 'src', 'app.js'), 'export function run() {\r\n  return 1;\r\n}\r\n');
@@ -79,7 +80,7 @@ test('collectSnapshot reads a folder into the explorer format and the explorer r
 });
 
 test('collectFileList reads the same folder and filter as collectSnapshot but carries no content, just path, language and line count', async () => {
-    const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'snap-'));
+    const dir = makeTempDir('snap-');
     try {
         fs.mkdirSync(path.join(dir, 'src')); fs.mkdirSync(path.join(dir, 'node_modules'));
         fs.writeFileSync(path.join(dir, 'src', 'app.js'), 'export function run() {\r\n  return 1;\r\n}\r\n');

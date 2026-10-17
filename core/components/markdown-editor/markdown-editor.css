@@ -1,0 +1,35 @@
+/* pk-markdown-editor: a pk-textarea (the Markdown is the value) under a Write / Preview tab strip and a formatting toolbar; layout="split" puts the preview beside it when wide. */
+:host { display: block; inline-size: 100%; container-type: inline-size; min-inline-size: 0; --_bd: var(--pk-control-border, var(--color-input-border)); }
+:host([hidden]) { display: none; }
+[part="head"] { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: var(--space-1) var(--space-3); min-inline-size: 0; }
+[part="tabs"] { min-inline-size: 0; }
+[part="bar"] { container-type: normal; flex: 0 1 auto; inline-size: auto; margin-inline-start: auto; min-inline-size: 0; --pk-toolbar-margin: 0; }
+[part="commands"] { margin-inline-start: auto; display: flex; align-items: center; gap: var(--space-1); }
+[part="commands"] pk-button { min-inline-size: var(--ctl-h); min-block-size: var(--ctl-h); }
+pk-button[data-cmd="bold"] { font-weight: 700; }
+pk-button[data-cmd="italic"] { font-style: italic; }
+:host([disabled]) [part="commands"] { opacity: 0.55; }
+[part="linkbar"] { display: flex; flex-wrap: wrap; align-items: center; gap: var(--space-2); margin-block-start: var(--space-2); }
+[part="linkbar"][hidden] { display: none; }
+[part="linkbar"] pk-input { flex: 1 1 14rem; min-inline-size: 0; }
+[part="error"] { margin: var(--space-1) 0 0; color: var(--field-error); font-size: var(--text-md); }
+[part="panes"] { display: grid; grid-template-columns: minmax(0, 1fr); margin-block-start: var(--space-2); }
+[part="write"] { min-inline-size: 0; }
+[part="control"] { display: block; }
+[part="preview"] { min-inline-size: 0; min-block-size: calc(var(--ctl-h) * 1.6); padding: var(--space-2) var(--space-3); overflow: auto; overflow-wrap: anywhere; border: 1px solid var(--_bd); border-radius: var(--pk-control-radius, var(--radius-sm)); background: var(--pk-control-bg, var(--color-input)); }
+[part="preview"]:focus-visible { outline: var(--focus-ring); outline-offset: 2px; }
+[part="preview"] > :first-child { margin-block-start: 0; }
+[part="preview"] > :last-child { margin-block-end: 0; }
+[part="preview"] :is(h1, h2, h3) { margin-block: var(--space-3) var(--space-1); line-height: 1.25; }
+[part="preview"] h1 { font-size: var(--text-xl); } [part="preview"] h2 { font-size: var(--text-lg); } [part="preview"] h3 { font-size: var(--text-read); }
+[part="preview"] :is(p, ul, ol, pre, blockquote) { margin-block: 0 var(--space-2); }
+[part="preview"] :is(ul, ol) { padding-inline-start: var(--space-5); }
+[part="preview"] blockquote { padding-inline-start: var(--space-3); border-inline-start: 3px solid var(--color-border); color: var(--color-muted); }
+[part="preview"] code { font-size: 0.9em; background: var(--color-surface-alt); border-radius: var(--radius-sm); padding-inline: var(--space-1); }
+[part="preview"] pre { overflow: auto; padding: var(--space-2) var(--space-3); background: var(--color-surface-alt); border-radius: var(--radius-sm); }
+[part="preview"] pre code { padding: 0; background: none; }
+[part="preview"] a { color: var(--color-link); } [part="preview"] a:hover { color: var(--color-link-hover); }
+/* split: write and preview side by side while the container is wide; narrower, the tabs return (the element sets data-split) */
+:host([data-split]) [part="tabs"] { display: none; }
+:host([data-split]) [part="panes"] { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: var(--space-3); }
+:host([data-split]) [part="preview"] { contain: size; }

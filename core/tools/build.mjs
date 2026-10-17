@@ -189,7 +189,7 @@ ${page}`);
     w('dist/plainkit.min.css', minifyCssReal(page) + '\n');
     for (const el of elements) w(`dist/elements/${el.name}.js`, elementModule(el, { coreImport: '../js/element.js', minifyCss: true }));
     // Every element's module is ./<tag without pk->.js, so the shipped registry lists the names once and builds the same { tag: module } object (about 400 bytes gzip lighter, on every page).
-    w('dist/elements/registry.js', `export default Object.fromEntries('${elements.map(e => { if (e.meta.tag !== `pk-${e.name}`) throw new Error(`${e.meta.tag}: the dist registry needs the module name to be the tag without pk-`); return e.name; }).join(' ')}'.split(' ').map(n => ['pk-' + n, './' + n + '.js']));\n`);
+    w('dist/elements/registry.js', `export default Object.fromEntries('${elements.map(e => { if (e.meta.tag !== `pk-${e.name}`) throw new Error(`${e.meta.tag}: the dist registry needs the module name to be the tag without pk-`); return e.name; }).join(' ')}'.split(' ').map(n=>['pk-'+n,'./'+n+'.js']))`);
     for (const [name, text] of Object.entries(allManifests(elements.map(e => e.meta)))) w(`dist/${name}`, text);
     w('dist/elements/api.json', JSON.stringify(elements.map(({ meta: { examples, ...rest } }) => rest)) + '\n'); // the API every tool reads (layout builder and console fetch it at runtime), without the usage snippets
     w('dist/elements/api.full.json', JSON.stringify(elements.map(e => e.meta)) + '\n'); // api.json plus `examples`: the package leaves it out; Pages, the release zip and the skills generator use it (#1253)
@@ -206,11 +206,13 @@ export const PK_VERSION = '${version}';
     // text (single quotes, spaces) to check every place agrees on the release version. It is four lines; minifying it saves a few bytes and
     // breaks that tooling for no real benefit.
     w('dist/js/version.js', versionModule.slice(versionModule.indexOf('\n') + 1)); // the shipped copy drops the comment line: it is request weight on every page
+    // The shipped loader finds a module by name instead of fetching the registry (#1502): flip its marker, and fail if the source stopped carrying it.
+    const distSource = (f, code) => { if (f !== 'loader.js') return code; if (!code.includes('/*dist*/ false')) throw new Error('js/loader.js lost its /*dist*/ false marker'); return code.replace('/*dist*/ false', 'true'); };
     for (const f of fs.readdirSync(path.join(root, 'js'), { recursive: true })) {
         const src = path.join(root, 'js', f);
         // js/code-explorer/*.js only re-export modules/code-explorer for the old import path: a runtime file must not import from the modules unit, so they stay out of dist.
         // version.js keeps its own unminified write above (versioning.mjs and the Blazor VersionTests read its exact text).
-        if (fs.statSync(src).isFile() && f.endsWith('.js') && !/^code-explorer[\\/]/.test(f) && f !== 'version.js') w(`dist/js/${f.replace(/\\/g, '/')}`, minifyJs(read(src).replace("'../site/gallery/embed.html'", "'../gallery/embed.html'"))); // in dist the gallery sits next to js/, not under site/
+        if (fs.statSync(src).isFile() && f.endsWith('.js') && !/^code-explorer[\\/]/.test(f) && f !== 'version.js') w(`dist/js/${f.replace(/\\/g, '/')}`, minifyJs(distSource(f, read(src)).replace("'../site/gallery/embed.html'", "'../gallery/embed.html'"))); // in dist the gallery sits next to js/, not under site/
     }
     w('dist/icons.svg', read(path.join(root, 'icons.svg')));
     // The conformance-audit CLI (core/package.json's `bin`, issue #629) and the pure strict-module engine it is

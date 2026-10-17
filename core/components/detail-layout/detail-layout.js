@@ -4,6 +4,7 @@ import { paramGet, paramKeep } from '../../js/tab-param.js';
 // Sticky sidebar: measure it so a sidebar taller than the viewport docks by its bottom edge instead of its top (issue 281).
 // Phone tabs (issue 272): elements carrying data-pk-section are grouped into tabs when the layout has collapsed to one column and names two or more sections.
 // tabsFrom (issue 342) moves that point: 'collapse' (default, the container query), 'phone' or 'tablet' (the viewport at or below it), or 'always' (the two-column layout keeps its tabs).
+const SECTION_ATTRS = ['data-pk-section', 'data-pk-section-label', 'data-pk-section-order', 'data-pk-section-count'];
 export default Base => class extends Base {
     connected() {
         const side = this.part('sidebar');
@@ -19,7 +20,7 @@ export default Base => class extends Base {
             this.$ro.observe(side); this.$ro.observe(this);
         }
         this.$mo ||= new MutationObserver(() => this.sync());
-        this.$mo.observe(this, { childList: true, subtree: true, attributes: true, attributeFilter: ['data-pk-section', 'data-pk-section-label'] });
+        this.$mo.observe(this, { childList: true, subtree: true, attributes: true, attributeFilter: SECTION_ATTRS });
         this.watch_();
         this.sync();
     }
@@ -44,12 +45,14 @@ export default Base => class extends Base {
         const p = this.parentElement;
         if (!this.sectionsAbove || !p) return;
         this.$mo.observe(p, { childList: true });
-        for (let e = this.previousElementSibling; e; e = e.previousElementSibling) this.$mo.observe(e, { attributes: true, attributeFilter: ['data-pk-section', 'data-pk-section-label'] });
+        for (let e = this.previousElementSibling; e; e = e.previousElementSibling) this.$mo.observe(e, { attributes: true, attributeFilter: SECTION_ATTRS });
     }
     sync() {
         this.watch_();
         const cards = [...this.above_(), ...this.querySelectorAll('[data-pk-section]')];
-        const names = [...new Set(cards.map(c => c.dataset.pkSection))];
+        const first = (n, k) => cards.find(c => c.dataset.pkSection === n && c.dataset[k] !== undefined)?.dataset[k];
+        const rank = n => { const v = parseFloat(first(n, 'pkSectionOrder')); return Number.isFinite(v) ? v : Infinity; }; // data-pk-section-order: ascending, stable; sections without one keep document order after the ordered ones
+        const names = [...new Set(cards.map(c => c.dataset.pkSection))].sort((x, y) => rank(x) === rank(y) ? 0 : rank(x) < rank(y) ? -1 : 1);
         const tabs = this.part('tabs'), next = this.part('next');
         const on = names.length > 1;
         tabs.hidden = !on || this.hideTabs; // hideTabs (issue 1241): the strip is the host's (a pk-page-header tabs-from), so the layout draws none but still shows one section at a time
@@ -61,10 +64,10 @@ export default Base => class extends Base {
         if (on && this.tabParam && this.$last === undefined) { const want = paramGet(this.ownerDocument.defaultView, this.tabParam); if (names.includes(want)) this.section = want; }
         const active = this.$active = names.includes(this.section) ? this.section : names[0];
         if (on && this.tabParam) this.keep_(active);
-        const key = names.map(n => n + '\n' + (cards.find(c => c.dataset.pkSection === n).dataset.pkSectionLabel || '')).join('\r');
+        const key = names.map(n => n + '\n' + (cards.find(c => c.dataset.pkSection === n).dataset.pkSectionLabel || '') + '\n' + (first(n, 'pkSectionCount') ?? '')).join('\r');
         if (on && tabs.$key !== key) {
             tabs.$key = key;
-            tabs.replaceChildren(...names.map(n => { const t = document.createElement('pk-tab'); t.value = n; t.textContent = cards.find(c => c.dataset.pkSection === n).dataset.pkSectionLabel || n[0].toUpperCase() + n.slice(1); return t; }));
+            tabs.replaceChildren(...names.map(n => { const t = document.createElement('pk-tab'); t.value = n; t.textContent = cards.find(c => c.dataset.pkSection === n).dataset.pkSectionLabel || n[0].toUpperCase() + n.slice(1); const k = first(n, 'pkSectionCount'); if (k !== undefined && k !== '') t.setAttribute('count', k); return t; }));
             loadElements(tabs);
         }
         if (on) tabs.value = active;

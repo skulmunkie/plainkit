@@ -7,6 +7,7 @@ import fs from 'node:fs';
 import os from 'node:os';
 import path from 'node:path';
 import { BENIGN, MAIN, onPhone, waitText } from './blazor-browser-lab-cases.mjs';
+import { makeTempDir } from '../core/tools/tempdir.mjs';
 
 const BODY = `window.__deep.text(document.body)`;
 const PNG = Buffer.from('iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mP8z8BQDwAEhQGAhKmMIQAAAABJRU5ErkJggg==', 'base64'); // a 1 x 1 PNG
@@ -19,7 +20,7 @@ const shown = (ctx, id, text) => ctx.waitFor(`document.getElementById(${JSON.str
 
 /** Writes `files` ({ name: Buffer | string }) into a fresh temporary folder, runs `fn(paths)`, and deletes the folder. */
 async function withFiles(files, fn) {
-    const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'pk-blazor-files-'));
+    const dir = makeTempDir('pk-blazor-files-');
     try {
         const paths = Object.entries(files).map(([name, data]) => { const p = path.join(dir, name); fs.writeFileSync(p, data); return p; });
         await fn(paths);

@@ -21,6 +21,7 @@ import { fileURLToPath } from 'node:url';
 import { ensureGenerated } from './generated.mjs';
 import { cpuScale } from '../core/tests/browser/cpu-scale.js';
 import { parseList } from '../core/tests/browser/case-filter.js';
+import { makeTempDir, removeTreeAsync } from '../core/tools/tempdir.mjs';
 
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 const reportFile = path.join(root, 'core', 'tests', 'browser', 'report.json');
@@ -109,17 +110,12 @@ export function killTree(child) {
     else { try { process.kill(-child.pid, 'SIGKILL'); } catch { child.kill('SIGKILL'); } }
 }
 
-export async function removeDir(dir) {
-    for (let i = 0; i < 20; i++) {
-        try { fs.rmSync(dir, { recursive: true, force: true }); return true; } catch { await sleep(500); } // a browser child may still hold a file: retry
-    }
-    return false;
-}
+export const removeDir = dir => removeTreeAsync(dir); // clears read-only, retries EBUSY/EPERM/ENOTEMPTY with backoff (core/tools/tempdir.mjs)
 
 // Starts a browser and waits until `probe()` returns a value (a DevTools port file, a listening port). A runner starved of CPU sometimes never gets there within the
 // wait (#1457), so the launch alone is retried: up to `attempts`, the previous child killed and the profile folder emptied first. Nothing after the launch retries.
 // Resolves { browser, value, attempts }; rejects naming the attempts, the browser path and the last stderr line.
-export async function launchBrowser({ chrome, profile, args, probe, attempts = 3, waitMs = 15000 * cpuScale(), spawnFn = spawn, kill = killTree, remove = removeDir, pollMs = 150 }) {
+export async function launchBrowser({ chrome, profile, args, probe, attempts = 3, waitMs = 15000 * cpuScale(), spawnFn = spawn, kill = killTree, remove = removeDir, pollMs = 150, now = Date.now, sleepFn = sleep }) {
     let lastErr = '';
     for (let n = 1; n <= attempts; n++) {
         if (n > 1) {
@@ -130,11 +126,11 @@ export async function launchBrowser({ chrome, profile, args, probe, attempts = 3
         lastErr = '';
         browser.stderr?.on('data', d => { lastErr = (lastErr + d).split(/\r?\n/).filter(l => l.trim()).pop()?.slice(0, 300) ?? ''; });
         browser.once?.('error', e => { lastErr = e.message; });
-        for (const end = Date.now() + waitMs; Date.now() < end;) {
+        for (const end = now() + waitMs; now() < end;) {
             let value = null;
             try { value = await probe(); } catch (e) { lastErr = `probe: ${e.message}`.slice(0, 300); } // a port file still being written (EBUSY on Windows) is not ready yet; the message is kept for the final error
             if (value) return { browser, value, attempts: n };
-            await sleep(pollMs);
+            await sleepFn(pollMs);
         }
         kill(browser);
     }
@@ -150,7 +146,7 @@ async function main() {
 
     ensureGenerated(); // the suite loads the generated element modules; a fresh clone has none (node scripts/bootstrap.mjs)
     const before = readReport();
-    const profile = fs.mkdtempSync(path.join(os.tmpdir(), 'pk-attest-'));
+    const profile = makeTempDir('pk-attest-');
     const query = new URLSearchParams();
     if (options.filter.length) query.set('filter', options.filter.join(','));
     if (options.elements.length) query.set('elements', options.elements.join(','));

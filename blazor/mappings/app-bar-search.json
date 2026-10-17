@@ -1,28 +1,31 @@
 {
   "component": "PkAppBarSearch",
-  "existing": true,
-  "existingReason": "router: closes on NavigationManager.LocationChanged, and typed Items JSON Missing generator feature: a hook that runs component code on NavigationManager.LocationChanged (navigation is a Blazor concern, not an element event), and a typed Items list serialised to a JSON prop.",
-  "notes": "Hand-written (issue 213): Items is a typed JSON attribute (like PkTable's Columns/Items), and closing on navigation needs NavigationManager (the second component built this way, after PkSideNav, issue 210).",
+  "notes": "Generated. The location mapping key (closes) clears Expanded and raises ExpandedChanged when NavigationManager reports a route change: the element's own popstate listener does not see a pushState navigation (issue 213, 805).",
   "params": [
     {
       "name": "Label",
       "prop": "label",
-      "type": "string"
+      "type": "string",
+      "default": "Search",
+      "map": "prop"
     },
     {
       "name": "Placeholder",
       "prop": "placeholder",
-      "type": "string"
+      "type": "string",
+      "map": "prop"
     },
     {
       "name": "Debounce",
       "prop": "debounce",
-      "type": "int"
+      "type": "int",
+      "map": "prop"
     },
     {
       "name": "Compact",
       "prop": "compact",
-      "type": "bool"
+      "type": "bool",
+      "map": "prop"
     },
     {
       "name": "Expanded",
@@ -31,22 +34,41 @@
       "bind": {
         "event": "pk-toggle",
         "value": "detail.expanded"
-      }
+      },
+      "map": "prop"
     },
     {
       "name": "Items",
       "prop": "items",
-      "type": "IReadOnlyList<PkAppBarSearchItem>"
+      "type": "IReadOnlyList<PkAppBarSearchItem>",
+      "map": "prop"
     },
     {
       "name": "EmptyContent",
       "slot": "empty",
-      "type": "RenderFragment?"
+      "type": "RenderFragment?",
+      "map": "slot"
     },
     {
       "name": "FooterContent",
       "slot": "footer",
-      "type": "RenderFragment?"
+      "type": "RenderFragment?",
+      "map": "slot"
+    },
+    {
+      "name": "OnQuery",
+      "type": "EventCallback<PkQueryEventArgs>",
+      "map": "event",
+      "event": "pk-query"
+    },
+    {
+      "name": "OnSelect",
+      "type": "EventCallback<PkSelectEventArgs>",
+      "map": "event",
+      "event": "pk-select"
     }
-  ]
+  ],
+  "location": {
+    "closes": "Expanded"
+  }
 }
