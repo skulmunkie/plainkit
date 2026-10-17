@@ -184,6 +184,13 @@
       "description": "Control height."
     },
     {
+      "name": "font",
+      "type": "string",
+      "default": "",
+      "reflect": true,
+      "description": "Font family of the text: sans or mono (for code, queries, ids). Default inherit."
+    },
+    {
       "name": "width",
       "type": "string",
       "default": "",

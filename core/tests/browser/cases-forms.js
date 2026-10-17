@@ -48,6 +48,16 @@ export const formCases = [
         t.eq(host.querySelectorAll('pk-field-group').length, 0, 'destroy removes the group it built');
     }],
 
+    ['input and textarea font (#1540): mono and sans reach the control inside the shadow tree, the label keeps its font, and the default inherits', async t => {
+        const host = t.stage('<pk-input id="a" label="Q" show-label font="mono" value="select 1"></pk-input><pk-textarea id="b" label="Q" font="mono" value="a"></pk-textarea><pk-input id="c" label="Q" font="sans"></pk-input><pk-input id="d" label="Q"></pk-input><pk-textarea id="e" label="Q" font="sans"></pk-textarea>');
+        await t.load(host); await t.settle();
+        const ff = (id, sel) => getComputedStyle(host.querySelector('#' + id).shadowRoot.querySelector(sel)).fontFamily, mono = getComputedStyle(document.documentElement).getPropertyValue('--font-mono').trim().split(',')[0].replace(/["']/g, '');
+        t.ok(ff('a', 'input').includes(mono), 'the input control is mono: ' + ff('a', 'input')); t.ok(ff('b', 'textarea').includes(mono), 'the textarea control is mono: ' + ff('b', 'textarea'));
+        t.ok(!ff('a', 'label').includes(mono), 'the label keeps the page font');
+        t.ok(ff('c', 'input') !== ff('a', 'input') && ff('e', 'textarea') !== ff('b', 'textarea'), 'sans is not mono'); t.eq(ff('d', 'input'), getComputedStyle(host.querySelector('#d')).fontFamily, 'the default inherits the font around it');
+        const el = host.querySelector('#b'); el.font = 'sans'; await t.settle(); t.ok(!ff('b', 'textarea').includes(mono), 'switching back to sans leaves mono');
+    }],
+
     ['input and select width (#1539): a size token or a CSS length sets a compact width, a bad value is ignored', async t => {
         const host = t.stage('<div style="inline-size:600px"><pk-input id="a" label="Qty" width="xs"></pk-input><pk-input id="b" label="Qty" width="2xl"></pk-input><pk-select id="c" label="Unit" width="7rem"><option>kg</option></pk-select><pk-input id="d" label="Qty" width="nonsense"></pk-input><pk-input id="e" label="Qty"></pk-input></div>');
         await t.load(host); await t.settle(); await t.settle();
