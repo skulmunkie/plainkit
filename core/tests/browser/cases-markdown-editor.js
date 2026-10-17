@@ -164,15 +164,13 @@ export const markdownEditorCases = [
         el.sel(0); t.ok(!paste('https://x.test').defaultPrevented, 'no selection: a normal paste');
         el.sel(0, 3); t.ok(!paste(JS + 'alert(1)').defaultPrevented, 'a script address is never made a link');
     }],
-    ['markdown-editor: the heading, quote and code buttons prefix or wrap and toggle back, and the full toolbar fits at 375 px', async t => {
-        const el = await mount(t, 'toolbar="bold italic heading quote code ul ol link" value="word"', '375px');
+    ['markdown-editor: the heading and quote buttons prefix and toggle back, and the full toolbar fits at 375 px', async t => {
+        const el = await mount(t, 'toolbar="bold italic heading quote ul ol link" value="word"', '375px');
         el.sel(0, 4);
         await el.clickCmd('heading'); t.eq(el.value, '## word');
         await el.clickCmd('heading'); t.eq(el.value, 'word');
         await el.clickCmd('quote'); t.eq(el.value, '> word');
         await el.clickCmd('quote'); t.eq(el.value, 'word');
-        el.sel(0, 4); await el.clickCmd('code'); t.eq(el.value, '`word`'); t.eq(el.$t.value.slice(el.$t.selectionStart, el.$t.selectionEnd), 'word');
-        await el.clickCmd('code'); t.eq(el.value, 'word');
         const sRect = el.parentElement.getBoundingClientRect();
         t.ok(el.scrollWidth <= el.clientWidth + 1, 'no horizontal overflow');
         for (const b of el.part('commands').children) { const r = b.getBoundingClientRect(); t.ok(r.left >= sRect.left - 1 && r.right <= sRect.right + 1 && r.width >= 24 && r.height >= 24, `${b.dataset.cmd} fits and is at least 24px`); }

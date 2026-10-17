@@ -4,16 +4,15 @@ import { loadElements } from '../../js/loader.js';
 
 /** The commands the toolbar can offer: the label (the accessible name), what the button shows, and the Ctrl/Cmd key. */
 export const COMMANDS = {
-    bold: { label: 'Bold', text: 'B', key: 'b' },
-    italic: { label: 'Italic', text: 'I', key: 'i' },
-    heading: { label: 'Heading', text: 'H' },
+    bold: { label: 'Bold', key: 'b' },
+    italic: { label: 'Italic', key: 'i' },
+    heading: { label: 'Heading' },
     quote: { label: 'Quote', text: '"' },
-    code: { label: 'Code', text: '</>' },
     ul: { label: 'Bulleted list', text: '•' },
     ol: { label: 'Numbered list', text: '1.' },
     link: { label: 'Link', icon: 'link', key: 'k' },
 };
-export const DEFAULT_TOOLBAR = 'bold italic heading quote code ul ol link';
+export const DEFAULT_TOOLBAR = 'bold italic heading quote ul ol link';
 /** The known command names in a toolbar value, in order, each once. */
 export const parseToolbar = s => [...new Set(String(s ?? '').split(/\s+/).filter(c => Object.hasOwn(COMMANDS, c)))];
 /** The smallest replacement that turns `a` into `b`: [from, removeTo, inserted], so the edit touches only what changed. */
@@ -37,7 +36,7 @@ export default Base => class extends Base {
             t.addEventListener('compositionend', () => { this.$comp = false; });
             t.addEventListener('keydown', e => this.shortcut(e));
             t.addEventListener('focusin', () => this.commandsModule(), { once: true });
-            t.addEventListener('paste', e => this.paste(e));
+            t.addEventListener('paste', e => this.edit(e, m => m.pasteLink, e.clipboardData?.getData('text/plain')));
             const bar = this.part('commands');
             bar.addEventListener('click', e => { const b = e.target.closest?.('pk-button'); if (b) this.run(b.dataset.cmd); });
             bar.addEventListener('keydown', e => this.rove(e));
@@ -99,7 +98,7 @@ export default Base => class extends Base {
             const d = COMMANDS[c], b = this.ownerDocument.createElement('pk-button');
             b.setAttribute('variant', 'ghost'); b.setAttribute('size', 'mini'); b.setAttribute('label', d.label); b.dataset.cmd = c;
             if (d.key) { b.setAttribute('aria-keyshortcuts', `Control+${d.key.toUpperCase()} Meta+${d.key.toUpperCase()}`); b.setAttribute('title', `${d.label} (Ctrl+${d.key.toUpperCase()})`); } else b.setAttribute('title', d.label);
-            if (d.icon) { b.setAttribute('icon', ''); b.setAttribute('icon-name', d.icon); } else b.textContent = d.text;
+            if (d.icon) { b.setAttribute('icon', ''); b.setAttribute('icon-name', d.icon); } else b.textContent = d.text ?? d.label[0];
             return b;
         }));
         this.$ri = 0;
@@ -124,11 +123,9 @@ export default Base => class extends Base {
         this.syncRove(); bs[(to + bs.length) % bs.length].focus();
     }
     // Enter in a list and a pasted address over a selection run synchronously on the loaded commands module (the first focus starts the load); until it is there the browser's own behaviour stands.
-    editWith(e, r) { if (r && this.editable && !this.$comp) { e.preventDefault(); this.apply(r); } }
-    paste(e) { const t = this.ta; if (this.$m && t) this.editWith(e, this.$m.pasteLink(t.value, t.selectionStart, t.selectionEnd, e.clipboardData?.getData('text/plain'))); }
+    edit(e, pick, ...x) { const t = this.ta, r = this.$m && t && this.editable && !this.$comp && pick(this.$m)(t.value, t.selectionStart, t.selectionEnd, ...x); if (r) { e.preventDefault(); this.apply(r); } }
     shortcut(e) {
-        const t = this.ta;
-        if (e.key === 'Enter' && this.$m && t && !e.isComposing && !e.shiftKey && !e.ctrlKey && !e.metaKey && !e.altKey) return this.editWith(e, this.$m.continueList(t.value, t.selectionStart, t.selectionEnd));
+        if (e.key === 'Enter' && !e.shiftKey && !e.ctrlKey && !e.metaKey) return this.edit(e, m => m.continueList);
         if (e.isComposing || this.$comp || !(e.ctrlKey || e.metaKey) || e.altKey || e.shiftKey) return;
         const c = this.commands.find(n => COMMANDS[n].key === e.key.toLowerCase());
         if (c) { e.preventDefault(); this.run(c); }
@@ -146,7 +143,7 @@ export default Base => class extends Base {
         const [a, b] = [t.selectionStart, t.selectionEnd];
         const m = await this.commandsModule();
         if (!m || !this.editable) return;
-        const f = { bold: m.toggleBold, italic: m.toggleItalic, heading: m.toggleHeading, quote: m.toggleQuote, code: m.toggleCode, ul: m.toggleBullets, ol: m.toggleNumbers, link: m.insertLink }[cmd];
+        const f = m.byCommand[cmd];
         this.apply(f(t.value, a, b, arg));
     }
     // Write a command's result into the textarea as an edit (so Ctrl+Z undoes it in one step), then set the selection it asks for.

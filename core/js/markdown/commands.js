@@ -59,9 +59,11 @@ export function toggleLinePrefix(text, a, b, kind) {
     const body = lines.map(l => all ? l.replace(re, '') : p + l.replace(re, '')).join('\n');
     return res(text.slice(0, from) + body + text.slice(to), from, from + body.length);
 }
-export const toggleHeading = (t, a, b) => toggleLinePrefix(t, a, b, 'heading');
-export const toggleQuote = (t, a, b) => toggleLinePrefix(t, a, b, 'quote');
-export const toggleCode = (t, a, b) => toggleWrap(t, a, b, '`');
+/** Each toolbar command by name, as the editor runs it. */
+export const byCommand = {
+    bold: toggleBold, italic: toggleItalic, ul: toggleBullets, ol: toggleNumbers, link: insertLink,
+    heading: (t, a, b) => toggleLinePrefix(t, a, b, 'heading'), quote: (t, a, b) => toggleLinePrefix(t, a, b, 'quote'),
+};
 
 /** A pasted http, https or mailto address over a selected piece of one line makes that text a link; null for anything else (the paste then proceeds as usual). */
 export function pasteLink(text, a, b, pasted) {

@@ -10,7 +10,7 @@ const read = f => fs.readFileSync(new URL(f, import.meta.url), 'utf8');
 const src = read('./markdown-editor.js'), meta = JSON.parse(read('./markdown-editor.meta.json')), css = read('./markdown-editor.css');
 
 test('parseToolbar keeps known commands in order, once each', () => {
-    assert.deepEqual(parseToolbar(DEFAULT_TOOLBAR), ['bold', 'italic', 'heading', 'quote', 'code', 'ul', 'ol', 'link']);
+    assert.deepEqual(parseToolbar(DEFAULT_TOOLBAR), ['bold', 'italic', 'heading', 'quote', 'ul', 'ol', 'link']);
     assert.deepEqual(parseToolbar('link  bold nope bold'), ['link', 'bold']);
     assert.deepEqual(parseToolbar(''), []);
     assert.ok(Object.values(COMMANDS).every(c => c.label));
