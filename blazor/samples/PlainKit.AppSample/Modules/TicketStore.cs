@@ -29,7 +29,7 @@ public sealed class Ticket
         new() { Key = "notes", Label = "Notes", Kind = PkFieldKind.Textarea, Get = t => t.Notes, Set = (t, v) => t.Notes = v ?? "", ColumnSpan = 2 },
         new() { Key = "estimate", Label = "Estimate", Kind = PkFieldKind.Number, Get = t => t.Estimate, Set = (t, v) => t.Estimate = v ?? "" },
         new() { Key = "email", Label = "Email", Kind = PkFieldKind.Email, Get = t => t.Email, Set = (t, v) => t.Email = v ?? "" },
-        new() { Key = "secret", Label = "Secret", Kind = PkFieldKind.Password, Get = t => t.Secret, Set = (t, v) => t.Secret = v ?? "" },
+        new() { Key = "secret", Label = "Secret", Kind = PkFieldKind.Password, AutoComplete = "new-password", Get = t => t.Secret, Set = (t, v) => t.Secret = v ?? "" },
         new() { Key = "due", Label = "Due", Kind = PkFieldKind.Date, Get = t => t.Due, Set = (t, v) => t.Due = v ?? "" },
         new() { Key = "opened", Label = "Opened", Kind = PkFieldKind.DateTime, Get = t => t.Opened, Set = (t, v) => t.Opened = v ?? "" },
         new() { Key = "at", Label = "Time of day", Kind = PkFieldKind.Time, Get = t => t.At, Set = (t, v) => t.At = v ?? "" },

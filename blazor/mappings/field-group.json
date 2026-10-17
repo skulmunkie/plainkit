@@ -42,6 +42,12 @@
       "doc": "The control's placeholder."
     },
     {
+      "name": "AutoComplete",
+      "json": "autocomplete",
+      "type": "string?",
+      "doc": "The autofill token of a text, password, email, tel or url control, for example off, new-password or email; other kinds ignore it."
+    },
+    {
       "name": "Min",
       "type": "string?",
       "doc": "The minimum of the control, as text."
