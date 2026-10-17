@@ -42,6 +42,28 @@
       "type": "bool"
     },
     {
+      "name": "Header",
+      "prop": "header",
+      "type": "bool"
+    },
+    {
+      "name": "Language",
+      "prop": "language",
+      "type": "string"
+    },
+    {
+      "name": "HeaderStart",
+      "type": "RenderFragment?",
+      "map": "slot",
+      "slot": "header-start"
+    },
+    {
+      "name": "Actions",
+      "type": "RenderFragment?",
+      "map": "slot",
+      "slot": "actions"
+    },
+    {
       "name": "OnLineClick",
       "event": "pk-line-click"
     },

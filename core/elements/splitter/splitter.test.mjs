@@ -43,12 +43,14 @@ test('pointerSize turns a pointer position into a percentage, keeping the grab o
 // A stand-in for PkElement, as tests/commit-events.test.mjs uses: props are plain fields, emit() records the event.
 const make = (props = {}) => {
     const el = new (behaviour(class { emit(name, detail, init = {}) { this.events.push({ name, detail, cancelable: init.cancelable !== false }); return true; } part() { return this.parts; } }))();
-    const handle = { listeners: {}, addEventListener(t, f) { this.listeners[t] = f; }, getBoundingClientRect: () => ({ left: 346, top: 0, width: 8, height: 100 }), setPointerCapture() {}, hasPointerCapture: () => false };
-    const root = { toggleAttribute() {}, getBoundingClientRect: () => ({ left: 100, top: 0, width: 500, height: 100 }), style: { setProperty() {} } };
-    Object.assign(el, { events: [], parts: null, size: 50, min: 10, max: 90, step: 2, orientation: 'horizontal', disabled: false, ownerDocument: { defaultView: { getComputedStyle: () => ({ direction: 'ltr' }) } }, dispatchEvent() {} }, props);
-    el.part = n => (n === 'handle' ? handle : root);
+    const handle = { listeners: {}, addEventListener(t, f) { this.listeners[t] = f; }, getBoundingClientRect: () => ({ left: 346, top: 0, width: 8, height: 100 }), setPointerCapture() {}, hasPointerCapture: () => false, attrs: {}, setAttribute(k, v) { this.attrs[k] = v; }, removeAttribute() {} };
+    const root = { toggleAttribute() {}, addEventListener() {}, attrs: {}, setAttribute(k, v) { this.attrs[k] = v; }, removeAttribute() {}, getBoundingClientRect: () => ({ left: 100, top: 0, width: 500, height: 100 }), style: { setProperty() {} } };
+    Object.assign(el, { events: [], parts: null, size: 50, min: 10, max: 90, step: 2, orientation: 'horizontal', disabled: false, children: [], ownerDocument: { activeElement: null, defaultView: { getComputedStyle: () => ({ direction: 'ltr' }) } }, dispatchEvent() {} }, props);
+    const toggle = { listeners: {}, focused: 0, addEventListener(t, f) { this.listeners[t] = f; }, focus() { this.focused++; }, setAttribute(k, v) { this[k] = v; } };
+    const end = { inert: false };
+    el.part = n => (n === 'handle' ? handle : n === 'toggle' ? toggle : n === 'end' ? end : root);
     el.connected();
-    return { el, handle };
+    return { el, handle, toggle, end };
 };
 
 test('a key press moves the size and raises pk-resize once with the new size, not cancelable', () => {
@@ -111,4 +113,56 @@ test('the css uses tokens only, logical properties, a 44px touch hit area and re
 test('the source keeps every listener on the handle (nothing on document or window to clean up) and releases pointer capture', () => {
     assert.ok(!/\b(document|window|ownerDocument)\s*\.\s*addEventListener|setInterval|setTimeout|Observer\(/.test(src));
     assert.ok(src.includes('setPointerCapture') && src.includes('releasePointerCapture') && src.includes("'pointercancel'") && src.includes("'lostpointercapture'"));
+});
+
+test('collapsible: the toggle, Enter, Space and a double click collapse the end pane, keep size and raise pk-collapse-change once, not cancelable', () => {
+    const { el, handle, toggle } = make({ collapsible: true });
+    toggle.listeners.click();
+    assert.equal(el.collapsed, true); assert.equal(el.size, 50, 'size is never overwritten');
+    assert.deepEqual(el.events, [{ name: 'pk-collapse-change', detail: { collapsed: true }, cancelable: false }]);
+    let prevented = 0;
+    handle.listeners.keydown({ key: 'Enter', preventDefault() { prevented++; } }); assert.equal(el.collapsed, false);
+    handle.listeners.keydown({ key: ' ', preventDefault() { prevented++; } }); assert.equal(el.collapsed, true);
+    assert.equal(prevented, 2);
+    handle.listeners.dblclick(); assert.equal(el.collapsed, false);
+    assert.deepEqual(el.events.map(e => e.detail.collapsed), [true, false, true, false]);
+});
+
+test('collapsed: arrows and drags do nothing, aria-valuenow is 0 and the end pane is inert; the host setting it raises nothing', () => {
+    const { el, handle, toggle, end } = make({ collapsible: true });
+    el.collapsed = true; el.updated();
+    assert.equal(end.inert, true); assert.equal(handle.attrs['aria-valuenow'], '0'); assert.equal(toggle.hidden, false); assert.equal(toggle['aria-expanded'], 'false'); assert.equal(toggle['aria-label'], 'Expand panel');
+    assert.equal(el.events.length, 0);
+    handle.listeners.keydown({ key: 'ArrowRight', preventDefault() { throw new Error('must not handle'); } });
+    handle.listeners.pointerdown({ button: 0, pointerId: 1, clientX: 350, clientY: 0 });
+    assert.equal(el.$drag, undefined); assert.equal(el.size, 50); assert.equal(el.events.length, 0);
+    el.collapsed = false; el.toggleLabel = 'Toggle inspector'; el.updated();
+    assert.equal(end.inert, false); assert.equal(toggle['aria-expanded'], 'true'); assert.equal(toggle['aria-label'], 'Toggle inspector');
+});
+
+test('not collapsible: no toggle, Enter does nothing, and a collapsed attribute is ignored; disabled blocks the toggle', () => {
+    const { el, handle, toggle, end } = make({ collapsed: true });
+    el.updated();
+    assert.equal(toggle.hidden, true); assert.equal(end.inert, false, 'collapsed needs collapsible');
+    handle.listeners.keydown({ key: 'Enter', preventDefault() { throw new Error('must not handle'); } }); handle.listeners.dblclick();
+    assert.equal(el.events.length, 0);
+    const off = make({ collapsible: true, disabled: true });
+    off.toggle.listeners.click(); assert.equal(off.el.collapsed, undefined); assert.equal(off.el.events.length, 0);
+});
+
+test('collapsing while focus is inside the end pane moves focus to the toggle', () => {
+    const inner = { }; const pane = { getAttribute: () => 'end', contains: n => n === inner };
+    const { el, toggle } = make({ collapsible: true, children: [pane] });
+    el.ownerDocument.activeElement = inner;
+    toggle.listeners.click();
+    assert.equal(toggle.focused, 1);
+    el.ownerDocument.activeElement = null; toggle.listeners.click(); assert.equal(toggle.focused, 1, 'expanding moves nothing');
+});
+
+test('the meta declares collapsible, collapsed (committed by pk-collapse-change), toggleLabel, the event and the toggle part', () => {
+    assert.equal(prop('collapsible').type, 'boolean'); assert.equal(prop('collapsed').commit, 'pk-collapse-change');
+    assert.equal(prop('toggleLabel').default, '');
+    assert.ok(meta.events.some(e => e.name === 'pk-collapse-change' && e.detailProps.collapsed === 'boolean'));
+    assert.ok(meta.parts.some(p => p.name === 'toggle'));
+    assert.ok(meta.examples.some(x => x.html.includes('collapsible')));
 });

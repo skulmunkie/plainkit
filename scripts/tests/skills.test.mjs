@@ -91,7 +91,7 @@ test('the SRI manifest lists every skill file with its size and hash', () => {
         assert.ok(e, `skills/${f} is not in dist/manifest.json: run node scripts/build-skills.mjs`);
         const bytes = Buffer.from(crlf(text));
         assert.equal(e.bytes, bytes.length);
-        assert.equal(e.integrity, 'sha384-' + crypto.createHash('sha384').update(bytes).digest('base64'));
+        assert.equal(e.integrity, 'sha256-' + crypto.createHash('sha256').update(bytes).digest('base64'));
     }
     assert.equal([...listed.keys()].filter(p => p.startsWith('skills/')).length, gen.size);
 });

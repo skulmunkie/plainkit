@@ -49,7 +49,8 @@ export function customElementsManifest(metas) {
             declarations: [{
                 kind: 'class', name: `${pascal(m.tag)}Element`, tagName: m.tag, customElement: true, description: summarize(m.summary),
                 superclass: { name: 'PkElement', module: 'js/element.js' },
-                attributes: m.props.filter(p => p.reflect || true).map(p => ({ name: kebab(p.name), fieldName: p.name, type: { text: tsType(p) }, default: defText(p), description: summarize(p.description) })),
+                // The attribute names its field (fieldName); type, default and description live once, on that member (the CEM spec resolves the link).
+                attributes: m.props.map(p => ({ name: kebab(p.name), fieldName: p.name })),
                 members: [
                     ...m.props.map(p => ({ kind: 'field', name: p.name, type: { text: tsType(p) }, default: defText(p), description: summarize(p.description), attribute: kebab(p.name), reflects: p.reflect })),
                     ...m.methods.map(x => ({ kind: 'method', name: x.name, description: summarize(x.description) })),

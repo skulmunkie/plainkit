@@ -486,15 +486,15 @@ export const toolCases = [
         t.ok(/--pk-bp-phone:700px;--pk-bp-tablet:1024px/.test(text('dist/plainkit.css')) && /--color-accent: #123456/.test(text('dist/plainkit.css')) && /max-width:\s*700px/.test(text('dist/elements/table.js') + text('dist/elements/tabs.js')), 'widths and theme are in the page layer and the elements');
         const manifest = JSON.parse(text('dist/manifest.json'));
         for (const p of ['plainkit.css', 'plainkit.min.css', 'elements/tabs.js', 'icons.svg']) {
-            const digest = new Uint8Array(await crypto.subtle.digest('SHA-384', files.get(`dist/${p}`)));
-            t.eq(manifest.files.find(f => f.path === p).integrity, 'sha384-' + btoa(String.fromCharCode(...digest)), `${p} hash matches the manifest`);
+            const digest = new Uint8Array(await crypto.subtle.digest('SHA-256', files.get(`dist/${p}`)));
+            t.eq(manifest.files.find(f => f.path === p).integrity, 'sha256-' + btoa(String.fromCharCode(...digest)), `${p} hash matches the manifest`);
         }
         // the modules unit travels with its own manifest, whose hashes match the rewritten tool files
         const tools = JSON.parse(text('dist/modules/manifest.json'));
         t.ok(tools.name === 'plainkit-modules' && tools.files.length > 20 && !manifest.files.some(f => f.path.startsWith('modules/')), 'the modules are a unit of their own in the export');
         const themeCss = tools.files.find(f => f.path === 'theme-editor/theme-editor.css');
-        const themeDigest = new Uint8Array(await crypto.subtle.digest('SHA-384', files.get('dist/modules/theme-editor/theme-editor.css')));
-        t.eq(themeCss.integrity, 'sha384-' + btoa(String.fromCharCode(...themeDigest)), 'a tool file hash matches the modules manifest');
+        const themeDigest = new Uint8Array(await crypto.subtle.digest('SHA-256', files.get('dist/modules/theme-editor/theme-editor.css')));
+        t.eq(themeCss.integrity, 'sha256-' + btoa(String.fromCharCode(...themeDigest)), 'a tool file hash matches the modules manifest');
         // the exported page layer works in a real document: the widths are on :root and the theme wins
         const frame = document.createElement('iframe'); frame.style.width = '680px'; document.body.append(frame);
         try {

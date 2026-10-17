@@ -13,12 +13,25 @@ export default Base => class extends Base {
         h.addEventListener('pointermove', e => this.drag(e));
         for (const type of ['pointerup', 'pointercancel', 'lostpointercapture']) h.addEventListener(type, () => this.drop());
         h.addEventListener('keydown', e => this.keys(e));
+        h.addEventListener('dblclick', () => this.toggle());
+        this.part('toggle').addEventListener('click', () => this.toggle());
+        const root = this.part('root');
+        root.addEventListener('transitionend', e => { if (e.target === root) root.removeAttribute('data-anim'); });
+    }
+    /** The user collapses or restores the end pane: the size is kept, the host hears pk-collapse-change. */
+    toggle() {
+        if (this.disabled || !this.collapsible) return;
+        const next = !this.collapsed, a = this.ownerDocument.activeElement;
+        if (next && [...this.children].some(k => k.getAttribute('slot') === 'end' && k.contains(a))) this.part('toggle').focus();
+        this.part('root').setAttribute('data-anim', '');
+        this.collapsed = next;
+        this.emit('pk-collapse-change', { collapsed: next }, { cancelable: false });
     }
     now() { return clampSize(this.size, this.min, this.max); }
     horizontal() { return this.orientation !== 'vertical'; }
     rtl() { return this.ownerDocument.defaultView.getComputedStyle(this).direction === 'rtl'; }
     grab(e) {
-        if (this.disabled || e.button > 0) return;
+        if (this.disabled || this.collapsed || e.button > 0) return;
         const h = this.part('handle'), r = h.getBoundingClientRect(), horiz = this.horizontal();
         this.$drag = { id: e.pointerId, from: this.now(), grab: horiz ? e.clientX - (r.left + r.width / 2) : e.clientY - (r.top + r.height / 2) };
         try { h.setPointerCapture(e.pointerId); } catch (err) { this.debug('pointer capture refused (a synthetic pointer is not active): the drag still follows the handle\'s own events', err); }
@@ -43,6 +56,8 @@ export default Base => class extends Base {
     }
     keys(e) {
         if (this.disabled) return;
+        if (this.collapsible && (e.key === 'Enter' || e.key === ' ')) { e.preventDefault(); this.toggle(); return; }
+        if (this.collapsed) return;
         const next = keySize(e.key, this.now(), { min: this.min, max: this.max, step: this.step, horizontal: this.horizontal(), rtl: this.horizontal() && this.rtl() });
         if (next === null) return;
         e.preventDefault();
@@ -53,8 +68,13 @@ export default Base => class extends Base {
     }
     updated() {
         const s = this.now(), root = this.part('root'), h = this.part('handle');
-        root.style.setProperty('--_a', `${s}fr`); root.style.setProperty('--_b', `${Math.round((100 - s) * 10) / 10}fr`);
-        h.setAttribute('aria-valuenow', String(s));
+        const c = !!(this.collapsible && this.collapsed), t = this.part('toggle');
+        root.style.setProperty('--_a', c ? '1fr' : `${s}fr`); root.style.setProperty('--_b', c ? '0fr' : `${Math.round((100 - s) * 10) / 10}fr`);
+        this.part('end').inert = c;
+        h.setAttribute('aria-valuenow', c ? '0' : String(s));
+        t.hidden = !this.collapsible;
+        t.setAttribute('aria-expanded', String(!c));
+        t.setAttribute('aria-label', this.toggleLabel || (c ? 'Expand panel' : 'Collapse panel'));
         h.setAttribute('aria-orientation', this.horizontal() ? 'vertical' : 'horizontal');
         h.tabIndex = this.disabled ? -1 : 0;
         if (this.disabled) h.setAttribute('aria-disabled', 'true'); else h.removeAttribute('aria-disabled');

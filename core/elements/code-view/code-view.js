@@ -49,7 +49,7 @@ export default Base => class extends Base {
         this.emit('pk-line-click', { line: Number(row.dataset.line), column }, { cancelable: false });
     }
     updated() {
-        const doc = this.ownerDocument, lines = sourceLines(this.lines, this.textContent), first = Math.max(1, Math.floor(Number(this.start)) || 1), lit = parseLines(this.highlight);
+        const doc = this.ownerDocument, lines = sourceLines(this.lines, [...this.childNodes].filter(n => n.nodeType !== 1 || !n.hasAttribute('slot')).map(n => n.textContent).join('')), first = Math.max(1, Math.floor(Number(this.start)) || 1), lit = parseLines(this.highlight);
         const rows = lines.map((text, i) => {
             const row = doc.createElement('div'), code = doc.createElement('span'), n = first + i;
             row.className = lit.has(n) ? 'row hl' : 'row'; row.dataset.line = String(n); code.className = 'code';
@@ -62,6 +62,7 @@ export default Base => class extends Base {
             return row;
         });
         this.part('rows').replaceChildren(...rows);
+        const $ = s => this.shadowRoot.querySelector(s); $('.language').textContent = this.language || ''; $('.count').textContent = `${lines.length} ${lines.length === 1 ? 'line' : 'lines'}`;
         this.style.setProperty('--pk-code-view-gutter', String(String(first + Math.max(0, lines.length - 1)).length));
         if (this.maxHeight && !this.fill) this.style.setProperty('--pk-code-view-max-height', this.maxHeight); else this.style.removeProperty('--pk-code-view-max-height');
         // Bring the first highlighted line to the middle of the view (the view's own scroll only; the page stays where it is).

@@ -59,6 +59,28 @@
       "default": false,
       "reflect": true,
       "description": "Fixes the size: the separator no longer takes focus or moves."
+    },
+    {
+      "name": "collapsible",
+      "type": "boolean",
+      "default": false,
+      "reflect": true,
+      "description": "Shows a toggle on the separator that collapses the end pane."
+    },
+    {
+      "name": "collapsed",
+      "type": "boolean",
+      "default": false,
+      "reflect": true,
+      "commit": "pk-collapse-change",
+      "description": "The end pane is collapsed (inert, size kept)."
+    },
+    {
+      "name": "toggleLabel",
+      "type": "string",
+      "default": "",
+      "reflect": false,
+      "description": "The toggle's name."
     }
   ],
   "slots": [
@@ -84,6 +106,14 @@
         "size": "number"
       },
       "description": "The user committed a new size: a drag ended, or an arrow, Home or End key moved it. Raised once per key press and once per drag, never for a size the host set; not cancelable."
+    },
+    {
+      "name": "pk-collapse-change",
+      "detail": "{ collapsed: boolean }",
+      "detailProps": {
+        "collapsed": "boolean"
+      },
+      "description": "The user collapsed or restored the end pane."
     }
   ],
   "parts": [
@@ -98,6 +128,10 @@
     {
       "name": "handle",
       "description": "The separator: a role=separator control with its own focus ring and a 44px hit area on a touch screen."
+    },
+    {
+      "name": "toggle",
+      "description": "The collapse button."
     },
     {
       "name": "end",
@@ -127,7 +161,7 @@
   "examples": [
     {
       "title": "Side by side",
-      "html": "<pk-splitter size=\"30\" min=\"15\" max=\"70\" label=\"Resize the list\"><div slot=\"start\" class=\"stack\"><strong>List</strong><span>Drag the bar, or focus it and use the arrow keys.</span></div><div slot=\"end\" class=\"stack\"><strong>Detail</strong><span>Home and End go to the minimum and maximum.</span></div></pk-splitter>"
+      "html": "<pk-splitter size=\"30\" min=\"15\" max=\"70\" collapsible label=\"Resize the list\"><div slot=\"start\" class=\"stack\"><strong>List</strong><span>Drag the bar, or focus it and use the arrow keys.</span></div><div slot=\"end\" class=\"stack\"><strong>Detail</strong><span>Home and End go to the minimum and maximum.</span></div></pk-splitter>"
     },
     {
       "title": "Stacked",
