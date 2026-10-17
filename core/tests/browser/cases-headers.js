@@ -307,3 +307,49 @@ headerCases.push(
         page.remove();
     }],
 );
+
+// Issue 1552: titled sections in the main column, editable sidebar cards that save and validate with the form, and a cancel event.
+headerCases.push(
+    ['record-page: config.sections are titled cards stacked in the main column, the sidebar card beside them is editable, and one Save collects and validates every group (#1552)', async t => {
+        const wait = ms => new Promise(r => setTimeout(r, ms));
+        const page = await t.mount('<pk-record-page></pk-record-page>');
+        let saved = null, cancelled = 0;
+        page.load = async () => ({ name: 'Widget', city: 'Oslo', note: 'n', active: false });
+        page.save = async v => { saved = v; };
+        page.addEventListener('pk-record-cancel', () => { cancelled++; });
+        page.config = {
+            id: '7', heading: 'Details', fields: [{ key: 'name', label: 'Name', required: true }, { key: 'city', label: 'City' }, { key: 'note', label: 'Note' }, { key: 'active', label: 'Active', kind: 'checkbox' }],
+            sections: [{ heading: 'Address', fields: ['city'] }, { heading: 'Notes', fields: ['note'] }], sidebar: [{ heading: 'Status', fields: ['active'] }],
+        };
+        for (let i = 0; i < 40 && page.part('edit').hidden; i++) await wait(50);
+        await t.load(page.shadowRoot); await t.settle();
+        const lists = [...page.part('main').querySelectorAll('pk-field-list')];
+        t.eq(lists.map(l => l.getAttribute('heading')).join(), 'Details,Address,Notes', 'view mode: a titled list per section');
+        page.part('edit').click(); await t.settle();
+        const cards = [...page.part('main').querySelectorAll('pk-card')], side = page.part('side').querySelector('pk-card');
+        t.eq(cards.map(c => c.getAttribute('heading')).join(), 'Details,Address,Notes', 'edit mode: a titled card per section');
+        t.ok(cards.every((c, i) => i === 0 || rect(c).top >= rect(cards[i - 1]).bottom - 1), 'the section cards are stacked, none overlapping');
+        t.ok(side && rect(side).left >= rect(page.part('main')).right - 1, 'the sidebar card sits beside the main column');
+        const groups = [...page.part('layout').querySelectorAll('pk-field-group')];
+        t.eq(groups.length, 4, 'three section groups and one sidebar group');
+        for (const g of groups) await t.load(g.shadowRoot);
+        await t.settle(); await t.settle();
+        t.eq(page.controls().length, 4, 'controls() spans every group');
+        const box = side.querySelector('pk-field-group').shadowRoot.querySelector('pk-checkbox');
+        t.ok(box && rect(box).width > 0, 'the sidebar checkbox is drawn');
+        box.checked = true; box.dispatchEvent(new Event('change', { bubbles: true, composed: true })); await t.settle();
+        t.ok(page.dirty, 'editing a sidebar field marks the page dirty');
+        const name = page.controls()[0]; name.value = ''; name.dispatchEvent(new Event('input', { bubbles: true, composed: true })); name.dispatchEvent(new Event('change', { bubbles: true, composed: true })); await t.settle();
+        page.part('save').click(); await t.settle(); await wait(200);
+        t.ok(saved === null, `a required main field blocks the save`);
+        name.value = 'Gadget'; name.dispatchEvent(new Event('input', { bubbles: true, composed: true })); name.dispatchEvent(new Event('change', { bubbles: true, composed: true })); await t.settle(); await wait(100);
+        page.part('save').click();
+        for (let i = 0; i < 40 && !saved; i++) await wait(50);
+        t.ok(saved && saved.name === 'Gadget' && saved.active === true && saved.city === 'Oslo' && saved.note === 'n', `Save collects the sections and the sidebar: ${JSON.stringify(saved)}`);
+        for (let i = 0; i < 40 && page.mode !== 'view'; i++) await wait(50);
+        page.part('edit').click(); await t.settle();
+        page.part('cancel').click(); await t.settle();
+        t.eq(cancelled, 1, 'Cancel raises pk-record-cancel'); t.eq(page.mode, 'view', 'and returns to view mode');
+        page.remove();
+    }],
+);

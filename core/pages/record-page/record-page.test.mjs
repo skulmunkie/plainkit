@@ -91,7 +91,7 @@ test('dirty follows the controls against the loaded values, fires pk-record-dirt
     await tick();
     const group = parts.main.children[0].children[0].children[0];
     assert.equal(group.localName, 'pk-field-group', 'the edit form is one pk-field-group');
-    assert.deepEqual(group.values, { name: 'Widget' }); assert.deepEqual(group.fields.map(f => [f.key, f.kind]), [['name', 'text'], ['status', 'select']]);
+    assert.deepEqual(group.values, { name: 'Widget' }); assert.deepEqual(group.fields.map(f => [f.key, f.kind]), [['name', 'text']], 'status is listed by a sidebar card, so it is edited there (#1552)');
     const name = { value: 'Changed' };
     group.snapshot = () => ({ name: name.value });
     el.track(); el.track();
@@ -218,4 +218,44 @@ test('a custom field forwards its editor-<key> slot into the group, so the host 
     const group = parts.main.children[0].children[0].children[0];
     assert.equal(group.children.length, 1, 'one slot for the one custom field');
     assert.equal(group.children[0].attrs.name, 'editor-extra'); assert.equal(group.children[0].attrs.slot, 'editor-extra');
+});
+
+// Issue #1552: titled sections in the main column, editable sidebar cards, and a cancel event.
+const draw = async (config, mode = 'edit') => {
+    const t = make(); Object.assign(t.el.config, config); t.el.load = async () => ({ name: 'Widget', status: 'a', city: 'Oslo', note: 'n' }); t.el.save = async () => {}; t.el.mode = mode; t.el.connected(); await tick(); return t;
+};
+const fields = [{ key: 'name', label: 'Name' }, { key: 'status', label: 'Status', kind: 'select', options: ['a'] }, { key: 'city', label: 'City' }, { key: 'note', label: 'Note' }];
+const kids = (n, tag) => (n.children ?? []).filter(c => c.localName === tag);
+
+test('sections: the unlisted fields lead under config.heading, then each section is a titled card with its own group in edit mode', async () => {
+    const { parts } = await draw({ fields, heading: 'Details', sidebar: [], sections: [{ heading: 'Address', fields: ['city'] }, { heading: 'Notes', fields: ['note'] }] });
+    const form = parts.main.children[0].children[0];
+    const cards = kids(form, 'pk-card');
+    assert.deepEqual(cards.map(c => c.getAttribute('heading')), ['Details', 'Address', 'Notes']);
+    assert.deepEqual(cards.map(c => c.children[0].fields.map(f => f.key)), [['name', 'status'], ['city'], ['note']]);
+});
+test('sections: view mode is one titled pk-field-list per section', async () => {
+    const { parts } = await draw({ fields, heading: 'Details', sidebar: [], sections: [{ heading: 'Address', fields: ['city'] }] }, 'view');
+    const lists = kids(parts.main, 'pk-field-list');
+    assert.deepEqual(lists.map(l => l.getAttribute('heading')), ['Details', 'Address']);
+    assert.equal(lists[1].children.length, 2, 'one dt and one dd');
+});
+test('sidebar cards are editable groups that join the main form, and their fields are left out of the main form', async () => {
+    const { el, parts } = await draw({ fields, sidebar: [{ heading: 'Status', fields: ['status'] }] });
+    const side = parts.side.children[0], group = side.children[0];
+    assert.equal(side.getAttribute('heading'), 'Status'); assert.equal(group.localName, 'pk-field-group');
+    assert.equal(group.getAttribute('form'), 'record-form'); assert.equal(parts.main.children[0].children[0].id, 'record-form');
+    assert.deepEqual(group.fields.map(f => f.key), ['status']);
+    assert.deepEqual(parts.main.children[0].children[0].children[0].fields.map(f => f.key), ['name', 'city', 'note']);
+    parts.main.children[0].children[0].children[0].snapshot = () => ({ name: 'Widget', city: 'Oslo', note: 'n' }); group.snapshot = () => ({ status: 'b' });
+    assert.equal(el.collect().status, 'b', 'a sidebar value is saved with the rest'); el.track(); assert.equal(el.dirty, true);
+});
+test('sidebar cards stay read-only lists in view mode', async () => {
+    const { parts } = await draw({ fields, sidebar: [{ heading: 'Status', fields: ['status'] }] }, 'view');
+    assert.equal(parts.side.children[0].children[0].localName, 'pk-field-list');
+});
+test('Cancel raises pk-record-cancel and returns to view mode', async () => {
+    const { el, parts, events } = await draw({ fields, sidebar: [] });
+    parts.cancel.listeners.click[0]();
+    assert.equal(el.mode, 'view'); assert.ok(events.some(([n]) => n === 'pk-record-cancel'));
 });

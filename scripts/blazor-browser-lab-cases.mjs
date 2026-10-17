@@ -82,6 +82,17 @@ export const LAB_CASES = [
         await ctx.clickDeep(`${RECORD}[part="cancel"]`);
         await ctx.waitFor(`!window.__deep.field('Title')`, 'Cancel to leave edit mode and drop the unsaved edits');
       } },
+    // #1552: TitleOf puts the loaded record's field into the page title (a bridge call, then a config change), and OnCancel is raised by the element's Cancel button.
+    { name: 'record-title-of-and-cancel',
+      async run(ctx) {
+        await ctx.open('/lab/tickets/3');
+        await waitText(ctx, 'Titled Ticket 3');
+        await edit(ctx);
+        await ctx.clickDeep(`${RECORD}[part="cancel"]`);
+        await ctx.waitFor(`!window.__deep.field('Title')`, 'Cancel to leave edit mode');
+        await waitText(ctx, 'Cancels: 1');
+        await ctx.noErrors(ctx.openMark, BENIGN);
+      } },
     { name: 'record-delete',
       async run(ctx) {
         await ctx.open('/lab/tickets/5');

@@ -334,6 +334,7 @@ export function modelElement(el, mapping, reg) {
     // ---- 2a'. `recordModel`: a typed record. The mapping's Fields (PkFieldSpec<TItem>) and Model (the new record) parameters (map cells) become config.fields and config.values
     // (PkFieldSpecs.RecordConfig), the load callback keeps the loaded item and answers its values, and the save callback receives the item with the saved values applied.
     if (mapping.recordModel) out.recordModel = true;
+    if (mapping.recordTitle) out.recordTitle = true;
     // `fieldGroupModel`: the typed field group. The element's search and commit callbacks answer through the specs (Search by key, SetAsync), pk-field-change goes back to each spec's Set, and each spec's label action and editor are slotted.
     if (mapping.fieldGroupModel) out.fieldGroup = true;
     // `dataTableModel`: the typed data table. Load runs through a callback slot and fills the rows (and the cell and header slots of the typed columns), pk-select and pk-row-click go back to the typed callbacks.
@@ -732,7 +733,11 @@ export function renderComponent(m, mappingName, ns = 'PlainKit.Blazor') {
         '        node["columns"] = System.Text.Json.Nodes.JsonNode.Parse(PkAttr.Json(Columns.Select(c => c.ToColumn()))!);',
         '        return node.ToJsonString();', '    }');
     if (m.recordModel) L.push('', '    private TItem? _loaded;', '    private bool _isNew;', '',
-        '    private string ConfigWithFields() => PkFieldSpecs.RecordConfig(PkAttr.JsonText(Config), Fields, _loaded ?? Model, out _isNew);', '',
+        ...(m.recordTitle
+            // `recordTitle`: the TitleOf parameter (a function of the loaded item) becomes config.title once the record is loaded.
+            ? ['    private string ConfigWithFields()', '    {', '        var config = PkFieldSpecs.RecordConfig(PkAttr.JsonText(Config), Fields, _loaded ?? Model, out _isNew);', '        if (TitleOf is null || _loaded is null) return config;',
+                '        var node = System.Text.Json.Nodes.JsonNode.Parse(config) as System.Text.Json.Nodes.JsonObject ?? new System.Text.Json.Nodes.JsonObject();', '        node["title"] = TitleOf(_loaded);', '        return node.ToJsonString();', '    }', '']
+            : ['    private string ConfigWithFields() => PkFieldSpecs.RecordConfig(PkAttr.JsonText(Config), Fields, _loaded ?? Model, out _isNew);', '']),
         '    private object? KeepLoaded(TItem? item)', '    {', '        _loaded = item;', '        _ = InvokeAsync(StateHasChanged);', '        return item is null ? null : PkFieldSpecs.Values(Fields ?? [], item);', '    }', '',
         '    private async Task<TItem> ApplySavedAsync(IReadOnlyDictionary<string, JsonElement> values)', '    {',
         '        var item = (_isNew ? Model : _loaded) ?? throw new InvalidOperationException("A new record needs the Model parameter (the instance to fill); a loaded one is what Load returned.");',

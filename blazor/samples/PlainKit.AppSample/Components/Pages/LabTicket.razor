@@ -2,11 +2,13 @@
 @inject NavigationManager Nav
 @inject IPkNotifications Toasts
 
-@* Lab: an editable record. Save fails when the Title is FAIL; Delete removes the ticket, toasts and goes back to the list. *@
-<PkRecordPage TItem="Ticket" Config="@Config" Fields="Ticket.Specs" Load="TicketStore.GetAsync" Save="TicketStore.SaveAsync" OnDelete="Delete" />
+@* Lab: an editable record. Save fails when the Title is FAIL; Delete removes the ticket, toasts and goes back to the list. TitleOf titles the page from the loaded ticket; OnCancel counts the Cancel presses. *@
+<PkRecordPage TItem="Ticket" Config="@Config" Fields="Ticket.Specs" Load="TicketStore.GetAsync" Save="TicketStore.SaveAsync" OnDelete="Delete" TitleOf="@(t => "Titled " + t.Title)" OnCancel="@(() => _cancels++)" />
+<p id="lab-cancels">Cancels: @_cancels</p>
 
 @code {
     [Parameter] public string Id { get; set; } = "";
+    private int _cancels;
     private string Config => System.Text.Json.JsonSerializer.Serialize(new { id = Id, heading = "Ticket " + Id, editable = true });
 
     private async Task Delete()

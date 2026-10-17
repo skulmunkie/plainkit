@@ -246,6 +246,28 @@ public sealed class PkPageCallbackTests : BunitContext, IAsyncLifetime
         PkFieldSpec<Person>.Bool("active", "Active", p => p.Active, (p, v) => p.Active = v),
     ];
 
+    // #1552: OnCancel is pk-record-cancel; TitleOf becomes config.title once the record is loaded; sections and sidebar are plain Config.
+    [Fact]
+    public async Task RecordPage_raises_OnCancel_and_TitleOf_sets_the_title_from_the_loaded_record()
+    {
+        var cancelled = 0;
+        var cut = Render<PkRecordPage<Person>>(p => p
+            .Add(x => x.Config, "{\"id\":\"o-7\",\"title\":\"Order\",\"sections\":[{\"heading\":\"Address\",\"fields\":[\"name\"]}]}")
+            .Add(x => x.Fields, PersonFields)
+            .Add(x => x.TitleOf, person => person.Name)
+            .Add(x => x.OnCancel, EventCallback.Factory.Create(this, () => cancelled++))
+            .Add(x => x.Load, id => Task.FromResult<Person?>(new Person { Name = "Ada" })));
+        Assert.Contains("\"title\":\"Order\"", cut.Find("pk-record-page").GetAttribute("config"));
+        Assert.Contains("\"sections\"", cut.Find("pk-record-page").GetAttribute("config"));
+
+        var load = Assert.IsType<DotNetObjectReference<PkCallbackHost<JsonElement>>>(_bridge.Invocations["setCallback"].First(c => (string)c.Arguments[1]! == "load").Arguments[2]);
+        await cut.InvokeAsync(() => load.Value.Invoke(JsonDocument.Parse("\"o-7\"").RootElement));
+        cut.WaitForAssertion(() => Assert.Contains("\"title\":\"Ada\"", cut.Find("pk-record-page").GetAttribute("config")));
+
+        await cut.Find("pk-record-page").TriggerEventAsync("onpk-record-cancel", new EventArgs());
+        Assert.Equal(1, cancelled);
+    }
+
     [Fact]
     public void RecordPage_view_templates_fill_the_field_value_slots()
     {

@@ -8,7 +8,7 @@
       "default": "{}",
       "map": "prop",
       "prop": "config",
-      "note": "Sent as a JSON attribute with the fields added from Fields: { id?, sidebar?, heading?, title?, saveLabel?, editable?, label?, emptyHeading? }. The id selects the record to load (none: a new record). A sidebar card lists field keys."
+      "note": "Sent as a JSON attribute with the fields added from Fields: { id?, sidebar?, sections?, heading?, title?, saveLabel?, editable?, label?, emptyHeading? }. The id selects the record to load (none: a new record). A sidebar card lists field keys."
     },
     {
       "name": "Mode",
@@ -53,6 +53,17 @@
       "name": "OnAction",
       "event": "pk-action",
       "note": "A title-bar action (config.actions entry without an href) was clicked; Key is its key."
+    },
+    {
+      "name": "OnCancel",
+      "event": "pk-record-cancel",
+      "note": "Cancel was pressed in edit mode of an existing record and the page is back in view mode: route back to the list from the handler."
+    },
+    {
+      "name": "TitleOf",
+      "map": "cells",
+      "type": "Func<TItem, string?>?",
+      "doc": "The page title from the loaded record (for example item => item.Name), applied as Config's title once Load has returned and again after a save; until then (and for a new record) Config's title shows."
     },
     {
       "name": "OnDirty",
@@ -113,6 +124,7 @@
   "notes": "New component: App framework step 7 (issue #353). Load(id) and Save(values) are callback properties (business logic), set from script, so the generated component hands the element a .NET reference (PkCallbackSlot) that calls the Load and Save parameters, as PkSettingsPage does for Save (issue #1000). Blazor already has the same page concept as PkRecordForm (a PkForm with a toolbar, error alert and a PkDetailLayout sidebar, with the state kept by the page or PkRecordEditor, and ActionsInHeader for the sticky title bar); PkRecordPage is the config-driven element, PkRecordForm stays the composable Razor template. ViewFields (field key to a RenderFragment) fills the field-<key> value slots of the view mode (issue 1000); MainBefore, MainAfter and SideAfter fill the main-before, main-after and side-after slots (PkCard sections around the field list or form and after the sidebar cards, issue 1000); Busy and Error are the page-bound surface (PageBase.IsBusy, StatusMessage) and OnDelete shows the Delete button (issue 1000, step 1); a typed Model, Save(TItem) and an edit-mode editor stay open on the issue. Step 2 of issue 1000: PkRecordPage<TItem> is the only record page. Fields (PkFieldSpec<TItem>) and Model replace the JSON config fields, the generator's `recordModel` mapping adds them to Config (PkFieldSpecs.RecordConfig), Load returns the TItem and Save receives it with the form's values applied through each spec's Set.",
   "typeparam": "TItem",
   "recordModel": true,
+  "recordTitle": true,
   "methods": [
     { "name": "RefreshAsync", "method": "refresh" }
   ]
