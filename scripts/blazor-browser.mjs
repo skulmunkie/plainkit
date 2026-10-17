@@ -22,6 +22,7 @@ import { chromeArgs, findChrome, killTree, launchBrowser, removeDir } from './at
 import { connect, evaluate, freePort } from './ui-review.mjs';
 import { ensureGenerated } from './generated.mjs';
 import { cpuScale } from '../core/tests/browser/cpu-scale.js';
+import { makeTempDir } from '../core/tools/tempdir.mjs';
 
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 const SAMPLE = path.join(root, 'blazor', 'samples', 'PlainKit.AppSample');
@@ -261,7 +262,7 @@ async function main() {
     const picked = list => list.filter(c => !o.cases.length || o.cases.includes(c.name));
     const serverCases = picked(CASES), wasmCases = o.wasm ? picked(WASM_CASES) : [];
 
-    const pub = fs.mkdtempSync(path.join(os.tmpdir(), 'pk-blazor-pub-')), wasmPub = fs.mkdtempSync(path.join(os.tmpdir(), 'pk-blazor-wasm-')), profile = fs.mkdtempSync(path.join(os.tmpdir(), 'pk-blazor-chrome-'));
+    const pub = makeTempDir('pk-blazor-pub-'), wasmPub = makeTempDir('pk-blazor-wasm-'), profile = makeTempDir('pk-blazor-chrome-');
     let host = null, wasmHost = null, session = null, code = 2;
     const stop = () => { session?.close(); killTree(host?.child); wasmHost?.stop(); };
     process.once('SIGINT', () => { stop(); process.exit(2); });

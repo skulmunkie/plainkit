@@ -8,6 +8,7 @@ import zlib from 'node:zlib';
 import { spawnSync } from 'node:child_process';
 import { fileURLToPath } from 'node:url';
 import { parseArgs, table, root, gz, br } from './lib.mjs';
+import { makeTempDir } from '../../core/tools/tempdir.mjs';
 
 // The entries of a zip (a nupkg is one): name, compressed and uncompressed size, read from the central directory. No dependency.
 export function zipEntries(buf) {
@@ -28,7 +29,7 @@ const group = (entries, depth) => { const g = new Map(); for (const e of entries
 export function run({ nupkg = null } = {}) {
     let dir = null;
     if (!nupkg) {
-        dir = fs.mkdtempSync(path.join(os.tmpdir(), 'pk-pack-'));
+        dir = makeTempDir('pk-pack-');
         const r = spawnSync('dotnet', ['pack', path.join(root, 'blazor', 'src', 'PlainKit.Blazor'), '-c', 'Release', '-o', dir], { encoding: 'utf8' });
         if (r.status !== 0) throw new Error(`dotnet pack failed:\n${r.stdout}${r.stderr}`);
         nupkg = path.join(dir, fs.readdirSync(dir).find(f => f.endsWith('.nupkg') && !f.endsWith('.snupkg')));

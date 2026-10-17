@@ -6,6 +6,7 @@ import fs from 'node:fs';
 import os from 'node:os';
 import path from 'node:path';
 import { build, staleDistJs } from '../tools/build.mjs';
+import { makeTempDir } from '../tools/tempdir.mjs';
 
 test('no file under dist/js is left over from a source that no longer exists', () => {
     const { out } = build({ write: false });
@@ -13,7 +14,7 @@ test('no file under dist/js is left over from a source that no longer exists', (
 });
 
 test('staleDistJs lists files the build did not produce, including nested ones, and nothing else', () => {
-    const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'pk-stale-'));
+    const dir = makeTempDir('pk-stale-');
     try {
         for (const f of ['dist/js/kept.js', 'dist/js/old.js', 'dist/js/sub/kept.js', 'dist/js/sub/gone.js', 'dist/other.js']) { fs.mkdirSync(path.dirname(path.join(dir, f)), { recursive: true }); fs.writeFileSync(path.join(dir, f), ''); }
         const out = new Map([['dist/js/kept.js', ''], ['dist/js/sub/kept.js', '']]);

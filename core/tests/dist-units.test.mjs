@@ -10,6 +10,7 @@ import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { build } from '../tools/build.mjs';
 import { MODULES } from '../tools/modules-dist.mjs';
+import { makeTempDir } from '../tools/tempdir.mjs';
 
 const core = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 const { out } = build({ write: false });
@@ -104,7 +105,7 @@ test('the npm package ships the runtime unit only', () => {
 
 test('the build removes the module folders of the old layout (dist/<name>/) and stale files under dist/modules', async () => {
     const { staleDistModules } = await import('../tools/build.mjs');
-    const dir = fs.mkdtempSync(path.join(fs.realpathSync(process.env.TEMP ?? '/tmp'), 'pk-units-'));
+    const dir = makeTempDir('pk-units-');
     try {
         for (const f of ['dist/theme-editor/theme-editor.js', 'dist/modules/theme-editor/old.js', 'dist/modules/theme-editor/theme-editor.js', 'dist/js/x.js']) { fs.mkdirSync(path.dirname(path.join(dir, f)), { recursive: true }); fs.writeFileSync(path.join(dir, f), ''); }
         assert.deepEqual(staleDistModules(new Map([['dist/modules/theme-editor/theme-editor.js', '']]), dir), ['dist/modules/theme-editor/old.js', 'dist/theme-editor/theme-editor.js']);

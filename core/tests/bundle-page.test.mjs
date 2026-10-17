@@ -6,6 +6,7 @@ import os from 'node:os';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { tagsInHtml, entrySource, bundlePage, unbundledGraph } from '../tools/bundle-page.mjs';
+import { makeTempDir } from '../tools/tempdir.mjs';
 
 const dist = path.join(path.dirname(fileURLToPath(import.meta.url)), '..', 'dist');
 const built = fs.existsSync(path.join(dist, 'elements', 'registry.js'));
@@ -24,7 +25,7 @@ test('entrySource imports each element and re-exports the init entry', () => {
 });
 
 test('a fixture page bundles to one JS and one CSS file, defines pk-button, and is smaller than the unbundled graph', { skip }, async () => {
-    const tmp = fs.mkdtempSync(path.join(os.tmpdir(), 'pk-bundle-'));
+    const tmp = makeTempDir('pk-bundle-');
     try {
         const page = path.join(tmp, 'page.html');
         fs.writeFileSync(page, '<!doctype html><pk-button>Save</pk-button><pk-input name="q"></pk-input>');

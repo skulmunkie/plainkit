@@ -5,6 +5,7 @@ import os from 'node:os';
 import path from 'node:path';
 import { closureOf, createCache, importsOf, tagsIn, unitKey } from '../ui-review-cache.mjs';
 import { parseArgs } from '../ui-review.mjs';
+import { makeTempDir } from '../../core/tools/tempdir.mjs';
 
 test('tagsIn lists the known elements a text mentions', () => {
     assert.deepEqual(tagsIn('<pk-a></pk-a> <pk-b-c> pk-zz', new Set(['a', 'b-c'])), ['a', 'b-c']);
@@ -34,7 +35,7 @@ test('--cache is opt-in and --no-cache wins', () => {
 });
 
 function fixture() {
-    const root = fs.mkdtempSync(path.join(os.tmpdir(), 'pk-cache-'));
+    const root = makeTempDir('pk-cache-');
     const w = (f, t) => { fs.mkdirSync(path.dirname(path.join(root, f)), { recursive: true }); fs.writeFileSync(path.join(root, f), t); };
     for (const n of ['a', 'b', 'c']) w(`core/elements/${n}/${n}.css`, `.${n}{}`);
     w('core/elements/a/a.html', '<pk-b></pk-b>');
