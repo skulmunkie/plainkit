@@ -4,5 +4,7 @@
 [part="content"] { flex: 1 1 auto; min-inline-size: 0; }
 /* A page type that has nothing for the header (no title, crumbs or actions) marks the shell data-bare="true": the header goes, and with it its gap. */
 :host([data-bare="true"]) [part="header"] { display: none; }
+/* Until the page header upgrades its slotted title is bare text; it holds the block padding the upgraded header draws, so the header arriving late moves nothing under it (CLS, issue 1510). */
+[part="header"]:not(:defined) { display: block; padding-block: var(--space-1); }
 [part="state"] { min-inline-size: 0; }
 @media (--phone) { :host { gap: var(--pk-page-shell-gap, var(--space-3)); } }

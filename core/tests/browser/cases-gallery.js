@@ -475,6 +475,20 @@ export const galleryAppCases = [
             t.ok(d.documentElement.scrollWidth <= width, `no horizontal page scroll at ${width}px`);
         }
     }],
+    ['scorecard module: handed a precomputed quality report it shows the ranked table and score at once, opens no measuring frame, and labels the button Run live (#197)', async t => {
+        const { mountScorecard } = await import(new URL('../../modules/scorecard/scorecard.js', import.meta.url).href);
+        const el = document.createElement('div'); t.stage('').append(el);
+        const quality = { at: '2026-10-01T00:00:00Z', overall: 71, items: [{ id: 'pk-a', name: 'Alpha', kind: 'Forms', score: 90, findings: [] }, { id: 'pk-b', name: 'Bravo', kind: 'Forms', score: 52, findings: [{ check: 'touch-target', severity: 'warn', selector: 'b', message: 'm', contexts: ['dark 375px'], count: 1 }] }] };
+        const card = await mountScorecard(el, { targets: [{ name: 'x', html: '<p>x</p>' }], data: { quality } });
+        await card.ready;
+        const table = await until(() => el.querySelector('pk-table'), 'the ranked table without a run');
+        t.ok(table.getAttribute('rows').includes('Bravo'), 'the precomputed rows are listed');
+        t.eq(el.querySelector('[data-sc-run]').textContent.trim(), 'Run live', 'the button says Run live');
+        t.ok(/Precomputed report from 2026-10-01/.test(el.querySelector('[data-sc-progress]').textContent), 'the status names the report date');
+        t.eq(el.querySelectorAll('[data-sc-frames] iframe').length, 0, 'no measuring frame was opened');
+        t.ok(el.getBoundingClientRect().width > 0 && el.scrollWidth <= el.clientWidth + 1, 'the card fits its container');
+        card.destroy();
+    }],
     ['scorecard module (app, 1280px and 375px): in every section card the badge row ends above the note under it (#1121)', async t => {
         for (const width of [1280, 375]) {
             const { d } = await openApp(t, '#/scorecard', width);

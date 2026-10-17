@@ -12,7 +12,7 @@ import { symbolsOf } from '../modules/code-explorer/symbols.js';
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 const TEXT = new Set(['.css', '.js', '.mjs', '.ts', '.tsx', '.jsx', '.html', '.svg', '.json', '.md', '.cs', '.razor', '.py', '.java', '.go', '.rs', '.sql', '.yml', '.yaml']);
 // report.json (the browser attestation) is rewritten by every run, so a snapshot that held it would be stale after each attestation.
-const SKIP_FILES = new Set(['snapshot.json', 'index.json', 'sweep-report.json', 'package-lock.json', 'report.json']);
+const SKIP_FILES = new Set(['snapshot.json', 'index.json', 'sweep-report.json', 'quality-report.json', 'package-lock.json', 'report.json']);
 const SKIP_DIRS = new Set(['dist', 'node_modules', '.git', 'bin', 'obj']);
 const MAX_BYTES = 512 * 1024;
 

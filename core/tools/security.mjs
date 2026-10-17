@@ -10,7 +10,7 @@ import { fileURLToPath } from 'node:url';
 
 export const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 const SKIP_DIRS = new Set(['dist', 'node_modules']);
-const SKIP_FILES = new Set(['snapshot.json', 'security-report.json', 'report.json', 'sweep-report.json']);
+const SKIP_FILES = new Set(['snapshot.json', 'security-report.json', 'report.json', 'sweep-report.json', 'quality-report.json']);
 
 export function walk(dir = root) {
     return fs.readdirSync(dir, { withFileTypes: true }).flatMap(e => (e.isDirectory() ? (SKIP_DIRS.has(e.name) ? [] : walk(path.join(dir, e.name))) : [path.join(dir, e.name)]));

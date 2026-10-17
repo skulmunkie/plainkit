@@ -153,6 +153,20 @@ public sealed class PkTableTests : BunitContext, IAsyncLifetime
     }
 
     [Fact]
+    public async Task A_paste_summary_reaches_OnCellsPaste_and_a_date_editor_is_sent_as_date()
+    {
+        PkCellsPasteEventArgs? pasted = null;
+        PkTableColumn<Order>[] cols = [new() { Key = "customer", Label = "Customer", Editor = PkTableEditor.Date }];
+        var cut = Render<PkTable<Order>>(p => p.Add(x => x.Columns, cols).Add(x => x.Items, Orders).Add(x => x.Editable, true).Add(x => x.OnCellsPaste, a => pasted = a));
+        var table = cut.Find("pk-table");
+        using var json = JsonDocument.Parse(table.GetAttribute("columns")!);
+        Assert.Equal("date", json.RootElement[0].GetProperty("editor").GetString());
+
+        await table.TriggerEventAsync("onpk-cells-paste", new PkCellsPasteEventArgs { Cells = JsonDocument.Parse("[{\"id\":\"1\",\"key\":\"customer\",\"value\":\"x\"}]").RootElement, Rejected = JsonDocument.Parse("[]").RootElement });
+        Assert.Equal(1, pasted!.Cells!.Value.GetArrayLength());
+    }
+
+    [Fact]
     public async Task A_row_click_maps_the_id_back_to_the_item()
     {
         PkTableRowClickArgs<Order>? clicked = null;

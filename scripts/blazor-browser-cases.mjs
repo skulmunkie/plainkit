@@ -105,7 +105,7 @@ export const CASES = [
         await ctx.clickLink('/orders/open');
         await ctx.sleep(1500);
         const shift = (await ctx.eval('window.__cls')) - before;
-        ctx.ok(shift < 0.001, `a route change from /orders to /orders/open shifts the layout by ${shift.toFixed(4)}, expected 0`);
+        ctx.ok(shift < 0.001, `a route change from /orders to /orders/open shifts the layout by ${shift.toFixed(4)}, expected 0${shift >= 0.001 ? ' (shifts, ms since load, previous>current rect: ' + JSON.stringify(await ctx.eval('window.__clsLog')) + ')' : ''}`);
       } },
     { name: 'overview-dashboard-from-modules',
       async run(ctx) {

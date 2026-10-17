@@ -7,7 +7,8 @@
 //
 // A-6 (#629) adds the allow-list ratchet report (a stale or dead `allow` entry fails the run, per design 5.3),
 // the baseline/ratchet flags (--baseline, --update-baseline, --strict-baseline) and --format sarif. Not yet
-// supported: inline `plainkit-audit-ignore` comments (design 5.3, Q7) - left to a follow-up slice.
+// A-6b (#1518) adds inline `plainkit-audit-ignore RULE -- reason` comments (ignore.mjs), counted in the summary and
+// listed by --list-suppressions.
 import fs from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
@@ -16,6 +17,7 @@ import { RULES, getRuleMeta } from './rules.mjs';
 import { findConfig, loadConfig, ConfigError } from './config.mjs';
 import { collectFiles } from './glob.mjs';
 import { formatText, formatJson, formatSarif, formatRuleList, formatExplain } from './format.mjs';
+import { scanIgnores, applyIgnores } from './ignore.mjs';
 import { DEFAULT_BASELINE_NAME, loadBaseline, writeBaseline, applyBaseline, BaselineError } from './baseline.mjs';
 
 const SUPPORTED_EXTENSIONS = ['.html', '.htm', '.js', '.mjs', '.jsx', '.ts', '.tsx', '.css', '.razor', '.cshtml', '.cs'];
@@ -34,7 +36,7 @@ export function parseArgs(argv) {
     const opts = {
         paths: [], strict: false, format: 'text', rule: null, skip: null, config: null,
         maxWarnings: -1, explain: null, listRules: false, quiet: false, color: true, version: false,
-        baseline: null, updateBaseline: false, strictBaseline: false,
+        baseline: null, updateBaseline: false, strictBaseline: false, listSuppressions: false,
     };
     const errors = [];
     for (let i = 0; i < argv.length; i++) {
@@ -61,6 +63,7 @@ export function parseArgs(argv) {
             case '--update-baseline': opts.updateBaseline = true; break;
             case '--strict-baseline': opts.strictBaseline = true; break;
             case '--explain': opts.explain = next(); break;
+            case '--list-suppressions': opts.listSuppressions = true; break;
             case '--list-rules': opts.listRules = true; break;
             case '--quiet': opts.quiet = true; break;
             case '--no-color': opts.color = false; break;
@@ -176,6 +179,20 @@ export async function run(argv, { cwd = process.cwd(), stdout = console.log, std
         return { ...f, category: meta?.category, docs: meta?.docs, severity };
     }).filter(f => f.severity !== 'off');
 
+    // Inline `plainkit-audit-ignore` comments (A-6b): a malformed one is an error, a suppression is counted.
+    const scanned = scanIgnores(files);
+    for (const p of scanned.problems) {
+        stderr(`plainkit audit: ${p.file}:${p.line}: plainkit-audit-ignore comment ${p.message}.`);
+        stderr('FIX: write `plainkit-audit-ignore RULE -- reason` (a rule id such as D1 and a reason after `--`).');
+    }
+    const ignored = applyIgnores(findings, scanned.ignores);
+    findings = ignored.kept;
+    if (opts.listSuppressions) {
+        for (const g of scanned.ignores) stdout(`${g.file}:${g.line}  ${g.rules.join(',')}  ${g.reason}`);
+        stdout(`plainkit audit: ${scanned.ignores.length} inline suppression${scanned.ignores.length === 1 ? '' : 's'}`);
+        return scanned.problems.length ? 1 : 0;
+    }
+
     // Allow-list ratchet report (design 5.3, A-6): an entry that suppresses fewer or more real hits than its
     // declared `count` is reported, not silently honoured or corrected - "an entry can only shrink".
     const allowIssues = (raw.allowReport || []).filter(e => e.status !== 'ok');
@@ -237,6 +254,7 @@ export async function run(argv, { cwd = process.cwd(), stdout = console.log, std
         mode,
         skippedRules: skippedRuleIds,
     };
+    if (ignored.suppressed.length) summary.suppressed = ignored.suppressed.length;
     const skipped = { unsupported: skippedUnsupported, other: skippedOther };
 
     if (!opts.quiet) {
@@ -251,7 +269,7 @@ export async function run(argv, { cwd = process.cwd(), stdout = console.log, std
 
     const overWarnings = opts.maxWarnings >= 0 && warningsCount > opts.maxWarnings;
     const staleBaselineFails = opts.strictBaseline && staleBaseline.length > 0;
-    if (errorsCount > 0 || overWarnings || allowIssues.length > 0 || staleBaselineFails) return 1;
+    if (errorsCount > 0 || overWarnings || allowIssues.length > 0 || staleBaselineFails || scanned.problems.length > 0) return 1;
     return 0;
 }
 

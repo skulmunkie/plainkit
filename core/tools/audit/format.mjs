@@ -24,7 +24,7 @@ export function formatSummaryLine(summary) {
     const skipped = summary.skippedRules && summary.skippedRules.length
         ? `; skipped rules: ${summary.skippedRules.join(', ')}`
         : '';
-    return `plainkit audit: ${summary.errors} error${summary.errors === 1 ? '' : 's'}, ${summary.warnings} warning${summary.warnings === 1 ? '' : 's'}, ${summary.files} file${summary.files === 1 ? '' : 's'}, ${summary.seconds}s (${summary.mode}${skipped})`;
+    return `plainkit audit: ${summary.errors} error${summary.errors === 1 ? '' : 's'}, ${summary.warnings} warning${summary.warnings === 1 ? '' : 's'}, ${summary.files} file${summary.files === 1 ? '' : 's'}, ${summary.seconds}s (${summary.mode}${skipped})${summary.suppressed ? `, ${summary.suppressed} suppressed inline` : ''}`;
 }
 
 // JSON per design 5.1: `{ version, mode, parser, findings, summary, skipped }`.
