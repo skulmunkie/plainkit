@@ -33,9 +33,6 @@
       "category": "wrapper",
       "blazorOnly": "Blazor page that hosts the dev tools modules; no element of its own"
     },
-    "Components/PkFieldGroup.razor": {
-      "category": "typed-generics"
-    },
     "Components/PkLogs.razor": {
       "category": "mount"
     },
