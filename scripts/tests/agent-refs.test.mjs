@@ -11,6 +11,7 @@ import path from 'node:path';
 import { spawnSync } from 'node:child_process';
 import { collect, generate, crlf, SKILL_NAMES } from '../build-skills.mjs';
 import { generateAll, diskFiles, differences, OUT_NAMES, root } from '../build-agent-refs.mjs';
+import { makeTempDir } from '../../core/tools/tempdir.mjs';
 
 const src = collect();
 const bundle = generate(src);
@@ -44,7 +45,7 @@ test('node scripts/build-agent-refs.mjs --check passes on a current export', () 
 });
 
 test('differences() catches a stale copy (a temp directory, never the real core/dist: other tests read it concurrently)', () => {
-    const tmp = fs.mkdtempSync(path.join(os.tmpdir(), 'pk-agent-refs-'));
+    const tmp = makeTempDir('pk-agent-refs-');
     try {
         for (const [f, text] of gen) fs.writeFileSync(path.join(tmp, f), crlf(text));
         assert.deepEqual(differences(gen, tmp), [], 'a faithful copy has no differences');
