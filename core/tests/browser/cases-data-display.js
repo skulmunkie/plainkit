@@ -1215,6 +1215,58 @@ export const dataDisplayCases = [
         el.addEventListener('pk-cell-edit', e => e.preventDefault()); seen.length = 0; paste(cell(1, 'name'), 'Refused');
         await t.settle(); t.eq(el.rows[0].name, 'Widget', 'a cancelled pk-cell-edit leaves the cell unchanged'); t.eq(sum.at(-1).rejected[0].reason, 'refused');
     }],
+    // Issue 331: async commit state (detail.wait), the date editor, and a message that stays readable in a narrow column.
+    ['table (editable): detail.wait marks the cell aria-busy while the host saves; a rejection puts the value back, shows the message with aria-invalid, announces it and leaves the undo history; a fulfilment clears the busy state', async t => {
+        const el = await t.mount(`<pk-table editable label="Stock" columns='[{"key":"name","label":"Name","editor":"text"}]' rows='[{"id":1,"name":"Widget"},{"id":2,"name":"Gadget"}]'></pk-table>`);
+        await t.settle();
+        const cell = r => el.shadowRoot.querySelector(`tbody tr:nth-child(${r}) td[data-key=name]`), live = () => el.shadowRoot.querySelector('[role=status].sr')?.textContent ?? '';
+        const jobs = []; el.addEventListener('pk-cell-edit', e => e.detail.wait(new Promise((ok, no) => jobs.push({ ok, no, id: e.detail.id }))));
+        await until(() => cell(1)?.tabIndex === 0, 'the grid');
+        const edit = async (r, text) => { cell(r).focus(); cell(r).dispatchEvent(new KeyboardEvent('keydown', { key: 'Enter', bubbles: true, composed: true, cancelable: true })); const i = await until(() => cell(r).querySelector('input'), 'the editor'); i.value = text; i.dispatchEvent(new KeyboardEvent('keydown', { key: 'Enter', bubbles: true, composed: true, cancelable: true })); };
+        await edit(1, 'Bolt'); await until(() => cell(1).textContent === 'Bolt', 'the value to show at once');
+        t.eq(cell(1).getAttribute('aria-busy'), 'true', 'the cell is busy while the host has not answered'); t.eq(el.rows[0].name, 'Bolt');
+        jobs[0].no(new Error('Name taken'));
+        await until(() => cell(1).textContent.includes('Name taken'), 'the rejection message');
+        t.eq(el.rows[0].name, 'Widget', 'a rejection puts the previous value back'); t.ok(!cell(1).hasAttribute('aria-busy'), 'no longer busy');
+        t.eq(cell(1).getAttribute('aria-invalid'), 'true'); t.ok(cell(1).getAttribute('aria-describedby') && cell(1).querySelector('[data-cell-error]').id === cell(1).getAttribute('aria-describedby'), 'the message is tied to the cell');
+        t.ok(/not saved, Name taken/.test(live()), `announced: ${live()}`);
+        cell(1).focus(); cell(1).dispatchEvent(new KeyboardEvent('keydown', { key: 'z', ctrlKey: true, bubbles: true, composed: true, cancelable: true }));
+        await until(() => /Nothing to undo/.test(live()), 'a rejected edit is not in the undo history');
+        await edit(2, 'Nut'); await until(() => cell(2).getAttribute('aria-busy') === 'true', 'busy'); jobs[1].ok();
+        await until(() => !cell(2).hasAttribute('aria-busy'), 'the busy state to clear'); t.eq(el.rows[1].name, 'Nut', 'a fulfilment keeps the value'); t.ok(!cell(2).hasAttribute('aria-invalid')); t.ok(/saved/.test(live()), live());
+    }],
+    ['table (editable): a date editor is a native date input holding the ISO value, checks min and max, and a pasted non-date is flagged', async t => {
+        const el = await t.mount(`<pk-table editable label="Orders" columns='[{"key":"po","label":"PO"},{"key":"due","label":"Due","type":"date","editor":"date","min":"2026-01-01","max":"2026-12-31","required":true}]' rows='[{"id":1,"po":"A","due":"2026-03-05"},{"id":2,"po":"B","due":"2026-04-01"}]'></pk-table>`);
+        await t.settle();
+        const cell = (r, k = 'due') => el.shadowRoot.querySelector(`tbody tr:nth-child(${r}) td[data-key=${k}]`), key = (n, k, mods = {}) => n.dispatchEvent(new KeyboardEvent('keydown', { key: k, bubbles: true, composed: true, cancelable: true, ...mods }));
+        const seen = []; el.addEventListener('pk-cell-edit', e => seen.push(`${e.detail.value}`));
+        await until(() => cell(1, 'po')?.tabIndex === 0, 'the grid');
+        cell(1).focus(); key(cell(1), 'Enter'); const i = await until(() => cell(1).querySelector('input'), 'the editor');
+        t.eq(i.type, 'date'); t.eq(i.value, '2026-03-05', 'the editor holds the ISO value'); t.eq(i.min, '2026-01-01'); t.eq(i.max, '2026-12-31'); t.eq(i.getAttribute('aria-label'), 'Due, row 1');
+        i.value = '2027-01-01'; key(i, 'Enter'); await until(() => cell(1).querySelector('[data-cell-error]'), 'the message');
+        t.eq(cell(1).querySelector('[data-cell-error]').textContent, 'On or before 2026-12-31'); t.ok(cell(1).querySelector('input'), 'the editor stays open'); t.eq(seen.length, 0, 'no event for a value out of range');
+        const j = cell(1).querySelector('input'); j.value = '2025-12-31'; key(j, 'Enter'); await until(() => /On or after 2026-01-01/.test(cell(1).textContent), 'the minimum message');
+        const k = cell(1).querySelector('input'); k.value = '2026-06-30'; key(k, 'Enter'); await until(() => el.rows[0].due === '2026-06-30', 'the commit');
+        t.eq(seen.join(), '2026-06-30', 'the event carries the ISO string'); t.eq(cell(1).textContent, '2026-06-30');
+        cell(2).focus(); key(cell(2), '7'); const q = await until(() => cell(2).querySelector('input'), 'typing opens the editor'); t.eq(q.value, '2026-04-01', 'typing a character opens a date editor on its value instead of replacing it');
+        key(q, 'Escape'); await until(() => !cell(2).querySelector('input'), 'closed');
+        cell(2).focus(); cell(2).dispatchEvent(Object.assign(new Event('paste', { bubbles: true, composed: true, cancelable: true }), { clipboardData: { getData: () => 'next week' } }));
+        await until(() => cell(2).getAttribute('aria-invalid') === 'true', 'flagged'); t.eq(el.rows[1].due, '2026-04-01', 'a non-date was not committed');
+    }],
+    ['table (editable): an error on a cell that is not being edited stays readable in a narrow column: one short line below the cell, hidden until the cell is focused, and no column reflows', async t => {
+        const host = t.stage(`<div><pk-table editable label="Stock" columns='[{"key":"name","label":"Product","editor":"text"},{"key":"qty","label":"Qty","type":"number","editor":"number","min":0}]' rows='[{"id":1,"name":"Widget number one","qty":4},{"id":2,"name":"Gadget number two","qty":9}]'></pk-table></div>`);
+        host.firstElementChild.style.inlineSize = '240px'; await t.load(host);
+        const el = host.querySelector('pk-table'); await t.settle();
+        const cell = (r, k) => el.shadowRoot.querySelector(`tbody tr:nth-child(${r}) td[data-key=${k}]`), widths = () => [...el.shadowRoot.querySelectorAll('thead th')].map(h => Math.round(h.getBoundingClientRect().width)).join();
+        await until(() => cell(1, 'name')?.tabIndex === 0, 'the grid'); const before = widths();
+        cell(1, 'name').focus(); cell(1, 'qty').click(); await t.settle();
+        cell(1, 'qty').dispatchEvent(Object.assign(new Event('paste', { bubbles: true, composed: true, cancelable: true }), { clipboardData: { getData: () => '-3' } }));
+        const m = await until(() => cell(1, 'qty').querySelector('[data-cell-error]'), 'the message'); await t.settle();
+        t.eq(widths(), before, 'the message reflowed a column');
+        cell(1, 'qty').focus(); await t.settle(); const r = m.getBoundingClientRect(), frame = el.part('scroll').getBoundingClientRect();
+        t.ok(r.width > 55 && r.height < 32, `the message is ${Math.round(r.width)}x${Math.round(r.height)}: wrapped in a narrow column`);
+        t.ok(r.left >= frame.left - 1 && r.right <= frame.right + 1, 'the message is inside the frame');
+    }],
     // Issue 1474: an editable table windows at 500+ rows. The helpers below build a 1000+ row grid and read it by id, never by position in the DOM.
     ...(() => {
         const COLS = '[{"key":"sku","label":"SKU","editor":"text"},{"key":"name","label":"Name","editor":"text","sortable":true},{"key":"qty","label":"Qty","type":"number","editor":"number","min":0}]';
@@ -1364,6 +1416,29 @@ export const dataDisplayCases = [
                 t.ok(copy().defaultPrevented, 'the table took the copy');
                 const lines = out.split('\n'); t.eq(lines.length, 1199); t.eq(lines[0], 'Item 2\t1'); t.eq(lines.at(-1), 'Item 1200\t' + (1199 % 50));
                 await g.scroll(0); await g.pick(4, 'name'); copy(); t.eq(out, 'Item 4', 'a single cell copies its value');
+            }],
+            ['table (editable, 1200 rows): a paste saved with detail.wait is busy while pending, and a rejection for a row never drawn reverts it, shows its message when drawn, and announces once (#331)', async t => {
+                const g = await grid(t, 1200); await g.pick(1, 'name'); const jobs = [];
+                g.el.addEventListener('pk-cell-edit', e => e.detail.wait(new Promise((ok, no) => jobs.push({ ok, no, id: e.detail.id }))));
+                paste(g.sr.activeElement, Array.from({ length: 1000 }, (_, i) => `New ${i + 1}`).join('\n'));
+                await until(() => jobs.length === 1000, 'every cell offered through pk-cell-edit', 15000);
+                await until(() => g.cell(1, 'name')?.getAttribute('aria-busy') === 'true', 'the drawn cell is busy');
+                for (const j of jobs) j.id === '900' ? j.no(new Error('Locked')) : j.ok();
+                await until(() => g.el.rows[0].name === 'New 1' && g.el.rows[899].name === 'Item 900', 'the rejected row reverted and the others kept their value', 15000);
+                t.eq(g.el.rows[998].name, 'New 999'); await until(() => !g.cell(1, 'name').hasAttribute('aria-busy'), 'busy cleared');
+                await g.scroll(895 * g.rowH()); const c = await until(() => g.cell(900, 'name'), 'row 900 drawn');
+                t.eq(c.getAttribute('aria-invalid'), 'true'); t.ok(c.textContent.includes('Locked'), 'the message shows once the row is drawn');
+                t.ok(/not saved, Locked/.test(g.sr.querySelector('[role=status].sr').textContent), g.sr.querySelector('[role=status].sr').textContent);
+            }],
+            ['table (editable, 1200 rows): a date column edits on a row reached by scrolling, committing the ISO value, and the editor does not change the row height (#331)', async t => {
+                const cols = '[{"key":"sku","label":"SKU","editor":"text"},{"key":"due","label":"Due","type":"date","editor":"date","min":"2026-01-01"}]', data = JSON.stringify(Array.from({ length: 1200 }, (_, i) => ({ id: i + 1, sku: `S${i + 1}`, due: '2026-02-03' })));
+                const box = await t.mount(`<div style="width:375px"><pk-table editable sticky-header max-height="20rem" label="Due" columns='${cols}' rows='${data}'></pk-table></div>`), el = box.querySelector('pk-table');
+                await until(() => el.shadowRoot?.querySelector('td[tabindex="0"]') && el.$e, 'the grid'); await t.settle(); const sr = el.shadowRoot, frame = el.part('scroll');
+                frame.scrollTop = 600 * 33; await t.settle(); const ids = [...sr.querySelectorAll('tbody tr[data-pk-context]')].map(r => r.dataset.pkContext), id = ids[Math.floor(ids.length / 2)];
+                const c = () => sr.querySelector(`tr[data-pk-context="${id}"] td[data-key=due]`), h0 = c().closest('tr').getBoundingClientRect().height; c().click(); await t.settle(); c().click();
+                const i = await until(() => c().querySelector('input[type=date]'), 'the date editor'); t.eq(i.value, '2026-02-03'); t.ok(Math.abs(c().closest('tr').getBoundingClientRect().height - h0) < 1.5, 'the editor changed the row height');
+                i.value = '2026-09-09'; i.dispatchEvent(new KeyboardEvent('keydown', { key: 'Enter', bubbles: true, composed: true, cancelable: true }));
+                await until(() => el.rows[Number(id) - 1].due === '2026-09-09', 'the commit');
             }],
         ];
     })(),

@@ -6,7 +6,7 @@
 import { sheetFor } from './element.js'; import { rowAt } from './rowset.js';
 import { keyStep, stepIndex } from './roving.js'; import V from './table-vw.js';
 
-const STYLES = ('td[data-key][tabindex]{cursor:cell;user-select:none}td[data-key]:focus-visible{outline:var(--focus-ring);outline-offset:-2px}td[aria-selected="true"]{background:color-mix(in srgb,var(--color-accent) 10%,transparent)}td[aria-invalid="true"]{box-shadow:inset 0 0 0 2px var(--field-error)}td[data-editing]{padding:var(--space-1);position:relative}td[data-editing] :is(input,select){inline-size:0;min-inline-size:100%;font:inherit}[data-cell-error]{display:block;color:var(--field-error);font-size:var(--text-meta);text-align:start}td[data-editing] [data-cell-error]{position:absolute;inset-block-start:100%;inset-inline-start:0;z-index:1;inline-size:max-content;max-inline-size:min(16rem,80vw);padding:var(--space-1) var(--space-2);background:var(--color-bg);border-radius:var(--radius-sm);box-shadow:var(--shadow-card)}@media (max-width:640px){td[data-editing] :is(input,select){min-block-size:var(--touch-target);min-inline-size:max(100%,var(--touch-target));font-size:16px}}');
+const STYLES = ('td[data-key][tabindex]{cursor:cell;user-select:none}td[data-key]:focus-visible{outline:var(--focus-ring);outline-offset:-2px}td[aria-selected="true"]{background:color-mix(in srgb,var(--color-accent) 10%,transparent)}td[aria-invalid="true"]{box-shadow:inset 0 0 0 2px var(--field-error)}td[aria-busy="true"]{opacity:.6;cursor:progress}td[aria-invalid="true"]:not(:first-child),:host(:not([sticky-column])) td[aria-invalid="true"]{position:relative}td[data-editing]{padding:var(--space-1);position:relative}td[data-editing] :is(input,select){inline-size:0;min-inline-size:100%;font:inherit}[data-cell-error]{display:block;color:var(--field-error);font-size:var(--text-meta);text-align:start;position:absolute;inset-block-start:100%;inset-inline-start:0;z-index:1;inline-size:max-content;max-inline-size:min(16rem,80vw);padding:var(--space-1) var(--space-2);background:var(--color-bg);border-radius:var(--radius-sm);box-shadow:var(--shadow-card)}td:last-child [data-cell-error]{inset-inline-start:auto;inset-inline-end:0}td:not([data-editing]):not(:hover):not(:focus-within) [data-cell-error]{inline-size:1px;block-size:1px;padding:0;overflow:hidden;clip-path:inset(50%);white-space:nowrap}td[data-editing] input[type=date]{position:absolute;inset-block:var(--space-1);inset-inline-start:0;inline-size:max-content;min-inline-size:max(100%,var(--touch-target));z-index:1;background:var(--color-bg)}td:last-child[data-editing] input[type=date]{inset-inline-start:auto;inset-inline-end:0}td[data-editing] [data-ghost]{display:block;visibility:hidden}@media (max-width:640px){td[data-editing] :is(input,select){min-block-size:var(--touch-target);min-inline-size:max(100%,var(--touch-target));font-size:16px}}');
 let sheet;
 
 // The message a draft breaks, or '' when it is fine. Pure: `col` is the column definition ({ editor, required, min, max, maxLength }), `text` the draft as typed.
@@ -18,6 +18,11 @@ export function check(col, text) {
         if (Number.isNaN(n)) return 'Enter a number';
         if (col.min != null && n < col.min) return `At least ${col.min}`;
         if (col.max != null && n > col.max) return `At most ${col.max}`;
+    }
+    if (col.editor === 'date' && t) {
+        if (!/^\d{4}-\d\d-\d\d$/.test(t) || !(d => !Number.isNaN(d) && d.toISOString().startsWith(t))(new Date(`${t}T00:00:00Z`))) return 'Enter a date';
+        if (col.min != null && t < String(col.min)) return `On or after ${col.min}`;
+        if (col.max != null && t > String(col.max)) return `On or before ${col.max}`;
     }
     if (col.maxLength != null && String(text ?? '').length > col.maxLength) return `At most ${col.maxLength} characters`;
     return '';
@@ -38,6 +43,7 @@ const label = (t, id, k) => `${col(t, k).label ?? k}, row ${id}`;
 function editor(t, c, id, s) {
     const e = c.editor, i = document.createElement(e === 'select' ? 'select' : 'input'); i.dataset.cellEditor = ''; i.setAttribute('aria-label', label(t, id, c.key));
     if (e === 'select') for (const o of c.options ?? []) { const v = typeof o === 'object' ? o.value : o, op = document.createElement('option'); op.value = v; op.textContent = typeof o === 'object' ? (o.label ?? v) : o; i.append(op); }
+    else if (e === 'date') { i.type = 'date'; if (c.min != null) i.min = c.min; if (c.max != null) i.max = c.max; }
     else { i.type = 'text'; if (e === 'number') i.inputMode = 'decimal'; }
     i.value = s.draft ?? '';
     return i;
@@ -101,13 +107,16 @@ export function after(t) {
         td.setAttribute('aria-selected', String(on || inside));
         if (!can) td.setAttribute('aria-readonly', 'true');
         const err = ed ? s.edit.error ?? errors[key(id, k)] : errors[key(id, k)];
+        if (s.pend?.[key(id, k)]) td.setAttribute('aria-busy', 'true'); else td.removeAttribute('aria-busy'); // the body may be kept as drawn when only this state changes
         if (err) td.setAttribute('aria-invalid', 'true');
         if (can && ed) {
             const i = editor(t, c, id, s.edit);
-            td.replaceChildren(i);
+            // A date input is wider than a narrow column: it floats over the cell, and the cell keeps its row height with the value drawn hidden.
+            td.replaceChildren(...c.editor === 'date' ? [Object.assign(document.createElement('span'), { textContent: td.textContent }), i] : [i]);
+            if (c.editor === 'date') td.firstChild.dataset.ghost = '';
             td.dataset.editing = '';
             if (err) { i.setAttribute('aria-invalid', 'true'); const m = document.createElement('span'); m.dataset.cellError = ''; m.id = `pk-e-${id}-${k}`; m.textContent = err; td.append(m); i.setAttribute('aria-describedby', m.id); }
-        } else if (err) { const m = document.createElement('span'); m.dataset.cellError = ''; m.textContent = err; td.append(m); }
+        } else if (err) { const m = document.createElement('span'); m.dataset.cellError = ''; m.id = `pk-e-${id}-${k}`; m.textContent = err; td.append(m); td.setAttribute('aria-describedby', m.id); }
         // s.focus is true after a move (scroll the cell into view) and 'keep' after a windowed re-render replaced the focused cell (restore focus without scrolling or reselecting).
         if (s.focus && on) { const keep = s.focus === 'keep'; (td.querySelector('[data-cell-editor]') ?? td).focus({ preventScroll: keep }); if (ed && !keep) td.querySelector('input')?.select(); if (!keep && t.$virtual) reveal(t, td); s.focus = false; }
     }
@@ -185,12 +194,34 @@ const trim = u => { let i = Math.max(0, u.length - 100); while (i > 0 && u[i].g 
 
 // Offer a value for a cell to the host (pk-cell-edit) and, unless it cancels, hold it in a copy of the rows (at once, or at flush() when a batch is given). False when the row is not in the view or the host refused.
 function put(t, id, k, value, source = 'keyboard', cx) {
-    const own = !cx, c = cx ?? batch(t), i = c.at.get(id), row = c.view[i];
-    if (!row || !t.emit('pk-cell-edit', { id, index: i, row, key: k, value, previous: row[k], source })) return false;
+    const own = !cx, c = cx ?? batch(t), i = c.at.get(id), row = c.view[i], waits = [];
+    // detail.wait(promise): the host saves asynchronously. The value shows at once and the cell is busy until the promise settles; a rejection puts the previous value back and shows its message.
+    if (!row || !t.emit('pk-cell-edit', { id, index: i, row, key: k, value, previous: row[k], source, wait: p => void waits.push(Promise.resolve(p)) })) return false;
     c.patch.set(row, { ...c.patch.get(row), [k]: value });
-    delete st(t).paste?.[key(id, k)];
+    const s = st(t); delete s.paste?.[key(id, k)];
     if (own) flush(t, c);
+    if (waits.length) {
+        (s.pend ??= {})[key(id, k)] = (s.pend[key(id, k)] ?? 0) + 1;
+        Promise.all(waits).then(() => settled(t, { id, k, value }), err => settled(t, { id, k, value, previous: row[k], err }));
+    }
     return true;
+}
+
+// Settled saves are handled together on the next task (a paste of thousands of cells copies the rows once): the busy mark goes; a rejected cell gets its previous value back, without a new
+// pk-cell-edit, a message (the rejection's message, or "Not saved") and a polite announcement, and the edit leaves the undo history.
+function settled(t, r) {
+    const s = st(t); (s.done ??= []).push(r);
+    s.dt ||= setTimeout(() => {
+        const all = s.done, cx = batch(t), bad = all.filter(x => x.err !== undefined); s.done = []; s.dt = 0;
+        for (const x of all) { const n = key(x.id, x.k); if (!--s.pend[n]) delete s.pend[n]; }
+        for (const x of bad) {
+            const row = cx.view[cx.at.get(x.id)], n = key(x.id, x.k); (s.paste ??= {})[n] = String(x.err?.message ?? x.err ?? '') || 'Not saved';
+            if (row && same(cx.patch.get(row)?.[x.k] ?? row[x.k], x.value)) cx.patch.set(row, { ...cx.patch.get(row), [x.k]: x.previous });
+            for (const h of [s.undo, s.redo]) { const j = h?.findLastIndex(y => y.id === x.id && y.key === x.k && same(y.to, x.value)); if (j >= 0) h.splice(j, 1); }
+        }
+        flush(t, cx); t.requestUpdate();
+        say(t, bad.length ? `${bad.length === 1 ? label(t, bad[0].id, bad[0].k) : `${bad.length} cells`}: not saved, ${s.paste[key(bad[0].id, bad[0].k)]}` : `${all.length === 1 ? label(t, all[0].id, all[0].k) : `${all.length} cells`}: saved`);
+    }, 0);
 }
 
 // Ctrl/Cmd+Z and Ctrl+Y (or Ctrl+Shift+Z) step through the committed edits of this table. A step goes through the same pk-cell-edit, so the host sees it like any edit and may refuse it.
@@ -300,7 +331,7 @@ function keydown(t, e) {
     // A printable key with no modifier starts editing the active cell, replacing its content with what was typed (standard grid convention).
     else if (k.length === 1 && !e.ctrlKey && !e.metaKey && !e.altKey) {
         const c = col(t, td.dataset.key);
-        if (c.editor && !slot(td)) { e.preventDefault(); begin(t, td, k); }
+        if (c.editor && !slot(td)) { e.preventDefault(); begin(t, td, c.editor === 'date' ? undefined : k); } // a date input takes no typed text from here: it opens on the cell's value
     }
 }
 

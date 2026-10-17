@@ -34,6 +34,8 @@ public enum PkTableEditor
     [JsonStringEnumMemberName("number")] Number,
     /// <summary>A choice among <c>Options</c>.</summary>
     [JsonStringEnumMemberName("select")] Select,
+    /// <summary>A native date input; the value is an ISO 8601 date string such as <c>2026-01-07</c>.</summary>
+    [JsonStringEnumMemberName("date")] Date,
 }
 
 /// <summary>A column of a <c>pk-table</c>.</summary>
@@ -47,41 +49,30 @@ public sealed record PkTableColumn
     public string Label { get; init; } = "";
 
     /// <summary>What the column holds; null leaves it to the element (text).</summary>
-    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
-    public PkTableColumnType? Type { get; init; }
+    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)] public PkTableColumnType? Type { get; init; }
 
     /// <summary>The alignment of the cells; null leaves it to the element (start).</summary>
-    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
-    public PkTableColumnAlign? Align { get; init; }
+    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)] public PkTableColumnAlign? Align { get; init; }
 
     /// <summary>The header can be activated to sort by this column.</summary>
-    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingDefault)]
-    public bool Sortable { get; init; }
+    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingDefault)] public bool Sortable { get; init; }
 
     /// <summary>Leave the column out of the card layout on a phone.</summary>
-    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingDefault)]
-    public bool HidePhone { get; init; }
+    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingDefault)] public bool HidePhone { get; init; }
     /// <summary>The column that names the row (put it first): in the phone card layout its cell is the heading, without a label.</summary>
     [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingDefault)] public bool Title { get; init; }
     /// <summary>Drop the column when the table itself is narrower than 24rem (1), 36rem (2) or 48rem (3).</summary>
-    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
-    public int? Shed { get; init; }
+    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)] public int? Shed { get; init; }
     /// <summary>The editor of the column's cells in an editable table; null leaves the column read-only.</summary>
-    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
-    public PkTableEditor? Editor { get; init; }
+    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)] public PkTableEditor? Editor { get; init; }
     /// <summary>The choices of a <see cref="PkTableEditor.Select"/> editor.</summary>
-    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
-    public IReadOnlyList<string>? Options { get; init; }
+    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)] public IReadOnlyList<string>? Options { get; init; }
     /// <summary>An empty value is refused.</summary>
-    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingDefault)]
-    public bool Required { get; init; }
+    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingDefault)] public bool Required { get; init; }
     /// <summary>The smallest value of a <see cref="PkTableEditor.Number"/> editor.</summary>
-    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
-    public double? Min { get; init; }
+    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)] public double? Min { get; init; }
     /// <summary>The largest value of a <see cref="PkTableEditor.Number"/> editor.</summary>
-    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
-    public double? Max { get; init; }
+    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)] public double? Max { get; init; }
     /// <summary>The longest text a <see cref="PkTableEditor.Text"/> editor accepts.</summary>
-    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
-    public int? MaxLength { get; init; }
+    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)] public int? MaxLength { get; init; }
 }
