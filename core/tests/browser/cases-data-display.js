@@ -830,7 +830,7 @@ export const dataDisplayCases = [
         search.value = 'wi'; search.dispatchEvent(new Event('input', { bubbles: true }));
         await new Promise(r => setTimeout(r, 40));
         t.eq(queries, 1, 'one debounced pk-search, not one per keystroke'); t.eq(lastQuery, 'wi');
-        t.ok(!el.part('trigger').hidden, 'a slotted filter field shows the trigger'); t.ok(!el.part('count').hidden); t.eq(el.part('count').textContent, '2');
+        t.ok(!el.part('trigger').hidden, 'a slotted filter field shows the trigger'); t.ok(!el.shadowRoot.querySelector('.count').hidden); t.eq(el.shadowRoot.querySelector('.count').textContent, '2');
         t.ok(el.part('panel').hidden, 'closed by default');
         let toggles = [];
         el.addEventListener('pk-toggle', e => toggles.push(e.detail.open));
@@ -1052,6 +1052,21 @@ export const dataDisplayCases = [
         t.eq(Math.round(el.getBoundingClientRect().height), 300, 'the host did not grow while scrolling');
         el.fill = false; await t.settle();
         t.ok(el.getBoundingClientRect().height < 300, 'without fill it is capped by max-height again');
+    }],
+
+    ['code-view header (#1523): hidden without header; label, language, derived count and slots with it; slotted text is not code; fits at 375px', async t => {
+        const box = await t.mount('<div style="inline-size:375px"><pk-code-view label="a.cs">one\ntwo\nthree</pk-code-view></div>');
+        const el = box.querySelector('pk-code-view'); await t.settle();
+        t.eq(el.shadowRoot.querySelector('.header').getBoundingClientRect().height, 0, 'no header without the header attribute');
+        el.language = 'C#'; el.header = true; el.innerHTML = '<span slot="header-start">hs</span><button slot="actions">Outline</button><button slot="actions">Usages of a very long symbol name</button>one\ntwo\nthree'; await t.settle(); await wait(50);
+        t.ok(el.shadowRoot.querySelector('.header').getBoundingClientRect().height > 0, 'the header shows');
+        t.eq(el.shadowRoot.querySelector('.title').textContent, 'a.cs'); t.eq(el.shadowRoot.querySelector('.language').textContent, 'C#'); t.eq(el.shadowRoot.querySelector('.count').textContent, '3 lines');
+        t.eq(el.part('rows').children.length, 3, 'slotted header content is not a code line');
+        const h = el.shadowRoot.querySelector('.header').getBoundingClientRect(), hs = el.querySelector('[slot=header-start]').getBoundingClientRect(), a = el.querySelector('[slot=actions]').getBoundingClientRect();
+        t.ok(hs.height > 0 && a.height > 0, 'the slots are placed');
+        t.ok(a.right <= h.right + 1 && a.left >= h.left - 1, 'the actions stay inside the header at 375px');
+        t.ok(el.shadowRoot.querySelector('.header').scrollWidth <= el.shadowRoot.querySelector('.header').clientWidth + 1, 'the header does not overflow');
+        el.lines = ['x']; await t.settle(); t.eq(el.shadowRoot.querySelector('.count').textContent, '1 line');
     }],
 
     ['calendar: shows the month, selects a day with a cancelable event, moves with keys and pages months', async t => {
