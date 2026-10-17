@@ -661,10 +661,31 @@ test('"declared" extra: the hand-written component keeps the parameter and its a
     assert.match(cs, /handlers\["onpk-page"\] = /);
 });
 
-test('the real PkDataTable binds SortKey, Descending, Search and PageSize on pk-query-change (#1431)', () => {
-    const cs = real.files.get('PkDataTable.Extra.cs');
+test('the real PkDataTable is generated (#1473) and binds SortKey, Descending, Search and PageSize on pk-query-change (#1431)', () => {
+    const cs = real.files.get('PkDataTable.razor');
+    assert.equal(real.files.has('PkDataTable.Extra.cs'), false);
     for (const n of ['SortKey', 'Descending', 'Search', 'PageSize']) assert.match(cs, new RegExp(`${n}Changed \\{ get; set; \\}`), n);
     assert.match(cs, /handlers\["onpk-query-change"\]/);
+});
+
+test('the real PkDataTable keeps its typed surface: required Load, Columns and IdOf, plain OnAdd, a listened OnNavigate, its slots, load, select and row click', () => {
+    const razor = real.files.get('PkDataTable.razor');
+    assert.match(razor, /@typeparam TItem/);
+    for (const n of ['Load', 'Columns', 'IdOf']) assert.match(razor, new RegExp(`\\[Parameter, EditorRequired\\] public .+ ${n} \\{ get; set; \\}`), n);
+    assert.match(razor, /public string EmptyText \{ get; set; \} = "Nothing to show\.";/);
+    assert.match(razor, /public int\[\]\? PageSizeOptions \{ get; set; \} = \[10, 25, 50, 100\];/);
+    assert.match(razor, /public bool Searchable \{ get; set; \} = true;/);
+    assert.match(razor, /hide-search="@\(!Searchable\)"/);
+    assert.match(razor, /sort-dir="@\(Descending \? "descending" : "ascending"\)"/);
+    assert.match(razor, /public EventCallback OnAdd \{ get; set; \}/);
+    assert.match(razor, /if \(OnNavigate\.HasDelegate\) handlers\["onpk-navigate"\]/);
+    assert.match(razor, /<div slot="empty" class="u-contents">@EmptyContent<\/div>/);
+    assert.match(razor, /clickable="@OnRowClick\.HasDelegate"/);
+    assert.match(razor, /cell-\{row\.Id\}-\{column\.Key\}/);
+    assert.match(razor, /header-\{c\.Key\}/);
+    assert.match(razor, /_load\.SyncAsync<PkListPageQuery>/);
+    assert.match(razor, /handlers\["onpk-select"\]/);
+    assert.match(razor, /handlers\["onpk-row-click"\]/);
 });
 
 test('"extra" on a component that is not hand-written is an error: it is generated whole', () => {

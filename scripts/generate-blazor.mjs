@@ -196,7 +196,7 @@ export function modelElement(el, mapping, reg) {
         if (map === 'prop') {
             if (!r.cs) { skip(p.name, r.reason); continue; }
             const api = r.api;
-            declare({ name: p.name, kind: 'param', cs: r.cs, init: r.init, doc: api.description, note: p.note });
+            declare({ name: p.name, kind: 'param', cs: r.cs, init: r.init, doc: p.doc ?? api.description, note: p.note });
             out.attrs.push({ attr: kebab(p.prop), expr: r.expr, boolean: r.attr === 'bool' });
             if (r.todo) todo(p.name, r.todo);
             // `slotted`: the value is also a light-DOM child of its own, { tag, slot, attrs } (an attribute value starting with @ is a Razor expression, else a literal):
@@ -211,8 +211,8 @@ export function modelElement(el, mapping, reg) {
             if (/^RenderFragment<.*>\??$/.test(t)) { skip(p.name, `${t} is a templated fragment; needs a hand-written component`); continue; }
             const text = t === 'string' || t === 'string?';
             const api = el.slots.find(s => s.name === slot);
-            declare({ name: p.name, kind: 'param', cs: text ? 'string?' : 'RenderFragment?', doc: api?.description ?? (slot === '' ? 'The content.' : `The ${slot} slot.`), note: p.note });
-            out.children.push({ slot, name: p.name, text, unless: p.unless }); // unless: another (list) parameter that, once it has items, replaces this slot (a custom trail only when no Crumbs)
+            declare({ name: p.name, kind: 'param', cs: text ? 'string?' : 'RenderFragment?', doc: p.doc ?? api?.description ?? (slot === '' ? 'The content.' : `The ${slot} slot.`), note: p.note });
+            out.children.push({ slot, name: p.name, text, unless: p.unless, tag: p.slotTag }); // slotTag: the wrapper element when it is not a span (the empty slot's div) // unless: another (list) parameter that, once it has items, replaces this slot (a custom trail only when no Crumbs)
         } else if (map === 'event') {
             const ev = eventInfo(p.event);
             if (!ev) { skip(p.name, `the element has no event ${p.event}`); continue; }
@@ -230,7 +230,8 @@ export function modelElement(el, mapping, reg) {
                 addBind(base, { event: p.event, conv }, p.name, true);
                 continue;
             }
-            if (ev.native) { cs = `EventCallback<${ev.args === 'MouseEventArgs' || p.type?.includes('MouseEventArgs') ? 'MouseEventArgs' : ev.args === 'ChangeEventArgs' ? 'ChangeEventArgs' : 'EventArgs'}>`; call = 'args'; }
+            if (p.plain === true && !ev.native) { cs = 'EventCallback'; call = 'none'; } // `plain`: the callback takes no argument (OnAdd) though the event carries a detail
+            else if (ev.native) { cs = `EventCallback<${ev.args === 'MouseEventArgs' || p.type?.includes('MouseEventArgs') ? 'MouseEventArgs' : ev.args === 'ChangeEventArgs' ? 'ChangeEventArgs' : 'EventArgs'}>`; call = 'args'; }
             else if (inner && !/EventArgs$/.test(inner) && (SIMPLE.has(stripNull(inner)))) {
                 const src = pickField(ev, null);
                 const conv = src && convert(`e.${src.prop}`, src.cs, inner);
@@ -238,7 +239,7 @@ export function modelElement(el, mapping, reg) {
                 cs = `EventCallback<${inner}>`; call = `value:${conv}`;
             } else if (!ev.fields.length) { cs = 'EventCallback'; call = 'none'; }
             else { cs = `EventCallback<${ev.args}>`; call = 'args'; }
-            if (declare({ name: p.name, kind: 'param', cs, doc: ev.description, note: p.note, cancelable: ev.cancelable })) { const hh = handler(ev); hh.callbacks.push({ name: p.name, call }); if (p.stopPropagation) hh.stop = true; }
+            if (declare({ name: p.name, kind: 'param', cs, doc: ev.description, note: p.note, cancelable: ev.cancelable })) { const hh = handler(ev); hh.callbacks.push({ name: p.name, call }); if (p.stopPropagation) hh.stop = true; if (p.listened) hh.listened = true; }
             // `shows`: a boolean prop of the element that is on exactly when the host listens (OnCancel set shows the Cancel button: cancellable).
             if (p.shows) out.attrs.push({ attr: kebab(p.shows), expr: `@${p.name}.HasDelegate`, boolean: true });
         } else if (map === 'callback') {
@@ -279,7 +280,7 @@ export function modelElement(el, mapping, reg) {
         } else if (map === 'columns') {
             // Typed columns of the element (a PkTableColumn<TItem> list): the parameter is turned into the element's columns JSON attribute (ToColumn of each column).
             if (!p.prop || !p.doc) { skip(p.name, 'a columns parameter needs prop and doc in the mapping'); continue; }
-            declare({ name: p.name, kind: 'param', cs: 'IReadOnlyList<PkTableColumn<TItem>>', init: '[]', doc: p.doc, note: p.note });
+            declare({ name: p.name, kind: 'param', cs: 'IReadOnlyList<PkTableColumn<TItem>>', init: '[]', required: p.required === true, doc: p.doc, note: p.note });
             out.attrs.push({ attr: kebab(p.prop), expr: `@PkAttr.Json(${p.name}.Select(c => c.ToColumn()))` });
         } else if (map === 'fieldGroup') {
             // `fieldGroupModel` (the typed field group, #1473): role fields (the PkFieldSpec<TItem> list, sent as the element's fields), model (the bound record, sent as its values), changed (raised after a commit).
@@ -287,6 +288,18 @@ export function modelElement(el, mapping, reg) {
             if (p.role === 'fields') { declare({ name: p.name, kind: 'param', cs: 'IReadOnlyList<PkFieldSpec<TItem>>', init: '[]', required: true, doc: p.doc }); out.attrs.push({ attr: 'fields', expr: '@PkAttr.Json(Defs())' }); }
             else if (p.role === 'model') { declare({ name: p.name, kind: 'param', cs: 'TItem', init: 'default!', required: true, doc: p.doc }); out.attrs.push({ attr: 'values', expr: '@Values()' }); }
             else declare({ name: p.name, kind: 'param', cs: 'EventCallback', doc: p.doc });
+        } else if (map === 'param') {
+            // A plain parameter the generated code reads (type, doc, optional init and required): no attribute of its own.
+            if (!p.type || !p.doc) { skip(p.name, 'a param needs type and doc in the mapping'); continue; }
+            declare({ name: p.name, kind: 'param', cs: p.type, init: p.csDefault, required: p.required === true, doc: p.doc, note: p.note });
+        } else if (map === 'dataTable') {
+            // `dataTableModel` (the typed data table, #1473): the parameters the generated load, selection and row-click code reads, by role.
+            const roles = { load: ['Func<PkListRequest, Task<PkListResult<TItem>>>', 'default!', true], rowClick: ['EventCallback<TItem>'], loadError: ['EventCallback<Exception>'], select: ['EventCallback<PkSelectEventArgs>'], selectedChanged: ['EventCallback<IReadOnlyList<string>?>'] };
+            const role = roles[p.role];
+            if (!role || !p.doc) { skip(p.name, 'a dataTable parameter needs a known role (' + Object.keys(roles).join(', ') + ') and a doc in the mapping'); continue; }
+            declare({ name: p.name, kind: 'param', cs: role[0], init: role[1], required: role[2] === true, doc: p.doc });
+            // Setting the row click callback makes the rows clickable.
+            if (p.role === 'rowClick') out.attrs.push({ attr: 'clickable', expr: `@${p.name}.HasDelegate`, boolean: true });
         } else if (map === 'cells') {
             // Cells and IdOf of a `cells` mapping: plain parameters the generated code reads (see 2a); the generator renders the slots.
             declare({ name: p.name, kind: 'param', cs: p.type, doc: p.doc });
@@ -313,6 +326,8 @@ export function modelElement(el, mapping, reg) {
     if (mapping.recordModel) out.recordModel = true;
     // `fieldGroupModel`: the typed field group. The element's search and commit callbacks answer through the specs (Search by key, SetAsync), pk-field-change goes back to each spec's Set, and each spec's label action and editor are slotted.
     if (mapping.fieldGroupModel) out.fieldGroup = true;
+    // `dataTableModel`: the typed data table. Load runs through a callback slot and fills the rows (and the cell and header slots of the typed columns), pk-select and pk-row-click go back to the typed callbacks.
+    if (mapping.dataTableModel) out.dataTable = true;
 
     // ---- 2b. `events`: a callback for each listed element event, named On<Event> ("pk-property-change" -> OnPropertyChange), typed from the meta's
     // detail (the shared PkXxxEventArgs; no detail is a plain EventCallback). "pk" lists every pk-* event of the element. An event that has an
@@ -447,7 +462,7 @@ function resolveProp(el, p, r, comp, enumType, todo, types = new Set()) {
 
     if (p.existingEnum && t) {
         // An enum the package already defines by hand (PkTheme, PkChrome...): not generated again; the hand-written Attr() gives its attribute value.
-        cs = stripNull(t); attr = 'enum'; r.expr = `@(${p.name}.Attr())`;
+        cs = p.nullable ? t : stripNull(t); attr = 'enum'; r.expr = `@(${p.name}.Attr())`;
     } else if (p.enum || (api.type === 'enum' && t === undefined)) {
         const typeName = t && !SIMPLE.has(stripNull(t)) ? stripNull(t) : `${comp}${pascal(p.name)}`;
         enumType(typeName, enumValues(), comp);
@@ -469,7 +484,7 @@ function resolveProp(el, p, r, comp, enumType, todo, types = new Set()) {
         else { cs = 'string?'; attr = 'str'; }
     } else {
         const base = stripNull(t);
-        if (base === 'string') { cs = 'string?'; attr = 'str'; if (hasDefault) init = lit(p.default); }
+        if (base === 'string') { cs = p.nonNull ? 'string' : 'string?'; attr = 'str'; if (hasDefault) init = lit(p.default); }
         else if (base === 'bool') {
             cs = 'bool'; attr = 'bool'; if (p.default === true) init = 'true';
             // `invert`: the parameter says the opposite of the prop (Boxed is not plain, ShowCloseButton is not hideClose); it is sent negated, still as a plain attribute.
@@ -497,7 +512,10 @@ function resolveProp(el, p, r, comp, enumType, todo, types = new Set()) {
         }
     }
     if (p.todo && !r.todo && attr !== 'enum') r.todo = p.todo;
+    // `csDefault`: a C# initializer for a parameter the mapping types (an int[] with its default sizes); `attrExpr`: the attribute value as a Razor expression when it is not just the parameter.
+    if (p.csDefault) init = p.csDefault;
     r.cs = cs; r.attr = attr; r.init = init; r.note = note;
+    if (p.attrExpr) r.expr = p.attrExpr;
     r.expr ??= attr === 'bool' || attr === 'str' ? `@${p.name}` : attr === 'num' ? `@PkAttr.Num(${p.name})` : attr === 'date' ? `@PkAttr.Date(${p.name})` : attr === 'jsonText' ? `@PkAttr.JsonText(${p.name})` : `@PkAttr.Json(${p.name})`;
     return r;
 }
@@ -546,13 +564,14 @@ export function renderTargets(moved) {
 export function renderComponent(m, mappingName, ns = 'PlainKit.Blazor') {
     const L = [];
     L.push(`@* Generated by ${GENERATOR} from core/dist/elements/api.json and blazor/mappings/${mappingName}.json. Do not edit: change the mapping or the SDK and run it again. *@`);
-    L.push(`@namespace ${ns}`, ...(m.typeparam ? [`@typeparam ${m.typeparam}`] : []), ...(ns === 'PlainKit.Blazor' ? [] : ['@using PlainKit.Blazor']), '@using Microsoft.AspNetCore.Components.Web', ...(m.location ? ['@using Microsoft.AspNetCore.Components.Routing'] : []), ...(m.callbacks.length || m.fieldGroup ? ['@using System.Text.Json'] : []), ...(m.properties.length ? ['@using Microsoft.JSInterop'] : []), ...(m.field ? ['@using System.Linq.Expressions'] : []), `@inherits ${m.field ? `PkFormControlBase<${m.field.cs}>` : 'PkElementBase'}`, ...(m.callbacks.length || m.location || m.fieldGroup ? ['@implements IDisposable'] : []), '');
+    L.push(`@namespace ${ns}`, ...(m.typeparam ? [`@typeparam ${m.typeparam}`] : []), ...(ns === 'PlainKit.Blazor' ? [] : ['@using PlainKit.Blazor']), '@using Microsoft.AspNetCore.Components.Web', ...(m.location ? ['@using Microsoft.AspNetCore.Components.Routing'] : []), ...(m.callbacks.length || m.fieldGroup ? ['@using System.Text.Json'] : []), ...(m.properties.length || m.dataTable ? ['@using Microsoft.JSInterop'] : []), ...(m.field ? ['@using System.Linq.Expressions'] : []), `@inherits ${m.field ? `PkFormControlBase<${m.field.cs}>` : 'PkElementBase'}`, ...(m.callbacks.length || m.location || m.fieldGroup || m.dataTable ? ['@implements IDisposable'] : []), '');
     // The element. Blazor's own `@onclick` syntax cannot name an event with a hyphen (`@onpk-close` is taken as a plain attribute), so the pk-* events
     // go in a dictionary that is splatted on the element; the value is an EventCallback and the name is the on-prefixed event (registered in
     // PkGeneratedEvents.cs). Native events (click) use the normal syntax.
     const live = [...m.handlers.values()].filter(h => h.updates.length || h.callbacks.length);
     // `listenedNative` (mapping): a native handler that only raises callbacks is attached (in AddEventHandlers, once) only while the host listens: a native input event is a round trip per keystroke on Blazor Server.
-    const listened = h => m.listenedNative && h.native && !h.updates.length;
+    // `listened` on an event parameter does the same for a pk-* event: attached only while the host listens (OnNavigate), evaluated once like the native ones.
+    const listened = h => (m.listenedNative && h.native && !h.updates.length) || (h.listened && !h.native && !h.updates.length);
     const custom = live.filter(h => !h.native || listened(h));
     const attrs = [];
     for (const a of m.attrs) if (a.bare) attrs.push(a.attr); else attrs.push(`${a.attr}="${m.cells?.columns && a.attr === 'config' ? '@ConfigWithColumns()' : m.recordModel && a.attr === 'config' ? '@ConfigWithFields()' : a.expr}"`);
@@ -571,7 +590,7 @@ export function renderComponent(m, mappingName, ns = 'PlainKit.Blazor') {
     // its slotted content (issue 211): Razor cannot put a slot attribute on multiple root elements from one RenderFragment independently, so
     // this element is the assigned element for the slot, and its own box must dissolve the way a single-root fragment's would.
     const slottedChild = c => `@if (!string.IsNullOrEmpty(${c.name})) {<${c.slotted.tag} slot=${lit(c.slotted.slot)}${Object.entries(c.slotted.attrs ?? {}).map(([k, v]) => ` ${k}=${String(v).startsWith('@') ? `"${v}"` : lit(v)}`).join('')}>@${c.name}</${c.slotted.tag}>}`;
-    const children0 = m.children.map(c => (c.slotted ? slottedChild(c) : c.slot === '' ? `@${c.name}` : `@if (${c.name} is not null${c.unless ? ` && ${c.unless} is not { Count: > 0 }` : ''}) {<span slot=${lit(c.slot)} class="u-contents">@${c.name}</span>}`)).join('');
+    const children0 = m.children.map(c => (c.slotted ? slottedChild(c) : c.slot === '' ? `@${c.name}` : `@if (${c.name} is not null${c.unless ? ` && ${c.unless} is not { Count: > 0 }` : ''}) {<${c.tag ?? 'span'} slot=${lit(c.slot)} class="u-contents">@${c.name}</${c.tag ?? 'span'}>}`)).join('');
     const colCells = m.cells?.columns ? '@if (Columns is not null) {foreach (var row in _cellRows) {foreach (var col in Columns) {if (col.Cell is not null) {<span slot="@($"cell-{row.Id}-{col.Key}")" class="u-contents" @key="@($"cell-{row.Id}-{col.Key}")">@col.Cell(row.Item)</span>}}}}' : '';
     const cells = colCells + (m.cells ? '@if (Cells is not null) {foreach (var row in _cellRows) {foreach (var cell in Cells) {<span slot="@($"cell-{row.Id}-{cell.Key}")" class="u-contents" @key="@($"cell-{row.Id}-{cell.Key}")">@cell.Value(row.Item)</span>}}}' : '');
     const slotMaps = (m.slotMaps ?? []).map(s => `@if (${s.name} is not null) {foreach (var item in ${s.name}) {<span slot="@($"${s.prefix}{item.Key}")" class="u-contents" @key="@($"${s.prefix}{item.Key}")">@item.Value</span>}}`).join('');
@@ -579,7 +598,9 @@ export function renderComponent(m, mappingName, ns = 'PlainKit.Blazor') {
     const editors = m.recordModel ? '@if (Fields is not null && (_loaded ?? Model) is { } editing) {foreach (var f in Fields) {if (f.Editor is not null) {<span slot="@($"editor-{f.Key}")" class="u-contents" @key="@($"editor-{f.Key}")">@f.Editor(editing)</span>}}}' : '';
     // fieldGroup: each spec's label action and editor fill the element's label-action-<key> and editor-<key> slots.
     const groupSlots = m.fieldGroup ? '@foreach (var f in Visible()) {if (f.LabelAction is not null) {<span slot="@($"label-action-{f.Key}")">@f.LabelAction(Model)</span>} if (f.Editor is not null) {<div slot="@($"editor-{f.Key}")">@f.Editor(Model)</div>}}' : '';
-    const children = children0 + cells + slotMaps + editors + groupSlots;
+    // dataTable: the header template of each column and the cell template of each column in each loaded row fill the element's header-<key> and cell-<id>-<key> slots.
+    const tableSlots = m.dataTable ? '@foreach (var c in Columns.Where(c => c.Header is not null)) {<span slot="@($"header-{c.Key}")" class="u-contents" @key="@($"header-{c.Key}")">@c.Header</span>}@foreach (var row in _rows) {foreach (var column in Columns.Where(c => c.Cell is not null)) {<span slot="@($"cell-{row.Id}-{column.Key}")" class="u-contents" @key="@($"cell-{row.Id}-{column.Key}")">@column.Cell!(row.Item)</span>}}' : '';
+    const children = children0 + cells + slotMaps + editors + groupSlots + tableSlots;
     if (attrs.length === 0) L.push(`<${m.tag}>${children}</${m.tag}>`);
     else {
         const pad = ' '.repeat(m.tag.length + 2);
@@ -587,7 +608,7 @@ export function renderComponent(m, mappingName, ns = 'PlainKit.Blazor') {
         for (let i = 1; i < attrs.length; i++) L.push(`${pad}${attrs[i]}${i === attrs.length - 1 ? `>${children}</${m.tag}>` : ''}`);
     }
     L.push('', '@code {');
-    if (m.callbacks.length || m.properties.length || m.fieldGroup) L.push('    [Inject] private PkRuntime Runtime { get; set; } = default!;', ...m.callbacks.map(c => `    private readonly PkCallbackSlot ${slotName(c)} = new(${lit(c.prop)});`), ...(m.fieldGroup ? ['    private readonly PkCallbackSlot _search = new("search"), _commit = new("commit");'] : []), '');
+    if (m.callbacks.length || m.properties.length || m.fieldGroup || m.dataTable) L.push('    [Inject] private PkRuntime Runtime { get; set; } = default!;', ...m.callbacks.map(c => `    private readonly PkCallbackSlot ${slotName(c)} = new(${lit(c.prop)});`), ...(m.fieldGroup ? ['    private readonly PkCallbackSlot _search = new("search"), _commit = new("commit");'] : []), '');
     L.push(...paramLines(m));
     for (const x of m.properties) L.push('', `    private string? _sent${x.name};`);
     if (m.properties.length && !m.callbacks.length) {
@@ -608,6 +629,27 @@ export function renderComponent(m, mappingName, ns = 'PlainKit.Blazor') {
             '', '    /// <inheritdoc />', '    protected override void AddEventHandlers(Dictionary<string, object> handlers) =>', '        handlers["onpk-field-change"] = EventCallback.Factory.Create<PkFieldChangeEventArgs>(this, Changed);',
             '', '    private async Task Changed(PkFieldChangeEventArgs e)', '    {', '        if (e.Value is null || Fields.FirstOrDefault(f => f.Key == e.Key) is not { } f) return;', '        f.Set(Model, PkFieldSpecs.Text(e.Value));', '        await ModelChanged.InvokeAsync();', '    }',
             '', '    /// <inheritdoc />', '    public void Dispose() { _search.Dispose(); _commit.Dispose(); Untrack(); }');
+    }
+    if (m.dataTable) {
+        L.push('', '    private sealed record Row(string Id, TItem Item);', '', '    private readonly PkCallbackSlot _load = new("load");', '    private List<Row> _rows = [];',
+            '', '    /// <summary>Loads the current page again (search, sort and page stay), for example after the host saved something.</summary>', '    public async Task ReloadAsync() => await (await Runtime.BridgeAsync(Assets)).InvokeVoidAsync("refresh", Element);',
+            '', '    /// <inheritdoc />', '    protected override async Task OnAfterRenderAsync(bool firstRender)', '    {', '        await base.OnAfterRenderAsync(firstRender);',
+            '        await _load.SyncAsync<PkListPageQuery>(await Runtime.BridgeAsync(Assets), Element, Load is not null, LoadPageAsync, refresh: true);', '    }',
+            '', '    // The element drops a superseded answer; its abort signal (and Dispose) cancels the token (PkCallbackSlot), and a superseded answer is not drawn (stale cell slots).',
+            '    private async Task<object?> LoadPageAsync(PkListPageQuery query, CancellationToken cancel)', '    {', '        PkListResult<TItem> result;', '        try', '        {',
+            '            result = await Load(query.ToRequest() with { CancellationToken = cancel });', '        }', '        catch (Exception ex) when (!cancel.IsCancellationRequested)', '        {',
+            '            await InvokeAsync(() => OnLoadError.InvokeAsync(ex));', "            throw; // the rejection is the element's error state with Retry", '        }',
+            '        if (cancel.IsCancellationRequested) return new { rows = Array.Empty<object>(), total = 0 };',
+            '        var rows = new System.Text.Json.Nodes.JsonArray();', '        var shown = new List<Row>(result.Items.Count);', '        foreach (var item in result.Items)', '        {',
+            '            var id = IdOf(item);', '            var node = PkTableRows.Serialize(item, Columns);', '            node["id"] = id;', '            rows.Add(node);', '            shown.Add(new Row(id, item));', '        }',
+            '        await InvokeAsync(() => { _rows = shown; StateHasChanged(); });', '        return new { rows, total = result.Total };', '    }',
+            '', '    private async Task HandleSelectAsync(PkTableSelectEventArgs e)', '    {',
+            '        // A selection of 64 rows or more arrives as runs of row indexes into the page the element shows: back to ids.',
+            '        if (e.Ranges is not null && !PkTableRows.TryExpand(e, _rows.Select(r => r.Id).ToList())) return;',
+            '        if (e.Selected is null) return; // pk-select also bubbles from menus and trees in the cell slots', '        Selected = e.Selected;', '        SelectScope = e.Scope ?? "page";',
+            '        await SelectedChanged.InvokeAsync(Selected);', '        await OnSelect.InvokeAsync(e);', '    }',
+            '', '    private Task HandleRowClickAsync(PkRowClickEventArgs e) => _rows.Find(r => r.Id == e.Id) is { } row ? OnRowClick.InvokeAsync(row.Item) : Task.CompletedTask;',
+            '', '    /// <inheritdoc />', '    public void Dispose() => _load.Dispose();');
     }
     if (m.callbacks.length) {
         // Only set versus unset matters: the slot delegates to the current parameter, so a new delegate needs no new setup.
@@ -648,9 +690,10 @@ export function renderComponent(m, mappingName, ns = 'PlainKit.Blazor') {
     for (const x of m.methods) L.push('', doc(x.doc), `    public ${x.returns ? `Task<${x.returns}>` : 'Task'} ${x.name}(${x.args.map(a => `${a.type} ${a.name}`).join(', ')}) => CallAsync${x.returns ? `<${x.returns}>` : ''}(${[lit(x.method), ...x.args.map(a => a.name)].join(', ')});`);
     if (m.field) L.push('', '    /// <inheritdoc />', `    protected override Expression<Func<${m.field.cs}>>? FieldExpression => ${m.field.expr};`);
     if (m.field?.values) L.push('', '    /// <inheritdoc />', `    protected override Expression<Func<IReadOnlyList<string>?>>? ValuesFieldExpression => ${m.field.values};`);
-    if (custom.length) {
+    if (custom.length || m.dataTable) {
         // Called once by PkElementBase, not on every parameter change: the handlers do not depend on the parameters.
         L.push('', '    /// <inheritdoc />', '    protected override void AddEventHandlers(Dictionary<string, object> handlers)', '    {');
+        if (m.dataTable) L.push('        handlers["onpk-select"] = EventCallback.Factory.Create<PkTableSelectEventArgs>(this, HandleSelectAsync);', '        handlers["onpk-row-click"] = EventCallback.Factory.Create<PkRowClickEventArgs>(this, HandleRowClickAsync);');
         for (const h of custom) L.push(`        ${listened(h) ? `if (${h.callbacks.map(c => `${c.name}.HasDelegate`).join(' || ')}) ` : ''}handlers[${lit(h.attr)}] = EventCallback.Factory.Create<${h.args}>(this, ${handlerName(h)});`);
         L.push('    }');
     }
