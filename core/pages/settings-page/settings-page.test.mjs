@@ -5,8 +5,10 @@ import assert from 'node:assert/strict';
 import behaviour from './settings-page.js';
 
 const fakeEl = tag => ({
-    localName: tag, attrs: {}, children: [], listeners: {}, hidden: false, disabled: false,
+    localName: tag, attrs: {}, dataset: {}, children: [], listeners: {}, hidden: false, disabled: false,
     setAttribute(k, v) { this.attrs[k] = String(v); },
+    toggleAttribute(k, on) { if (on) this.attrs[k] = ''; else delete this.attrs[k]; },
+    scrollIntoView() { this.scrolled = true; }, focus() { this.focused = true; },
     append(...k) { this.children.push(...k); },
     replaceChildren(...k) { this.children = k; },
     addEventListener(type, fn) { (this.listeners[type] ??= []).push(fn); },
@@ -25,16 +27,17 @@ const make = () => {
     const discard = fakeEl('pk-button');
     const empty = fakeEl('p');
     for (const p of [sections, bar, status, save, discard, empty]) p.ownerDocument = { createElement: fakeEl };
-    const parts = { saved, form, sections, bar, status, save, discard, empty, header: fakeEl('div') };
+    const parts = { saved, form, sections, bar, status, save, discard, empty, header: fakeEl('div'), nav: fakeEl('nav'), body: fakeEl('div'), layout: fakeEl('pk-detail-layout') };
+    const listened = [];
     const fakeRoot = { querySelectorAll: () => [], matches: () => false };
     const el = new (behaviour(class {
         part(n) { return parts[n]; }
-        get ownerDocument() { return { createElement: fakeEl }; }
+        get ownerDocument() { return { createElement: fakeEl, addEventListener: (t, f, o) => listened.push(['add', t, o.capture]), removeEventListener: (t, f, o) => listened.push(['remove', t, o.capture]) }; }
         get shadowRoot() { return fakeRoot; }
     }))();
     el.config = {};
     el.values = {};
-    return { el, parts };
+    return { el, parts, listened };
 };
 
 test('connected wires the form once (idempotent) and builds the initial sections', () => {
@@ -143,25 +146,87 @@ test('a rejecting save() shows the error in the bar status and keeps the bar ope
     assert.equal(parts.saved.hidden, true);
 });
 
-test('the shared title bar draws heading, breadcrumb and actions from config, fires pk-action, and stays hidden when none is set', () => {
+test('the shared title bar fills the page shell with heading, breadcrumb and actions from config, fires pk-action, and draws nothing when none is set', () => {
     const { el, parts } = make();
     el.config = { sections: [] };
     el.connected();
-    assert.equal(parts.header.hidden, true);
+    assert.equal(parts.header.attrs.heading, '');
     assert.equal(parts.header.children.length, 0);
     const events = [];
     el.dispatchEvent = e => events.push(e.detail.key);
     el.config = { heading: 'Settings', breadcrumb: [{ label: 'Home', href: '/' }], actions: [{ key: 'reset', label: 'Reset' }] };
     el.changed('config');
-    assert.equal(parts.header.hidden, false);
-    const [header] = parts.header.children;
-    assert.equal(header.localName, 'pk-page-header');
-    assert.equal(header.heading, 'Settings');
-    assert.equal(header.children[0].localName, 'pk-breadcrumb');
-    const btn = header.children[1];
+    assert.equal(parts.header.attrs.heading, 'Settings');
+    const [crumbs, btn, title] = parts.header.children;
+    assert.equal(crumbs.localName, 'pk-breadcrumb');
     assert.equal(btn.slot, 'actions');
+    assert.equal(title.localName, 'slot');
     btn.fire('click');
     assert.deepEqual(events, ['reset']);
+});
+
+const three = [{ heading: 'Profile', fields: [{ key: 'name', type: 'text' }] }, { heading: 'Billing', fields: [{ key: 'plan', type: 'text' }] }, { heading: 'Billing', fields: [{ key: 'tax', type: 'text' }] }];
+
+test('the section nav (#334) is automatic at three sections: tagged cards, one nav item each with unique anchors, the first current', () => {
+    const { el, parts, listened } = make();
+    el.config = { sections: three };
+    el.buildSections();
+    assert.equal(parts.nav.hidden, false);
+    assert.equal('data-nav' in parts.body.attrs, true);
+    assert.deepEqual(parts.nav.children.map(i => i.dataset.key), ['profile', 'billing', 'billing-3']);
+    assert.deepEqual(parts.sections.children.map(c => c.dataset.pkSection), ['profile', 'billing', 'billing-3']);
+    assert.equal(parts.nav.children[0].attrs.href, '#profile');
+    assert.deepEqual(parts.nav.children.map(i => 'current' in i.attrs), [true, false, false], 'exactly one is current');
+    assert.equal(parts.layout.section, 'profile');
+    el.connected();
+    assert.deepEqual(listened[0], ['add', 'scroll', true], 'the scroll spy listens in the capture phase');
+});
+
+test('the section nav is off below three sections, forced on by nav: true, and off by nav: false', () => {
+    const { el, parts } = make();
+    el.config = { sections: three.slice(0, 2) };
+    el.buildSections();
+    assert.equal(parts.nav.hidden, true);
+    assert.equal(parts.sections.children[0].dataset.pkSection, undefined, 'no tab strip either');
+    el.config = { sections: three.slice(0, 2), nav: true };
+    el.buildSections();
+    assert.equal(parts.nav.hidden, false);
+    el.config = { sections: three, nav: false };
+    el.buildSections();
+    assert.equal(parts.nav.hidden, true);
+    assert.equal(parts.nav.children.length, 0);
+});
+
+test('a section key wins over its heading, and choosing a nav item scrolls its card, moves focus onto it and marks it current', () => {
+    const { el, parts, listened } = make();
+    el.config = { sections: [{ key: 'account', heading: 'Your account', fields: [] }, { heading: 'B', fields: [] }, { fields: [] }] };
+    el.connected();
+    assert.deepEqual(parts.nav.children.map(i => i.dataset.key), ['account', 'b', 'section-3']);
+    let prevented = false;
+    parts.nav.fire('click', { target: { closest: () => parts.nav.children[1] }, preventDefault() { prevented = true; } });
+    const card = parts.sections.children[1];
+    assert.equal(prevented, true, 'the href never reaches the router');
+    assert.equal(card.scrolled, true);
+    assert.equal(card.focused, true);
+    assert.equal(card.attrs.tabindex, '-1');
+    assert.deepEqual(parts.nav.children.map(i => 'current' in i.attrs), [false, true, false]);
+    assert.equal(parts.layout.section, 'b');
+    el.disconnected();
+    assert.deepEqual(listened.at(-1), ['remove', 'scroll', true], 'the spy is removed with the page');
+    assert.equal(listened.filter(l => l[0] === 'add').length, 1);
+});
+
+test('switching sections never touches the values: the dirty state and the typed text survive', () => {
+    const { el, parts } = make();
+    el.config = { sections: three };
+    el.values = { name: 'a', plan: 'b', tax: 'c' };
+    el.buildSections();
+    el.$controls.name.el.value = 'edited';
+    el.paint();
+    el.go('billing-3');
+    el.go('profile');
+    assert.equal(parts.bar.hidden, false);
+    assert.equal(el.$controls.name.el.value, 'edited');
 });
 
 test('saveNow does nothing without a save callback (no throw)', async () => {

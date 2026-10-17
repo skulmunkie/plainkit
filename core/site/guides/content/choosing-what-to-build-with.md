@@ -30,7 +30,7 @@ Only things that exist today are listed. A dash means there is no ready-made pie
 | A list and its record | Template `routed-pair`: two routed pages, `/things` and `/things/{id}` (the default; see "Which list shape" below) | Page types `list` and `record`, the record route under the list | `PkDataTable` or `PkTable`; routes and `NavigationManager` for the record |
 | Record create and edit | Layout `record`; layout `record-detail` (main body plus sticky sidebar); element `pk-record-form` (toolbar, tabs, error, sidebar around your form) or `pk-detail-layout` | Page type `record` | `PkRecordForm` with `PkFieldGroup` and `PkRecordEditor` |
 | Read-only record or key figures | Layout `record-detail`; elements `pk-field-list`, `pk-stat` | Page type `record` with `editable: false` | `PkFieldList`, `PkStat` |
-| Settings form | Template `form`; pattern `unsaved-settings` for a sticky save bar; elements `pk-form`, `pk-form-section` | Page type `settings` | `PkForm` with `PkFormSection` |
+| Settings form | Template `form`; pattern `unsaved-settings` for a sticky save bar; elements `pk-form`, `pk-form-section` | Page type `settings` (a section nav beside the cards from three sections, `nav` to force or disable it) | `PkForm` with `PkFormSection`; `PkSettingsPage` for the page type |
 | Long form built from a list of fields | Pattern `forms` for the controls, or `pk-field-group` to draw them from a list of field specs | Page type `record` | `PkFieldGroup` with `PkFieldSpec` |
 | Print a document, edit a design, show tokens | `pk-print-page`, `pk-canvas`, `pk-design-surface`, `pk-specimen`; `pk-page-shell` for a headed page | Page type `print`; else `custom` | `PkPrintPage`, `PkCanvas`, `PkDesignSurface`, `PkSpecimen`, `PkPageShell` |
 | Dashboard or report | Template `dashboard`; pattern `data-display`; elements `pk-stat`, `pk-chart`; for tabbed, independently loading widgets with filters `pk-dashboard-page` | Page type `dashboard` | `PkStat`, `PkChart`, `PkDashboardPage` |
@@ -45,7 +45,9 @@ Only things that exist today are listed. A dash means there is no ready-made pie
 | Toasts and notices | Pattern `notifications`; elements `pk-toast-stack`, `pk-alert` | `ctx.notify.success(title)` | `PkToastStack` |
 | Onboarding checklist | Pattern `onboarding` | Page type `wizard` | `PkStepper`, `PkProgress` |
 | Short list of small records with an add form | Layout `setup` | Page type `list` with a `record` route under it | `PkTable` with `PkField` |
-| Marketing or landing page | None: compose from `pk-stack`, `pk-grid`, `pk-card`, `pk-text` and `pk-button`, and see "Ask for a missing component" | None | same |
+| Marketing or landing page | Template `landing` (hero, feature grid, pricing, FAQ); pattern `pricing-cards`; composed from `pk-container`, `pk-stack`, `pk-grid`, `pk-card`, `pk-text` and `pk-button`, tokens only, no hero background images (imagery goes in `pk-media`). | None | same |
+| Rich text input | Pattern `markdown-editor`: `pk-textarea` holding Markdown plus a `pk-tabs` Write and Preview. | None | `PkTextarea` with `PkTabs` |
+| Panes: `pk-workspace` or `pk-dock` | `pk-workspace` for a content page with a fixed nav, main and aside; `pk-dock` for a tool whose user rearranges, resizes or tabs panels and expects the layout to persist. Keep both until dock's floating and rail steps land (issues 618, 608); then compare dock footprint (a fixed preset over about 2x workspace gzip means keep both), shared phone-strip code, real consumers and Blazor wrappers | Page type `tool`; `workspace` for a multi-pane tool | `PkWorkspace`, `PkDock` |
 
 ## Which list shape
 
@@ -56,6 +58,7 @@ A list and its record are two routed pages. A single page that shows a list and 
 | Rows you draw yourself, no paging or search | `pk-table` |
 | One dataset with search, sort, paging and selection inside a page of your own layout | `pk-data-table` (pattern `filter-table`) |
 | A form field that picks one record from a long list (customers, products, users) in a popup table | `pk-lookup-picker` (the list is too long for `pk-combobox`) |
+| A form field for formatted text stored as Markdown (bold, italic, lists, links, a preview) | `pk-markdown-editor` (render stored text elsewhere with `renderMarkdown` from `js/markdown/render.js`, never by writing the text into markup) |
 | A whole route that lists a collection (title bar, filters, row links) | Page type `list` |
 | A list and its record | `list` and `record` as two routes (template `routed-pair`). The list fills the viewport and is the only thing that scrolls |
 | A peek at context that is not a record of its own | A flyout over the list (`pk-drawer`) |

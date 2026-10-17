@@ -4,4 +4,5 @@
 :host([fill]) [part="frame"] { flex: 1 1 auto; min-block-size: 0; }
 [part="state"]:empty { display: none; }
 [part="state"] { position: absolute; inset: 0; z-index: 1; padding: var(--space-6); background: var(--color-bg); overflow: auto; }
-[part="header"] { margin-block-end: var(--space-4); }
+:host([fill]) pk-page-shell { flex: 1 1 auto; block-size: 100%; min-block-size: 0; }
+:host([fill]) pk-page-shell::part(content) { display: flex; flex-direction: column; }

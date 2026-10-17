@@ -34,8 +34,8 @@ else
     [Parameter] public bool InHead { get; set; }
 
     /// <summary>
-    /// Also emit a <c>&lt;link rel="modulepreload"&gt;</c> for each of <see cref="PkAssets.PreloadPaths"/> (the loader, its logger, the element
-    /// registry and the base every element shares): the browser fetches them in parallel with the entry module instead of one round trip at a
+    /// Also emit a <c>&lt;link rel="modulepreload"&gt;</c> for each of <see cref="PkAssets.PreloadPaths"/> (the loader, its logger and the base
+    /// every element shares): the browser fetches them in parallel with the entry module instead of one round trip at a
     /// time as each is discovered. Off by default; worth turning on for a page that uses <c>pk-*</c> elements.
     /// </summary>
     [Parameter] public bool Preload { get; set; }

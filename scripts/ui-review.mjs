@@ -36,6 +36,7 @@ import { createCache } from './ui-review-cache.mjs';
 import { chromeArgs, findChrome, killTree, launchBrowser, removeDir } from './attest-browser.mjs';
 import { auditFacts, summarize } from '../core/tests/review/audit.js';
 import { combinations, expectationFinding, keyEvents, mediaParams, mouseEvents, scenarioShotName, selectScenarios, stepsFor, validateScenario } from '../core/tests/review/scenario.js';
+import { makeTempDir } from '../core/tools/tempdir.mjs';
 
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 export const VIEWPORTS = [{ name: 'desktop', width: 1280, height: 900 }, { name: 'phone', width: 375, height: 812 }];
@@ -295,6 +296,8 @@ async function playScenario(cdp, { port, sc, vp, theme, out, manifest, timeout, 
         } else if ('media' in step) {
             await cdp.send('Emulation.setEmulatedMedia', mediaParams(step.media));
             await settle();
+        } else if ('waitFor' in step) {
+            r = await timed('wait', () => evaluate(cdp, `window.__rv.waitFor(${JSON.stringify(step.waitFor)})`));
         } else if ('wait' in step) {
             if (step.wait === 'settle') await settle(); else await timed('wait', () => sleep(step.wait));
         } else {
@@ -426,7 +429,7 @@ async function main() {
     try { chrome = findChrome({ env: process.env, platform: process.platform, pathDirs: (process.env.PATH ?? '').split(path.delimiter).filter(Boolean) }); } catch (e) { console.error(e.message); return 2; }
     if (!chrome) { console.error('No Chrome, Chromium or Edge found. Install one, or set PK_CHROME to its path.'); return 2; }
 
-    const profile = fs.mkdtempSync(path.join(os.tmpdir(), 'pk-review-'));
+    const profile = makeTempDir('pk-review-');
     const port = o.port || await freePort();
     let server = null, browser = null, cdp = null, code = 2;
     try {

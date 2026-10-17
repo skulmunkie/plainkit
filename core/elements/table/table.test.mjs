@@ -273,15 +273,15 @@ test('typed gives a number column a number (or null), the rest the text', () => 
     assert.equal(E.typed({ editor: 'text' }, 'abc'), 'abc');
 });
 
-test('the edit props and the pk-cell-edit event are in the meta, and an editable table never windows', async () => {
+test('the edit props and the pk-cell-edit event are in the meta, and an editable table is no longer kept out of windowing',async () => {
     const { readFileSync } = await import('node:fs');
     const meta = JSON.parse(readFileSync(new URL('./table.meta.json', import.meta.url), 'utf8'));
     assert.equal(meta.props.find(p => p.name === 'editable').default, false);
     assert.ok(meta.props.some(p => p.name === 'cellErrors'));
     const ev = meta.events.find(e => e.name === 'pk-cell-edit');
     assert.equal(ev.cancelable, true);
-    assert.deepEqual(Object.keys(ev.detail), ['id', 'index', 'row', 'key', 'value', 'previous']);
-    assert.match(readFileSync(new URL('../../js/table-vw.js', import.meta.url), 'utf8'), /if \(el\.expandable \|\| el\.editable \|\|/);
+    assert.deepEqual(Object.keys(ev.detail), ['id', 'index', 'row', 'key', 'value', 'previous', 'source']);
+    assert.doesNotMatch(readFileSync(new URL('../../js/table-vw.js', import.meta.url), 'utf8'), /if \(el\.expandable \|\| el\.editable \|\|/, 'an editable table windows too (#1474)');
 });
 
 // Selection scope (#801): the selection spans pages (ids are kept when a manual table's rows are replaced), and `total` offers "Select all N".

@@ -29,7 +29,6 @@ A page needs one stylesheet and one call. Put the call in a script file, not in 
 <link rel="stylesheet" href="plainkit/plainkit.min.css">
 <link rel="modulepreload" href="plainkit/js/loader.js">
 <link rel="modulepreload" href="plainkit/js/log.js">
-<link rel="modulepreload" href="plainkit/elements/registry.js">
 <link rel="modulepreload" href="plainkit/js/element.js">
 <link rel="modulepreload" href="plainkit/js/element-core.js">
 <script type="module" src="app.js"></script>
@@ -58,7 +57,6 @@ This page has a card, a switch and a dialog. Nothing in it needs code except rea
   <link rel="stylesheet" href="plainkit/plainkit.min.css">
   <link rel="modulepreload" href="plainkit/js/loader.js">
   <link rel="modulepreload" href="plainkit/js/log.js">
-  <link rel="modulepreload" href="plainkit/elements/registry.js">
   <link rel="modulepreload" href="plainkit/js/element.js">
   <link rel="modulepreload" href="plainkit/js/element-core.js">
 </head>
@@ -98,7 +96,7 @@ Three things to notice:
 
 ## How elements load
 
-Each element is its own module in `plainkit/elements/<name>.js`, mapped by `plainkit/elements/registry.js`. `initPlainkit()` imports only the modules of the tags your page uses, so a page with a button and a card downloads two small files. Until an element has loaded, its tag is hidden by the stylesheet, so a page does not flash unstyled markup.
+Each element is its own module in `plainkit/elements/<name>.js`, found by name (`pk-card` is `plainkit/elements/card.js`; `registry.js` lists them for tools and error messages, and the page never fetches it). `initPlainkit()` imports only the modules of the tags your page uses, so a page with a button and a card downloads two small files. Until an element has loaded, its tag is hidden by the stylesheet, so a page does not flash unstyled markup.
 
 ## Ship one small request
 

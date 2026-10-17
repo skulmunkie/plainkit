@@ -18,7 +18,7 @@ export default {
         const card = await mountScorecard(frame.querySelector(HOST), { targets, themes: ['dark'], widths: [375] });
         await card.run();
     },
-    steps: [{ wait: 1500 }, { shot: 'ranked' }],
+    steps: [{ waitFor: `${HOST} pk-table` }, { shot: 'ranked' }],
     expect(t) {
         t.ok(t.metric('html', 'scrollWidth') <= t.metric('html', 'clientWidth') + 1, 'the page scrolls sideways');
         t.visible(`${HOST} pk-stat`, 'the overall score tile');

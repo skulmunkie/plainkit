@@ -1,0 +1,97 @@
+{
+  "component": "PkMarkdownEditor",
+  "params": [
+    {
+      "name": "Value",
+      "prop": "value",
+      "type": "string"
+    },
+    {
+      "name": "Name",
+      "prop": "name",
+      "type": "string"
+    },
+    {
+      "name": "Placeholder",
+      "prop": "placeholder",
+      "type": "string"
+    },
+    {
+      "name": "Label",
+      "prop": "label",
+      "type": "string"
+    },
+    {
+      "name": "Description",
+      "prop": "description",
+      "type": "string"
+    },
+    {
+      "name": "Disabled",
+      "prop": "disabled",
+      "type": "bool"
+    },
+    {
+      "name": "ReadOnly",
+      "prop": "readonly",
+      "type": "bool"
+    },
+    {
+      "name": "Required",
+      "prop": "required",
+      "type": "bool"
+    },
+    {
+      "name": "MaxLength",
+      "prop": "maxlength",
+      "type": "string"
+    },
+    {
+      "name": "Rows",
+      "prop": "rows",
+      "type": "int"
+    },
+    {
+      "name": "Mode",
+      "prop": "mode",
+      "type": "MarkdownEditorMode"
+    },
+    {
+      "name": "Layout",
+      "prop": "layout",
+      "type": "MarkdownEditorLayout"
+    },
+    {
+      "name": "Toolbar",
+      "prop": "toolbar",
+      "type": "string"
+    },
+    {
+      "name": "OnInput",
+      "event": "input",
+      "type": "EventCallback<ChangeEventArgs>"
+    },
+    {
+      "name": "OnChange",
+      "event": "change",
+      "type": "EventCallback<ChangeEventArgs>"
+    }
+  ],
+  "model": {
+    "prop": "value",
+    "event": "pk-change",
+    "key": "value",
+    "type": "string",
+    "field": true
+  },
+  "methods": [
+    {
+      "name": "SelectAsync",
+      "method": "select"
+    },
+    {
+      "name": "FocusAsync",
+      "method": "focus"
+    }
+  ]
+}

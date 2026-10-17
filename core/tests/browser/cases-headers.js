@@ -157,9 +157,10 @@ export const headerCases = [
         t.ok(rect(tip).bottom <= rect(field.querySelector('pk-input')).top + 2, 'the tip is above the control');
         const sw = page.shadowRoot.querySelector('pk-cluster pk-switch');
         t.ok(sw && rect(sw).right <= rect(sw.parentNode.querySelector('pk-tooltip')).left + 2, 'the switch hint follows the switch on its row');
-        const save = page.shadowRoot.querySelector('pk-page-header pk-tooltip[text="Saves every section"] pk-button');
+        const save = page.shadowRoot.querySelector('pk-page-shell > pk-tooltip[slot=actions][text="Saves every section"] > pk-button');
         t.ok(save, 'the action button is wrapped by its tooltip');
-        t.eq(page.shadowRoot.querySelectorAll('pk-page-header pk-tooltip').length, 1, 'an action without a hint stays a bare button');
+        t.eq(page.shadowRoot.querySelectorAll('pk-page-shell > pk-tooltip[slot=actions]').length, 1, 'an action without a hint is not wrapped in a tooltip');
+        t.eq(page.shadowRoot.querySelectorAll('pk-page-shell > pk-button[slot=actions]').length, 1, 'an action without a hint stays a bare button');
         t.eq(page.shadowRoot.querySelectorAll('pk-input').length, 2);
     }],
 ];

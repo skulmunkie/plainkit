@@ -18,7 +18,7 @@ export function manifestText({ version, files, provenance = DEFAULT_PROVENANCE, 
 }
 
 /** What the modules unit needs from the runtime, as the modules manifest states it. */
-export const modulesRequires = version => `plainkit ${version}: the modules import ../../js/*.js and use ../../plainkit.css and ../../elements/api.json of the runtime unit (see the plainkit-runtime meta tag and import map in core/README.md)`;
+export const modulesRequires = version => `plainkit ${version}: the modules import ../../js/*.js and use ../../plainkit.css and ../../elements/api.json of the runtime unit (see the plainkit-runtime meta tag and import map in docs/tool-modules.md)`;
 
 /** The SRI value for some bytes, `sha384-<base64>`, from SubtleCrypto (the build's Node hash gives the same). */
 export async function integrityOf(bytes) {

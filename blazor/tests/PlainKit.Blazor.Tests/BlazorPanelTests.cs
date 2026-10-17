@@ -261,7 +261,7 @@ public sealed class BlazorPanelTests : BunitContext, IAsyncLifetime
     {
         var table = PkMappingInfo.Describe("pk-table")!;
         Assert.Equal("hand-written", table.Status);   // the last element without a component, hand-written now (Components/PkTable.razor)
-        Assert.Equal("hand-written", PkMappingInfo.Describe("pk-side-nav")!.Status);
+        Assert.Equal("generated", PkMappingInfo.Describe("pk-side-nav")!.Status);   // was hand-written until #805 (location hook)
         Assert.Equal("generated", PkMappingInfo.Describe("pk-gallery")!.Status);   // was hand-written until #805
         Assert.Null(PkMappingInfo.Describe("pk-nonsense"));
     }
@@ -291,7 +291,7 @@ public sealed class BlazorPanelTests : BunitContext, IAsyncLifetime
             var file = Path.Combine(generated, info.Component + ".razor");
             Assert.Equal(File.Exists(file), info.Status == "generated");
             if (info.Status != "generated") continue;
-            var real = Regex.Matches(File.ReadAllText(file), @"\[Parameter(?:\([^)]*\))?\]\s+public\s+[^{\r\n]*?\s(\w+)\s*\{")
+            var real = Regex.Matches(File.ReadAllText(file), @"\[Parameter(?:\([^)]*\))?(?:,\s*EditorRequired)?\]\s+public\s+[^{\r\n]*?\s(\w+)\s*\{")
                 .Select(m => m.Groups[1].Value).Where(n => n is not "AdditionalAttributes" and not "ExtraClass").Distinct().Order().ToList();
             var described = info.Parameters.Where(p => p.NotGenerated is null && p.Name is not "AdditionalAttributes" and not "ExtraClass").Select(p => p.Name).Distinct().Order().ToList();
             if (!real.SequenceEqual(described)) problems.Add($"{info.Component}: razor [{string.Join(", ", real.Except(described))}] only, mapping [{string.Join(", ", described.Except(real))}] only");

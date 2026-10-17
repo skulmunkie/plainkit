@@ -155,7 +155,7 @@ const recordConfig = {
 };
 ```
 
-A tool page is one input and one outcome; a settings page is sections of fields with a sticky Save and Discard bar; a wizard is one validated form per step:
+A tool page is one input and one outcome; a settings page is sections of fields with a sticky Save and Discard bar (from three sections a section list sits beside the cards, a tab strip on a phone; `nav: false` turns it off); a wizard is one validated form per step:
 
 ```text
         { path: '/tool', label: 'Tool', page: 'tool', config: {

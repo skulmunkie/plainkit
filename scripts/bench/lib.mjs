@@ -9,6 +9,7 @@ import { spawn } from 'node:child_process';
 import { fileURLToPath } from 'node:url';
 import { findChrome, chromeArgs } from '../attest-browser.mjs';
 import { ensureGenerated } from '../generated.mjs';
+import { makeTempDir } from '../../core/tools/tempdir.mjs';
 
 export const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..', '..');
 export const coreDir = path.join(root, 'core');
@@ -62,7 +63,7 @@ export async function startServer({ compress = 'none', dir = coreDir } = {}) {
 export async function launchChrome({ width = 1280, height = 900, flags = [] } = {}) {
     const chrome = findChrome({ env: process.env, platform: process.platform, pathDirs: (process.env.PATH ?? '').split(path.delimiter).filter(Boolean) });
     if (!chrome) throw new Error('No Chrome, Chromium or Edge found: set PK_CHROME to its path.');
-    const profile = fs.mkdtempSync(path.join(os.tmpdir(), 'pk-bench-'));
+    const profile = makeTempDir('pk-bench-');
     const argv = [...chromeArgs({ profile, url: 'about:blank', width, height, extra: process.env.PK_CHROME_FLAGS }).slice(0, -1), '--remote-debugging-port=0', '--disable-background-timer-throttling', '--disable-renderer-backgrounding', '--disable-backgrounding-occluded-windows', '--js-flags=--expose-gc', ...flags, 'about:blank'];
     const child = spawn(chrome, argv, { stdio: ['ignore', 'ignore', 'pipe'] });
     let stderr = '';

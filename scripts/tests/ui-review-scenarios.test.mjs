@@ -39,6 +39,8 @@ test('scenario validation names every problem', () => {
     one({ steps: [{ media: 'braille' }, { shot: 'a' }] }, /media must be one of print, screen/);
     assert.deepEqual(mediaParams('print'), { media: 'print' });
     one({ steps: [{ wait: 99999 }, { shot: 'a' }] }, /at most 5000/);
+    one({ steps: [{ waitFor: '' }, { shot: 'a' }] }, /waitFor must be a selector/);
+    assert.deepEqual(validateScenario(good({ steps: [{ waitFor: '#a pk-table' }, { shot: 'a' }] })), []);
     one({ steps: [{ click: 'a', on: ['tablet'] }, { shot: 'a' }] }, /viewport names/);
     assert.ok(validateScenario(good({ elements: ['nope'] }), new Set(['side-nav'])).some(m => /not an element name/.test(m)));
     assert.ok(validateScenario(null)[0].includes('not an object'));

@@ -32,8 +32,8 @@ export default {
     ],
     expect(t) {
         t.inViewport(WP);
-        t.visible(`${P}[part=header] pk-page-header`, 'the shared title bar');
-        t.noOverlap(`${P}[part=header]`, `${P}[part=card]`);
+        t.visible(`${P}[part=header] >>> [part=header]`, 'the shared title bar');
+        t.noOverlap(`${P}[part=header] >>> [part=header]`, `${P}[part=card]`);
         if (t.shot === 'blocked') t.hasText(`${P}[part=heading]`, 'Account');
         if (t.shot === 'step-two') t.hasText(`${P}[part=heading]`, 'Plan');
         if (t.shot === 'review') { t.hasText(`${P}[part=heading]`, 'Review'); t.hasText(`${P}[part=next]`, 'Create account'); }

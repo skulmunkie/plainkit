@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="description" content="SDK template: Landing page">
+<title>Landing page - SDK template</title>
+<link rel="stylesheet" href="../../../plainkit.css">
+</head>
+<body>
+<pk-container size="lg">
+<pk-stack gap="lg">
+<pk-stack gap="md" align="start">
+<pk-text variant="eyebrow">Product name</pk-text>
+<pk-heading level="1">One sentence that says what it does</pk-heading>
+<pk-text variant="lead">A second sentence for who it is for and why it is better.</pk-text>
+<pk-cluster gap="sm"><pk-button variant="primary">Get started</pk-button><pk-button>See how it works</pk-button></pk-cluster>
+</pk-stack>
+<pk-stack gap="md">
+<pk-heading level="2">Features</pk-heading>
+<pk-grid min="16rem">
+<pk-card heading="Feature one" level="3"><pk-text>One line on the benefit, not the mechanism.</pk-text></pk-card>
+<pk-card heading="Feature two" level="3"><pk-text>One line on the benefit, not the mechanism.</pk-text></pk-card>
+<pk-card heading="Feature three" level="3"><pk-text>One line on the benefit, not the mechanism.</pk-text></pk-card>
+</pk-grid>
+</pk-stack>
+<pk-stack gap="md">
+<pk-heading level="2">Pricing</pk-heading>
+<pk-grid min="16rem">
+<pk-card heading="Starter" level="3"><pk-stack><pk-text variant="h2">$0 <pk-text inline tone="muted">per month</pk-text></pk-text><pk-list dense><li>One project</li><li>Community support</li></pk-list><pk-button block>Start free</pk-button></pk-stack></pk-card>
+<pk-card heading="Team" level="3"><pk-badge slot="actions">Popular</pk-badge><pk-stack><pk-text variant="h2">$12 <pk-text inline tone="muted">per seat, per month</pk-text></pk-text><pk-list dense><li>Unlimited projects</li><li>Email support</li></pk-list><pk-button variant="primary" block>Choose Team</pk-button></pk-stack></pk-card>
+<pk-card heading="Business" level="3"><pk-stack><pk-text variant="h2">Talk to us</pk-text><pk-list dense><li>Single sign-on</li><li>Named contact</li></pk-list><pk-button block>Contact sales</pk-button></pk-stack></pk-card>
+</pk-grid>
+</pk-stack>
+<pk-stack gap="md">
+<pk-heading level="2">Questions</pk-heading>
+<pk-accordion><pk-accordion-item heading="Can I change plans later?">Yes, at any time; billing adjusts on the next invoice.</pk-accordion-item><pk-accordion-item heading="Is there a free trial?">Say what the trial includes and how long it lasts.</pk-accordion-item></pk-accordion>
+</pk-stack>
+</pk-stack>
+</pk-container>
+<script type="module" src="landing.js"></script>
+</body>
+</html>
