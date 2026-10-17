@@ -386,6 +386,15 @@ export const layoutCases = [
             t.ok(el.scrollWidth > el.clientWidth, `${el.inline ? 'inline' : 'block'}: the text overflows its box`); t.ok(el.getBoundingClientRect().width <= 121, 'and the box stays in the column');
         }
     }],
+    ['text white-space (#1538): pre-wrap keeps line breaks and runs of spaces, nowrap stays on one line, the default collapses them', async t => {
+        const host = t.stage('<pk-text id="a">one\ntwo   three</pk-text><pk-text id="b" white-space="pre-wrap">one\ntwo   three</pk-text><pk-text id="c" white-space="nowrap">one two three four five six seven eight nine ten</pk-text>');
+        host.style.inlineSize = '120px'; await t.load(host); await t.settle();
+        const a = host.querySelector('#a'), b = host.querySelector('#b'), c = host.querySelector('#c');
+        t.eq(getComputedStyle(a).whiteSpace, 'normal'); t.eq(getComputedStyle(b).whiteSpace, 'pre-wrap'); t.eq(getComputedStyle(c).whiteSpace, 'nowrap');
+        t.ok(b.getBoundingClientRect().height > a.getBoundingClientRect().height + 5, 'pre-wrap shows the second line the default collapses');
+        t.ok(c.scrollWidth > c.clientWidth && c.getBoundingClientRect().height < b.getBoundingClientRect().height, 'nowrap keeps one line');
+        b.setAttribute('truncate', ''); await t.settle(); t.eq(getComputedStyle(b).whiteSpace, 'nowrap', 'truncate still wins');
+    }],
     // Pointer events are synthesized on the card's handle (the same way the sortable case does): a real drag needs a live pointer, but the element only reads the handle's own events and their coordinates.
     ['kanban (#332): dragging near a column edge scrolls the column, near the board edge scrolls the board, the loop stops on drop, and 100 abandoned drags leave no frame callback behind', async t => {
         const wait = ms => new Promise(r => setTimeout(r, ms));
