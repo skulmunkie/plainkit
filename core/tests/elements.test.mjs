@@ -172,7 +172,7 @@ test('long-form descriptions live in dist/descriptions.json and elements.d.ts to
     const { summarize, descriptions, typings } = await import('../tools/element-manifests.mjs');
     assert.equal(summarize('Short one. Second sentence.'), 'Short one.');
     const cut = summarize('word '.repeat(60));
-    assert.ok(cut.length <= 80 && cut.endsWith('…'));
+    assert.ok(cut.length <= 100 && cut.endsWith('…'));
     const metas = elements.map(e => e.meta);
     const full = descriptions(metas);
     const dts = typings(metas);

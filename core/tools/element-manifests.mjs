@@ -16,7 +16,7 @@ const detailText = d => (typeof d === 'string' ? d : d && typeof d === 'object' 
 const defText = p => (p.type === 'string' || p.type === 'enum' ? JSON.stringify(p.default) : String(p.default));
 
 /** One-sentence summary for files an IDE reads directly: the first sentence, at most `max` characters (cut at a word, with an ellipsis). The full text lives in dist/descriptions.json. */
-export function summarize(text, max = 80) {
+export function summarize(text, max = 100) {
     const t = String(text ?? '').replace(/\s+/g, ' ').trim();
     const first = t.match(/^.*?[.!?](?=\s|$)/)?.[0] ?? t;
     if (first.length <= max) return first;
