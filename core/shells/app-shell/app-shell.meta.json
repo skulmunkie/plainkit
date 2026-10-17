@@ -53,7 +53,7 @@
     },
     {
       "name": "",
-      "description": "The scrolling body."
+      "description": "The scrolling body. It is a flex column of definite height: ordinary content keeps its height and the body scrolls, while a page type that fills (flex: 1 1 auto, min-height: 0, such as a list page with stickyHeader) takes the height left, so its header row and pager stay pinned and only its rows scroll. A host wrapper element between the body and the page needs the same two properties, or none (display: contents)."
     },
     {
       "name": "footer",
