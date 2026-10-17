@@ -53,9 +53,32 @@
       "default": false,
       "reflect": true,
       "description": "Fill the container; scrolls inside. Ignores maxHeight."
+    },
+    {
+      "name": "header",
+      "type": "boolean",
+      "default": false,
+      "reflect": true,
+      "description": "Show the header bar."
+    },
+    {
+      "name": "language",
+      "type": "string",
+      "default": "",
+      "reflect": false,
+      "description": "Language tag in the header."
     }
   ],
-  "slots": [],
+  "slots": [
+    {
+      "name": "header-start",
+      "description": "After the title."
+    },
+    {
+      "name": "actions",
+      "description": "Right side."
+    }
+  ],
   "events": [
     {
       "name": "pk-line-click",
