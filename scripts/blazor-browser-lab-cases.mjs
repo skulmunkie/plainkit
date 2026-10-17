@@ -26,6 +26,7 @@ export const LAB_CASES = [
       async run(ctx) {
         await ctx.open('/lab/tickets');
         await waitText(ctx, 'Ticket 5'); // Load answered through the bridge
+        await waitText(ctx, 'Kind: bug'); // a column with only Text shows it (#1549)
         await ctx.typeInto('pk-list-page >>> input[type="search"]', 'Ticket 3');
         await waitGone(ctx, 'Ticket 5'); // a refresh with a new request
         ctx.ok(await has(ctx, 'Ticket 3'), 'the search for "Ticket 3" does not leave Ticket 3 in the list');

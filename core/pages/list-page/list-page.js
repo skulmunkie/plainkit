@@ -25,7 +25,7 @@ export default Base => class extends Base {
     }
     // The data table's own parts (filters, pagination, state) stay reachable here under the names this page always had.
     part(name) { const t = super.part('table'); return super.part(name) ?? (typeof t?.part === 'function' ? t.part(name) : null); }
-    changed(name) { if ((name === 'config' || name === 'clickable' || name === 'rowHrefTemplate' || name === 'navigate') && this.$w) this.sync(); }
+    changed(name) { if ((name === 'config' || name === 'clickable' || name === 'rowHrefTemplate' || name === 'navigate' || name === 'cards') && this.$w) this.sync(); }
 
     sync() {
         const table = this.part('table');
@@ -33,6 +33,8 @@ export default Base => class extends Base {
         table.load = q => (typeof this.load === 'function' ? this.load(q) : { rows: [] });
         table.rowHref = typeof this.rowHref === 'function' ? row => this.rowHref(row) : null;
         table.clickable = !!this.clickable; table.rowHrefTemplate = this.rowHrefTemplate; table.navigate = this.navigate;
+        // Phone layout (#1549): the same stacked cards the data table gives, hidePhone columns dropped.
+        table.cards = !!this.cards;
         // Selection is the table's: this page only switches it on (its pk-select is composed, so the host hears it as it is) and fills the bulk bar.
         table.selectable = !!this.config?.selectable;
         if (this.config?.rowKey) table.rowKey = this.config.rowKey;

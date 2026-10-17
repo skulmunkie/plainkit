@@ -730,7 +730,11 @@ export function renderComponent(m, mappingName, ns = 'PlainKit.Blazor') {
         '        if (Columns is null) return PkAttr.JsonText(Config) ?? "{}";',
         '        var node = System.Text.Json.Nodes.JsonNode.Parse(PkAttr.JsonText(Config) ?? "{}") as System.Text.Json.Nodes.JsonObject ?? new System.Text.Json.Nodes.JsonObject();',
         '        node["columns"] = System.Text.Json.Nodes.JsonNode.Parse(PkAttr.Json(Columns.Select(c => c.ToColumn()))!);',
-        '        return node.ToJsonString();', '    }');
+        '        return node.ToJsonString();', '    }',
+        '', '    // With typed Columns the rows are what PkDataTable sends: the item\'s properties plus each column\'s Text under its key (#1549).',
+        '    private object RowsOf(IReadOnlyList<TItem> items)', '    {',
+        '        if (Columns is null) return items;', '        var rows = new System.Text.Json.Nodes.JsonArray();', '        foreach (var item in items) rows.Add(PkTableRows.Serialize(item, Columns));',
+        '        return rows;', '    }');
     if (m.recordModel) L.push('', '    private TItem? _loaded;', '    private bool _isNew;', '',
         '    private string ConfigWithFields() => PkFieldSpecs.RecordConfig(PkAttr.JsonText(Config), Fields, _loaded ?? Model, out _isNew);', '',
         '    private object? KeepLoaded(TItem? item)', '    {', '        _loaded = item;', '        _ = InvokeAsync(StateHasChanged);', '        return item is null ? null : PkFieldSpecs.Values(Fields ?? [], item);', '    }', '',

@@ -6,7 +6,7 @@
 
 @code {
     private const string Config = """{"heading":"Tickets"}""";
-    private static readonly PkTableColumn<Ticket>[] _columns = [new() { Key = "id", Label = "Ticket" }, new() { Key = "title", Label = "Title" }];
+    private static readonly PkTableColumn<Ticket>[] _columns = [new() { Key = "id", Label = "Ticket" }, new() { Key = "title", Label = "Title" }, new() { Key = "kindText", Label = "Kind", Text = t => "Kind: " + t.Kind }];
 
     private Task<PkListResult<Ticket>> Load(PkListRequest r) => TicketStore.ListAsync(r, Nav.Uri.Contains("slow=1"));
     private void Open(PkRowClickEventArgs e) => Nav.NavigateTo("/lab/tickets/" + e.Id);

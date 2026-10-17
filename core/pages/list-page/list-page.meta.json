@@ -21,6 +21,13 @@
       "description": "Row links: an address with {id} (and any {field}, URL-encoded), like /orders/{id} or #/orders/{id}. The first cell of each row becomes a real link; a plain click on it or the row goes through the router (pk-navigate). Plain data, so a wrapper can set it (rowHref is a callback)."
     },
     {
+      "name": "cards",
+      "type": "boolean",
+      "default": false,
+      "reflect": true,
+      "description": "Rows become stacked cards on a phone (below 640px), columns marked hidePhone dropped, as pk-data-table's cards."
+    },
+    {
       "name": "navigate",
       "type": "string",
       "default": "",

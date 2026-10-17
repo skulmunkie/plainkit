@@ -16,7 +16,7 @@
       "type": "Func<PkListRequest, Task<PkListResult<TItem>>>?",
       "arg": "PkListPageQuery",
       "args": "a.ToRequest()",
-      "returns": "new { rows = r.Items, total = r.Total }",
+      "returns": "new { rows = RowsOf(r.Items), total = r.Total }",
       "refresh": true,
       "doc": "Loads one page for the request's page, sort, search and filters and returns its items and the total of the whole (searched) list. Throwing shows the element's error state with Retry; zero items show the empty state."
     },
@@ -30,7 +30,14 @@
       "name": "Columns",
       "map": "cells",
       "type": "IReadOnlyList<PkTableColumn<TItem>>?",
-      "doc": "Typed columns (the PkDataTable column type): replaces the columns of Config. A column with a Cell template fills that cell of every loaded row with the item (needs IdOf); Text and the property fallback of PkDataTable do not apply, the rows are what Load returns. Key names a property of TItem in camel case."
+      "doc": "Typed columns (the PkDataTable column type): replaces the columns of Config. A column shows its Cell template (needs IdOf), else the text its Text returns, else the item property its Key names, as in PkDataTable. HidePhone and Title apply to the phone cards. Key names a property of TItem in camel case."
+    },
+    {
+      "name": "Cards",
+      "prop": "cards",
+      "type": "bool",
+      "default": true,
+      "doc": "Each row becomes a card below 640px, columns marked HidePhone dropped, as in PkDataTable. Default true."
     },
     {
       "name": "IdOf",
@@ -72,7 +79,7 @@
       "type": "EventCallback<PkBulkEventArgs>"
     }
   ],
-  "notes": "PkListPage<TItem>: load(query) is a callback property, set from script, so the generated component hands the element a .NET reference (PkCallbackSlot) that calls the Load parameter with the page, sort, search and filters; a Load that throws rejects the JavaScript promise, which the element shows as its own error state with Retry. rowHref is synchronous in the element and cannot cross the interop boundary; use RowHrefTemplate (real row links to a route, a typed RowHref(TItem) is not generated: the generator has no function-to-template step) or OnRowClick (an imperative row click handler) or Config actions. Cells (column key to a RenderFragment<TItem>) with IdOf fill the cell-<id>-<key> slots of each loaded row (issue 1000); the page forwards them to its table. Columns (PkTableColumn<TItem>) replaces config.columns and its Cell templates fill the cell slots like Cells (issue 1000). Selection (issue 873): Config selectable/rowKey/bulkActions switch it on; OnSelect (pk-select) and OnBulk (pk-bulk, a bulkActions button) are EventCallbacks. For Selected, SelectedChanged, a BulkContent slot and the compacted large selection use PkDataTable.",
+  "notes": "PkListPage<TItem>: load(query) is a callback property, set from script, so the generated component hands the element a .NET reference (PkCallbackSlot) that calls the Load parameter with the page, sort, search and filters; a Load that throws rejects the JavaScript promise, which the element shows as its own error state with Retry. rowHref is synchronous in the element and cannot cross the interop boundary; use RowHrefTemplate (real row links to a route, a typed RowHref(TItem) is not generated: the generator has no function-to-template step) or OnRowClick (an imperative row click handler) or Config actions. Typed Columns send rows through the same serializer as PkDataTable (the item properties plus each column Text under its key, issue 1549). Cells (column key to a RenderFragment<TItem>) with IdOf fill the cell-<id>-<key> slots of each loaded row (issue 1000); the page forwards them to its table. Columns (PkTableColumn<TItem>) replaces config.columns and its Cell templates fill the cell slots like Cells (issue 1000). Selection (issue 873): Config selectable/rowKey/bulkActions switch it on; OnSelect (pk-select) and OnBulk (pk-bulk, a bulkActions button) are EventCallbacks. For Selected, SelectedChanged, a BulkContent slot and the compacted large selection use PkDataTable.",
   "typeparam": "TItem",
   "cells": { "load": "Load", "columns": true }
 }

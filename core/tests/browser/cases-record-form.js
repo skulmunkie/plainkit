@@ -227,6 +227,26 @@ export const recordFormCases = [
         await until(() => rows().length === 1, 'the first page after refresh()');
         t.ok(calls >= 1, 'load was called');
     }],
+    // #1549: the phone layout of the list page is the data table's: cards, hidePhone dropped, nothing scrolls sideways. Measured in an iframe so the media query answers to its width.
+    ['list-page (375px): cards turns rows into cards and drops hidePhone columns; without cards the rows stay table rows; at 1200px every column shows (#1549)', async t => {
+        const { sampleDoc } = await import('../../site/gallery/frame.js');
+        const cols = '[{"key":"sku","label":"SKU","title":true},{"key":"note","label":"Note","hidePhone":true},{"key":"qty","label":"Quantity"}]';
+        const at = async (width, attrs) => {
+            const host = t.stage(''), f = document.createElement('iframe');
+            f.title = 'sample'; f.style.width = `${width}px`; f.style.height = '480px'; f.style.border = '0';
+            const loaded = new Promise(r => f.addEventListener('load', r, { once: true })); host.append(f); f.srcdoc = sampleDoc(`<pk-list-page ${attrs} config='{"columns":${cols}}'></pk-list-page>`); await loaded;
+            const w = f.contentWindow, page = await until(() => w.customElements.get('pk-list-page') && w.customElements.get('pk-data-table') && w.customElements.get('pk-table') && f.contentDocument.querySelector('pk-list-page'), 'the list page');
+            await t.load(page.shadowRoot); await t.settle();
+            page.load = async () => ({ rows: [{ id: 'a1', sku: 'SKU-1', note: 'n1', qty: 3 }], total: 1 }); page.refresh();
+            const tb = await until(() => { const x = page.part('table')?.part('table'); return x?.shadowRoot?.querySelector('tbody td[data-hide-phone]') ? x : null; }, 'the rows');
+            const disp = q => w.getComputedStyle(tb.shadowRoot.querySelector(q)).display, doc = f.contentDocument.documentElement;
+            return { tr: disp('tbody tr'), note: disp('tbody td[data-hide-phone]'), qty: disp('tbody td:not([data-hide-phone]):last-child'), noSideScroll: doc.scrollWidth <= doc.clientWidth + 1, cards: tb.hasAttribute('cards') };
+        };
+        const phone = await at(375, 'cards');
+        t.ok(phone.cards, 'cards reaches the pk-table'); t.eq(phone.tr, 'block', 'a row is a card at 375px'); t.eq(phone.note, 'none', 'the hidePhone cell is dropped from the card'); t.ok(phone.qty !== 'none', 'the other cells show'); t.ok(phone.noSideScroll, 'the page does not scroll sideways');
+        const plain = await at(375, ''); t.ok(!plain.cards && plain.tr === 'table-row', 'without cards a row stays a table row');
+        const wide = await at(1200, 'cards'); t.eq(wide.tr, 'table-row', 'a table at 1200px'); t.ok(wide.note !== 'none', 'the hidePhone cell shows on a wide screen');
+    }],
     // #436: the acceptance criteria #352 named for pk-list-page. A search string is data end to end: never markup, never script.
     ['list-page: a search string with markup and script text reaches load() verbatim and is drawn only as text - no element or handler is created from it (#436)', async t => {
         const evil = '<img src=x onerror="window.__pkXss=1"><script>window.__pkXss=1</scr' + 'ipt>';

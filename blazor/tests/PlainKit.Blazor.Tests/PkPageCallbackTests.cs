@@ -389,6 +389,34 @@ public sealed class PkPageCallbackTests : BunitContext, IAsyncLifetime
         Assert.Equal("EUR 5", cut.Find("[slot='cell-A-1-total']").TextContent);
     }
 
+    [Fact]
+    public async Task ListPage_typed_Columns_Text_fills_the_row_under_its_key_without_IdOf()
+    {
+        // #1549: a column that sets only Text shows that text (as in PkDataTable); the item's own properties stay in the row for row clicks and links.
+        var cut = Render<PkListPage<Order>>(p => p
+            .Add(x => x.Columns, [new() { Key = "orderNo", Label = "No" }, new() { Key = "amount", Label = "Amount", Text = o => $"EUR {o.Total}" }, new() { Key = "ORDERNO", Label = "Same" }])
+            .Add(x => x.Load, r => Task.FromResult(new PkListResult<Order>([new("A-1", 5)], 1))));
+        var host = Assert.IsType<DotNetObjectReference<PkCallbackHost<PkListPageQuery>>>(Assert.Single(_bridge.Invocations["setCallback"]).Arguments[2]);
+        var result = await cut.InvokeAsync(() => host.Value.Invoke(new PkListPageQuery()));
+
+        var json = JsonSerializer.SerializeToElement(result);
+        var row = json.GetProperty("rows")[0];
+        Assert.Equal("EUR 5", row.GetProperty("amount").GetString());
+        Assert.Equal("A-1", row.GetProperty("orderNo").GetString());
+        Assert.Equal("A-1", row.GetProperty("ORDERNO").GetString());   // the property fallback in any casing, as PkDataTable
+        Assert.Equal(1, json.GetProperty("total").GetInt32());
+    }
+
+    [Fact]
+    public void ListPage_Cards_defaults_on_like_PkDataTable_and_can_be_switched_off()
+    {
+        // #1549: the phone cards layout and hidePhone follow the data table.
+        Assert.True(Render<PkListPage<Order>>().Find("pk-list-page").HasAttribute("cards"));
+        Assert.False(Render<PkListPage<Order>>(p => p.Add(x => x.Cards, false)).Find("pk-list-page").HasAttribute("cards"));
+        var cut = Render<PkListPage<Order>>(p => p.Add(x => x.Columns, [new() { Key = "orderNo", Label = "No", HidePhone = true }]));
+        Assert.True(JsonDocument.Parse(cut.Find("pk-list-page").GetAttribute("config")!).RootElement.GetProperty("columns")[0].GetProperty("hidePhone").GetBoolean());
+    }
+
     private sealed record Order(string OrderNo, int Total);
 
     [Fact]
