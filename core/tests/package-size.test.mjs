@@ -4,7 +4,8 @@
 // Then the CEM attributes naming their field (type, default and description once, on the member) and a compact dist/manifest.json (#1253): 929,626 packed / 3,455,522 unpacked bytes.
 // Then skill element tables without a repeated property column, a grouped elements index and the contributor sections of core/README.md moved to docs/core-development.md (#1253): 923,958 packed / 3,437,502 unpacked bytes.
 // Then SHA-256 instead of SHA-384 SRI hashes in dist/manifest.json (still valid SRI; 567 entries x 16 random bytes, #1253): 915,745 packed / 3,429,025 unpacked bytes.
-// The ceilings (918,800 / 3,432,000; measured 915,745 / 3,429,025 on 2026-10-17). NEVER RAISE THEM: make the package smaller (lower them when it shrinks).
+// Then the element tables of the skill references state their legend once (elements-index.md), not above every table, and drop an empty Values column (#1253): 914,256 packed / 3,389,474 unpacked bytes.
+// The ceilings (916,500 / 3,399,000; measured 914,256 / 3,389,474 on 2026-10-17). NEVER RAISE THEM: make the package smaller (lower them when it shrinks).
 import './needs-bootstrap.mjs';
 import test from 'node:test';
 import assert from 'node:assert/strict';
@@ -14,8 +15,8 @@ import { spawnSync } from 'node:child_process';
 import { fileURLToPath } from 'node:url';
 
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
-const MAX_PACKED_BYTES = 918_800;
-const MAX_UNPACKED_BYTES = 3_432_000;
+const MAX_PACKED_BYTES = 916_500;
+const MAX_UNPACKED_BYTES = 3_399_000;
 const TOP_LEVEL = new Set(['dist', 'LICENSE', 'README.md', 'package.json']);
 // dist/ is the runtime unit; these are the entries of dist/ the package may carry (dist/modules is the dev-tool unit, a separate download).
 const DIST = new Set(['breakpoints.report.json', 'custom-elements.json', 'elements', 'elements.d.ts', 'elements.vue.d.ts', 'icons.svg', 'js', 'llms-full.txt', 'llms.txt',
