@@ -48,6 +48,8 @@ export default Base => class extends Base {
     n() { return this.value === '' ? NaN : Number(this.value); }
     show() { if (this.$badMoney) return this.part('control').value; if (this.money() && !this.$editing && this.value !== '') return formatMoney(Number(this.value), { decimals: this.decimals, locale: this.locale }); return this.value; }
     updated() {
+        // width: xs to 2xl (4 to 24rem) or a CSS length, set as the host's inline-size; an unknown word is ignored by the browser.
+        const w = this.width, r = { xs: 4, sm: 6, md: 8, lg: 12, xl: 16, '2xl': 24 }[w]; this.style.inlineSize = r ? r + 'rem' : w;
         const i = this.part('control');
         i.type = this.$rev || this.money() ? 'text' : this.type;
         if (this.money()) i.inputMode = 'decimal';

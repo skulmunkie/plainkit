@@ -43,7 +43,7 @@
       "default": "",
       "reflect": false,
       "commit": "pk-value-change",
-      "description": "The current value; what the form submits. A form reset sets it back to its initial value without raising the commit event, as a native control does: pk-form raises pk-reset after it, so a host that mirrors the value reads it again there. A browser state restore also sets it silently."
+      "description": "The current value; what the form submits. A form reset or browser restore sets it silently, as a native control does (pk-form raises pk-reset after a reset)."
     },
     {
       "name": "placeholder",
@@ -184,6 +184,13 @@
       "description": "Control height."
     },
     {
+      "name": "width",
+      "type": "string",
+      "default": "",
+      "reflect": false,
+      "description": "Width: xs to 2xl, or a CSS length."
+    },
+    {
       "name": "clearable",
       "type": "boolean",
       "default": false,
@@ -255,14 +262,14 @@
       "type": "json",
       "default": null,
       "reflect": false,
-      "description": "Property only: the listbox element this input drives, making it a combobox (aria-controls through ariaControlsElements; the option marked aria-selected='true' is the aria-activedescendant). The listbox may sit in the host's shadow tree. Call requestUpdate() after changing it. Needs Chrome 135, Safari 16.4 or Firefox 136."
+      "description": "Property only: the listbox element this input drives, making it a combobox (the option marked aria-selected='true' is the aria-activedescendant). It may sit in the host's shadow tree. Call requestUpdate() after changing it. Needs Chrome 135, Safari 16.4 or Firefox 136."
     },
     {
       "name": "selectOnFocus",
       "type": "boolean",
       "default": false,
       "reflect": true,
-      "description": "Selects the whole value when the control gains focus (keyboard, tap or click), so typing replaces it; the mouse-up that follows the focusing press does not clear the selection. Useful for number inputs on a phone."
+      "description": "Selects the whole value when the control gains focus (keyboard, tap or click), so typing replaces it. Useful for number inputs on a phone."
     },
     {
       "name": "autohide",
@@ -386,7 +393,7 @@
       "description": "Moves focus to the inner input."
     }
   ],
-  "a11y": "A native input lives in the shadow root, named by label (aria-label) and described by description (aria-description); invalid sets aria-invalid, and the state is never colour alone (the ring is thicker). Buttons are labelled and reveal reports aria-pressed. The copy button disables itself while the value is empty and its aria-label switches to \"Copied\" for a couple of seconds after a successful copy; a clipboard failure (insecure origin, denied permission) is logged, never shown as a false success. Money and stepper fields keep the number in value while showing formatted text. Text is 16px and the control 44px tall on a phone. With listbox set the input is a combobox (role, aria-expanded, aria-controls and aria-activedescendant through element reflection: Chrome 135, Safari 16.4 or Firefox 136; older browsers ignore the two references).",
+  "a11y": "A native input lives in the shadow root, named by label (aria-label) and described by description (aria-description); invalid sets aria-invalid, and the state is never colour alone (the ring is thicker). Buttons are labelled and reveal reports aria-pressed. The copy button is disabled while the value is empty and its aria-label becomes \"Copied\" briefly after a copy; a clipboard failure is logged, never shown as success. Money and stepper fields keep the number in value while showing formatted text. Text is 16px and the control 44px tall on a phone. With listbox set the input is a combobox (role, aria-expanded, aria-controls, aria-activedescendant; Chrome 135, Safari 16.4 or Firefox 136).",
   "examples": [
     {
       "title": "Text, states and sizes",
