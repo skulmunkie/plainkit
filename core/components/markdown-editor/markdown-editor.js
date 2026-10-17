@@ -63,7 +63,7 @@ export default Base => class extends Base {
 
     updated() {
         const box = this.part('control'), t = this.ta;
-        if (!t) customElements.whenDefined('pk-textarea').then(() => this.requestUpdate());
+        if (!t) this.$tw ??= customElements.whenDefined('pk-textarea').then(() => this.requestUpdate());
         if (box.value !== this.value) box.value = this.value;
         const preview = this.part('preview'), showPreview = this.mode === 'preview', split = Boolean(this.$split);
         this.part('write').hidden = !split && showPreview; preview.hidden = !split && !showPreview;
@@ -109,7 +109,7 @@ export default Base => class extends Base {
         const bs = [...this.part('commands').children];
         this.$ri = Math.min(this.$ri ?? 0, Math.max(0, bs.length - 1));
         bs.forEach((b, i) => { if (typeof b.part === 'function') b.part('control')?.setAttribute('tabindex', i === this.$ri && this.editable ? '0' : '-1'); });
-        if (!customElements.get('pk-button') && bs.some(b => typeof b.part !== 'function')) customElements.whenDefined('pk-button').then(() => this.syncRove());
+        if (bs.some(b => typeof b.part !== 'function')) this.$bw ??= customElements.whenDefined('pk-button').then(() => this.syncRove());
     }
     rove(e) {
         const bs = [...this.part('commands').children].filter(b => !b.disabled);
