@@ -247,6 +247,20 @@ test('B7: flags a hand-rolled lifecycle component, not one deriving from PageBas
     assert.equal(run('Orders.razor', '@inherits PkComponentBase\n@code { CancellationTokenSource _cts = new(); bool busy; }').length, 0);
 });
 
+test('B8: flags a component duplicating a Pk* parameter set, not an unrelated or lightly overlapping one (#1520)', () => {
+    const run = (path, text) => checkFiles([{ path, text }], { ruleset: 'consumer' }).filter(f => f.rule === 'B8');
+    const p = (type, name) => `[Parameter] public ${type} ${name} { get; set; }`;
+    const dup = `@code { ${p('string?', 'Title')} ${p('string?', 'Description')} ${p('RenderFragment?', 'ChildContent')} ${p('RenderFragment?', 'HeadingContent')} ${p('RenderFragment?', 'DescriptionContent')} }`;
+    const found = run('AppSection.razor', dup);
+    assert.equal(found.length, 1);
+    assert.notEqual(found[0].severity ?? found[0].level, 'error');
+    assert.match(found[0].fix, /PkFormSection/);
+    assert.equal(run('AppSection.razor.cs', `public partial class AppSection { ${p('string?', 'Title')} ${p('string?', 'Description')} ${p('RenderFragment?', 'ChildContent')} ${p('RenderFragment?', 'HeadingContent')} ${p('RenderFragment?', 'DescriptionContent')} }`).length, 1);
+    assert.equal(run('Card.razor', `@code { ${p('string?', 'Title')} ${p('string?', 'Description')} ${p('int', 'Total')} ${p('int', 'Count')} ${p('int', 'Page')} }`).length, 0);
+    assert.equal(run('One.razor', `@code { ${p('string?', 'Label')} }`).length, 0);
+    assert.equal(run('Plain.razor', '<p>no parameters</p>').length, 0);
+});
+
 test('P10: flags a page factory with AbortController, a busy flag and its own destroy, not one using createLifecycle (#1022)', () => {
     const run = text => checkFiles([{ path: 'page.js', text }], { ruleset: 'consumer' }).filter(f => f.rule === 'P10');
     const own = 'export function page() { let busy = false; const ac = new AbortController(); return { destroy() { ac.abort(); } }; }';
