@@ -46,6 +46,13 @@
       "default": "",
       "reflect": false,
       "description": "Cap the height, any CSS length. Without it the view is as tall as its lines, or fills a flex parent."
+    },
+    {
+      "name": "fill",
+      "type": "boolean",
+      "default": false,
+      "reflect": true,
+      "description": "Fill the container; scrolls inside. Ignores maxHeight."
     }
   ],
   "slots": [],

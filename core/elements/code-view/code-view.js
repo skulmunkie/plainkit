@@ -63,7 +63,7 @@ export default Base => class extends Base {
         });
         this.part('rows').replaceChildren(...rows);
         this.style.setProperty('--pk-code-view-gutter', String(String(first + Math.max(0, lines.length - 1)).length));
-        if (this.maxHeight) this.style.setProperty('--pk-code-view-max-height', this.maxHeight); else this.style.removeProperty('--pk-code-view-max-height');
+        if (this.maxHeight && !this.fill) this.style.setProperty('--pk-code-view-max-height', this.maxHeight); else this.style.removeProperty('--pk-code-view-max-height');
         // Bring the first highlighted line to the middle of the view (the view's own scroll only; the page stays where it is).
         const body = this.part('body'), target = this.part('rows').querySelector('.hl');
         if (target) body.scrollTop = target.offsetTop - (body.clientHeight - target.offsetHeight) / 2;

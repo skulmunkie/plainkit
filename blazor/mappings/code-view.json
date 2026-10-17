@@ -37,6 +37,11 @@
       "type": "string"
     },
     {
+      "name": "Fill",
+      "prop": "fill",
+      "type": "bool"
+    },
+    {
       "name": "OnLineClick",
       "event": "pk-line-click"
     },
