@@ -57,6 +57,16 @@ export const formCases = [
         t.ok(ff('c', 'input') !== ff('a', 'input') && ff('e', 'textarea') !== ff('b', 'textarea'), 'sans is not mono'); t.eq(ff('d', 'input'), getComputedStyle(host.querySelector('#d')).fontFamily, 'the default inherits the font around it');
         const el = host.querySelector('#b'); el.font = 'sans'; await t.settle(); t.ok(!ff('b', 'textarea').includes(mono), 'switching back to sans leaves mono');
     }],
+
+    ['input and select width (#1539): a size token or a CSS length sets a compact width, a bad value is ignored', async t => {
+        const host = t.stage('<div style="inline-size:600px"><pk-input id="a" label="Qty" width="xs"></pk-input><pk-input id="b" label="Qty" width="2xl"></pk-input><pk-select id="c" label="Unit" width="7rem"><option>kg</option></pk-select><pk-input id="d" label="Qty" width="nonsense"></pk-input><pk-input id="e" label="Qty"></pk-input></div>');
+        await t.load(host); await t.settle(); await t.settle();
+        const w = id => host.querySelector('#' + id).getBoundingClientRect().width, px = rem => rem * parseFloat(getComputedStyle(document.documentElement).fontSize);
+        t.ok(Math.abs(w('a') - px(4)) <= 1, 'xs is a compact field, 4rem (' + w('a') + 'px)'); t.ok(Math.abs(w('b') - px(24)) <= 1, '2xl is 24rem');
+        t.ok(Math.abs(w('c') - px(7)) <= 1, 'a CSS length on a select, 7rem'); t.ok(w('d') === w('e') && w('e') > px(24) - 1, 'a bad value is ignored: the field fills the column like the default');
+        const box = host.querySelector('#a').shadowRoot.querySelector('.box').getBoundingClientRect(); t.ok(Math.abs(box.width - w('a')) <= 1, 'the box fills the compact host');
+        host.querySelector('#a').width = ''; await t.settle(); t.ok(w('a') > px(24) - 1, 'removing width restores the full width');
+    }],
     ['input: typing updates value, reports input and change, and the form receives it', async t => {
         const host = t.stage('<form><pk-input name="q" label="Query" value="a"></pk-input></form>'); await t.load(host);
         const el = host.querySelector('pk-input'); const inner = el.part('control');

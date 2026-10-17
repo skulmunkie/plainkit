@@ -41,7 +41,7 @@ node site/scorecard/static-audit.mjs
 
 ### The in-browser element suite
 
-`tests/browser/` runs every element in a real browser (about 130 cases, about 170 seconds). The node suite cannot, so run it locally when you change an element source, `js/element*.js`, `js/loader.js` or a browser case. It is not gated on ordinary pull requests: a nightly workflow (`browser-nightly.yml`) runs it on `main` and files or updates the issue "In-browser suite failing on main" (the owner closes it), and the job "Browser suite (release)" runs it on release pull requests, where the owner's branch rule requires it (issue #752). Nothing compares it with the sources, and `tests/browser/report.json` is local scratch output (not committed).
+`tests/browser/` runs every element in a real browser (about 660 cases, about 10 minutes). The node suite cannot, so run it locally when you change an element source, `js/element*.js`, `js/loader.js` or a browser case. It is not gated on ordinary pull requests: a nightly workflow (`browser-nightly.yml`) runs it on `main` and files or updates the issue "In-browser suite failing on main" (the owner closes it), and the job "Browser suite (release)" runs it on release pull requests, where the owner's branch rule requires it (issue #752). Nothing compares it with the sources, and `tests/browser/report.json` is local scratch output (not committed).
 
 One command does the whole procedure (from the repository root; Node only, no browser package; it needs an installed Chrome, Chromium or Edge, found by `PK_CHROME` or the usual install paths):
 
@@ -49,13 +49,13 @@ One command does the whole procedure (from the repository root; Node only, no br
 node scripts/attest-browser.mjs
 ```
 
-It starts `node core/tools/serve.mjs 5341 --write-reports`, opens `http://localhost:5341/tests/browser/` in a headless browser, waits for the page to post its report (about 170 s; it gives up after 420 s), prints the passed and failed counts from `report.json`, then stops the server and the browser and deletes the temporary profile. The exit code is 0 when every case passed, 1 for a failed case, 2 when the run could not finish. `--port`, `--timeout`, `--width` and `--height` are the options; `PK_CHROME_FLAGS` adds browser flags.
+It starts `node core/tools/serve.mjs 5341 --write-reports`, opens `http://localhost:5341/tests/browser/` in a headless browser, waits for the page to post its report (about 10 minutes; it gives up after 1800 s; it writes a trace of every case start and end and a 3 s heartbeat to `pk-attest-trace-<time>.log` in the temp folder, deletes it when the run passes and prints its path otherwise; a case that freezes the page is recorded as failed by name and the page is restarted at the next case), prints the passed and failed counts from `report.json`, then stops the server and the browser and deletes the temporary profile. The exit code is 0 when every case passed, 1 for a failed case, 2 when the run could not finish. `--port`, `--timeout`, `--width` and `--height` are the options; `PK_CHROME_FLAGS` adds browser flags.
 
 By hand, the same thing:
 
 1. `node core/tools/serve.mjs 5341 --write-reports` (`--write-reports` lets the page post its report to the server, which writes `report.json`).
 2. Open `http://localhost:5341/tests/browser/` in Chrome at desktop size. Headless: `chrome --headless=new --disable-gpu --no-first-run --user-data-dir=<a temporary folder> --window-size=1280,900 http://localhost:5341/tests/browser/`.
-3. Wait about 170 s for "report saved" (a visible tab shows it; a headless run has no window, so read the file).
+3. Wait about 10 minutes for "report saved" (a visible tab shows it; a headless run has no window, so read the file).
 4. Read `tests/browser/report.json` (`passed` and `failed`).
 5. Stop the server and the browser and delete the temporary profile (on Windows a browser child can keep the folder locked for a moment; `scripts/attest-browser.mjs` ends the whole process tree and retries).
 

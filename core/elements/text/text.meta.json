@@ -86,6 +86,19 @@
       "description": "Font weight. Default inherit."
     },
     {
+      "name": "whiteSpace",
+      "type": "enum",
+      "default": "inherit",
+      "values": [
+        "inherit",
+        "normal",
+        "nowrap",
+        "pre-wrap"
+      ],
+      "reflect": true,
+      "description": "How line breaks and spaces are treated: pre-wrap keeps the text's own line breaks and runs of spaces (notes, raw values), nowrap stays on one line. Default inherit."
+    },
+    {
       "name": "truncate",
       "type": "boolean",
       "default": false,
@@ -120,6 +133,10 @@
     {
       "title": "Truncated",
       "html": "<pk-text truncate>A very long file name that will not fit in a narrow column - quarterly-report-final-v3-reviewed.pdf</pk-text>"
+    },
+    {
+      "title": "Keeps line breaks",
+      "html": "<pk-text white-space=\"pre-wrap\">Line one\nLine two, kept.</pk-text>"
     },
     {
       "title": "Inline code",
