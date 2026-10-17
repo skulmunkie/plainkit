@@ -159,6 +159,7 @@ export const fieldGroupCases = [
         const { el, form } = await inForm(t, FIELDS, { status: 'open', name: 'Acme' });
         t.eq(form.checkValidity(), true, 'the note is required but hidden');
         choose(el.shadowRoot.querySelectorAll('pk-field')[2].firstElementChild, 'closed'); await t.settle(); await t.settle();
+        for (let i = 0; i < 300 && form.checkValidity(); i++) await wait(50); // readiness wait for the on-demand control; the assertion below still decides
         t.eq(form.checkValidity(), false, 'the note shows and is empty');
         t.eq(el.problems()[0].key, 'note');
     }],
