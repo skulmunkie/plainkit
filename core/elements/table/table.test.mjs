@@ -264,6 +264,13 @@ test('check reports what breaks a column\'s rules and nothing else', () => {
     assert.equal(E.check({ editor: 'number', max: 9 }, '10'), 'At most 9');
     assert.equal(E.check({ editor: 'number', min: 0, max: 9 }, '4.5'), '');
     assert.equal(E.check({ editor: 'number' }, ''), '', 'an empty optional number is fine');
+    assert.equal(E.check({ editor: 'date' }, 'next week'), 'Enter a date');
+    assert.equal(E.check({ editor: 'date' }, '2026-02-30'), 'Enter a date');
+    assert.equal(E.check({ editor: 'date', min: '2026-01-01' }, '2025-12-31'), 'On or after 2026-01-01');
+    assert.equal(E.check({ editor: 'date', max: '2026-12-31' }, '2027-01-01'), 'On or before 2026-12-31');
+    assert.equal(E.check({ editor: 'date', min: '2026-01-01', max: '2026-12-31' }, '2026-06-30'), '');
+    assert.equal(E.check({ editor: 'date', required: true }, ''), 'Required');
+    assert.equal(E.check({ editor: 'date' }, ''), '', 'an empty optional date is fine');
     assert.equal(E.check({ maxLength: 3 }, 'abcd'), 'At most 3 characters');
 });
 
@@ -280,7 +287,7 @@ test('the edit props and the pk-cell-edit event are in the meta, and an editable
     assert.ok(meta.props.some(p => p.name === 'cellErrors'));
     const ev = meta.events.find(e => e.name === 'pk-cell-edit');
     assert.equal(ev.cancelable, true);
-    assert.deepEqual(Object.keys(ev.detail), ['id', 'index', 'row', 'key', 'value', 'previous', 'source']);
+    assert.deepEqual(Object.keys(ev.detail), ['id', 'index', 'row', 'key', 'value', 'previous', 'source', 'wait']);
     assert.doesNotMatch(readFileSync(new URL('../../js/table-vw.js', import.meta.url), 'utf8'), /if \(el\.expandable \|\| el\.editable \|\|/, 'an editable table windows too (#1474)');
 });
 
