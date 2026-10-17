@@ -65,7 +65,7 @@
       "type": "boolean",
       "default": false,
       "reflect": true,
-      "description": "Shows a toggle on the separator that collapses the end pane (Enter, Space or a double click on the separator also toggle)."
+      "description": "Shows a toggle on the separator that collapses the end pane."
     },
     {
       "name": "collapsed",
@@ -73,14 +73,14 @@
       "default": false,
       "reflect": true,
       "commit": "pk-collapse-change",
-      "description": "The end pane is collapsed: zero size, inert, size kept. Needs collapsible. The host owns it after pk-collapse-change."
+      "description": "The end pane is collapsed (inert, size kept)."
     },
     {
       "name": "toggleLabel",
       "type": "string",
       "default": "",
       "reflect": false,
-      "description": "Accessible name of the toggle button."
+      "description": "The toggle's name."
     }
   ],
   "slots": [
@@ -113,7 +113,7 @@
       "detailProps": {
         "collapsed": "boolean"
       },
-      "description": "The user collapsed or restored the end pane; not cancelable."
+      "description": "The user collapsed or restored the end pane."
     }
   ],
   "parts": [
@@ -131,7 +131,7 @@
     },
     {
       "name": "toggle",
-      "description": "The collapse button on the separator."
+      "description": "The collapse button."
     },
     {
       "name": "end",
@@ -156,12 +156,12 @@
     }
   ],
   "methods": [],
-  "a11y": "The separator is role=separator, focusable, with aria-orientation, aria-valuenow, aria-valuemin, aria-valuemax and aria-controls (the start pane): the window splitter pattern. Arrow keys along the axis move it by step (Left and Right side by side, mirrored in a right-to-left page; Up and Down stacked), Home and End go to the minimum and maximum. A pointer drag is captured by the separator, so it follows the pointer out of the element and ends cleanly on release or cancel. The line grows and takes the accent colour on hover, drag and keyboard focus, so state is never colour alone. With collapsible, aria-valuenow is 0 while collapsed and the toggle has aria-expanded.",
+  "a11y": "The separator is role=separator, focusable, with aria-orientation, aria-valuenow, aria-valuemin, aria-valuemax and aria-controls (the start pane): the window splitter pattern. Arrow keys along the axis move it by step (Left and Right side by side, mirrored in a right-to-left page; Up and Down stacked), Home and End go to the minimum and maximum. A pointer drag is captured by the separator, so it follows the pointer out of the element and ends cleanly on release or cancel. The line grows and takes the accent colour on hover, drag and keyboard focus, so state is never colour alone.",
   "mobile": "On a touch screen the separator's hit area is 44px in the resize direction (the line stays thin), and touch-action is off on it so a drag resizes instead of scrolling.",
   "examples": [
     {
       "title": "Side by side",
-      "html": "<pk-splitter size=\"30\" min=\"15\" max=\"70\" collapsible label=\"Resize the list\"><div slot=\"start\" class=\"stack\"><strong>List</strong><span>Drag the bar, or focus it and use the arrow keys.</span></div><div slot=\"end\" class=\"stack\"><strong>Detail</strong><span>Home and End go to the minimum and maximum. The button on the bar collapses this pane.</span></div></pk-splitter>"
+      "html": "<pk-splitter size=\"30\" min=\"15\" max=\"70\" collapsible label=\"Resize the list\"><div slot=\"start\" class=\"stack\"><strong>List</strong><span>Drag the bar, or focus it and use the arrow keys.</span></div><div slot=\"end\" class=\"stack\"><strong>Detail</strong><span>Home and End go to the minimum and maximum.</span></div></pk-splitter>"
     },
     {
       "title": "Stacked",

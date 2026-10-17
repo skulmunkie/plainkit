@@ -21,11 +21,8 @@ export default Base => class extends Base {
     /** The user collapses or restores the end pane: the size is kept, the host hears pk-collapse-change. */
     toggle() {
         if (this.disabled || !this.collapsible) return;
-        const next = !this.collapsed;
-        if (next) {
-            const a = this.ownerDocument.activeElement, c = a && [...this.children].find(k => k.getAttribute('slot') === 'end' && k.contains(a));
-            if (c) this.part('toggle').focus();
-        }
+        const next = !this.collapsed, a = this.ownerDocument.activeElement;
+        if (next && [...this.children].some(k => k.getAttribute('slot') === 'end' && k.contains(a))) this.part('toggle').focus();
         this.part('root').setAttribute('data-anim', '');
         this.collapsed = next;
         this.emit('pk-collapse-change', { collapsed: next }, { cancelable: false });
@@ -71,12 +68,11 @@ export default Base => class extends Base {
     }
     updated() {
         const s = this.now(), root = this.part('root'), h = this.part('handle');
-        const c = Boolean(this.collapsible && this.collapsed), t = this.part('toggle');
+        const c = !!(this.collapsible && this.collapsed), t = this.part('toggle');
         root.style.setProperty('--_a', c ? '1fr' : `${s}fr`); root.style.setProperty('--_b', c ? '0fr' : `${Math.round((100 - s) * 10) / 10}fr`);
         this.part('end').inert = c;
         h.setAttribute('aria-valuenow', c ? '0' : String(s));
         t.hidden = !this.collapsible;
-        t.disabled = Boolean(this.disabled);
         t.setAttribute('aria-expanded', String(!c));
         t.setAttribute('aria-label', this.toggleLabel || (c ? 'Expand panel' : 'Collapse panel'));
         h.setAttribute('aria-orientation', this.horizontal() ? 'vertical' : 'horizontal');
