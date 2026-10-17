@@ -22,9 +22,6 @@
     "Components/PkConsole.razor": {
       "category": "mount"
     },
-    "Components/PkDataTable.razor": {
-      "category": "typed-generics"
-    },
     "Components/PkDevTools.razor": {
       "category": "mount",
       "blazorOnly": "mounts the devtools module (core/modules/devtools); the tag pk-devtools has no dash"
