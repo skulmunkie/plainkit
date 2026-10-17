@@ -93,7 +93,6 @@ export default Base => class extends Base {
         loadElements(box);
         this.seedFilters();
     }
-    // The controls show the filter values the query holds (the initial filterValues, until the reader changes one), so a seeded filter is visible and clearable.
     seedFilters() {
         const values = this.query.filters;
         for (const [key, el] of Object.entries(this.$controls ?? {})) if (values[key] !== undefined) el.value = values[key];

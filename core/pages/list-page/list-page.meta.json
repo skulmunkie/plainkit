@@ -32,12 +32,12 @@
       "type": "json",
       "default": {},
       "reflect": false,
-      "description": "{ columns, filters?, actions?, empty?, pageSize? }. columns is pk-table's own column definitions ({ key, label, type?, align?, sortable?, hidePhone?, shed?, title? }[]). filters is [{ key, type: 'text'|'email'|'number'|'date'|'select'|'multiselect', label, options? }] (a select's options are [{ value, label? }] or plain strings), rendered into the pk-table-filters panel and combined into query.filters as { [key]: text }. actions is [{ label, href?, variant? }], toolbar buttons shown beside the search box (plain data; a button or menu wired to app logic goes in the actions or toolbar slot). empty is { heading?, description? } shown when a page has zero rows. selectable? (boolean) shows the checkbox column and the bulk bar, rowKey? names the row field that identifies a row (default id), bulkActions? is [{ id, label, variant? }], the buttons of the bulk bar. pageSize is the initial page size (default 25); search?, filterValues? ({ [filter key]: value }, shown in the filter panel), sort?, sortDir? ('ascending' or 'descending') and page? (1-based) are the initial query, for a deep link, and the reader replaces them; the reader can change it if pk-pagination's own sizes are configured through further host script. Optional title bar from the shared page shell: heading?: string and breadcrumb?: [{ label, href? }] (config.actions remain the table toolbar's buttons). Nothing is drawn when neither is set. cards? (boolean, default true) lays each row out as a card below 640px, columns with hidePhone dropped and the title column as the card heading; false keeps the table. stickyHeader? (boolean) pins the column header; placed in a flex column of definite height (a pk-stack[fill], an app-shell body) the page fills it, the rows scroll and the pager and bulk bar stay pinned below them, with no maxHeight to guess."
+      "description": "{ columns, filters?, actions?, empty?, pageSize? }. columns is pk-table's own column definitions ({ key, label, type?, align?, sortable?, hidePhone?, shed?, title? }[]). filters is [{ key, type: 'text'|'email'|'number'|'date'|'select'|'multiselect', label, options? }] (a select's options are [{ value, label? }] or plain strings), rendered into the pk-table-filters panel and combined into query.filters as { [key]: text }. actions is [{ label, href?, variant? }], toolbar buttons shown beside the search box (plain data; app logic goes in the actions or toolbar slot). empty is { heading?, description? } shown when a page has zero rows. selectable? (boolean) shows the checkbox column and the bulk bar, rowKey? names the row field that identifies a row (default id), bulkActions? is [{ id, label, variant? }], the buttons of the bulk bar. pageSize is the initial page size (default 25); search?, filterValues?, sort?, sortDir? and page? seed the first query; the reader can change it if pk-pagination's own sizes are configured through further host script. Optional title bar from the shared page shell: heading?: string and breadcrumb?: [{ label, href? }] (config.actions remain the table toolbar's buttons). Nothing is drawn when neither is set. cards? (default true): rows are cards below 640px. stickyHeader? (boolean) pins the column header; placed in a flex column of definite height (a pk-stack[fill], an app-shell body) the page fills it, the rows scroll and the pager and bulk bar stay pinned below them, with no maxHeight to guess."
     }
   ],
   "slots": [
-    { "name": "actions", "description": "Content in the title bar: a button wired to app logic, or a menu of several actions. Keeps the title bar shown when the config sets no heading or breadcrumb." },
-    { "name": "toolbar", "description": "Content at the end of the data table toolbar, beside the search box and after the config.actions buttons." }
+    { "name": "actions", "description": "Title bar content." },
+    { "name": "toolbar", "description": "End of the toolbar." }
   ],
   "events": [
     {
@@ -74,6 +74,6 @@
     }
   ],
   "methods": [
-    { "name": "refresh()", "description": "Runs load(query) again for the current page, sort, search and filters, for example after the host ran an action. Returns a promise." }
+    { "name": "refresh()", "description": "Loads the current query again." }
   ]
 }

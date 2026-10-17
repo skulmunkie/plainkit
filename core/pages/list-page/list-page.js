@@ -44,12 +44,12 @@ export default Base => class extends Base {
         table.cards = cfg.cards !== false;
     }
 
-    // Host content in the `actions` slot (a menu, a button wired to app logic) sits in the title bar, which showTitleBar hides when the config sets nothing to draw.
+    // Slotted actions keep the title bar that showTitleBar hides when the config draws nothing.
     showHeaderSlot() {
         if ([...this.children].some(c => c.slot === 'actions')) this.part('header').setAttribute('data-bare', 'false');
     }
 
-    // Rebuilt only when config.actions itself changes: a toolbar action is data (label, href, variant, plain buttons); anything wired to app logic goes in the actions or toolbar slot.
+    // Rebuilt only when config.actions changes: link buttons; app logic goes in the actions or toolbar slot.
     buildActions() {
         // Title bar: heading and breadcrumb only; config.actions stay the table's toolbar buttons below.
         showTitleBar(this, this.part('header'), { heading: this.config?.heading, breadcrumb: this.config?.breadcrumb });

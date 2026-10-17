@@ -56,29 +56,29 @@
     },
     {
       "name": "InitialSearch",
-      "map": "configKey",
-      "key": "search",
+      "map": "param",
+      "configKey": "search",
       "type": "string?",
       "doc": "The search term to start with, for example from a query string: it fills the search box and the first Load request, and typing replaces it. Initial only."
     },
     {
       "name": "InitialFilters",
-      "map": "configKey",
-      "key": "filterValues",
+      "map": "param",
+      "configKey": "filterValues",
       "type": "IReadOnlyDictionary<string, string>?",
       "doc": "The filter values to start with, by filter key (for example { [\"channel\"] = \"ebay\" } from a query string): each fills its control in the filter panel and the first Load request (Filters), and the reader changing or clearing a filter replaces it. Initial only."
     },
     {
       "name": "InitialSortKey",
-      "map": "configKey",
-      "key": "sort",
+      "map": "param",
+      "configKey": "sort",
       "type": "string?",
       "doc": "The key of the column to sort by first. Null loads the default order. Initial only."
     },
     {
       "name": "InitialDescending",
-      "map": "configKey",
-      "key": "sortDir",
+      "map": "param",
+      "configKey": "sortDir",
       "type": "bool",
       "when": "InitialDescending",
       "value": "\"descending\"",
@@ -86,8 +86,8 @@
     },
     {
       "name": "InitialPage",
-      "map": "configKey",
-      "key": "page",
+      "map": "param",
+      "configKey": "page",
       "type": "int?",
       "doc": "The 1-based page to load first. A page past the last settles on the last page. Initial only."
     },

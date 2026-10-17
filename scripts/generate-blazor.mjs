@@ -301,6 +301,11 @@ export function modelElement(el, mapping, reg) {
             // A plain parameter the generated code reads (type, doc, optional init and required): no attribute of its own.
             if (!p.type || !p.doc) { skip(p.name, 'a param needs type and doc in the mapping'); continue; }
             declare({ name: p.name, kind: 'param', cs: p.type, init: p.csDefault, required: p.required === true, doc: p.doc, note: p.note });
+            // `configKey`: the parameter is also written into the config JSON under that key (an initial search, filter or page of a list page; needs a cells mapping with columns, which writes the config); `when` and `value` are C# expressions, by default 'is set' and the parameter itself.
+            if (p.configKey) {
+                if (!mapping.cells?.columns) throw new Error(`${comp}.${p.name}: configKey needs a cells mapping with columns`);
+                out.configKeys.push({ name: p.name, key: p.configKey, when: p.when ?? `${p.name} is not null`, value: p.value ?? p.name });
+            }
             if (p.prop !== undefined && p.attrExpr) out.attrs.push({ attr: kebab(p.prop), expr: p.attrExpr });
         } else if (map === 'dataTable') {
             // `dataTableModel` (the typed data table, #1473): the parameters the generated load, selection and row-click code reads, by role.
@@ -310,11 +315,6 @@ export function modelElement(el, mapping, reg) {
             declare({ name: p.name, kind: 'param', cs: role[0], init: role[1], required: role[2] === true, doc: p.doc });
             // Setting the row click callback makes the rows clickable.
             if (p.role === 'rowClick') out.attrs.push({ attr: 'clickable', expr: `@${p.name}.HasDelegate`, boolean: true });
-        } else if (map === 'configKey') {
-            // A typed parameter written into the config JSON under `key` (an initial search, filter or page of a list page); `when` and `value` are C# expressions, by default 'set' and the parameter itself.
-            if (!p.type || !p.key || !p.doc || !mapping.cells?.columns) { skip(p.name, 'a configKey parameter needs type, key and doc in the mapping, and a cells mapping with columns (it is written by ConfigWithColumns)'); continue; }
-            declare({ name: p.name, kind: 'param', cs: p.type, doc: p.doc, note: p.note });
-            out.configKeys.push({ name: p.name, key: p.key, when: p.when ?? `${p.name} is not null`, value: p.value ?? p.name });
         } else if (map === 'cells') {
             // Cells and IdOf of a `cells` mapping: plain parameters the generated code reads (see 2a); the generator renders the slots.
             declare({ name: p.name, kind: 'param', cs: p.type, doc: p.doc });
