@@ -1,0 +1,10 @@
+@page "/lab/markdown"
+
+@* Lab: PkMarkdownEditor with @bind-Value over the real interop (#1522): typed Markdown and a toolbar command both reach the bound field. *@
+<h1 tabindex="-1">Lab markdown</h1>
+<PkMarkdownEditor Label="Notes" @bind-Value="_text" />
+<p>Markdown: @_text</p>
+
+@code {
+    private string? _text;
+}

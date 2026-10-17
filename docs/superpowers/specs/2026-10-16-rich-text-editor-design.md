@@ -41,7 +41,7 @@ Decision: ship A. B is phase 6 and only if the owner shows a non-technical audie
 - Commands are pure functions `(text, selStart, selEnd, command) -> { text, selStart, selEnd }` in their own module, unit-testable in Node without a DOM. Applied with `setRangeText` so the browser undo stack survives; `execCommand` is not used.
 - Preview: `renderMarkdown(text) -> DocumentFragment` in a lazy chunk, loaded on first Preview. Parse to a small AST, then build nodes with `createElement`/`textContent`/`setAttribute`. No `innerHTML`, no new `security.allow.json` entry. Links get `rel="noopener noreferrer"`; scheme allow-list; no `style`, no event attributes, no images in v1.
 - Ownership and reactivity (STANDARDS): host owns attributes; element owns its shadow tree; document-level listeners added in `connected()` and removed in `disconnected()`; no new base-class hooks.
-- API: props `value` (commit event `pk-change { value }`), `name`, `label` (accessible name), `placeholder`, `disabled`, `readonly`, `required`, `maxlength`, `rows`, `mode` (`write` | `preview`), `layout` (`tabs` | `split`), `toolbar` (space-separated command list; default `bold italic ul ol link`). No slots in v1.
+- API: props `value` (commit event `pk-change { value }`), `name`, `label` (accessible name), `placeholder`, `disabled`, `readonly`, `required`, `maxlength`, `rows`, `mode` (`write` | `preview`), `layout` (`tabs` | `split`), `toolbar` (space-separated command list; default `bold italic heading quote ul ol link`). No slots in v1.
 - Form behaviour: form-associated; reset/restore/disabled callbacks as `pk-textarea`; `required` through `setValidity`.
 
 ## 5. Security

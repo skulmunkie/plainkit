@@ -158,6 +158,19 @@ export const LAB_CASES = [
         await waitText(ctx, 'Values: {"enabled":true}', ALL); // @bind-Values on PkPropertyGrid follows pk-property-change as JSON text
         await ctx.noErrors(ctx.openMark, BENIGN);
       } },
+    { name: 'markdown-editor-bind',
+      async run(ctx) {
+        await ctx.open('/lab/markdown'); // #1522: PkMarkdownEditor, typed text and a toolbar command both reach @bind-Value
+        const TA = `(() => { const ed = document.querySelector('pk-markdown-editor'); return ed?.shadowRoot?.querySelector('pk-textarea')?.shadowRoot?.querySelector('textarea'); })()`;
+        await ctx.waitFor(`!!${TA} && typeof document.querySelector('pk-markdown-editor')?.shadowRoot?.querySelector('[data-cmd="bold"]')?.click === 'function'`, 'the editor to draw its textarea and toolbar');
+        await waitText(ctx, 'Markdown:', ALL);
+        await ctx.eval(`(() => { const t = ${TA}; t.focus(); t.value = 'make bold'; t.dispatchEvent(new Event('input', { bubbles: true, composed: true })); t.dispatchEvent(new Event('change', { bubbles: true, composed: true })); return 1; })()`);
+        await waitText(ctx, 'Markdown: make bold', ALL); // typed text follows pk-change into the bound field
+        await ctx.eval(`(() => { const t = ${TA}; t.focus(); t.setSelectionRange(5, 9); document.querySelector('pk-markdown-editor').shadowRoot.querySelector('[data-cmd="bold"]').click(); return 1; })()`);
+        await waitText(ctx, 'Markdown: make **bold**', ALL); // the toolbar command, applied through the lazy commands chunk, follows too
+        ctx.ok(await ctx.eval(`${TA}.value === 'make **bold**'`), 'the textarea does not show the bolded text');
+        await ctx.noErrors(ctx.openMark, BENIGN);
+      } },
     { name: 'theme-toggle',
       async run(ctx) {
         await ctx.open('/overview');

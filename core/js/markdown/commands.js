@@ -38,6 +38,41 @@ export function toggleList(text, a, b, kind) {
 export const toggleBullets = (t, a, b) => toggleList(t, a, b, 'ul');
 export const toggleNumbers = (t, a, b) => toggleList(t, a, b, 'ol');
 
+const LI = /^(\s*)(?:([-*+])|(\d+)([.)])) (.*)$/;
+/** Enter at the end of a list item: start the next item (numbers count up); on an empty item, remove its marker. null when not in a list. */
+export function continueList(text, a, b) {
+    const [s, e] = norm(text, a, b);
+    const from = text.lastIndexOf('\n', s - 1) + 1, nl = text.indexOf('\n', s), to = nl < 0 ? text.length : nl;
+    const m = s === e && s === to && LI.exec(text.slice(from, to));
+    if (!m) return null;
+    if (!m[5].trim()) return res(text.slice(0, from) + text.slice(to), from, from);
+    const ins = `\n${m[1]}${m[2] ?? `${+m[3] + 1}${m[4]}`} `;
+    return res(text.slice(0, s) + ins + text.slice(s), s + ins.length, s + ins.length);
+}
+
+const PREFIX = { heading: [/^#{1,3} /, '## '], quote: [/^> ?/, '> '] };
+/** Prefix every selected line with `## ` (heading) or `> ` (quote), or remove it when all already have it. */
+export function toggleLinePrefix(text, a, b, kind) {
+    const [s, e] = norm(text, a, b), [re, p] = PREFIX[kind];
+    const from = text.lastIndexOf('\n', s - 1) + 1, nl = text.indexOf('\n', e), to = nl < 0 ? text.length : nl;
+    const lines = text.slice(from, to).split('\n'), all = lines.every(l => l.startsWith(p));
+    const body = lines.map(l => all ? l.replace(re, '') : p + l.replace(re, '')).join('\n');
+    return res(text.slice(0, from) + body + text.slice(to), from, from + body.length);
+}
+/** Each toolbar command by name, as the editor runs it. */
+export const byCommand = {
+    bold: toggleBold, italic: toggleItalic, ul: toggleBullets, ol: toggleNumbers, link: insertLink,
+    heading: (t, a, b) => toggleLinePrefix(t, a, b, 'heading'), quote: (t, a, b) => toggleLinePrefix(t, a, b, 'quote'),
+};
+
+/** A pasted http, https or mailto address over a selected piece of one line makes that text a link; null for anything else (the paste then proceeds as usual). */
+export function pasteLink(text, a, b, pasted) {
+    const [s, e] = norm(text, a, b), u = String(pasted ?? '').trim();
+    if (s === e || text.slice(s, e).includes('\n') || !/^(https?:\/\/|mailto:)\S+$/i.test(u)) return null;
+    const r = insertLink(text, s, e, u);
+    return r.error ? null : r;
+}
+
 /** Insert `[selection](url)`; the selection is the link text (the url when nothing is selected). */
 export function insertLink(text, a, b, url) {
     const [s, e] = norm(text, a, b), href = String(url ?? '').trim();
