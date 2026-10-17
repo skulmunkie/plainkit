@@ -14,7 +14,7 @@ import { makeTempDir } from '../tools/tempdir.mjs';
 
 const core = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 const { out } = build({ write: false });
-const sri = bytes => 'sha384-' + crypto.createHash('sha384').update(bytes).digest('base64');
+const sri = bytes => 'sha256-' + crypto.createHash('sha256').update(bytes).digest('base64');
 const manifest = f => JSON.parse(out.get(f));
 const runtime = manifest('dist/manifest.json');
 const modules = manifest('dist/modules/manifest.json');

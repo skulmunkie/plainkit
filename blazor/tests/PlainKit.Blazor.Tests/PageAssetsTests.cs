@@ -39,7 +39,7 @@ public sealed class PageAssetsTests : BunitContext, IAsyncLifetime
     [Fact]
     public void Versioned_adds_the_content_hash_of_the_file_from_the_manifest()
     {
-        var digest = ManifestHash("plainkit.css")["sha384-".Length..].Replace('+', '-').Replace('/', '_').Replace("=", "");
+        var digest = ManifestHash("plainkit.css")["sha256-".Length..].Replace('+', '-').Replace('/', '_').Replace("=", "");
 
         Assert.Equal(PkAssets.Css + "?v=" + digest[..12], PkAssets.CssVersioned);
         Assert.Equal(PkAssets.Css + "?v=" + digest[..12], PkAssets.Versioned("plainkit.css"));
@@ -58,7 +58,7 @@ public sealed class PageAssetsTests : BunitContext, IAsyncLifetime
     }
 
     [Fact]
-    public void Integrity_is_the_manifest_sha384_of_the_file()
+    public void Integrity_is_the_manifest_sha256_of_the_file()
     {
         Assert.Equal(ManifestHash("plainkit.css"), PkAssets.Integrity(PkAssets.Css));
         Assert.Equal(ManifestHash("plainkit.min.css"), PkAssets.Integrity("plainkit.min.css"));
