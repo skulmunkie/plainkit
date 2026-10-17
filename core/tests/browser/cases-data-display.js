@@ -1040,6 +1040,20 @@ export const dataDisplayCases = [
         t.eq(ok, true); t.eq(c.part('status').textContent, 'Copied');
     }],
 
+    ['code-view fill (#1523): takes the container height, ignores max-height and scrolls its body inside', async t => {
+        const text = Array.from({ length: 80 }, (_, i) => `line ${i + 1}`).join('\n');
+        const box = await t.mount(`<div style="display:flex;flex-direction:column;block-size:300px;inline-size:100%"><pk-code-view fill max-height="5rem" label="f.txt">${text}</pk-code-view></div>`);
+        const el = box.querySelector('pk-code-view'); await t.settle();
+        const body = el.part('body');
+        t.eq(Math.round(el.getBoundingClientRect().height), 300, 'the host takes the 300px of its container (max-height ignored)');
+        t.ok(body.scrollHeight > body.clientHeight + 100, 'the lines overflow the body');
+        body.scrollTop = 500; await wait(50);
+        t.ok(body.scrollTop > 0, 'the body scrolled');
+        t.eq(Math.round(el.getBoundingClientRect().height), 300, 'the host did not grow while scrolling');
+        el.fill = false; await t.settle();
+        t.ok(el.getBoundingClientRect().height < 300, 'without fill it is capped by max-height again');
+    }],
+
     ['calendar: shows the month, selects a day with a cancelable event, moves with keys and pages months', async t => {
         const c = await t.mount('<pk-calendar value="2026-09-19" week-start="1" marks=\'["2026-09-05"]\'></pk-calendar>');
         t.eq(c.part('title').textContent, 'September 2026'); t.eq(c.part('days').querySelectorAll('.day').length % 7, 0);
