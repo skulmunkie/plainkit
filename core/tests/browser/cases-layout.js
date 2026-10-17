@@ -131,6 +131,36 @@ export const layoutCases = [
         vh.dispatchEvent(new KeyboardEvent('keydown', { key: 'ArrowDown', bubbles: true, composed: true, cancelable: true })); t.eq(ve.size, 52);
         t.ok(ve.part('start').getBoundingClientRect().height > 0 && ve.getBoundingClientRect().height >= 200, 'stacked panes share a fixed height');
     }],
+    ['splitter: collapsible collapses the end pane to zero width, the start pane fills, expanding restores the exact size, and the toggle names its state (also stacked and right to left)', async t => {
+        const wait = () => new Promise(r => setTimeout(r, 400));
+        const host = t.stage('<pk-splitter size="40" collapsible toggle-label="Toggle the inspector"><div slot="start">A</div><div slot="end"><button id="b">B</button></div></pk-splitter>');
+        host.style.inlineSize = '600px'; await t.load(host); await t.settle();
+        const el = host.firstElementChild; const w = p => el.part(p).getBoundingClientRect(); const tg = el.part('toggle'); const h = el.part('handle');
+        const before = w('start').width;
+        t.ok(!tg.hidden && tg.getBoundingClientRect().width > 0, 'the toggle shows with collapsible');
+        t.eq(tg.getAttribute('aria-expanded'), 'true'); t.eq(tg.getAttribute('aria-label'), 'Toggle the inspector'); t.eq(tg.getAttribute('aria-controls'), 'e'); t.ok(el.shadowRoot.getElementById('e'));
+        const hr = h.getBoundingClientRect(), tr = tg.getBoundingClientRect();
+        t.ok(tr.left + tr.width / 2 > hr.left - 1 && tr.left + tr.width / 2 < hr.right + 1, 'the toggle sits on the separator line ' + JSON.stringify([hr.left, hr.right, tr.left, tr.right]));
+        const seen = []; el.addEventListener('pk-collapse-change', e => seen.push(e.detail.collapsed));
+        el.part('end').querySelector('slot').assignedElements()[0].querySelector('#b').focus();
+        tg.click(); await t.settle(); await wait();
+        t.eq(seen.join(), 'true'); t.ok(el.hasAttribute('collapsed'), 'collapsed reflects'); t.eq(el.size, 40, 'size is kept');
+        t.ok(w('end').width < 1, 'the end pane has no width'); t.ok(el.part('end').inert);
+        const room = el.part('root').getBoundingClientRect().width - h.getBoundingClientRect().width;
+        t.ok(Math.abs(w('start').width - room) < 1.5, 'the start pane fills the room');
+        t.eq(h.getAttribute('aria-valuenow'), '0'); t.eq(tg.getAttribute('aria-expanded'), 'false'); t.eq(tg.getAttribute('aria-label'), 'Toggle the inspector');
+        t.ok(h.getBoundingClientRect().width > 0 && tg.getBoundingClientRect().width > 0, 'the separator and the toggle stay to restore it');
+        h.dispatchEvent(new KeyboardEvent('keydown', { key: 'Enter', bubbles: true, composed: true, cancelable: true })); await t.settle(); await wait();
+        t.eq(seen.join(), 'true,false'); t.ok(Math.abs(w('start').width - before) < 1, 'expanding restores the exact start width'); t.ok(w('end').width > 1); t.ok(!el.part('end').inert);
+        h.dispatchEvent(new MouseEvent('dblclick', { bubbles: true, composed: true })); await t.settle(); await wait(); t.eq(seen.join(), 'true,false,true');
+        el.collapsed = false; await t.settle(); await wait(); t.eq(seen.length, 3, 'a collapsed value the host sets raises nothing'); t.ok(w('end').width > 1);
+        host.setAttribute('dir', 'rtl'); el.collapsed = true; await t.settle(); await wait();
+        const rr = el.part('root').getBoundingClientRect(); t.ok(w('end').width < 1 && w('start').width > rr.width - 40, 'right to left collapses too');
+        const v = t.stage('<pk-splitter orientation="vertical" size="50" collapsible collapsed><div slot="start">A</div><div slot="end">B</div></pk-splitter>'); await t.load(v); await t.settle(); await wait();
+        const ve = v.firstElementChild; t.ok(ve.part('end').getBoundingClientRect().height < 1, 'stacked: the end pane has no height');
+        t.ok(ve.part('start').getBoundingClientRect().height > 150, 'stacked: the start pane fills the height');
+        const vt = ve.part('toggle').getBoundingClientRect(), vh = ve.part('handle').getBoundingClientRect(); t.ok(vt.top + vt.height / 2 > vh.top - 1 && vt.top + vt.height / 2 < vh.bottom + 1, 'stacked: the toggle sits on the separator line');
+    }],
 
     ['sortable: role=list, a pointer drag on the handle raises pk-reorder, Alt+arrows reorder by keyboard, and an external drop is accepted', async t => {
         const same = (a, b, msg) => t.eq(JSON.stringify(a), JSON.stringify(b), msg);
