@@ -1,4 +1,4 @@
 ---
 type: fixed
 ---
-Describe the change in one entry: what a user sees, in the present tense.
+A tree whose items are built inside a detached tree no longer waits for them forever, so it renders and updates instead of hanging.
