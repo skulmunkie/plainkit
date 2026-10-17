@@ -227,6 +227,28 @@ export const recordFormCases = [
         await until(() => rows().length === 1, 'the first page after refresh()');
         t.ok(calls >= 1, 'load was called');
     }],
+    // #1550: a host seeds the list from its route (config.search, sort, sortDir, page, filterValues) and reloads it after an action with refresh(), which keeps the reader's query.
+    ['list-page: config seeds search, sort, page and filter values for the first load and the panel shows them; refresh() reloads with the same query; the reader\'s change wins (#1550)', async t => {
+        const cfg = { columns: [{ key: 'sku', label: 'SKU', sortable: true }], filters: [{ key: 'status', type: 'select', label: 'Status', options: ['open', 'done'] }, { key: 'tags', type: 'multiselect', label: 'Tags', options: ['a', 'b'] }],
+            search: 'ab', sort: 'sku', sortDir: 'descending', startPage: 3, pageSize: 10, filterValues: { status: 'open', tags: ['b'] }, searchDebounce: 0 };
+        const el = await t.mount(`<pk-list-page></pk-list-page>`);
+        await t.load(el.shadowRoot); await t.settle();
+        const seen = [];
+        el.load = async q => { seen.push(q); return { rows: [{ id: 'a1', sku: 'SKU-1' }], total: 100 }; };
+        el.config = cfg; await t.settle(); await t.settle();
+        await until(() => seen.length > 0, 'the first load');
+        const q = seen.at(-1);
+        t.eq([q.search, q.sort, q.sortDir, q.page, q.pageSize, q.filters.status, q.filters.tags.join()].join('|'), 'ab|sku|descending|3|10|open|b', 'the first load carries the seeded query');
+        const table = el.part('table'), box = table.part('filters'), ctl = key => box.querySelector(`[data-key="${key}"]`);
+        t.eq(ctl('status').value, 'open', 'the status field shows its seed'); t.eq(ctl('tags').value.join(), 'b', 'the multiselect shows its seed');
+        t.eq(box.filterCount, 2, 'the filter count counts the seeded filters');
+        await until(() => table.part('pagination').page === 3, 'the pager on page 3');
+        const before = seen.length; await el.refresh(); await t.settle();
+        t.ok(seen.length > before, 'refresh() loads again');
+        t.eq(JSON.stringify(seen.at(-1)), JSON.stringify(q), 'with the same page, sort, search and filters');
+        ctl('status').value = 'done'; ctl('status').dispatchEvent(new CustomEvent('pk-value-change', { bubbles: true, composed: true, detail: { value: 'done' } })); await t.settle(); await t.settle();
+        t.eq([seen.at(-1).filters.status, seen.at(-1).page, seen.at(-1).sort].join('|'), 'done|1|sku', 'a reader\'s filter change replaces the seed, goes to page 1 and keeps the sort');
+    }],
     // #436: the acceptance criteria #352 named for pk-list-page. A search string is data end to end: never markup, never script.
     ['list-page: a search string with markup and script text reaches load() verbatim and is drawn only as text - no element or handler is created from it (#436)', async t => {
         const evil = '<img src=x onerror="window.__pkXss=1"><script>window.__pkXss=1</scr' + 'ipt>';

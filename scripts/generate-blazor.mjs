@@ -154,7 +154,7 @@ export function noteEventInto(reg, ev, owner) {
  */
 export function modelElement(el, mapping, reg) {
     const comp = mapping.component;
-    const out = { component: comp, tag: el.tag, summary: el.summary, params: [], attrs: [], children: [], handlers: new Map(), callbacks: [], properties: [], methods: [], typeparam: mapping.typeparam, inherits: mapping.inherits, location: mapping.location ?? null, listenedNative: mapping.listenedNative === true, todo: [], notGenerated: [], usesClass: false, usesAttributes: false };
+    const out = { component: comp, tag: el.tag, summary: el.summary, params: [], attrs: [], children: [], handlers: new Map(), callbacks: [], properties: [], methods: [], configKeys: [], typeparam: mapping.typeparam, inherits: mapping.inherits, location: mapping.location ?? null, listenedNative: mapping.listenedNative === true, todo: [], notGenerated: [], usesClass: false, usesAttributes: false };
     const names = new Set(mapping.params.map(p => p.name));
     const declared = new Set();
     const propParam = {}; // C# name -> resolved prop param (for Changed pairing)
@@ -301,6 +301,8 @@ export function modelElement(el, mapping, reg) {
             // A plain parameter the generated code reads (type, doc, optional init and required): no attribute of its own.
             if (!p.type || !p.doc) { skip(p.name, 'a param needs type and doc in the mapping'); continue; }
             declare({ name: p.name, kind: 'param', cs: p.type, init: p.csDefault, required: p.required === true, doc: p.doc, note: p.note });
+            // `configKey` + `configExpr`: the parameter is a key of the config JSON the page sends (an initial search, sort or page), written when the expression (C#) is not null.
+            if (p.configKey) out.configKeys.push({ key: p.configKey, expr: p.configExpr ?? p.name });
             if (p.prop !== undefined && p.attrExpr) out.attrs.push({ attr: kebab(p.prop), expr: p.attrExpr });
         } else if (map === 'dataTable') {
             // `dataTableModel` (the typed data table, #1473): the parameters the generated load, selection and row-click code reads, by role.
@@ -586,7 +588,7 @@ export function renderComponent(m, mappingName, ns = 'PlainKit.Blazor') {
     const listened = h => (m.listenedNative && h.native && !h.updates.length) || (h.listened && !h.native && !h.updates.length);
     const custom = live.filter(h => !h.native || listened(h));
     const attrs = [];
-    for (const a of m.attrs) if (a.bare) attrs.push(a.attr); else attrs.push(`${a.attr}="${m.cells?.columns && a.attr === 'config' ? '@ConfigWithColumns()' : m.recordModel && a.attr === 'config' ? '@ConfigWithFields()' : a.expr}"`);
+    for (const a of m.attrs) if (a.bare) attrs.push(a.attr); else attrs.push(`${a.attr}="${(m.cells?.columns || m.configKeys.length) && a.attr === 'config' ? '@ConfigWithColumns()' : m.recordModel && a.attr === 'config' ? '@ConfigWithFields()' : a.expr}"`);
     // The element itself (PkElementBase.Element), for PkRuntime.ReadFormValuesAsync and any host that needs a JavaScript handle.
     attrs.push('@ref="Element"');
     // `location` (mapping): the parameter (location.param) wins; unset, the path tracked from NavigationManager is sent (see the code block).
@@ -726,10 +728,11 @@ export function renderComponent(m, mappingName, ns = 'PlainKit.Blazor') {
         `        if ((Cells is null${m.cells.columns ? ' && Columns is null' : ''}) || IdOf is null) return null;`,
         '        await InvokeAsync(() => { _cellRows = items.Select(i => (IdOf!(i), i)).ToList(); StateHasChanged(); });',
         '        return null;', '    }');
-    if (m.cells?.columns) L.push('', '    private string ConfigWithColumns()', '    {',
-        '        if (Columns is null) return PkAttr.JsonText(Config) ?? "{}";',
+    if (m.cells?.columns || m.configKeys.length) L.push('', '    private string ConfigWithColumns()', '    {',
+        `        if (${m.cells?.columns ? 'Columns is null && ' : ''}${m.configKeys.map(k => `(${k.expr}) is null`).join(' && ') || 'true'}) return PkAttr.JsonText(Config) ?? "{}";`,
         '        var node = System.Text.Json.Nodes.JsonNode.Parse(PkAttr.JsonText(Config) ?? "{}") as System.Text.Json.Nodes.JsonObject ?? new System.Text.Json.Nodes.JsonObject();',
-        '        node["columns"] = System.Text.Json.Nodes.JsonNode.Parse(PkAttr.Json(Columns.Select(c => c.ToColumn()))!);',
+        ...(m.cells?.columns ? ['        if (Columns is not null) node["columns"] = System.Text.Json.Nodes.JsonNode.Parse(PkAttr.Json(Columns.Select(c => c.ToColumn()))!);'] : []),
+        ...m.configKeys.map(k => `        if ((${k.expr}) is { } v${k.key}) node[${lit(k.key)}] = System.Text.Json.JsonSerializer.SerializeToNode(v${k.key});`),
         '        return node.ToJsonString();', '    }');
     if (m.recordModel) L.push('', '    private TItem? _loaded;', '    private bool _isNew;', '',
         '    private string ConfigWithFields() => PkFieldSpecs.RecordConfig(PkAttr.JsonText(Config), Fields, _loaded ?? Model, out _isNew);', '',

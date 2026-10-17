@@ -48,6 +48,20 @@
       "description": "ascending or descending, for sort."
     },
     {
+      "name": "startPage",
+      "type": "number",
+      "default": 1,
+      "reflect": false,
+      "description": "The page to load first (initial only, 1-based)."
+    },
+    {
+      "name": "filterValues",
+      "type": "json",
+      "default": null,
+      "reflect": false,
+      "description": "The filter values to start with, { [key]: text } (an array for a multiselect): they fill the fields and the first load (initial only)."
+    },
+    {
       "name": "hideSearch",
       "type": "boolean",
       "default": false,

@@ -389,6 +389,43 @@ public sealed class PkPageCallbackTests : BunitContext, IAsyncLifetime
         Assert.Equal("EUR 5", cut.Find("[slot='cell-A-1-total']").TextContent);
     }
 
+    [Fact]
+    public void ListPage_Initial_parameters_seed_the_config_the_element_starts_from()
+    {
+        // #1550: a deep link (?status=open&sort=total&page=3) seeds the list; the keys sit next to the host's own Config.
+        var cut = Render<PkListPage<Order>>(p => p
+            .Add(x => x.Config, "{\"heading\":\"Orders\",\"pageSize\":10}")
+            .Add(x => x.InitialSearch, "ab")
+            .Add(x => x.InitialFilters, new Dictionary<string, string> { ["status"] = "open" })
+            .Add(x => x.InitialSortKey, "total")
+            .Add(x => x.InitialDescending, true)
+            .Add(x => x.InitialPage, 3));
+        var config = JsonDocument.Parse(cut.Find("pk-list-page").GetAttribute("config")!).RootElement;
+        Assert.Equal("Orders", config.GetProperty("heading").GetString());
+        Assert.Equal(10, config.GetProperty("pageSize").GetInt32());
+        Assert.Equal("ab", config.GetProperty("search").GetString());
+        Assert.Equal("open", config.GetProperty("filterValues").GetProperty("status").GetString());
+        Assert.Equal("total", config.GetProperty("sort").GetString());
+        Assert.Equal("descending", config.GetProperty("sortDir").GetString());
+        Assert.Equal(3, config.GetProperty("startPage").GetInt32());
+    }
+
+    [Fact]
+    public void ListPage_without_Initial_parameters_sends_the_config_unchanged()
+    {
+        var cut = Render<PkListPage<Order>>(p => p.Add(x => x.Config, "{\"heading\":\"Orders\"}").Add(x => x.InitialDescending, false));
+        Assert.Equal("{\"heading\":\"Orders\"}", cut.Find("pk-list-page").GetAttribute("config"));
+    }
+
+    [Fact]
+    public async Task ListPage_ReloadAsync_asks_the_element_to_refresh()
+    {
+        var cut = Render<PkListPage<Order>>();
+        await cut.Instance.ReloadAsync();
+        var call = Assert.Single(JSInterop.Invocations, i => i.Identifier == "call");
+        Assert.Equal("refresh", call.Arguments[1]);
+    }
+
     private sealed record Order(string OrderNo, int Total);
 
     [Fact]

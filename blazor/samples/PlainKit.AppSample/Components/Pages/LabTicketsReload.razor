@@ -1,0 +1,30 @@
+@page "/lab/tickets-reload"
+@inject NavigationManager Nav
+
+@* Lab (the harness's paths, scripts/blazor-browser-lab-cases.mjs): a list seeded from the address (InitialSearch, InitialSortKey, InitialDescending, InitialPage, InitialFilters) and reloaded by the host (ReloadAsync) through the real interop path. *@
+<p id="lab-reload-log">Loads: @_loads. Last: search=@_last?.Search; sort=@_last?.SortKey; desc=@_last?.Descending; page=@_last?.Page; status=@(_last?.Filters?.GetValueOrDefault("status"))</p>
+<PkButton OnClick="Reload">Reload</PkButton>
+<PkListPage TItem="Ticket" @ref="_list" Config="@Config" Columns="_columns" Load="Load" IdOf="t => t.Id"
+            InitialSearch="@Query("q")" InitialSortKey="@Query("sort")" InitialDescending="@(Query("desc") == "1")" InitialPage="@(int.TryParse(Query("page"), out var p) ? p : null)"
+            InitialFilters="@(Query("status") is { } s ? new Dictionary<string, string> { ["status"] = s } : null)" />
+
+@code {
+    private const string Config = """{"pageSize":2,"filters":[{"key":"status","type":"select","label":"Status","options":["open","done"]}]}""";
+    private static readonly PkTableColumn<Ticket>[] _columns = [new() { Key = "id", Label = "Ticket" }, new() { Key = "title", Label = "Title" }];
+    private PkListPage<Ticket>? _list;
+    private PkListRequest? _last;
+    private int _loads;
+
+    private Task Reload() => _list is null ? Task.CompletedTask : _list.ReloadAsync();
+
+    private string? Query(string name) => Microsoft.AspNetCore.WebUtilities.QueryHelpers.ParseQuery(new Uri(Nav.Uri).Query).TryGetValue(name, out var v) ? v.ToString() : null;
+
+    private async Task<PkListResult<Ticket>> Load(PkListRequest r)
+    {
+        _loads++; _last = r;
+        var result = await TicketStore.ListAsync(r with { Page = 1, PageSize = 100 }, false);
+        var page = result.Items.Skip(r.Skip).Take(r.PageSize).ToList();
+        await InvokeAsync(StateHasChanged);
+        return new PkListResult<Ticket>(page, result.Total);
+    }
+}

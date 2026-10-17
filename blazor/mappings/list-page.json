@@ -33,6 +33,42 @@
       "doc": "Typed columns (the PkDataTable column type): replaces the columns of Config. A column with a Cell template fills that cell of every loaded row with the item (needs IdOf); Text and the property fallback of PkDataTable do not apply, the rows are what Load returns. Key names a property of TItem in camel case."
     },
     {
+      "name": "InitialSearch",
+      "map": "param",
+      "type": "string?",
+      "configKey": "search",
+      "doc": "The search text to start with, for example from the route. Fills the search box and the first Load; initial only: the reader's own search replaces it."
+    },
+    {
+      "name": "InitialFilters",
+      "map": "param",
+      "type": "IReadOnlyDictionary<string, string>?",
+      "configKey": "filterValues",
+      "doc": "The filter values to start with, by filter key (a deep link such as ?status=open). They fill the filter fields and the first Load; initial only. A multiselect filter is not covered."
+    },
+    {
+      "name": "InitialSortKey",
+      "map": "param",
+      "type": "string?",
+      "configKey": "sort",
+      "doc": "The key of the column to sort by first (initial only); null loads the default order."
+    },
+    {
+      "name": "InitialDescending",
+      "map": "param",
+      "type": "bool",
+      "configKey": "sortDir",
+      "configExpr": "InitialDescending ? \"descending\" : null",
+      "doc": "Sort InitialSortKey descending first (initial only)."
+    },
+    {
+      "name": "InitialPage",
+      "map": "param",
+      "type": "int?",
+      "configKey": "startPage",
+      "doc": "The page to load first, starting at 1 (initial only); a page past the last settles on the last."
+    },
+    {
       "name": "IdOf",
       "map": "cells",
       "type": "Func<TItem, string>?",
@@ -73,6 +109,9 @@
     }
   ],
   "notes": "PkListPage<TItem>: load(query) is a callback property, set from script, so the generated component hands the element a .NET reference (PkCallbackSlot) that calls the Load parameter with the page, sort, search and filters; a Load that throws rejects the JavaScript promise, which the element shows as its own error state with Retry. rowHref is synchronous in the element and cannot cross the interop boundary; use RowHrefTemplate (real row links to a route, a typed RowHref(TItem) is not generated: the generator has no function-to-template step) or OnRowClick (an imperative row click handler) or Config actions. Cells (column key to a RenderFragment<TItem>) with IdOf fill the cell-<id>-<key> slots of each loaded row (issue 1000); the page forwards them to its table. Columns (PkTableColumn<TItem>) replaces config.columns and its Cell templates fill the cell slots like Cells (issue 1000). Selection (issue 873): Config selectable/rowKey/bulkActions switch it on; OnSelect (pk-select) and OnBulk (pk-bulk, a bulkActions button) are EventCallbacks. For Selected, SelectedChanged, a BulkContent slot and the compacted large selection use PkDataTable.",
+  "methods": [
+    { "name": "ReloadAsync", "method": "refresh", "doc": "Loads the current page again with the same search, sort, page and filters, for example after the host ran an action that changed the data. Completes when the new page is drawn." }
+  ],
   "typeparam": "TItem",
   "cells": { "load": "Load", "columns": true }
 }

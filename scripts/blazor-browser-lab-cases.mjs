@@ -31,6 +31,19 @@ export const LAB_CASES = [
         ctx.ok(await has(ctx, 'Ticket 3'), 'the search for "Ticket 3" does not leave Ticket 3 in the list');
         await ctx.noErrors(ctx.openMark, BENIGN);
       } },
+    { name: 'list-initial-and-reload',
+      async run(ctx) {
+        // #1550: the Initial* parameters seed the first Load (and the filter panel); ReloadAsync loads again with the same query and the same page.
+        await ctx.open('/lab/tickets-reload?q=Ticket&sort=title&desc=1&page=2&status=open');
+        await waitText(ctx, 'Loads: 1. Last: search=Ticket; sort=title; desc=True; page=2; status=open');
+        await waitText(ctx, 'Ticket 3'); // page 2 of a page size of 2
+        ctx.ok(!(await has(ctx, 'Ticket 1')), 'page 2 does not show the first page');
+        ctx.ok(await ctx.eval(`window.__deep.all('select').some(s => s.value === 'open')`), 'the status filter shows its seed');
+        await ctx.clickDeep('pk-button', 'Reload');
+        await waitText(ctx, 'Loads: 2. Last: search=Ticket; sort=title; desc=True; page=2; status=open');
+        await waitText(ctx, 'Ticket 3');
+        await ctx.noErrors(ctx.openMark, BENIGN);
+      } },
     { name: 'list-abort-on-navigation',
       async run(ctx) {
         await ctx.open('/lab/tickets?slow=1'); // Load takes 1.5 s and honours the request's CancellationToken
