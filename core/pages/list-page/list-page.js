@@ -11,7 +11,7 @@ export default Base => class extends Base {
         loadElements(this.shadowRoot);
         this.sync();
         // Cell content (#1000): the host's `cell-<id>-<key>` children are re-slotted into the table, which re-slots them into its pk-table (#817).
-        (this.$mo = new MutationObserver(() => this.forwardSlots())).observe(this, { childList: true });
+        (this.$mo = new MutationObserver(() => { this.forwardSlots(); this.showHeaderSlot(); })).observe(this, { childList: true });
         this.forwardSlots();
     }
     disconnected() { this.$mo?.disconnect(); this.$w = false; }
@@ -43,11 +43,16 @@ export default Base => class extends Base {
         table.hideSearch = cfg.searchable === false;
     }
 
-    // Rebuilt only when config.actions itself changes: a toolbar action is data (label, href, variant), never a callback - a page that
-    // needs one wired to app logic points its href at another route, the same way a module's own nav does.
+    // Host content in the `actions` slot (a menu, a button wired to app logic) sits in the title bar, which showTitleBar hides when the config sets nothing to draw.
+    showHeaderSlot() {
+        if ([...this.children].some(c => c.slot === 'actions')) this.part('header').setAttribute('data-bare', 'false');
+    }
+
+    // Rebuilt only when config.actions itself changes: a toolbar action is data (label, href, variant, plain buttons); anything wired to app logic goes in the actions or toolbar slot.
     buildActions() {
         // Title bar: heading and breadcrumb only; config.actions stay the table's toolbar buttons below.
         showTitleBar(this, this.part('header'), { heading: this.config?.heading, breadcrumb: this.config?.breadcrumb });
+        this.showHeaderSlot();
         this.fill('actions', this.config?.actions);
         this.fill('bulk', this.config?.selectable ? this.config?.bulkActions : null);
     }

@@ -55,6 +55,20 @@
       "note": "Who follows a RowHrefTemplate link on a plain click: \"router\" (default), \"host\" (a notification, nothing navigates) or \"none\" (the browser follows the address)."
     },
     {
+      "name": "ActionsContent",
+      "map": "slot",
+      "slot": "actions",
+      "type": "RenderFragment?",
+      "doc": "Content in the title bar, beside the title (as PkPageHeader ActionsContent): a callback button, or a PkMenu of several actions. The title bar stays shown when Config sets no heading or breadcrumb."
+    },
+    {
+      "name": "ToolbarContent",
+      "map": "slot",
+      "slot": "toolbar",
+      "type": "RenderFragment?",
+      "doc": "Content at the end of the list toolbar, beside the search box and after the Config actions (as PkDataTable ToolbarContent)."
+    },
+    {
       "name": "OnSelect",
       "event": "pk-select",
       "type": "EventCallback<PkSelectEventArgs>"

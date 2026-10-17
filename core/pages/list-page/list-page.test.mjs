@@ -113,3 +113,28 @@ test('refresh() loads the data table again, so a load set after the first (empty
     assert.equal(el.refresh(), 'again');
     assert.equal(n, 1);
 });
+
+test('host content in the actions slot keeps the title bar shown when the config draws none, and the toolbar slot is the data table toolbar\'s own', () => {
+    const { el, parts } = make();
+    el.connected();
+    el.buildActions();
+    assert.equal(parts.header.attrs['data-bare'], 'true');
+    el.children = [{ slot: 'actions' }];
+    el.showHeaderSlot();
+    assert.equal(parts.header.attrs['data-bare'], 'false');
+    assert.equal(parts.actions.children.length, 0, 'config.actions are not mixed with the slot content');
+});
+
+test('a config with no host slot content leaves a bare title bar bare', () => {
+    const { el, parts } = make();
+    el.children = [{ slot: 'toolbar' }];
+    el.connected();
+    assert.equal(parts.header.attrs['data-bare'], 'true');
+});
+
+test('the shadow template forwards the actions slot to the title bar and the toolbar slot to the data table actions slot', async () => {
+    const { readFile } = await import('node:fs/promises');
+    const html = await readFile(new URL('./list-page.html', import.meta.url), 'utf8');
+    assert.match(html, /<slot name="actions" slot="actions"><\/slot><pk-data-table/);
+    assert.match(html, /<slot name="toolbar" slot="actions"><\/slot>/);
+});
