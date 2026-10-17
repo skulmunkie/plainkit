@@ -294,14 +294,17 @@ function elementSection(e) {
     if (flags.length) out.push('', `It is ${flags.join(' and ')}.`);
     const deprecated = [[e.deprecated, 'the element'], ...[['prop', 'props'], ['event', 'events'], ['slot', 'slots']].flatMap(([k, l]) => e[l].map(x => [x.deprecated, `${k} ${code(x.name || '(default)')}`]))].filter(([d]) => d);
     if (deprecated.length) out.push('', '**Deprecated: do not use in new code** (it logs a warning and is removed in the release shown)', '', table(['What', 'Since', 'Removed in', 'Use instead'], deprecated.map(([d, what]) => [what, d.since, d.remove, d.message])));
-    if (e.props.length) out.push('', '**Props** (set as an attribute in kebab-case, or as a property in camelCase, the same name unless a property is shown; a boolean is present or absent)', '', table(['Attribute', 'Type', 'Default', 'Values', 'Description'], e.props.map(p => [code(attrName(p)) + (attrName(p) === p.name ? '' : ` (property ${code(p.name)})`), typeText(p), code(showValue(p.default)), p.values ? p.values.map(code).join(' ') : '', p.description])));
+    if (e.props.length) {
+        const withValues = e.props.some(p => p.values);
+        out.push('', '**Props**', '', table(['Attribute', 'Type', 'Default', ...(withValues ? ['Values'] : []), 'Description'], e.props.map(p => [code(attrName(p)) + (attrName(p) === p.name ? '' : ` (property ${code(p.name)})`), typeText(p), code(showValue(p.default)), ...(withValues ? [p.values ? p.values.map(code).join(' ') : ''] : []), p.description])));
+    }
     else out.push('', '**Props**: none.');
-    if (e.slots.length) out.push('', '**Slots** (`slot="name"` on a child)', '', table(['Slot', 'Description'], e.slots.map(s => [s.name ? code(s.name) : '(default)', s.description])));
-    if (e.events.length) out.push('', '**Events** (`addEventListener`; `pk-*` events are CustomEvents whose `detail` is shown)', '', table(['Event', 'Detail', 'Description'], e.events.map(v => [code(v.name), code(detailText(v.detail)), v.description])));
+    if (e.slots.length) out.push('', '**Slots**', '', table(['Slot', 'Description'], e.slots.map(s => [s.name ? code(s.name) : '(default)', s.description])));
+    if (e.events.length) out.push('', '**Events**', '', table(['Event', 'Detail', 'Description'], e.events.map(v => [code(v.name), code(detailText(v.detail)), v.description])));
     if (e.methods.length) out.push('', '**Methods**', '', table(['Method', 'Description'], e.methods.map(m => [code(m.name), m.description])));
-    if (e.parts.length) out.push('', '**CSS parts** (`::part(name)`)', '', table(['Part', 'Description'], e.parts.map(p => [code(p.name), p.description])));
-    if (e.cssProperties.length) out.push('', '**CSS custom properties** (set on the element or a parent, from a stylesheet)', '', table(['Property', 'Default', 'Description'], e.cssProperties.map(c => [code(c.name), c.default ? code(c.default) : '', c.description])));
-    if (e.writes?.length) out.push('', '**Writes to host nodes** (attributes and props this element sets on nodes it does not own)', '', table(['Target', 'Writes', 'Why'], e.writes.map(w => [w.target, w.attributes.map(code).join(', '), w.why])));
+    if (e.parts.length) out.push('', '**CSS parts**', '', table(['Part', 'Description'], e.parts.map(p => [code(p.name), p.description])));
+    if (e.cssProperties.length) out.push('', '**CSS custom properties**', '', table(['Property', 'Default', 'Description'], e.cssProperties.map(c => [code(c.name), c.default ? code(c.default) : '', c.description])));
+    if (e.writes?.length) out.push('', '**Writes to host nodes**', '', table(['Target', 'Writes', 'Why'], e.writes.map(w => [w.target, w.attributes.map(code).join(', '), w.why])));
     out.push('', `**Accessibility.** ${e.a11y}`);
     for (const x of e.examples) {
         const issue = EXAMPLE_ISSUES.find(i => i.tag === e.tag && i.title === x.title);
@@ -319,7 +322,7 @@ function sdkElementFiles(src) {
     for (const [slug, els] of [...bySlug].sort((a, b) => a[0].localeCompare(b[0]))) {
         els.sort((a, b) => a.tag.localeCompare(b.tag));
         const name = `references/elements-${slug}.md`;
-        files.set(name, [`# Elements: ${groupTitle(slug)}`, '', stamp(src, 'core/dist/elements/api.json'), '', 'Every element also takes the usual HTML global attributes (`id`, `class`, `slot`, `hidden`, `aria-*`, `data-*`). Never use a `style` attribute (the CSP blocks it): use props, parts and CSS custom properties.', '', els.map(elementSection).join('\n\n')].join('\n') + '\n');
+        files.set(name, [`# Elements: ${groupTitle(slug)}`, '', stamp(src, 'core/dist/elements/api.json'), '', 'How to read these tables: see `elements-index.md`.', '', els.map(elementSection).join('\n\n')].join('\n') + '\n');
         for (const e of els) index.push({ e, file: name });
     }
     const byFile = new Map();
@@ -328,7 +331,7 @@ function sdkElementFiles(src) {
         const aka = xs.some(({ e }) => e.aliases?.length);
         return [`## ${xs[0].e.group} (${code(file.replace('references/', ''))})`, '', table(aka ? ['Tag', 'Also known as', 'What it is'] : ['Tag', 'What it is'], xs.map(({ e }) => [code(e.tag), ...(aka ? [e.aliases?.join(', ') ?? ''] : []), firstSentence(e.summary)]))].join('\n');
     });
-    files.set('references/elements-index.md', [`# Elements: index`, '', stamp(src, 'core/dist/elements/api.json'), '', `${src.api.length} elements by group. Open the file named in a group heading for a tag's props, slots, events, parts, CSS properties, methods and examples.`, '', groups.join('\n\n'), ''].join('\n'));
+    files.set('references/elements-index.md', [`# Elements: index`, '', stamp(src, 'core/dist/elements/api.json'), '', `${src.api.length} elements by group. Open the file named in a group heading for a tag's props, slots, events, parts, CSS properties, methods and examples.`, '', 'Every element also takes the usual HTML global attributes (`id`, `class`, `slot`, `hidden`, `aria-*`, `data-*`). Never use a `style` attribute (the CSP blocks it): use props, parts and CSS custom properties.', '', 'Reading the tables: a prop is set as an attribute in kebab-case or as a property in camelCase (the same name unless a property is shown), and a boolean is present or absent. A slot is used as `slot="name"` on a child. Events are for `addEventListener`; `pk-*` events are CustomEvents whose `detail` is shown. Parts are styled with `::part(name)`; CSS custom properties are set on the element or a parent, from a stylesheet. "Writes to host nodes" lists attributes and props the element sets on nodes it does not own.', '', groups.join('\n\n'), ''].join('\n'));
     return { files, slugs: [...bySlug.keys()].sort() };
 }
 
