@@ -291,6 +291,7 @@ export const fieldGroupCases = [
         form.requestSubmit(); await t.settle();
         t.eq(sf.part('summary-list').children.length, 2);
         el.values = { qty: '1', status: 'closed' }; await t.settle(); await t.settle();
+        await customElements.whenDefined('pk-textarea'); await t.settle(); // the Note field appears with status closed; its control loads on demand, so wait until it can validate (a slow machine took over 2 s)
         form.requestSubmit(); await t.settle();
         t.eq(sf.part('summary-list').children.length, 3);
         const err = k => [...el.shadowRoot.querySelectorAll('pk-field')].find(f => f.getAttribute('label') === k).error;

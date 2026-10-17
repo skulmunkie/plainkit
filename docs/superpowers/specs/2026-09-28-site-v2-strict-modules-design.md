@@ -1,6 +1,6 @@
 # Site V2 and strict module mode: one module anatomy, no custom CSS, no raw markup
 
-Status: proposed design for owner review, not yet planned or implemented. Refs #346 (app framework tracker), #355 to #363 (the site steps), #336 (components the SDK lacks).
+Status: superseded. The site was migrated in place (#346) and `core/site2/` was never built and has been removed (#1521); the strict module rules (section 3) still stand and are enforced by `core/tools/audit/families/module-rules.mjs`. Original status: proposed design for owner review. Refs #346 (app framework tracker), #355 to #363 (the site steps), #336 (components the SDK lacks).
 
 ## Why
 
