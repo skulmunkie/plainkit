@@ -315,7 +315,7 @@ test('razorParams reads every [Parameter], including one whose doc has a remarks
     const dir = path.join(root, 'blazor', 'src', 'PlainKit.Blazor', 'Generated');
     for (const f of fs.readdirSync(dir).filter(n => n.endsWith('.razor'))) {
         const text = read(path.join(dir, f));
-        assert.equal(razorParams(text).length, (text.match(/\[Parameter[\]( ]/g) ?? []).length, `${f}: every [Parameter] is parsed`);
+        assert.equal(razorParams(text).length, (text.match(/\[Parameter[\],( ]/g) ?? []).length, `${f}: every [Parameter] is parsed`);
     }
 });
 
