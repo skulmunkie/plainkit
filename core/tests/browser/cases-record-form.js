@@ -216,6 +216,35 @@ export const recordFormCases = [
         t.eq(seen.length, 1, 'one pk-row-click reaches the page host'); t.eq(seen[0].id, 'a2'); t.eq(seen[0].row.sku, 'SKU-2');
     }],
 
+    // #1551: a fill page type in the app shell keeps its header row and pager in view while only the rows scroll; an ordinary page still scrolls.
+    ['app-shell fill: a sticky-header list page keeps its column header and pager in view while the rows scroll (#1551)', async t => {
+        const el = await t.mount(`<pk-app-shell fill style="height:420px;inline-size:100%"><div id="wrap"><pk-list-page config='{"columns":[{"key":"sku","label":"SKU"}],"stickyHeader":true,"pageSize":40}'></pk-list-page></div></pk-app-shell>`);
+        const page = el.querySelector('pk-list-page'), wrap = el.querySelector('#wrap');
+        await t.load(page.shadowRoot); await t.settle();
+        page.load = async () => ({ rows: Array.from({ length: 40 }, (_, i) => ({ id: i, sku: `S-${i}` })), total: 40 });
+        page.part('table').refresh();
+        const tbl = () => page.part('table').part('table')?.shadowRoot, rows = () => tbl()?.querySelectorAll('tbody tr') ?? [];
+        await until(() => rows().length === 40, 'forty rows'); await t.settle(); await wait(200);
+        const body = el.part('body').getBoundingClientRect(), pager = () => page.part('table').shadowRoot.querySelector('pk-pagination, [part="pager"]');
+        const inBody = r => r.top >= body.top - 1 && r.bottom <= body.bottom + 1;
+        t.ok(el.part('body').scrollHeight <= el.part('body').clientHeight + 1, 'the body itself does not scroll');
+        t.ok(wrap.scrollHeight <= wrap.clientHeight + 1, `the wrapper does not scroll: the list fills it ${wrap.scrollHeight} ${wrap.clientHeight} ${page.getBoundingClientRect().height}`);
+        const sc = tbl().querySelector('[part="scroll"]'); t.ok(sc && sc.scrollHeight > sc.clientHeight, 'the rows scroll inside the table');
+        sc.scrollTop = 300; await t.settle();
+        t.ok(inBody(tbl().querySelector('thead th').getBoundingClientRect()), 'the column header stays in view');
+        t.ok(pager() && inBody(pager().getBoundingClientRect()), 'the pager stays in view');
+    }],
+    ['app-shell fill: an ordinary page still scrolls inside the wrapper and its page header sticks (#1551)', async t => {
+        const el = await t.mount(`<pk-app-shell fill style="height:300px;inline-size:100%"><div id="wrap"><pk-page-header sticky heading="Orders"></pk-page-header><div>${"<p>line</p>".repeat(120)}</div></div></pk-app-shell>`);
+        await t.settle(); await wait(200);
+        const wrap = el.querySelector('#wrap'), head = wrap.querySelector('pk-page-header');
+        t.ok(wrap.scrollHeight > wrap.clientHeight + 100, `the wrapper scrolls ${wrap.scrollHeight} ${wrap.clientHeight} ${getComputedStyle(wrap).overflowY} ${getComputedStyle(wrap).display} ${el.part('body').clientHeight}`);
+        wrap.scrollTop = 500; await t.settle();
+        const w = wrap.getBoundingClientRect(), h = head.getBoundingClientRect();
+        t.ok(h.top >= w.top - 1 && h.top <= w.top + 4, `the page header sticks at the wrapper top (${h.top - w.top})`);
+        t.ok(el.part('body').scrollHeight <= el.part('body').clientHeight + 1, 'the body itself does not scroll');
+    }],
+
     // #1364/#1401: a host that binds load after the page drew its first (empty) answer, then calls the page's own refresh(), gets its first page without a typed search.
     ['list-page: a load set after the first draw is called by refresh() on the page, no search needed (#1364)', async t => {
         const el = await t.mount(`<pk-list-page config='{"columns":[{"key":"sku","label":"SKU"}]}' row-href-template="/p/{id}"></pk-list-page>`);

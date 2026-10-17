@@ -37,6 +37,16 @@ public sealed class HandWrittenElementTests : BunitContext, IAsyncLifetime
         Assert.Contains("Body", el.TextContent);
     }
 
+    // #1551: Fill reaches pk-app-shell as the fill attribute, so the page region is a definite-height flex column for fill page types.
+    [Fact]
+    public void AppShell_fill_is_a_boolean_attribute_and_off_by_default()
+    {
+        var on = Render<PkAppShell>(p => p.Add(x => x.Fill, true).Add(x => x.BodyContent, "Page"));
+        Assert.NotNull(on.Find("pk-app-shell").GetAttribute("fill"));
+        var off = Render<PkAppShell>(p => p.Add(x => x.BodyContent, "Page"));
+        Assert.Null(off.Find("pk-app-shell").GetAttribute("fill"));
+    }
+
     [Fact]
     public void Card_renders_named_fragments_in_their_slots_only_when_set()
     {

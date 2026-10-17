@@ -28,6 +28,13 @@
       "description": "Removes the body padding so a workspace, table or map sits edge to edge (the safe-area insets on a notched phone stay)."
     },
     {
+      "name": "fill",
+      "type": "boolean",
+      "default": false,
+      "reflect": true,
+      "description": "A definite-height flex column for fill page types: the body stops scrolling and the page wrapper (the slotted element) fills it and scrolls its own overflow. A pk-list-page with sticky-header keeps its header row and pager in view while only the rows scroll; an ordinary page still scrolls, its pk-page-header pinned. Off: a plain scrolling body."
+    },
+    {
       "name": "backHref",
       "type": "string",
       "default": "",
@@ -103,6 +110,10 @@
     {
       "title": "App shell with a sticky footer",
       "html": "<pk-app-shell><pk-side-nav slot=\"nav\" label=\"Main\"><a slot=\"brand\" href=\"#\">App</a><pk-nav-item href=\"#\" current>Home</pk-nav-item><pk-nav-item href=\"#\">Reports</pk-nav-item></pk-side-nav><div slot=\"header\"><pk-button data-nav-toggle aria-label=\"Open the menu\" variant=\"ghost\">Menu</pk-button></div><pk-stack><h2>Home</h2><p>Content scrolls here; the header and footer stay put.</p></pk-stack><span slot=\"footer\">Plainkit</span></pk-app-shell>"
+    },
+    {
+      "title": "Fill",
+      "html": "<pk-app-shell fill><div><pk-list-page config='{\"columns\":[{\"key\":\"name\",\"label\":\"Name\"}],\"stickyHeader\":true,\"pageSize\":10}'></pk-list-page></div></pk-app-shell>"
     },
     {
       "title": "Back link",

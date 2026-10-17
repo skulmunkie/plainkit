@@ -1,7 +1,7 @@
 /* pk-page-shell: the page frame a page type composes. One column: the header (breadcrumb, title, actions, tabs), then either a whole-page state or the content. The spacing
    between those is the shell's own, so a page type declares none. */
 :host { display: flex; flex-direction: column; gap: var(--pk-page-shell-gap, var(--space-4)); inline-size: 100%; min-inline-size: 0; }
-[part="content"] { flex: 1 1 auto; min-inline-size: 0; }
+[part="content"] { flex: 1 1 auto; min-inline-size: 0; min-block-size: 0; } /* min-block-size: in a definite-height flex column (a fill app shell) a page type can fill the rest and scroll inside it (issue 1551). */
 /* A page type that has nothing for the header (no title, crumbs or actions) marks the shell data-bare="true": the header goes, and with it its gap. */
 :host([data-bare="true"]) [part="header"] { display: none; }
 /* Until the page header upgrades its slotted title is bare text; it holds the block padding the upgraded header draws, so the header arriving late moves nothing under it (CLS, issue 1510). */

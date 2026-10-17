@@ -25,6 +25,9 @@
 
 [part="body"] { flex: 1; min-height: 0; position: relative; overflow-y: auto; scrollbar-gutter: stable; overscroll-behavior: contain; --pk-page-header-sticky-top: calc(-1 * var(--pad-page)); padding: var(--pad-page); padding-inline: max(var(--pad-page), env(safe-area-inset-left)) max(var(--pad-page), env(safe-area-inset-right)); }
 
+/* fill (issue 1551): the body stops scrolling and becomes a definite-height flex column; the page's wrapper takes it whole, is a flex column too and scrolls its own overflow, so a fill page type (pk-list-page) pins its header row and pager while an ordinary page still scrolls, its sticky header pinned to the wrapper's top. */
+:host([fill]) [part="body"] { display: flex; flex-direction: column; overflow-y: hidden; --pk-page-header-sticky-top: 0px; }
+:host([fill]) ::slotted(*) { flex: 1 1 auto; min-block-size: 0; display: flex; flex-direction: column; overflow-y: auto; scrollbar-gutter: stable; overscroll-behavior: contain; }
 :host([flush]) [part="body"] { --pk-page-header-sticky-top: 0px; padding: 0; padding-inline: env(safe-area-inset-left) env(safe-area-inset-right); }
 
 [part="footer"] { flex: none; display: flex; align-items: center; gap: var(--space-3); min-height: var(--app-footer-h); padding: var(--pad-footer); padding-bottom: env(safe-area-inset-bottom); padding-inline: max(var(--space-4), env(safe-area-inset-left)) max(var(--space-4), env(safe-area-inset-right)); background: var(--color-panel); border-top: 1px solid var(--color-border); color: var(--color-muted); font-size: var(--text-meta); }

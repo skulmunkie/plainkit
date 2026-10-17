@@ -29,3 +29,11 @@ test('the top bar has a back link driven by back-href and back-label, and no tit
     assert.match(read('css'), /\[part="back"\] \{[^}]*min-width: var\(--touch-target\); min-height: var\(--touch-target\)/, '44px target');
     assert.match(meta.a11y, /back link/);
 });
+
+// Issue #1551: a fill page type (pk-list-page with sticky-header) needs a flex column of definite height; the body was not one.
+test('fill is a boolean prop that makes the body a flex column and the page wrapper a scrolling flex column', () => {
+    assert.equal(prop('fill').type, 'boolean'); assert.equal(prop('fill').default, false); assert.equal(prop('fill').reflect, true);
+    const css = read('css');
+    assert.match(css, /:host\(\[fill\]\) \[part="body"\] \{[^}]*display: flex; flex-direction: column; overflow-y: hidden/);
+    assert.match(css, /:host\(\[fill\]\) ::slotted\(\*\) \{[^}]*min-block-size: 0[^}]*overflow-y: auto/);
+});

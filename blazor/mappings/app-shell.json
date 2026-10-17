@@ -76,6 +76,11 @@
       "name": "Flush",
       "prop": "flush",
       "type": "bool"
+    },
+    {
+      "name": "Fill",
+      "prop": "fill",
+      "type": "bool"
     }
   ]
 }
