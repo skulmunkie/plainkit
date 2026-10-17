@@ -6,7 +6,7 @@
   "title": "Markdown editor",
   "group": "Form controls",
   "tier": "component",
-  "summary": "A field for writing Markdown: a real textarea whose value is the Markdown text, a formatting toolbar (bold, italic, bulleted and numbered lists, link) and a Write / Preview switch. The preview is built from the parsed text with DOM calls only: raw HTML is shown as text and a link must be http, https, mailto or a relative address. Form-associated like pk-textarea. The Markdown subset is paragraphs, bold, italic, code, fenced code, headings 1 to 3, quotes, lists and links; the same parser and renderer are in js/markdown/ for showing stored text elsewhere (never write the value into markup yourself).",
+  "summary": "A field for writing Markdown: a real textarea whose value is the Markdown text, a formatting toolbar (bold, italic, heading, quote, code, bulleted and numbered lists, link) and a Write / Preview switch. The preview is built from the parsed text with DOM calls only: raw HTML is shown as text and a link must be http, https, mailto or a relative address. Form-associated like pk-textarea. The Markdown subset is paragraphs, bold, italic, code, fenced code, headings 1 to 3, quotes, lists and links; the same parser and renderer are in js/markdown/ for showing stored text elsewhere (never write the value into markup yourself).",
   "delegatesFocus": true,
   "formAssociated": true,
   "props": [
@@ -106,9 +106,9 @@
     {
       "name": "toolbar",
       "type": "string",
-      "default": "bold italic ul ol link",
+      "default": "bold italic heading quote code ul ol link",
       "reflect": true,
-      "description": "The toolbar commands, space separated, in order: bold, italic, ul, ol, link. Ctrl/Cmd+B, I and K work in the textarea for the commands that are listed."
+      "description": "The toolbar commands, space separated, in order: bold, italic, heading, quote, code, ul, ol, link. Enter in a list continues it (and ends it on an empty item); pasting an http, https or mailto address over selected text makes it a link. Ctrl/Cmd+B, I and K work in the textarea for the commands that are listed."
     }
   ],
   "slots": [],

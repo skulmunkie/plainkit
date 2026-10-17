@@ -144,6 +144,39 @@ export const markdownEditorCases = [
         el.parentElement.style.width = '375px'; await until(() => !el.hasAttribute('data-split'), 'the tabs to return when narrow');
         t.ok(!el.part('tabs').hidden || getComputedStyle(el.part('tabs')).display !== 'none', 'the tabs are back');
     }],
+    ['markdown-editor: Enter continues a bullet or numbered list, and Enter on an empty item leaves the list', async t => {
+        const el = await mount(t, 'value="- one"');
+        el.sel(0); await until(() => el.$m, 'the commands chunk');
+        const at = async (v, p = v.length) => { el.value = v; await t.settle(); el.sel(p); };
+        await at('- one'); key(el.$t, 'Enter'); await until(() => el.value === '- one\n- ', 'a new bullet');
+        t.eq(el.$t.selectionStart, 8, 'the caret sits after the new marker');
+        key(el.$t, 'Enter'); await until(() => el.value === '- one\n', 'the empty item removed');
+        await at('1. a\n2. b'); key(el.$t, 'Enter'); await until(() => el.value === '1. a\n2. b\n3. ', 'the next number');
+        await at('plain'); const e = key(el.$t, 'Enter'); t.ok(!e.defaultPrevented, 'Enter outside a list is left to the browser');
+    }],
+    ['markdown-editor: pasting a URL over a selection makes it a link; with no selection, or for text, the paste is left alone', async t => {
+        const el = await mount(t, 'value="see site now"');
+        el.sel(0); await until(() => el.$m, 'the commands chunk');
+        const paste = txt => { const dt = new DataTransfer(); dt.setData('text/plain', txt); const e = new ClipboardEvent('paste', { clipboardData: dt, bubbles: true, cancelable: true, composed: true }); el.$t.dispatchEvent(e); return e; };
+        el.sel(4, 8); t.ok(paste('https://x.test').defaultPrevented, 'the paste is taken');
+        await until(() => el.value === 'see [site](https://x.test) now', 'the link'); t.eq(el.$t.value.slice(el.$t.selectionStart, el.$t.selectionEnd), 'site');
+        el.sel(0, 3); t.ok(!paste('not a url').defaultPrevented, 'plain text pastes normally');
+        el.sel(0); t.ok(!paste('https://x.test').defaultPrevented, 'no selection: a normal paste');
+        el.sel(0, 3); t.ok(!paste(JS + 'alert(1)').defaultPrevented, 'a script address is never made a link');
+    }],
+    ['markdown-editor: the heading, quote and code buttons prefix or wrap and toggle back, and the full toolbar fits at 375 px', async t => {
+        const el = await mount(t, 'toolbar="bold italic heading quote code ul ol link" value="word"', '375px');
+        el.sel(0, 4);
+        await el.clickCmd('heading'); t.eq(el.value, '## word');
+        await el.clickCmd('heading'); t.eq(el.value, 'word');
+        await el.clickCmd('quote'); t.eq(el.value, '> word');
+        await el.clickCmd('quote'); t.eq(el.value, 'word');
+        el.sel(0, 4); await el.clickCmd('code'); t.eq(el.value, '`word`'); t.eq(el.$t.value.slice(el.$t.selectionStart, el.$t.selectionEnd), 'word');
+        await el.clickCmd('code'); t.eq(el.value, 'word');
+        const sRect = el.parentElement.getBoundingClientRect();
+        t.ok(el.scrollWidth <= el.clientWidth + 1, 'no horizontal overflow');
+        for (const b of el.part('commands').children) { const r = b.getBoundingClientRect(); t.ok(r.left >= sRect.left - 1 && r.right <= sRect.right + 1 && r.width >= 24 && r.height >= 24, `${b.dataset.cmd} fits and is at least 24px`); }
+    }],
     ['markdown-editor: disabled blocks commands and the tab order, readonly allows the preview only, maxlength stops a command that would exceed it', async t => {
         const d = await mount(t, 'disabled value="hello"');
         d.sel(0, 5); d.cmd('bold').click(); key(d.$t, 'b', { ctrlKey: true }); await wait(80);

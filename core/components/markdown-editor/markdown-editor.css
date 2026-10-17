@@ -4,7 +4,7 @@
 [part="head"] { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: var(--space-1) var(--space-3); min-inline-size: 0; }
 [part="tabs"] { min-inline-size: 0; }
 [part="bar"] { container-type: normal; flex: 0 1 auto; inline-size: auto; margin-inline-start: auto; min-inline-size: 0; --pk-toolbar-margin: 0; }
-[part="commands"] { margin-inline-start: auto; display: flex; align-items: center; gap: var(--space-1); }
+[part="commands"] { margin-inline-start: auto; display: flex; flex-wrap: wrap; justify-content: flex-end; align-items: center; gap: var(--space-1); }
 [part="commands"] pk-button { min-inline-size: var(--ctl-h); min-block-size: var(--ctl-h); }
 pk-button[data-cmd="bold"] { font-weight: 700; }
 pk-button[data-cmd="italic"] { font-style: italic; }

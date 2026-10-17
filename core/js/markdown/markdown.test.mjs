@@ -3,7 +3,7 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import { parseMarkdown } from './parse.js';
 import { renderMarkdown, MAX_PREVIEW } from './render.js';
-import { toggleBold, toggleItalic, toggleBullets, toggleNumbers, insertLink } from './commands.js';
+import { toggleBold, toggleItalic, toggleBullets, toggleNumbers, insertLink, continueList, pasteLink, toggleHeading, toggleQuote, toggleCode } from './commands.js';
 
 const JS = 'java' + 'script:';
 class N {
@@ -118,6 +118,34 @@ test('link: selection becomes the text; unsafe or malformed address is refused a
         assert.equal(r.text, 'site');
         assert.ok(r.error);
     }
+});
+
+test('Enter continues a list item and leaves the list on an empty one', () => {
+    assert.equal(continueList('- one', 5, 5).text, '- one\n- ');
+    assert.equal(continueList('  * a\n  * b', 11, 11).text, '  * a\n  * b\n  * ');
+    const n = continueList('1. a\n9) b', 9, 9);
+    assert.equal(n.text, '1. a\n9) b\n10) '); assert.equal(n.start, n.text.length);
+    const out = continueList('- one\n- ', 8, 8);
+    assert.equal(out.text, '- one\n'); assert.equal(out.start, 6);
+    for (const [t, a, b] of [['plain', 5, 5], ['- one', 2, 2], ['- one', 0, 5], ['', 0, 0]]) assert.equal(continueList(t, a, b), null);
+});
+
+test('pasting an address over a selection links it; anything else is not taken', () => {
+    const r = pasteLink('see site now', 4, 8, ' https://x.test\n');
+    assert.equal(r.text, 'see [site](https://x.test) now'); assert.equal(r.text.slice(r.start, r.end), 'site');
+    assert.equal(pasteLink('mail me', 0, 4, 'mailto:a@b.test').text, '[mail](mailto:a@b.test) me');
+    for (const p of ['text', JS + 'alert(1)', 'http://a b', 'http://a)b', 'data:x', '']) assert.equal(pasteLink('site', 0, 4, p), null);
+    assert.equal(pasteLink('site', 2, 2, 'https://x.test'), null); assert.equal(pasteLink('a\nb', 0, 3, 'https://x.test'), null);
+});
+
+test('heading, quote and code toggle on and off', () => {
+    assert.equal(toggleHeading('title', 0, 5).text, '## title');
+    assert.equal(toggleHeading('# title', 0, 7).text, '## title');
+    assert.equal(toggleHeading('## title', 0, 8).text, 'title');
+    assert.equal(toggleQuote('a\nb', 0, 3).text, '> a\n> b');
+    assert.equal(toggleQuote('> a\n> b', 0, 7).text, 'a\nb');
+    assert.equal(toggleCode('x word y', 2, 6).text, 'x `word` y');
+    assert.equal(toggleCode('x `word` y', 3, 7).text, 'x word y');
 });
 
 test('commands clamp out-of-range selections', () => {
