@@ -732,11 +732,11 @@ export function renderComponent(m, mappingName, ns = 'PlainKit.Blazor') {
         '        node["columns"] = System.Text.Json.Nodes.JsonNode.Parse(PkAttr.Json(Columns.Select(c => c.ToColumn()))!);',
         '        return node.ToJsonString();', '    }');
     if (m.recordModel) L.push('', '    private TItem? _loaded;', '    private bool _isNew;', '',
-        '    private string ConfigWithFields() => PkFieldSpecs.RecordConfig(PkAttr.JsonText(Config), Fields, _loaded ?? Model, out _isNew);', '',
+        '    private string ConfigWithFields() => PkFieldSpecs.RecordConfig(PkAttr.JsonText(Config), Fields, _loaded ?? Model, out _isNew, Sections, Sidebar, TitleOf);', '',
         '    private object? KeepLoaded(TItem? item)', '    {', '        _loaded = item;', '        _ = InvokeAsync(StateHasChanged);', '        return item is null ? null : PkFieldSpecs.Values(Fields ?? [], item);', '    }', '',
         '    private async Task<TItem> ApplySavedAsync(IReadOnlyDictionary<string, JsonElement> values)', '    {',
         '        var item = (_isNew ? Model : _loaded) ?? throw new InvalidOperationException("A new record needs the Model parameter (the instance to fill); a loaded one is what Load returned.");',
-        '        await PkFieldSpecs.ApplyAsync(Fields ?? [], item, values);', '        return item;', '    }');
+        '        await PkFieldSpecs.ApplyAsync(Fields ?? [], item, values);', '        if (TitleOf is not null) _ = InvokeAsync(StateHasChanged);', '        return item;', '    }');
     for (const x of m.methods) L.push('', doc(x.doc), `    public ${x.returns ? `Task<${x.returns}>` : 'Task'} ${x.name}(${x.args.map(a => `${a.type} ${a.name}`).join(', ')}) => CallAsync${x.returns ? `<${x.returns}>` : ''}(${[lit(x.method), ...x.args.map(a => a.name)].join(', ')});`);
     if (m.field) L.push('', '    /// <inheritdoc />', `    protected override Expression<Func<${m.field.cs}>>? FieldExpression => ${m.field.expr};`);
     if (m.field?.values) L.push('', '    /// <inheritdoc />', `    protected override Expression<Func<IReadOnlyList<string>?>>? ValuesFieldExpression => ${m.field.values};`);

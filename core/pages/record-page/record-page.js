@@ -5,6 +5,7 @@ import { loadElements } from '../../js/loader.js';
 const CONTROLS = 'pk-input,pk-textarea,pk-select,pk-checkbox,pk-switch,pk-range,pk-combobox';
 const text = v => (v == null ? '' : String(v));
 const norm = v => (v == null || v === false ? '' : String(v));
+const FORM_ID = 'record';
 const key = f => f.key ?? f.name;
 const kindOf = f => f.kind ?? f.type ?? 'text';
 // A field def as pk-field-group reads it; in the older name/type spelling, help is the line under the control (the group's hint).
@@ -16,13 +17,13 @@ export default Base => class extends Base {
             this.$w = true;
             loadElements(this.shadowRoot);
             this.part('edit').addEventListener('click', () => { this.mode = 'edit'; });
-            this.part('cancel').addEventListener('click', () => { this.setDirty(false); this.mode = 'view'; });
+            this.part('cancel').addEventListener('click', () => { this.setDirty(false); this.mode = 'view'; this.emit('pk-record-cancel', { id: this.$id }); });
             this.part('save').addEventListener('click', () => this.part('main').querySelector('form')?.requestSubmit());
             this.part('delete').addEventListener('click', () => this.emit('pk-record-delete', { id: this.$id }));
             const main = this.part('main');
             main.addEventListener('submit', e => e.preventDefault());
             main.addEventListener('pk-valid', () => this.submit());
-            for (const t of ['input', 'change']) main.addEventListener(t, () => this.track());
+            for (const t of ['input', 'change']) for (const part of [main, this.part('side')]) part.addEventListener(t, () => this.track());
         }
         // The one subscription outside this element's tree: a reload or a closed tab while edits are unsaved asks first.
         this.$leave = e => { if (this.dirty) { e.preventDefault(); e.returnValue = ''; } };
@@ -35,6 +36,7 @@ export default Base => class extends Base {
         if (name === 'config') { if ((this.config?.id ?? null) !== this.$id) this.fetch(); else { if (this.$id == null && !this.dirty) this.$values = { ...this.config?.values }; this.bar(); this.draw(); } }
         else if (name === 'mode') this.draw();
         else if (name === 'deletable') this.part('delete').hidden = this.deleteHidden();
+        else if (name === 'cancellable') this.part('cancel').hidden = this.cancelHidden();
         else if (name === 'error') this.notice();
         else if (name === 'busy') this.lock();
     }
@@ -63,25 +65,32 @@ export default Base => class extends Base {
         }
     }
     // The shared title bar; config.heading already titles the field list, so the page's own heading is config.title.
-    bar() { showTitleBar(this, this.part('header'), { ...this.config, heading: this.config?.title }); }
-    done() { renderState(this.part('state'), 'ready'); this.setDirty(false); this.draw(); }
+    // config.titleField names a field whose loaded (or saved) value is the title, so a title that comes from the record needs no second config write; config.title is its fallback.
+    bar() {
+        const t = this.config?.titleField, v = t ? text(this.$values?.[t]).trim() : '';
+        showTitleBar(this, this.part('header'), { ...this.config, heading: v || this.config?.title });
+    }
+    done() { renderState(this.part('state'), 'ready'); this.setDirty(false); this.bar(); this.draw(); }
     get editing() { return this.mode === 'edit' || this.$id == null; }
     get fields() { return this.config?.fields ?? []; }
 
     // Not named render(): the base class calls render() on every prop change (dirty, mode), which would rebuild the form under the reader on the first keystroke.
     draw() {
-        const doc = this.ownerDocument, main = this.part('main'), side = this.part('side'), vals = this.$values ?? {}, editing = this.editing;
+        const doc = this.ownerDocument, main = this.part('main'), sideEl = this.part('side'), vals = this.$values ?? {}, editing = this.editing;
         this.notice();
-        main.replaceChildren(editing ? this.form(doc, vals) : this.list(doc, this.fields, vals, this.config?.heading));
-        side.replaceChildren(...(this.config?.sidebar ?? []).map(s => {
-            const card = doc.createElement('pk-card');
-            card.setAttribute('heading', s.heading ?? '');
-            card.append(this.list(doc, this.fields.filter(f => s.fields?.includes(key(f))), vals, '', true));
-            return card;
-        }));
+        const side = (this.config?.sidebar ?? []), claimed = new Set(side.flatMap(c => c.fields ?? []));
+        this.$groups = [];
+        if (editing) {
+            main.replaceChildren(this.form(doc, vals, claimed));
+            sideEl.replaceChildren(...side.map(s => this.card(doc, s.heading, this.group(doc, this.fields.filter(f => s.fields?.includes(key(f))), vals, s.heading, FORM_ID))));
+        } else {
+            const sections = this.config?.sections?.length;
+            main.replaceChildren(...this.mainSections(sections ? claimed : new Set()).map(g => sections ? this.card(doc, g.heading, this.list(doc, g.fields, vals, '')) : this.list(doc, g.fields, vals, g.heading)));
+            sideEl.replaceChildren(...side.map(s => this.card(doc, s.heading, this.list(doc, this.fields.filter(f => s.fields?.includes(key(f))), vals, '', true))));
+        }
         const canEdit = this.config?.editable !== false && typeof this.save === 'function';
         this.part('edit').hidden = editing || !canEdit;
-        this.part('cancel').hidden = !editing || this.$id == null;
+        this.part('cancel').hidden = this.cancelHidden();
         this.part('save').hidden = !editing || !this.fields.length;
         this.part('delete').hidden = this.deleteHidden();
         this.part('save').textContent = this.config?.saveLabel || 'Save';
@@ -89,6 +98,8 @@ export default Base => class extends Base {
         this.lock();
         loadElements(this.shadowRoot);
     }
+    // Cancel leaves edit mode of an existing record; a new record has nowhere to go back to unless the host handles pk-record-cancel (cancellable).
+    cancelHidden() { return !this.editing || (this.$id == null && !(this.cancellable || this.config?.cancellable)); }
     deleteHidden() { return this.editing || this.$id == null || !(this.deletable || this.config?.deletable); }
     // The host's `error` text is the notice above the form (a save's own failure replaces it until the host sets it again); `busy` is the host's work in flight, so every button waits.
     notice() { if (this.error) showState(this.part('notice'), 'error', { description: this.error }); else renderState(this.part('notice'), 'ready'); }
@@ -109,22 +120,39 @@ export default Base => class extends Base {
         }
         return list;
     }
-    // The edit form is a pk-field-group drawn from the same field defs (key, kind, label, hint, help, required, options, when ...); name and type are the older spellings of key and kind.
-    form(doc, vals) {
-        const pf = doc.createElement('pk-form'), form = doc.createElement('form'), group = doc.createElement('pk-field-group');
-        pf.setAttribute('summary', '');
-        group.setAttribute('label', this.config?.heading || this.config?.title || 'Record');
-        group.fields = this.fields.map(spec);
+    // config.sections, led by the fields no section names (under config.heading); `skip` holds the sidebar's fields.
+    mainSections(skip) {
+        const sections = this.config?.sections ?? [], named = new Set(sections.flatMap(s => s.fields ?? []));
+        const rest = this.fields.filter(f => !named.has(key(f)) && !skip.has(key(f)));
+        const own = sections.map(s => ({ heading: s.heading, fields: this.fields.filter(f => (s.fields ?? []).includes(key(f)) && !skip.has(key(f))) }));
+        return [{ heading: this.config?.heading, fields: rest }, ...own].filter(g => g.fields.length);
+    }
+    card(doc, heading, ...kids) { const card = doc.createElement('pk-card'); card.setAttribute('heading', heading ?? ''); card.append(...kids); return card; }
+    // Sidebar groups sit outside the form element, so they join it through its id (the form attribute).
+    group(doc, fields, vals, label, formId) {
+        const group = doc.createElement('pk-field-group');
+        group.setAttribute('label', label || this.config?.title || 'Record');
+        if (formId) group.setAttribute('form', formId);
+        group.fields = fields.map(spec);
         group.values = { ...vals };
         // A custom field's body is the host's editor-<key> child: forward that slot into the group's own.
-        for (const f of this.fields) if (kindOf(f) === 'custom') { const slot = doc.createElement('slot'); slot.setAttribute('name', `editor-${key(f)}`); slot.setAttribute('slot', `editor-${key(f)}`); group.append(slot); }
-        this.$group = group;
-        form.append(group);
+        for (const f of fields) if (kindOf(f) === 'custom') { const slot = doc.createElement('slot'); slot.setAttribute('name', `editor-${key(f)}`); slot.setAttribute('slot', `editor-${key(f)}`); group.append(slot); }
+        (this.$groups ??= []).push(group);
+        return group;
+    }
+    form(doc, vals, skip) {
+        const pf = doc.createElement('pk-form'), form = doc.createElement('form');
+        pf.setAttribute('summary', '');
+        form.id = FORM_ID;
+        const sections = this.config?.sections?.length;
+        form.append(...this.mainSections(skip).map(g => { const grp = this.group(doc, g.fields, vals, g.heading); return sections ? this.card(doc, g.heading, grp) : grp; }));
         pf.append(form);
         return pf;
     }
-    controls() { return [...(this.$group?.shadowRoot?.querySelectorAll(CONTROLS) ?? [])]; }
-    live() { return this.$group?.snapshot?.() ?? {}; }
+    controls() { return (this.$groups ?? []).flatMap(g => [...(g.shadowRoot?.querySelectorAll(CONTROLS) ?? [])]); }
+    // A snapshot holds every value the group was given: take only the fields it draws.
+    live() { return Object.assign({}, ...(this.$groups ?? []).map(g => { const own = new Set((g.fields ?? []).map(f => f.key)); return Object.fromEntries(Object.entries(g.snapshot?.() ?? {}).filter(([k]) => own.has(k))); })); }
+    groupOf(k) { return (this.$groups ?? []).find(g => g.fields?.some(f => f.key === k)); }
     collect() {
         const out = { ...this.$values }, live = this.live();
         for (const f of this.fields) if (key(f) in live) out[key(f)] = kindOf(f) === 'number' && live[key(f)] !== '' ? Number(live[key(f)]) : live[key(f)];
@@ -139,11 +167,12 @@ export default Base => class extends Base {
         const gen = this.$gen, save = this.part('save'), values = this.collect();
         this.$saving = true; save.busy = true;
         renderState(this.part('notice'), 'ready');
-        this.$group?.report?.(false);
+        for (const g of this.$groups ?? []) g.report?.(false);
         try {
             const out = await this.save(values);
             if (gen !== this.$gen) return;
             this.$values = { ...values, ...(out && typeof out === 'object' ? out : {}) };
+            this.bar();
             this.emit('pk-record-save', { values: this.$values });
             this.setDirty(false);
             if (this.$id != null) this.mode = 'view'; else this.draw();
@@ -152,8 +181,8 @@ export default Base => class extends Base {
             this.log.error('record save failed', err);
             // A rejection carrying { errors: { fieldName: message } } marks those fields inline; any other is a notice above the form.
             const fields = Object.entries(err?.errors ?? {}).filter(([n]) => this.fields.some(f => key(f) === n));
-            for (const [n, m] of fields) this.$group.setError(n, text(m));
-            if (fields.length) this.$group.focusField(fields[0][0]);
+            for (const [n, m] of fields) this.groupOf(n)?.setError(n, text(m));
+            if (fields.length) this.groupOf(fields[0][0])?.focusField(fields[0][0]);
             else { showState(this.part('notice'), 'error', { heading: 'Could not save', error: err }); }
         } finally { this.$saving = false; this.lock(); }
     }
