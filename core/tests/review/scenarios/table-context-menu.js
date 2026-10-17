@@ -29,7 +29,9 @@ export default {
     },
     steps: [
         { shot: 'closed' },
-        { focus: '#t1 >>> tbody tr[data-pk-context="2"] [data-select]' }, { key: 'ContextMenu' }, { shot: 'open-keyboard' },
+        { focus: '#t1 >>> tbody tr[data-pk-context="2"] [data-select]' }, { key: 'ContextMenu' },
+        // The menu opens on the key press but its items are built and upgraded a frame or two later: wait for the last one to have a box before measuring (#1495).
+        { waitFor: '#menu > pk-menu-item:nth-of-type(2)' }, { shot: 'open-keyboard' },
         { key: 'Escape' }, 
     ],
     expect(t) {

@@ -159,6 +159,7 @@ export const fieldGroupCases = [
         const { el, form } = await inForm(t, FIELDS, { status: 'open', name: 'Acme' });
         t.eq(form.checkValidity(), true, 'the note is required but hidden');
         choose(el.shadowRoot.querySelectorAll('pk-field')[2].firstElementChild, 'closed'); await t.settle(); await t.settle();
+        for (let i = 0; i < 300 && form.checkValidity(); i++) await wait(50); // readiness wait for the on-demand control; the assertion below still decides
         t.eq(form.checkValidity(), false, 'the note shows and is empty');
         t.eq(el.problems()[0].key, 'note');
     }],
@@ -291,6 +292,7 @@ export const fieldGroupCases = [
         form.requestSubmit(); await t.settle();
         t.eq(sf.part('summary-list').children.length, 2);
         el.values = { qty: '1', status: 'closed' }; await t.settle(); await t.settle();
+        await customElements.whenDefined('pk-textarea'); await t.settle(); // the Note field appears with status closed; its control loads on demand, so wait until it can validate (a slow machine took over 2 s)
         form.requestSubmit(); await t.settle();
         t.eq(sf.part('summary-list').children.length, 3);
         const err = k => [...el.shadowRoot.querySelectorAll('pk-field')].find(f => f.getAttribute('label') === k).error;
@@ -300,6 +302,18 @@ export const fieldGroupCases = [
         host.querySelector('pk-button').click(); await t.settle();
         t.eq(el.problems().map(p => p.key + ':' + p.message).join(','), '', 'no problems');
         t.eq(sf.part('summary-list').children.length, 0, 'the summary is gone'); t.eq(valid, 1);
+    }],
+    ['field-group: a spec autocomplete reaches the drawn pk-input (text, password, email, tel, url); other kinds ignore it (#1501)', async t => {
+        const el = await mountGroup(t, [
+            { key: 'u', label: 'User', autocomplete: 'off' }, { key: 'p', label: 'Pass', kind: 'password', autocomplete: 'new-password' },
+            { key: 'e', label: 'Mail', kind: 'email', autocomplete: 'email' }, { key: 't', label: 'Tel', kind: 'tel', autocomplete: 'tel' }, { key: 'w', label: 'Web', kind: 'url', autocomplete: 'url' },
+            { key: 'plain', label: 'Plain' }, { key: 'n', label: 'Num', kind: 'number', autocomplete: 'off' }, { key: 'a', label: 'Area', kind: 'textarea', autocomplete: 'off' },
+        ], {});
+        const ctl = k => [...el.shadowRoot.querySelectorAll('pk-field')].find(f => f.getAttribute('label') === k).firstElementChild;
+        t.eq(['User', 'Pass', 'Mail', 'Tel', 'Web'].map(k => ctl(k).getAttribute('autocomplete')).join('|'), 'off|new-password|email|tel|url', 'the spec token is the control attribute');
+        t.ok(!ctl('Plain').hasAttribute('autocomplete'), 'no spec key, no attribute');
+        t.ok(!ctl('Num').hasAttribute('autocomplete') && !ctl('Area').hasAttribute('autocomplete'), 'number and textarea are unchanged');
+        t.eq(ctl('Pass').shadowRoot.querySelector('input').getAttribute('autocomplete'), 'new-password', 'the inner input carries it');
     }],
     ['field-group: declarative conditions (whenExpr, requiredExpr, disabledExpr, readonlyExpr) follow the live values, keep focus and need no server round trip (#1282)', async t => {
         const el = await mountGroup(t, [

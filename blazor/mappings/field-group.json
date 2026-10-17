@@ -1,12 +1,29 @@
 {
   "component": "PkFieldGroup",
-  "existing": true,
-  "existingReason": "typed-generics and callback: PkFieldGroup<TItem> is the typed wrapper over pk-field-group (Razor cannot bind a markup tag when a generic and a non-generic component share a name, so the typed component is the only PkFieldGroup). PkFieldSpec<TItem> items and the model become the element's fields and values, Search runs through PkCallbackSlot, and committed changes go back through each spec's Set. The callback kind and @typeparam generation exist in the generator (#1473); still missing: a typed model adapter (specs and model into the fields and values JSON, Set on commit).",
   "params": [
-    { "name": "Columns", "prop": "columns", "type": "int" },
-    { "name": "Fields", "prop": "fields", "type": "IReadOnlyList<PkFieldSpec<TItem>>", "note": "The typed specs; each becomes one entry of the element's fields (PkFieldDef)." },
-    { "name": "Model", "prop": "values", "type": "TItem", "note": "The bound record: each spec's Get gives the element's values, each pk-field-change calls Set." },
-    { "name": "ModelChanged", "event": "pk-field-change", "type": "EventCallback" }
+    {
+      "name": "Columns",
+      "prop": "columns",
+      "type": "int?"
+    },
+    {
+      "name": "Fields",
+      "map": "fieldGroup",
+      "role": "fields",
+      "doc": "The fields to render, in order."
+    },
+    {
+      "name": "Model",
+      "map": "fieldGroup",
+      "role": "model",
+      "doc": "The bound record; each field's Get reads it, each commit calls Set then ModelChanged."
+    },
+    {
+      "name": "ModelChanged",
+      "map": "fieldGroup",
+      "role": "changed",
+      "doc": "Raised after a field commits (the model was updated through Set, or SetAsync succeeded). A handler on the parent re-renders it and this group: Get, When, Disabled and HelpWhen are read again."
+    }
   ],
   "fieldMembers": [
     {
@@ -23,6 +40,12 @@
       "name": "Placeholder",
       "type": "string?",
       "doc": "The control's placeholder."
+    },
+    {
+      "name": "AutoComplete",
+      "json": "autocomplete",
+      "type": "string?",
+      "doc": "The autofill token of a text, password, email, tel or url control, for example off, new-password or email; other kinds ignore it."
     },
     {
       "name": "Min",
@@ -142,13 +165,21 @@
       "name": "Bool",
       "doc": "A Checkbox spec over a bool property: wraps the string Get/Set so the caller does not translate \"true\"/\"\" by hand. Set the other members with with: PkFieldSpec<T>.Bool(\"active\", \"Active\", o => o.Active, (o, v) => o.Active = v) with { Hint = \"...\" }.",
       "params": "Func<TItem, bool> get, Action<TItem, bool> set",
-      "init": ["Kind = PkFieldKind.Checkbox", "Get = item => get(item) ? \"true\" : \"\"", "Set = (item, value) => set(item, !string.IsNullOrEmpty(value) && value != \"false\")"]
+      "init": [
+        "Kind = PkFieldKind.Checkbox",
+        "Get = item => get(item) ? \"true\" : \"\"",
+        "Set = (item, value) => set(item, !string.IsNullOrEmpty(value) && value != \"false\")"
+      ]
     },
     {
       "name": "Async",
       "doc": "A spec whose change is committed by an async call (a service, a dependent reload): the element shows the field busy while it runs, a newer edit replaces a pending one (last wins, a stale answer changes nothing), an exception shows its message as the field's error and keeps the typed text, and ModelChanged is raised only after it succeeds. Get reads the model; the text goes to setAsync, not to Set.",
       "params": "Func<TItem, string?> get, Func<TItem, string?, Task> setAsync",
-      "init": ["Get = get", "Set = (_, _) => { }", "SetAsync = setAsync"]
+      "init": [
+        "Get = get",
+        "Set = (_, _) => { }",
+        "SetAsync = setAsync"
+      ]
     },
     {
       "name": "Decimal",
@@ -179,14 +210,48 @@
       "name": "Custom",
       "doc": "A spec that draws your own content (see Editor) instead of a control; it reads and writes nothing.",
       "params": "RenderFragment<TItem> editor",
-      "init": ["Get = _ => null", "Set = (_, _) => { }", "Editor = editor"]
+      "init": [
+        "Get = _ => null",
+        "Set = (_, _) => { }",
+        "Editor = editor"
+      ]
     }
   ],
   "notes": "PkFieldGroup<TItem> (Components/PkFieldGroup.razor) wraps pk-field-group 1:1: the controls, the conditional rendering, the form value and the validation are the element's. When, Disabled, ReadOnly, HelpWhen, LabelWhen and OptionsSource are read on every render and sent as data; LabelAction is slotted as label-action-<key>; Search is the element's search callback.",
   "methods": [
-    { "name": "FocusFieldAsync", "method": "focusField", "args": [{ "name": "key", "type": "string" }] },
-    { "name": "SetErrorAsync", "method": "setError", "args": [{ "name": "key", "type": "string" }, { "name": "message", "type": "string" }] },
-    { "name": "FocusAsync", "method": "focus" },
-    { "name": "RefreshAsync", "method": "refresh" }
-  ]
+    {
+      "name": "FocusFieldAsync",
+      "method": "focusField",
+      "args": [
+        {
+          "name": "key",
+          "type": "string"
+        }
+      ]
+    },
+    {
+      "name": "SetErrorAsync",
+      "method": "setError",
+      "args": [
+        {
+          "name": "key",
+          "type": "string"
+        },
+        {
+          "name": "message",
+          "type": "string"
+        }
+      ]
+    },
+    {
+      "name": "FocusAsync",
+      "method": "focus"
+    },
+    {
+      "name": "RefreshAsync",
+      "method": "refresh"
+    }
+  ],
+  "typeparam": "TItem",
+  "fieldGroupModel": true
 }

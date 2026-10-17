@@ -15,7 +15,7 @@ test('copy the Plainkit folder outside the repository', { skip }, () => { copy =
 
 test('nothing in the copy depends on the repository layout, the host app or an absolute path', { skip }, () => {
     const banned = [/wwwroot/, /_content\//, /Backend\.(UI|Web|Core|Data)\b/, /dotnet[\\/]src/, /[A-Za-z]:[\\/]Users[\\/]/, /\/Users\/[a-z]+\//, /(href|src)=["']\/(?!\/)/];
-    const ignore = new Set(['site/files/snapshot.json', 'site/files/index.json', 'tests/carveout.test.mjs', 'site/scorecard/sweep-report.json', 'site/scorecard/report.json', 'site/scorecard/security-report.json']);
+    const ignore = new Set(['site/files/snapshot.json', 'site/files/index.json', 'tests/carveout.test.mjs', 'site/scorecard/sweep-report.json', 'site/scorecard/quality-report.json', 'site/scorecard/report.json', 'site/scorecard/security-report.json']);
     const hits = [];
     for (const f of walk(copy)) {
         const r = rel(copy, f);

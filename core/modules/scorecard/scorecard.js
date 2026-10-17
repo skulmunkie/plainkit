@@ -24,6 +24,7 @@
 // data: each entry is a URL of the host's own origin (a relative URL is read against the page) or the parsed object. A section whose data
 // is missing says so with an empty state. security, apiBaseline, api, tiers, sweep, budgets, scoring (the scoring definitions), sizes (a list of
 // { name, url | urls, budget, strip }), files ({ css: { name: url }, js: { name: url }, tokens: name, pairs, frame, unusedIn }).
+// quality (a URL or the object a sweep wrote with --write-report: { overall, scores, measured, perFile, items, at }) is shown by default for the ranked and performance sections, with the run button relabelled Run live to measure again here; a missing or empty (none) report leaves the run-first view.
 // extraItems({ host }) may return more ranked items (a check the host runs itself).
 // Returns { run(), results(), report(), ready, destroy() }. runTargets, openFrame and rankedTable are exported for a host page that wants
 // to draw its own view. Quality checks are js/quality.js, scoring is js/scoring.js, both unchanged; the pure section logic is
@@ -204,7 +205,7 @@ export async function mountScorecard(container, options = {}) {
     if (theme) root.setAttribute('data-theme', theme);
     if (height) { root.dataset.dyn = `height:${height}; overflow:auto`; applyDynamic(root); }
     stack.replaceChildren(...(runs ? [
-        h(doc, 'pk-cluster', {}, h(doc, 'pk-button', { 'data-sc-run': true }, 'Run scorecard'), h(doc, 'pk-text', { tone: 'muted', inline: true, role: 'status', 'aria-live': 'polite', 'data-sc-progress': true })),
+        h(doc, 'pk-cluster', {}, h(doc, 'pk-button', { 'data-sc-run': true }, data.quality ? 'Run live' : 'Run scorecard'), h(doc, 'pk-text', { tone: 'muted', inline: true, role: 'status', 'aria-live': 'polite', 'data-sc-progress': true })),
         h(doc, 'pk-stack', { gap: 'md', 'data-sc-result': true }, emptyState(doc, ...NOT_YET))] : []),
         // The measuring frames sit off-screen at full size (a hidden frame has no layout to measure).
         h(doc, 'div', { 'aria-hidden': 'true', 'data-sc-frames': true, 'data-dyn': 'position:fixed; left:var(--_sc-frames-offscreen); top:0; width:var(--_sc-frames-w); height:var(--_sc-frames-h); overflow:hidden; visibility:hidden' }));
@@ -270,7 +271,7 @@ export async function mountScorecard(container, options = {}) {
         });
         // The cards' own elements (tables, charts) are loaded while the cards are still detached: inserted undefined, they grow when they upgrade and push the cards below them.
         return loadElements(pending).then(() => stack.insertBefore(pending, frames));
-    }).then(() => loadElements(root));
+    }).then(() => loadElements(root)).then(() => showPrecomputed()).then(() => loadElements(root));
 
     // ---- a run: frames, then (performance) the measurements that need a real browser ---------------------------------------
     async function measured(scoring, ranked) {
@@ -313,6 +314,37 @@ export async function mountScorecard(container, options = {}) {
     const vitalsOf = () => (vitals ??= watchVitals(doc.defaultView));
     if (sections.has('performance')) vitalsOf();
 
+    // Draws the score tiles, the ranked table and the detail tabs for a set of results: a live run and a precomputed report take the same path.
+    function draw({ items, overall, report, scoring, perf, d, history, changes }) {
+        const result = $('[data-sc-result]');
+        if (!perf) {
+            result.replaceChildren(h(doc, 'pk-grid', { min: '10rem' }, scoreTile(doc, 'Overall', overall, d.overall, history.map(r => r.overall))), card(doc, 'Ranked: worst first', rankedTable(doc, items, { changes, link })));
+            loadElements(result);
+        } else {
+            const parts = [scoreTiles(doc, report.scores, { deltas: d, history })];
+            if (sections.has('ranked')) {
+                const table = rankedTable(doc, items, { changes, link, label: options.rankedLabel ?? 'Target' });
+                parts.push(card(doc, 'Ranked: worst first', note(doc, `Each target is rendered in ${scoring.themes.join(' and ')} at ${scoring.widths.join(', ')}px. A finding costs points (${Object.entries(scoring.findingPenalty).map(([k, v]) => `${k} ${v}`).join(', ')}); repeats across widths count once.`), table));
+            }
+            parts.push(card(doc, 'Scores in detail', categoryTabs(doc, scoring, report.scores, report.perFile)));
+            result.replaceChildren(...parts);
+            loadElements(result);
+        }
+    }
+
+    // data.quality: the report a build-time sweep wrote (scripts/scorecard-sweep.mjs --write-report). It is shown first; the run button measures live.
+    async function showPrecomputed() {
+        if (!data.quality || !runs) return;
+        const rep = await load(data.quality).catch(err => { log.warn('the precomputed report could not be read', err); return null; });
+        if (!rep || rep.none || !Array.isArray(rep.items) || !rep.items.length) return;
+        const perf = sections.has('performance') && !!rep.scores;
+        const scoring = perf ? await load(data.scoring) : null;
+        const report = perf ? { scores: rep.scores, measured: rep.measured, perFile: rep.perFile ?? [] } : null;
+        items = rep.items; last = { items, overall: rep.overall, ...(report ?? {}), precomputed: true };
+        draw({ items, overall: rep.overall, report, scoring, perf, d: { overall: null, categories: {}, items: [] }, history: [], changes: [] });
+        setProgress(`Precomputed report${rep.at ? ` from ${rep.at.slice(0, 10)}` : ''}. Press Run live to measure again in this browser.`);
+    }
+
     async function run() {
         const button = $('[data-sc-run]');
         if (!button) return items;
@@ -341,20 +373,7 @@ export async function mountScorecard(container, options = {}) {
                 if (hosts.history) paintHist();
             }
             last = { items, overall, ...(report ?? {}) };
-            const result = $('[data-sc-result]');
-            if (!perf) {
-                result.replaceChildren(h(doc, 'pk-grid', { min: '10rem' }, scoreTile(doc, 'Overall', overall, d.overall, history.map(r => r.overall))), card(doc, 'Ranked: worst first', rankedTable(doc, items, { changes, link })));
-                loadElements(result);
-            } else {
-                const parts = [scoreTiles(doc, report.scores, { deltas: d, history })];
-                if (sections.has('ranked')) {
-                    const table = rankedTable(doc, items, { changes, link, label: options.rankedLabel ?? 'Target' });
-                    parts.push(card(doc, 'Ranked: worst first', note(doc, `Each target is rendered in ${scoring.themes.join(' and ')} at ${scoring.widths.join(', ')}px. A finding costs points (${Object.entries(scoring.findingPenalty).map(([k, v]) => `${k} ${v}`).join(', ')}); repeats across widths count once.`), table));
-                }
-                parts.push(card(doc, 'Scores in detail', categoryTabs(doc, scoring, report.scores, report.perFile)));
-                result.replaceChildren(...parts);
-                loadElements(result);
-            }
+            draw({ items, overall, report, scoring, perf, d, history, changes });
             setProgress(`Done. Overall ${overall}.`);
         } catch (err) { log.error('the scorecard run failed', err); setProgress(`The run failed: ${err.message}`); } finally { running = false; button.removeAttribute('disabled'); if (ac.signal.aborted) root.remove(); }
         return items;
