@@ -1,6 +1,6 @@
-:host { --_h: var(--pk-splitter-handle, var(--space-2)); display: block; min-inline-size: 0; block-size: var(--pk-splitter-height, auto); }
+:host { --_t: 1.5rem; --_h: var(--pk-splitter-handle, var(--space-2)); display: block; min-inline-size: 0; block-size: var(--pk-splitter-height, auto); }
 :host([hidden]) { display: none; }
-:host([collapsible]) { --_h: var(--pk-splitter-handle, 1.5rem); }
+:host([collapsible]) { --_h: max(var(--pk-splitter-handle, var(--space-2)), var(--_t)); }
 :host([orientation="vertical"]) { block-size: var(--pk-splitter-height, 16rem); }
 .root { display: grid; grid-template-columns: minmax(0, var(--_a, 1fr)) var(--_h) minmax(0, var(--_b, 1fr)); block-size: 100%; min-block-size: 0; }
 :host([orientation="vertical"]) .root { grid-template-columns: none; grid-template-rows: minmax(0, var(--_a, 1fr)) var(--_h) minmax(0, var(--_b, 1fr)); }
@@ -23,7 +23,7 @@
 .handle:focus-visible::before { background: var(--color-accent-hover); }
 :host([disabled]) .handle { cursor: default; pointer-events: none; }
 :host([disabled]) .handle::before { background: var(--color-border); inline-size: 1px; }
-.toggle { grid-area: 1 / 2; align-self: start; justify-self: center; margin-block-start: var(--space-2); z-index: 2; display: grid; place-items: center; box-sizing: border-box; inline-size: 1.5rem; block-size: 1.5rem; padding: 0; border: 1px solid var(--color-border); border-radius: var(--radius-pill); background: var(--color-surface); color: var(--color-muted-strong); cursor: pointer; }
+.toggle { grid-area: 1 / 2; align-self: start; justify-self: center; margin-block-start: var(--space-2); z-index: 2; display: grid; place-items: center; box-sizing: border-box; inline-size: var(--_t); block-size: var(--_t); padding: 0; border: 1px solid var(--color-border); border-radius: var(--radius-pill); background: var(--color-surface); color: var(--color-muted-strong); cursor: pointer; }
 .toggle[hidden] { display: none; }
 .toggle::before { content: ""; inline-size: 0.4rem; block-size: 0.4rem; border-inline-end: 2px solid currentcolor; border-block-end: 2px solid currentcolor; transform: rotate(calc(var(--_d, 1) * var(--_r, -45deg))); }
 .toggle:hover { color: var(--color-text); border-color: var(--color-accent); }
@@ -35,10 +35,9 @@
 :host([orientation="vertical"][collapsed]) { --_r: -135deg; }
 :host([orientation="vertical"]) .toggle { grid-area: 2 / 1; align-self: center; justify-self: start; margin-block-start: 0; margin-inline-start: var(--space-2); }
 @media (pointer: coarse) {
-    :host([collapsible]) { --_h: max(var(--pk-splitter-handle, 1.5rem), var(--touch-target)); }
-    .toggle { inline-size: var(--touch-target); block-size: var(--touch-target); }
+    :host { --_t: var(--touch-target); }
     .handle::after { inset-inline: calc((var(--_h) - var(--touch-target)) / 2); }
     :host([orientation="vertical"]) .handle::after { inset-inline: 0; inset-block: calc((var(--_h) - var(--touch-target)) / 2); }
 }
 @media (prefers-reduced-motion: reduce) { .handle::before, .root[data-anim]:not([data-dragging]) { transition: none; } }
-@media (--phone) { :host, :host([collapsible]) { --_h: max(var(--pk-splitter-handle, var(--space-2)), var(--touch-target)); } .toggle { inline-size: var(--touch-target); block-size: var(--touch-target); } }
+@media (--phone) { :host { --_t: var(--touch-target); --_h: max(var(--pk-splitter-handle, var(--space-2)), var(--touch-target)); } }
