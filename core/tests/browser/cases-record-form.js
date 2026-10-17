@@ -227,6 +227,25 @@ export const recordFormCases = [
         await until(() => rows().length === 1, 'the first page after refresh()');
         t.ok(calls >= 1, 'load was called');
     }],
+    // #1548: callback buttons and menus in the list page's header and toolbar: the actions and toolbar slots, and config.actions entries without an href raising pk-action.
+    ['list-page: the actions slot sits in the title bar above the table, the toolbar slot after the config actions beside the search box, and a config action without an href raises pk-action (#1548)', async t => {
+        const el = await t.mount(`<pk-list-page config='{"heading":"Orders","columns":[{"key":"sku","label":"SKU"}],"actions":[{"key":"new","label":"New order"},{"label":"Docs","href":"#docs"}]}'>
+            <pk-button slot="actions" id="sync">Sync</pk-button>
+            <pk-dropdown slot="toolbar" id="more"><pk-button slot="trigger" id="moreTrigger">More</pk-button><button type="button" role="menuitem" id="import">Import</button></pk-dropdown></pk-list-page>`);
+        await t.load(el.shadowRoot); await t.settle();
+        el.load = async () => ({ rows: [{ id: 'a1', sku: 'SKU-1' }], total: 1 });
+        el.refresh(); const table = el.part('table'); await until(() => table.part('table')?.shadowRoot?.querySelectorAll('tbody tr').length === 1, 'the row'); await t.settle(); await t.settle();
+        const r = e => e.getBoundingClientRect(), sync = el.querySelector('#sync'), more = el.querySelector('#more'), tableBox = r(table.part('table'));
+        t.ok(r(sync).width > 0 && r(sync).bottom <= tableBox.top, `the actions slot button is in the title bar above the table (${Math.round(r(sync).bottom)} vs ${Math.round(tableBox.top)})`);
+        const search = r(table.part('filters').shadowRoot.querySelector('[part="search"]')), newBtn = [...el.shadowRoot.querySelectorAll('pk-button')].find(b => b.textContent === 'New order');
+        t.ok(r(more).width > 0 && r(newBtn).right <= r(more).left + 1, `the toolbar slot follows the config action (new ${JSON.stringify(r(newBtn))} more ${JSON.stringify(r(more))})`);
+        t.ok(Math.abs((r(more).top + r(more).bottom) / 2 - (search.top + search.bottom) / 2) < search.height, 'and shares the search row');
+        const keys = []; el.addEventListener('pk-action', e => keys.push(e.detail.key));
+        newBtn.click(); [...el.shadowRoot.querySelectorAll('pk-button')].find(b => b.textContent === 'Docs').addEventListener('click', e => e.preventDefault());
+        t.eq(keys.join(), 'new', 'a config action without an href raises pk-action with its key');
+        [...el.shadowRoot.querySelectorAll('pk-button')].find(b => b.textContent === 'Docs').click();
+        t.eq(keys.join(), 'new', 'one with an href does not');
+    }],
     // #436: the acceptance criteria #352 named for pk-list-page. A search string is data end to end: never markup, never script.
     ['list-page: a search string with markup and script text reaches load() verbatim and is drawn only as text - no element or handler is created from it (#436)', async t => {
         const evil = '<img src=x onerror="window.__pkXss=1"><script>window.__pkXss=1</scr' + 'ipt>';

@@ -389,6 +389,22 @@ public sealed class PkPageCallbackTests : BunitContext, IAsyncLifetime
         Assert.Equal("EUR 5", cut.Find("[slot='cell-A-1-total']").TextContent);
     }
 
+    [Fact]
+    public async Task ListPage_ActionsContent_and_ToolbarContent_fill_the_actions_and_toolbar_slots_and_OnAction_receives_the_key()
+    {
+        // #1548: callback buttons and menus are the host's own markup in the header and toolbar slots; a Config action without an href raises OnAction.
+        PkActionEventArgs? action = null;
+        var cut = Render<PkListPage<Order>>(p => p
+            .Add(x => x.ActionsContent, b => b.AddMarkupContent(0, "<button id=\"sync\">Sync</button>"))
+            .Add(x => x.ToolbarContent, b => b.AddMarkupContent(0, "<button id=\"more\">More</button>"))
+            .Add(x => x.OnAction, e => { action = e; }));
+        Assert.Equal("actions", cut.Find("#sync").ParentElement!.GetAttribute("slot"));
+        Assert.Equal("toolbar", cut.Find("#more").ParentElement!.GetAttribute("slot"));
+        await cut.Find("pk-list-page").TriggerEventAsync("onpk-action", new PkActionEventArgs { Key = "new" });
+        Assert.Equal("new", action!.Key);
+        Assert.Empty(Render<PkListPage<Order>>().FindAll("[slot='actions'], [slot='toolbar']"));
+    }
+
     private sealed record Order(string OrderNo, int Total);
 
     [Fact]

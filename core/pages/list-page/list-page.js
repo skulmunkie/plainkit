@@ -63,6 +63,7 @@ export default Base => class extends Base {
             const btn = this.ownerDocument.createElement('pk-button');
             if (a.variant) btn.variant = a.variant;
             if (a.href) btn.href = a.href;
+            else if (name === 'actions') btn.addEventListener('click', () => this.emit('pk-action', { key: a.key ?? a.label }));
             btn.textContent = a.label ?? '';
             if (name === 'bulk') {
                 const table = this.part('table');

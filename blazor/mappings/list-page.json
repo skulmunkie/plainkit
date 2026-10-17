@@ -67,6 +67,23 @@
       "note": "A row was clicked (or Enter or Space on the focused row): Id is the row key (config.rowKey, default id), Row the row as JsonElement. The usual handler navigates to the record page. Setting it makes the rows clickable."
     },
     {
+      "name": "OnAction",
+      "event": "pk-action",
+      "note": "A Config actions button without an href was clicked; Key is its key (its label when it has none)."
+    },
+    {
+      "name": "ActionsContent",
+      "slot": "actions",
+      "type": "RenderFragment?",
+      "doc": "Buttons or a PkDropdown at the end of the title bar (shown when Config sets a heading or breadcrumb): callback buttons, an overflow menu."
+    },
+    {
+      "name": "ToolbarContent",
+      "slot": "toolbar",
+      "type": "RenderFragment?",
+      "doc": "Buttons or a PkDropdown in the toolbar, after the Config actions and beside the search box."
+    },
+    {
       "name": "OnBulk",
       "event": "pk-bulk",
       "type": "EventCallback<PkBulkEventArgs>"

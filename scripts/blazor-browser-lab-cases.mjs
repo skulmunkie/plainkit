@@ -31,6 +31,20 @@ export const LAB_CASES = [
         ctx.ok(await has(ctx, 'Ticket 3'), 'the search for "Ticket 3" does not leave Ticket 3 in the list');
         await ctx.noErrors(ctx.openMark, BENIGN);
       } },
+    { name: 'list-actions-slots-and-action-event',
+      async run(ctx) {
+        // #1548: callback buttons and a menu in the list page's actions slot, and a Config action without an href raising OnAction, through the real interop path.
+        await ctx.open('/lab/tickets');
+        await waitText(ctx, 'Ticket 2');
+        await ctx.clickDeep('pk-list-page pk-button', 'Sync');
+        await waitText(ctx, 'Log: sync');
+        await ctx.clickDeep('pk-list-page >>> pk-button', 'New ticket');
+        await waitText(ctx, 'Log: action new');
+        await ctx.clickDeep('pk-list-page pk-dropdown pk-button', 'More');
+        await ctx.clickDeep('pk-list-page pk-menu-item', 'Import');
+        await waitText(ctx, 'Log: import');
+        await ctx.noErrors(ctx.openMark, BENIGN);
+      } },
     { name: 'list-abort-on-navigation',
       async run(ctx) {
         await ctx.open('/lab/tickets?slow=1'); // Load takes 1.5 s and honours the request's CancellationToken

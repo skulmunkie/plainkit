@@ -2,12 +2,25 @@
 @inject NavigationManager Nav
 
 @* Lab (the harness's paths, scripts/blazor-browser-cases.mjs): a list whose Load can be slow (?slow=1, to leave while it runs) and whose rows go through OnRowClick (a callback), not a link. *@
-<PkListPage TItem="Ticket" Config="@Config" Columns="_columns" Load="Load" IdOf="t => t.Id" OnRowClick="Open" />
+<p id="lab-tickets-log">Log: @_log</p>
+<PkListPage TItem="Ticket" Config="@Config" Columns="_columns" Load="Load" IdOf="t => t.Id" OnRowClick="Open" OnAction="Act">
+    <ActionsContent>
+        <PkButton OnClick="Sync">Sync</PkButton>
+        <PkDropdown>
+            <TriggerContent><PkButton>More</PkButton></TriggerContent>
+            <ChildContent><PkMenuItem OnSelect="Import">Import</PkMenuItem></ChildContent>
+        </PkDropdown>
+    </ActionsContent>
+</PkListPage>
 
 @code {
-    private const string Config = """{"heading":"Tickets"}""";
+    private const string Config = """{"heading":"Tickets","actions":[{"key":"new","label":"New ticket"}]}""";
+    private string _log = "";
     private static readonly PkTableColumn<Ticket>[] _columns = [new() { Key = "id", Label = "Ticket" }, new() { Key = "title", Label = "Title" }];
 
     private Task<PkListResult<Ticket>> Load(PkListRequest r) => TicketStore.ListAsync(r, Nav.Uri.Contains("slow=1"));
+    private void Act(PkActionEventArgs e) => _log = "action " + e.Key;
+    private void Sync() => _log = "sync";
+    private void Import() => _log = "import";
     private void Open(PkRowClickEventArgs e) => Nav.NavigateTo("/lab/tickets/" + e.Id);
 }
