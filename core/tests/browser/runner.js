@@ -47,7 +47,7 @@ async function sources() {
 
 const list = document.getElementById('results');
 const results = [];
-// Hard per-case limit. The slowest legitimate case takes about 20 s on a loaded machine, so this is three times that; it is not to be widened to hide a hang. A case that is
+// Hard per-case limit. The slowest legitimate case takes about 20 s (the one exception, a phone-width mountApp case, took 59 s in a full run and is its own defect); it is not to be widened to hide a hang. A case that is
 // only waiting fails by name here and the run moves on; a case that freezes the page (a synchronous or microtask loop) cannot be timed out from inside it, so the page also
 // beats every few seconds and scripts/attest-browser.mjs restarts the page past a case whose beat stops (resume: ?from=<n>).
 const CASE_TIMEOUT_MS = 60000;

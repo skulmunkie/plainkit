@@ -47,7 +47,7 @@ test('isNewRun tells the report of this run from the one that was there before',
 });
 
 test('parseArgs has desktop defaults, takes numbers, and refuses a small window or an unknown flag', () => {
-    assert.deepEqual(parseArgs([]), { port: 5341, timeout: 420, width: 1280, height: 900, filter: [], elements: [] });
+    assert.deepEqual(parseArgs([]), { port: 5341, timeout: 1800, width: 1280, height: 900, filter: [], elements: [] });
     assert.deepEqual(parseArgs(['--port', '5400', '--timeout', '60']), { port: 5400, timeout: 60, width: 1280, height: 900, filter: [], elements: [] });
     assert.throws(() => parseArgs(['--width', '486', '--height', '425']), /at least/);
     assert.throws(() => parseArgs(['--width', String(MIN_WIDTH - 1)]), /at least/);

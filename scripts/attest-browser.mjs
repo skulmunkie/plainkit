@@ -10,7 +10,7 @@
 // Browser: PK_CHROME (a path to chrome, chromium or msedge), else the usual install paths and PATH names for the platform. PK_CHROME_FLAGS adds
 // extra flags (space separated; a CI container may need --no-sandbox).
 // Viewport: keep it at desktop size. A small window (about 486x425) made the suite flaky, so the default is 1280x900 and a smaller one is refused.
-// Time: the full suite takes about TIME_NOTE; the default timeout is 420 s.
+// Time: the full suite takes about 10 minutes (575 s for 658 cases on a developer machine); the default timeout is 1800 s.
 // Trace: every run writes a trace (pk-attest-trace-<time>.log in the temp folder, one line per server and page event, flushed as it happens, so it survives a hang). It is deleted when the
 //   run passes and its path printed when the run fails or trips. The page beats every 3 s and reports each case start and end; a case whose beat stops for 30 s froze the page (a loop no
 //   timer can interrupt): it is recorded as a failed case by name, the browser is restarted at the next case (?from=n) and the run goes on, so a run always completes or names the case.
@@ -81,7 +81,7 @@ export function isNewRun(previousRan, current) {
 
 // Command line -> options; an unknown flag or a too-small window is an error message (the second value), not a silent default.
 export function parseArgs(argv) {
-    const o = { port: 5341, timeout: 420, width: 1280, height: 900, filter: [], elements: [] };
+    const o = { port: 5341, timeout: 1800, width: 1280, height: 900, filter: [], elements: [] };
     const num = (flag, v) => { const n = Number(v); if (!Number.isInteger(n) || n <= 0) throw new Error(`${flag} needs a positive whole number`); return n; };
     for (let i = 0; i < argv.length; i++) {
         const a = argv[i];
@@ -101,7 +101,7 @@ export function parseArgs(argv) {
 export function noReportMessage({ timeout, url, exit = null, elapsed = 0, lines = [], where = '' }) {
     const tail = (lines.length ? ` Last server output: ${lines.slice(-3).join(' | ')}` : '') + (where ? ` ${where}` : '');
     if (exit) return `The browser exited (code ${exit.code ?? 'none'}${exit.signal ? `, signal ${exit.signal}` : ''}) after ${Math.round(elapsed)} s without writing a report: it crashed, or another browser took over the URL. Close other Chrome/Edge runs, or try PK_CHROME_FLAGS=--disable-extensions; open ${url} in a visible tab to see the page.${tail}`;
-    return `No report within ${timeout} s (the full suite takes about TIME_NOTE, more on a busy machine): raise --timeout, and check the browser can open ${url}.${tail}`;
+    return `No report within ${timeout} s (the full suite takes about 10 minutes (575 s for 658 cases on a developer machine), more on a busy machine): raise --timeout, and check the browser can open ${url}.${tail}`;
 }
 
 /** One `progress {json}` line the server prints for a page report -> { state, i, n, ms, ok, name, error, step }, or null for any other line. */
