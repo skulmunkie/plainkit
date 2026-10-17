@@ -185,13 +185,8 @@
     },
     {
       "name": "font",
-      "type": "enum",
-      "default": "inherit",
-      "values": [
-        "inherit",
-        "sans",
-        "mono"
-      ],
+      "type": "string",
+      "default": "",
       "reflect": true,
       "description": "Font family of the text: sans or mono (for code, queries, ids). Default inherit."
     },

@@ -79,7 +79,7 @@
     {
       "name": "Font",
       "prop": "font",
-      "type": "PkInputFont"
+      "type": "string"
     },
     {
       "name": "Width",
