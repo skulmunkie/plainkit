@@ -1,11 +1,9 @@
 // pk-detail-layout (issues 281, 272): at desktop width a sidebar taller than the viewport docks by its bottom edge while the body scrolls, so every card
 // can be reached; on a phone the sections become a tab strip and choosing the second tab swaps the cards (and the sidebar cards of that section).
-// t.known(n, ...) marks a defect that is already filed (a warning, never an error); when it is fixed the scenario turns it into t.ok.
 const lines = (n, what) => Array.from({ length: n }, (_, i) => `<p>${what} line ${i + 1}: some text so that the card has a height worth scrolling past.</p>`).join('');
 const BODY = 'pk-app-shell >>> [part=body]';
 const SIDEBAR = '#dl >>> [part=sidebar]';
 const MAIN = '#dl >>> [part=main]';
-const TABS_PR = 316;
 
 export default {
     name: 'detail-layout',
@@ -55,12 +53,11 @@ export default {
             if (t.shot === 'end') t.within('#last', BODY, 1);
         } else {
             if (side && main) t.ok(side.y >= main.bottom - 1, `on a phone the sidebar (y=${Math.round(side.y)}) should come after the main content (ends y=${Math.round(main.bottom)})`);
-            // The strip's tabs are defined in the layout's shadow tree; until pull request 316 lands they are plain text and do nothing.
-            t.known(TABS_PR, (t.rect('#dl >>> pk-tab:nth-of-type(1)')?.height ?? 0) >= 30, 'the phone tab strip is not styled: the tabs are plain text (pk-tab is not defined)');
-            if (t.shot === 'top') { t.visible('#details'); t.visible('#status'); t.known(TABS_PR, !t.shown('#pricing'), 'the second section shows while the first tab is selected'); }
+            t.ok((t.rect('#dl >>> pk-tab:nth-of-type(1)')?.height ?? 0) >= 30, 'the phone tab strip is not styled: the tabs are plain text (pk-tab is not defined)');
+            if (t.shot === 'top') { t.visible('#details'); t.visible('#status'); t.ok(!t.shown('#pricing'), 'the second section shows while the first tab is selected'); }
             if (t.shot === 'second-tab') {
-                t.known(TABS_PR, t.shown('#pricing') && !t.shown('#details'), 'choosing the second tab does not swap the sections (Pricing shown, Details hidden)');
-                t.known(TABS_PR, t.shown('#channels') && !t.shown('#status'), 'choosing the second tab does not swap the sidebar cards');
+                t.ok(t.shown('#pricing') && !t.shown('#details'), 'choosing the second tab does not swap the sections (Pricing shown, Details hidden)');
+                t.ok(t.shown('#channels') && !t.shown('#status'), 'choosing the second tab does not swap the sidebar cards');
             }
         }
     },
