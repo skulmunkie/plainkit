@@ -65,7 +65,7 @@
       "type": "boolean",
       "default": false,
       "reflect": true,
-      "description": "Shows a toggle on the separator that collapses the end pane."
+      "description": "Shows a toggle on the separator that collapses the end pane (collapsed at first on a phone)."
     },
     {
       "name": "collapsed",
