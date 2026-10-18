@@ -19,7 +19,6 @@ const queries = css => [...css.matchAll(/@media\s*([^{]*)\{/g)].map(m => m[1].tr
 
 // The media conditions of each file before the names, in file order.
 const BEFORE = {
-    'modules/code-explorer/code-explorer.css': ['(max-width: 640px)'],
     'modules/layout-builder/layout-builder.css': ['(max-width: 640px)'],
     'modules/theme-editor/theme-editor.css': ['(max-width: 640px)'],
     'site/gallery/gallery.css': ['(max-width: 1024px)', '(max-width: 1280px)', '(max-width: 1024px)', '(max-width: 1024px)', '(max-width: 640px)'],

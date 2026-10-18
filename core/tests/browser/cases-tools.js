@@ -40,21 +40,25 @@ export const toolCases = [
         handle.destroy(); t.ok(!host.contains(el));
     }],
 
-    ['code explorer module: the viewer is a pk-stack with the file header above a listing that fills the pane (issue 682, composed from pk-* elements, no cv-* classes)', async t => {
+    ['code explorer module: the viewer is one pk-code-view with its own header (path, language, line count, copy, actions) that fills the pane (issue 1523, no hand-built header)', async t => {
         const { mountCodeExplorer } = await dist('code-explorer');
         const host = t.stage('');
         const handle = await mountCodeExplorer(host, { snapshot: SNAPSHOT, file: 'src/app.js', theme: 'light', height: '20rem' });
         const el = handle.element;
-        const view = () => el.querySelector('[data-ce-pane] > pk-stack > pk-code-view');
+        const view = () => el.querySelector('[data-ce-pane] > pk-code-view');
         await until(view, 'the viewer');
-        const pane = el.querySelector('[data-ce-pane]'), head = el.querySelector('[data-ce-pane] > pk-stack > pk-cluster');
-        t.ok(head, 'the file header is a pk-cluster');
-        t.ok(head.querySelector('pk-badge'), 'the language is a pk-badge');
-        t.ok(!el.querySelector('[class*="cv"]'), 'no cv-* classes');
-        const h = head.getBoundingClientRect(), v = view().getBoundingClientRect(), p = pane.getBoundingClientRect();
-        t.ok(h.bottom <= v.top + 1, 'the header sits above the listing');
-        t.ok(v.height > p.height * 0.5, 'the listing fills the rest of the pane, not a collapsed strip');
-        t.ok(v.bottom <= p.bottom + 1, 'the listing stays inside the pane');
+        const pane = el.querySelector('[data-ce-pane]'), sr = view().shadowRoot;
+        await until(() => sr.querySelector('.count')?.textContent, 'the header');
+        t.ok(!el.querySelector('[data-ce-pane] > pk-stack, [class*="cv"]'), 'no hand-built header, no cv-* classes');
+        t.eq(sr.querySelector('.title').textContent, 'src/app.js');
+        t.eq(sr.querySelector('.language').textContent, 'js');
+        t.eq(sr.querySelector('.count').textContent, '4 lines');
+        t.ok(!sr.querySelector('[part=copy]').hidden, 'the copy button is shown');
+        const h = sr.querySelector('.header').getBoundingClientRect(), v = view().getBoundingClientRect(), p = pane.getBoundingClientRect();
+        t.ok(h.height > 0 && h.bottom <= v.bottom, 'the header is drawn inside the view');
+        t.ok(v.height > p.height * 0.9, 'the view fills the pane, not a collapsed strip');
+        t.ok(v.bottom <= p.bottom + 1, 'the view stays inside the pane');
+        t.ok(sr.querySelector('[part=body]').getBoundingClientRect().top >= h.bottom - 1, 'the listing sits under the header');
         handle.destroy();
     }],
 
