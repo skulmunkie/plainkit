@@ -45,7 +45,7 @@ const make = (props = {}) => {
     const el = new (behaviour(class { emit(name, detail, init = {}) { this.events.push({ name, detail, cancelable: init.cancelable !== false }); return true; } part() { return this.parts; } }))();
     const handle = { listeners: {}, addEventListener(t, f) { this.listeners[t] = f; }, getBoundingClientRect: () => ({ left: 346, top: 0, width: 8, height: 100 }), setPointerCapture() {}, hasPointerCapture: () => false, attrs: {}, setAttribute(k, v) { this.attrs[k] = v; }, removeAttribute() {} };
     const root = { toggleAttribute() {}, addEventListener() {}, attrs: {}, setAttribute(k, v) { this.attrs[k] = v; }, removeAttribute() {}, getBoundingClientRect: () => ({ left: 100, top: 0, width: 500, height: 100 }), style: { setProperty() {} } };
-    Object.assign(el, { events: [], parts: null, size: 50, min: 10, max: 90, step: 2, orientation: 'horizontal', disabled: false, children: [], ownerDocument: { activeElement: null, defaultView: { getComputedStyle: () => ({ direction: 'ltr' }) } }, dispatchEvent() {} }, props);
+    Object.assign(el, { events: [], parts: null, size: 50, min: 10, max: 90, step: 2, orientation: 'horizontal', disabled: false, hasAttribute: () => false, children: [], ownerDocument: { activeElement: null, defaultView: { getComputedStyle: () => ({ direction: 'ltr' }) } }, dispatchEvent() {} }, props);
     const toggle = { listeners: {}, focused: 0, addEventListener(t, f) { this.listeners[t] = f; }, focus() { this.focused++; }, setAttribute(k, v) { this[k] = v; } };
     const end = { inert: false };
     el.part = n => (n === 'handle' ? handle : n === 'toggle' ? toggle : n === 'end' ? end : root);
@@ -179,4 +179,24 @@ test('persistKey: a commit saves size and collapsed once the store is open; noth
     const saved = []; el.$pp = { save: s => saved.push(s) };
     el.toggle(); el.size = 30; el.save();
     assert.deepEqual(saved, [{ size: 50, collapsed: false }, { size: 30, collapsed: false }]);
+});
+
+test('phone: a collapsible side-by-side split starts collapsed, a host collapsed or a vertical split does not, nothing is saved until the user acts, and the stacked panes cannot be resized', () => {
+    const phone = { matches: true };
+    const a = make({ collapsible: true, $mq: phone });
+    assert.equal(a.el.collapsed, true);
+    const saved = []; a.el.$pp = { save: s => saved.push(s) };
+    a.el.save(); assert.deepEqual(saved, [], 'the phone default is not written');
+    a.el.toggle(); assert.equal(a.el.collapsed, false); assert.deepEqual(saved, [{ size: 50, collapsed: false }], 'the user change is');
+    a.handle.listeners.keydown({ key: 'ArrowRight', preventDefault() {} }); assert.equal(a.el.size, 50, 'stacked: arrows do nothing');
+    assert.equal(make({ collapsible: true, $mq: phone, hasAttribute: n => n === 'collapsed' }).el.collapsed, undefined, 'the host owns collapsed');
+    assert.equal(make({ collapsible: true, $mq: phone, orientation: 'vertical' }).el.collapsed, undefined);
+    assert.equal(make({ collapsible: true }).el.collapsed, undefined, 'not a phone');
+    assert.equal(make({ $mq: phone }).el.collapsed, undefined, 'not collapsible');
+});
+
+test('persistKey: a change made while the store is still loading is remembered and written once it opens', () => {
+    const { el } = make({ collapsible: true });
+    el.$pk = 'k'; el.toggle();
+    assert.equal(el.$dirty, true);
 });
