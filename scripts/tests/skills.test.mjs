@@ -70,7 +70,8 @@ test('SKILL.md frontmatter is valid: name = folder, a description that says when
 test('SKILL.md names every reference file, and every reference it names exists', () => {
     for (const s of SKILL_NAMES) {
         const skill = gen.get(`${s}/SKILL.md`);
-        const refs = [...gen.keys()].filter(f => f.startsWith(`${s}/references/`)).map(f => f.split('/').pop());
+        const refs = [...gen.keys()].filter(f => f.startsWith(`${s}/references/`) && !f.includes('/references/full/')).map(f => f.split('/').pop());
+        if (s === 'plainkit-sdk') assert.ok(skill.includes('`references/full/`'), 'SKILL.md must say what references/full/ holds (#1253)');
         for (const r of refs) assert.ok(skill.includes(`references/${r}`), `${s}/SKILL.md does not mention ${r}`);
         for (const m of skill.matchAll(/references\/([\w-]+\.md)/g)) assert.ok(refs.includes(m[1]), `${s}/SKILL.md names ${m[1]}, which does not exist`);
     }
@@ -127,7 +128,7 @@ test('every element in api.json has a section in exactly one elements file, and 
         for (const v of e.methods) assert.ok(section.includes(v.name.replace(/\|/g, '\\|')), `${e.tag} method ${v.name}`);
         for (const v of e.examples) {
             if (EXAMPLE_ISSUES.some(i => i.tag === e.tag && i.title === v.title)) assert.ok(section.includes(`Example "${v.title}" is left out`), `${e.tag} example ${v.title}`);
-            else assert.ok(section.includes(v.html.trim().split('\n')[0]), `${e.tag} example ${v.title}`);
+            else assert.ok((section + (gen.get(`plainkit-sdk/references/full/examples-${groupSlug(e.group)}.md`) ?? '')).includes(v.html.trim().split('\n')[0]), `${e.tag} example ${v.title}`);
         }
     }
     for (const g of new Set(src.api.map(e => e.group))) assert.ok(groupSlug(g), g);
@@ -182,15 +183,16 @@ test('the Blazor skill states the alpha status from the manifest: WebAssembly, m
 
 test('the SDK skill covers templates, patterns, layouts, tools, logging, openers, theming and loading from their sources', () => {
     const f = n => gen.get(`plainkit-sdk/references/${n}.md`);
+    const ff = n => f(n) + (gen.get(`plainkit-sdk/references/full/${n}.md`) ?? '');
     for (const t of src.samples.templates) assert.ok(f('templates').includes(`## ${t.id}: `), t.id);
     for (const t of src.samples.patterns) assert.ok(f('patterns').includes(`## ${t.id}: `), t.id);
     // A pattern can ship a script: the reference says so and shows its source, with the imports as an app has them.
     const scripted = src.samples.patterns.filter(t => t.script);
     assert.ok(scripted.length >= 5, 'the patterns that need behaviour have scripts');
     assert.ok(f('patterns').includes('also ships a script'), 'the patterns reference says a pattern can have a script');
-    for (const t of scripted) { assert.ok(t.scriptSource.includes('export default function mount(root)'), t.id); assert.ok(f('patterns').includes(t.scriptSource), `${t.id}: its script is shown`); assert.ok(!f('patterns').includes('../../../js/'), 'script imports are rewritten to ./plainkit/js/'); }
+    for (const t of scripted) { assert.ok(t.scriptSource.includes('export default function mount(root)'), t.id); assert.ok(ff('patterns').includes(t.scriptSource), `${t.id}: its script is shown`); assert.ok(!f('patterns').includes('../../../js/'), 'script imports are rewritten to ./plainkit/js/'); }
     for (const t of src.samples.layouts) assert.ok(f('layouts').includes(`## ${t.id}: `), t.id);
-    for (const m of src.modules) { assert.ok(m.mount, `${m.name} has no mount function`); assert.ok(f('tools').includes(`\`${m.mount}\``), m.name); assert.ok(f('tools').includes(m.header.split('\n')[0]), `${m.name} header`); }
+    for (const m of src.modules) { assert.ok(m.mount, `${m.name} has no mount function`); assert.ok(f('tools').includes(`\`${m.mount}\``), m.name); assert.ok(ff('tools').includes(m.header.split('\n')[0]), `${m.name} header`); }
     for (const n of src.logExports) assert.ok(f('logging').includes(`\`${n}\``), n);
     for (const term of ['?pk-log=', 'data-pk-log', 'PkLog', 'registerLogOutput', 'warn']) assert.ok(f('logging').includes(term), term);
     for (const term of ['data-open', 'data-toggle', 'data-close']) assert.ok(f('openers').includes(term), term);
