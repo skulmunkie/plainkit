@@ -118,6 +118,7 @@ export const LAB_CASES = [
         ctx.ok(!missing.length, `no control for the field(s) ${missing.join(', ')}`);
         ctx.ok(await ctx.eval(`window.__deep.field('Opened').getAttribute('type') === 'datetime-local'`), 'the DateTime field is not a datetime-local input');
         ctx.ok(await ctx.eval(`window.__deep.field('Secret').getAttribute('autocomplete') === 'new-password' && !window.__deep.field('Title').hasAttribute('autocomplete')`), 'the Secret field lost its AutoComplete token (new-password), or Title gained one');
+        ctx.ok(await ctx.eval(`window.__deep.field('Title').getAttribute('maxlength') === '40'`), 'the Title field lost its MaxLength (40): PkFieldSpec must send it as maxlength')
         const w = await ctx.eval(`(() => { const f = n => window.__deep.field(n).closest('pk-field').getBoundingClientRect().width; return { notes: f('Notes'), estimate: f('Estimate') }; })()`);
         ctx.ok(w.notes > w.estimate * 1.8, `ColumnSpan 2 field is ${w.notes.toFixed(0)} px wide next to a one-column field of ${w.estimate.toFixed(0)} px`);
         await ctx.setField('Title', 'Changed'); // pk-field-change goes back through the handler to Set and ModelChanged
