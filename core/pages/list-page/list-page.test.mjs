@@ -113,3 +113,53 @@ test('refresh() loads the data table again, so a load set after the first (empty
     assert.equal(el.refresh(), 'again');
     assert.equal(n, 1);
 });
+
+test('host content in the actions slot keeps the title bar shown when the config draws none, and the toolbar slot is the data table toolbar\'s own', () => {
+    const { el, parts } = make();
+    el.connected();
+    el.buildActions();
+    assert.equal(parts.header.attrs['data-bare'], 'true');
+    el.children = [{ slot: 'actions' }];
+    el.showHeaderSlot();
+    assert.equal(parts.header.attrs['data-bare'], 'false');
+    assert.equal(parts.actions.children.length, 0, 'config.actions are not mixed with the slot content');
+});
+
+test('a config with no host slot content leaves a bare title bar bare', () => {
+    const { el, parts } = make();
+    el.children = [{ slot: 'toolbar' }];
+    el.connected();
+    assert.equal(parts.header.attrs['data-bare'], 'true');
+});
+
+test('the shadow template forwards the actions slot to the title bar and the toolbar slot to the data table actions slot', async () => {
+    const { readFile } = await import('node:fs/promises');
+    const html = await readFile(new URL('./list-page.html', import.meta.url), 'utf8');
+    assert.match(html, /<slot name="actions" slot="actions"><\/slot><pk-data-table/);
+    assert.match(html, /<slot name="toolbar" slot="actions"><\/slot>/);
+});
+
+test('rows are cards on a phone unless config.cards is false or the list is selectable (a card has no select-all)', () => {
+    const { el, parts } = make();
+    el.connected();
+    assert.equal(parts.table.cards, true);
+    el.config = { cards: false };
+    el.changed('config');
+    assert.equal(parts.table.cards, false);
+    el.config = { cards: true };
+    el.changed('config');
+    assert.equal(parts.table.cards, true);
+    el.config = { selectable: true };
+    el.changed('config');
+    assert.equal(parts.table.cards, false);
+    el.config = { selectable: true, cards: true };
+    el.changed('config');
+    assert.equal(parts.table.cards, true);
+});
+
+test('the initial query of the config (search, filterValues, sort, sortDir, page) is handed to the data table', () => {
+    const { el, parts } = make();
+    el.config = { search: 'acme', filterValues: { channel: 'ebay' }, sort: 'total', sortDir: 'descending', page: 3 };
+    el.connected();
+    assert.deepEqual([parts.table.search, parts.table.filterValues, parts.table.sort, parts.table.sortDir, parts.table.page], ['acme', { channel: 'ebay' }, 'total', 'descending', 3]);
+});
