@@ -80,6 +80,13 @@
       "prop": "toggleLabel"
     },
     {
+      "name": "PersistKey",
+      "type": "string",
+      "default": "",
+      "map": "prop",
+      "prop": "persistKey"
+    },
+    {
       "name": "StartContent",
       "type": "RenderFragment?",
       "map": "slot",
