@@ -62,6 +62,21 @@
       "description": "The search term to start with, for example from a query string: it fills the search box and the first load, and typing replaces it. Changing it later replaces the term and loads page 1."
     },
     {
+      "name": "filterValues",
+      "type": "json",
+      "default": {},
+      "reflect": false,
+      "description": "Filter values to start with, by key."
+    },
+    {
+      "name": "page",
+      "type": "number",
+      "default": 1,
+      "reflect": false,
+      "commit": "pk-query-change",
+      "description": "The page to load first (initial only)."
+    },
+    {
       "name": "searchLabel",
       "type": "string",
       "default": "",
