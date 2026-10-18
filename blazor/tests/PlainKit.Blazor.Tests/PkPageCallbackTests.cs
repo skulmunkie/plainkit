@@ -276,6 +276,40 @@ public sealed class PkPageCallbackTests : BunitContext, IAsyncLifetime
     }
 
     [Fact]
+    public void RecordPage_sends_Sections_Sidebar_and_the_title_TitleOf_gives_the_loaded_or_new_record()
+    {
+        var cut = Render<PkRecordPage<Person>>(p => p
+            .Add(x => x.Config, "{\"title\":\"Person\",\"sidebar\":[{\"heading\":\"Old\",\"fields\":[\"age\"]}]}")
+            .Add(x => x.Fields, PersonFields)
+            .Add(x => x.Model, new Person { Name = "Ada" })
+            .Add(x => x.Sections, [new PkRecordSection("Main", ["name"])])
+            .Add(x => x.Sidebar, [new PkRecordSection("Status", ["active"])])
+            .Add(x => x.TitleOf, person => person.Name));
+
+        var config = JsonDocument.Parse(cut.Find("pk-record-page").GetAttribute("config")!).RootElement;
+        Assert.Equal("Ada", config.GetProperty("title").GetString());
+        Assert.Equal("Main", config.GetProperty("sections")[0].GetProperty("heading").GetString());
+        Assert.Equal(["name"], config.GetProperty("sections")[0].GetProperty("fields").EnumerateArray().Select(x => x.GetString()));
+        Assert.Equal("Status", config.GetProperty("sidebar")[0].GetProperty("heading").GetString());
+        Assert.Equal(1, config.GetProperty("sidebar").GetArrayLength());
+
+        var untitled = Render<PkRecordPage<Person>>(p => p.Add(x => x.Config, "{\"title\":\"Person\"}").Add(x => x.Fields, PersonFields).Add(x => x.Model, new Person()).Add(x => x.TitleOf, person => person.Name));
+        Assert.Equal("Person", JsonDocument.Parse(untitled.Find("pk-record-page").GetAttribute("config")!).RootElement.GetProperty("title").GetString());
+    }
+
+    [Fact]
+    public async Task RecordPage_OnCancel_shows_Cancel_on_a_new_record_and_raises_with_the_id()
+    {
+        PkRecordCancelEventArgs? seen = null;
+        var cut = Render<PkRecordPage<Person>>(p => p.Add(x => x.Fields, PersonFields).Add(x => x.Model, new Person())
+            .Add(x => x.OnCancel, EventCallback.Factory.Create<PkRecordCancelEventArgs>(this, e => seen = e)));
+        Assert.True(cut.Find("pk-record-page").HasAttribute("cancellable"));
+        await cut.Find("pk-record-page").TriggerEventAsync("onpk-record-cancel", new PkRecordCancelEventArgs { Id = "7" });
+        Assert.Equal("7", seen?.Id);
+        Assert.False(Render<PkRecordPage<Person>>(p => p.Add(x => x.Fields, PersonFields).Add(x => x.Model, new Person())).Find("pk-record-page").HasAttribute("cancellable"));
+    }
+
+    [Fact]
     public void RecordPage_spec_Editor_is_the_custom_fields_body_slot_and_gets_the_model()
     {
         IReadOnlyList<PkFieldSpec<Person>> fields =
