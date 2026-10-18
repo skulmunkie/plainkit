@@ -197,8 +197,14 @@ export async function run(argv, { cwd = process.cwd(), stdout = console.log, std
     }
     const ignored = applyIgnores(findings, scanned.ignores);
     findings = ignored.kept;
+    // An ignore that matched nothing is dead weight (a warning; an error under --strict). Skipped when --rule narrows the run.
+    const unused = opts.rule ? [] : ignored.unused;
+    if (!opts.listSuppressions) for (const g of unused) {
+        stderr(`plainkit audit: ${g.file}:${g.line}: plainkit-audit-ignore ${g.rules.join(',')} suppresses nothing.`);
+        stderr('FIX: delete the comment (the finding it hid is gone).');
+    }
     if (opts.listSuppressions) {
-        for (const g of scanned.ignores) stdout(`${g.file}:${g.line}  ${g.rules.join(',')}  ${g.reason}`);
+        for (const g of scanned.ignores) stdout(`${g.file}:${g.line}  ${g.rules.join(',')}  ${g.reason}${ignored.unused.includes(g) ? '  (unused)' : ''}`);
         stdout(`plainkit audit: ${scanned.ignores.length} inline suppression${scanned.ignores.length === 1 ? '' : 's'}`);
         return scanned.problems.length ? 1 : 0;
     }
@@ -279,7 +285,7 @@ export async function run(argv, { cwd = process.cwd(), stdout = console.log, std
 
     const overWarnings = opts.maxWarnings >= 0 && warningsCount > opts.maxWarnings;
     const staleBaselineFails = opts.strictBaseline && staleBaseline.length > 0;
-    if (errorsCount > 0 || overWarnings || allowIssues.length > 0 || staleBaselineFails || scanned.problems.length > 0) return 1;
+    if (errorsCount > 0 || overWarnings || allowIssues.length > 0 || staleBaselineFails || scanned.problems.length > 0 || (strict && unused.length > 0)) return 1;
     return 0;
 }
 
