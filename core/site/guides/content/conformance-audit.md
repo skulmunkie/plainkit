@@ -40,7 +40,7 @@ Most rules are a warning in normal mode and an error in strict mode - useful dur
 
 ## Safe fixes
 
-Three edits are deterministic and reversible, and run only when you name them. The first rewrites `<hr>` to `<pk-divider>` and an empty `<progress value max>` to `<pk-progress value max>` when the tag has no other attribute. The second adds `label` to an icon-only `<pk-button>` from its static `title` (the title stays). The third removes a dead entry and lowers a stale `count` in `plainkit.audit.json`. Add the dry-run flag to print a diff and write nothing. A line carrying, or right after, a `plainkit-audit-ignore` comment is never rewritten; everything else stays a suggestion.
+Three edits are deterministic and reversible, and run only when you name them. The first rewrites `<hr>` to `<pk-divider>` and an empty `<progress value max>` to `<pk-progress value max>` when the tag has no other attribute. The second adds `label` to an icon-only `<pk-button>` from its static `title` (the title stays). The third removes a dead entry and lowers a stale `count` in `plainkit.audit.json`. Add the dry-run flag to print a diff and write nothing. A line carrying, or right after, a `plainkit-audit-ignore` comment is never rewritten; everything else stays a suggestion. An ignore comment that suppresses nothing is reported with its file and line (a warning, an error in strict mode), and the list-suppressions flag marks it (unused).
 
 ```bash
 npx plainkit audit --fix D1-simple --dry-run
