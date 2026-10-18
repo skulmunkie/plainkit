@@ -11,7 +11,7 @@ async function frame(t, html, width, height = 420) {
     const loaded = new Promise(r => f.addEventListener('load', r, { once: true }));
     host.append(f); f.srcdoc = sampleDoc(html); await loaded;
     const win = f.contentWindow;
-    await until(() => win.customElements.get('pk-dock') && win.customElements.get('pk-splitter') && win.customElements.get('pk-tabs'), 'the dock elements to be defined in the frame');
+    await until(() => win.customElements.get('pk-splitter') && (!html.includes('<pk-dock') || (win.customElements.get('pk-dock') && win.customElements.get('pk-tabs'))), 'the dock elements to be defined in the frame');
     await t.settle(); await wait(120);
     return { doc: f.contentDocument, win };
 }
@@ -323,5 +323,35 @@ export const dockCases = [
         ptr('pointerdown', x0 + 90, y0 + 50); ptr('pointermove', x0 + 5000, y0 + 5000); ptr('pointerup', x0 + 5000, y0 + 5000); await t.settle();
         const out = rect(fl);
         t.ok(out.right <= box.right + 1 && out.bottom <= box.bottom + 1, 'a drag far outside is clamped to the dock bounds');
+    }],
+
+    ['splitter phone: collapsible starts collapsed, expanding stacks the end pane full width under the start pane with a 44px icon-only toggle, none of it is stored, and a host collapsed attribute wins', async t => {
+        const key = 'pk-test-' + Math.random().toString(36).slice(2), area = 'pk-splitter:' + key + '.state';
+        const sp = a => `<pk-splitter ${a} collapsible size="40" toggle-label="Toggle the inspector"><div slot="start">A</div><div slot="end">B</div></pk-splitter>`;
+        try {
+            const { doc, win } = await frame(t, sp(`id="a" persist-key="${key}"`) + sp('id="b" collapsed') + sp('id="d" orientation="vertical"'), 375, 600);
+            const a = doc.getElementById('a'), w = p => rect(a.part(p)), tg = a.part('toggle');
+            t.ok(a.collapsed && w('end').height < 1 && w('start').width > 300, 'on a phone the end pane starts collapsed (no height) and the start pane fills');
+            t.eq(tg.getAttribute('aria-expanded'), 'false');
+            t.eq(win.localStorage.getItem(area), null, 'a phone default writes nothing');
+            t.ok(rect(tg).width >= 43.5 && rect(tg).height >= 43.5, 'the toggle is a 44px target'); t.eq(tg.textContent.trim(), '', 'icon only'); t.ok(tg.getAttribute('aria-label'));
+            const b = doc.getElementById('b'); t.ok(b.collapsed && rect(b.part('end')).height < 1, 'a host collapsed attribute is kept');
+            t.ok(rect(doc.getElementById('d').part('end')).height > 10, 'a vertical (already stacked) splitter is not collapsed by the phone');
+            tg.click(); await t.settle(); await wait(400);
+            t.ok(!a.collapsed, 'the toggle expands'); t.ok(w('end').height > 10 && w('end').top >= w('start').bottom - 1, 'expanded: the end pane stacks below the start pane');
+            t.ok(Math.abs(w('end').width - w('start').width) < 1 && w('end').width > 300, 'expanded: the end pane is full width');
+            t.eq(JSON.parse(win.localStorage.getItem(area)).data.collapsed, false, 'a user change is stored');
+        } finally { localStorage.removeItem(area); }
+    }],
+
+    ['splitter: a change made before the lazy persist-key store loads is kept, not overwritten by the stored state', async t => {
+        const key = 'pk-test-' + Math.random().toString(36).slice(2), area = 'pk-splitter:' + key + '.state';
+        localStorage.setItem(area, JSON.stringify({ v: 1, data: { size: 30, collapsed: false } }));
+        try {
+            const host = t.stage(`<pk-splitter collapsible persist-key="${key}"><div slot="start">A</div><div slot="end">B</div></pk-splitter>`);
+            const el = host.firstElementChild; await t.load(host);
+            el.part('toggle').click(); await t.settle(); await wait(400); await t.settle();
+            t.ok(el.collapsed, 'the early toggle is kept'); t.eq(JSON.parse(localStorage.getItem(area)).data.collapsed, true, 'and stored');
+        } finally { localStorage.removeItem(area); }
     }],
 ];
