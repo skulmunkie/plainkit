@@ -5,6 +5,25 @@ The format follows [Keep a Changelog](https://keepachangelog.com/) and the proje
 
 ## [Unreleased]
 
+## [0.18.0] - 2026-10-18
+
+### Added
+
+- An editable `pk-table` column can use `editor: "textarea"` (Enter commits, Shift+Enter adds a line; the editor opens over the cell without changing the row height) or `editor: "combobox"` (a native input with a list of the column's `options`; the text must be an option unless the column is `free`; the new `pk-cell-query` event lets the host fill the list as the user types). Both commit, paste, undo and `detail.wait` like the other editors. The Blazor `PkTableEditor` values are not added yet. (#1580)
+- A dev tools workspace module, `mountDevToolsWorkspace` in `modules/devtools/workspace.js`: the Gallery, Files and Scorecard tabs and the dev tools dock in one call. Each workspace loads on first use, and the gallery sections, the source snapshot or provider and the score targets are options (`update()` hands them over after the mount), so a host such as PlainKit.Blazor can mount the whole dev tools page from one component. (#1582)
+
+### Changed
+
+- The npm package is about 29 KB smaller packed (119 KB unpacked): the skill element references show each element's first example, and the long templates, patterns and tool module headers, with every further example, move to `references/full/` (the Pages site, the skills zip and NuGet carry it; the package leaves it out). `custom-elements.json` and `web-types.json` drop empty defaults and `reflects: false`. (#1253)
+- The audit CLI reports a plainkit-audit-ignore comment that suppresses nothing, with file:line and a FIX line: a warning, an error under --strict; --list-suppressions marks it (unused). (#1518)
+- The `/_plainkit` dev tools page in PlainKit.Blazor is now one SDK module mounted by a single `PkDevToolsWorkspace` component (the Gallery, Files and Scorecard tabs and the dock), instead of five separate mounts; choosing a tab still navigates to `/_plainkit/<tab>`, and the page looks and behaves as before. (#1582)
+
+### Fixed
+
+- The first route change no longer shifts the page 15px sideways: the screen-reader announcer is position: fixed instead of sitting below the full-height shell, where it made the document 1px taller and drew a scrollbar. (#1579)
+- A `PageBase` page rendered statically (SSR or prerender) no longer fails the response when the request scope is disposed before the page: disposing a page reports its busy state through a service resolved once at start, and never touches the service provider. (#1586)
+- A max length set on a Blazor `PkFieldSpec` now reaches the field group's control (it was sent as `maxLength`, which the element does not read); `PkFieldSpec` also gains `MinLength`. (#1589)
+
 ## [0.17.0] - 2026-10-18
 
 ### Added
