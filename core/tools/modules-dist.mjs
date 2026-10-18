@@ -20,7 +20,7 @@ export const MODULES = {
     console: { files: ['console.js'] },
     logs: { files: ['logs.js'] },
     'log-settings': { files: ['log-settings.js'] },
-    devtools: { files: ['devtools.js', 'panels.js'] },
+    devtools: { files: ['devtools.js', 'panels.js', 'workspace.js'] },
     'tool-dock': { files: ['tool-dock.js', 'tool-dock.css'] },
     quality: { files: ['quality.js'] },
     'layout-builder': { files: ['layout-builder.js', 'layout-builder.css'] },
