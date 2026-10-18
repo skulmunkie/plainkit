@@ -20,3 +20,11 @@ test('lineSegments keeps supplied segments and falls back to one plain segment',
     assert.deepEqual(lineSegments('', []), []);
     assert.deepEqual(lineSegments('x', [{ text: 'x', kind: 'Bad kind', match: 1 }]), [{ text: 'x', kind: 'plain', match: true, word: false }]);
 });
+
+test('the shared clipboard helper copies, announces and emits pk-copy', async () => {
+    const { copyAndAnnounce } = await import('../../js/clipboard.js');
+    const status = { textContent: '' }, seen = [], host = { part: () => status, emit: (n, d) => seen.push([n, d]) };
+    const ok = await copyAndAnnounce(host, 'x');
+    assert.equal(ok, false); assert.equal(status.textContent, 'Copy failed'); assert.deepEqual(seen, [['pk-copy', { ok: false }]]);
+    clearTimeout(host.$t);
+});
