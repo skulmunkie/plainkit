@@ -92,7 +92,9 @@
       "description": "Footer row"
     }
   ],
-  "cssProperties": [],
+  "cssProperties": [
+    { "name": "--pk-fill-shrink", "description": "Set on a page type's host (1) so it may shrink to the height left in the body instead of keeping its own height; the default 0 keeps ordinary content at its height so the body scrolls. List pages and filling (fill) master-detail and workspace pages set it." }
+  ],
   "methods": [],
   "writes": [
     { "target": "the pk-side-nav in the shell", "attributes": ["open"], "why": "The nav-open state and the hamburger [data-nav-toggle] control the drawer state of the nav (and follow it). Not undone on disconnect. The wide-screen hide is done in the shell's own shadow tree (its nav slot), not on the nav." }

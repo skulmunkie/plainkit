@@ -1,5 +1,5 @@
 :host { position: relative; display: block; inline-size: 100%; min-inline-size: 0; container-type: inline-size; }
-:host([fill]) { flex: 1 1 auto; align-self: stretch; block-size: 100%; min-block-size: 0; }
+:host([fill]) { --pk-fill-shrink: 1; flex: 1 1 auto; align-self: stretch; block-size: 100%; min-block-size: 0; }
 [part="layout"] { display: grid; grid-template-columns: minmax(0, 1fr); gap: var(--space-4); align-items: start; }
 [part="master"], [part="detail"] { position: relative; min-inline-size: 0; }
 [part="detail"]:focus-visible { outline: var(--focus-ring); outline-offset: 2px; }

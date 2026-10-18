@@ -25,6 +25,9 @@
 
 [part="body"] { flex: 1; min-height: 0; display: flex; flex-direction: column; position: relative; overflow-y: auto; scrollbar-gutter: stable; overscroll-behavior: contain; --pk-page-header-sticky-top: calc(-1 * var(--pad-page)); padding: var(--pad-page); padding-inline: max(var(--pad-page), env(safe-area-inset-left)) max(var(--pad-page), env(safe-area-inset-right)); }
 
+/* Ordinary content keeps its height: a flex item shrinks below an explicit height and the body would never scroll. A filling page type opts in with --pk-fill-shrink: 1 on its host (issue 1551). */
+[part="body"] > slot:not([name])::slotted(*) { flex-shrink: var(--pk-fill-shrink, 0); }
+
 :host([flush]) [part="body"] { --pk-page-header-sticky-top: 0px; padding: 0; padding-inline: env(safe-area-inset-left) env(safe-area-inset-right); }
 
 [part="footer"] { flex: none; display: flex; align-items: center; gap: var(--space-3); min-height: var(--app-footer-h); padding: var(--pad-footer); padding-bottom: env(safe-area-inset-bottom); padding-inline: max(var(--space-4), env(safe-area-inset-left)) max(var(--space-4), env(safe-area-inset-right)); background: var(--color-panel); border-top: 1px solid var(--color-border); color: var(--color-muted); font-size: var(--text-meta); }
