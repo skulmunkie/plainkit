@@ -127,7 +127,7 @@ export async function openBrowser(chrome, profile) {
     for (const m of ['Runtime.enable', 'Log.enable', 'Network.enable', 'Page.enable']) raw(m);
     await cdp.send('Page.enable');
     if (process.env.PK_CPU_THROTTLE) await cdp.send('Emulation.setCPUThrottlingRate', { rate: Number(process.env.PK_CPU_THROTTLE) }); // a slow runner on purpose, to reproduce a shift that only shows when upgrades land late
-    await cdp.send('Page.addScriptToEvaluateOnNewDocument', { source: `window.__cls = 0; try { new PerformanceObserver(l => { for (const e of l.getEntries()) if (!e.hadRecentInput) { window.__cls += e.value; (window.__clsLog ||= []).push({ t: Math.round(performance.now()), v: e.value, s: (e.sources || []).map(x => JSON.stringify(x.previousRect) + '>' + JSON.stringify(x.currentRect)) }); } }).observe({ type: 'layout-shift', buffered: true }); } catch (e) { window.__clsError = String(e); }` });
+    await cdp.send('Page.addScriptToEvaluateOnNewDocument', { source: `window.__cls = 0; try { new PerformanceObserver(l => { for (const e of l.getEntries()) if (!e.hadRecentInput) { window.__cls += e.value; (window.__clsLog ||= []).push({ t: Math.round(performance.now()), v: e.value, s: (e.sources || []).map(x => (x.node ? (x.node.nodeType === 3 ? (x.node.parentElement ? x.node.parentElement.localName : '') + ' text "' + x.node.data.trim().slice(0, 24) + '"' : x.node.localName + (x.node.id ? '#' + x.node.id : '')) + ' ' : '') + JSON.stringify(x.previousRect) + '>' + JSON.stringify(x.currentRect)) }); } }).observe({ type: 'layout-shift', buffered: true }); } catch (e) { window.__clsError = String(e); }` });
     return { browser, cdp, events, sync, close() { ws.close(); cdp.close(); killTree(browser); } };
 }
 

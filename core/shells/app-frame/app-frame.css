@@ -1,6 +1,10 @@
 /* pk-app-frame: the app frame. All layout is pk-app-shell's own; this host only has to be a block the shell can fill. */
 :host { display: block; }
 
+/* The page's rules for an element that has not upgraded yet (base.css, elements.css) do not reach into this shadow tree, so the frame states them for its own: the shell fills the screen and, like every pk-* not yet defined, shows nothing until it upgrades. Else the bar, nav and breadcrumb stack unstyled above the page and move it when the shell arrives (CLS, issue 1533). */
+pk-app-shell:not(:defined) { display: block; height: 100dvh; }
+:not(:defined) { visibility: hidden; }
+
 [part="picker"][hidden], [part="search"][hidden], [part="crumbs"][hidden], [part="nav"][hidden] { display: none; }
 
 /* A long module title is cut, never wraps the header row. (pk-navbar does not draw the picker on a phone; the frame puts the module list in the drawer's first row.) */

@@ -15,6 +15,33 @@ async function open(t, width) {
 }
 
 export const appFrameCases = [
+    // #1533: the frame's shadow tree is out of reach of the page's `:not(:defined)` rules, so the shell inside it (and the bar, side nav and breadcrumb under that) used to show unstyled and move the page when they upgraded.
+    ['late upgrade (#1533): the shell inside the frame upgrading after the frame holds the screen and hides its contents until then, so the page does not shift (layout shift 0), at 375 and 1280', async t => {
+        for (const w of [375, 1280]) {
+            const host = t.stage(''), f = document.createElement('iframe');
+            f.title = `app frame with its shell upgrading late at ${w}px`;
+            f.style.cssText = `width:${w}px;height:700px;border:0;display:block`;
+            f.src = new URL('./app-frame-frame.html?hold=pk-app-shell', import.meta.url).href;
+            await new Promise(resolve => { f.addEventListener('load', resolve, { once: true }); host.append(f); });
+            const win = f.contentWindow, d = win.document;
+            await Promise.race([win.customElements.whenDefined('pk-app-frame'), wait(5000)]);
+            await wait(400);
+            t.ok(!win.customElements.get('pk-app-shell'), 'pk-app-shell is still undefined before the release');
+            const frame = d.querySelector('pk-app-frame'), shell = frame.shadowRoot.querySelector('pk-app-shell');
+            t.eq(win.getComputedStyle(shell).visibility, 'hidden', `at ${w}px the undefined shell shows nothing. FIX: pk-app-shell:not(:defined) in app-frame.css, as base.css does for the page`);
+            t.ok(Math.abs(shell.getBoundingClientRect().height - win.innerHeight) < 1, `at ${w}px the undefined shell already fills the screen (${shell.getBoundingClientRect().height} of ${win.innerHeight})`);
+            const shifts = [], po = new win.PerformanceObserver(list => shifts.push(...list.getEntries()));
+            po.observe({ type: 'layout-shift', buffered: true });
+            const settled = shifts.length;
+            win.release();
+            await Promise.race([win.customElements.whenDefined('pk-app-shell'), wait(5000)]);
+            await wait(600);
+            po.takeRecords().forEach(e => shifts.push(e));
+            po.disconnect();
+            const cls = shifts.slice(settled).filter(e => !e.hadRecentInput).reduce((n, e) => n + e.value, 0);
+            t.ok(cls < 0.0001, `at ${w}px upgrading the shell gave a layout shift of ${cls.toFixed(4)}, expected 0`);
+        }
+    }],
     ['app-frame on a phone (#364): the drawer lists the modules as its first row, the active one current', async t => {
         const { q } = await open(t, 375);
         const rows = [...q('pk-side-nav').querySelectorAll('pk-nav-item[data-module]')];
