@@ -6,7 +6,7 @@
 import { sheetFor } from './element.js'; import { rowAt } from './rowset.js';
 import { keyStep, stepIndex } from './roving.js'; import V from './table-vw.js';
 
-const STYLES = ('td[data-key][tabindex]{cursor:cell;user-select:none}td[data-key]:focus-visible{outline:var(--focus-ring);outline-offset:-2px}td[aria-selected="true"]{background:color-mix(in srgb,var(--color-accent) 10%,transparent)}td[aria-invalid="true"]{box-shadow:inset 0 0 0 2px var(--field-error)}td[aria-busy="true"]{opacity:.6;cursor:progress}td[aria-invalid="true"]:not(:first-child),:host(:not([sticky-column])) td[aria-invalid="true"]{position:relative}td[data-editing]{padding:var(--space-1);position:relative}td[data-editing] :is(input,select){inline-size:0;min-inline-size:100%;font:inherit}[data-cell-error]{display:block;color:var(--field-error);font-size:var(--text-meta);text-align:start;position:absolute;inset-block-start:100%;inset-inline-start:0;z-index:1;inline-size:max-content;max-inline-size:min(16rem,80vw);padding:var(--space-1) var(--space-2);background:var(--color-bg);border-radius:var(--radius-sm);box-shadow:var(--shadow-card)}td:last-child [data-cell-error]{inset-inline-start:auto;inset-inline-end:0}td:not([data-editing]):not(:hover):not(:focus-within) [data-cell-error]{inline-size:1px;block-size:1px;padding:0;overflow:hidden;clip-path:inset(50%);white-space:nowrap}td[data-editing] input[type=date]{position:absolute;inset-block:var(--space-1);inset-inline-start:0;inline-size:max-content;min-inline-size:max(100%,var(--touch-target));z-index:1;background:var(--color-bg)}td:last-child[data-editing] input[type=date]{inset-inline-start:auto;inset-inline-end:0}td[data-editing] [data-ghost]{display:block;visibility:hidden}@media (max-width:640px){td[data-editing] :is(input,select){min-block-size:var(--touch-target);min-inline-size:max(100%,var(--touch-target));font-size:16px}}');
+const STYLES = ('td[data-key][tabindex]{cursor:cell;user-select:none}td[data-key]:focus-visible{outline:var(--focus-ring);outline-offset:-2px}td[aria-selected="true"]{background:color-mix(in srgb,var(--color-accent) 10%,transparent)}td[aria-invalid="true"]{box-shadow:inset 0 0 0 2px var(--field-error)}td[aria-busy="true"]{opacity:.6;cursor:progress}td[aria-invalid="true"]:not(:first-child),:host(:not([sticky-column])) td[aria-invalid="true"]{position:relative}td[data-editing]{padding:var(--space-1);position:relative}td[data-editing] :is(input,select,textarea){inline-size:0;min-inline-size:100%;font:inherit}[data-cell-error]{display:block;color:var(--field-error);font-size:var(--text-meta);text-align:start;position:absolute;inset-block-start:100%;inset-inline-start:0;z-index:1;inline-size:max-content;max-inline-size:min(16rem,80vw);padding:var(--space-1) var(--space-2);background:var(--color-bg);border-radius:var(--radius-sm);box-shadow:var(--shadow-card)}td:last-child [data-cell-error]{inset-inline-start:auto;inset-inline-end:0}td:not([data-editing]):not(:hover):not(:focus-within) [data-cell-error]{inline-size:1px;block-size:1px;padding:0;overflow:hidden;clip-path:inset(50%);white-space:nowrap}td[data-editing] textarea{position:absolute;inset-block-start:var(--space-1);inset-inline-start:0;min-inline-size:max(100%,12rem);max-inline-size:min(24rem,80vw);block-size:4lh;resize:none;padding:var(--space-1);z-index:1;background:var(--color-bg)}td:last-child[data-editing] textarea{inset-inline-start:auto;inset-inline-end:0}tr:last-child td[data-editing] textarea{inset-block-start:auto;inset-block-end:var(--space-1)}td[data-editing] input[type=date]{position:absolute;inset-block:var(--space-1);inset-inline-start:0;inline-size:max-content;min-inline-size:max(100%,var(--touch-target));z-index:1;background:var(--color-bg)}td:last-child[data-editing] input[type=date]{inset-inline-start:auto;inset-inline-end:0}td[data-editing] [data-ghost]{display:block;visibility:hidden}@media (max-width:640px){td[data-editing] :is(input,select,textarea){min-block-size:var(--touch-target);min-inline-size:max(100%,var(--touch-target));font-size:16px}}');
 let sheet;
 
 // The message a draft breaks, or '' when it is fine. Pure: `col` is the column definition ({ editor, required, min, max, maxLength }), `text` the draft as typed.
@@ -24,13 +24,16 @@ export function check(col, text) {
         if (col.min != null && t < String(col.min)) return `On or after ${col.min}`;
         if (col.max != null && t > String(col.max)) return `On or before ${col.max}`;
     }
+    if (col.editor === 'combobox' && t && !col.free && !canon(col, t)) return 'Choose from the list';
     if (col.maxLength != null && String(text ?? '').length > col.maxLength) return `At most ${col.maxLength} characters`;
     return '';
 }
 
 // The value a draft becomes: a number column holds a number (or null when empty), the others the text as typed.
-export const typed = (col, text) => col.editor === 'number' ? (String(text).trim() === '' ? null : Number(text)) : text;
+export const typed = (col, text) => col.editor === 'number' ? (String(text).trim() === '' ? null : Number(text)) : col.editor === 'combobox' ? canon(col, text) ?? text : text;
 
+// A combobox column's option for a text (its value or its label, ignoring case), as the value it holds; undefined when none matches.
+const canon = (c, t) => (c.options ?? []).map(o => typeof o === 'object' ? o.value : o).find(v => String(v).toLowerCase() === String(t).trim().toLowerCase());
 const same = (a, b) => String(a ?? '') === String(b ?? '');
 const key = (id, k) => `${id}:${k}`;
 const st = t => t.$g ??= {};
@@ -41,12 +44,24 @@ const label = (t, id, k) => `${col(t, k).label ?? k}, row ${id}`;
 
 // The cell's editor: the control the column asks for, holding the draft. It is drawn only while the cell is edited.
 function editor(t, c, id, s) {
-    const e = c.editor, i = document.createElement(e === 'select' ? 'select' : 'input'); i.dataset.cellEditor = ''; i.setAttribute('aria-label', label(t, id, c.key));
+    const e = c.editor, i = document.createElement(e === 'select' ? 'select' : e === 'textarea' ? 'textarea' : 'input'); i.dataset.cellEditor = ''; i.setAttribute('aria-label', label(t, id, c.key));
     if (e === 'select') for (const o of c.options ?? []) { const v = typeof o === 'object' ? o.value : o, op = document.createElement('option'); op.value = v; op.textContent = typeof o === 'object' ? (o.label ?? v) : o; i.append(op); }
+    else if (e === 'textarea') { if (c.maxLength != null) i.maxLength = c.maxLength; }
     else if (e === 'date') { i.type = 'date'; if (c.min != null) i.min = c.min; if (c.max != null) i.max = c.max; }
-    else { i.type = 'text'; if (e === 'number') i.inputMode = 'decimal'; }
+    else { i.type = 'text'; if (e === 'number') i.inputMode = 'decimal'; if (e === 'combobox') { i.setAttribute('list', `pk-l-${id}-${c.key}`.replace(/\s/g, '_')); i.autocomplete = 'off'; } }
     i.value = s.draft ?? '';
     return i;
+}
+
+// The suggestions of a combobox editor: a datalist the editor points at (the browser draws and filters it), filled from the column's options or, later, by the host's answer to pk-cell-query.
+function suggest(dl, options) { dl.replaceChildren(...(options ?? []).map(o => { const op = document.createElement('option'); op.value = typeof o === 'object' ? o.value : o; if (typeof o === 'object' && o.label) op.label = o.label; return op; })); return dl; }
+function ask(t, e) {
+    const i = e.target, s = st(t), c = s.edit && col(t, s.edit.key);
+    if (!c || c.editor !== 'combobox' || i.dataset.cellEditor === undefined) return;
+    s.edit.draft = i.value;
+    // Choosing a suggestion fills the box with no key press: that is a commit. Typing asks the host for suggestions (pk-cell-query; detail.set(options) fills the list).
+    if (e.inputType === 'insertReplacementText' || (e.inputType === undefined && canon(c, i.value))) return void save(t, i.closest('td'), i.value);
+    t.emit('pk-cell-query', { id: s.edit.id, key: c.key, query: i.value, set: o => { if (i.isConnected) suggest(i.nextElementSibling, o); } });
 }
 
 // While a cell is edited, the columns keep the widths they had at rest (an editor's own intrinsic width must never reflow the grid); released once nothing is edited.
@@ -83,7 +98,7 @@ export function after(t) {
     if (!t.editable) { tb.removeAttribute('role'); return; }
     sheet ??= sheetFor(STYLES);
     if (!root.adoptedStyleSheets.includes(sheet)) root.adoptedStyleSheets = [...root.adoptedStyleSheets, sheet];
-    if (!s.on) { s.on = 1; root.addEventListener('keydown', e => keydown(t, e)); root.addEventListener('click', e => click(t, e)); root.addEventListener('change', e => change(t, e)); root.addEventListener('input', e => { if (s.edit && e.target.dataset.cellEditor !== undefined) s.edit.draft = e.target.value; }); root.addEventListener('focusout', e => blur(t, e)); root.addEventListener('paste', e => paste(t, e)); root.addEventListener('copy', e => copy(t, e)); t.part('scroll').addEventListener('scroll', () => { if (t.part('body').contains(root.activeElement)) s.focus ||= 'keep'; }, { passive: true }); }
+    if (!s.on) { s.on = 1; root.addEventListener('keydown', e => keydown(t, e)); root.addEventListener('click', e => click(t, e)); root.addEventListener('change', e => change(t, e)); root.addEventListener('input', e => { if (s.edit && e.target.dataset.cellEditor !== undefined) { s.edit.draft = e.target.value; ask(t, e); } }); root.addEventListener('focusout', e => blur(t, e)); root.addEventListener('paste', e => paste(t, e)); root.addEventListener('copy', e => copy(t, e)); t.part('scroll').addEventListener('scroll', () => { if (t.part('body').contains(root.activeElement)) s.focus ||= 'keep'; }, { passive: true }); }
     tb.setAttribute('role', 'grid');
     lockWidths(t, tb, !!s.edit);
     // A windowed grid does not hold every row: say how many there are and which one each drawn row is (the header rows come first).
@@ -112,13 +127,15 @@ export function after(t) {
         if (can && ed) {
             const i = editor(t, c, id, s.edit);
             // A date input is wider than a narrow column: it floats over the cell, and the cell keeps its row height with the value drawn hidden.
-            td.replaceChildren(...c.editor === 'date' ? [Object.assign(document.createElement('span'), { textContent: td.textContent }), i] : [i]);
-            if (c.editor === 'date') td.firstChild.dataset.ghost = '';
+            const float = c.editor === 'date' || c.editor === 'textarea';
+            td.replaceChildren(...float ? [Object.assign(document.createElement('span'), { textContent: td.textContent }), i] : [i]);
+            if (float) td.firstChild.dataset.ghost = '';
+            if (c.editor === 'combobox') i.after(suggest(Object.assign(document.createElement('datalist'), { id: i.getAttribute('list') }), c.options));
             td.dataset.editing = '';
             if (err) { i.setAttribute('aria-invalid', 'true'); const m = document.createElement('span'); m.dataset.cellError = ''; m.id = `pk-e-${id}-${k}`; m.textContent = err; td.append(m); i.setAttribute('aria-describedby', m.id); }
         } else if (err) { const m = document.createElement('span'); m.dataset.cellError = ''; m.id = `pk-e-${id}-${k}`; m.textContent = err; td.append(m); td.setAttribute('aria-describedby', m.id); }
         // s.focus is true after a move (scroll the cell into view) and 'keep' after a windowed re-render replaced the focused cell (restore focus without scrolling or reselecting).
-        if (s.focus && on) { const keep = s.focus === 'keep'; (td.querySelector('[data-cell-editor]') ?? td).focus({ preventScroll: keep }); if (ed && !keep) td.querySelector('input')?.select(); if (!keep && t.$virtual) reveal(t, td); s.focus = false; }
+        if (s.focus && on) { const keep = s.focus === 'keep'; (td.querySelector('[data-cell-editor]') ?? td).focus({ preventScroll: keep }); if (ed && !keep) td.querySelector('input,textarea')?.select(); if (!keep && t.$virtual) reveal(t, td); s.focus = false; }
     }
 }
 
@@ -309,8 +326,8 @@ function keydown(t, e) {
     const editing = !!s.edit && e.target.dataset.cellEditor !== undefined && s.edit.id === at(td).id && s.edit.key === at(td).key, k = e.key;
     if (editing) {
         if (k === 'Escape') { e.preventDefault(); e.stopPropagation(); cancel(t); }
-        // Enter commits the draft and moves the active cell down one row, the way a spreadsheet does.
-        else if (k === 'Enter' && e.target.localName !== 'select') { e.preventDefault(); if (save(t, td, e.target.value)) move(t, td, 0, 1); }
+        // Enter commits the draft and moves the active cell down one row, the way a spreadsheet does; Shift+Enter in a textarea adds a line.
+        else if (k === 'Enter' && e.target.localName !== 'select' && !(e.shiftKey && e.target.localName === 'textarea')) { e.preventDefault(); if (save(t, td, e.target.value)) move(t, td, 0, 1); }
         else if (k === 'Tab') { e.preventDefault(); if (save(t, td, e.target.value)) move(t, td, e.shiftKey ? -1 : 1, 0); }
         return;
     }
