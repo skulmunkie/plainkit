@@ -29,3 +29,14 @@ test('the top bar has a back link driven by back-href and back-label, and no tit
     assert.match(read('css'), /\[part="back"\] \{[^}]*min-width: var\(--touch-target\); min-height: var\(--touch-target\)/, '44px target');
     assert.match(meta.a11y, /back link/);
 });
+
+// Issue #1551: a page type that pins its header row and pager needs a flex column of definite height to fill, so the body is one.
+test('the body is a flex column, so a filling page type pins its header and pager while only its rows scroll', () => {
+    const rule = read('css').match(/\[part="body"\] \{([^}]*)\}/);
+    assert.ok(rule, 'a body rule');
+    assert.match(rule[1], /\bflex: 1\b/);
+    assert.match(rule[1], /min-height: 0/);
+    assert.match(rule[1], /display: flex/);
+    assert.match(rule[1], /flex-direction: column/);
+    assert.match(rule[1], /overflow-y: auto/);
+});

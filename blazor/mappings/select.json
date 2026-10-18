@@ -32,6 +32,11 @@
       "type": "bool"
     },
     {
+      "name": "Width",
+      "prop": "width",
+      "type": "string"
+    },
+    {
       "name": "Multiple",
       "prop": "multiple",
       "type": "bool"

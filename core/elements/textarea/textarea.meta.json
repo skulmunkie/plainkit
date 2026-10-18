@@ -95,6 +95,18 @@
       "description": "Shows the valid state."
     },
     {
+      "name": "font",
+      "type": "enum",
+      "default": "inherit",
+      "values": [
+        "inherit",
+        "sans",
+        "mono"
+      ],
+      "reflect": true,
+      "description": "Font family of the text: sans or mono (for code, queries, ids). Default inherit."
+    },
+    {
       "name": "rows",
       "type": "number",
       "default": 3,
