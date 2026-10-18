@@ -564,6 +564,9 @@ export const galleryAppCases = [
         const nodes = () => document.getElementsByTagName('*').length;
         const cycle = async id => { t.eq(await host.show(id), 'ok', id); await until(() => el.querySelector('[data-pk-page]'), `${id} to draw`); await t.settle(); await host.show('idle'); await wait(0); };
         const inst = instrument();
+        // Work left running after an unmount (#1565): the scorecard once kept reading and gzipping every element file for each of its 100 mounts for seconds after the last one, starving whatever case came next.
+        const Compress = globalThis.CompressionStream; let compressed = 0;
+        if (Compress) globalThis.CompressionStream = class extends Compress { constructor(...a) { super(...a); compressed++; } };
         try {
             for (const id of ids) await cycle(id); // warm up: modules, styles and element definitions load once
             await wait(300);
@@ -571,11 +574,13 @@ export const galleryAppCases = [
                 const before = inst.snapshot(), nodesBefore = nodes(), subs = store.listeners();
                 for (let i = 0; i < 100; i++) await cycle(id);
                 await wait(300);
+                const doneAt = compressed; await wait(1500);
+                t.eq(compressed, doneAt, `${id}: nothing is still being compressed after the last unmount`);
                 const after = inst.snapshot();
                 t.eq(after.listeners.join('\n'), before.listeners.join('\n'), `${id}: no window or document listener is left after 100 mounts`);
                 t.eq(after.observers, before.observers, `${id}: no observer is left`); t.eq(after.timers, before.timers, `${id}: no long timer is left`);
                 t.eq(nodes(), nodesBefore, `${id}: the document has the same number of nodes`); t.eq(store.listeners(), subs, `${id}: no store subscription is left`);
             }
-        } finally { inst.restore(); location.hash = hash; }
+        } finally { if (Compress) globalThis.CompressionStream = Compress; inst.restore(); location.hash = hash; }
     }],
 ];
