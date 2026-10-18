@@ -238,11 +238,12 @@ export const LAB_CASES = [
     { name: 'phone-touch-list-and-record',
       async run(ctx) {
         await onPhone(ctx, async () => {
+            // Ticket 3 is retitled by record-sections-sidebar-title earlier in the run and Ticket 5 is deleted by record-delete: Ticket 4 is the one no case changes (#1571).
             await ctx.open('/lab/tickets');
-            await waitText(ctx, 'Ticket 3');
-            await ctx.tap('pk-list-page >>> tr', 'Ticket 3');
-            await ctx.waitFor(`location.pathname === '/lab/tickets/3'`, 'a tap on a row to open the record');
-            await waitText(ctx, 'Ticket 3');
+            await waitText(ctx, 'Ticket 4');
+            await ctx.tap('pk-list-page >>> tr', 'Ticket 4');
+            await ctx.waitFor(`location.pathname === '/lab/tickets/4'`, 'a tap on a row to open the record');
+            await waitText(ctx, 'Ticket 4');
             await ctx.tap('pk-record-page >>> pk-button[part="edit"]');
             await ctx.waitFor(`!!window.__deep.field('Title')`, 'a tap on Edit to open the fields');
             ctx.ok(await ctx.eval(`document.documentElement.scrollWidth <= 375`), 'the record form scrolls sideways on a 375 px phone');
