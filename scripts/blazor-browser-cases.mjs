@@ -95,7 +95,7 @@ export const CASES = [
         await ctx.sleep(1000);
         const cls = await ctx.eval('window.__cls');
         // The spec asks for 0 on a module switch (the next case). A document load hands the prerendered page to the circuit and measured 0 to 0.04 between runs: the Web Vitals "good" bound is what is held here.
-        ctx.ok(cls <= 0.1, `cumulative layout shift on loading /overview is ${cls.toFixed(4)}, expected at most 0.1`);
+        ctx.ok(cls <= 0.1, `cumulative layout shift on loading /overview is ${cls.toFixed(4)}, expected at most 0.1${cls > 0.1 ? ' (shifts, ms since load, node, previous>current rect: ' + JSON.stringify(await ctx.eval('window.__clsLog')) + ')' : ''}`);
       } },
     { name: 'no-layout-shift-on-route-change',
       async run(ctx) {
