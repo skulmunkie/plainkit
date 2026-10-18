@@ -2,7 +2,7 @@
 const columns = [{ key: 'sku', label: 'SKU' }, { key: 'title', label: 'Title' }];
 const rows = Array.from({ length: 120 }, (_, i) => ({ id: i + 1, sku: `AC-${1000 + i}`, title: `Widget number ${i + 1}` }));
 const BODY = 'pk-app-frame >>> pk-app-shell >>> [part=body]';
-const OVERLAY = 'pk-app-frame >>> pk-loading-overlay';
+const OVERLAY = 'pk-app-frame >>> pk-loading-overlay >>> [part=overlay]';
 const LIST = 'pk-list-page';
 
 export default {
