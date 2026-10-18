@@ -306,3 +306,24 @@ test('fetchDist reads and verifies both units, a bundle of both unzips to dist/ 
     const apart = await fetchDist('http://localhost/dist/', { fetchImpl: async url => serve()(String(url).replace('http://elsewhere/tools/', 'http://localhost/dist/modules/')), modulesBase: 'http://elsewhere/tools/' });
     assert.ok(apart.files.has('modules/logs/logs.js'));
 });
+
+// ---- the extras manifest (#1253): the files the npm package leaves out are listed apart, in the same folder; an export keeps them and their record
+
+test('the extras manifest travels with the runtime: fetchDist reads it, an export keeps it verified, and its absence (the npm package) is fine', async () => {
+    const extrasManifest = JSON.parse(fs.readFileSync(dist + 'manifest.extras.json', 'utf8'));
+    const files = new Map([...load(), ['manifest.extras.json', new Uint8Array(fs.readFileSync(dist + 'manifest.extras.json'))], ...extrasManifest.files.map(f => [f.path, new Uint8Array(fs.readFileSync(dist + f.path))])]);
+    const serve = have => async url => {
+        const p = new URL(url).pathname.replace(/^\/dist\//, '');
+        const body = have.get(p);
+        return body === undefined ? { ok: false, status: 404 } : { ok: true, status: 200, arrayBuffer: async () => body.buffer.slice(body.byteOffset, body.byteOffset + body.byteLength) };
+    };
+    const got = await fetchDist('http://localhost/dist/', { fetchImpl: serve(files), concurrency: 8 });
+    assert.equal(got.files.size, files.size);
+    assert.ok(got.files.has('descriptions.json') && got.files.has('manifest.extras.json'));
+    const { files: out } = await customizeDist(got.files, { include: { breakpoints: true }, breakpoints: { ...DEFAULTS, phone: 700 } });
+    const m = JSON.parse(text(out, 'manifest.extras.json'));
+    assert.deepEqual(m.files.map(f => f.path), extrasManifest.files.map(f => f.path));
+    for (const f of m.files) assert.equal(await integrityOf(out.get(f.path)), f.integrity, f.path);
+    const runtimeOnly = await fetchDist('http://localhost/dist/', { fetchImpl: serve(load()) });
+    assert.equal(runtimeOnly.files.size, load().size);
+});

@@ -445,3 +445,42 @@ test('addLabel shows the add button with that text, and a click raises pk-add (#
     el.connected(); parts.add.fire('click');
     assert.deepEqual(events.filter(e => e.name === 'pk-add'), [{ name: 'pk-add', detail: null }]);
 });
+
+test('filterValues and page seed the first query and the filter controls (#1550); the reader replaces them; late values count until then', async () => {
+    const { el, parts } = make();
+    const queries = [];
+    el.load = async q => { queries.push(q); return rowsOf(1); };
+    el.filters = [{ key: 'channel', type: 'select', label: 'Channel', options: ['ebay', 'shopify'] }, { key: 'tags', type: 'multiselect', label: 'Tags', options: ['a', 'b'] }];
+    el.filterValues = { channel: 'ebay', other: 'x' };
+    el.page = 3;
+    el.connected();
+    await el.refresh();
+    assert.deepEqual([queries[0].filters, queries[0].page], [{ channel: 'ebay', other: 'x' }, 3], 'the first load carries the seed');
+    const [channel] = parts.filters.children;
+    assert.equal(channel.value, 'ebay', 'the control shows the seeded value');
+    assert.equal(parts.filters.filterCount, 2);
+    channel.dataset.key = 'channel';
+    parts.filters.fire('pk-value-change', { target: channel, detail: { value: 'shopify' } });
+    assert.deepEqual([queries.at(-1).filters.channel, queries.at(-1).page], ['shopify', 1], 'changing the filter replaces the seed and resets the page');
+    el.filterValues = { channel: 'ebay' };
+    el.changed('filterValues');
+    assert.equal(queries.at(-1).filters.channel, 'shopify', 'a seed that arrives after the reader acted does not undo it');
+});
+
+test('filterValues that arrive after the first draw fill the controls while the query is untouched', () => {
+    const { el, parts } = make();
+    el.filters = [{ key: 'status', type: 'select', label: 'Status', options: ['open'] }];
+    el.connected();
+    el.filterValues = { status: 'open' };
+    el.changed('filterValues');
+    assert.equal(parts.filters.children[0].value, 'open');
+    assert.deepEqual(el.query.filters, { status: 'open' });
+});
+
+test('page below 1 or fractional reads as a whole page of at least 1', () => {
+    const { el } = make();
+    el.page = 0;
+    assert.equal(el.query.page, 1);
+    el.$query = null; el.page = 2.7;
+    assert.equal(el.query.page, 2);
+});

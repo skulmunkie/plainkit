@@ -1069,6 +1069,29 @@ export const dataDisplayCases = [
         el.lines = ['x']; await t.settle(); t.eq(el.part('count').textContent, '1 line');
     }],
 
+    ['code-view copy (#1523): opt-in header button writes the joined lines, fires pk-copy, announces in the status region and works from the keyboard', async t => {
+        const box = await t.mount('<div style="inline-size:375px"><pk-code-view header label="a.js">one\ntwo\nthree</pk-code-view></div>');
+        const el = box.querySelector('pk-code-view'); await t.settle();
+        const btn = el.part('copy');
+        t.eq(btn.getBoundingClientRect().height, 0, 'no Copy button without copy');
+        el.copy = true; await t.settle();
+        t.ok(btn.getBoundingClientRect().height > 0, 'the Copy button shows with copy');
+        let written = null, ev = null; el.addEventListener('pk-copy', e => { ev = e.detail; });
+        const orig = navigator.clipboard; Object.defineProperty(navigator, 'clipboard', { value: { writeText: async s => { written = s; } }, configurable: true });
+        try {
+            btn.focus(); t.eq(el.shadowRoot.activeElement, btn, 'the button takes focus');
+            btn.click(); await wait(20); await t.settle();
+            t.eq(written, 'one\ntwo\nthree', 'the lines joined by newlines, no line numbers');
+            t.eq(ev?.ok, true, 'pk-copy detail ok'); t.eq(el.part('status').textContent, 'Copied', 'the status announces');
+            t.eq(el.part('status').getAttribute('role'), 'status');
+            Object.defineProperty(navigator, 'clipboard', { value: { writeText: async () => { throw new Error('no'); } }, configurable: true });
+            btn.click(); await wait(20); await t.settle();
+            t.eq(ev?.ok, false, 'a refused write reports ok false'); t.eq(el.part('status').textContent, 'Copy failed');
+        } finally { Object.defineProperty(navigator, 'clipboard', { value: orig, configurable: true }); }
+        const h = el.shadowRoot.querySelector('.header');
+        t.ok(h.scrollWidth <= h.clientWidth + 1, 'the header does not overflow at 375px');
+    }],
+
     ['calendar: shows the month, selects a day with a cancelable event, moves with keys and pages months', async t => {
         const c = await t.mount('<pk-calendar value="2026-09-19" week-start="1" marks=\'["2026-09-05"]\'></pk-calendar>');
         t.eq(c.part('title').textContent, 'September 2026'); t.eq(c.part('days').querySelectorAll('.day').length % 7, 0);

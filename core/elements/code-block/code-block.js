@@ -1,3 +1,4 @@
+import { copyText, copyAndAnnounce } from '../../js/clipboard.js';
 // Plainkit code block logic: lines for the gutter and the copy action. Pure functions plus one injectable async copy.
 
 // Lines of a snippet without the blank line a template literal leaves at each end; interior blank lines are kept.
@@ -19,11 +20,7 @@ export function dedent(text) {
 // Width of the line-number gutter in characters for `count` lines.
 export const gutterWidth = count => String(Math.max(1, count)).length;
 
-// Copy text with the async clipboard when there is one; resolves true on success, false when copying is unavailable or refused.
-export async function copyText(text, clipboard = globalThis.navigator?.clipboard) {
-    if (!clipboard?.writeText) return false;
-    try { await clipboard.writeText(text); return true; } catch { return false; }
-}
+export { copyText };
 
 export default Base => class extends Base {
     connected() {
@@ -33,10 +30,7 @@ export default Base => class extends Base {
         this.$c = async e => {
             if (e.target.closest('[part="wrap"]')) { this.wrap = !this.wrap; this.emit('pk-wrap-change', { wrap: this.wrap }, { cancelable: false }); return; }
             if (!e.target.closest('[part="copy"]')) return;
-            const ok = await copyText(dedent(this.textContent));
-            this.part('status').textContent = ok ? 'Copied' : 'Copy failed';
-            this.emit('pk-copy', { ok });
-            clearTimeout(this.$t); this.$t = setTimeout(() => { this.part('status').textContent = ''; }, 2000);
+            await copyAndAnnounce(this, dedent(this.textContent));
         };
         this.shadowRoot.addEventListener('click', this.$c);
     }

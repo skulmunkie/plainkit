@@ -37,4 +37,14 @@
     :host([orientation="vertical"]) .handle::after { inset-inline: 0; inset-block: calc((var(--_h) - var(--touch-target)) / 2); }
 }
 @media (prefers-reduced-motion: reduce) { .handle::before, .root[data-anim] { transition: none; } }
-@media (--phone) { :host { --_t: var(--touch-target); --_h: max(var(--pk-splitter-handle, var(--space-2)), var(--touch-target)); } }
+@media (--phone) {
+    :host { --_t: var(--touch-target); --_h: max(var(--pk-splitter-handle, var(--space-2)), var(--touch-target)); }
+    :host([collapsible]:not([orientation="vertical"])) { --_r: 45deg; }
+    :host([collapsible][collapsed]:not([orientation="vertical"])) { --_r: -135deg; }
+    :host([collapsible]:not([orientation="vertical"])) .root { grid-template-columns: none; grid-template-rows: auto var(--_h) auto; }
+    :host([collapsible][collapsed]:not([orientation="vertical"])) .root { grid-template-rows: auto var(--_h) 0; }
+    :host([collapsible]:not([orientation="vertical"])) .handle { grid-area: 2 / 1; cursor: default; }
+    :host([collapsible]:not([orientation="vertical"])) .handle::before { inline-size: 100%; block-size: 1px; }
+    :host([collapsible]:not([orientation="vertical"])) [part="end"] { grid-area: 3 / 1; }
+    :host([collapsible]:not([orientation="vertical"])) .toggle { grid-area: 2 / 1; align-self: center; justify-self: start; margin-block-start: 0; margin-inline-start: var(--space-2); }
+}

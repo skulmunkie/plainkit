@@ -6,3 +6,7 @@
 /* A long module title is cut, never wraps the header row. (pk-navbar does not draw the picker on a phone; the frame puts the module list in the drawer's first row.) */
 [part="module"] { max-width: 16ch; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 
+/* Busy overlay: no box of its own. */
+pk-loading-overlay { display: contents; }
+pk-stack, pk-loading-overlay::part(content) { flex: 1 1 auto; min-height: 0; }
+pk-loading-overlay::part(content) { display: flex; flex-direction: column; gap: var(--space-4); }

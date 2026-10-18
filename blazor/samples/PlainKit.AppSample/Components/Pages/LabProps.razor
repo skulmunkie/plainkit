@@ -10,7 +10,15 @@
 <PkButton OnClick="@(() => _box!.ShowAsync(1))">Open viewer</PkButton>
 <PkLightbox @ref="_box" Items="_images" />
 
-<PkCodeView Lines="_lines" Segments="_segments" Label="Sample code" />
+<PkCodeView Lines="_lines" Segments="_segments" Label="Sample code" Header="true" Language="js" Copy="true">
+    <Actions><PkButton>Outline</PkButton></Actions>
+</PkCodeView>
+
+<PkSplitter Collapsible="true" @bind-Collapsed="_collapsed" PersistKey="lab-props" ToggleLabel="Detail panel">
+    <StartContent><p>List</p></StartContent>
+    <EndContent><p>Detail</p></EndContent>
+</PkSplitter>
+<p id="lab-collapsed">Collapsed: @_collapsed</p>
 
 <PkButton id="lab-controls" OnClick="@(() => _controls = _controls == "lab-first" ? "lab-second" : "lab-first")" Controls="@_controls">Switch target</PkButton>
 <p id="lab-first">First target</p>
@@ -19,6 +27,7 @@
 @code {
     private PkCommandPalette? _palette;
     private PkLightbox? _box;
+    private bool _collapsed;
     private string _picked = "none", _controls = "lab-first";
 
     private readonly IReadOnlyList<PkCommandPaletteItem> _commands =

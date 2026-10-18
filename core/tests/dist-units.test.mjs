@@ -17,7 +17,11 @@ const { out } = build({ write: false });
 const sri = bytes => 'sha256-' + crypto.createHash('sha256').update(bytes).digest('base64');
 const manifest = f => JSON.parse(out.get(f));
 const runtime = manifest('dist/manifest.json');
+const extras = manifest('dist/manifest.extras.json');
 const modules = manifest('dist/modules/manifest.json');
+const pkg = JSON.parse(fs.readFileSync(path.join(core, 'package.json'), 'utf8'));
+const extraPaths = pkg.files.filter(p => p.startsWith('!dist/') && p !== '!dist/modules' && p !== '!dist/manifest.extras.json').map(p => p.slice('!dist/'.length));
+const isExtra = f => extraPaths.some(p => f === p || f.startsWith(p + '/'));
 const modulesFolders = Object.keys(MODULES).sort();
 
 test('the runtime manifest lists no module and no module folder sits in dist/', () => {
@@ -43,7 +47,7 @@ test('the modules unit is exactly the module folders, and its manifest is its ow
 });
 
 test('each manifest verifies: every listed file exists in the build with the listed size and SRI hash, and no file is unlisted', () => {
-    for (const [m, prefix, own] of [[runtime, 'dist/', f => !f.startsWith('dist/modules/') && f !== 'dist/manifest.json'], [modules, 'dist/modules/', f => f.startsWith('dist/modules/') && f !== 'dist/modules/manifest.json']]) {
+    for (const [m, prefix, own] of [[runtime, 'dist/', f => !f.startsWith('dist/modules/') && !isExtra(f.slice(5)) && !/^dist\/manifest(\.extras)?\.json$/.test(f)], [extras, 'dist/', f => isExtra(f.slice(5)) && f !== 'dist/manifest.extras.json'], [modules, 'dist/modules/', f => f.startsWith('dist/modules/') && f !== 'dist/modules/manifest.json']]) {
         const listed = new Set();
         for (const f of m.files) {
             listed.add(prefix + f.path);
@@ -57,7 +61,7 @@ test('each manifest verifies: every listed file exists in the build with the lis
 });
 
 test('the manifests on disk are what the build makes', () => {
-    for (const f of ['dist/manifest.json', 'dist/modules/manifest.json']) assert.equal(fs.readFileSync(path.join(core, f), 'utf8'), out.get(f), `${f} is stale: run node scripts/bootstrap.mjs`);
+    for (const f of ['dist/manifest.json', 'dist/manifest.extras.json', 'dist/modules/manifest.json']) assert.equal(fs.readFileSync(path.join(core, f), 'utf8'), out.get(f), `${f} is stale: run node scripts/bootstrap.mjs`);
 });
 
 // The import graph of what a consumer page loads: dist/plainkit.js (the entry), every element module and what they import, statically or with a literal import().
@@ -98,8 +102,17 @@ test('the modules unit needs the runtime only through js/ and the runtime assets
     assert.deepEqual(problems, []);
 });
 
+test('the extras manifest lists exactly what the npm package leaves out of dist/ (the gallery, the agent docs, ...), so the package manifest lists only what it holds (#1253)', () => {
+    assert.equal(extras.name, 'plainkit-extras');
+    assert.equal(extras.version, runtime.version);
+    assert.ok(extras.files.length > 100 && extraPaths.length > 3);
+    assert.ok(extras.files.every(f => isExtra(f.path)), 'every extras entry is a package.json "!dist/..." file');
+    assert.deepEqual(runtime.files.filter(f => isExtra(f.path)), [], 'a file the package leaves out is in the runtime manifest');
+    assert.ok(extras.files.some(f => f.path.startsWith('gallery/')) && extras.files.some(f => f.path === 'descriptions.json'));
+    assert.ok(pkg.files.includes('!dist/manifest.extras.json'), 'the extras manifest itself stays out of the package');
+});
+
 test('the npm package ships the runtime unit only', () => {
-    const pkg = JSON.parse(fs.readFileSync(path.join(core, 'package.json'), 'utf8'));
     assert.deepEqual(pkg.files.slice(0, 2), ['dist', '!dist/modules']);
 });
 

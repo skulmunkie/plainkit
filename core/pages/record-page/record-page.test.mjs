@@ -91,7 +91,7 @@ test('dirty follows the controls against the loaded values, fires pk-record-dirt
     await tick();
     const group = parts.main.children[0].children[0].children[0];
     assert.equal(group.localName, 'pk-field-group', 'the edit form is one pk-field-group');
-    assert.deepEqual(group.values, { name: 'Widget' }); assert.deepEqual(group.fields.map(f => [f.key, f.kind]), [['name', 'text'], ['status', 'select']]);
+    assert.deepEqual(group.values, { name: 'Widget' }); assert.deepEqual(group.fields.map(f => [f.key, f.kind]), [['name', 'text']], 'a field a sidebar card names is edited in that card only');
     const name = { value: 'Changed' };
     group.snapshot = () => ({ name: name.value });
     el.track(); el.track();
@@ -218,4 +218,70 @@ test('a custom field forwards its editor-<key> slot into the group, so the host 
     const group = parts.main.children[0].children[0].children[0];
     assert.equal(group.children.length, 1, 'one slot for the one custom field');
     assert.equal(group.children[0].attrs.name, 'editor-extra'); assert.equal(group.children[0].attrs.slot, 'editor-extra');
+});
+
+test('sections draw one titled card each, in view and edit mode, with the unnamed fields first', async () => {
+    const { el, parts } = make();
+    el.config = { id: '7', heading: 'Details', fields: [{ key: 'a', label: 'A' }, { key: 'b', label: 'B' }, { key: 'c', label: 'C' }], sections: [{ heading: 'Address', fields: ['b'] }, { heading: 'Notes', fields: ['c'] }] };
+    el.load = async () => ({ a: '1', b: '2', c: '3' });
+    el.save = async () => {};
+    el.connected(); await tick();
+    assert.deepEqual(parts.main.children.map(c => c.attrs.heading), ['Details', 'Address', 'Notes']);
+    assert.equal(parts.main.children[1].children[1].children[0].textContent, '2');
+    el.mode = 'edit'; el.draw();
+    const form = parts.main.children[0].children[0];
+    assert.equal(form.localName, 'form');
+    assert.deepEqual(form.children.map(c => c.attrs.heading), ['Details', 'Address', 'Notes']);
+    assert.deepEqual(form.children[1].children[0].fields.map(f => f.key), ['b']);
+});
+
+test('sidebar cards are editable field groups joined to the main form; values and errors route to the right group', async () => {
+    const { el, parts } = make();
+    el.load = async () => ({ name: 'Widget', status: 'a' });
+    el.save = async v => { saved = v; throw { errors: { status: 'Bad' } }; };
+    let saved;
+    el.mode = 'edit'; el.connected(); await tick();
+    const side = parts.side.children[0].children[0];
+    assert.equal(side.localName, 'pk-field-group');
+    assert.equal(side.attrs.form, parts.main.children[0].children[0].id, 'joins the form by id');
+    parts.main.children[0].children[0].children[0].snapshot = () => ({ name: 'N', status: 'a' });
+    let err; side.snapshot = () => ({ name: 'stale', status: 'b' }); side.setError = (k, m) => { err = [k, m]; }; side.focusField = k => { err.push(k); };
+    assert.deepEqual(el.collect(), { name: 'N', status: 'b' });
+    await el.submit();
+    assert.deepEqual(saved, { name: 'N', status: 'b' });
+    assert.deepEqual(err, ['status', 'Bad', 'status']);
+});
+
+test('titleField takes the page title from the loaded record, config.title is the fallback', async () => {
+    const { el, parts } = make();
+    el.config = { id: '7', title: 'Fallback', titleField: 'code', fields: [{ key: 'code' }] };
+    el.load = async () => ({ code: 'ABC' });
+    el.save = async () => {};
+    el.connected();
+    assert.equal(parts.header.attrs.heading, 'Fallback', 'while loading');
+    await tick();
+    assert.equal(parts.header.attrs.heading, 'ABC');
+    el.$values = { code: '  ' }; el.bar();
+    assert.equal(parts.header.attrs.heading, 'Fallback', 'an empty value falls back');
+    el.$values = { code: 'OLD' };
+    el.mode = 'edit'; el.draw();
+    el.live = () => ({ code: 'NEW' });
+    await el.submit();
+    assert.equal(parts.header.attrs.heading, 'NEW', 'a save updates it');
+});
+
+test('Cancel emits pk-record-cancel; a new record shows Cancel only when cancellable', async () => {
+    const { el, parts, events } = make();
+    el.load = async () => ({ name: 'Widget' }); el.save = async () => {};
+    el.mode = 'edit'; el.connected(); await tick();
+    assert.equal(parts.cancel.hidden, false);
+    parts.cancel.listeners.click[0]();
+    assert.deepEqual(events.at(-1), ['pk-record-cancel', { id: '7' }]);
+    el.config = { fields: [{ key: 'a' }] };
+    el.fetch(); await tick();
+    assert.equal(parts.cancel.hidden, true, 'a new record has nowhere to go back to');
+    el.cancellable = true; el.draw();
+    assert.equal(parts.cancel.hidden, false);
+    parts.cancel.listeners.click[0]();
+    assert.deepEqual(events.at(-1), ['pk-record-cancel', { id: null }]);
 });

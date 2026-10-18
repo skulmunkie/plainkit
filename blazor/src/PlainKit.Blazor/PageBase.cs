@@ -109,12 +109,12 @@ public abstract partial class PageBase : ComponentBase, IAsyncDisposable
     }
 
     /// <summary>Releases every busy token. Disposal does this; a page that disposes itself calls it directly.</summary>
-    protected void ReleaseBusy() => _life.ReleaseBusy();
+    protected void ReleaseBusy() { _life.ReleaseBusy(); ReportBusy(); }
 
-    async ValueTask IAsyncDisposable.DisposeAsync() { _life.Dispose(); await OnDisposeAsync(); }
+    async ValueTask IAsyncDisposable.DisposeAsync() { _life.Dispose(); ReportBusy(); await OnDisposeAsync(); }
 
     /// <summary>Creates the page lifecycle.</summary>
-    protected PageBase() => _life = new PkLifecycle(() => { if (!_life!.Disposed) StateHasChanged(); });
+    protected PageBase() => _life = new PkLifecycle(() => { ReportBusy(); if (!_life!.Disposed) StateHasChanged(); });
 
     private readonly PkLifecycle _life;
     private IReadOnlyDictionary<string, object?>? _parameters;

@@ -89,8 +89,8 @@ test('llms-full.txt is a flat concatenation: every skill file appears verbatim o
 });
 
 test('the SRI manifest lists AGENTS.md, llms.txt and llms-full.txt', () => {
-    const manifest = JSON.parse(fs.readFileSync(path.join(root, 'core', 'dist', 'manifest.json'), 'utf8'));
-    const listed = new Set(manifest.files.map(f => f.path));
+    // AGENTS.md and llms-full.txt are left out of the npm package, so they are in dist/manifest.extras.json (#1253)
+    const listed = new Set(['manifest.json', 'manifest.extras.json'].flatMap(n => JSON.parse(fs.readFileSync(path.join(root, 'core', 'dist', n), 'utf8')).files).map(f => f.path));
     for (const name of OUT_NAMES) assert.ok(listed.has(name), `${name} is not in dist/manifest.json: run node scripts/build-agent-refs.mjs`);
 });
 

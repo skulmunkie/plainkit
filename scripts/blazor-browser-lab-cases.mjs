@@ -82,6 +82,21 @@ export const LAB_CASES = [
         await ctx.clickDeep(`${RECORD}[part="cancel"]`);
         await ctx.waitFor(`!window.__deep.field('Title')`, 'Cancel to leave edit mode and drop the unsaved edits');
       } },
+    // Sections are one card each, the sidebar's fields edit in the same form, the title follows the loaded record, and Cancel leaves edit mode.
+    { name: 'record-sections-sidebar-title',
+      async run(ctx) {
+        await ctx.open('/lab/ticket-sections/3');
+        await waitText(ctx, 'Ticket: Ticket 3');
+        await waitText(ctx, 'Details');
+        await waitText(ctx, 'Status');
+        await edit(ctx);
+        ctx.ok(await ctx.eval(`!!window.__deep.field('Done') && !!window.__deep.field('Owner') && !!window.__deep.field('Notes')`), 'a sidebar or section field has no control in edit mode');
+        await ctx.setField('Title', 'Renamed three');
+        await ctx.setField('Done', true);
+        await ctx.clickDeep(`${RECORD}[part="save"]`);
+        await ctx.waitFor(`!window.__deep.field('Title') && ${MAIN}.includes('Ticket: Renamed three')`, 'the saved record to show in view mode under its new title');
+        await ctx.noErrors(ctx.openMark, BENIGN);
+      } },
     { name: 'record-delete',
       async run(ctx) {
         await ctx.open('/lab/tickets/5');
@@ -223,11 +238,12 @@ export const LAB_CASES = [
     { name: 'phone-touch-list-and-record',
       async run(ctx) {
         await onPhone(ctx, async () => {
+            // Ticket 3 is retitled by record-sections-sidebar-title earlier in the run and Ticket 5 is deleted by record-delete: Ticket 4 is the one no case changes (#1571).
             await ctx.open('/lab/tickets');
-            await waitText(ctx, 'Ticket 3');
-            await ctx.tap('pk-list-page >>> tr', 'Ticket 3');
-            await ctx.waitFor(`location.pathname === '/lab/tickets/3'`, 'a tap on a row to open the record');
-            await waitText(ctx, 'Ticket 3');
+            await waitText(ctx, 'Ticket 4');
+            await ctx.tap('pk-list-page >>> tr', 'Ticket 4');
+            await ctx.waitFor(`location.pathname === '/lab/tickets/4'`, 'a tap on a row to open the record');
+            await waitText(ctx, 'Ticket 4');
             await ctx.tap('pk-record-page >>> pk-button[part="edit"]');
             await ctx.waitFor(`!!window.__deep.field('Title')`, 'a tap on Edit to open the fields');
             ctx.ok(await ctx.eval(`document.documentElement.scrollWidth <= 375`), 'the record form scrolls sideways on a 375 px phone');
@@ -252,6 +268,12 @@ export const LAB_SHOTS = [
         await ctx.open('/lab/tickets/3'); await ctx.sleep(800);
         await ctx.clickDeep('pk-record-page >>> pk-button[part="edit"]'); await ctx.sleep(600);
         await ctx.shot('lab-record-editing', vp, theme);
+    },
+    async (ctx, vp, theme) => {
+        await ctx.open('/lab/ticket-sections/3'); await ctx.sleep(800);
+        await ctx.shot('lab-record-sections-view', vp, theme);
+        await ctx.clickDeep('pk-record-page >>> pk-button[part="edit"]'); await ctx.sleep(600);
+        await ctx.shot('lab-record-sections-editing', vp, theme);
     },
     async (ctx, vp, theme) => {
         await ctx.open('/lab/fields');

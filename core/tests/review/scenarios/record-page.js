@@ -48,7 +48,7 @@ export default {
             t.noOverlap(`${RP} >>> [part=notice]`, `${RP} >>> [part=layout]`);
         }
         if (t.shot === 'server-error') {
-            t.visible(`${MAIN} pk-field-group >>> pk-field[error]`, 'the field carrying the server error');
+            t.visible(`${RP} >>> [part=side] pk-field-group >>> pk-field[error]`, 'the sidebar field (SKU, edited in its sidebar card) carrying the server error');
         }
     },
 };
