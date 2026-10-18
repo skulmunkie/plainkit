@@ -227,7 +227,7 @@ test('sections draw one titled card each, in view and edit mode, with the unname
     el.save = async () => {};
     el.connected(); await tick();
     assert.deepEqual(parts.main.children.map(c => c.attrs.heading), ['Details', 'Address', 'Notes']);
-    assert.equal(parts.main.children[1].children[0].children[1].children[0].textContent, '2');
+    assert.equal(parts.main.children[1].children[1].children[0].textContent, '2');
     el.mode = 'edit'; el.draw();
     const form = parts.main.children[0].children[0];
     assert.equal(form.localName, 'form');

@@ -84,8 +84,7 @@ export default Base => class extends Base {
             main.replaceChildren(this.form(doc, vals, claimed));
             sideEl.replaceChildren(...side.map(s => this.card(doc, s.heading, this.group(doc, this.fields.filter(f => s.fields?.includes(key(f))), vals, s.heading, FORM_ID))));
         } else {
-            const sections = this.config?.sections?.length;
-            main.replaceChildren(...this.mainSections(sections ? claimed : new Set()).map(g => sections ? this.card(doc, g.heading, this.list(doc, g.fields, vals, '')) : this.list(doc, g.fields, vals, g.heading)));
+            main.replaceChildren(...this.mainSections(this.config?.sections?.length ? claimed : new Set()).map(g => this.list(doc, g.fields, vals, g.heading)));
             sideEl.replaceChildren(...side.map(s => this.card(doc, s.heading, this.list(doc, this.fields.filter(f => s.fields?.includes(key(f))), vals, '', true))));
         }
         const canEdit = this.config?.editable !== false && typeof this.save === 'function';
