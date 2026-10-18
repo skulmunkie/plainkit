@@ -42,6 +42,11 @@
       "type": "bool"
     },
     {
+      "name": "Font",
+      "prop": "font",
+      "type": "PkTextareaFont"
+    },
+    {
       "name": "Rows",
       "prop": "rows",
       "type": "int"

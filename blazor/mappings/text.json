@@ -32,6 +32,11 @@
       "type": "PkTextWeight"
     },
     {
+      "name": "WhiteSpace",
+      "prop": "whiteSpace",
+      "type": "PkTextWhiteSpace"
+    },
+    {
       "name": "Truncate",
       "prop": "truncate",
       "type": "bool"

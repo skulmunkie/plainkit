@@ -50,6 +50,22 @@ function readFile(file, done, left = 6) {
 }
 http.createServer((req, res) => {
     if (!hostArg && !localHost.test(req.headers.host ?? '')) { res.writeHead(403).end('forbidden host'); return; }
+    // Dev only: the in-browser suite reports what it is doing (POST /__progress, body = JSON {state: start|end|beat, i, n, ms, ok, name, error}), so a run that never
+    // reports can say which case it froze in (scripts/attest-browser.mjs reads these lines). Same-origin only; each report is printed as one `progress {json}` stdout line,
+    // fields cut to a fixed size, nothing is stored.
+    if (writeReports && req.method === 'POST' && req.url.startsWith('/__progress')) {
+        if (req.headers.origin && req.headers.origin !== `http://${req.headers.host}`) { res.writeHead(403).end('cross-origin'); return; }
+        let body = '';
+        req.on('data', c => { body += c; if (body.length > 4000) req.destroy(); });
+        req.on('end', () => {
+            try {
+                const d = JSON.parse(body), text = (v, n) => String(v ?? '').replace(/[\r\n]+/g, ' ').slice(0, n);
+                console.log(`progress ${JSON.stringify({ state: ['start', 'end', 'beat'].includes(d.state) ? d.state : 'beat', i: Number(d.i) || 0, n: Number(d.n) || 0, ms: Number(d.ms) || 0, ok: d.ok === true, name: text(d.name, 300), error: text(d.error, 400), step: text(d.step, 80) })}`);
+                res.writeHead(204).end();
+            } catch { res.writeHead(400).end(); }
+        });
+        return;
+    }
     // Dev only: --write-reports lets the scorecard page store its sweep results next to the other reports.
     if (writeReports && req.method === 'POST' && req.url.startsWith('/__report')) {
         // Same origin only: a form or fetch from another site carries its own Origin and must not write into the repository.

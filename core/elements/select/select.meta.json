@@ -22,7 +22,7 @@
       "default": "",
       "reflect": false,
       "commit": "pk-value-change",
-      "description": "The current value; what the form submits. A form reset sets it back to its initial value without raising the commit event, as a native control does: pk-form raises pk-reset after it, so a host that mirrors the value reads it again there. A browser state restore also sets it silently."
+      "description": "The current value; what the form submits. A form reset or browser restore sets it silently, as a native control does (pk-form raises pk-reset after a reset)."
     },
     {
       "name": "label",
@@ -74,6 +74,13 @@
       "description": "Shows the valid state."
     },
     {
+      "name": "width",
+      "type": "string",
+      "default": "",
+      "reflect": false,
+      "description": "Width: xs to 2xl, or a CSS length."
+    },
+    {
       "name": "multiple",
       "type": "boolean",
       "default": false,
@@ -86,14 +93,14 @@
       "default": [],
       "reflect": false,
       "commit": "pk-value-change",
-      "description": "The selection as an array of strings (one entry for a single select, none when empty; any text, commas and backslashes included); the typed form of value, which stays the comma-separated string for forms. Setting it (or its JSON attribute) sets value, so set multiple first; reading it parses value. The commit event carries it as detail.values."
+      "description": "The selection as an array of strings (one entry for a single select, none when empty); the typed form of value, which stays the comma-separated string for forms. Set multiple first. The commit event carries it as detail.values."
     },
     {
       "name": "options",
       "type": "json",
       "default": [],
       "reflect": false,
-      "description": "Options as data: a flat array of { value, label, disabled? }, a plain array of strings, or grouped as [{ group, options: [...] }]. Rendered straight into the inner select (the host's own option/optgroup children are never touched, only read). When set (non-empty), it wins over slotted option/optgroup children and a warning is logged once."
+      "description": "Options as data: a flat array of { value, label, disabled? }, a plain array of strings, or grouped as [{ group, options: [...] }]. Rendered into the inner select. When set (non-empty), it wins over slotted option/optgroup children and a warning is logged once."
     }
   ],
   "slots": [
