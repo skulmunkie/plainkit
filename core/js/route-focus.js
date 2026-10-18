@@ -33,7 +33,7 @@ export function routeChanged(label, site, doc = document) {
     const main = doc.getElementById('pk-main');
     if (!main) return false;
     let live = doc.getElementById('pk-route-live');
-    if (!live) { live = doc.createElement('div'); live.id = 'pk-route-live'; live.className = 'u-sr-only'; live.setAttribute('role', 'status'); live.setAttribute('aria-live', 'polite'); doc.body.append(live); }
+    if (!live) { live = doc.createElement('div'); live.id = 'pk-route-live'; live.className = 'u-sr-only'; live.style.setProperty('position', 'fixed', 'important'); live.setAttribute('role', 'status'); live.setAttribute('aria-live', 'polite'); doc.body.append(live); }
     pageLoaded(main, live, label || site);
     return true;
 }

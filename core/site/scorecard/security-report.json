@@ -4,7 +4,7 @@
     "critical": 0,
     "high": 0,
     "medium": 0,
-    "low": 4
+    "low": 3
   },
   "findings": [
     {
@@ -28,16 +28,8 @@
       "rule": "css-important",
       "file": "base/utilities.css",
       "line": 1,
-      "message": "120 !important",
-      "count": 120
-    },
-    {
-      "severity": "low",
-      "rule": "css-important",
-      "file": "modules/code-explorer/code-explorer.css",
-      "line": 1,
-      "message": "1 !important",
-      "count": 1
+      "message": "14 !important",
+      "count": 14
     }
   ]
 }

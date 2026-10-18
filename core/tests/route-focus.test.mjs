@@ -38,7 +38,7 @@ test('routeChanged sets the title, makes one live region and says false without 
     const doc = {
         title: '', byId: { 'pk-main': main },
         getElementById(id) { return this.byId[id] ?? null; },
-        createElement() { const n = { setAttribute() {} }; made.push(n); return n; },
+        createElement() { const n = { setAttribute() {}, style: { setProperty() {} } }; made.push(n); return n; },
         body: { append(n) { doc.byId[n.id] = n; } },
     };
     assert.equal(routeChanged('Orders', 'Acme', doc), true);

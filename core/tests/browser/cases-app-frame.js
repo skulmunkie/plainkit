@@ -70,6 +70,16 @@ export const appFrameCases = [
         t.eq(d.title, 'Acme', 'the home page is the site name alone');
         t.eq(d.querySelectorAll('#pk-route-live').length, 1, 'the live region is reused');
     }],
+    // #1579: the live region sat after a shell that is exactly the screen tall; an absolutely positioned box there makes the document 1px taller, a 15px scrollbar appears and the whole page shifts left.
+    ['route change bridge (#1579): the first route change adds no document scrollbar and moves nothing', async t => {
+        const { frame } = await open(t, 1280), d = frame.ownerDocument, de = d.documentElement, { routeChanged } = await import('../../js/route-focus.js');
+        const bar = () => d.defaultView.innerWidth - de.clientWidth, right = frame.getBoundingClientRect().right;
+        t.eq(bar(), 0, 'no document scrollbar before the first route change');
+        routeChanged('Orders', 'Acme', d);
+        t.ok(de.scrollHeight <= de.clientHeight, `the live region leaves the document no taller than the screen (${de.scrollHeight} of ${de.clientHeight}). FIX: it is position: fixed (set on the region by route-focus.js), not absolute below the shell`);
+        t.eq(bar(), 0, 'no document scrollbar after it');
+        t.eq(frame.getBoundingClientRect().right, right, 'the frame keeps its width');
+    }],
     ['route change bridge (#1335): a heading inside an open shadow root of a page element takes focus', async t => {
         const { frame } = await open(t, 1280), d = frame.ownerDocument, { routeChanged } = await import('../../js/route-focus.js'), main = d.getElementById('pk-main');
         main.querySelector('h1')?.remove();

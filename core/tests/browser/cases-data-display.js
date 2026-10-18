@@ -1313,6 +1313,67 @@ export const dataDisplayCases = [
         cell(2).focus(); cell(2).dispatchEvent(Object.assign(new Event('paste', { bubbles: true, composed: true, cancelable: true }), { clipboardData: { getData: () => 'next week' } }));
         await until(() => cell(2).getAttribute('aria-invalid') === 'true', 'flagged'); t.eq(el.rows[1].due, '2026-04-01', 'a non-date was not committed');
     }],
+    // Issue 1580: the textarea and combobox editors (native controls: a table renders no other pk-* element, issue 765).
+    ['table (editable): a textarea editor takes Shift+Enter as a new line, Enter commits the lines and moves down, Escape cancels, and opening it does not change the row height', async t => {
+        const el = await t.mount(`<pk-table editable label="Notes" columns='[{"key":"sku","label":"SKU"},{"key":"note","label":"Note","editor":"textarea","maxLength":20}]' rows='[{"id":1,"sku":"A","note":"first"},{"id":2,"sku":"B","note":"second"}]'></pk-table>`);
+        await t.settle();
+        const cell = (r, k = 'note') => el.shadowRoot.querySelector(`tbody tr:nth-child(${r}) td[data-key=${k}]`), key = (n, k, mods = {}) => { const e = new KeyboardEvent('keydown', { key: k, bubbles: true, composed: true, cancelable: true, ...mods }); n.dispatchEvent(e); return e; };
+        const typeIn = (n, v) => { n.value = v; n.dispatchEvent(new Event('input', { bubbles: true, composed: true })); };
+        const seen = []; el.addEventListener('pk-cell-edit', e => seen.push(e.detail.value));
+        await until(() => cell(1, 'sku')?.tabIndex === 0, 'the grid');
+        const h0 = cell(1).closest('tr').getBoundingClientRect().height;
+        cell(1).focus(); key(cell(1), 'Enter'); const a = await until(() => cell(1).querySelector('textarea'), 'the textarea');
+        t.eq(a.getAttribute('aria-label'), 'Note, row 1'); t.eq(a.value, 'first'); t.eq(a.maxLength, 20);
+        t.ok(Math.abs(cell(1).closest('tr').getBoundingClientRect().height - h0) < 1.5, 'the editor changed the row height');
+        t.ok(a.getBoundingClientRect().height > h0 * 1.5, 'the textarea shows several lines');
+        typeIn(a, 'one\ntwo');
+        t.ok(!key(a, 'Enter', { shiftKey: true }).defaultPrevented, 'Shift+Enter is left to the textarea (a new line)'); t.eq(seen.length, 0, 'Shift+Enter committed');
+        t.ok(cell(1).querySelector('textarea'), 'the editor stays open');
+        key(a, 'Enter'); await until(() => el.rows[0].note === 'one\ntwo', 'the commit'); t.eq(seen.join('|'), 'one\ntwo');
+        await until(() => cell(2).tabIndex === 0, 'Enter moves the active cell down');
+        key(cell(2), 'Enter'); const b = await until(() => cell(2).querySelector('textarea'), 'the second editor'); typeIn(b, 'changed');
+        key(b, 'Escape'); await until(() => !cell(2).querySelector('textarea'), 'closed'); t.eq(el.rows[1].note, 'second', 'Escape kept the old value');
+        cell(1).focus(); key(cell(1), 'Enter'); const c = await until(() => cell(1).querySelector('textarea'), 'reopened'); typeIn(c, 'x'.repeat(21)); key(c, 'Enter');
+        await until(() => cell(1).querySelector('[data-cell-error]'), 'the message'); t.eq(cell(1).querySelector('[data-cell-error]').textContent, 'At most 20 characters');
+    }],
+    ['table (editable): a textarea commit can be asynchronous (detail.wait): busy, then put back with the message when it is rejected', async t => {
+        const el = await t.mount(`<pk-table editable label="Notes" columns='[{"key":"note","label":"Note","editor":"textarea"}]' rows='[{"id":1,"note":"a"}]'></pk-table>`);
+        await t.settle();
+        const cell = () => el.shadowRoot.querySelector('tbody td[data-key=note]'), key = (n, k) => n.dispatchEvent(new KeyboardEvent('keydown', { key: k, bubbles: true, composed: true, cancelable: true }));
+        let fail; el.addEventListener('pk-cell-edit', e => e.detail.wait(new Promise((_, no) => { fail = no; })));
+        await until(() => cell()?.tabIndex === 0, 'the grid'); cell().focus(); key(cell(), 'Enter'); const i = await until(() => cell().querySelector('textarea'), 'the editor'); i.value = 'b\nc'; key(i, 'Enter');
+        await until(() => cell().getAttribute('aria-busy') === 'true', 'busy'); t.eq(el.rows[0].note, 'b\nc'); fail(new Error('Too long'));
+        await until(() => cell().getAttribute('aria-invalid') === 'true', 'the rejection'); t.eq(el.rows[0].note, 'a', 'the previous value came back'); t.ok(/Too long/.test(cell().textContent));
+    }],
+    ['table (editable): a combobox editor is a native input with a datalist of the options, accepts a value or a label in any case, refuses text outside the list unless free, and commits a chosen suggestion', async t => {
+        const el = await t.mount(`<pk-table editable label="Orders" columns='[{"key":"po","label":"PO"},{"key":"st","label":"Status","editor":"combobox","options":["Open",{"value":"SHP","label":"Shipped"}]},{"key":"tag","label":"Tag","editor":"combobox","free":true,"options":["red"]}]' rows='[{"id":1,"po":"A","st":"Open","tag":"red"},{"id":2,"po":"B","st":"SHP","tag":""}]'></pk-table>`);
+        await t.settle();
+        const cell = (r, k) => el.shadowRoot.querySelector(`tbody tr:nth-child(${r}) td[data-key=${k}]`), key = (n, k) => n.dispatchEvent(new KeyboardEvent('keydown', { key: k, bubbles: true, composed: true, cancelable: true }));
+        const typeIn = (n, v) => { n.value = v; n.dispatchEvent(new Event('input', { bubbles: true, composed: true })); };
+        const seen = []; el.addEventListener('pk-cell-edit', e => seen.push(`${e.detail.key}=${e.detail.value}`));
+        await until(() => cell(1, 'po')?.tabIndex === 0, 'the grid');
+        cell(1, 'st').focus(); key(cell(1, 'st'), 'Enter'); const i = await until(() => cell(1, 'st').querySelector('input'), 'the editor');
+        const dl = cell(1, 'st').querySelector('datalist'); t.ok(dl && i.getAttribute('list') === dl.id && i.list === dl, 'the input points at its datalist');
+        t.eq([...dl.options].map(o => o.value).join(), 'Open,SHP'); t.eq(dl.options[1].label, 'Shipped'); t.eq(i.getAttribute('aria-label'), 'Status, row 1');
+        typeIn(i, 'nope'); key(i, 'Enter'); await until(() => cell(1, 'st').querySelector('[data-cell-error]'), 'the message');
+        t.eq(cell(1, 'st').querySelector('[data-cell-error]').textContent, 'Choose from the list'); t.eq(seen.length, 0, 'no event for text outside the list');
+        const j = cell(1, 'st').querySelector('input'); typeIn(j, 'shp'); key(j, 'Enter'); await until(() => el.rows[0].st === 'SHP', 'the commit'); t.eq(seen.join(), 'st=SHP', 'a typed option commits as its value');
+        cell(2, 'tag').focus(); key(cell(2, 'tag'), 'Enter'); const k = await until(() => cell(2, 'tag').querySelector('input'), 'the free editor'); typeIn(k, 'anything'); key(k, 'Enter'); await until(() => el.rows[1].tag === 'anything', 'a free column keeps other text');
+        cell(2, 'tag').focus(); key(cell(2, 'tag'), 'Enter'); const m = await until(() => cell(2, 'tag').querySelector('input'), 'the editor again'); m.value = 'red';
+        m.dispatchEvent(new InputEvent('input', { bubbles: true, composed: true, inputType: 'insertReplacementText' })); await until(() => el.rows[1].tag === 'red', 'choosing a suggestion commits');
+        cell(2, 'st').focus(); cell(2, 'st').dispatchEvent(Object.assign(new Event('paste', { bubbles: true, composed: true, cancelable: true }), { clipboardData: { getData: () => 'bad' } }));
+        await until(() => cell(2, 'st').getAttribute('aria-invalid') === 'true', 'a pasted non-option is flagged'); t.eq(el.rows[1].st, 'SHP');
+    }],
+    ['table (editable): a combobox editor asks the host for suggestions while typing (pk-cell-query) and shows the list the host sets', async t => {
+        const el = await t.mount(`<pk-table editable label="Orders" columns='[{"key":"city","label":"City","editor":"combobox","free":true}]' rows='[{"id":1,"city":""}]'></pk-table>`);
+        await t.settle();
+        const cell = () => el.shadowRoot.querySelector('tbody td[data-key=city]');
+        el.addEventListener('pk-cell-query', e => queueMicrotask(() => e.detail.set([`${e.detail.query}ville`, { value: 'Oslo', label: 'Norway' }])));
+        await until(() => cell()?.tabIndex === 0, 'the grid'); cell().focus(); cell().dispatchEvent(new KeyboardEvent('keydown', { key: 'Enter', bubbles: true, composed: true, cancelable: true }));
+        const i = await until(() => cell().querySelector('input'), 'the editor'); i.value = 'Spring'; i.dispatchEvent(new Event('input', { bubbles: true, composed: true }));
+        await until(() => cell().querySelector('datalist').options.length === 2, 'the options'); t.eq([...cell().querySelector('datalist').options].map(o => o.value).join(), 'Springville,Oslo');
+        t.eq(cell().querySelector('input').value, 'Spring', 'the draft survived the new list');
+    }],
     ['table (editable): an error on a cell that is not being edited stays readable in a narrow column: one short line below the cell, hidden until the cell is focused, and no column reflows', async t => {
         const host = t.stage(`<div><pk-table editable label="Stock" columns='[{"key":"name","label":"Product","editor":"text"},{"key":"qty","label":"Qty","type":"number","editor":"number","min":0}]' rows='[{"id":1,"name":"Widget number one","qty":4},{"id":2,"name":"Gadget number two","qty":9}]'></pk-table></div>`);
         host.firstElementChild.style.inlineSize = '240px'; await t.load(host);
