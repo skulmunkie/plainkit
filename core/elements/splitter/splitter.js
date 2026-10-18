@@ -18,6 +18,21 @@ export default Base => class extends Base {
         const root = this.part('root');
         root.addEventListener('transitionend', e => { if (e.target === root) root.removeAttribute('data-anim'); });
     }
+    disconnected() { this.$pp?.close(); this.$pp = this.$pk = undefined; }
+    /** persist-key: opens the saved state (lazily) and applies it unless the host set size or collapsed; commits write it. */
+    syncPersist() {
+        const key = this.persistKey || '';
+        if (key === (this.$pk ?? '')) return;
+        this.$pp?.close(); this.$pp = undefined; this.$pk = key;
+        if (!key) return;
+        import('../../js/splitter-persist.js').then(m => {
+            if (this.$pk !== key) return;
+            this.$pp = m.openPersist(key);
+            const s = this.$pp.read();
+            if (s && !this.hasAttribute('size') && !this.hasAttribute('collapsed')) { this.size = clampSize(s.size, this.min, this.max); this.collapsed = s.collapsed; }
+        }, err => this.warnOnce('persist', 'persist-key: storage could not be loaded, state is not saved', err));
+    }
+    save() { this.$pp?.save({ size: this.now(), collapsed: !!this.collapsed }); }
     /** The user collapses or restores the end pane: the size is kept, the host hears pk-collapse-change. */
     toggle() {
         if (this.disabled || !this.collapsible) return;
@@ -26,6 +41,7 @@ export default Base => class extends Base {
         this.part('root').setAttribute('data-anim', '');
         this.collapsed = next;
         this.emit('pk-collapse-change', { collapsed: next }, { cancelable: false });
+        this.save();
     }
     now() { return clampSize(this.size, this.min, this.max); }
     horizontal() { return this.orientation !== 'vertical'; }
@@ -52,7 +68,7 @@ export default Base => class extends Base {
         const h = this.part('handle');
         this.part('root').toggleAttribute('data-dragging', false);
         if (h.hasPointerCapture(d.id)) h.releasePointerCapture(d.id);
-        if (this.now() !== d.from) this.emit('pk-resize', { size: this.now() }, { cancelable: false });
+        if (this.now() !== d.from) { this.emit('pk-resize', { size: this.now() }, { cancelable: false }); this.save(); }
     }
     keys(e) {
         if (this.disabled) return;
@@ -65,8 +81,10 @@ export default Base => class extends Base {
         if (s === this.now()) return;
         this.size = s;
         this.emit('pk-resize', { size: s }, { cancelable: false });
+        this.save();
     }
     updated() {
+        this.syncPersist();
         const s = this.now(), root = this.part('root'), h = this.part('handle');
         const c = !!(this.collapsible && this.collapsed), t = this.part('toggle');
         root.style.setProperty('--_a', c ? '1fr' : `${s}fr`); root.style.setProperty('--_b', c ? '0fr' : `${Math.round((100 - s) * 10) / 10}fr`);
