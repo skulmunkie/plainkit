@@ -155,6 +155,24 @@ export const LAB_CASES = [
         await waitText(ctx, 'Valid: False');
         await ctx.noErrors(ctx.openMark, BENIGN);
       } },
+    // #1582: the dev tools page is the SDK's devtools workspace module mounted through the bridge (PkDevToolsWorkspace): the tabs, the callbacks into .NET (a tab click navigates)
+    // and the data handed over (the gallery's Blazor sections, the score targets, the snapshot through the lazy reader).
+    { name: 'devtools-workspace',
+      async run(ctx) {
+        await ctx.open('/_plainkit');
+        await ctx.waitFor(`!!window.__deep.one('pk-gallery')`, 'the Gallery workspace to mount');
+        ctx.ok(await ctx.eval(`(window.__deep.one('pk-gallery').getAttribute('sections') ?? '').includes('PkButton')`), 'the gallery got no Blazor sections from .NET');
+        await waitText(ctx, 'Console', ALL); // the dock's tabs
+        await ctx.clickDeep('pk-tab', 'Files');
+        await ctx.waitFor(`location.pathname === '/_plainkit/files'`, 'the Files tab to navigate through .NET');
+        await ctx.waitFor(`!!window.__deep.one('pk-code-explorer') || window.__deep.text(document.body).includes('No source to browse')`, 'the Files workspace to load');
+        await ctx.clickDeep('pk-tab', 'Scorecard');
+        await ctx.waitFor(`location.pathname === '/_plainkit/scorecard'`, 'the Scorecard tab to navigate through .NET');
+        await ctx.waitFor(`window.__deep.text(document.body).includes('Run scorecard') || window.__deep.text(document.body).includes('Run live')`, 'the Scorecard workspace to draw its run button');
+        await ctx.open('/_plainkit/files'); // a deep link mounts on that workspace
+        await ctx.waitFor(`window.__deep.one('pk-tabs')?.getAttribute('value') === 'files'`, 'a deep link to open the Files workspace');
+        await ctx.noErrors(ctx.openMark, BENIGN);
+      } },
     { name: 'two-way-bind',
       async run(ctx) {
         await ctx.open('/lab/bind');
@@ -264,6 +282,7 @@ export async function onPhone(ctx, fn) {
 export const LAB_SHOTS = [
     async (ctx, vp, theme) => { await ctx.open('/lab/fields'); await ctx.sleep(500); await ctx.shot('lab-fields', vp, theme); },
     async (ctx, vp, theme) => { await ctx.open('/lab/tickets'); await ctx.sleep(800); await ctx.shot('lab-list', vp, theme); },
+    async (ctx, vp, theme) => { await ctx.open('/_plainkit/files'); await ctx.sleep(1500); await ctx.shot('devtools-files', vp, theme); },
     async (ctx, vp, theme) => {
         await ctx.open('/lab/tickets/3'); await ctx.sleep(800);
         await ctx.clickDeep('pk-record-page >>> pk-button[part="edit"]'); await ctx.sleep(600);

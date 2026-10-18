@@ -5,7 +5,7 @@ using PlainKit.Blazor;
 
 var builder = WebApplication.CreateBuilder(args);
 builder.Services.AddRazorComponents().AddInteractiveServerComponents();
-builder.Services.AddPlainKit();
+builder.Services.AddPlainKit(o => o.DevTools = true); // the dev tools page (/_plainkit) is on in the harness, which runs the sample in Production
 builder.Services.AddPlainKitApp(app => app
     .Brand("Demo app")
     .Module<OverviewModule>().Module<OrdersModule>().Module<ReportsModule>()
@@ -27,7 +27,7 @@ app.UseAuthentication();
 app.UseAuthorization();
 app.UseAntiforgery();
 app.MapStaticAssets();
-app.MapRazorComponents<App>().AddInteractiveServerRenderMode();
+app.MapRazorComponents<App>().AddInteractiveServerRenderMode().AddPlainKitDevTools();
 app.Run();
 
 sealed class NoSignIn(Microsoft.Extensions.Options.IOptionsMonitor<Microsoft.AspNetCore.Authentication.AuthenticationSchemeOptions> o, Microsoft.Extensions.Logging.ILoggerFactory l, System.Text.Encodings.Web.UrlEncoder e)
