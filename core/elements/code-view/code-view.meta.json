@@ -62,6 +62,13 @@
       "description": "Show the header bar."
     },
     {
+      "name": "copy",
+      "type": "boolean",
+      "default": false,
+      "reflect": true,
+      "description": "Header Copy button; copies all lines."
+    },
+    {
       "name": "language",
       "type": "string",
       "default": "",
@@ -88,9 +95,26 @@
         "column": "number"
       },
       "description": "A click left a caret in a line's code (not a drag selection): the line number and the zero-based column of the caret. Not cancelable."
+    },
+    {
+      "name": "pk-copy",
+      "detail": "{ ok: boolean }",
+      "detailProps": {
+        "ok": "boolean"
+      },
+      "description": "After a copy attempt.",
+      "cancelable": false
     }
   ],
   "parts": [
+    {
+      "name": "copy",
+      "description": "The Copy button."
+    },
+    {
+      "name": "status",
+      "description": "Live result."
+    },
     {
       "name": "body",
       "description": "The scrolling region."
@@ -138,6 +162,10 @@
   ],
   "a11y": "The body is a labelled, focusable region so a keyboard can scroll it. Line numbers are generated content: they are not selectable, not copied and not read as part of the code. A highlighted line is marked by a background and a leading edge, not by colour alone in the number. Lines are set as text, never parsed as HTML.",
   "examples": [
+    {
+      "title": "Header with a Copy button",
+      "html": "<pk-code-view header copy label=\"order.js\" language=\"JavaScript\">function total(items) {\n    return items.length;\n}</pk-code-view>"
+    },
     {
       "title": "Highlighted lines",
       "html": "<pk-code-view label=\"order.js\" highlight=\"2-3\">function total(items) {\n    const sum = items.reduce((a, i) => a + i.qty, 0);\n    return sum;\n}</pk-code-view>"
