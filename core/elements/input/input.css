@@ -13,10 +13,11 @@ label { display: none; margin-block-end: var(--space-1); }
 :host([size="sm"]) .box { min-height: calc(var(--ctl-h) * 0.8); }
 :host([size="lg"]) .box { min-height: calc(var(--ctl-h) * 1.2); padding-inline: var(--space-4); }
 input { flex: 1; align-self: stretch; min-width: 0; padding: var(--space-2) 0; border: 0; outline: 0; background: transparent; color: var(--color-text); font: inherit; font-size: var(--text-read); line-height: 1.3; }
+:host([font=sans]) input { font-family: var(--font-sans); }
+:host([font=mono]) input { font-family: var(--font-mono); }
 ::placeholder { color: var(--color-muted); opacity: 1; }
 .ico, .cur, .clear, .reveal, .copy, .step { display: none; flex: none; }
-.ico { width: 1.1em; height: 1.1em; fill: none; stroke: currentColor; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
-.ico { color: var(--color-muted); }
+.ico { width: 1.1em; height: 1.1em; fill: none; stroke: currentColor; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; color: var(--color-muted); }
 .ib { width: calc(var(--ctl-h) - 0.6rem); height: calc(var(--ctl-h) - 0.6rem); place-items: center; padding: 0; border: 0; border-radius: var(--radius-sm); background: transparent; color: var(--field-muted); font: inherit; font-size: var(--text-lg); cursor: pointer; }
 .ib:hover:not(:disabled) { background: var(--color-surface-alt); color: var(--color-text); }
 .ib:disabled { opacity: 0.4; cursor: not-allowed; }
@@ -36,4 +37,4 @@ input { flex: 1; align-self: stretch; min-width: 0; padding: var(--space-2) 0; b
 :host([floating]) .box { min-height: calc(var(--ctl-h) * 1.35); }
 :host([floating]) input { padding: 1.15rem 0 0.2rem; }
 :host([floating]) .box:focus-within .fl, :host([floating][has-value]) .fl { bottom: auto; top: var(--space-1); align-items: flex-start; font-size: var(--text-meta); }
-@media (--phone) { .box { min-height: var(--touch-target); } input { font-size: 16px; min-height: var(--touch-target); } .ib { width: var(--touch-target); height: var(--touch-target); } }
+@media (--phone) { .box, input { min-height: var(--touch-target); } input { font-size: 16px; } .ib { width: var(--touch-target); height: var(--touch-target); } }

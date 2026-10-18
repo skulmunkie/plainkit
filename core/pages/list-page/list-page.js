@@ -1,7 +1,7 @@
 import { showTitleBar } from '../../js/page-shell.js';
 import { loadElements } from '../../js/loader.js';
 
-const TABLE_KEYS = ['columns', 'filters', 'pageSize', 'pageSizeOptions', 'sort', 'sortDir', 'search', 'searchLabel', 'searchDebounce', 'pagerLabel', 'label', 'caption', 'empty', 'noResults', 'loadError', 'stickyHeader'];
+const TABLE_KEYS = ['columns', 'filters', 'pageSize', 'pageSizeOptions', 'sort', 'sortDir', 'search', 'filterValues', 'page', 'searchLabel', 'searchDebounce', 'pagerLabel', 'label', 'caption', 'empty', 'noResults', 'loadError', 'stickyHeader'];
 
 // The page frame (title bar, toolbar actions, the callbacks) around a pk-data-table, which owns the query, the load and the states (#801).
 export default Base => class extends Base {
@@ -11,7 +11,7 @@ export default Base => class extends Base {
         loadElements(this.shadowRoot);
         this.sync();
         // Cell content (#1000): the host's `cell-<id>-<key>` children are re-slotted into the table, which re-slots them into its pk-table (#817).
-        (this.$mo = new MutationObserver(() => this.forwardSlots())).observe(this, { childList: true });
+        (this.$mo = new MutationObserver(() => { this.forwardSlots(); this.showHeaderSlot(); })).observe(this, { childList: true });
         this.forwardSlots();
     }
     disconnected() { this.$mo?.disconnect(); this.$w = false; }
@@ -41,13 +41,19 @@ export default Base => class extends Base {
         const cfg = this.config ?? {};
         for (const k of TABLE_KEYS) table[k] = cfg[k];
         table.hideSearch = cfg.searchable === false;
+        table.cards = cfg.cards ?? !cfg.selectable; // a card has no select-all
     }
 
-    // Rebuilt only when config.actions itself changes: a toolbar action is data (label, href, variant), never a callback - a page that
-    // needs one wired to app logic points its href at another route, the same way a module's own nav does.
+    // Slotted actions keep the title bar that showTitleBar hides when the config draws nothing.
+    showHeaderSlot() {
+        if ([...this.children].some(c => c.slot === 'actions')) this.part('header').setAttribute('data-bare', 'false');
+    }
+
+    // Rebuilt only when config.actions changes: link buttons; app logic goes in the actions or toolbar slot.
     buildActions() {
         // Title bar: heading and breadcrumb only; config.actions stay the table's toolbar buttons below.
         showTitleBar(this, this.part('header'), { heading: this.config?.heading, breadcrumb: this.config?.breadcrumb });
+        this.showHeaderSlot();
         this.fill('actions', this.config?.actions);
         this.fill('bulk', this.config?.selectable ? this.config?.bulkActions : null);
     }

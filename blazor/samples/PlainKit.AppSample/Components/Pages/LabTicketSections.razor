@@ -1,0 +1,16 @@
+@page "/lab/ticket-sections/{Id}"
+@inject NavigationManager Nav
+
+@* Lab: a record page with field sections, an editable sidebar, a title from the loaded record and Cancel for a new record. *@
+<PkRecordPage TItem="Ticket" Config="@Config" Fields="Ticket.Specs" Sections="_sections" Sidebar="_sidebar" TitleOf="@(t => "Ticket: " + t.Title)"
+              Load="TicketStore.GetAsync" Save="TicketStore.SaveAsync" OnCancel="Back" />
+
+@code {
+    [Parameter] public string Id { get; set; } = "";
+    private string Config => System.Text.Json.JsonSerializer.Serialize(new { id = Id, title = "Ticket", editable = true });
+
+    private static readonly PkRecordSection[] _sections = [new("Details", ["title", "kind", "estimate", "email", "secret", "due", "opened", "at", "site", "phone"]), new("Notes", ["notes"])];
+    private static readonly PkRecordSection[] _sidebar = [new("Status", ["done", "owner"])];
+
+    private void Back() => Nav.NavigateTo("/lab/tickets");
+}

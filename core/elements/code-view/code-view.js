@@ -1,3 +1,5 @@
+import { copyAndAnnounce } from '../../js/clipboard.js';
+
 // Plainkit code view logic: a read-only, line-numbered listing. Pure helpers plus the element that draws the rows with DOM APIs only.
 
 // The line numbers named by "3, 5-7" (a number, or a range, separated by commas); anything else is ignored.
@@ -34,6 +36,7 @@ export default Base => class extends Base {
         if (this.$c) return;
         this.$c = () => this.picked();
         this.part('rows').addEventListener('click', this.$c);
+        this.part('copy').addEventListener('click', () => copyAndAnnounce(this, this.$l.join('\n')));
     }
     disconnected() { this.$m?.disconnect(); }
     // A click that leaves a caret in a line's code reports the line and the column of the caret.
@@ -50,6 +53,7 @@ export default Base => class extends Base {
     }
     updated() {
         const doc = this.ownerDocument, lines = sourceLines(this.lines, [...this.childNodes].filter(n => n.nodeType !== 1 || !n.hasAttribute('slot')).map(n => n.textContent).join('')), first = Math.max(1, Math.floor(Number(this.start)) || 1), lit = parseLines(this.highlight);
+        this.$l = lines; this.part('copy').hidden = !this.copy;
         const rows = lines.map((text, i) => {
             const row = doc.createElement('div'), code = doc.createElement('span'), n = first + i;
             row.className = lit.has(n) ? 'row hl' : 'row'; row.dataset.line = String(n); code.className = 'code';

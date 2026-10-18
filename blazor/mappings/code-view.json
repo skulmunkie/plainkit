@@ -47,6 +47,11 @@
       "type": "bool"
     },
     {
+      "name": "Copy",
+      "prop": "copy",
+      "type": "bool"
+    },
+    {
       "name": "Language",
       "prop": "language",
       "type": "string"
@@ -66,6 +71,11 @@
     {
       "name": "OnLineClick",
       "event": "pk-line-click"
+    },
+    {
+      "name": "OnCopy",
+      "event": "pk-copy",
+      "type": "EventCallback<PkCopyEventArgs>"
     },
     {
       "name": "ChildContent",

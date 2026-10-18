@@ -4,7 +4,7 @@ import { filterControl } from '../../js/filter-controls.js';
 
 // The one query/load/selection machine of a paged list (#801): pk-list-page, the lookup picker and Blazor's PkDataTable all sit on this element.
 // The settings are plain props; an unset one reads its default. The defaults are the meta's (a test holds them together).
-export const DEFAULTS = { columns: [], filters: [], pageSize: 25, pageSizeOptions: null, sort: '', sortDir: 'ascending', hideSearch: false, search: '', searchLabel: '', searchDebounce: 250, pagerLabel: '', label: '', caption: '', empty: null, noResults: null, loadError: '' };
+export const DEFAULTS = { columns: [], filters: [], pageSize: 25, pageSizeOptions: null, sort: '', sortDir: 'ascending', hideSearch: false, search: '', filterValues: {}, page: 1, searchLabel: '', searchDebounce: 250, pagerLabel: '', label: '', caption: '', empty: null, noResults: null, loadError: '' };
 const SETTINGS = Object.keys(DEFAULTS);
 
 export default Base => class extends Base {
@@ -56,12 +56,12 @@ export default Base => class extends Base {
     changed(name) {
         if (!this.$w) return;
         // A setting that arrives after the first draw (a wrapper sets props after connecting) still decides the initial page size and sort, until the reader changes the query.
-        if (SETTINGS.includes(name)) { const s = this.opt('search'); if (!this.$touched) this.$query = null; else if (s !== this.$seed) this.$query = { ...this.query, search: s, page: 1 }; this.buildFilters(); this.refresh(); }
+        if (SETTINGS.includes(name)) { const s = this.opt('search'); if (!this.$touched) this.$query = null; else if (s !== this.$seed) this.$query = { ...this.query, search: s, page: 1 }; this.buildFilters(); if (!this.$touched) this.seedFilters(); this.refresh(); }
         else this.sync();
     }
 
     /** The current query { page, pageSize, sort, sortDir, search, filters }: what load() last received, and what a bulk action for scope 'all' runs against. */
-    get query() { return { ...(this.$query ??= { page: 1, pageSize: this.opt('pageSize') || 25, sort: this.opt('sort') || null, sortDir: this.opt('sortDir') || 'ascending', search: this.opt('search'), filters: {} }) }; }
+    get query() { return { ...(this.$query ??= { page: Math.max(1, Math.trunc(this.opt('page')) || 1), pageSize: this.opt('pageSize') || 25, sort: this.opt('sort') || null, sortDir: this.opt('sortDir') || 'ascending', search: this.opt('search'), filters: { ...this.opt('filterValues') } }) }; }
 
     // Focus from the host (#885), so a host never reaches into the search box or the rows. focus(): the search box, the first row when the search is hidden; 'search': the search box only;
     // 'next': the row after the focused one (the first when no row has focus); 'previous', 'first', 'last': only while a row has focus, so Home and the arrows stay the
@@ -91,6 +91,11 @@ export default Base => class extends Base {
         this.$controls = {};
         for (const f of this.opt('filters')) box.append(this.$controls[f.key] = filterControl(this.ownerDocument, f));
         loadElements(box);
+        this.seedFilters();
+    }
+    seedFilters() {
+        const values = this.query.filters;
+        for (const [key, el] of Object.entries(this.$controls ?? {})) if (values[key] !== undefined) el.value = values[key];
         this.updateFilterCount();
     }
     updateFilterCount() { this.part('filters').filterCount = Object.values(this.query.filters).filter(v => String(v ?? '').trim() !== '').length; }

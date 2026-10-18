@@ -1,4 +1,4 @@
-/* pk-app-shell: nav column + a main column whose body is the only scroller and the containing block of the page's absolutely positioned content (else it resolves against the page and the document scrolls too). Header and footer are sticky by construction; the safe area is added to their padding. */
+/* pk-app-shell: nav column + a main column whose body is the only scroller and the containing block of the page's absolutely positioned content (else it resolves against the page and the document scrolls too). The body is itself a flex column of definite height (issue 1551), so a page type that sets flex: 1 1 auto and min-height: 0 (a list page with a pinned header) fills it and only its rows scroll; ordinary content keeps its height and the body scrolls. Header and footer are sticky by construction; the safe area is added to their padding. */
 :host { display: grid; grid-template-columns: auto minmax(0, 1fr); height: 100vh; height: 100dvh; background: var(--color-bg); color: var(--color-text); }
 
 /* The main column is always the last one: with no nav in the nav slot it must not fall into the nav's (auto) column and take only its content width. */
@@ -23,7 +23,7 @@
 /* The bar keeps its row until it upgrades (CLS, issue 1372). */
 ::slotted(pk-navbar:not(:defined)) { display: block; min-block-size: max(var(--app-header-h), calc(var(--touch-target) + 0.5em)); }
 
-[part="body"] { flex: 1; min-height: 0; position: relative; overflow-y: auto; scrollbar-gutter: stable; overscroll-behavior: contain; --pk-page-header-sticky-top: calc(-1 * var(--pad-page)); padding: var(--pad-page); padding-inline: max(var(--pad-page), env(safe-area-inset-left)) max(var(--pad-page), env(safe-area-inset-right)); }
+[part="body"] { flex: 1; min-height: 0; display: flex; flex-direction: column; position: relative; overflow-y: auto; scrollbar-gutter: stable; overscroll-behavior: contain; --pk-page-header-sticky-top: calc(-1 * var(--pad-page)); padding: var(--pad-page); padding-inline: max(var(--pad-page), env(safe-area-inset-left)) max(var(--pad-page), env(safe-area-inset-right)); }
 
 :host([flush]) [part="body"] { --pk-page-header-sticky-top: 0px; padding: 0; padding-inline: env(safe-area-inset-left) env(safe-area-inset-right); }
 

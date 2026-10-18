@@ -33,13 +33,13 @@ internal static class PkFieldSpecs
     public static string? Text(JsonElement? e) => e?.ValueKind switch { JsonValueKind.True => "true", JsonValueKind.False => "", JsonValueKind.Null or JsonValueKind.Undefined => null, JsonValueKind.String => e?.GetString(), _ => e?.GetRawText() };
 
     /// <summary>The page's config with the specs as its <c>fields</c>; a new record (no <c>id</c>) also starts from the model's values. <paramref name="isNew"/> says which.</summary>
-    public static string RecordConfig<T>(string? config, IReadOnlyList<PkFieldSpec<T>>? fields, T? model, out bool isNew)
+    public static string RecordConfig<T>(string? config, IReadOnlyList<PkFieldSpec<T>>? fields, T? model, out bool isNew, IReadOnlyList<PkRecordSection>? sections = null, IReadOnlyList<PkRecordSection>? sidebar = null, Func<T, string?>? titleOf = null)
     {
         var node = JsonNode.Parse(config ?? "{}") as JsonObject ?? new JsonObject();
         isNew = node["id"] is null;
         node["fields"] = JsonNode.Parse(PkAttr.Json(Defs(fields ?? [], model))!);
         if (isNew && model is not null) node["values"] = JsonSerializer.SerializeToNode(Values(fields ?? [], model));
-        return node.ToJsonString();
+        return PkRecordSection.Apply(node, sections, sidebar, model is null ? null : titleOf?.Invoke(model)).ToJsonString();
     }
 
     /// <summary>Writes the element's saved values onto the model through each spec's <c>SetAsync</c> or <c>Set</c> (a field the element did not send is left alone).</summary>

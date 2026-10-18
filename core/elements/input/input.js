@@ -45,9 +45,11 @@ export default Base => class extends Base {
         for (const [p, fn] of [['clear', () => this.clear()], ['reveal', () => this.showText(!this.$rev)], ['copy', () => this.copy()], ['step-down', () => this.stepBy(-1)], ['step-up', () => this.stepBy(1)]]) this.part(p).addEventListener('click', fn);
     }
     money() { return this.format === 'money'; }
-    n() { return this.value === '' ? NaN : Number(this.value); }
-    show() { if (this.$badMoney) return this.part('control').value; if (this.money() && !this.$editing && this.value !== '') return formatMoney(Number(this.value), { decimals: this.decimals, locale: this.locale }); return this.value; }
+    n() { return Number(this.value || NaN); }
+    show() { if (this.$badMoney) return this.part('control').value; if (this.money() && !this.$editing && this.value) return formatMoney(Number(this.value), { decimals: this.decimals, locale: this.locale }); return this.value; }
     updated() {
+        // width: xs to 2xl (4 to 24rem) or a CSS length, set as the host's inline-size; an unknown word is ignored by the browser.
+        const w = this.width, r = { xs: 4, sm: 6, md: 8, lg: 12, xl: 16, '2xl': 24 }[w]; this.style.inlineSize = r ? r + 'rem' : w;
         const i = this.part('control');
         i.type = this.$rev || this.money() ? 'text' : this.type;
         if (this.money()) i.inputMode = 'decimal';
@@ -55,10 +57,10 @@ export default Base => class extends Base {
         const s = this.show();
         if (!this.$typing && i.value !== s) i.value = s;
         this.$typing = false;
-        this.toggleAttribute('has-value', this.value !== '');
+        this.toggleAttribute('has-value', !!this.value);
         if (this.money()) { let c = ''; try { c = new Intl.NumberFormat(this.locale, { style: 'currency', currency: this.currency }).formatToParts(0).find(p => p.type === 'currency').value; } catch { this.warnOnce('c', 'bad currency'); } this.part('currency').textContent = c; }
         if (this.stepper) { this.part('step-down').disabled = this.disabled || this.n() <= num(this.min, -Infinity); this.part('step-up').disabled = this.disabled || this.n() >= num(this.max, Infinity); }
-        if (this.copyable) this.part('copy').disabled = this.disabled || this.value === '';
+        if (this.copyable) this.part('copy').disabled = this.disabled || !this.value;
         // A combobox: the listbox lives in the host's tree, which the inner input reaches through element reflection (an older browser just ignores the two element references).
         const l = this.listbox;
         i.role = l && 'combobox'; i.ariaExpanded = l && '' + !l.hidden; i.ariaAutoComplete = l && 'list';
@@ -81,26 +83,26 @@ export default Base => class extends Base {
     }
     edit(on) {
         this.$editing = on;
-        if (this.money()) { const i = this.part('control'); if (on && this.value !== '') { i.value = String(Number(this.value)); i.select(); } this.requestUpdate(); }
+        if (this.money()) { const i = this.part('control'); if (on && this.value) { i.value = +this.value; i.select(); } this.requestUpdate(); }
     }
     fire(types = ['input', 'change']) { for (const t of types) this.dispatchEvent(new Event(t, { bubbles: true, composed: true })); this.emit('pk-value-change', { value: this.value }); }
     clear() { const i = this.part('control'); i.value = ''; this.value = ''; this.$badMoney = false; i.focus(); this.fire(); this.search(true); }
     stepBy(dir) {
-        this.value = String(stepValue(this.n(), num(this.step, 1), dir, num(this.min, -Infinity), num(this.max, Infinity)));
+        this.value = '' + (stepValue(this.n(), num(this.step, 1), dir, num(this.min, -Infinity), num(this.max, Infinity)));
         this.part('control').value = this.show(); this.fire();
     }
     showText(on) {
         this.$rev = on;
-        const b = this.part('reveal'); b.setAttribute('aria-pressed', String(on)); b.setAttribute('aria-label', on ? 'Hide password' : 'Show password');
+        const b = this.part('reveal'); b.ariaPressed = '' + on; b.ariaLabel = on ? 'Hide password' : 'Show password';
         clearTimeout(this.$hide);
         if (on && this.autohide > 0) this.$hide = setTimeout(() => this.showText(false), this.autohide * 1000);
         this.requestUpdate();
     }
     async copy() {
-        if (this.value === '') return;
-        if (!(await copyValue(this.value))) return this.log.warn('clipboard copy failed');
-        const b = this.part('copy'); b.setAttribute('aria-label', 'Copied');
-        clearTimeout(this.$copyT); this.$copyT = setTimeout(() => b.setAttribute('aria-label', 'Copy'), 1600);
+        if (!this.value) return;
+        if (!(await copyValue(this.value))) return this.log.warn('copy failed');
+        const b = this.part('copy'); b.ariaLabel = 'Copied';
+        clearTimeout(this.$copyT); this.$copyT = setTimeout(() => b.ariaLabel = 'Copy', 1600);
     }
     search(now) {
         if (this.type !== 'search') return;
@@ -110,7 +112,7 @@ export default Base => class extends Base {
     }
     keys(e) {
         if (this.type !== 'search') return;
-        if (e.key === 'Escape' && this.value !== '') { e.preventDefault(); e.stopPropagation(); this.clear(); }
+        if (e.key === 'Escape' && this.value) { e.preventDefault(); e.stopPropagation(); this.clear(); }
         else if (e.key === 'Enter') this.search(true);
     }
     onReset() { this.value = this.$initial ?? ''; this.$badMoney = false; }

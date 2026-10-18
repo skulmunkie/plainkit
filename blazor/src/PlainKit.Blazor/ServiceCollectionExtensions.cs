@@ -24,7 +24,7 @@ public static class ServiceCollectionExtensions
         services.AddScoped<IPkSettings, PkSettings>();
         services.AddScoped<IPkTheme, PkThemeService>();
         services.AddScoped<IPkNotifications, PkNotifications>();
-        services.AddScoped<IPkDialogs, PkDialogs>();
+        services.AddScoped<IPkDialogs, PkDialogs>(); services.AddScoped<PkBusyState>();
         if (!OperatingSystem.IsBrowser()) AddCircuitState(services);
         return services.AddScoped<PkRuntime>();
     }
