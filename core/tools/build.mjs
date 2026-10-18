@@ -7,7 +7,7 @@
 //   site/gallery/gallery.data.js     the gallery's data: the sample folders and the element API assembled (+ gallery.static.js)
 //   site/guides/guides.data.js       the Guides page's content: site/guides/content/*.md converted to sanitised HTML (tools/guides.mjs)
 //   site/files/snapshot.json         the Files page's snapshot of core/ (no timestamp; it holds every file above, never itself)
-//   dist/plainkit.css, dist/plainkit.min.css, dist/plainkit.js, dist/js/, dist/elements/   the runtime SDK: what a non-Blazor project consumes (manifest: dist/manifest.json)
+//   dist/plainkit.css, dist/plainkit.min.css, dist/plainkit.js, dist/js/, dist/elements/   the runtime SDK: what a non-Blazor project consumes (manifest: dist/manifest.json; the files the npm package leaves out are listed in dist/manifest.extras.json)
 //   dist/modules/<tool>/             the dev-tool modules (code-explorer, ...) from modules/: a unit of their own, with dist/modules/manifest.json (tools/modules-dist.mjs);
 //                                    the runtime manifest lists nothing under modules/, and each unit is zipped and hashed on its own
 
@@ -27,7 +27,7 @@ import { checkFolders } from './tiers.mjs';
 import { collectSnapshot, collectFileList } from './snapshot.mjs';
 import { guidesModule } from './guides.mjs';
 import { loadBreakpoints, resolveCustomMedia, breakpointProperties } from './breakpoints.mjs';
-import { manifestText, modulesRequires } from '../js/custom-sdk-files.js';
+import { manifestText, modulesRequires, extrasRequires } from '../js/custom-sdk-files.js';
 import { reportJson as breakpointReport } from './breakpoint-report.mjs';
 
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
@@ -244,7 +244,12 @@ export const PK_VERSION = '${version}';
     const bytesOf = f => (out.has(f) ? Buffer.from(out.get(f)) : fs.readFileSync(path.join(root, f)));
     const unitFiles = (prefix, own) => [...new Set([...out.keys(), ...skillFiles()])].filter(f => f.startsWith(prefix) && own(f)).sort().map(f => { const data = bytesOf(f); return { path: f.slice(prefix.length), bytes: data.length, integrity: 'sha256-' + crypto.createHash('sha256').update(data).digest('base64') }; });
     const modulesPrefix = `dist/${MODULES_DIR}/`;
-    const files = unitFiles('dist/', f => !f.startsWith(modulesPrefix) && f !== 'dist/manifest.json');
+    // The extras are the files the npm package leaves out (the "!dist/..." entries of package.json "files": the gallery, the exported agent docs, descriptions.json, ...). They are their
+    // own manifest, dist/manifest.extras.json, so the manifest the package carries lists only what it holds; the release zip and the Pages site have both (#1253).
+    const extra = JSON.parse(fs.readFileSync(path.join(root, 'package.json'), 'utf8')).files.filter(p => p.startsWith('!dist/') && p !== `!${modulesPrefix.slice(0, -1)}`).map(p => p.slice(1));
+    const isExtra = f => extra.some(p => f === p || f.startsWith(p + '/'));
+    const files = unitFiles('dist/', f => !f.startsWith(modulesPrefix) && !isExtra(f) && f !== 'dist/manifest.json' && f !== 'dist/manifest.extras.json');
+    const extraFiles = unitFiles('dist/', f => isExtra(f) && f !== 'dist/manifest.extras.json');
     const moduleFiles = unitFiles(modulesPrefix, f => f !== `${modulesPrefix}manifest.json`);
     // The build owns dist/js: whatever it did not just produce is a leftover, and is removed so the folder is exactly the sources.
     if (write) {
@@ -253,6 +258,7 @@ export const PK_VERSION = '${version}';
     }
     // The text is js/custom-sdk-logic.js manifestText(), the same function the theme editor's custom SDK export uses to recompute it in the browser.
     w('dist/manifest.json', manifestText({ version, files }));
+    w('dist/manifest.extras.json', manifestText({ version, files: extraFiles, name: 'plainkit-extras', requires: extrasRequires(version) }));
     w(`${modulesPrefix}manifest.json`, manifestText({ version, files: moduleFiles, name: 'plainkit-modules', requires: modulesRequires(version) }));
     // The Files page's snapshot of core/ itself. Written last, from the files on disk with everything generated above laid over them (so a stale
     // generated file never leaks in), no timestamp (deterministic). It skips its own file and dist/, so it never includes itself.

@@ -418,7 +418,10 @@ export class CodeExplorerElement extends Base {
         const start = total <= max ? 1 : Math.max(1, Math.min(centre - Math.floor(max / 2), total - max + 1));
         const end = Math.min(total, start + max - 1);
         const caps = this.#provider.capabilities ?? {};
-        fill(pane, `<pk-stack gap="sm" fill><pk-cluster gap="sm" align="center"><pk-text inline font="mono" weight="semibold" size="read">${esc(doc.path)}</pk-text><pk-badge>${esc(doc.language)}</pk-badge><pk-text inline tone="muted" size="read">${total.toLocaleString()} lines</pk-text>${caps.outline ? '<pk-button size="mini" variant="ghost" data-ce-outline>Outline</pk-button>' : ''}${caps.references && this.#word ? `<pk-button size="mini" variant="ghost" data-ce-usages>Usages of ${esc(this.#word)}</pk-button>` : ''}</pk-cluster>${start > 1 || end < total ? `<pk-text tone="muted" size="read">Showing lines ${start}-${end} of ${total}.</pk-text>` : ''}<pk-code-view label="${esc(doc.path)}"></pk-code-view></pk-stack>`);
+        const note = start > 1 || end < total ? `<pk-text slot="header-start" inline tone="muted" size="read">Showing lines ${start}-${end} of ${total}.</pk-text>` : '';
+        const outline = caps.outline ? '<pk-button slot="actions" size="mini" variant="ghost" data-ce-outline>Outline</pk-button>' : '';
+        const usages = caps.references && this.#word ? `<pk-button slot="actions" size="mini" variant="ghost" data-ce-usages>Usages of ${esc(this.#word)}</pk-button>` : '';
+        fill(pane, `<pk-code-view header copy fill label="${esc(doc.path)}" language="${esc(doc.language)}">${note}${outline}${usages}</pk-code-view>`);
         const view = pane.querySelector('pk-code-view'), shown = doc.lines.slice(start - 1, end);
         Object.assign(view, { start, lines: shown, highlight: this.#focus ? String(this.#focus) : '', segments: shown.map((text, i) => buildSegments(text, doc.tokens[start - 1 + i] ?? [], [], wordSpans(text, this.#word))) });
         on(view, 'pk-line-click', e => this.#onLineClick(e.detail));

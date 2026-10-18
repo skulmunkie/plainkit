@@ -16,7 +16,7 @@ Copy `dist/` (or the whole folder) to any static host and link one stylesheet an
 ```
 
 Themes are token sets: set `data-theme="dark"` or `"light"` (and optionally `data-density="compact"`) on any element. Each element is one module in
-`dist/elements/<name>.js`, loaded on demand; `dist/manifest.json` lists every file of the runtime with an SRI hash. The dev tools (below) are a separate unit, `dist/modules/`, with its own manifest and zip: the runtime never fetches one.
+`dist/elements/<name>.js`, loaded on demand; `dist/manifest.json` lists the files of the runtime the npm package carries with an SRI hash, and `dist/manifest.extras.json` the ones it leaves out (gallery, agent docs, `descriptions.json`; release zip and Pages only). The dev tools (below) are a separate unit, `dist/modules/`, with its own manifest and zip: the runtime never fetches one.
 
 ## Developing in this repository
 

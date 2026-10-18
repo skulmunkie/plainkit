@@ -41,6 +41,9 @@
  "code-block": [
   "(max-width: 640px)"
  ],
+ "code-view": [
+  "(max-width: 640px)"
+ ],
  "colour-input": [
   "(max-width: 640px)"
  ],

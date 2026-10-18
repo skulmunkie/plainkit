@@ -7,13 +7,13 @@
 @inject NavigationManager Nav
 @inject IPkTheme Theme
 @inject PkRuntime Runtime
+@inject PkBusyState Busy
 
-@* Hand-written (#364, step 3), router category: the module catalog and where the reader is (PkNavModel) go into the data of pk-app-frame, which draws
-   the shell, nav, picker, search and breadcrumb. The page is the body (ChildContent); links are plain hrefs, so the only handlers are search and theme. *@
+@* Hand-written (#364): the module catalog and where the reader is (PkNavModel) go into pk-app-frame's data; the page is the body; links are plain hrefs, so the only handlers are search and theme. *@
 <PkAppFrame Brand="@Catalog.Brand" BrandHref="@Url("/")" Nav="@Json(Rows(_active?.Manifest.Nav))" CurrentId="@(_loc?.Current ?? "")" Trail="@Json(_loc?.Ids ?? [])"
             Modules="@Json(Catalog.Modules.Select(m => new { id = m.Manifest.Id, title = m.Manifest.Title, href = Url("/" + m.Manifest.Id) }))"
             ModuleTitle="@(_active?.Manifest.Title ?? "")" Crumbs="@Json(_loc?.Crumbs.Select(c => new { label = c.Label, href = c.Href is null ? null : Url(c.Href) }) ?? [])"
-            Search="true" SearchItems="@Json(_found)" OnQuery="Search" OnSelect="Go" OnThemeToggle="ToggleTheme">
+            Busy="@Busy.IsBusy" BusyLabel="@Busy.Label" Search="true" SearchItems="@Json(_found)" OnQuery="Search" OnSelect="Go" OnThemeToggle="ToggleTheme">
     <ChildContent><pk-skip-link href="#pk-main">Skip to content</pk-skip-link><main id="pk-main" tabindex="-1">@ChildContent</main></ChildContent>
     <FooterContent>@Catalog.Footer</FooterContent>
 </PkAppFrame>
@@ -23,11 +23,10 @@
     private static readonly JsonSerializerOptions Opts = new(JsonSerializerDefaults.Web) { DefaultIgnoreCondition = System.Text.Json.Serialization.JsonIgnoreCondition.WhenWritingNull };
     private PkNavLocation? _loc;
     private IPkModule? _active;
-    private IEnumerable<object> _found = [];
-    private bool _moved;
+    private IEnumerable<object> _found = []; private bool _moved;
     /// <summary>The page: the router's body.</summary>
     [Parameter] public RenderFragment? ChildContent { get; set; }
-    protected override void OnInitialized() { Where(); Nav.LocationChanged += OnLocationChanged; }
+    protected override void OnInitialized() { Where(); Nav.LocationChanged += OnLocationChanged; Busy.Changed += Repaint; }
     protected override async Task OnAfterRenderAsync(bool firstRender) { if (firstRender) await Theme.InitializeAsync(); else if (_moved) await RouteChangedAsync(); }
 
     // Once the new page has rendered: title, focus and announcement, which are core's (js/app/route-focus.js), not re-written here. Title is the same text, so a deep link has it on the first render (#1332).
@@ -57,5 +56,6 @@
 
     private async Task ToggleTheme() => await Theme.ToggleAsync();
 
-    public void Dispose() => Nav.LocationChanged -= OnLocationChanged;
+    public void Dispose() { Nav.LocationChanged -= OnLocationChanged; Busy.Changed -= Repaint; }
+    private void Repaint() => _ = InvokeAsync(StateHasChanged);
 }

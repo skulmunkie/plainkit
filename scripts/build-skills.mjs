@@ -501,7 +501,7 @@ function loadingMd(src) {
         'The full entry module `dist/js/plainkit.js` (also reachable as `dist/plainkit.js`), verbatim:', '', fence('text', src.entryHeader), '',
         `Exports of the full entry module: ${src.entryExports.map(code).join(', ')}.`, '',
         '## How elements load', '', `\`initPlainkit(root = document)\` installs the declarative openers, imports the modules of the \`pk-*\` tags found under \`root\` (each element is its own module, \`dist/elements/<name>.js\`, found by name: \`pk-card\` is \`dist/elements/card.js\`) and watches for tags added later. A tag with no module (usually a typo, checked against \`registry.js\`) is logged as a warning by the \`loader\` scope and stays inert. Exports of \`dist/js/loader.js\`: ${src.loaderExports.map(code).join(', ')}.`, '',
-        '`dist/manifest.json` lists every file of the runtime with its size and SRI hash (`dist/modules/manifest.json` does the same for the modules unit); the SDK makes no runtime request to another origin. Editor support is generated into `dist/`: `custom-elements.json`, `vscode.html-custom-data.json`, `web-types.json`, `elements.d.ts`.', ''].join('\n');
+        '`dist/manifest.json` lists the runtime files with their size and SRI hash (`dist/modules/manifest.json` does the same for the modules unit, `dist/manifest.extras.json` for the files the npm package leaves out); the SDK makes no runtime request to another origin. Editor support is generated into `dist/`: `custom-elements.json`, `vscode.html-custom-data.json`, `web-types.json`, `elements.d.ts`.', ''].join('\n');
 }
 
 const SDK_GAPS = [

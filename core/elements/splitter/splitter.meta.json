@@ -65,7 +65,7 @@
       "type": "boolean",
       "default": false,
       "reflect": true,
-      "description": "Shows a toggle on the separator that collapses the end pane."
+      "description": "Shows a toggle on the separator that collapses the end pane (collapsed at first on a phone)."
     },
     {
       "name": "collapsed",
@@ -81,6 +81,13 @@
       "default": "",
       "reflect": false,
       "description": "The toggle's name."
+    },
+    {
+      "name": "persistKey",
+      "type": "string",
+      "default": "",
+      "reflect": false,
+      "description": "Saves size and collapsed in local storage under this key and restores them, unless size or collapsed is set."
     }
   ],
   "slots": [
@@ -161,7 +168,7 @@
   "examples": [
     {
       "title": "Side by side",
-      "html": "<pk-splitter size=\"30\" min=\"15\" max=\"70\" collapsible label=\"Resize the list\"><div slot=\"start\" class=\"stack\"><strong>List</strong><span>Drag the bar, or focus it and use the arrow keys.</span></div><div slot=\"end\" class=\"stack\"><strong>Detail</strong><span>Home and End go to the minimum and maximum.</span></div></pk-splitter>"
+      "html": "<pk-splitter size=\"30\" min=\"15\" max=\"70\" collapsible persist-key=\"gallery-splitter\" toggle-label=\"Detail panel\" label=\"Resize the list\"><div slot=\"start\" class=\"stack\"><strong>List</strong><span>Drag the bar, or focus it and use the arrow keys.</span></div><div slot=\"end\" class=\"stack\"><strong>Detail</strong><span>Home and End go to the minimum and maximum.</span></div></pk-splitter>"
     },
     {
       "title": "Stacked",

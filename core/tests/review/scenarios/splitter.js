@@ -30,10 +30,12 @@ export default {
         t.visible(TOGGLE, 'the toggle'); t.visible(HANDLE, 'the separator'); t.inViewport(TOGGLE);
         const tg = t.rect(TOGGLE), h = t.rect(HANDLE), s = t.rect(START), e = t.rect(END);
         if (t.viewport.name === 'phone' && tg) t.ok(tg.width >= 43.5 && tg.height >= 43.5, `the toggle is ${Math.round(tg.width)}x${Math.round(tg.height)}, under the 44px touch target`);
-        if (tg && h) t.ok(Math.abs(tg.x + tg.width / 2 - (h.x + h.width / 2)) < 2, 'the toggle is centred on the separator line');
+        if (tg && h) t.ok(t.viewport.name === 'phone' ? Math.abs(tg.y + tg.height / 2 - (h.y + h.height / 2)) < 2 :Math.abs(tg.x + tg.width / 2 - (h.x + h.width / 2)) < 2, 'the toggle is centred on the separator line');
         if (s && e && h) {
-            const collapsed = t.shot.startsWith('collapsed');
-            if (collapsed) { t.ok(e.width < 1, `the collapsed end pane is ${Math.round(e.width)}px wide, not 0`); t.ok(s.width > 0 && s.width + h.width >= t.rect(SP).width - 1, 'the start pane fills the splitter'); }
+            // On a phone a collapsible split starts collapsed (so the shot names are swapped) and expands as a stacked, full-width row.
+            const phone = t.viewport.name === 'phone', collapsed = t.shot.startsWith('collapsed') !== phone;
+            if (collapsed) { t.ok(phone ? e.height < 1 : e.width < 1, `the collapsed end pane is ${Math.round(e.width)}x${Math.round(e.height)}, not 0`); t.ok(s.width > 0 && s.width + (phone ? 0 : h.width) >= t.rect(SP).width - 1, 'the start pane fills the splitter'); }
+            else if (phone) t.ok(e.height > 10 && e.y >= s.y + s.height - 1 && Math.abs(e.width - s.width) < 1 && e.width > 300, 'the expanded end pane is a full-width row below the start pane');
             else t.ok(e.width > 40, 'the expanded end pane has room');
         }
         const ve = t.rect('#sv >>> [part=end]'), vs = t.rect('#sv >>> [part=start]');

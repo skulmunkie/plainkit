@@ -84,8 +84,8 @@ test('no personal paths or real email addresses in any file', () => {
 });
 
 test('the SRI manifest lists every skill file with its size and hash', () => {
-    const manifest = JSON.parse(read(path.join(dist, 'manifest.json')));
-    const listed = new Map(manifest.files.map(f => [f.path, f]));
+    // two manifests: the package's files, and the extras (here the plainkit-blazor skill, which the npm package leaves out, #1253)
+    const listed = new Map(['manifest.json', 'manifest.extras.json'].flatMap(n => JSON.parse(read(path.join(dist, n))).files).map(f => [f.path, f]));
     for (const [f, text] of gen) {
         const e = listed.get(`skills/${f}`);
         assert.ok(e, `skills/${f} is not in dist/manifest.json: run node scripts/build-skills.mjs`);

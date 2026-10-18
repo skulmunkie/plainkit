@@ -26,16 +26,8 @@ pk-code-explorer pk-container pk-empty-state { margin: auto; }
 
 pk-code-explorer pk-list-group mark { background: var(--csr-mark-bg); color: inherit; padding: 0; }
 
-/* Code viewer: a pk-stack (file header: pk-cluster of pk-text, pk-badge and buttons) over a pk-code-view, which draws its own frame and palette.
-   The stack fills the pane and the listing takes the rest, scrolling inside itself. */
-pk-code-explorer [data-ce-pane] > pk-stack { min-inline-size: 0; }
-pk-code-explorer [data-ce-pane] > pk-stack > pk-code-view { flex: 1; min-block-size: 0; --pk-code-view-max-height: none; }
-pk-code-explorer [data-ce-pane] > pk-stack > pk-cluster pk-text:first-child { overflow-wrap: anywhere; flex: 1 1 auto; text-align: start; }
-
-/* Phone: the file path takes its own row so a long path wraps instead of squeezing the language, count and buttons. */
-@media (--phone) {
-    pk-code-explorer [data-ce-pane] > pk-stack > pk-cluster pk-text:first-child { flex-basis: 100%; }
-}
+/* Code viewer: one pk-code-view with its own header (path, language, line count, copy, the Outline and Usages buttons), filling the pane and scrolling inside itself. */
+pk-code-explorer [data-ce-pane] > pk-code-view { min-inline-size: 0; }
 
 /* The trail, which the explorer itself does not draw but other pages still use. */
 

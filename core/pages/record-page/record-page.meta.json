@@ -4,14 +4,14 @@
   "group": "Page types",
   "tier": "page",
   "pageType": "record",
-  "summary": "One record shown and edited on a page: the fields read as a pk-field-list, or as a validated pk-form (one pk-field-group) in edit mode, beside sidebar cards of summary fields (pk-detail-layout, which collapses on a phone). Set load(id) and save(values) as properties (business logic, never config data). load runs when config.id is set and shows the built-in loading, not-found and error (with Retry) states; without an id the page is a new record, in edit mode. save runs only after client validation passes; reject with { errors: { field: message } } to mark fields inline, or any other error for a notice above the form. While edits are unsaved, dirty is true, pk-record-dirty fires, and closing or reloading the tab asks first.",
+  "summary": "One record shown and edited on a page: the fields read as a pk-field-list, or as a validated pk-form (a pk-field-group per section card) in edit mode, beside sidebar cards (pk-detail-layout, which collapses on a phone). Set load(id) and save(values) as properties (business logic, never config data). load runs when config.id is set and shows the built-in loading, not-found and error (with Retry) states; without an id the page is a new record, in edit mode. save runs only after client validation passes; reject with { errors: { field: message } } to mark fields inline, or any other error for a notice above the form. While edits are unsaved, dirty is true, pk-record-dirty fires, and closing or reloading the tab asks first.",
   "props": [
     {
       "name": "config",
       "type": "json",
       "default": {},
       "reflect": false,
-      "description": "{ id?, fields, values?, sidebar?, heading?, saveLabel?, editable?, deletable?, label?, emptyHeading? }. deletable shows a Delete button in view mode of an existing record (pk-record-delete); the record page type sets it from its delete callback. fields are the field defs of pk-field-group, [{ key, label?, kind?, hint?, help?, required?, readonly?, disabled?, span?, options?, when?, ... }] (name and type are the older spellings of key and kind; in that spelling help is the line under the control): kind is a pk-input type (text, email, number, date...), textarea, select, checkbox, switch, range, combobox or custom (its body in edit mode is your child with slot editor-<key>) (options: strings or { value, label }). In edit mode the element draws them as one pk-field-group, so every member the group knows works here. values is the starting record of a new one (no id). sidebar is [{ heading, fields: [keys] }], one card each. id selects the record to load; none means a new record. editable: false hides Edit. Optional title bar from the shared page shell: title?: string (the page heading; config.heading titles the field list), breadcrumb?: [{ label, href? }], actions?: [{ key, label, href?, variant?, hint? }] (a hint shows as a tooltip on the button) (an action without href fires pk-action). Nothing is drawn when none is set."
+      "description": "{ id?, fields, values?, sections?, sidebar?, titleField?, heading?, saveLabel?, editable?, deletable?, label?, emptyHeading? }. deletable shows a Delete button in view mode of an existing record (pk-record-delete); the record page type sets it from its delete callback. fields are the field defs of pk-field-group, [{ key, label?, kind?, hint?, help?, required?, readonly?, disabled?, span?, options?, when?, ... }] (name and type are the older spellings of key and kind; in that spelling help is the line under the control): kind is a pk-input type (text, email, number, date...), textarea, select, checkbox, switch, range, combobox or custom (its body in edit mode is your child with slot editor-<key>) (options: strings or { value, label }). In edit mode the element draws them as one pk-field-group, so every member the group knows works here. values is the starting record of a new one (no id). sections and sidebar are [{ heading, fields: [keys] }], one card each (main column, beside it; fields no section or sidebar card names lead the main column under heading). Sidebar cards are editable in edit mode (same form, one Save); a field they name is edited there only. titleField is a field key whose loaded or saved value is the page title (title is the fallback). cancellable shows Cancel on a new record too. id selects the record to load; none means a new record. editable: false hides Edit. Optional title bar from the shared page shell: title?: string (the page heading; config.heading titles the field list), breadcrumb?: [{ label, href? }], actions?: [{ key, label, href?, variant?, hint? }] (a hint shows as a tooltip on the button) (an action without href fires pk-action). Nothing is drawn when none is set."
     },
     {
       "name": "mode",
@@ -27,6 +27,13 @@
       "default": false,
       "reflect": true,
       "description": "Shows the Delete button in view mode of an existing record; pk-record-delete fires when it is pressed. The same as config.deletable (either one shows it)."
+    },
+    {
+      "name": "cancellable",
+      "type": "boolean",
+      "default": false,
+      "reflect": true,
+      "description": "Shows Cancel on a new record too The same as config.cancellable."
     },
     {
       "name": "busy",
@@ -64,6 +71,12 @@
       "description": "The unsaved-changes state changed. The app framework's record page type uses it to confirm before an in-app leave (link, breadcrumb, back/forward)."
     },
     {
+      "name": "pk-record-cancel",
+      "detail": "{ id }",
+      "detailProps": { "id": "string" },
+      "description": "Cancel was pressed; for a new record (id is null) the host decides where to go."
+    },
+    {
       "name": "pk-record-save",
       "detail": "{ values }",
       "detailProps": {},
@@ -85,16 +98,13 @@
     { "name": "side", "description": "The sidebar cards." },
     { "name": "bar", "description": "Wraps the Edit, Cancel and Save buttons." },
     { "name": "edit", "description": "The Edit button (view mode)." },
-    { "name": "cancel", "description": "The Cancel button (edit mode of an existing record)." },
+    { "name": "cancel", "description": "The Cancel button (edit mode of an existing record, or of a new one when cancellable)." },
     { "name": "save", "description": "The Save button (edit mode); busy while save() is in flight." },
     { "name": "delete", "description": "The Delete button (view mode of an existing record, when config.deletable is true); raises pk-record-delete." },
     { "name": "notice", "description": "The save error, above the form." },
     { "name": "state", "description": "The loading, not-found or load error state, in place of the record." }
   ],
   "cssProperties": [],
-  "writes": [
-    { "target": "the pk-field-group the form builds in this element's own shadow tree", "attributes": ["label"], "why": "The group is named after the page heading. It is rebuilt with the form, so nothing outlives the element; a rejected save marks fields through the group's setError()." }
-  ],
   "a11y": "Fields are labelled pk-field controls; pk-form moves focus to the first invalid field and lists the problems in a summary, and a server error focuses its field. The loading and error states use pk-skeleton and pk-alert's own roles and announcements.",
   "examples": [
     {
