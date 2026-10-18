@@ -104,6 +104,16 @@
     "PageBase.Toasts.cs": {
       "category": "runtime"
     },
+    "PkBusyState.cs": {
+      "category": "runtime",
+      "blazorOnly": "the circuit-scoped busy state PageBase and PkRecordEditor report into (#1545); pk-loading-overlay owns the delay and minimum time"
+    },
+    "PageBase.Overlay.cs": {
+      "category": "runtime"
+    },
+    "PkRecordEditor.Busy.cs": {
+      "category": "runtime"
+    },
     "PkAppBarSearchTypes.cs": {
       "category": "dto"
     },

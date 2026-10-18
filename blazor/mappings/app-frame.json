@@ -12,6 +12,8 @@
     { "name": "Crumbs", "type": "string?", "map": "prop", "prop": "crumbs", "note": "JSON text, [{ label, href }]." },
     { "name": "Search", "type": "bool", "default": false, "map": "prop", "prop": "search" },
     { "name": "SearchPlaceholder", "type": "string", "default": "Search", "map": "prop", "prop": "searchPlaceholder" },
+    { "name": "Busy", "type": "bool", "default": false, "map": "prop", "prop": "busy" },
+    { "name": "BusyLabel", "type": "string?", "map": "prop", "prop": "busyLabel" },
     { "name": "SearchItems", "type": "string?", "map": "prop", "prop": "searchItems", "note": "JSON text, pk-app-bar-search items." },
     { "name": "ChildContent", "type": "RenderFragment?", "map": "slot", "slot": "" },
     { "name": "FooterContent", "type": "RenderFragment?", "map": "slot", "slot": "footer" },

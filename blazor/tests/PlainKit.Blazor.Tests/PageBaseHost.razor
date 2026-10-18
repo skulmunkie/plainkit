@@ -13,6 +13,8 @@
     public new string? StatusHeading => base.StatusHeading;
     public new bool IsBusy => base.IsBusy;
     public new string? BusyLabel => base.BusyLabel;
+    [Parameter] public bool Blocks { get; set; } = true;
+    protected override bool BusyBlocksPage => Blocks;
     public IDisposable CallBeginBusy(string? label = null) => BeginBusy(label);
 
     public void CallSetStatus(string message, string kind = "info", string? heading = null) => SetStatus(message, kind, heading);
