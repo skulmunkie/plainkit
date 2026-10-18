@@ -99,7 +99,7 @@ public abstract partial class PageBase : ComponentBase, IAsyncDisposable
     /// <inheritdoc />
     public override async Task SetParametersAsync(ParameterView parameters)
     {
-        var keys = ReloadParameters;
+        ResolveBusy(); var keys = ReloadParameters;
         var next = parameters.ToDictionary().Where(p => keys is null || keys.Contains(p.Key)).ToDictionary(p => p.Key, p => p.Value);
         var reload = ReloadOnParameters && (_parameters is null || next.Count != _parameters.Count || next.Any(p => !_parameters.TryGetValue(p.Key, out var old) || !Equals(old, p.Value)));
         _parameters = next; if (reload) _life.Expect();
