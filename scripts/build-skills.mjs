@@ -729,7 +729,7 @@ function tableFacts(src) {
     return facts;
 }
 
-const TOOL_COMPONENTS = ['PkGallery', 'PkCodeExplorer', 'PkScorecard', 'PkPerformance', 'PkConsole', 'PkLogs', 'PkLogSettings', 'PkQuality', 'PkThemeEditor', 'PkDevTools', 'PkStyles', 'PkDevToolsPage', 'PkToolDock', 'PkToolDockPanel'];
+const TOOL_COMPONENTS = ['PkGallery', 'PkCodeExplorer', 'PkScorecard', 'PkPerformance', 'PkConsole', 'PkLogs', 'PkLogSettings', 'PkQuality', 'PkThemeEditor', 'PkDevTools', 'PkStyles', 'PkDevToolsPage', 'PkDevToolsWorkspace', 'PkToolDock', 'PkToolDockPanel'];
 
 function blazorFiles(src) {
     const files = new Map();

@@ -328,4 +328,106 @@ public sealed class ToolComponentTests : BunitContext, IAsyncLifetime
 
         Assert.Single(_bridge.Invocations["init"]);
     }
+
+    // ---- the dev tools workspace page (core/modules/devtools/workspace.js through the bridge)
+
+    [Theory]
+    [InlineData("scorecard", "scorecard", null)]
+    [InlineData("files", "files", null)]
+    [InlineData("console", "gallery", "console")]
+    [InlineData("blazor-components", "gallery", "blazor-components")]
+    [InlineData("nonsense", "gallery", null)]
+    [InlineData(null, "gallery", null)]
+    public void Dev_tools_workspace_maps_the_route_to_a_workspace_or_a_dock_tab(string? tab, string workspace, string? tool)
+    {
+        Render<PkDevToolsWorkspace>(p => p.Add(x => x.Tab, tab));
+
+        var call = Assert.Single(_bridge.Invocations["mountDevToolsWorkspace"]);
+        var options = Options(call);
+        Assert.Equal(workspace, options.GetProperty("workspace").GetString());
+        Assert.Equal(tool, options.GetProperty("tool").GetString());
+        Assert.IsType<ElementReference>(call.Arguments[0]);
+    }
+
+    [Fact]
+    public void Dev_tools_workspace_hands_over_the_blazor_gallery_sections_and_the_default_score_targets()
+    {
+        Render<PkDevToolsWorkspace>();
+
+        var options = Options(Assert.Single(_bridge.Invocations["mountDevToolsWorkspace"]));
+        var sections = options.GetProperty("gallery").GetProperty("sections");
+        Assert.Equal(PkMappingInfo.Tags.Count, sections.GetArrayLength());
+        var scorecard = options.GetProperty("scorecard");
+        Assert.Equal("plainkit-devtools-scorecard", scorecard.GetProperty("historyKey").GetString());
+        Assert.Equal(6, scorecard.GetProperty("targets").GetArrayLength());
+        Assert.Equal("Template: crud", scorecard.GetProperty("targets")[0].GetProperty("name").GetString());
+    }
+
+    [Fact]
+    public void Dev_tools_workspace_drives_the_mounted_page_for_a_new_route_instead_of_mounting_again()
+    {
+        var cut = Render<PkDevToolsWorkspace>(p => p.Add(x => x.Tab, "gallery"));
+
+        cut.Render(p => p.Add(x => x.Tab, "scorecard"));
+        cut.Render(p => p.Add(x => x.Tab, "console"));
+
+        Assert.Equal(1, Calls("mountDevToolsWorkspace"));
+        Assert.Equal("scorecard", Assert.Single(_bridge.Invocations["selectWorkspace"]).Arguments[1]);
+        Assert.Equal("console", Assert.Single(_bridge.Invocations["selectDevToolsTab"]).Arguments[1]);
+    }
+
+    [Fact]
+    public void Dev_tools_workspace_does_not_select_again_for_the_tab_the_reader_just_chose()
+    {
+        var cut = Render<PkDevToolsWorkspace>(p => p.Add(x => x.Tab, "gallery"));
+        var chosen = new List<string>();
+        cut.Render(p => p.Add(x => x.OnWorkspace, EventCallback.Factory.Create<string>(this, chosen.Add)));
+
+        cut.InvokeAsync(() => cut.Instance.SetWorkspace("files"));
+        cut.Render(p => p.Add(x => x.Tab, "files")); // the route follows the click
+
+        Assert.Equal(["files"], chosen);
+        Assert.Empty(_bridge.Invocations["selectWorkspace"]);
+    }
+
+    [Fact]
+    public async Task Dev_tools_workspace_loads_the_snapshot_through_the_reader_only_when_asked()
+    {
+        var dir = Directory.CreateTempSubdirectory("pk-ws-");
+        try
+        {
+            File.WriteAllText(Path.Combine(dir.FullName, "a.md"), "hello");
+            await using var ctx = new BunitContext();
+            ctx.JSInterop.Mode = JSRuntimeMode.Loose;
+            ctx.Services.AddPlainKit(o => { o.DevTools = true; o.SourceRoot = dir.FullName; });
+            var bridge = ctx.JSInterop.SetupModule(PkAssets.Bridge);
+            bridge.Mode = JSRuntimeMode.Loose;
+            var cut = ctx.Render<PkDevToolsWorkspace>();
+            Assert.Single(bridge.Invocations["mountDevToolsWorkspace"]); // mounting alone reads nothing
+
+            var loaded = JsonSerializer.SerializeToElement(await cut.InvokeAsync(() => cut.Instance.LoadFiles()));
+
+            Assert.Equal(1, loaded.GetProperty("count").GetInt32());
+        }
+        finally { dir.Delete(true); }
+    }
+
+    [Fact]
+    public async Task Dev_tools_workspace_says_there_is_no_source_without_a_snapshot()
+    {
+        var cut = Render<PkDevToolsWorkspace>();
+
+        Assert.Null(await cut.InvokeAsync(() => cut.Instance.LoadFiles()));
+    }
+
+    [Fact]
+    public async Task Dev_tools_workspace_destroys_the_js_side_and_tolerates_a_gone_circuit()
+    {
+        var cut = Render<PkDevToolsWorkspace>();
+        _bridge.SetupVoid("destroy", _ => true).SetException(new JSDisconnectedException("gone"));
+
+        await cut.Instance.DisposeAsync();
+
+        Assert.Equal(1, Calls("destroy"));
+    }
 }
