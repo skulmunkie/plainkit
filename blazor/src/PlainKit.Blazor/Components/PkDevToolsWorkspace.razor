@@ -1,0 +1,112 @@
+@implements IAsyncDisposable
+@inject PkRuntime Runtime
+@inject PkOptions Options
+@inject PkSourceProvider Source
+@inject IServiceProvider Services
+
+@* The toolkit's dev tools page as one SDK module (core/modules/devtools/workspace.js): the Gallery, Files and Scorecard tabs and the dev tools dock, with PlainKit.Blazor's
+   own Blazor and Components dock tabs. JavaScript owns the element's subtree; Blazor renders only the marker. The data the module needs is handed over here: the gallery's Blazor
+   sections, the score targets and, when the Files tab is first shown, the snapshot. *@
+<PkStyles />
+@if (!Enabled)
+{
+    <pk-empty-state heading="Dev tools are off" description="Set DevTools = true in AddPlainKit to serve them outside Development."></pk-empty-state>
+}
+else
+{
+    <div @ref="_host"></div>
+}
+
+@code {
+    private static readonly string[] Workspaces = ["gallery", "files", "scorecard"];
+
+    // The dock's tabs: the SDK's, then the two PlainKit.Blazor adds.
+    private static readonly string[] Tools = ["console", "logs", "logging", "performance", "quality", "inspector", "theme", "blazor", "blazor-components"];
+
+    private ElementReference _host;
+    private IJSObjectReference? _bridge;
+    private DotNetObjectReference<PkDevToolsWorkspace>? _self;
+    private DotNetObjectReference<PkDevToolsHost>? _panels;
+    private PkSnapshotReader? _reader;
+    private bool _mounted;
+    private string? _workspace;
+    private string? _tool;
+
+    /// <summary>A workspace (gallery, files or scorecard), or the id of a dock tab to open (console, logs, logging, performance, quality, inspector, theme, blazor, blazor-components).</summary>
+    [Parameter] public string? Tab { get; set; }
+
+    /// <summary>The theme of the tools themselves.</summary>
+    [Parameter] public PkTheme Theme { get; set; }
+
+    /// <summary>The reader chose a workspace tab (gallery, files or scorecard).</summary>
+    [Parameter] public EventCallback<string> OnWorkspace { get; set; }
+
+    private bool Enabled => PkHostEnvironment.DevToolsEnabled(Options, Services);
+
+    private string Workspace => Workspaces.Contains(Tab) ? Tab! : "gallery";
+
+    private string? Tool => Tools.Contains(Tab) ? Tab : null;
+
+    private IReadOnlyList<PkScoreTarget> Targets => Options.ScoreTargets ??
+    [
+        .. new[] { "crud", "dashboard", "form", "auth", "wizard", "master-detail" }
+            .Select(id => PkScoreTarget.Page($"{PkAssets.Root}gallery/templates/{id}/{id}.html", $"Template: {id}")),
+    ];
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (!Enabled) return;
+        if (firstRender) await Runtime.EnsureInitializedAsync(Assets); // applies the logging options before the tools start listening
+        _bridge ??= await Runtime.BridgeAsync(Assets);
+        if (!_mounted)
+        {
+            _mounted = true;
+            (_workspace, _tool) = (Workspace, Tool);
+            _self = DotNetObjectReference.Create(this);
+            _panels = DotNetObjectReference.Create(new PkDevToolsHost(Runtime, Options, Services.GetService(typeof(PkCircuitState)) as PkCircuitState));
+            await _bridge.InvokeVoidAsync("mountDevToolsWorkspace", _host, new
+            {
+                workspace = _workspace,
+                tool = _tool,
+                theme = Theme.Attr(),
+                gallery = new { sections = PkGallerySection.ForBlazor() },
+                scorecard = new { targets = Targets, historyKey = "plainkit-devtools-scorecard" },
+            }, _panels, _self);
+            return;
+        }
+        // Same page, a new route: drive it rather than mount again (a dock tab leaves the workspace as it is).
+        if (Tool is null && Workspace != _workspace) { _workspace = Workspace; await _bridge.InvokeVoidAsync("selectWorkspace", _host, _workspace); }
+        if (Tool is not null && Tool != _tool) await _bridge.InvokeVoidAsync("selectDevToolsTab", _host, Tool);
+        _tool = Tool;
+    }
+
+    /// <summary>Called from the page when the reader chooses a tab.</summary>
+    [JSInvokable]
+    public Task SetWorkspace(string key)
+    {
+        _workspace = key;
+        return InvokeAsync(() => OnWorkspace.InvokeAsync(key));
+    }
+
+    /// <summary>Called from the page when the Files tab is first shown: the snapshot as a lean file list and a reader, never as file contents (#959). Null when there is no source to browse.</summary>
+    [JSInvokable]
+    public async Task<object?> LoadFiles()
+    {
+        var snapshot = await Source.GetAsync();
+        if (snapshot is null) return null;
+        _reader?.Dispose();
+        _reader = new PkSnapshotReader(snapshot);
+        return new { count = snapshot.Files.Count, lazy = _reader.Lazy };
+    }
+
+    /// <inheritdoc />
+    public async ValueTask DisposeAsync()
+    {
+        _self?.Dispose();
+        _panels?.Dispose();
+        _reader?.Dispose();
+        if (_bridge is null) return;
+        try { await _bridge.InvokeVoidAsync("destroy", _host); }
+        catch (JSDisconnectedException) { /* the circuit is gone */ }
+    }
+}
