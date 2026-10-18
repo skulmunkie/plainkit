@@ -103,7 +103,7 @@ function llmsTxt(src, bundle) {
         const [, skillText] = skillMd;
         const fm = parseFrontmatter(skillText);
         // plainkit-blazor is left out of the npm package (NuGet, the skills zip and Pages carry it, #1253): its links are Pages URLs.
-        const at = f => (skill === 'plainkit-blazor' ? PAGES_DIST : '') + 'skills/' + f;
+        const at = f => (skill === 'plainkit-blazor' || f.includes('/references/full/') ? PAGES_DIST : '') + 'skills/' + f;
         out.push(`## ${skill}`, '', `- [SKILL.md](${at(skill + '/SKILL.md')}): ${firstSentence(fm.description)}`);
         for (const [f, text] of refs) { const rel = f.slice(skill.length + 1); out.push(`- [${rel}](${at(f)}): ${summarize(text)}`); }
         out.push('');
