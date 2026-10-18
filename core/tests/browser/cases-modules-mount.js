@@ -80,3 +80,19 @@ export const zeroGapCases = [375, 1280].flatMap(w => [
         t.eq(await gapsOf(t, 'theme-editor', 'mountThemeEditor', { storageKey: false }, w), '', 'zero-gap findings');
     }],
 ]);
+
+// #1509: the full suite never reported because adding a pk-markdown-editor in the layout builder froze the page (a microtask loop that re-armed on a defined but not upgraded
+// pk-button) whenever an earlier case had already defined the elements. This defines them first and then presses the palette's Markdown editor button, so the order no longer matters.
+export const markdownInBuilderCases = [
+    ['layout builder: adding a markdown editor from the palette settles when its parts are already defined (no microtask loop, #1509)', async t => {
+        const pre = await t.mount('<pk-markdown-editor label="Body"></pk-markdown-editor>'); t.ok(pre, 'the elements are defined first');
+        const host = t.stage('');
+        const m = await load('layout-builder'); const handle = await m.mountLayoutBuilder(host, {}); await wait(300);
+        const button = [...host.querySelectorAll('pk-button[data-tag="pk-markdown-editor"]')][0]; t.ok(button, 'the palette lists the Markdown editor');
+        const before = performance.now(); button.click();
+        await new Promise(r => setTimeout(r, 0)); await t.settle(); await wait(300);
+        t.ok(performance.now() - before < 5000, 'the page stayed responsive after adding it');
+        t.ok(host.querySelector('pk-markdown-editor'), 'it was added to the canvas');
+        handle?.destroy?.();
+    }],
+];

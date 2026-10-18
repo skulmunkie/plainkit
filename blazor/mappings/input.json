@@ -77,6 +77,16 @@
       "type": "string"
     },
     {
+      "name": "Font",
+      "prop": "font",
+      "type": "string"
+    },
+    {
+      "name": "Width",
+      "prop": "width",
+      "type": "string"
+    },
+    {
       "name": "Size",
       "prop": "size",
       "type": "InputSize"

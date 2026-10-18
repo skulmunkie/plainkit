@@ -30,7 +30,7 @@ export default Base => class extends Base {
         if (!this.$init) {
             this.$init = true; this.$initial = this.value;
             const t = this.part('control');
-            t.addEventListener('input', () => { this.clearError(); this.value = t.value; });
+            t.addEventListener('input', () => { this.showError(); this.value = t.value; });
             t.addEventListener('pk-value-change', e => { e.stopPropagation(); this.emit('pk-change', { value: this.value }); });
             t.addEventListener('compositionstart', () => { this.$comp = true; });
             t.addEventListener('compositionend', () => { this.$comp = false; });
@@ -63,7 +63,7 @@ export default Base => class extends Base {
 
     updated() {
         const box = this.part('control'), t = this.ta;
-        if (!t) customElements.whenDefined('pk-textarea').then(() => this.requestUpdate());
+        if (!t) this.$tw ??= customElements.whenDefined('pk-textarea').then(() => this.requestUpdate());
         if (box.value !== this.value) box.value = this.value;
         const preview = this.part('preview'), showPreview = this.mode === 'preview', split = Boolean(this.$split);
         this.part('write').hidden = !split && showPreview; preview.hidden = !split && !showPreview;
@@ -109,7 +109,7 @@ export default Base => class extends Base {
         const bs = [...this.part('commands').children];
         this.$ri = Math.min(this.$ri ?? 0, Math.max(0, bs.length - 1));
         bs.forEach((b, i) => { if (typeof b.part === 'function') b.part('control')?.setAttribute('tabindex', i === this.$ri && this.editable ? '0' : '-1'); });
-        if (bs.some(b => typeof b.part !== 'function')) customElements.whenDefined('pk-button').then(() => this.syncRove());
+        if (bs.some(b => typeof b.part !== 'function')) this.$bw ??= customElements.whenDefined('pk-button').then(() => this.syncRove());
     }
     rove(e) {
         const bs = [...this.part('commands').children].filter(b => !b.disabled);
@@ -132,11 +132,10 @@ export default Base => class extends Base {
     }
 
     commandsModule() { return (this.$cm ??= import('../../js/markdown/commands.js').then(m => (this.$m = m)).catch(e => { this.$cm = null; this.log.error('markdown commands failed to load', e); })); }
-    clearError() { const p = this.part('error'); p.hidden = true; p.textContent = ''; }
-    showError(msg) { const p = this.part('error'); p.textContent = msg; p.hidden = false; }
+    showError(msg = '') { const p = this.part('error'); p.textContent = msg; p.hidden = !msg; }
     async run(cmd, arg) {
         if (!this.editable || this.$comp || !this.commands.includes(cmd)) return;
-        this.clearError();
+        this.showError();
         if (cmd === 'link' && arg === undefined) { this.openLink(); return; }
         const t = this.ta;
         if (!t) return;
@@ -168,7 +167,7 @@ export default Base => class extends Base {
         this.$sel = [t.selectionStart, t.selectionEnd];
         bar.hidden = false; url.value = ''; url.focus?.();
     }
-    closeLink() { this.part('linkbar').hidden = true; this.clearError(); this.focus(); }
+    closeLink() { this.part('linkbar').hidden = true; this.showError(); this.focus(); }
     async addLink() {
         const t = this.ta, [a, b] = this.$sel ?? [t.selectionStart, t.selectionEnd];
         const m = await this.commandsModule();
