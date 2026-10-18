@@ -87,7 +87,8 @@
     "ServiceCollectionExtensions.cs": 39,
     "Testing/PkDataTableTesting.cs": 44,
     "Testing/PkFieldGroupTesting.cs": 67,
-    "Testing/PkFieldTesting.cs": 53
+    "Testing/PkFieldTesting.cs": 53,
+    "Testing/PkPageTesting.cs": 135
   },
   "debt": [
     {
