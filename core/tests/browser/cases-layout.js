@@ -280,6 +280,17 @@ export const layoutCases = [
         size(el, rem(60)); await settle(); t.ok(shown(a) && shown(b) && shown(c) && !b.hasAttribute('data-pk-section-hidden'), 'widening shows everything again');
     }],
 
+    ['detail-layout: the collapsed strip tabs are defined and styled (tap height), and choosing the second tab swaps the main and sidebar cards (#316)', async t => {
+        const el = await t.mount('<pk-detail-layout><pk-card id="a" heading="A" data-pk-section="details">a</pk-card><pk-card id="b" heading="B" data-pk-section="pricing">b</pk-card><div slot="sidebar"><pk-card id="c" heading="C" data-pk-section="details">c</pk-card><pk-card id="d" heading="D" data-pk-section="pricing">d</pk-card></div></pk-detail-layout>');
+        const shown = x => getComputedStyle(x).display !== 'none'; const q = id => el.querySelector('#' + id);
+        size(el, rem(30)); await t.settle(); await new Promise(r => requestAnimationFrame(() => setTimeout(r, 50)));
+        const tabs = [...el.part('tabs').querySelectorAll('pk-tab')];
+        t.ok(customElements.get('pk-tab') && tabs.length === 2, 'pk-tab is defined and the strip has two tabs');
+        t.ok(tabs[0].getBoundingClientRect().height >= 30, 'a tab is at least 30px tall, so it is styled and tappable');
+        t.ok(shown(q('a')) && shown(q('c')) && !shown(q('b')) && !shown(q('d')), 'the first section shows while the first tab is selected');
+        tabs[1].click(); await t.settle(); await new Promise(r => requestAnimationFrame(() => setTimeout(r, 50)));
+        t.ok(shown(q('b')) && shown(q('d')) && !shown(q('a')) && !shown(q('c')), 'choosing the second tab swaps the main cards and the sidebar cards');
+    }],
     ['detail-layout: data-pk-section-order sorts the tab strip across main and sidebar, data-pk-section-count is the badge and both update live (#1471)', async t => {
         const el = await t.mount('<pk-detail-layout><pk-card id="a" heading="A" data-pk-section="details" data-pk-section-order="1">a</pk-card><pk-card id="b" heading="B" data-pk-section="notes" data-pk-section-order="3">b</pk-card><div slot="sidebar"><pk-card id="c" heading="C" data-pk-section="history" data-pk-section-order="2" data-pk-section-count="7">c</pk-card></div></pk-detail-layout>');
         const settle = async () => { await t.settle(); await new Promise(r => requestAnimationFrame(() => setTimeout(r, 50))); };
