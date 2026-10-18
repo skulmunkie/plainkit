@@ -55,6 +55,7 @@ export default Base => class extends Base {
         const crumbs = Array.isArray(this.crumbs) ? this.crumbs : [], trail = this.part('crumbs'), last = crumbs.length - 1;
         trail.hidden = crumbs.length === 0;
         trail.replaceChildren(...crumbs.map((c, i) => h('a', { href: i < last ? safeHref(c.href) || null : null, 'aria-current': i === last ? 'page' : null }, c.label)));
+        Object.assign(this.shadowRoot.querySelector('pk-loading-overlay'), { busy: this.busy, label: this.busyLabel });
         this.paintNav();
     }
 

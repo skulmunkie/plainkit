@@ -1,7 +1,7 @@
 {
   "tag": "pk-app-frame",
   "title": "App frame",
-  "summary": "The whole app frame from data: header with brand, module picker, search and settings menu, a side nav built from a nav model, the breadcrumb trail above the page, and a footer. It routes nothing; the host sets the model and navigates.",
+  "summary": "The app frame from data: header (brand, module picker, search, settings), side nav, breadcrumbs, page and footer. It routes nothing; the host navigates.",
   "group": "Layout & structure",
   "tier": "shell",
   "props": [
@@ -17,7 +17,7 @@
       "type": "string",
       "default": "",
       "reflect": false,
-      "description": "Where the brand links (a same-site path or an http(s) address); empty is plain text."
+      "description": "Where the brand links (same-site path or http(s)); empty is plain text."
     },
     {
       "name": "navLabel",
@@ -45,14 +45,14 @@
       "type": "json",
       "default": [],
       "reflect": false,
-      "description": "Ids of the branches to open (the ancestors of the current row)."
+      "description": "Ids of the branches to open (ancestors of the current row)."
     },
     {
       "name": "modules",
       "type": "json",
       "default": [],
       "reflect": false,
-      "description": "The module picker: { id, title, href }[]. Fewer than two draws no picker. On a phone the list is the first row of the drawer instead, the one titled moduleTitle marked current."
+      "description": "The module picker: { id, title, href }[]; fewer than two draws none. On a phone it is the first row of the drawer."
     },
     {
       "name": "moduleTitle",
@@ -66,7 +66,7 @@
       "type": "json",
       "default": [],
       "reflect": false,
-      "description": "The breadcrumb trail: { label, href? }[]; the last is the current page and is not a link. Empty draws none."
+      "description": "Breadcrumbs: { label, href? }[]; the last is the current page. Empty draws none."
     },
     {
       "name": "search",
@@ -83,21 +83,35 @@
       "description": "The search field placeholder and name."
     },
     {
+      "name": "busy",
+      "type": "boolean",
+      "default": false,
+      "reflect": false,
+      "description": "Blocks the page behind a loading overlay."
+    },
+    {
+      "name": "busyLabel",
+      "type": "string",
+      "default": "",
+      "reflect": false,
+      "description": "Its label."
+    },
+    {
       "name": "searchItems",
       "type": "json",
       "default": [],
       "reflect": false,
-      "description": "Search results, as pk-app-bar-search items: { id, label, group?, sub?, badge? }[]. The host computes them on pk-query."
+      "description": "Search results, pk-app-bar-search items; the host sets them on pk-query."
     }
   ],
   "slots": [
     {
       "name": "",
-      "description": "The page. Put the skip link target (<main id=\"pk-main\">) here."
+      "description": "The page, with the skip link target (main#pk-main)."
     },
     {
       "name": "footer",
-      "description": "Footer content; the strip is drawn only with a child here."
+      "description": "Footer content."
     }
   ],
   "events": [
@@ -106,19 +120,19 @@
       "detail": {
         "query": "string"
       },
-      "description": "The search text changed (debounced); the host sets searchItems."
+      "description": "The search text changed; set searchItems."
     },
     {
       "name": "pk-select",
       "detail": {
         "item": "object"
       },
-      "description": "A search result was chosen; the host navigates."
+      "description": "A search result was chosen."
     },
     {
       "name": "pk-theme-toggle",
       "detail": {},
-      "description": "The Toggle theme item in the settings menu was chosen."
+      "description": "Toggle theme was chosen."
     }
   ],
   "parts": [
@@ -156,7 +170,7 @@
     },
     {
       "name": "module",
-      "description": "The active module title on the picker"
+      "description": "The active module title"
     },
     {
       "name": "theme",
@@ -170,8 +184,8 @@
   "cssProperties": [],
   "methods": [],
   "writes": [],
-  "a11y": "Built from pk-app-shell, pk-navbar (label Main), pk-side-nav (label navLabel) and pk-breadcrumb (aria-current on the last crumb): landmarks, keyboard and focus are theirs. The menu control is named Toggle the menu. The skip link and main landmark belong to the page slot, since an id cannot be targeted across the shadow boundary.",
-  "mobile": "The side nav is the drawer behind the menu control; the picker is not drawn (pk-navbar), the search collapses to an icon; the safe-area insets are the shell's.",
+  "a11y": "Landmarks, keyboard and focus come from pk-app-shell, pk-navbar, pk-side-nav and pk-breadcrumb. The skip link and main landmark belong to the page slot (an id cannot cross the shadow boundary).",
+  "mobile": "The side nav is a drawer; the search collapses to an icon.",
   "examples": [
     {
       "title": "App frame with a module picker",
