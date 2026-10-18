@@ -25,7 +25,7 @@ public sealed class Ticket
     /// <summary>Every kind, DateTime and a ColumnSpan included.</summary>
     public static readonly PkFieldSpec<Ticket>[] Specs =
     [
-        new() { Key = "title", Label = "Title", Get = t => t.Title, Set = (t, v) => t.Title = v ?? "" },
+        new() { Key = "title", Label = "Title", MaxLength = "40", Get = t => t.Title, Set = (t, v) => t.Title = v ?? "" },
         new() { Key = "notes", Label = "Notes", Kind = PkFieldKind.Textarea, Get = t => t.Notes, Set = (t, v) => t.Notes = v ?? "", ColumnSpan = 2 },
         new() { Key = "estimate", Label = "Estimate", Kind = PkFieldKind.Number, Get = t => t.Estimate, Set = (t, v) => t.Estimate = v ?? "" },
         new() { Key = "email", Label = "Email", Kind = PkFieldKind.Email, Get = t => t.Email, Set = (t, v) => t.Email = v ?? "" },
