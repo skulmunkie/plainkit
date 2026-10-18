@@ -81,6 +81,13 @@
       "default": "",
       "reflect": false,
       "description": "The toggle's name."
+    },
+    {
+      "name": "persistKey",
+      "type": "string",
+      "default": "",
+      "reflect": false,
+      "description": "Saves size and collapsed in local storage under this key and restores them, unless size or collapsed is set."
     }
   ],
   "slots": [

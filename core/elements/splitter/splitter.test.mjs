@@ -166,3 +166,17 @@ test('the meta declares collapsible, collapsed (committed by pk-collapse-change)
     assert.ok(meta.parts.some(p => p.name === 'toggle'));
     assert.ok(meta.examples.some(x => x.html.includes('collapsible')));
 });
+
+test('persistKey: the meta declares it and the lazy module is the only importer of the store', () => {
+    assert.equal(prop('persistKey').default, ''); assert.equal(prop('persistKey').type, 'string');
+    assert.ok(!/from '\.\.\/\.\.\/js\/store\.js'/.test(src), 'js/store.js is imported lazily, through js/splitter-persist.js');
+    assert.ok(src.includes("import('../../js/splitter-persist.js')"));
+});
+
+test('persistKey: a commit saves size and collapsed once the store is open; nothing happens without one', () => {
+    const { el } = make({ collapsible: true });
+    el.toggle(); // no store: fine
+    const saved = []; el.$pp = { save: s => saved.push(s) };
+    el.toggle(); el.size = 30; el.save();
+    assert.deepEqual(saved, [{ size: 50, collapsed: false }, { size: 30, collapsed: false }]);
+});
