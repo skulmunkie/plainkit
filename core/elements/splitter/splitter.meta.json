@@ -168,7 +168,7 @@
   "examples": [
     {
       "title": "Side by side",
-      "html": "<pk-splitter size=\"30\" min=\"15\" max=\"70\" collapsible label=\"Resize the list\"><div slot=\"start\" class=\"stack\"><strong>List</strong><span>Drag the bar, or focus it and use the arrow keys.</span></div><div slot=\"end\" class=\"stack\"><strong>Detail</strong><span>Home and End go to the minimum and maximum.</span></div></pk-splitter>"
+      "html": "<pk-splitter size=\"30\" min=\"15\" max=\"70\" collapsible persist-key=\"gallery-splitter\" toggle-label=\"Detail panel\" label=\"Resize the list\"><div slot=\"start\" class=\"stack\"><strong>List</strong><span>Drag the bar, or focus it and use the arrow keys.</span></div><div slot=\"end\" class=\"stack\"><strong>Detail</strong><span>Home and End go to the minimum and maximum.</span></div></pk-splitter>"
     },
     {
       "title": "Stacked",

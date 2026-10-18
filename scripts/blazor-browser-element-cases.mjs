@@ -59,6 +59,17 @@ export const ELEMENT_CASES = [
         await ctx.waitFor(`window.__deep.q('pk-code-view >>> .tk-keyword').some(s => s.textContent === 'const') && window.__deep.q('pk-code-view >>> .tk-comment').length === 1`, 'Segments to colour the lines (setProperty after the render)');
         await ctx.noErrors(ctx.openMark, BENIGN);
       } },
+    { name: 'splitter-collapsed-bind-and-code-view-header',
+      async run(ctx) {
+        await ctx.open('/lab/props');
+        // The header and the Actions fragment go through the real slots; the splitter toggle raises pk-collapse-change and @bind-Collapsed echoes it into the page.
+        await ctx.waitFor(`window.__deep.q('pk-code-view >>> [part="copy"]').length === 1 && window.__deep.q('pk-code-view [slot="actions"]').length === 1`, 'the code view header with Copy and the Actions fragment');
+        const before = await ctx.eval(`document.getElementById('lab-collapsed').textContent`);
+        await ctx.eval(`(() => { const t = document.querySelector('pk-splitter').shadowRoot.querySelector('[part="toggle"]'); t.click(); return true; })()`);
+        await ctx.waitFor(`document.getElementById('lab-collapsed').textContent !== ${JSON.stringify(before)}`, '@bind-Collapsed to follow the toggle');
+        await ctx.noErrors(ctx.openMark, BENIGN);
+      } },
+
     { name: 'button-controls-ref',
       async run(ctx) {
         await ctx.open('/lab/props');

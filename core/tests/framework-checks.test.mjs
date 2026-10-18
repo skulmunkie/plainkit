@@ -103,3 +103,11 @@ test('sizes are measured from files of the page origin only, joined and gzipped'
     await assert.rejects(measureSizes([{ name: 'z', url: 'https://elsewhere.test/z.js' }], doc, fetchFn), /own origin/);
     await assert.rejects(measureSizes([{ name: 'z', url: 'http://localhost:5310/missing.js' }], doc, fetchFn), /404/);
 });
+
+test('a size measurement hands its abort signal to every read and stops before compressing once it aborts (a destroyed scorecard leaves no work behind, #1565)', async () => {
+    const doc = { baseURI: 'http://localhost:5310/page/' }, ac = new AbortController(), seen = [];
+    const fetchFn = async (url, init) => { seen.push(init?.signal); ac.abort(); return { ok: true, status: 200, text: async () => 'a'.repeat(4000) }; };
+    const [one] = await measureSizes([{ name: 'a', url: 'http://localhost:5310/a.js', budget: 'x' }], doc, fetchFn, ac.signal);
+    assert.deepEqual(seen, [ac.signal], 'the read can be cancelled');
+    assert.equal(one, null, 'no gzip pass for a card that is gone');
+});

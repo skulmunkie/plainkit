@@ -27,10 +27,10 @@ export function timeRows(doc, n) {
 }
 
 // { name: url } becomes { name: text }. Only URLs of the page's own origin are read.
-export async function readTexts(map, doc = document, fetchFn = globalThis.fetch) {
+export async function readTexts(map, doc = document, fetchFn = globalThis.fetch, signal) {
     const own = url => { if (!sameOrigin(url, doc.baseURI)) throw new Error(`${url}: not the page's own origin`); return url; };
     return Object.fromEntries(await Promise.all(Object.entries(map ?? {}).map(async ([name, url]) => {
-        const res = await fetchFn(own(url));
+        const res = await fetchFn(own(url), signal ? { signal } : undefined);
         if (!res.ok) throw new Error(`${url}: ${res.status}`);
         return [name, await res.text()];
     })));
@@ -43,12 +43,13 @@ export async function gzipBytes(text) {
 }
 
 // Sizes for [{ name, url | urls, budget, strip }]: the files are joined in order (comments stripped when `strip`), then measured raw and gzip.
-export async function measureSizes(entries, doc = document, fetchFn = globalThis.fetch) {
+export async function measureSizes(entries, doc = document, fetchFn = globalThis.fetch, signal) {
     return Promise.all((entries ?? []).map(async e => {
         const urls = [].concat(e.url ?? e.urls ?? []);
-        const parts = await readTexts(Object.fromEntries(urls.map((u, i) => [i, u])), doc, fetchFn);
+        const parts = await readTexts(Object.fromEntries(urls.map((u, i) => [i, u])), doc, fetchFn, signal);
         let text = urls.map((_u, i) => parts[i]).join('');
         if (e.strip) text = stripComments(text);
+        if (signal?.aborted) return null; // a destroyed card stops measuring: nothing is left to compress and nobody to show it
         const gz = await gzipBytes(text);
         return { name: e.name, budget: e.budget, rawKb: text.length / 1024, gzKb: gz === null ? null : gz / 1024 };
     }));
