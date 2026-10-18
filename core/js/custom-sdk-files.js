@@ -22,6 +22,9 @@ export function manifestText({ version, files, provenance = DEFAULT_PROVENANCE, 
 /** What the modules unit needs from the runtime, as the modules manifest states it. */
 export const modulesRequires = version => `plainkit ${version}: the modules import ../../js/*.js and use ../../plainkit.css and ../../elements/api.json of the runtime unit (see the plainkit-runtime meta tag and import map in docs/tool-modules.md)`;
 
+/** What the extras manifest (dist/manifest.extras.json) is: the files of the release the npm package leaves out, in the same folder as the runtime. */
+export const extrasRequires = version => `plainkit ${version}: the same dist/ folder as manifest.json; these files (the gallery, the exported agent docs, descriptions.json, ...) are in the release zip and on the Pages site but not in the npm package`;
+
 /** The SRI value for some bytes, `sha256-<base64>`, from SubtleCrypto (the build's Node hash gives the same). */
 export async function integrityOf(bytes) {
     const digest = new Uint8Array(await globalThis.crypto.subtle.digest('SHA-256', bytes));

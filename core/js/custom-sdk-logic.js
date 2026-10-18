@@ -55,7 +55,8 @@ const dec = new TextDecoder('utf-8');
 const isText = p => /\.(css|js|json|md|svg|html)$/.test(p);
 const pageCss = p => p === 'plainkit.css' || p === 'plainkit.min.css';
 const MODULES_DIR = 'modules/';
-const isManifest = p => p === 'manifest.json' || p === `${MODULES_DIR}manifest.json`;
+const MANIFESTS = [['manifest.json', ''], ['manifest.extras.json', ''], [`${MODULES_DIR}manifest.json`, MODULES_DIR]]; // [path, the folder its entries are relative to]
+const isManifest = p => MANIFESTS.some(([m]) => m === p);
 const hasMedia = p => /\.css$/.test(p) || /^elements\/[^/]+\.js$/.test(p);
 const safePath = p => typeof p === 'string' && p !== '' && !p.startsWith('/') && !p.includes('\\') && !p.split('/').some(s => s === '..' || s === '.' || s === '');
 
@@ -102,18 +103,21 @@ export async function customizeDist(files, { include, breakpoints, theme }) {
         }
         for (const n of Object.keys(counts)) if (to[n] !== shipped[n] && counts[n] === 0) throw new Error(`the ${n} breakpoint (${shipped[n]}px) was found in no @media condition: nothing was rewritten for it`);
     }
-    // One manifest per unit: the runtime's (paths at the top of the dist) and, when the export carries the modules, the modules' (paths under modules/, listed relative to it).
+    // One manifest per unit: the runtime's, the extras' (files the npm package leaves out, same folder) and, when the export carries them, the modules' (paths under modules/, listed relative to it).
+    // A unit's files are the ones its shipped manifest lists.
     const custom = changed || Boolean(themeCss);
     let fileCount = 0;
-    for (const prefix of files.has(`${MODULES_DIR}manifest.json`) ? ['', MODULES_DIR] : ['']) {
-        const own = [...out].filter(([p]) => !isManifest(p) && (prefix ? p.startsWith(prefix) : !p.startsWith(MODULES_DIR)));
-        const old = prefix ? files.get(`${prefix}manifest.json`) : manifestBytes;
+    for (const [mpath, prefix] of MANIFESTS) {
+        const old = files.get(mpath);
+        if (!old) continue;
         const was = JSON.parse(dec.decode(old));
+        const listed = new Set(was.files.map(f => prefix + f.path));
+        const own = [...out].filter(([p]) => listed.has(p));
         if (!touched.some(p => own.some(([q]) => q === p))) { fileCount += was.files.length + 1; continue; } // nothing of this unit changed: its manifest stays as shipped
         const entries = [];
         for (const [path, bytes] of own) entries.push({ path: path.slice(prefix.length), bytes: bytes.length, integrity: await integrityOf(bytes) });
         const provenance = custom ? `Customised export of Plainkit ${manifest.version} (see ${SETTINGS_NAME}); every file listed here is exactly what this bundle holds.` : was.provenance;
-        out.set(`${prefix}manifest.json`, enc.encode(eol(manifestText({ version: manifest.version, files: entries, provenance, name: was.name, requires: was.requires }), dec.decode(old))));
+        out.set(mpath, enc.encode(eol(manifestText({ version: manifest.version, files: entries, provenance, name: was.name, requires: was.requires }), dec.decode(old))));
         fileCount += entries.length + 1;
     }
     return { files: out, summary: { version: manifest.version, shipped, breakpoints: to, changedBreakpoints: changed, themeBaked: Boolean(themeCss), counts, touched: touched.sort(), fileCount } };
