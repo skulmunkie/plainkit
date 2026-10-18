@@ -27,5 +27,8 @@
 :host([weight="medium"]) { font-weight: 500; }
 :host([weight="semibold"]) { font-weight: 600; }
 :host([weight="bold"]) { font-weight: 700; }
+:host([white-space="normal"]) { white-space: normal; }
+:host([white-space="nowrap"]) { white-space: nowrap; }
+:host([white-space="pre-wrap"]) { white-space: pre-wrap; }
 :host([truncate]) { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 :host([inline][truncate]) { display: inline-block; max-inline-size: 100%; vertical-align: bottom; }
