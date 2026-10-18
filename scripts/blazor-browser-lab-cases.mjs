@@ -186,6 +186,21 @@ export const LAB_CASES = [
         ctx.ok(await ctx.eval(`${TA}.value === 'make **bold**'`), 'the textarea does not show the bolded text');
         await ctx.noErrors(ctx.openMark, BENIGN);
       } },
+    { name: 'table-edit-columns',
+      async run(ctx) {
+        await ctx.open('/lab/table-edit'); // #1580: the generated column record reaches the element, and a textarea edit comes back through OnCellEdit
+        const TABLE = `document.querySelector('pk-table')`;
+        const CELL = `${TABLE}?.shadowRoot?.querySelector('td[data-key="notes"]')`;
+        await ctx.waitFor(`!!(${CELL})`, 'the editable table to draw its notes cell');
+        const cols = JSON.parse(await ctx.eval(`JSON.stringify(JSON.parse(${TABLE}.getAttribute('columns')))`));
+        ctx.ok(cols[0].editor === 'textarea' && cols[1].editor === 'combobox' && cols[1].free === true, 'the textarea and combobox editors or free did not reach the element');
+        ctx.ok(cols[2].min === '2026-01-01' && cols[2].max === '2026-12-31', 'the date bounds (a DateOnly and a string) did not reach the element as ISO dates');
+        await ctx.eval(`(() => { const td = ${CELL}; td.focus(); td.dispatchEvent(new KeyboardEvent('keydown', { key: 'Enter', bubbles: true, composed: true })); return 1; })()`);
+        await ctx.waitFor(`!!${TABLE}.shadowRoot.querySelector('td[data-key="notes"] textarea')`, 'Enter to open the textarea editor');
+        await ctx.eval(`(() => { const t = ${TABLE}.shadowRoot.querySelector('td[data-key="notes"] textarea'); t.value = 'second'; t.dispatchEvent(new KeyboardEvent('keydown', { key: 'Enter', bubbles: true, composed: true })); return 1; })()`);
+        await waitText(ctx, 'Edited: notes=second', ALL);
+        await ctx.noErrors(ctx.openMark, BENIGN);
+      } },
     { name: 'theme-toggle',
       async run(ctx) {
         await ctx.open('/overview');

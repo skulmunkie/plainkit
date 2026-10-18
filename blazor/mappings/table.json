@@ -15,7 +15,7 @@
       "type": "IReadOnlyList<PkTableColumn<TItem>>?",
       "attrExpr": "@_columns",
       "doc": "The columns: what the header says, how it sorts, and what fills the cells. A key names an item property in any casing (or is any name, when the column has a Text or a Cell) and is used exactly as given: in the column definition, the row, the cell slot and the sort and filter keys the table reports (Sort, OnSort, Filters).",
-      "note": "Sent as a JSON attribute ([{ key, label, type, align, sortable, hidePhone, shed, title, editor, options, required, min, max, maxLength }], camelCase). A column with a Cell template also fills the slot cell-<rowId>-<key> of each row; a column with a Header fragment fills the slot header-<key> beside the title."
+      "note": "Sent as a JSON attribute ([{ key, label, type, align, sortable, hidePhone, shed, title, editor, options, free, required, min, max, maxLength }], camelCase). A column with a Cell template also fills the slot cell-<rowId>-<key> of each row; a column with a Header fragment fills the slot header-<key> beside the title."
     },
     {
       "name": "Items",
@@ -416,6 +416,121 @@
       "map": "param",
       "type": "EventCallback<IReadOnlyList<string>?>",
       "doc": "Raised with the new value of Expanded (two-way: Expanded follows it)."
+    }
+  ],
+  "columnEnums": {
+    "PkTableColumnType": {
+      "key": "type",
+      "doc": "What a PkTableColumn holds; it decides how the element sorts and filters the column.",
+      "members": {
+        "text": "Text, sorted alphabetically.",
+        "number": "A number, sorted numerically.",
+        "date": "A date, sorted chronologically."
+      }
+    },
+    "PkTableColumnAlign": {
+      "key": "align",
+      "doc": "Which edge a PkTableColumn's cells align to.",
+      "members": {
+        "start": "The start edge (left in left-to-right text); the default.",
+        "end": "The end edge; use it for numeric columns."
+      }
+    },
+    "PkTableEditor": {
+      "key": "editor",
+      "doc": "The editor of an editable PkTable column (see Editable). A column without one is read-only.",
+      "members": {
+        "text": "A text box.",
+        "number": "A text box that takes a number (checked with Min and Max).",
+        "select": "A choice among Options.",
+        "date": "A native date input; the value is an ISO 8601 date string such as 2026-01-07, and Min and Max bound it (an ISO date, a DateOnly or a string).",
+        "textarea": "A multi-line box: Enter commits, Shift+Enter adds a line. It opens over the cell without changing the row height.",
+        "combobox": "A native input with a list of Options; the text must be an option unless Free is set. The pk-cell-query event lets the host fill the list as the user types."
+      }
+    }
+  },
+  "columnMembers": [
+    {
+      "name": "Key",
+      "type": "string",
+      "doc": "The field of a row that this column shows.",
+      "init": "\"\"",
+      "typedDoc": "The identity of the column: the row field it shows (the name of an item property in any casing, or any name when Text or Cell fills the cell). It is used verbatim in the column definition, the row, the cell slot and the sort and filter keys the table reports."
+    },
+    {
+      "name": "Label",
+      "type": "string",
+      "doc": "The header text.",
+      "init": "\"\""
+    },
+    {
+      "name": "Type",
+      "type": "PkTableColumnType?",
+      "doc": "What the column holds; null leaves it to the element (text).",
+      "typedDoc": "What the column holds; it decides how the element sorts and filters the column when it is not in manual mode. Null leaves it to the element (text)."
+    },
+    {
+      "name": "Align",
+      "type": "PkTableColumnAlign?",
+      "doc": "The alignment of the cells; null leaves it to the element (start, or end for a number)."
+    },
+    {
+      "name": "Sortable",
+      "type": "bool",
+      "doc": "The header can be activated to sort by this column (the table reports it; in manual mode you re-query)."
+    },
+    {
+      "name": "HidePhone",
+      "type": "bool",
+      "doc": "Leave the column out of the card layout on a phone."
+    },
+    {
+      "name": "Title",
+      "type": "bool",
+      "doc": "The column that names the row (put it first): in the phone card layout its cell is the heading, without a label."
+    },
+    {
+      "name": "Shed",
+      "type": "int?",
+      "doc": "Drop the column when the table itself is narrower than 24rem (1), 36rem (2) or 48rem (3); null keeps it. The card layout keeps every column."
+    },
+    {
+      "name": "Editor",
+      "type": "PkTableEditor?",
+      "doc": "The editor of the column's cells when the table is Editable; null leaves the column read-only.",
+      "copy": "Cell is null ? Editor : null",
+      "typedDoc": "The editor of the column's cells when the table is Editable; null leaves the column read-only. A column with a Cell template is not editable."
+    },
+    {
+      "name": "Options",
+      "type": "IReadOnlyList<string>?",
+      "doc": "The choices of a Select or Combobox editor.",
+      "typedDoc": "The choices of a Select or Combobox editor. A new list on every render counts as a changed column and re-sends the rows; keep it in a field."
+    },
+    {
+      "name": "Free",
+      "type": "bool",
+      "doc": "A Combobox editor accepts text that is not one of Options."
+    },
+    {
+      "name": "Required",
+      "type": "bool",
+      "doc": "An empty value is refused."
+    },
+    {
+      "name": "Min",
+      "type": "PkTableBound?",
+      "doc": "The smallest value of a Number editor (a number), or the earliest date of a Date editor (an ISO date: a DateOnly or \"2026-01-01\")."
+    },
+    {
+      "name": "Max",
+      "type": "PkTableBound?",
+      "doc": "The largest value of a Number editor (a number), or the latest date of a Date editor (an ISO date: a DateOnly or \"2026-12-31\")."
+    },
+    {
+      "name": "MaxLength",
+      "type": "int?",
+      "doc": "The longest text a Text editor accepts."
     }
   ],
   "notes": "PkTable<TItem> (generated, tableModel; shares its chrome parameters with PkTableBase). Attributes down: the columns and the rows are JSON attributes (camelCase) rebuilt when the parameters are set, never per render and never through JavaScript. Events up: pk-sort, pk-filter, pk-select, pk-select-all, pk-row-click and pk-row-expand reach the callbacks; the two-way parameters Sort, SortDirection, Filters, Selected and Expanded follow them (@bind-Sort and so on). Manual mode: the host owns the order, the filter and the page; the component shows Items as given and reports OnSort and OnFilter, and a PkPagination in FooterContent does the paging. Cell content: a column's Cell template is rendered as <span slot=\"cell-<rowId>-<key>\"> per row, and DetailTemplate as <div slot=\"detail-<rowId>\">; Blazor renders these as ordinary children of the element (the element reads them and never rewrites them), so a change of rows re-renders them together with the rows attribute. Without manual the element sorts, filters and pages its own rows. The toolbar slot lays its items out in a wrapping row; the item that should sit at the far end (an action beside a search box) takes the attribute data-end, which the wrapper can pass through on the element it renders into HeaderActionsTemplate. A column's type only decides how it sorts and filters (cells show the value the row holds, text as given, with no locale or time zone formatting), so a wrapper that sends dates or numbers as display strings should sort on the source data. The Blazor PkTable keeps owning the data source. It renders the element with manual set, so the element does not sort, filter or page by itself: it reacts to pk-sort, pk-filter and the pk-page and pk-page-size events of the pagination in its footer by fetching the matching rows and assigning them to the rows property. Each column is passed in columns as { key, label, sortable, align: end } (align end for numeric columns); a hidden column is left out. Row template cells become slots named cell-<rowId>-<key>, one per cell. Without manual the element sorts, filters and pages its own rows. EmptyText is the emptyText prop (the empty slot still replaces it). Expandable rows: the wrapper sets expandable, renders the DetailTemplate of each expandable row as a slot named detail-<rowId>, and follows pk-row-expand ({ id, index, expanded }) to keep ExpandedKeys, which it assigns back to the expanded property. Windowing (issue 131): at 500 rows or more, a non-expandable element draws only the rows near the scroll frame's viewport (core/js/table-vw.js); it is a fixed constant, not a parameter, so the element's own module stays inside its gzip budget. Sort, filter and selection still act on every row."

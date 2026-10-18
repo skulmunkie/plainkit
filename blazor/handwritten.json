@@ -272,9 +272,6 @@
     "PkStore.cs": {
       "category": "typed-generics"
     },
-    "PkTableColumn.cs": {
-      "category": "typed-generics"
-    },
     "PkTableTypes.cs": {
       "category": "typed-generics"
     },
