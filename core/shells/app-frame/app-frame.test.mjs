@@ -27,3 +27,11 @@ test('links go through safeHref and the script has no inline handler or style at
     assert.match(js, /safeHref\(it\.href\)/);
     assert.doesNotMatch(js, /innerHTML|setAttribute\('style'|\.style\./);
 });
+
+test('busy blocks only the page slot behind a pk-loading-overlay with the page delay and minimum time (#1545)', () => {
+    const html = read('html');
+    assert.match(html, /<pk-loading-overlay delay="150" min-time="300"><slot><\/slot><\/pk-loading-overlay>/);
+    assert.equal(prop('busy').type, 'boolean'); assert.equal(prop('busy').default, false);
+    assert.equal(prop('busyLabel').type, 'string');
+    assert.match(read('js'), /querySelector\('pk-loading-overlay'\)[\s\S]*busy: this\.busy, label: this\.busyLabel/);
+});

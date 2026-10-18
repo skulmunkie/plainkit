@@ -42,7 +42,7 @@ public sealed partial class PkRecordEditor<TRecord, TForm, TKey>(
     private readonly PkLifecycle _life = new(() => { });
 
     /// <summary>Cancels a running load and releases the busy state; optional, for an editor whose owner is disposed.</summary>
-    public void Dispose() => _life.Dispose();
+    public void Dispose() { _life.Dispose(); PageBusy?.Set(this, false); }
 
     /// <summary>
     /// Optional: decides that an exception is written for the user even though it does not implement <see cref="IPkUserFacingException"/>, so an
@@ -128,7 +128,7 @@ public sealed partial class PkRecordEditor<TRecord, TForm, TKey>(
 
     private async Task<bool> RunAsync(Func<Task> action, string verb)
     {
-        using var busy = _life.Begin(verb);
+        using var busy = Hold(verb);
         try
         {
             await action();

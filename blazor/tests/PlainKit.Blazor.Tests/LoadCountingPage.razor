@@ -1,0 +1,9 @@
+@* Counts its loads so a test can prove a busy overlay re-render does not reload the page (#1545). *@
+@inherits PageBase
+
+<p>page</p>
+
+@code {
+    [Parameter] public Action? Loads { get; set; }
+    protected override Task OnLoadAsync(CancellationToken cancel) { Loads?.Invoke(); return Task.CompletedTask; }
+}
