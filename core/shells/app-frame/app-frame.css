@@ -6,6 +6,7 @@
 /* A long module title is cut, never wraps the header row. (pk-navbar does not draw the picker on a phone; the frame puts the module list in the drawer's first row.) */
 [part="module"] { max-width: 16ch; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 
-
-/* The page slot keeps pk-stack's gap between the page's children now that the busy overlay wraps it. */
-pk-loading-overlay::part(content) { display: flex; flex-direction: column; gap: var(--space-4); }
+/* The page slot keeps pk-stack's gap between the page's children, and the stack, the busy overlay and its content fill the shell body (#1554), so a page type that pins its header and pager still does and the overlay covers the whole page region. */
+pk-stack { flex: 1 1 auto; min-height: 0; }
+pk-loading-overlay { flex: 1 1 auto; min-height: 0; display: flex; flex-direction: column; }
+pk-loading-overlay::part(content) { flex: 1 1 auto; min-height: 0; display: flex; flex-direction: column; gap: var(--space-4); }
