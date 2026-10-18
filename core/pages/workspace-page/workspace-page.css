@@ -1,5 +1,5 @@
 :host { display: block; inline-size: 100%; min-inline-size: 0; }
-:host([fill]) { display: flex; flex-direction: column; flex: 1 1 auto; align-self: stretch; block-size: 100%; min-block-size: 0; }
+:host([fill]) { --pk-fill-shrink: 1; display: flex; flex-direction: column; flex: 1 1 auto; align-self: stretch; block-size: 100%; min-block-size: 0; }
 [part="frame"] { position: relative; }
 :host([fill]) [part="frame"] { flex: 1 1 auto; min-block-size: 0; }
 [part="state"]:empty { display: none; }

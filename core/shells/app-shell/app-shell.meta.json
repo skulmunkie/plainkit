@@ -53,7 +53,7 @@
     },
     {
       "name": "",
-      "description": "The scrolling body. It is a flex column of definite height: ordinary content keeps its height and the body scrolls, while a page type that fills (flex: 1 1 auto, min-height: 0, such as a list page with stickyHeader) takes the height left, so its header row and pager stay pinned and only its rows scroll. A host wrapper element between the body and the page needs the same two properties, or none (display: contents)."
+      "description": "The scrolling body. It is a flex column of definite height: ordinary content keeps its height and the body scrolls, while a page type that fills (sets --pk-fill-shrink: 1 and flex: 1 1 auto, min-height: 0, such as a list page with stickyHeader) takes the height left, so its header row and pager stay pinned and only its rows scroll. A host wrapper element between the body and the page needs the same two properties, or none (display: contents)."
     },
     {
       "name": "footer",
@@ -92,7 +92,9 @@
       "description": "Footer row"
     }
   ],
-  "cssProperties": [],
+  "cssProperties": [
+    { "name": "--pk-fill-shrink", "description": "Set on a page type's host (1) so it may shrink to the height left in the body instead of keeping its own height; the default 0 keeps ordinary content at its height so the body scrolls. List pages and filling (fill) master-detail and workspace pages set it." }
+  ],
   "methods": [],
   "writes": [
     { "target": "the pk-side-nav in the shell", "attributes": ["open"], "why": "The nav-open state and the hamburger [data-nav-toggle] control the drawer state of the nav (and follow it). Not undone on disconnect. The wide-screen hide is done in the shell's own shadow tree (its nav slot), not on the nav." }
