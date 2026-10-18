@@ -254,7 +254,7 @@ export async function mountScorecard(container, options = {}) {
     const setProgress = text => { const p = $('[data-sc-progress]'); if (p) p.textContent = text; };
 
     const cards = [
-        hosts.size && ['size', async () => ({ sizes: await measureSizes(data.sizes, doc), budgets: await load(data.budgets) }), v => paintSize(doc, hosts.size, v), 'sizes'],
+        hosts.size && ['size', async () => ({ sizes: await measureSizes(data.sizes, doc, undefined, ac.signal), budgets: await load(data.budgets) }), v => paintSize(doc, hosts.size, v), 'sizes'],
         hosts.api && ['api', async () => ({ baseline: await load(data.apiBaseline), current: await load(data.api) }), v => paintApi(doc, hosts.api, v), 'API surface'],
         hosts.tiers && ['tiers', () => load(data.tiers), v => paintTiers(doc, hosts.tiers, v), 'tier report'],
         hosts.sweep && ['sweep', () => load(data.sweep), v => paintSweep(doc, hosts.sweep, v), 'sweep report'],
@@ -263,6 +263,7 @@ export async function mountScorecard(container, options = {}) {
     ].filter(Boolean);
 
     const ready = Promise.all(cards.map(([, get]) => settled(get))).then(results => {
+        if (ac.signal.aborted) return; // destroyed while the cards loaded: paint nothing, load nothing more
         const frames = $('[data-sc-frames]'), pending = doc.createDocumentFragment();
         cards.forEach(([name, , paint, hint], i) => {
             const r = results[i];
