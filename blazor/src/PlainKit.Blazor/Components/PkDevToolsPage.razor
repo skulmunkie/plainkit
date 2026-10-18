@@ -1,89 +1,13 @@
 @page "/_plainkit"
 @page "/_plainkit/{Tab}"
-@inject PkOptions Options
-@inject PkSourceProvider Source
 @inject NavigationManager Nav
-@inject IServiceProvider Services
-@inject PkRuntime Runtime
 
 @* The toolkit's own dev tools, in your app, all built from the SDK. Served at /_plainkit in Development (see PkOptions.DevTools).
-   The workspaces (gallery, files, scorecard) are the page. The tools (console, logs, logging, performance, quality, inspector, theme, and PlainKit.Blazor's
-   own blazor and components tabs) are the SDK's dev tools dock, mounted by PkDevTools: /_plainkit/console and the like open the dock on that tab. *@
-<PkStyles />
-@if (!Enabled)
-{
-    <pk-empty-state heading="Dev tools are off" description="Set DevTools = true in AddPlainKit to serve them outside Development."></pk-empty-state>
-}
-else
-{
-    <pk-tabs value="@Workspace" aria-label="Workspaces">
-        @foreach (var (key, label) in Workspaces)
-        {
-            <pk-tab value="@key" @onclick="() => Go(key)">@label</pk-tab>
-        }
-    </pk-tabs>
-
-    <PkDevTools Tab="@ToolTab" Open="true" />
-
-    @if (Workspace == "gallery")
-    {
-        @* The Blazor section (component, parameters, the Razor) goes into the gallery's Details drawer for every element, computed here from the
-           package's own mappings; the SDK holds no copy of them. *@
-        <PkGallery Chrome="PkChrome.Full" Height="760" Sections="PkGallerySection.ForBlazor()" />
-    }
-    else if (Workspace == "files")
-    {
-        @if (_snapshot is null)
-        {
-            <pk-empty-state heading="No source to browse" description="The Files workspace reads a folder on the server, so it is not available in a browser-only app. Set SourceRoot in AddPlainKit, or run server side."></pk-empty-state>
-        }
-        else
-        {
-            <p class="muted">@_snapshot.Files.Count files under the app's source root.</p>
-            <PkCodeExplorer Snapshot="_snapshot" Height="42rem" />
-        }
-    }
-    else if (Workspace == "scorecard")
-    {
-        <PkScorecard Targets="Targets" HistoryKey="plainkit-devtools-scorecard" Height="42rem" />
-    }
-}
+   The workspaces (gallery, files, scorecard) and the dock's tools (console, logs, logging, performance, quality, inspector, theme, and PlainKit.Blazor's own blazor and
+   components tabs) are one SDK module, mounted by PkDevToolsWorkspace: /_plainkit/console and the like open the dock on that tab. *@
+<PkDevToolsWorkspace Tab="@Tab" OnWorkspace="@(key => Nav.NavigateTo($"/_plainkit/{key}"))" />
 
 @code {
-    private static readonly (string Key, string Label)[] Workspaces = [("gallery", "Gallery"), ("files", "Files"), ("scorecard", "Scorecard")];
-
-    // The dock's tabs: the SDK's, then the two PlainKit.Blazor adds.
-    private static readonly string[] Tools = ["console", "logs", "logging", "performance", "quality", "inspector", "theme", "blazor", "blazor-components"];
-
-    private PkSnapshot? _snapshot;
-    private string? _loadedFor;
-
     /// <summary>A workspace (gallery, files or scorecard), or the id of a dock tab to open (console, logs, logging, performance, quality, inspector, theme, blazor, blazor-components).</summary>
     [Parameter] public string? Tab { get; set; }
-
-    private string Workspace => Workspaces.Any(t => t.Key == Tab) ? Tab! : "gallery";
-
-    private string? ToolTab => Tools.Contains(Tab) ? Tab : null;
-
-    private bool Enabled => PkHostEnvironment.DevToolsEnabled(Options, Services);
-
-    private IReadOnlyList<PkScoreTarget> Targets => Options.ScoreTargets ??
-    [
-        .. new[] { "crud", "dashboard", "form", "auth", "wizard", "master-detail" }
-            .Select(id => PkScoreTarget.Page($"{PkAssets.Root}gallery/templates/{id}/{id}.html", $"Template: {id}")),
-    ];
-
-    protected override async Task OnAfterRenderAsync(bool firstRender)
-    {
-        if (firstRender) await Runtime.EnsureInitializedAsync(Assets);
-    }
-
-    private void Go(string key) => Nav.NavigateTo($"/_plainkit/{key}");
-
-    protected override async Task OnParametersSetAsync()
-    {
-        if (!Enabled || Workspace != "files" || _loadedFor == "files") return;
-        _snapshot = await Source.GetAsync();
-        _loadedFor = "files";
-    }
 }

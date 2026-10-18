@@ -31,15 +31,17 @@ export async function init() {
 
 // `lazy` ({ files, reader }, from PkCodeExplorer with an in-memory snapshot): the explorer's LazyProvider over a lean file list, each file's text read through the .NET reader
 // on first use. The provider's fetch is told to ask the reader instead of the network (the URLs it builds are 'pk-source/<path>').
+async function lazyProvider({ files, reader }) {
+    const { LazyProvider } = await import('./plainkit/modules/code-explorer/providers.js');
+    const read = async url => {
+        const text = await reader.invokeMethodAsync('Read', decodeURIComponent(url.slice('pk-source/'.length)));
+        return text === null ? { ok: false, status: 404, text: async () => '' } : { ok: true, status: 200, text: async () => text };
+    };
+    return new LazyProvider(files, 'pk-source', { fetch: read });
+}
+
 export const mountCodeExplorer = async (container, { lazy, ...options }) => {
-    if (lazy) {
-        const { LazyProvider } = await import('./plainkit/modules/code-explorer/providers.js');
-        const read = async url => {
-            const text = await lazy.reader.invokeMethodAsync('Read', decodeURIComponent(url.slice('pk-source/'.length)));
-            return text === null ? { ok: false, status: 404, text: async () => '' } : { ok: true, status: 200, text: async () => text };
-        };
-        options = { ...options, provider: new LazyProvider(lazy.files, 'pk-source', { fetch: read }) };
-    }
+    if (lazy) options = { ...options, provider: await lazyProvider(lazy) };
     return mountTool(container, () => import('./plainkit/modules/code-explorer/code-explorer.js'), 'mountCodeExplorer', options);
 };
 
@@ -110,6 +112,30 @@ export async function mountToolDock(container, options, panelHosts) {
     const { mode, ...rest } = Object.fromEntries(Object.entries(options).filter(([, v]) => v !== null));
     mounted.set(container, await mountToolDock(mode === 'inline' ? container : null, { mode, ...rest, panels }));
 }
+
+// The dev tools workspace page (core/modules/devtools/workspace.js): the Gallery, Files and Scorecard tabs and the dock. callbacks is a DotNetObjectReference of PkDevToolsWorkspace
+// (SetWorkspace(key) when the reader chooses a tab, LoadFiles() for the snapshot), host one of PkDevToolsHost for the Blazor panels. The snapshot is loaded through the callbacks
+// when the Files tab is first shown, and its file count is set on files then.
+export async function mountDevToolsWorkspace(container, options, host, callbacks) {
+    const { mountDevToolsWorkspace } = await import('./plainkit/modules/devtools/workspace.js');
+    destroy(container);
+    const panels = host ? (await import('./blazor-devtools.js')).blazorPanels(host) : [];
+    // a null option means "not set" (.NET sends null for it): leave it out so the module's own default applies
+    const set = Object.fromEntries(Object.entries(options).filter(([, v]) => v !== null));
+    const files = {
+        async load() {
+            const r = await callbacks.invokeMethodAsync('LoadFiles');
+            if (!r) return null;
+            files.count = r.count;
+            return lazyProvider(r.lazy);
+        },
+    };
+    mounted.set(container, await mountDevToolsWorkspace(container, { ...set, files, panels, onworkspace: key => callbacks.invokeMethodAsync('SetWorkspace', key) }));
+}
+
+// Drives the mounted page: a workspace to show, or a dock tab to open.
+export const selectWorkspace = (container, key) => mounted.get(container)?.select?.(key);
+export const selectDevToolsTab = (container, id) => mounted.get(container)?.dock?.select?.(id);
 
 // A callback property of a page element (pk-tool-page run, pk-settings-page save, pk-list-page load): config is data, so a callback is set from script. host is a DotNetObjectReference
 // of PkCallbackHost<TArg>; the element awaits the .NET result and a rejection (a throw in C#) reaches the element's own error handling. host null removes it. refresh: an element

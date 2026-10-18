@@ -118,6 +118,7 @@ export const LAB_CASES = [
         ctx.ok(!missing.length, `no control for the field(s) ${missing.join(', ')}`);
         ctx.ok(await ctx.eval(`window.__deep.field('Opened').getAttribute('type') === 'datetime-local'`), 'the DateTime field is not a datetime-local input');
         ctx.ok(await ctx.eval(`window.__deep.field('Secret').getAttribute('autocomplete') === 'new-password' && !window.__deep.field('Title').hasAttribute('autocomplete')`), 'the Secret field lost its AutoComplete token (new-password), or Title gained one');
+        ctx.ok(await ctx.eval(`window.__deep.field('Title').getAttribute('maxlength') === '40'`), 'the Title field lost its MaxLength (40): PkFieldSpec must send it as maxlength')
         const w = await ctx.eval(`(() => { const f = n => window.__deep.field(n).closest('pk-field').getBoundingClientRect().width; return { notes: f('Notes'), estimate: f('Estimate') }; })()`);
         ctx.ok(w.notes > w.estimate * 1.8, `ColumnSpan 2 field is ${w.notes.toFixed(0)} px wide next to a one-column field of ${w.estimate.toFixed(0)} px`);
         await ctx.setField('Title', 'Changed'); // pk-field-change goes back through the handler to Set and ModelChanged
@@ -153,6 +154,24 @@ export const LAB_CASES = [
         await ctx.waitFor(`(() => { const a = window.__deep.active(); return !!a && !!a.closest('pk-input, [name="name"]') || a?.getRootNode()?.host?.localName === 'pk-input'; })()`, 'FocusAsync to focus the input');
         await ctx.clickDeep('pk-button', 'Check form');
         await waitText(ctx, 'Valid: False');
+        await ctx.noErrors(ctx.openMark, BENIGN);
+      } },
+    // #1582: the dev tools page is the SDK's devtools workspace module mounted through the bridge (PkDevToolsWorkspace): the tabs, the callbacks into .NET (a tab click navigates)
+    // and the data handed over (the gallery's Blazor sections, the score targets, the snapshot through the lazy reader).
+    { name: 'devtools-workspace',
+      async run(ctx) {
+        await ctx.open('/_plainkit');
+        await ctx.waitFor(`!!window.__deep.one('pk-gallery')`, 'the Gallery workspace to mount');
+        ctx.ok(await ctx.eval(`(window.__deep.one('pk-gallery').getAttribute('sections') ?? '').includes('PkButton')`), 'the gallery got no Blazor sections from .NET');
+        await waitText(ctx, 'Console', ALL); // the dock's tabs
+        await ctx.clickDeep('pk-tab', 'Files');
+        await ctx.waitFor(`location.pathname === '/_plainkit/files'`, 'the Files tab to navigate through .NET');
+        await ctx.waitFor(`!!window.__deep.one('pk-code-explorer') || window.__deep.text(document.body).includes('No source to browse')`, 'the Files workspace to load');
+        await ctx.clickDeep('pk-tab', 'Scorecard');
+        await ctx.waitFor(`location.pathname === '/_plainkit/scorecard'`, 'the Scorecard tab to navigate through .NET');
+        await ctx.waitFor(`window.__deep.text(document.body).includes('Run scorecard') || window.__deep.text(document.body).includes('Run live')`, 'the Scorecard workspace to draw its run button');
+        await ctx.open('/_plainkit/files'); // a deep link mounts on that workspace
+        await ctx.waitFor(`window.__deep.one('pk-tabs')?.getAttribute('value') === 'files'`, 'a deep link to open the Files workspace');
         await ctx.noErrors(ctx.openMark, BENIGN);
       } },
     { name: 'two-way-bind',
@@ -279,6 +298,7 @@ export async function onPhone(ctx, fn) {
 export const LAB_SHOTS = [
     async (ctx, vp, theme) => { await ctx.open('/lab/fields'); await ctx.sleep(500); await ctx.shot('lab-fields', vp, theme); },
     async (ctx, vp, theme) => { await ctx.open('/lab/tickets'); await ctx.sleep(800); await ctx.shot('lab-list', vp, theme); },
+    async (ctx, vp, theme) => { await ctx.open('/_plainkit/files'); await ctx.sleep(1500); await ctx.shot('devtools-files', vp, theme); },
     async (ctx, vp, theme) => {
         await ctx.open('/lab/tickets/3'); await ctx.sleep(800);
         await ctx.clickDeep('pk-record-page >>> pk-button[part="edit"]'); await ctx.sleep(600);

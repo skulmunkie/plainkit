@@ -5,7 +5,8 @@
     "Components/PkCodeExplorer.razor": 77,
     "Components/PkConsole.razor": 55,
     "Components/PkDevTools.razor": 109,
-    "Components/PkDevToolsPage.razor": 89,
+    "Components/PkDevToolsPage.razor": 13,
+    "Components/PkDevToolsWorkspace.razor": 112,
     "Components/PkLogs.razor": 64,
     "Components/PkLogSettings.razor": 52,
     "Components/PkPerformance.razor": 55,
@@ -44,7 +45,7 @@
     "PkAttr.JsonText.cs": 13,
     "PkElementBase.Methods.cs": 12,
     "PkEnums.cs": 94,
-    "PkFieldDef.cs": 52,
+    "PkFieldDef.cs": 51,
     "PkFieldGroupTypes.cs": 94,
     "PkFieldListTypes.cs": 15,
     "PkFieldSpecs.cs": 55,
@@ -89,11 +90,5 @@
     "Testing/PkFieldTesting.cs": 53,
     "Testing/PkPageTesting.cs": 135
   },
-  "debt": [
-    {
-      "rule": "layout-recipe",
-      "file": "Components/PkDevToolsPage.razor",
-      "reason": "composes five dev tools mounts into one page; a layout recipe for a Blazor-only host page, to be reviewed when the dev tools move to a module page"
-    }
-  ]
+  "debt": []
 }

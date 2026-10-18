@@ -72,50 +72,14 @@ public sealed class ComponentTests : BunitContext, IAsyncLifetime
     }
 
     [Fact]
-    public void Dev_tools_page_offers_the_three_workspaces_and_marks_the_current_one()
+    public void Dev_tools_page_hands_its_route_to_the_workspace_component_and_navigates_when_a_tab_is_chosen()
     {
         var cut = Render<PkDevToolsPage>(p => p.Add(x => x.Tab, "scorecard"));
-        var tabs = cut.FindAll("pk-tab");
+        var workspace = cut.FindComponent<PkDevToolsWorkspace>();
 
-        Assert.Equal(["Gallery", "Files", "Scorecard"], tabs.Select(t => t.TextContent.Trim()));
-        Assert.Equal("scorecard", cut.Find("pk-tabs").GetAttribute("value"));
-        Assert.Single(cut.FindComponents<PkScorecard>());
-    }
-
-    [Fact]
-    public void Dev_tools_page_mounts_the_dev_tools_dock_instead_of_its_own_tool_tabs()
-    {
-        var cut = Render<PkDevToolsPage>();
-        var tools = Assert.Single(cut.FindComponents<PkDevTools>()).Instance;
-
-        Assert.Equal(PkDevToolsMode.Dock, tools.Mode);
-        Assert.True(tools.Open);
-        Assert.True(tools.BlazorPanels);
-        Assert.Empty(cut.FindComponents<PkPerformance>());
-        Assert.Empty(cut.FindComponents<PkConsole>());
-        Assert.Empty(cut.FindComponents<PkLogs>());
-    }
-
-    [Theory]
-    [InlineData("console", "console", "gallery")]
-    [InlineData("blazor", "blazor", "gallery")]
-    [InlineData("scorecard", null, "scorecard")]
-    [InlineData("nonsense", null, "gallery")]
-    public void Dev_tools_page_opens_the_dock_on_a_tool_tab_and_keeps_workspaces_for_the_rest(string route, string? dockTab, string workspace)
-    {
-        var cut = Render<PkDevToolsPage>(p => p.Add(x => x.Tab, route));
-
-        Assert.Equal(dockTab, cut.FindComponent<PkDevTools>().Instance.Tab);
-        Assert.Equal(workspace, cut.Find("pk-tabs").GetAttribute("value"));
-    }
-
-    [Fact]
-    public void Dev_tools_page_falls_back_to_the_gallery_for_an_unknown_tab()
-    {
-        var cut = Render<PkDevToolsPage>(p => p.Add(x => x.Tab, "nonsense"));
-
-        Assert.Equal("gallery", cut.Find("pk-tabs").GetAttribute("value"));
-        Assert.NotNull(cut.Find("pk-gallery"));
+        Assert.Equal("scorecard", workspace.Instance.Tab);
+        cut.InvokeAsync(() => workspace.Instance.SetWorkspace("files"));
+        Assert.EndsWith("/_plainkit/files", Services.GetRequiredService<Microsoft.AspNetCore.Components.NavigationManager>().Uri);
     }
 
     [Fact]
