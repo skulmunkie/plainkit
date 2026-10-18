@@ -1,7 +1,7 @@
 name: Release
 
 # Push a tag vX.Y.Z (it must equal core/VERSION; see the release pull request procedure in CONTRIBUTING.md) to create a GitHub release carrying the runtime SDK (core/dist without
-# modules/) as plainkit-dist-<version>.zip, the dev-tool modules (core/dist/modules) as plainkit-modules-<version>.zip, the two integrity manifests, the .nupkg (both units) and the
+# modules/) as plainkit-dist-<version>.zip, the dev-tool modules (core/dist/modules) as plainkit-modules-<version>.zip, the three integrity manifests (runtime, extras, modules), the .nupkg (both units) and the
 # agent skills as plainkit-skills-<version>.zip, and then to publish the NuGet package (PlainKit.Blazor). The npm package (plainkit) is optional: it is published only when a repository secret NPM_TOKEN exists.
 # Repository secrets: NUGET_USER (your nuget.org username, not your email); NPM_TOKEN (optional, an npm automation token).
 # The tag does not carry core/dist (generated files are not in git): pinned versions are the release assets and the NuGet package, built here.
@@ -103,7 +103,7 @@ jobs:
           dotnet test PlainKit.slnx --configuration Release
           dotnet pack blazor/src/PlainKit.Blazor --configuration Release -p:Version="$VERSION" -o nupkg
 
-      # Two units, two zips. The runtime zip holds everything in core/dist except modules/ (its manifest.json lists the same set). The modules zip holds modules/ (its own
+      # Two units, two zips. The runtime zip holds everything in core/dist except modules/ (manifest.json lists what the npm package carries, manifest.extras.json the rest: gallery, agent docs, descriptions.json). The modules zip holds modules/ (its own
       # manifest.json inside), with the folder name at the top: unzip it into the runtime folder and it lands at dist/modules/, next to the runtime it imports.
       - name: Zip dist (the runtime) for the release
         run: cd core/dist && zip -r ../../plainkit-dist-$VERSION.zip . -x 'modules/*'
@@ -121,6 +121,7 @@ jobs:
           cp "plainkit-dist-$VERSION.zip" "plainkit-modules-$VERSION.zip" "plainkit-skills-$VERSION.zip" release-assets/
           cp "nupkg/PlainKit.Blazor.$VERSION.nupkg" release-assets/
           cp core/dist/manifest.json release-assets/dist-manifest.json
+          cp core/dist/manifest.extras.json release-assets/dist-manifest-extras.json
           cp core/dist/modules/manifest.json "release-assets/plainkit-modules-manifest-$VERSION.json"
 
       # No token here: this job never holds contents: write or id-token: write. The publish job downloads this artifact and does everything that touches
@@ -171,7 +172,7 @@ jobs:
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
-          files=("release-assets/plainkit-dist-$VERSION.zip" "release-assets/plainkit-modules-$VERSION.zip" "release-assets/plainkit-skills-$VERSION.zip" "release-assets/PlainKit.Blazor.$VERSION.nupkg" release-assets/dist-manifest.json "release-assets/plainkit-modules-manifest-$VERSION.json")
+          files=("release-assets/plainkit-dist-$VERSION.zip" "release-assets/plainkit-modules-$VERSION.zip" "release-assets/plainkit-skills-$VERSION.zip" "release-assets/PlainKit.Blazor.$VERSION.nupkg" release-assets/dist-manifest.json release-assets/dist-manifest-extras.json "release-assets/plainkit-modules-manifest-$VERSION.json")
           if gh release view "$GITHUB_REF_NAME" > /dev/null 2>&1; then
             gh release upload "$GITHUB_REF_NAME" "${files[@]}" --clobber
           else

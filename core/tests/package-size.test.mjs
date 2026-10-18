@@ -6,7 +6,8 @@
 // Then SHA-256 instead of SHA-384 SRI hashes in dist/manifest.json (still valid SRI; 567 entries x 16 random bytes, #1253): 915,745 packed / 3,429,025 unpacked bytes.
 // Then the element tables of the skill references state their legend once (elements-index.md), not above every table, and drop an empty Values column (#1253): 914,256 packed / 3,389,474 unpacked bytes.
 // Then the editor files' one-sentence summaries cut at 100 characters instead of 120 (the full text stays in descriptions.json) and the JSX and Vue typings naming each element's props once (a `...Props` interface, `keyof` instead of a repeated name list) (#1253): 908,581 / 3,367,469 bytes.
-// The ceilings (912,500 / 3,380,000; measured 908,581 / 3,367,469 on 2026-10-17). NEVER RAISE THEM: make the package smaller (lower them when it shrinks).
+// Then the ~220 files the package leaves out (gallery, agent docs, descriptions.json ...) listed in their own dist/manifest.extras.json (kept out of the package) instead of in dist/manifest.json (#1253): 901,734 / 3,351,389 bytes.
+// The ceilings (907,800 / 3,366,500; measured 901,734 / 3,351,389 on 2026-10-17). NEVER RAISE THEM: make the package smaller (lower them when it shrinks).
 import './needs-bootstrap.mjs';
 import test from 'node:test';
 import assert from 'node:assert/strict';
@@ -16,8 +17,8 @@ import { spawnSync } from 'node:child_process';
 import { fileURLToPath } from 'node:url';
 
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
-const MAX_PACKED_BYTES = 912_500;
-const MAX_UNPACKED_BYTES = 3_380_000;
+const MAX_PACKED_BYTES = 907_800;
+const MAX_UNPACKED_BYTES = 3_366_500;
 const TOP_LEVEL = new Set(['dist', 'LICENSE', 'README.md', 'package.json']);
 // dist/ is the runtime unit; these are the entries of dist/ the package may carry (dist/modules is the dev-tool unit, a separate download).
 const DIST = new Set(['breakpoints.report.json', 'custom-elements.json', 'elements', 'elements.d.ts', 'elements.vue.d.ts', 'icons.svg', 'js', 'llms-full.txt', 'llms.txt',

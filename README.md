@@ -31,7 +31,7 @@ Where you get the files, and which versions are pinned:
 | `dotnet add package PlainKit.Blazor` (the package carries `dist` as static web assets) | pinned |
 | The [Pages site](https://skulmunkie.github.io/plainkit/) (gallery, guides and tools; `dist/` sits under it, for example `.../dist/plainkit.min.css`) | latest `main`, not pinned |
 
-There is no CDN link by git tag: the repository does not contain `core/dist` (it is generated, see below), so a tag has nothing to serve. `dist/manifest.json` lists every file with a SRI hash. The SDK itself makes no third-party requests at run time. How releases are made is in [PUBLISHING.md](PUBLISHING.md).
+There is no CDN link by git tag: the repository does not contain `core/dist` (it is generated, see below), so a tag has nothing to serve. `dist/manifest.json` lists the files of the npm package with a SRI hash (`dist/manifest.extras.json`, in the release zip and on the Pages site, lists the rest: the gallery, the agent docs). The SDK itself makes no third-party requests at run time. How releases are made is in [PUBLISHING.md](PUBLISHING.md).
 
 ## Working in a clone
 

@@ -23,9 +23,12 @@ public sealed class PageAssetsTests : BunitContext, IAsyncLifetime
         var dir = AppContext.BaseDirectory;
         while (dir is not null && !File.Exists(Path.Combine(dir, "core", "VERSION"))) dir = Path.GetDirectoryName(dir);
         Assert.NotNull(dir);
-        using var doc = JsonDocument.Parse(File.ReadAllText(Path.Combine(dir!, "core", "dist", "manifest.json")));
-        foreach (var f in doc.RootElement.GetProperty("files").EnumerateArray())
-            if (f.GetProperty("path").GetString() == file) return f.GetProperty("integrity").GetString()!;
+        foreach (var name in new[] { "manifest.json", "manifest.extras.json" })
+        {
+            using var doc = JsonDocument.Parse(File.ReadAllText(Path.Combine(dir!, "core", "dist", name)));
+            foreach (var f in doc.RootElement.GetProperty("files").EnumerateArray())
+                if (f.GetProperty("path").GetString() == file) return f.GetProperty("integrity").GetString()!;
+        }
         throw new InvalidOperationException(file + " is not in the manifest");
     }
 

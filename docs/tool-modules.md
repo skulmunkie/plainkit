@@ -12,7 +12,7 @@ The build makes two units, each with its own manifest (sizes and SRI hashes) and
 
 | Unit | Folder | Manifest | Release asset | Holds |
 | --- | --- | --- | --- | --- |
-| Runtime SDK | `dist/` (without `modules/`) | `dist/manifest.json` | `plainkit-dist-<version>.zip` | `plainkit.css`, `plainkit.min.css`, `plainkit.js`, `js/`, `elements/`, `icons.svg`, the gallery, the editor-support files, `skills/` |
+| Runtime SDK | `dist/` (without `modules/`) | `dist/manifest.json` (+ `dist/manifest.extras.json` for the files the npm package leaves out) | `plainkit-dist-<version>.zip` | `plainkit.css`, `plainkit.min.css`, `plainkit.js`, `js/`, `elements/`, `icons.svg`, the gallery, the editor-support files, `skills/` |
 | Dev-tool modules | `dist/modules/` | `dist/modules/manifest.json` | `plainkit-modules-<version>.zip` | one self-contained folder per tool: code-explorer, console, devtools, layout-builder, log-settings, logs, performance, quality, scorecard, theme-editor |
 
 A page that only uses `pk-*` elements needs the runtime zip and never fetches a module. The modules zip has `modules/` at its top: unzip it into the runtime folder and it lands at `dist/modules/`. The unit sits two folders below the runtime root, as `modules/<tool>/` sits two folders below `core/` in the source, so a module's imports (`../../js/log.js`) and its page stylesheet (`../../plainkit.css`) are the same text in both places. A module names the runtime by these relative paths and nothing else.

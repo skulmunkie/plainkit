@@ -64,24 +64,24 @@ public static class PkAssets
 
     private static string? Digest(string file) => Hashes.Value.TryGetValue(file, out var v) ? v : null;
 
-    // The manifest is an embedded copy of wwwroot/plainkit/manifest.json (the file list of core/dist with each file's SHA-256). Read once.
+    // The manifest is an embedded copy of wwwroot/plainkit/manifest.json (the file list of core/dist with each file's SHA-256), plus manifest.extras.json. Read once.
     private static readonly Lazy<Dictionary<string, string>> Hashes = new(() =>
     {
         var map = new Dictionary<string, string>(StringComparer.Ordinal);
-        try
+        // Two manifests: the runtime's, and the extras' (the files the npm package leaves out, here the gallery embed page).
+        foreach (var name in new[] { "plainkit-assets/manifest.json", "plainkit-assets/manifest.extras.json" })
         {
-            using var stream = typeof(PkAssets).Assembly.GetManifestResourceStream("plainkit-assets/manifest.json");
-            if (stream is null) return map;
-            using var doc = System.Text.Json.JsonDocument.Parse(stream);
-            foreach (var f in doc.RootElement.GetProperty("files").EnumerateArray())
+            try
             {
-                var integrity = f.GetProperty("integrity").GetString();
-                var path = f.GetProperty("path").GetString();
-                if (path is not null && integrity is not null && integrity.StartsWith("sha256-", StringComparison.Ordinal))
-                    map[path] = integrity;
+                using var stream = typeof(PkAssets).Assembly.GetManifestResourceStream(name);
+                if (stream is null) continue;
+                using var doc = System.Text.Json.JsonDocument.Parse(stream);
+                foreach (var f in doc.RootElement.GetProperty("files").EnumerateArray())
+                    if (f.GetProperty("integrity").GetString() is { } integrity && integrity.StartsWith("sha256-", StringComparison.Ordinal) && f.GetProperty("path").GetString() is { } path)
+                        map[path] = integrity;
             }
+            catch (Exception e) when (e is System.Text.Json.JsonException or KeyNotFoundException or InvalidOperationException) { }
         }
-        catch (Exception e) when (e is System.Text.Json.JsonException or KeyNotFoundException or InvalidOperationException) { }
         return map;
     });
 
