@@ -108,6 +108,26 @@
   ],
   "parts": [
     {
+      "name": "header",
+      "description": "The header bar."
+    },
+    {
+      "name": "title",
+      "description": "The label."
+    },
+    {
+      "name": "language",
+      "description": "The language tag."
+    },
+    {
+      "name": "count",
+      "description": "The line count."
+    },
+    {
+      "name": "actions",
+      "description": "The right-side action area."
+    },
+    {
       "name": "copy",
       "description": "The Copy button."
     },
@@ -162,6 +182,10 @@
   ],
   "a11y": "The body is a labelled, focusable region a keyboard can scroll. Line numbers are generated content: not selectable, not copied. A highlighted line has a background and a leading edge. Lines are text, never HTML.",
   "examples": [
+    {
+      "title": "Header with a language, line count, copy and actions",
+      "html": "<pk-code-view header copy label=\"order.js\" language=\"js\"><pk-button slot=\"actions\" size=\"mini\" variant=\"ghost\">Outline</pk-button>function total(items) {\n    return items.length;\n}</pk-code-view>"
+    },
     {
       "title": "Highlighted lines",
       "html": "<pk-code-view label=\"order.js\" highlight=\"2-3\">function total(items) {\n    const sum = items.reduce((a, i) => a + i.qty, 0);\n    return sum;\n}</pk-code-view>"
