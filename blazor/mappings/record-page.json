@@ -8,7 +8,7 @@
       "default": "{}",
       "map": "prop",
       "prop": "config",
-      "note": "Sent as a JSON attribute with the fields added from Fields: { id?, sidebar?, heading?, title?, saveLabel?, editable?, label?, emptyHeading? }. The id selects the record to load (none: a new record). A sidebar card lists field keys."
+      "note": "Sent as a JSON attribute with the fields added from Fields: { id?, sections?, sidebar?, titleField?, heading?, title?, saveLabel?, editable?, label?, emptyHeading? }. The id selects the record to load (none: a new record). A sidebar card lists field keys."
     },
     {
       "name": "Mode",
@@ -70,6 +70,30 @@
       "shows": "deletable",
       "type": "EventCallback<PkRecordDeleteEventArgs>",
       "note": "The Delete button was pressed (Id is the record's id). Setting it shows Delete in view mode of an existing record; confirm, delete and navigate away in the handler, inside TryBusyAsync on a PageBase page."
+    },
+    {
+      "name": "Sections",
+      "map": "param",
+      "type": "IReadOnlyList<PkRecordSection>?",
+      "doc": "Titled cards of fields in the main column (Heading, Fields: the keys). Fields no section or sidebar card names come first, under Config's heading. In edit mode each card is a field group of the one form."
+    },
+    {
+      "name": "Sidebar",
+      "map": "param",
+      "type": "IReadOnlyList<PkRecordSection>?",
+      "doc": "Cards of fields beside the main column, in place of Config's sidebar. In edit mode they are editable and saved with the rest; a field a sidebar card names is edited there only."
+    },
+    {
+      "name": "TitleOf",
+      "map": "param",
+      "type": "Func<TItem, string?>?",
+      "doc": "The page title from the loaded record (or the Model of a new one), read on every render, a save included; Config's title is the fallback while it returns nothing."
+    },
+    {
+      "name": "OnCancel",
+      "event": "pk-record-cancel",
+      "shows": "cancellable",
+      "note": "Cancel was pressed (Id is null for a new record). Setting it shows Cancel on a new record too; an existing record leaves edit mode itself, so navigate away only for a new one."
     },
     {
       "name": "MainBefore",

@@ -208,6 +208,9 @@
     "PkRecordTab.cs": {
       "category": "dto"
     },
+    "PkRecordSection.cs": {
+      "category": "dto"
+    },
     "PkRecordEditor.Toasts.cs": {
       "category": "editcontext"
     },

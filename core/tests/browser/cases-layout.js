@@ -162,6 +162,31 @@ export const layoutCases = [
         const vt = ve.part('toggle').getBoundingClientRect(), vh = ve.part('handle').getBoundingClientRect(); t.ok(vt.top + vt.height / 2 > vh.top - 1 && vt.top + vt.height / 2 < vh.bottom + 1, 'stacked: the toggle sits on the separator line');
     }],
 
+    ['splitter: persist-key saves the committed size and collapsed, restores them (re-clamped) on the next one, loses to host attributes, and a failing storage is logged, not thrown', async t => {
+        const wait = () => new Promise(r => setTimeout(r, 400));
+        const key = 'pk-test-' + Math.random().toString(36).slice(2), area = 'pk-splitter:' + key + '.state';
+        const mk = attrs => { const h = t.stage('<pk-splitter collapsible min="20" max="60" ' + attrs + '><div slot="start">A</div><div slot="end">B</div></pk-splitter>'); h.style.inlineSize = '600px'; return h; };
+        try {
+            const h1 = mk('size="40" persist-key="' + key + '"'); await t.load(h1); await t.settle(); await wait();
+            const a = h1.firstElementChild; a.part('handle').dispatchEvent(new KeyboardEvent('keydown', { key: 'End', bubbles: true, composed: true, cancelable: true }));
+            await t.settle(); a.part('toggle').click(); await t.settle();
+            t.eq(JSON.stringify(JSON.parse(localStorage.getItem(area)).data), '{"size":60,"collapsed":true}', 'the committed state is stored');
+            const h2 = mk('persist-key="' + key + '"'); await t.load(h2); await t.settle(); await wait(); await t.settle();
+            const b = h2.firstElementChild; t.eq(b.size, 60, 'size restored'); t.ok(b.collapsed, 'collapsed restored'); t.ok(b.part('end').getBoundingClientRect().width < 1, 'restored collapsed state is laid out');
+            localStorage.setItem(area, JSON.stringify({ v: 1, data: { size: 95, collapsed: false } }));
+            const h3 = mk('persist-key="' + key + '"'); await t.load(h3); await t.settle(); await wait(); await t.settle();
+            t.eq(h3.firstElementChild.size, 60, 'a stored size beyond max is re-clamped'); t.eq(h3.firstElementChild.part('handle').getAttribute('aria-valuenow'), '60');
+            const h4 = mk('size="30" persist-key="' + key + '"'); await t.load(h4); await t.settle(); await wait(); await t.settle();
+            t.eq(h4.firstElementChild.size, 30, 'a host size wins'); t.ok(!h4.firstElementChild.collapsed);
+            const set = Storage.prototype.setItem; Storage.prototype.setItem = () => { throw new Error('quota'); };
+            try {
+                const h5 = mk('size="40" persist-key="' + key + 'x"'); await t.load(h5); await t.settle(); await wait();
+                h5.firstElementChild.part('toggle').click(); await t.settle();
+                t.ok(h5.firstElementChild.collapsed, 'the splitter still works when storage fails');
+            } finally { Storage.prototype.setItem = set; }
+        } finally { localStorage.removeItem(area); localStorage.removeItem('pk-splitter:' + key + 'x.state'); }
+    }],
+
     ['sortable: role=list, a pointer drag on the handle raises pk-reorder, Alt+arrows reorder by keyboard, and an external drop is accepted', async t => {
         const same = (a, b, msg) => t.eq(JSON.stringify(a), JSON.stringify(b), msg);
         const host = t.stage('<pk-sortable label="Steps" accept-external><pk-sortable-item value="a">Mix</pk-sortable-item><pk-sortable-item value="b">Bake</pk-sortable-item><pk-sortable-item value="c">Cool</pk-sortable-item></pk-sortable>');
