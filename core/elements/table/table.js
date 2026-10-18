@@ -19,7 +19,7 @@ export default Base => class extends Base {
         for (const s of ['', 'toolbar', 'bulk', 'empty', 'footer', 'foot']) this.watchSlot(s, () => this.requestUpdate());
     }
     // columns / rows as arrays: json that parsed to something else (an object, a number) is a mistake, said once, and the table shows none.
-    list(n) { const v = this[n]; return Array.isArray(v) ? v : (this.warnOnce(n, n + ' is not an array'), []); }
+    list(n) { const v = this[n]; return Array.isArray(v) ? (n == 'columns' && this.$cx ? this.$cx.cols(this, v) : v) : (this.warnOnce(n, n + ' is not an array'), []); }
     get view() { return this.manual ? this.list('rows') : sortRows(filterRows(this.list('rows'), this.filters), this.list('columns').find(c => c.key === this.sort), this.sortDir); }
     ids() { return rowIds(this.view, this.rowKey); }
     // Selection scope (#801): `selectScope` is 'all' once "Select all <total>" was chosen. The ids stay the loaded page (never 10k ids): the host expands
@@ -59,6 +59,7 @@ export default Base => class extends Base {
         if (this.expandable || this.clickable || this.rowHrefTemplate) this.$x ??= import('../../js/table-expand.js').then(m => { this.$m = m; this.requestUpdate(); }, e => this.log.error('table-expand failed', e));
         if (this.total) this.$p ??= import('../../js/table-scope.js').then(m => { this.$s = m; this.requestUpdate(); }, e => this.log.error('table-scope failed', e));
         if (this.editable) this.$w ??= import('../../js/table-edit.js').then(m => { this.$e = m; this.requestUpdate(); }, e => this.log.error('table-edit failed', e));
+        if (this.resizable || this.reorderable) this.$cxw ??= import('../../js/table-cols.js').then(m => { this.$cx = m; this.requestUpdate(); }, e => this.log.error('table-cols failed', e));
         const x = this.expandable && this.$m, hx = this.expander != 'none' && x, lead = +this.selectable + !!hx;
         V.frame(this, tb, k.length + lead, r.length);
 
@@ -71,7 +72,7 @@ export default Base => class extends Base {
             return x ? x.rows(this, tr, id, i, k.length + lead, h) : [tr];
         });
         this.part('body').replaceChildren(...body);
-        this.$m?.after(this); this.$e?.after(this);
+        this.$m?.after(this); this.$e?.after(this); this.$cx?.after(this);
         this.$s?.after(this, r.length, sel.checked);
     }
 };

@@ -1811,4 +1811,88 @@ export const dataDisplayCases = [
         t.ok(r.height > 44, 'the long label wrapped onto more than one line');
         t.ok(f.contentDocument.documentElement.scrollWidth <= f.contentWindow.innerWidth + 1, 'the page does not scroll sideways');
     }],
+    // Issue 1580: column resize and reorder (js/table-cols.js, a lazy chunk). Everything is read from the rendered header and cells, never from internal state.
+    ...(() => {
+        const COLS = '[{"key":"sku","label":"SKU","sortable":true},{"key":"name","label":"Name"},{"key":"qty","label":"Qty","type":"number"}]';
+        const rowsOf = n => JSON.stringify(Array.from({ length: n }, (_, i) => ({ id: i + 1, sku: `S${i + 1}`, name: `Item ${i + 1}`, qty: i % 50 })));
+        const mk = async (t, attrs = 'resizable reorderable', n = 5) => {
+            const box = await t.mount(`<div style="width:900px"><pk-table label="Stock" ${attrs} columns='${COLS}' rows='${rowsOf(n)}'></pk-table></div>`);
+            const el = box.querySelector('pk-table'); await until(() => el.$cx && el.shadowRoot.querySelector('thead th[data-key]'), 'the column chunk'); await t.settle();
+            const sr = el.shadowRoot;
+            const g = {
+                el, sr,
+                th: k => sr.querySelector(`thead tr:first-child th[data-key=${k}]`),
+                w: k => Math.round(g.th(k).getBoundingClientRect().width),
+                order: () => [...sr.querySelectorAll('thead tr:first-child th[data-key]')].map(h => h.dataset.key).join(),
+                cells: () => [...sr.querySelectorAll('tbody tr[data-pk-context]:first-of-type td[data-key]')].map(c => c.dataset.key).join(),
+                grip: k => g.th(k).querySelector('[data-resize]'),
+                ptr: (type, n, x, y = 5) => n.dispatchEvent(new PointerEvent(type, { bubbles: true, composed: true, cancelable: true, clientX: x, clientY: y, pointerId: 1, isPrimary: true, button: 0, pointerType: 'mouse' })),
+                key: (n, k, mods = {}) => n.dispatchEvent(new KeyboardEvent('keydown', { key: k, bubbles: true, composed: true, cancelable: true, ...mods })),
+                say: () => [...sr.querySelectorAll('[role=status]')].map(n => n.textContent).join(' '),
+            };
+            return g;
+        };
+        return [
+            ['table (resizable): a plain table loads nothing; resizable gives each header a focusable separator named and valued', async t => {
+                const plain = await t.mount(`<div><pk-table label="P" columns='${COLS}' rows='${rowsOf(2)}'></pk-table></div>`); const p = plain.querySelector('pk-table'); await t.settle();
+                t.ok(!p.$cx && !p.shadowRoot.querySelector('[data-resize]'), 'a table without the props loads no column code');
+                const g = await mk(t, 'resizable'), s = g.grip('name');
+                t.eq(s.getAttribute('role'), 'separator'); t.eq(s.getAttribute('aria-orientation'), 'vertical'); t.eq(s.tabIndex, 0);
+                t.eq(s.getAttribute('aria-valuenow'), String(g.w('name')), 'valuenow is the width'); t.ok(/Name/.test(s.getAttribute('aria-label')), 'named after its column');
+               
+            }],
+            ['table (resizable): dragging the separator sets the column width, raises pk-column-resize once, and the width survives new rows and a re-set columns', async t => {
+                const g = await mk(t, 'resizable'), seen = []; g.el.addEventListener('pk-column-resize', e => seen.push(e.detail));
+                const before = { sku: g.w('sku'), qty: g.w('qty') }, w0 = g.w('name'), r = g.grip('name').getBoundingClientRect(), x = r.left + r.width / 2;
+                g.ptr('pointerdown', g.grip('name'), x); g.ptr('pointermove', g.grip('name'), x + 60); t.ok(Math.abs(g.w('name') - (w0 + 60)) <= 1, `live width follows the pointer (${g.w('name')} vs ${w0 + 60})`);
+                g.ptr('pointerup', g.grip('name'), x + 60); await t.settle();
+                t.eq(seen.length, 1, 'one event'); t.eq(seen[0].key, 'name'); t.ok(Math.abs(seen[0].width - (w0 + 60)) <= 1, 'detail.width');
+                t.ok(Math.abs(g.w('name') - (w0 + 60)) <= 1, 'width kept after the commit'); t.eq(g.w('sku'), before.sku, 'neighbour unchanged'); t.eq(g.w('qty'), before.qty, 'the last column unchanged');
+                const cell = g.sr.querySelector('tbody td[data-key=name]').getBoundingClientRect().width; t.ok(Math.abs(cell - g.w('name')) <= 1, 'cells follow the header');
+                const keep = g.w('name'); g.el.rows = JSON.parse(rowsOf(8)); await t.settle(); t.eq(g.w('name'), keep, 'width survives new rows');
+                g.el.columns = JSON.parse(COLS); await t.settle(); t.eq(g.w('name'), keep, 'width survives the host setting columns again');
+                g.ptr('pointerdown', g.grip('name'), x); g.ptr('pointermove', g.grip('name'), x - 900); g.ptr('pointerup', g.grip('name'), x - 900); await t.settle(); t.ok(g.w('name') >= 40 && g.w('name') <= 60, `clamped to the minimum (${g.w('name')})`);
+            }],
+            ['table (resizable): ArrowLeft/Right on the separator resize by a step (Shift a larger one), keep focus, and announce the width', async t => {
+                const g = await mk(t, 'resizable'), seen = [], w0 = g.w('name'); g.el.addEventListener('pk-column-resize', e => seen.push(e.detail.width));
+                g.grip('name').focus(); g.key(g.grip('name'), 'ArrowRight'); await t.settle();
+                t.ok(Math.abs(g.w('name') - (w0 + 10)) <= 1, `+10px (${w0} to ${g.w('name')})`); t.eq(g.sr.activeElement, g.grip('name'), 'focus stays on the separator');
+                g.key(g.grip('name'), 'ArrowLeft', { shiftKey: true }); await t.settle(); t.ok(Math.abs(g.w('name') - (w0 - 30)) <= 1, 'Shift is a larger step'); t.eq(seen.length, 2);
+                                t.eq(g.grip('name').getAttribute('aria-valuenow'), String(g.w('name')));
+            }],
+            ['table (reorderable): Alt+Arrow on a header moves the column, header and cells together; the event is cancelable and focus stays', async t => {
+                const g = await mk(t, 'reorderable'), seen = []; g.el.addEventListener('pk-column-reorder', e => { seen.push({ ...e.detail, c: e.cancelable }); if (e.detail.key === 'qty') e.preventDefault(); });
+                t.eq(g.order(), 'sku,name,qty'); g.th('name').focus(); g.key(g.th('name'), 'ArrowRight', { altKey: true }); await t.settle();
+                t.eq(g.order(), 'sku,qty,name', 'header moved'); t.eq(g.cells(), 'sku,qty,name', 'cells moved with it'); t.eq(g.sr.activeElement, g.th('name'), 'focus stays on the moved header');
+                t.eq(JSON.stringify(seen[0]), JSON.stringify({ key: 'name', from: 1, to: 2, order: ['sku', 'qty', 'name'], c: true }));
+                t.ok(/Name.*3 of 3/.test(g.say()), 'announced');
+                g.th('qty').focus(); g.key(g.th('qty'), 'ArrowLeft', { altKey: true }); await t.settle(); t.eq(g.order(), 'sku,qty,name', 'a cancelled move changes nothing');
+                g.th('sku').focus(); g.key(g.th('sku'), 'ArrowLeft', { altKey: true }); await t.settle(); t.eq(seen.length, 2, 'no event past the first column');
+                const b = g.th('sku').querySelector('button'); b.focus(); g.key(b, 'ArrowRight', { altKey: true }); await t.settle(); t.eq(g.order(), 'qty,sku,name', 'works from the sort button'); t.eq(g.sr.activeElement, g.th('sku').querySelector('button'), 'focus stays on the button');
+            }],
+            ['table (reorderable): dragging a header past another reorders; the drag does not sort; a press without movement does nothing', async t => {
+                const g = await mk(t, 'reorderable'), seen = []; g.el.addEventListener('pk-column-reorder', e => seen.push(e.detail)); g.el.addEventListener('pk-sort', () => seen.push('sort'));
+                const a = g.th('sku').getBoundingClientRect(), c = g.th('qty').getBoundingClientRect();
+                g.ptr('pointerdown', g.th('sku'), a.left + 20); g.ptr('pointermove', g.th('sku'), a.left + 60); g.ptr('pointermove', g.th('sku'), c.right - 4);
+                t.ok(g.sr.querySelector('[data-drop]'), 'a drop marker shows'); g.ptr('pointerup', g.th('sku'), c.right - 4); g.th('sku').querySelector('button').click(); await t.settle();
+                t.eq(g.order(), 'name,qty,sku'); t.eq(seen.length, 1, 'one reorder and no sort'); t.eq(seen[0].to, 2);
+                const b = g.th('name'); g.ptr('pointerdown', b, 0); g.ptr('pointerup', b, 0); await t.settle(); t.eq(g.order(), 'name,qty,sku', 'a press without movement reorders nothing');
+            }],
+            ['table (resizable, reorderable): the order and widths survive the host setting columns again, and a sorted view keeps them', async t => {
+                const g = await mk(t); g.th('qty').focus(); g.key(g.th('qty'), 'ArrowLeft', { altKey: true }); await t.settle(); g.grip('qty').focus(); g.key(g.grip('qty'), 'ArrowRight'); await t.settle();
+                const w = g.w('qty'), o = g.order(); g.el.columns = JSON.parse(COLS); g.el.rows = JSON.parse(rowsOf(6)); await t.settle();
+                t.eq(g.order(), o); t.eq(g.w('qty'), w); t.eq(g.cells(), o, 'cells follow the order');
+                g.el.sort = 'sku'; g.el.sortDir = 'descending'; await t.settle(); t.eq(g.order(), o, 'sorting keeps the order');
+            }],
+            ['table (resizable, reorderable, 1200 rows): windowed cells line up with resized and reordered headers, the sticky header stays flush, and the layout holds after scrolling', async t => {
+                const g = await mk(t, 'resizable reorderable sticky-header max-height="20rem"', 1200); t.eq(g.el.$virtual, true, 'the table windows');
+                g.grip('name').focus(); g.key(g.grip('name'), 'ArrowRight', { shiftKey: true }); await t.settle(); g.th('qty').focus(); g.key(g.th('qty'), 'ArrowLeft', { altKey: true }); await t.settle();
+                const frame = g.el.part('scroll'); frame.scrollTop = 600 * 32; await new Promise(r => requestAnimationFrame(() => requestAnimationFrame(r))); await t.settle();
+                const heads = [...g.sr.querySelectorAll('thead tr:first-child th[data-key]')], cells = [...g.sr.querySelectorAll('tbody tr[data-pk-context]')].at(3).querySelectorAll('td[data-key]');
+                t.eq(heads.map(h => h.dataset.key).join(), 'sku,qty,name'); t.eq([...cells].map(c => c.dataset.key).join(), 'sku,qty,name');
+                t.ok([...cells].every((c, i) => Math.abs(c.getBoundingClientRect().left - heads[i].getBoundingClientRect().left) < 2 && Math.abs(c.getBoundingClientRect().width - heads[i].getBoundingClientRect().width) < 2), 'cells line up with their headers');
+                t.ok(Math.abs(g.th('sku').getBoundingClientRect().top - frame.getBoundingClientRect().top) < 2, 'the sticky header is flush with the frame'); t.ok(g.sr.querySelectorAll('tbody tr').length < 80, 'still windowed');
+            }],
+        ];
+    })(),
 ];
