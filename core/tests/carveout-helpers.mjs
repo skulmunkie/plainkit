@@ -35,10 +35,18 @@ export function removeCopy(copy) { if (copy) fs.rmSync(copy, { recursive: true, 
 const freePort = () => new Promise(resolve => { const s = net.createServer(); s.listen(0, () => { const { port } = s.address(); s.close(() => resolve(port)); }); });
 
 export async function serve(copy, args) {
-    const port = await freePort();
-    const proc = spawn(process.execPath, ['tools/serve.mjs', String(port), ...args], { cwd: copy, stdio: 'ignore' });
-    for (let i = 0; i < 50; i++) { try { await fetch(`http://localhost:${port}/`); return { port, proc }; } catch { await new Promise(r => setTimeout(r, 100)); } }
-    proc.kill(); throw new Error('server did not start');
+    // The wait is on the server's state, not a count of 100 ms ticks: a cold node start under CPU load can take well over the 5 s the old loop allowed, so it polls up to 60 s and
+    // stops at once if the process died (a port taken between freePort() and the bind), in which case it starts again on a fresh port, up to three times.
+    let last;
+    for (let attempt = 0; attempt < 3; attempt++) {
+        const port = await freePort();
+        const proc = spawn(process.execPath, ['tools/serve.mjs', String(port), ...args], { cwd: copy, stdio: 'ignore' });
+        let exited = false; proc.once('exit', () => { exited = true; });
+        const deadline = Date.now() + 60000;
+        while (!exited && Date.now() < deadline) { try { await fetch(`http://localhost:${port}/`); return { port, proc }; } catch (e) { last = e; await new Promise(r => setTimeout(r, 100)); } }
+        proc.kill(); if (!exited) throw new Error(`server did not start within 60 s: ${last?.message}`);
+    }
+    throw new Error(`server exited at start three times: ${last?.message}`);
 }
 
 // Every local sub-resource a page or module pulls in: href/src attributes, static imports, css @imports.

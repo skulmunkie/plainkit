@@ -270,8 +270,9 @@ export const LAB_CASES = [
         const cols = JSON.parse(await ctx.eval(`JSON.stringify(JSON.parse(${TABLE}.getAttribute('columns')))`));
         ctx.ok(cols[0].editor === 'textarea' && cols[1].editor === 'combobox' && cols[1].free === true, 'the textarea and combobox editors or free did not reach the element');
         ctx.ok(cols[2].min === '2026-01-01' && cols[2].max === '2026-12-31', 'the date bounds (a DateOnly and a string) did not reach the element as ISO dates');
-        await ctx.eval(`(() => { const td = ${CELL}; td.focus(); td.dispatchEvent(new KeyboardEvent('keydown', { key: 'Enter', bubbles: true, composed: true })); return 1; })()`);
-        await ctx.waitFor(`!!${TABLE}.shadowRoot.querySelector('td[data-key="notes"] textarea')`, 'Enter to open the textarea editor');
+        // Blazor can redraw the table (new rows or columns reach the element after the first cell exists), which drops a focus or an Enter sent a moment too soon. So the wait
+        // itself presses Enter on the CURRENT cell whenever the editor is not open (idempotent: it never presses while the editor is open), until the real state arrives.
+        await ctx.waitFor(`(() => { const ta = ${TABLE}.shadowRoot.querySelector('td[data-key="notes"] textarea'); if (ta) return true; const td = ${CELL}; if (td) { td.focus(); td.dispatchEvent(new KeyboardEvent('keydown', { key: 'Enter', bubbles: true, composed: true })); } return false; })()`, 'Enter to open the textarea editor');
         await ctx.eval(`(() => { const t = ${TABLE}.shadowRoot.querySelector('td[data-key="notes"] textarea'); t.value = 'second'; t.dispatchEvent(new KeyboardEvent('keydown', { key: 'Enter', bubbles: true, composed: true })); return 1; })()`);
         await waitText(ctx, 'Edited: notes=second', ALL);
         await ctx.noErrors(ctx.openMark, BENIGN);

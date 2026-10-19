@@ -134,13 +134,15 @@ export const ELEMENT_CASES = [
         await ctx.eval(`document.querySelector('${picker}').show()`);
         await shown(ctx, 'lab-picker', 'loads: 1'); // the popup table's first load
         // SearchDebounce="600": typing in the popup's search box loads once, 600 ms later, not on the keystroke.
-        const typed = Date.now();
+        // Timed inside the page (the last input event, the moment the text shows the search), never by the harness' own round trips: a loaded machine can take longer than the
+        // debounce just to type and flush, which made "loads: 1" a wall-clock guess. Only a load that came too EARLY can fail this; a late one cannot.
+        await ctx.eval(`(() => { const d = window.__pkDebounce = { lastInput: 0, loadedAt: 0 }; document.addEventListener('input', () => { d.lastInput = performance.now(); }, true);
+            new MutationObserver(() => { if (!d.loadedAt && document.getElementById('lab-picker').textContent.includes('last search: Plum')) d.loadedAt = performance.now(); }).observe(document.getElementById('lab-picker'), { childList: true, subtree: true, characterData: true }); return 1; })()`);
         await ctx.typeInto(`${picker} >>> input[type="search"]`, 'Plum');
-        await ctx.flushEvents();
-        ctx.ok((await text()).includes('loads: 1,'), `the search loaded straight away instead of after the debounce: ${await text()}`);
         await shown(ctx, 'lab-picker', 'last search: Plum');
-        const waited = Date.now() - typed;
-        ctx.ok(waited >= 500, `SearchDebounce="600" loaded after only ${waited} ms`);
+        const gap = await ctx.eval(`window.__pkDebounce.loadedAt - window.__pkDebounce.lastInput`);
+        ctx.ok(gap >= 500, `SearchDebounce="600" loaded ${Math.round(gap)} ms after the last keystroke (straight away, not after the debounce): ${await text()}`);
+        ctx.ok((await text()).includes('loads: 2,'), `typing "Plum" should cause exactly one more load: ${await text()}`);
         // A row pick raises input and change on the element: OnInput and OnChange carry its value, the chosen key, and the bound Value agrees.
         await ctx.clickDeep(`${picker} >>> tr`, 'Plum 2');
         await shown(ctx, 'lab-picker', 'Value: k2, input: k2, change: k2, changes: 1');
