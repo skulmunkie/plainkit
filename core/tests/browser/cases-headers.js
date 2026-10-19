@@ -1,4 +1,5 @@
 // Browser cases for pk-page-header and pk-toolbar. Same contract as cases.js: [name, async (t) => void].
+import { until } from './wait.js';
 const rect = el => el.getBoundingClientRect();
 
 export const headerCases = [
@@ -344,19 +345,21 @@ headerCases.push(
             id: '7', heading: 'Details', fields: [{ key: 'name', label: 'Name', required: true }, { key: 'city', label: 'City' }, { key: 'note', label: 'Note' }, { key: 'active', label: 'Active', kind: 'checkbox' }],
             sections: [{ heading: 'Address', fields: ['city'] }, { heading: 'Notes', fields: ['note'] }], sidebar: [{ heading: 'Status', fields: ['active'] }],
         };
-        for (let i = 0; i < 40 && page.part('edit').hidden; i++) await wait(50);
+        await until(() => !page.part('edit').hidden, 'the record to load and the Edit button to show'); // a state wait, not a count of 50 ms sleeps (#1247)
         await t.load(page.shadowRoot); await t.settle();
         const lists = [...page.part('main').querySelectorAll('pk-field-list')];
         t.eq(lists.map(l => l.getAttribute('heading')).join(), 'Details,Address,Notes', 'view mode: a titled list per section');
-        page.part('edit').click(); await t.settle();
+        page.part('edit').click();
+        await until(() => page.part('main')?.querySelectorAll('pk-card').length === 3 && page.part('side')?.querySelector('pk-card'), 'edit mode to draw the section cards and the sidebar card'); await t.settle();
         const cards = [...page.part('main').querySelectorAll('pk-card')], side = page.part('side').querySelector('pk-card');
         t.eq(cards.map(c => c.getAttribute('heading')).join(), 'Details,Address,Notes', 'edit mode: a titled card per section');
         t.ok(cards.every((c, i) => i === 0 || rect(c).top >= rect(cards[i - 1]).bottom - 1), 'the section cards are stacked, none overlapping');
         t.ok(side && rect(side).left >= rect(page.part('main')).right - 1, 'the sidebar card sits beside the main column');
         const groups = [...page.part('layout').querySelectorAll('pk-field-group')];
         t.eq(groups.length, 4, 'three section groups and one sidebar group');
+        await t.load(page.shadowRoot); await until(() => groups.every(g => g.shadowRoot), 'every field group to upgrade and attach its shadow root'); // a group not yet upgraded has no shadowRoot (the intermittent "Cannot read properties of null")
         for (const g of groups) await t.load(g.shadowRoot);
-        await t.settle(); await t.settle();
+        await until(() => page.controls().length === 4 && side.querySelector('pk-field-group')?.shadowRoot?.querySelector('pk-checkbox'), 'every group to draw its controls'); await t.settle();
         t.eq(page.controls().length, 4, 'controls() spans every group');
         const box = side.querySelector('pk-field-group').shadowRoot.querySelector('pk-checkbox');
         t.ok(box && rect(box).width > 0, 'the sidebar checkbox is drawn');
@@ -365,11 +368,11 @@ headerCases.push(
         const name = page.controls()[0]; name.value = ''; name.dispatchEvent(new Event('input', { bubbles: true, composed: true })); name.dispatchEvent(new Event('change', { bubbles: true, composed: true })); await t.settle();
         page.part('save').click(); await t.settle(); await wait(200);
         t.ok(saved === null, `a required main field blocks the save`);
-        name.value = 'Gadget'; name.dispatchEvent(new Event('input', { bubbles: true, composed: true })); name.dispatchEvent(new Event('change', { bubbles: true, composed: true })); await t.settle(); await wait(100);
+        name.value = 'Gadget'; name.dispatchEvent(new Event('input', { bubbles: true, composed: true })); name.dispatchEvent(new Event('change', { bubbles: true, composed: true })); await t.settle();
         page.part('save').click();
-        for (let i = 0; i < 40 && !saved; i++) await wait(50);
+        await until(() => saved, 'Save to hand the collected values to config.save');
         t.ok(saved && saved.name === 'Gadget' && saved.active === true && saved.city === 'Oslo' && saved.note === 'n', `Save collects the sections and the sidebar: ${JSON.stringify(saved)}`);
-        for (let i = 0; i < 40 && page.mode !== 'view'; i++) await wait(50);
+        await until(() => page.mode === 'view', 'the page to return to view mode after Save');
         page.part('edit').click(); await t.settle();
         page.part('cancel').click(); await t.settle();
         t.eq(cancelled, 1, 'Cancel raises pk-record-cancel'); t.eq(page.mode, 'view', 'and returns to view mode');
