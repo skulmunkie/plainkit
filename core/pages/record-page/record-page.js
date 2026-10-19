@@ -90,7 +90,7 @@ export default Base => class extends Base {
         this.$groups = [];
         if (editing) {
             main.replaceChildren(this.form(doc, vals, claimed));
-            sideEl.replaceChildren(...side.map(s => this.card(doc, s.heading, this.group(doc, this.fields.filter(f => s.fields?.includes(key(f))), vals, s.heading, FORM_ID))));
+            sideEl.replaceChildren(...side.map(s => this.card(doc, s.heading, this.group(doc, this.fields.filter(f => s.fields?.includes(key(f))), vals, s.heading, FORM_ID, s.columns))));
         } else {
             main.replaceChildren(...this.mainSections(this.config?.sections?.length ? claimed : new Set()).map(g => this.list(doc, g.fields, vals, g.heading)));
             sideEl.replaceChildren(...side.map(s => this.card(doc, s.heading, this.list(doc, this.fields.filter(f => s.fields?.includes(key(f))), vals, '', true))));
@@ -132,15 +132,17 @@ export default Base => class extends Base {
     mainSections(skip) {
         const sections = this.config?.sections ?? [], named = new Set(sections.flatMap(s => s.fields ?? []));
         const rest = this.fields.filter(f => !named.has(key(f)) && !skip.has(key(f)));
-        const own = sections.map(s => ({ heading: s.heading, fields: this.fields.filter(f => (s.fields ?? []).includes(key(f)) && !skip.has(key(f))) }));
+        const own = sections.map(s => ({ heading: s.heading, columns: s.columns, fields: this.fields.filter(f => (s.fields ?? []).includes(key(f)) && !skip.has(key(f))) }));
         return [{ heading: this.config?.heading, fields: rest }, ...own].filter(g => g.fields.length);
     }
     card(doc, heading, ...kids) { const card = doc.createElement('pk-card'); card.setAttribute('heading', heading ?? ''); card.append(...kids); return card; }
     // Sidebar groups sit outside the form element, so they join it through its id (the form attribute).
-    group(doc, fields, vals, label, formId) {
+    group(doc, fields, vals, label, formId, columns) {
         const group = doc.createElement('pk-field-group');
         group.setAttribute('label', label || this.config?.title || 'Record');
         if (formId) group.setAttribute('form', formId);
+        // A section's columns (#1601): its short fields flow side by side, a field's columnSpan or span widens it; a narrow card still shows one.
+        if (columns > 1) group.columns = columns;
         group.fields = fields.map(spec);
         group.values = { ...vals };
         // A custom field's body is the host's editor-<key> child: forward that slot into the group's own.
@@ -153,7 +155,7 @@ export default Base => class extends Base {
         pf.setAttribute('summary', '');
         form.id = FORM_ID;
         const sections = this.config?.sections?.length;
-        form.append(...this.mainSections(skip).map(g => { const grp = this.group(doc, g.fields, vals, g.heading); return sections ? this.card(doc, g.heading, grp) : grp; }));
+        form.append(...this.mainSections(skip).map(g => { const grp = this.group(doc, g.fields, vals, g.heading, undefined, g.columns); return sections ? this.card(doc, g.heading, grp) : grp; }));
         pf.append(form);
         return pf;
     }

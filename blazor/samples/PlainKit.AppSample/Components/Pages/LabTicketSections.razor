@@ -9,7 +9,7 @@
     [Parameter] public string Id { get; set; } = "";
     private string Config => System.Text.Json.JsonSerializer.Serialize(new { id = Id, title = "Ticket", editable = true });
 
-    private static readonly PkRecordSection[] _sections = [new("Details", ["title", "kind", "estimate", "email", "secret", "due", "opened", "at", "site", "phone"]), new("Notes", ["notes"])];
+    private static readonly PkRecordSection[] _sections = [new("Details", ["title", "kind", "estimate", "email", "secret", "due", "opened", "at", "site", "phone"], Columns: 3), new("Notes", ["notes"])];
     private static readonly PkRecordSection[] _sidebar = [new("Status", ["done", "owner"])];
 
     private void Back() => Nav.NavigateTo("/lab/tickets");

@@ -81,7 +81,7 @@
       "name": "Sections",
       "map": "param",
       "type": "IReadOnlyList<PkRecordSection>?",
-      "doc": "Titled cards of fields in the main column (Heading, Fields: the keys). Fields no section or sidebar card names come first, under Config's heading. In edit mode each card is a field group of the one form."
+      "doc": "Titled cards of fields in the main column (Heading, Fields: the keys, and Columns: in edit mode the card's fields flow into that many columns, a narrow card shows one, and a spec ColumnSpan or Span widens a field, as on PkFieldGroup). Fields no section or sidebar card names come first, under Config's heading. In edit mode each card is a field group of the one form."
     },
     {
       "name": "Sidebar",
