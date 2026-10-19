@@ -95,6 +95,11 @@
       "doc": "A combobox field's mode: \"select\" makes it a styled select (a button that opens the list, no typing); unset, or \"autocomplete\", types to filter."
     },
     {
+      "name": "Styled",
+      "type": "bool?",
+      "doc": "On a Select field: render the themed list (a combobox in select mode) instead of the browser's native select; the options, value, Required and Disabled behave the same. Unset keeps the native control, which is the better choice on a phone."
+    },
+    {
       "name": "Span",
       "type": "bool",
       "doc": "The field fills the whole row of a multi-column group."

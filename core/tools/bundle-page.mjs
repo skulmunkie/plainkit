@@ -1,7 +1,9 @@
 // Per-page bundle: node core/tools/bundle-page.mjs --elements pk-button,pk-input | --html page.html [--app] [--dist core/dist] --out dir
-// Bundles the SDK's shared core and exactly the element modules a page uses into ONE minified ES module (plainkit.bundle.js) and copies the
+// Bundles the SDK's shared core and exactly the element modules a page uses into one minified ES module (plainkit.bundle.js) and copies the
 // light-DOM stylesheet as ONE css file (plainkit.bundle.css: tokens, base and the elements' FOUC guards; each element's own CSS is inside its module).
-// A page then makes two requests instead of 20 to 27. Dev/build tool: it needs esbuild (a devDependency of this repository, not of the published
+// Code the elements load on demand (a table's editing, column resize, the log toast output...) stays lazy: esbuild code splitting writes it, and the code
+// the entry and those chunks share, to chunks/ next to the bundle, and only the entry's static imports load with the page. A page then makes about
+// 9 requests instead of 20 to 27, and none of the lazy code is downloaded until it is used. Dev/build tool: it needs esbuild (a devDependency of this repository, not of the published
 // package), so run it from a checkout, or `npm i -D esbuild` next to your project and point --dist at node_modules/plainkit/dist.
 import fs from 'node:fs';
 import path from 'node:path';
@@ -34,13 +36,20 @@ export async function bundlePage({ tags, dist, out, app = false, full = false })
     const res = await esbuild.build({
         stdin: { contents: entrySource(modules, { app, full }), resolveDir: dist, sourcefile: 'plainkit-page.js' },
         bundle: true, format: 'esm', minify: true, write: false, legalComments: 'none', target: 'es2022', treeShaking: true,
+        splitting: true, outdir: out, entryNames: 'plainkit.bundle', chunkNames: 'chunks/[name]-[hash]', metafile: true,
     });
-    const js = res.outputFiles[0].text;
     const css = fs.readFileSync(path.join(dist, 'plainkit.min.css'), 'utf8');
-    fs.mkdirSync(out, { recursive: true });
-    fs.writeFileSync(path.join(out, 'plainkit.bundle.js'), js);
+    // The files that load with the page: the entry and, transitively, the chunks it imports statically. The rest are lazy.
+    const rel = f => path.relative(out, f).replaceAll('\\', '/'), byRel = new Map(res.outputFiles.map(f => [rel(f.path), f]));
+    const meta = Object.fromEntries(Object.entries(res.metafile.outputs).map(([k, v]) => [rel(path.resolve(k)), v]));
+    const initial = new Set(), walk = f => { if (initial.has(f)) return; initial.add(f); for (const i of meta[f].imports) if (i.kind === 'import-statement') walk(rel(path.resolve(i.path))); };
+    walk('plainkit.bundle.js');
+    // Sizes are the sum of each file compressed on its own, as a server sends them.
+    const sum = names => names.reduce((t, n) => { const s = sizes(Buffer.from(byRel.get(n).contents)); return { raw: t.raw + s.raw, gzip: t.gzip + s.gzip, brotli: t.brotli + s.brotli }; }, { raw: 0, gzip: 0, brotli: 0 });
+    for (const f of res.outputFiles) { fs.mkdirSync(path.dirname(f.path), { recursive: true }); fs.writeFileSync(f.path, f.contents); }
     fs.writeFileSync(path.join(out, 'plainkit.bundle.css'), css);
-    return { tags, modules, js: sizes(js), css: sizes(css), files: ['plainkit.bundle.js', 'plainkit.bundle.css'] };
+    const lazy = [...byRel.keys()].filter(n => !initial.has(n)).sort();
+    return { tags, modules, js: sum([...initial]), lazy: sum(lazy), css: sizes(css), initial: [...initial].sort(), lazyFiles: lazy, files: ['plainkit.bundle.css', ...initial, ...lazy] };
 }
 
 // The unbundled cost: the static import graph of the same entry (files, summed per-file sizes), plus the registry the loader fetches.
@@ -84,9 +93,9 @@ if (process.argv[1] && path.resolve(process.argv[1]) === fileURLToPath(import.me
         if (!o.out || !tags.length) throw new Error('give --out and at least one element (--elements pk-button, or --html page.html with pk-* tags).');
         const r = await bundlePage({ tags, dist: o.dist, out: o.out, app: o.app, full: o.full });
         const u = await unbundledGraph({ tags, dist: o.dist, app: o.app, full: o.full });
-        console.log(`bundled ${tags.join(', ')} -> ${path.join(o.out, 'plainkit.bundle.js')} + .css (2 requests; unbundled js is ${u.files} files)`);
-        console.log(`js   raw ${kb(r.js.raw)}  gzip ${kb(r.js.gzip)}  brotli ${kb(r.js.brotli)}   (unbundled: raw ${kb(u.raw)}, gzip ${kb(u.gzip)}, brotli ${kb(u.brotli)})`);
+        console.log(`bundled ${tags.join(', ')} -> ${path.join(o.out, 'plainkit.bundle.js')} + .css (+ ./chunks/*: ${r.initial.length} js files load with the page, ${r.lazyFiles.length} on demand; unbundled js is ${u.files} files)`);
+        console.log(`js   raw ${kb(r.js.raw)}  gzip ${kb(r.js.gzip)}  brotli ${kb(r.js.brotli)}   (unbundled: raw ${kb(u.raw)}, gzip ${kb(u.gzip)}, brotli ${kb(u.brotli)}); lazy, not loaded with the page: gzip ${kb(r.lazy.gzip)}`);
         console.log(`css  raw ${kb(r.css.raw)}  gzip ${kb(r.css.gzip)}  brotli ${kb(r.css.brotli)}`);
-        console.log('Load it with <link rel="stylesheet" href="plainkit.bundle.css"> and <script type="module" src="plainkit.bundle.js"></script>');
+        console.log('Load it with <link rel="stylesheet" href="plainkit.bundle.css"> and <script type="module" src="plainkit.bundle.js"></script>; publish chunks/ next to it.');
     } catch (error) { console.error(error.message); process.exit(1); }
 }

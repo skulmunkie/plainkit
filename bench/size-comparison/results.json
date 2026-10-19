@@ -228,39 +228,39 @@
       "versions": {
         "esbuild": "0.28.2"
       },
-      "requests": 4,
+      "requests": 10,
       "errors": [],
       "raw": {
-        "html": 1497,
-        "js": 106768,
+        "html": 1535,
+        "js": 74619,
         "css": 26384,
         "font": 0,
         "other": 0,
-        "total": 134649
+        "total": 102538
       },
       "gzip": {
-        "html": 622,
-        "js": 33790,
+        "html": 629,
+        "js": 24487,
         "css": 6878,
         "font": 0,
         "other": 0,
-        "total": 41290
+        "total": 31994
       },
       "brotli": {
-        "html": 449,
-        "js": 29924,
+        "html": 453,
+        "js": 21808,
         "css": 5865,
         "font": 0,
         "other": 0,
-        "total": 36238
+        "total": 28126
       },
       "files": [
         {
           "url": "index.html",
           "kind": "html",
-          "raw": 1497,
-          "gzip": 622,
-          "brotli": 449
+          "raw": 1535,
+          "gzip": 629,
+          "brotli": 453
         },
         {
           "url": "plainkit/plainkit.bundle.css",
@@ -279,9 +279,51 @@
         {
           "url": "plainkit/plainkit.bundle.js",
           "kind": "js",
-          "raw": 104915,
-          "gzip": 32769,
-          "brotli": 29002
+          "raw": 56867,
+          "gzip": 15843,
+          "brotli": 14115
+        },
+        {
+          "url": "plainkit/chunks/chunk-U2KF5BTV.js",
+          "kind": "js",
+          "raw": 1779,
+          "gzip": 957,
+          "brotli": 846
+        },
+        {
+          "url": "plainkit/chunks/chunk-HTADODTX.js",
+          "kind": "js",
+          "raw": 4005,
+          "gzip": 1924,
+          "brotli": 1715
+        },
+        {
+          "url": "plainkit/chunks/chunk-GMN7DECP.js",
+          "kind": "js",
+          "raw": 418,
+          "gzip": 281,
+          "brotli": 254
+        },
+        {
+          "url": "plainkit/chunks/chunk-44WCRJ4Y.js",
+          "kind": "js",
+          "raw": 636,
+          "gzip": 459,
+          "brotli": 377
+        },
+        {
+          "url": "plainkit/chunks/chunk-DL5ZQYOJ.js",
+          "kind": "js",
+          "raw": 5063,
+          "gzip": 2248,
+          "brotli": 1992
+        },
+        {
+          "url": "plainkit/chunks/chunk-PCQIUYYV.js",
+          "kind": "js",
+          "raw": 3998,
+          "gzip": 1754,
+          "brotli": 1587
         }
       ]
     },

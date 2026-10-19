@@ -272,6 +272,22 @@ export const fieldGroupCases = [
         t.eq(el.values.ch, 'live'); t.eq(changes.at(-1)?.key, 'ch');
     }],
 
+    ['field-group: a select field with styled renders the themed list with the native select value, change, required, disabled and keyboard behaviour (#1621)', async t => {
+        const opts = [{ value: 'open', label: 'Open' }, { value: 'closed', label: 'Closed' }];
+        const { el, form } = await inForm(t, [{ key: 'st', label: 'Status', kind: 'select', styled: true, required: true, options: opts, msg: { required: 'Pick a status.' } }, { key: 'nat', label: 'Native', kind: 'select', options: opts }], {});
+        const combo = el.shadowRoot.querySelector('pk-combobox'), native = el.shadowRoot.querySelector('pk-select');
+        t.eq(combo.getAttribute('mode'), 'select', 'styled makes a select-mode combobox'); t.ok(native, 'without styled the select stays pk-select');
+        t.eq(form.checkValidity(), false, 'required and empty blocks the form'); t.eq(el.validationMessage, 'Pick a status.');
+        const changes = []; el.addEventListener('pk-field-change', e => changes.push(e.detail));
+        const press = (x, key) => x.dispatchEvent(new KeyboardEvent('keydown', { key, bubbles: true, composed: true, cancelable: true }));
+        const tr = combo.part('trigger'); tr.click(); await t.settle(); t.ok(combo.open, 'the trigger opens the list');
+        press(tr, 'ArrowDown'); press(tr, 'Enter'); await t.settle(); await t.settle();
+        t.ok(el.values.st, 'the keyboard picks an option'); t.eq(changes.at(-1)?.key, 'st'); t.eq(form.checkValidity(), true, 'valid once chosen');
+        t.eq(entries(form).join('&'), 'st=' + el.values.st + '&nat=', 'the form value is the chosen value');
+        el.values = { st: 'closed' }; await t.settle(); t.eq(combo.value, 'closed', 'a value set from outside reaches the control');
+        el.disabled = true; await t.settle(); t.ok(combo.hasAttribute('disabled'), 'disabled reaches the control');
+    }],
+
     ['field-group: a combobox field takes its options from the search callback, does not filter them itself, and a stale answer is dropped; a label-action slot reaches the field\'s label', async t => {
         const fields = [{ key: 'city', label: 'City', kind: 'combobox', options: [{ value: 'a', label: 'Static' }] }];
         const host = t.stage('<pk-field-group label="Where"><button slot="label-action-city" type="button">Use home</button></pk-field-group>');
