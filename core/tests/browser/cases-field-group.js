@@ -93,6 +93,21 @@ export const fieldGroupCases = [
         const grid = el.part('group'); t.eq(grid.getAttribute('columns'), '2');
     }],
 
+    // #1614: cols is a width in twelfths of the row; a narrow group gives a small field half the row.
+    ['field-group: cols puts fields on a 12-column grid (2+2+3+3 share a row, a field without cols fills it) and a narrow group shows two per row (#1614)', async t => {
+        const host = t.stage('<pk-field-group label="Box"></pk-field-group>');
+        const el = host.firstElementChild;
+        el.fields = [{ key: 'q', label: 'Q', kind: 'number', cols: 2 }, { key: 'g', label: 'G', cols: 2 }, { key: 'd', label: 'D', cols: 3 }, { key: 'p', label: 'P', cols: 3 }, { key: 't', label: 'T' }, { key: 'w', label: 'W', cols: 8 }, { key: 'v', label: 'V', cols: 8 }];
+        host.style.width = '1200px'; await t.load(host); await t.load(el.shadowRoot); await t.settle(); await t.settle();
+        const r = k => fieldOf(el, k).getBoundingClientRect(), box = el.getBoundingClientRect();
+        t.ok(['Q', 'G', 'D', 'P'].every(k => Math.abs(r(k).top - r('Q').top) < 1) && r('Q').right <= r('G').left && r('G').right <= r('D').left && r('D').right <= r('P').left, 'four short fields share one row');
+        t.ok(Math.abs(r('D').width - r('P').width) < 1 && Math.abs(r('Q').width * 1.5 - r('D').width) < 8, '2/12 is two thirds of 3/12');
+        t.ok(Math.abs(r('T').width - box.width) < 1 && r('T').top > r('Q').bottom, 'a field without cols fills the row below');
+        t.ok(r('V').top > r('W').bottom - 1, 'a field that does not fit wraps');
+        host.style.width = '320px'; await t.settle(); await t.settle();
+        t.ok(Math.abs(r('Q').top - r('G').top) < 1 && Math.abs(r('D').top - r('P').top) < 1 && r('D').top > r('Q').bottom - 1 && r('Q').width > el.getBoundingClientRect().width * 0.4, 'a narrow group shows two small fields per row, never narrower than half');
+        t.ok(el.scrollWidth <= 320 + 1, 'no horizontal overflow');
+    }],
     // #1314: fields share a row; the rects are what the user sees.
     ['field-group: columns=3 puts short fields side by side, columnSpan takes two columns and span the row, and a narrow group stacks them in one column (#1314)', async t => {
         const host = t.stage('<pk-field-group label="Box" columns="3"></pk-field-group>');

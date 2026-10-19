@@ -230,6 +230,14 @@ public sealed class PkFieldGroupTests : BunitContext, IAsyncLifetime
         spec.Set(new Order(), ""); Assert.Null(price);
     }
 
+    // Issue 1614: Cols reaches the element as the field's width in twelfths.
+    [Fact]
+    public void Cols_reaches_the_element()
+    {
+        var spec = new PkFieldSpec<Order> { Key = "qty", Label = "Qty", Get = _ => "", Set = (_, _) => { }, Cols = 2 };
+        Assert.Equal(2, Defs(Render([spec]))[0].GetProperty("cols").GetInt32());
+    }
+
     // Issue 1313: DateTime is a datetime-local field over a DateTime? property, as invariant wall-clock text; Issue 1314: ColumnSpan reaches the element.
     [Fact]
     public void DateTime_reads_and_writes_wall_clock_text_and_sends_the_datetime_local_kind()
