@@ -2,7 +2,9 @@
 @inject NavigationManager Nav
 
 @* Lab (the harness's paths, scripts/blazor-browser-cases.mjs): a list whose Load can be slow (?slow=1, to leave while it runs) and whose rows go through OnRowClick (a callback), not a link. *@
-<PkListPage TItem="Ticket" Config="@Config" Columns="_columns" Load="Load" IdOf="t => t.Id" OnRowClick="Open" />
+<PkListPage TItem="Ticket" Config="@Config" Columns="_columns" Load="Load" IdOf="t => t.Id" OnRowClick="Open">
+    <BeforeListContent><pk-alert id="lab-before-list">Last sync: 5 tickets.</pk-alert></BeforeListContent>
+</PkListPage>
 
 @code {
     private const string Config = """{"heading":"Tickets"}""";

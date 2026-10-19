@@ -31,6 +31,15 @@ export const LAB_CASES = [
         ctx.ok(await has(ctx, 'Ticket 3'), 'the search for "Ticket 3" does not leave Ticket 3 in the list');
         await ctx.noErrors(ctx.openMark, BENIGN);
       } },
+    { name: 'list-before-list-slot', // #1603: BeforeListContent sits between the title bar and the list, inside the page frame
+      async run(ctx) {
+        await ctx.open('/lab/tickets');
+        await waitText(ctx, 'Ticket 5');
+        const r = await ctx.eval(`(() => { const lp = document.querySelector('pk-list-page'), a = document.querySelector('#lab-before-list').getBoundingClientRect(), h = lp.shadowRoot.querySelector('pk-page-shell').shadowRoot.querySelector('[part=header]').getBoundingClientRect(), t = lp.shadowRoot.querySelector('pk-data-table').getBoundingClientRect(); return { aTop: a.top, aBottom: a.bottom, aH: a.height, hBottom: h.bottom, tTop: t.top }; })()`);
+        ctx.ok(r.aH > 0 && r.aTop >= r.hBottom - 1, 'the alert sits below the title bar');
+        ctx.ok(r.aBottom <= r.tTop + 1, 'the alert sits above the list');
+        await ctx.noErrors(ctx.openMark, BENIGN);
+      } },
     { name: 'list-abort-on-navigation',
       async run(ctx) {
         await ctx.open('/lab/tickets?slow=1'); // Load takes 1.5 s and honours the request's CancellationToken
