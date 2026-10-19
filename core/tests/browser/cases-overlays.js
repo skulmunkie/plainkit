@@ -324,12 +324,19 @@ export const overlaysCases = [
 
     ['loading overlay: delay keeps a fast action from flashing it, and min-time keeps it from flickering (the one busy rule)', async t => {
         const el = await t.mount('<pk-loading-overlay delay="60" min-time="150" label="Loading"><button>Inside</button></pk-loading-overlay>');
-        const shown = () => getComputedStyle(el.part('overlay')).display === 'flex', wait = ms => new Promise(r => setTimeout(r, ms));
-        el.busy = true; await wait(10); t.ok(!shown(), 'not shown inside the delay'); t.ok(el.hasAttribute('aria-busy') && el.part('content').hasAttribute('aria-busy'), 'aria-busy follows busy at once'); t.ok(!el.part('content').inert);
-        el.busy = false; await wait(120); t.ok(!shown(), 'a fast action never flashes it'); t.ok(!el.hasAttribute('aria-busy'));
-        el.busy = true; await wait(110); t.ok(shown() && el.part('content').inert, 'shown after the delay, content inert');
-        el.busy = false; await wait(20); t.ok(shown(), 'stays for the minimum time'); await wait(200); t.ok(!shown() && !el.part('content').inert, 'hidden after it');
-        el.busy = true; await wait(110); el.busy = false; await wait(20); el.busy = true; await wait(250); t.ok(shown(), 'busy again during the hold keeps it shown');
+        // Every wait is on a state change, never on a wall-clock guess (#1247): a loaded runner fires timers late, so a fixed 20 ms or 110 ms wait could land on the wrong side of
+        // delay=60 / min-time=150. The ordering rules below hold however late the timers fire; only "too early" can fail them.
+        const overlay = el.part('overlay'), shown = () => getComputedStyle(overlay).display === 'flex';
+        const flipped = on => new Promise(r => { if (overlay.hasAttribute('data-on') === on) return r(); const o = new MutationObserver(() => { if (overlay.hasAttribute('data-on') === on) { o.disconnect(); r(); } }); o.observe(overlay, { attributes: true, attributeFilter: ['data-on'] }); });
+        const state = (on, what) => Promise.race([flipped(on), wait(5000).then(() => { throw new Error('timed out waiting for ' + what); })]);
+        el.busy = true; t.ok(!shown(), 'not shown inside the delay'); t.ok(el.hasAttribute('aria-busy') && el.part('content').hasAttribute('aria-busy'), 'aria-busy follows busy at once'); t.ok(!el.part('content').inert);
+        el.busy = false; t.ok(!shown() && !el.hasAttribute('aria-busy'), 'a fast action ends before the delay');
+        await wait(120); t.ok(!shown(), 'a fast action never flashes it (the delay timer was cancelled)'); t.ok(!overlay.hasAttribute('data-on'));
+        el.busy = true; const asked = performance.now(); await state(true, 'the overlay to show'); const at = performance.now();
+        t.ok(at - asked >= 55, 'shown only after the delay (' + Math.round(at - asked) + ' ms)'); t.ok(shown() && el.part('content').inert, 'shown after the delay, content inert');
+        el.busy = false; t.ok(shown(), 'stays for the minimum time (released in the same task it appeared)');
+        await state(false, 'the overlay to hide'); t.ok(performance.now() - at >= 145, 'hidden no earlier than min-time after it showed (' + Math.round(performance.now() - at) + ' ms)'); t.ok(!shown() && !el.part('content').inert, 'hidden after it');
+        el.busy = true; await state(true, 'the overlay to show again'); el.busy = false; el.busy = true; await wait(250); t.ok(shown(), 'busy again during the hold keeps it shown');
     }],
 
     ['loading overlay: the label sits on a solid panel over a strong scrim, in view, for short and tall regions (issue 374)', async t => {

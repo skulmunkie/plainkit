@@ -140,7 +140,7 @@ test('every element has a Blazor entry, and every generated and hand-written com
     for (const e of src.api) assert.ok(all.includes(`\n## \`${pkName(e.tag)}\`\n`), `${pkName(e.tag)} has no section`);
     const skipped = new Set(src.manifest.skipped.filter(s => !s.handWritten).map(s => s.component));
     for (const [name, c] of Object.entries(src.razor)) {
-        if (name === 'PkDevToolsPage' || /^Pk(Styles)$/.test(name) && !c.params.length) { assert.ok(all.includes(`## \`${name}\``), name); continue; }
+        if (/^Pk(Styles)$/.test(name) && !c.params.length) { assert.ok(all.includes(`## \`${name}\``), name); continue; }
         assert.ok(!skipped.has(name), `${name} is both a component and in the skipped list`);
         assert.ok(all.includes(`\n## \`${name}\``), `${name} is not documented`);
         for (const p of c.params) assert.ok(all.includes(`\`${p.name}\``), `${name}.${p.name}`);
