@@ -2,7 +2,7 @@
 @inject NavigationManager Nav
 
 @* Lab: a record page with field sections, an editable sidebar, a title from the loaded record and Cancel for a new record. *@
-<PkRecordPage TItem="Ticket" Config="@Config" Fields="Ticket.Specs" Sections="_sections" Sidebar="_sidebar" TitleOf="@(t => "Ticket: " + t.Title)"
+<PkRecordPage TItem="Ticket" Config="@Config" Fields="Ticket.Specs" Sections="_sections" Sidebar="_sidebar" Sticky="true" TitleOf="@(t => "Ticket: " + t.Title)"
               Load="TicketStore.GetAsync" Save="TicketStore.SaveAsync" OnCancel="Back" />
 
 @code {
