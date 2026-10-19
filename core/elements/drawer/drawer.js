@@ -1,5 +1,5 @@
 import { initInvokers } from '../../js/invokers.js';
-import { syncDialog, wireDialog, requestClose } from '../../js/menu-logic.js';
+import { syncDialog, wireDialog, requestClose } from '../../js/dialog-logic.js';
 
 // Drawer logic: which way it slides and when a swipe closes it. Pure, so it can be tested without a DOM.
 export const SIDES = ['left', 'right', 'bottom'];

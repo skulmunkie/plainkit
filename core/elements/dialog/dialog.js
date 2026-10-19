@@ -1,5 +1,5 @@
 import { initInvokers } from '../../js/invokers.js';
-import { syncDialog, wireDialog, requestClose } from '../../js/menu-logic.js';
+import { syncDialog, wireDialog, requestClose } from '../../js/dialog-logic.js';
 
 // Dialog logic: the confirm, alert and prompt patterns' decisions. Pure, so it can be tested without a DOM.
 // House rule: the backdrop never closes a dialog; every dialog offers its own Cancel or Close.

@@ -23,7 +23,7 @@ Measured on `main` at the time of writing (the exact versions of Plainkit and of
 | Lit 3.3 | 3 | 6.3 | 0.2 | 7.5 | 6.7 |
 | Svelte 5.57 | 3 | 13.2 | 0.2 | 15.0 | 13.5 |
 | Vue 3.5 | 3 | 23.2 | 0.2 | 26.0 | 23.6 |
-| Plainkit, per element | 26 | 27.2 | 5.7 | 38.4 | 33.4 |
+| Plainkit, per element | 26 | 26.4 | 5.7 | 37.5 | 32.6 |
 | Plainkit, one page bundle | 4 | 29.2 | 5.7 | 40.3 | 35.4 |
 | Angular 22 | 3 | 35.5 | 0.2 | 40.1 | 36.0 |
 | Shoelace 2.20 | 3 | 35.3 | 2.7 | 46.1 | 38.1 |

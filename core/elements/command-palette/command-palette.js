@@ -1,7 +1,8 @@
 import { fuzzyMatch, rank, pushRecent, sections, highlight, safeHref, isPaletteShortcut } from '../../js/palette-logic.js';
 export { fuzzyMatch, rank, pushRecent, sections, highlight, safeHref, isPaletteShortcut };
 
-import { syncDialog, wireDialog, nextIndex, safeLink } from '../../js/menu-logic.js';
+import { nextIndex, safeLink } from '../../js/menu-logic.js';
+import { syncDialog, wireDialog } from '../../js/dialog-logic.js';
 import { highlightRow } from '../../js/listbox.js';
 import { createLogger } from '../../js/log.js';
 

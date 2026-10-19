@@ -2,7 +2,7 @@ Plainkit 0.19.0, Node v24.15.0, Vite 8.3.4, .NET SDK 10.0.400. Sizes in KB (1 KB
 
 | Stack | Requests | HTML | JS | CSS | Other | Total gzip | Total brotli |
 | --- | ---: | ---: | ---: | ---: | ---: | ---: | ---: |
-| Plainkit, per element | 26 | 0.5 | 27.2 | 5.7 | 0.0 | 38.4 | 33.4 |
+| Plainkit, per element | 26 | 0.5 | 26.4 | 5.7 | 0.0 | 37.5 | 32.6 |
 | Plainkit, one page bundle | 4 | 0.4 | 29.2 | 5.7 | 0.0 | 40.3 | 35.4 |
 | Plainkit, mountApp | 72 | 0.1 | 78.6 | 5.7 | 0.0 | 96.9 | 84.4 |
 | Lit | 3 | 0.1 | 6.3 | 0.2 | 0.0 | 7.5 | 6.7 |
