@@ -4,7 +4,7 @@
 // The element is form-associated: its form value is a FormData with one entry per shown field, its validity is the first invalid control's (anchored on it, so
 // the browser focuses the right field), and it answers the small protocol pk-form uses to look through it: problems(), report(on), checkField(key), focus().
 import { loadElements } from '../../js/loader.js';
-import { controlTag, commitOf, readValue, writeValue, controlAttrs, messageAttrs, isVisible, isChecked, formEntries, valuesFromEntries } from '../../js/field-kinds.js';
+import { resolveSpec, controlTag, commitOf, readValue, writeValue, controlAttrs, messageAttrs, isVisible, isChecked, formEntries, valuesFromEntries } from '../../js/field-kinds.js';
 import { messageFor } from '../../js/validation.js';
 
 // The same value, as the text the controls show.
@@ -107,8 +107,8 @@ export default Base => class extends Base {
         const slot = doc.createElement('slot'); slot.setAttribute('name', `label-action-${spec.key}`); slot.setAttribute('slot', 'label-action'); field.append(slot);
         if (spec.labelActionEnd) field.setAttribute('action-end', '');
     }
-    build(doc, spec) {
-        const kind = spec.kind ?? 'text', tag = controlTag(kind);
+    build(doc, raw) {
+        const spec = resolveSpec(raw), kind =spec.kind ?? 'text', tag = controlTag(kind);
         if (kind === 'custom') return this.buildCustom(doc, spec);
         const control = doc.createElement(tag), field = doc.createElement('pk-field');
         const put = (el, attrs) => { for (const [k, v] of Object.entries(attrs)) el.setAttribute(k, v); };

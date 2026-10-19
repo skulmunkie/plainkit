@@ -183,6 +183,20 @@ public sealed class PkFieldGroupTests : BunitContext, IAsyncLifetime
         Assert.Equal(["new"], d[2].GetProperty("options").EnumerateArray().Select(o => o.GetProperty("value").GetString()!).ToArray());
     }
 
+    // Issue 1621: Styled on a Select field asks the element for the themed list; unset leaves the native select.
+    [Fact]
+    public void Styled_on_a_select_field_reaches_the_element()
+    {
+        PkFieldSpec<Order>[] fields =
+        [
+            new() { Key = "a", Label = "A", Kind = PkFieldKind.Select, Styled = true, Options = [new("x", "X")], Get = o => o.Name, Set = (o, v) => o.Name = v ?? "" },
+            new() { Key = "b", Label = "B", Kind = PkFieldKind.Select, Options = [new("x", "X")], Get = o => o.Name, Set = (o, v) => o.Name = v ?? "" },
+        ];
+        var d = Defs(Render(fields));
+        Assert.Equal("select", d[0].GetProperty("kind").GetString()); Assert.True(d[0].GetProperty("styled").GetBoolean());
+        Assert.True(!d[1].TryGetProperty("styled", out var off) || off.ValueKind != JsonValueKind.True);
+    }
+
     [Fact]
     public async Task Bool_wraps_a_bool_property_as_a_checkbox()
     {
