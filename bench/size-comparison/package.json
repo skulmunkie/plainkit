@@ -1,0 +1,32 @@
+{
+  "name": "plainkit-size-comparison",
+  "private": true,
+  "version": "0.0.0",
+  "description": "The same page (form + sortable paged table + dialog) in Plainkit and other stacks, measured in bytes over the wire. Not part of the Plainkit packages, CI or verify.",
+  "type": "module",
+  "scripts": {
+    "bench": "node run.mjs"
+  },
+  "devDependencies": {
+    "@angular/build": "22.2.3",
+    "@angular/cli": "22.2.3",
+    "@angular/common": "22.2.3",
+    "@angular/compiler": "22.2.3",
+    "@angular/compiler-cli": "22.2.3",
+    "@angular/core": "22.2.3",
+    "@angular/platform-browser": "22.2.3",
+    "@shoelace-style/shoelace": "2.20.1",
+    "@sveltejs/vite-plugin-svelte": "7.3.1",
+    "@vitejs/plugin-react": "6.1.2",
+    "@vitejs/plugin-vue": "6.0.10",
+    "lit": "3.3.3",
+    "react": "19.3.1",
+    "react-dom": "19.3.1",
+    "rxjs": "7.8.2",
+    "svelte": "5.57.2",
+    "tslib": "2.8.1",
+    "typescript": "6.0.3",
+    "vite": "8.3.4",
+    "vue": "3.5.44"
+  }
+}
