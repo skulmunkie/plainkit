@@ -63,18 +63,20 @@ export default Base => class extends Base {
         this.$condLoad = import('../../js/field-conditions.js').then(m => { this.$cond = m; if (this.isConnected) this.reconcile(); }, e => this.log.error('field-conditions failed', e));
         return undefined;
     }
+    // The keys a condition may name: this group's fields and every value the host gave, so a page of several groups (pk-record-page's cards) can condition a field on one that another card draws (#1600).
+    known() { return new Set([...(Array.isArray(this.fields) ? this.fields : []).map(f => f?.key), ...Object.keys(this.$vals ?? {})]); }
     // One condition of a spec against the committed values: undefined when the spec declares none, false while the module is not loaded, else the answer
     // (an unknown field or a syntax error is warned once and reads as true for whenExpr, false for the rest).
     test(spec, name, mod) {
         const src = name === 'whenExpr' && typeof spec.when === 'string' ? spec.when : spec[name];
         if (typeof src !== 'string') return undefined;
         if (!mod) return false;
-        const known = new Set((Array.isArray(this.fields) ? this.fields : []).map(f => f?.key));
+        const known = this.known();
         return mod.evaluate(src, this.$vals, known, name === 'whenExpr', m => this.warnOnce(`cond:${spec.key}:${name}`, m));
     }
     // The label and the help tooltip of a field follow labelWhenExpr / helpWhenExpr (conditional text, `cond ? 'text' : other`); an empty answer keeps the spec's own label or help.
     texts(row, mod) {
-        const { spec, kind, field, control } = row, known = new Set((Array.isArray(this.fields) ? this.fields : []).map(f => f?.key));
+        const { spec, kind, field, control } = row, known = this.known();
         const ask = name => (typeof spec[name] === 'string' && mod ? mod.evaluateText(spec[name], this.$vals, known, m => this.warnOnce(`cond:${spec.key}:${name}`, m)) : '');
         if (typeof spec.labelWhenExpr === 'string') {
             const label = ask('labelWhenExpr') || spec.label || spec.key;

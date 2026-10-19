@@ -81,15 +81,33 @@ export const LAB_CASES = [
         await ctx.open('/lab/tickets/2');
         await waitText(ctx, 'Ticket 2');
         await edit(ctx);
+        ctx.ok(await ctx.eval(`window.__deep.one('${RECORD}[part="delete"]').hidden === false`), 'Delete is not shown in edit mode of an existing record (#1597)');
         await ctx.setField('Title', 'FAIL');
         await ctx.clickDeep(`${RECORD}[part="save"]`);
-        await waitText(ctx, 'Could not save'); // the callback threw: the page says so and stays in edit mode
+        await waitText(ctx, 'Could not save');// the callback threw: the page says so and stays in edit mode
         ctx.ok(await ctx.eval(`!!window.__deep.field('Title')`), 'a failed save left edit mode and lost the typed values');
         await ctx.noErrors(ctx.openMark, [...BENIGN, /Save refused by the sample/]); // the failure itself may be echoed once as the bridge's rejected call
         // Leave the page clean: unsaved edits arm the page's beforeunload guard, and Chrome logs "Blocked attempt to show a beforeunload confirmation panel" (an error) when the next case's navigation leaves a
         // page that never saw a user gesture, which this harness's clicks are not; a person has had one, so the guard itself is right (#1423). The late log landed in whichever case was running.
         await ctx.clickDeep(`${RECORD}[part="cancel"]`);
         await ctx.waitFor(`!window.__deep.field('Title')`, 'Cancel to leave edit mode and drop the unsaved edits');
+      } },
+    // A new record whose Save throws keeps every typed value (#1598): the host re-renders (Busy, Error) and the element must not rebuild the form from the blank Model.
+    { name: 'record-new-save-failure-keeps-edits',
+      async run(ctx) {
+        await ctx.open('/lab/ticket-new');
+        await ctx.waitFor(`!!window.__deep.field('Title')`, 'the new record form');
+        await ctx.waitFor(`typeof document.querySelector('pk-record-page')?.save === 'function'`, 'the circuit to take the record page over');
+        await ctx.setField('Title', 'FAIL');
+        await ctx.setField('Notes', 'kept notes');
+        await ctx.clickDeep(`${RECORD}[part="save"]`);
+        await waitText(ctx, 'Save refused by the sample');
+        const kept = await ctx.eval(`[window.__deep.field('Title').value, window.__deep.field('Notes').value]`);
+        ctx.ok(kept[0] === 'FAIL' && kept[1] === 'kept notes', `a rejected Save cleared the form: ${JSON.stringify(kept)}`);
+        await ctx.noErrors(ctx.openMark, [...BENIGN, /Save refused by the sample/]);
+        // Leave the page clean (see the case above): empty the fields so the beforeunload guard is disarmed.
+        await ctx.setField('Title', ''); await ctx.setField('Notes', '');
+        await ctx.waitFor(`document.querySelector('pk-record-page')?.dirty === false`, 'the form to be clean again');
       } },
     // Sections are one card each, the sidebar's fields edit in the same form, the title follows the loaded record, and Cancel leaves edit mode.
     { name: 'record-sections-sidebar-title',
@@ -104,6 +122,18 @@ export const LAB_CASES = [
         await ctx.setField('Done', true);
         await ctx.clickDeep(`${RECORD}[part="save"]`);
         await ctx.waitFor(`!window.__deep.field('Title') && ${MAIN}.includes('Ticket: Renamed three')`, 'the saved record to show in view mode under its new title');
+        await ctx.noErrors(ctx.openMark, BENIGN);
+      } },
+    // A condition follows an edit made in another card (#1600): Kind (Details) decides whether Notes (its own card) shows.
+    { name: 'record-when-follows-edit-in-another-card',
+      async run(ctx) {
+        await ctx.open('/lab/ticket-when/3');
+        await ctx.waitFor(`!!window.__deep.field('Kind')`, 'the record to open for editing');
+        await ctx.waitFor(`!!window.__deep.field('Notes')`, 'Notes to show while Kind is Bug');
+        await ctx.setField('Kind', 'task');
+        await ctx.waitFor(`!window.__deep.field('Notes')`, 'Notes to hide once Kind is Task');
+        await ctx.setField('Kind', 'bug');
+        await ctx.waitFor(`!!window.__deep.field('Notes')`, 'Notes to show again once Kind is Bug');
         await ctx.noErrors(ctx.openMark, BENIGN);
       } },
     { name: 'record-delete',
@@ -212,6 +242,21 @@ export const LAB_CASES = [
         await ctx.eval(`(() => { const t = ${TA}; t.focus(); t.setSelectionRange(5, 9); document.querySelector('pk-markdown-editor').shadowRoot.querySelector('[data-cmd="bold"]').click(); return 1; })()`);
         await waitText(ctx, 'Markdown: make **bold**', ALL); // the toolbar command, applied through the lazy commands chunk, follows too
         ctx.ok(await ctx.eval(`${TA}.value === 'make **bold**'`), 'the textarea does not show the bolded text');
+        await ctx.noErrors(ctx.openMark, BENIGN);
+      } },
+    { name: 'table-edit-columns',
+      async run(ctx) {
+        await ctx.open('/lab/table-edit'); // #1580: the generated column record reaches the element, and a textarea edit comes back through OnCellEdit
+        const TABLE = `document.querySelector('pk-table')`;
+        const CELL = `${TABLE}?.shadowRoot?.querySelector('td[data-key="notes"]')`;
+        await ctx.waitFor(`!!(${CELL})`, 'the editable table to draw its notes cell');
+        const cols = JSON.parse(await ctx.eval(`JSON.stringify(JSON.parse(${TABLE}.getAttribute('columns')))`));
+        ctx.ok(cols[0].editor === 'textarea' && cols[1].editor === 'combobox' && cols[1].free === true, 'the textarea and combobox editors or free did not reach the element');
+        ctx.ok(cols[2].min === '2026-01-01' && cols[2].max === '2026-12-31', 'the date bounds (a DateOnly and a string) did not reach the element as ISO dates');
+        await ctx.eval(`(() => { const td = ${CELL}; td.focus(); td.dispatchEvent(new KeyboardEvent('keydown', { key: 'Enter', bubbles: true, composed: true })); return 1; })()`);
+        await ctx.waitFor(`!!${TABLE}.shadowRoot.querySelector('td[data-key="notes"] textarea')`, 'Enter to open the textarea editor');
+        await ctx.eval(`(() => { const t = ${TABLE}.shadowRoot.querySelector('td[data-key="notes"] textarea'); t.value = 'second'; t.dispatchEvent(new KeyboardEvent('keydown', { key: 'Enter', bubbles: true, composed: true })); return 1; })()`);
+        await waitText(ctx, 'Edited: notes=second', ALL);
         await ctx.noErrors(ctx.openMark, BENIGN);
       } },
     { name: 'theme-toggle',

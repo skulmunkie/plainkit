@@ -58,4 +58,13 @@ public sealed class PkNavModelTests
         Assert.Throws<ArgumentException>(() => new ServiceCollection().AddPlainKitApp(a => a.Module<A>().Module<A>()));
         Assert.Throws<ArgumentException>(() => new ServiceCollection().AddPlainKitApp(a => a.Module<A>().Home("nope")));
     }
+
+    [Fact]
+    public void A_wildcard_nav_route_keeps_its_row_current_for_a_record_path()
+    {
+        var m = PkModuleManifest.FromJson("""{"id":"stock","title":"Stock","nav":[{"id":"ledger","title":"Ledger","route":"/ledger/*"}]}""");
+        var loc = PkNavModel.Locate([m], "App", "/stock/ledger/41/lines")!;
+        Assert.Equal("ledger", loc.Current);
+        Assert.Equal(["ledger"], loc.Ids);
+    }
 }

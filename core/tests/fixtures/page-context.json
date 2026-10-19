@@ -67,6 +67,18 @@
       ]
     },
     {
+      "id": "stock",
+      "title": "Stock",
+      "route": "/stock/*",
+      "children": [
+        {
+          "id": "ledger",
+          "title": "Ledger",
+          "route": "/stock/ledger/*"
+        }
+      ]
+    },
+    {
       "id": "admin",
       "title": "Admin",
       "children": [
@@ -390,6 +402,67 @@
         "current": null,
         "crumbs": [],
         "title": "Gone"
+      }
+    },
+    {
+      "name": "wildcard nav entry owns a deep record path",
+      "path": "/stock/ledger/41/lines",
+      "expect": {
+        "ids": [
+          "stock",
+          "ledger"
+        ],
+        "section": "stock",
+        "current": "ledger",
+        "crumbs": [
+          {
+            "label": "Stock",
+            "href": "/stock"
+          },
+          {
+            "label": "Ledger"
+          }
+        ],
+        "title": "Ledger"
+      }
+    },
+    {
+      "name": "wildcard: longest prefix wins",
+      "path": "/stock/ledger",
+      "expect": {
+        "ids": [
+          "stock",
+          "ledger"
+        ],
+        "section": "stock",
+        "current": "ledger",
+        "crumbs": [
+          {
+            "label": "Stock",
+            "href": "/stock"
+          },
+          {
+            "label": "Ledger"
+          }
+        ],
+        "title": "Ledger"
+      }
+    },
+    {
+      "name": "wildcard: the shorter prefix owns the rest",
+      "path": "/stock/levels/9",
+      "expect": {
+        "ids": [
+          "stock"
+        ],
+        "section": "stock",
+        "current": "stock",
+        "crumbs": [
+          {
+            "label": "Stock"
+          }
+        ],
+        "title": "Stock"
       }
     }
   ]

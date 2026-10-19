@@ -22,7 +22,7 @@
       "name": "Fields",
       "map": "cells",
       "type": "IReadOnlyList<PkFieldSpec<TItem>>?",
-      "doc": "The record's fields, typed as PkFieldGroup's: Key, Label, Kind, Get and Set, plus Hint, Help, Required, Options, Span and the rest. In view mode they read as a list; in edit mode the element draws them as a pk-field-group. When, Disabled, ReadOnly, LabelWhen and HelpWhen are read from the record once it is loaded (they do not follow edits until the next load or save); a spec Editor is the body of its field in edit mode (it edits the item itself)."
+      "doc": "The record's fields, typed as PkFieldGroup's: Key, Label, Kind, Get and Set, plus Hint, Help, Required, Options, Span and the rest. In view mode they read as a list; in edit mode the element draws them as a pk-field-group. When, Disabled, ReadOnly, LabelWhen and HelpWhen are read from the record once it is loaded (they are .NET functions of the item and do not follow edits until the next load or save: a round trip per keystroke is not what the page does); for a condition that follows what the user types set the declarative WhenExpr, DisabledExpr, ReadonlyExpr, RequiredExpr, LabelWhenExpr or HelpWhenExpr on the spec: the element evaluates them in the browser against the live values, also across cards (a field in one section can decide a field in another or in the sidebar); a spec Editor is the body of its field in edit mode (it edits the item itself)."
     },
     {
       "name": "Model",
@@ -75,7 +75,7 @@
       "event": "pk-record-delete",
       "shows": "deletable",
       "type": "EventCallback<PkRecordDeleteEventArgs>",
-      "note": "The Delete button was pressed (Id is the record's id). Setting it shows Delete in view mode of an existing record; confirm, delete and navigate away in the handler, inside TryBusyAsync on a PageBase page."
+      "note": "The Delete button was pressed (Id is the record's id). Setting it shows Delete of an existing record, in view and edit mode; confirm, delete and navigate away in the handler, inside TryBusyAsync on a PageBase page."
     },
     {
       "name": "Sections",
@@ -94,6 +94,12 @@
       "map": "param",
       "type": "Func<TItem, string?>?",
       "doc": "The page title from the loaded record (or the Model of a new one), read on every render, a save included; Config's title is the fallback while it returns nothing."
+    },
+    {
+      "name": "IsUserFacing",
+      "map": "param",
+      "type": "Func<Exception, bool>?",
+      "doc": "Decides that an exception thrown by Load or Save is written for the person even though it does not implement IPkUserFacingException, as PkRecordEditor.IsUserFacing does: its message then reaches the page (an app whose domain exception base cannot reference PlainKit.Blazor passes ex => ex is AppException). Either the marker or the predicate shows the message; a predicate that throws is logged and counts as false. Any other exception shows a generic line and is logged. It covers the two callbacks the element calls; OnDelete is your own handler (inside TryBusyAsync, DescribeError chooses the text)."
     },
     {
       "name": "OnCancel",
@@ -124,6 +130,7 @@
       "callback": "load",
       "type": "Func<string, Task<TItem?>>?",
       "refresh": true,
+      "userFacing": "IsUserFacing",
       "arg": "JsonElement",
       "args": "a.ValueKind == JsonValueKind.String ? a.GetString()! : a.ToString()",
       "doc": "Loads the record whose id (config.id, the route's param) is given; null shows the 'record not found' state. Its field values are read through Fields.Get. Not called for a new record (no id). Throwing shows the element's error state.",
@@ -136,6 +143,7 @@
       "arg": "Dictionary<string, JsonElement>",
       "result": false,
       "refresh": true,
+      "userFacing": "IsUserFacing",
       "doc": "Saves the record: the loaded item (or Model for a new one) with the form's values applied through each field's Set (or SetAsync). Having it shows Edit and Save. Throwing keeps the edits and shows the exception message; returning switches to view mode.",
       "args": "await ApplySavedAsync(a)"
     }
