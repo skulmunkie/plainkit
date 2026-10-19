@@ -59,6 +59,16 @@
       "type": "RenderFragment?"
     },
     {
+      "name": "ActionsOverflow",
+      "type": "PageHeaderActionsOverflow",
+      "prop": "actionsOverflow"
+    },
+    {
+      "name": "OverflowLabel",
+      "prop": "overflowLabel",
+      "type": "string"
+    },
+    {
       "name": "TabsFrom",
       "type": "PageHeaderTabsFrom",
       "prop": "tabsFrom"
