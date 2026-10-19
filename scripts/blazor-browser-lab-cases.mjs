@@ -100,6 +100,8 @@ export const LAB_CASES = [
         await waitText(ctx, 'Status');
         await edit(ctx);
         ctx.ok(await ctx.eval(`!!window.__deep.field('Done') && !!window.__deep.field('Owner') && !!window.__deep.field('Notes')`), 'a sidebar or section field has no control in edit mode');
+        // Columns: 3 on the Details section (#1601): its first two fields share a row once the controls have upgraded and the layout settled.
+        await ctx.waitFor(`(() => { const top = n => Math.round(window.__deep.field(n).getBoundingClientRect().top); return top('Title') === top('Estimate'); })()`, 'Title and Estimate to share a row under Columns: 3');
         await ctx.setField('Title', 'Renamed three');
         await ctx.setField('Done', true);
         await ctx.clickDeep(`${RECORD}[part="save"]`);

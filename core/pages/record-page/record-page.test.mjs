@@ -285,3 +285,17 @@ test('Cancel emits pk-record-cancel; a new record shows Cancel only when cancell
     parts.cancel.listeners.click[0]();
     assert.deepEqual(events.at(-1), ['pk-record-cancel', { id: null }]);
 });
+
+test('a section or sidebar card with columns gives its field group that many columns in edit mode (#1601)', async () => {
+    const { el, parts } = make();
+    el.config = { ...el.config, sections: [{ heading: 'Name', fields: ['name'], columns: 3 }], sidebar: [{ heading: 'Summary', fields: ['status'], columns: 2 }] };
+    el.load = async () => ({ name: 'Widget', status: 'a' });
+    el.mode = 'edit';
+    el.connected();
+    await tick();
+    assert.deepEqual(el.$groups.map(g => g.columns), [3, 2]);
+    el.config = { ...el.config, sections: [{ heading: 'Name', fields: ['name'], columns: null }], sidebar: [] };
+    el.changed('config');
+    assert.equal(el.$groups[0].columns, undefined, 'null or 1 leaves the group at its own default');
+    assert.ok(parts.main.children.length);
+});
