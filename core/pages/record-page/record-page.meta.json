@@ -11,7 +11,7 @@
       "type": "json",
       "default": {},
       "reflect": false,
-      "description": "{ id?, fields, values?, sections?, sidebar?, titleField?, heading?, saveLabel?, editable?, deletable?, label?, emptyHeading? }. deletable shows a Delete button in view mode of an existing record (pk-record-delete); the record page type sets it from its delete callback. fields are the field defs of pk-field-group, [{ key, label?, kind?, hint?, help?, required?, readonly?, disabled?, span?, options?, when?, ... }] (name and type are the older spellings of key and kind; in that spelling help is the line under the control): kind is a pk-input type (text, email, number, date...), textarea, select, checkbox, switch, range, combobox or custom (its body in edit mode is your child with slot editor-<key>) (options: strings or { value, label }). In edit mode the element draws them as one pk-field-group, so every member the group knows works here. values is the starting record of a new one (no id). sections and sidebar are [{ heading, fields: [keys] }], one card each (main column, beside it; fields no section or sidebar card names lead the main column under heading). Sidebar cards are editable in edit mode (same form, one Save); a field they name is edited there only. titleField is a field key whose loaded or saved value is the page title (title is the fallback). cancellable shows Cancel on a new record too. The host may set a beforeSave(values) property (a function, or async): it runs once the form is valid and before save, and returning false stops the save and keeps the page in edit mode with the edits (the place for a confirm of your own; the record page type takes it as config.beforeSave(values, ctx)). id selects the record to load; none means a new record. editable: false hides Edit. Optional title bar from the shared page shell: title?: string (the page heading; config.heading titles the field list), breadcrumb?: [{ label, href? }], actions?: [{ key, label, href?, variant?, hint? }] (a hint shows as a tooltip on the button) (an action without href fires pk-action). Nothing is drawn when none is set."
+      "description": "{ id?, fields, values?, sections?, sidebar?, titleField?, heading?, saveLabel?, editable?, deletable?, label?, emptyHeading? }. deletable shows a Delete button of an existing record, in view and edit mode (pk-record-delete); the record page type sets it from its delete callback. fields are the field defs of pk-field-group, [{ key, label?, kind?, hint?, help?, required?, readonly?, disabled?, span?, options?, when?, ... }] (name and type are the older spellings of key and kind; in that spelling help is the line under the control): kind is a pk-input type (text, email, number, date...), textarea, select, checkbox, switch, range, combobox or custom (its body in edit mode is your child with slot editor-<key>) (options: strings or { value, label }). In edit mode the element draws them as one pk-field-group, so every member the group knows works here. values is the starting record of a new one (no id). sections and sidebar are [{ heading, fields: [keys] }], one card each (main column, beside it; fields no section or sidebar card names lead the main column under heading). Sidebar cards are editable in edit mode (same form, one Save); a field they name is edited there only. titleField is a field key whose loaded or saved value is the page title (title is the fallback). cancellable shows Cancel on a new record too. The host may set a beforeSave(values) property (a function, or async): it runs once the form is valid and before save, and returning false stops the save and keeps the page in edit mode with the edits (the place for a confirm of your own; the record page type takes it as config.beforeSave(values, ctx)). id selects the record to load; none means a new record. editable: false hides Edit. Optional title bar from the shared page shell: title?: string (the page heading; config.heading titles the field list), breadcrumb?: [{ label, href? }], actions?: [{ key, label, href?, variant?, hint? }] (a hint shows as a tooltip on the button) (an action without href fires pk-action). Nothing is drawn when none is set."
     },
     {
       "name": "mode",
@@ -26,7 +26,7 @@
       "type": "boolean",
       "default": false,
       "reflect": true,
-      "description": "Shows the Delete button in view mode of an existing record; pk-record-delete fires when it is pressed. The same as config.deletable (either one shows it)."
+      "description": "Shows the Delete button of an existing record, in view and edit mode; pk-record-delete fires when it is pressed. The same as config.deletable (either one shows it)."
     },
     {
       "name": "cancellable",
@@ -86,7 +86,7 @@
       "name": "pk-record-delete",
       "detail": "{ id }",
       "detailProps": { "id": "string" },
-      "description": "The Delete button (shown in view mode of an existing record when config.deletable is set) was pressed. The app framework's record page type asks first, calls its delete(id, ctx) and toasts; a host that uses the element alone handles the event."
+      "description": "The Delete button (shown for an existing record, in view or edit mode, when config.deletable is set) was pressed. The app framework's record page type asks first, calls its delete(id, ctx) and toasts; a host that uses the element alone handles the event."
     }
   ],
   "parts": [
@@ -100,7 +100,7 @@
     { "name": "edit", "description": "The Edit button (view mode)." },
     { "name": "cancel", "description": "The Cancel button (edit mode of an existing record, or of a new one when cancellable)." },
     { "name": "save", "description": "The Save button (edit mode); busy while save() is in flight." },
-    { "name": "delete", "description": "The Delete button (view mode of an existing record, when config.deletable is true); raises pk-record-delete." },
+    { "name": "delete", "description": "The Delete button (an existing record, view or edit mode, when config.deletable is true); raises pk-record-delete." },
     { "name": "notice", "description": "The save error, above the form." },
     { "name": "state", "description": "The loading, not-found or load error state, in place of the record." }
   ],

@@ -5,7 +5,7 @@ namespace PlainKit.Blazor;
 
 /// <summary>What JavaScript calls when a page element runs a callback property: the one argument the element passes (its values for <c>run</c> and <c>save</c>, a query for <c>load</c>) in, an optional result out. A call the element can abort carries an id: <c>Cancel</c> cancels the token that call was given.</summary>
 /// <typeparam name="TArg">What the element passes, deserialised from JSON.</typeparam>
-internal sealed class PkCallbackHost<TArg>(Func<TArg, CancellationToken, Task<object?>> call, Microsoft.Extensions.Logging.ILogger? log = null)
+internal sealed class PkCallbackHost<TArg>(Func<TArg, CancellationToken, Task<object?>> call, Microsoft.Extensions.Logging.ILogger? log = null, Func<Exception, bool>? userFacing = null)
 {
     private readonly Dictionary<int, CancellationTokenSource> _calls = [];
     private int _anonymous;
@@ -17,7 +17,7 @@ internal sealed class PkCallbackHost<TArg>(Func<TArg, CancellationToken, Task<ob
         using var cancel = new CancellationTokenSource();
         lock (_calls) _calls[callId = callId != 0 ? callId : -(++_anonymous)] = cancel;   // every call is tracked, so CancelAll reaches it
         try { return await call(argument, cancel.Token); }
-        catch (Exception e) when (e is not OperationCanceledException) { return PkCallbackError.Of(e, log); }   // an envelope the bridge turns into the element's error (#1412)
+        catch (Exception e) when (e is not OperationCanceledException) { return PkCallbackError.Of(e, log, userFacing); }   // an envelope the bridge turns into the element's error (#1412)
         finally { lock (_calls) _calls.Remove(callId); }
     }
 
@@ -45,16 +45,16 @@ internal sealed class PkCallbackSlot(string name) : IDisposable
     private Action? _cancelAll;
 
     /// <summary>Makes the element's property <c>name</c> call <paramref name="call"/> while <paramref name="wanted"/>, and removes it otherwise. <paramref name="refresh"/> asks the element to redraw once the callback is set (a list that already showed its empty state).</summary>
-    public Task SyncAsync<TArg>(IJSObjectReference bridge, ElementReference element, bool wanted, Func<TArg, Task<object?>> call, bool refresh = false, string[]? names = null) =>
-        SyncAsync<TArg>(bridge, element, wanted, (arg, _) => call(arg), refresh, names);
+    public Task SyncAsync<TArg>(IJSObjectReference bridge, ElementReference element, bool wanted, Func<TArg, Task<object?>> call, bool refresh = false, string[]? names = null, Func<Exception, bool>? userFacing = null) =>
+        SyncAsync<TArg>(bridge, element, wanted, (arg, _) => call(arg), refresh, names, userFacing);
 
     /// <summary>As above, for a callback that takes the <see cref="CancellationToken"/> of the element's abort signal (cancelled when the element aborts the call, and on dispose).</summary>
-    public async Task SyncAsync<TArg>(IJSObjectReference bridge, ElementReference element, bool wanted, Func<TArg, CancellationToken, Task<object?>> call, bool refresh = false, string[]? names = null)
+    public async Task SyncAsync<TArg>(IJSObjectReference bridge, ElementReference element, bool wanted, Func<TArg, CancellationToken, Task<object?>> call, bool refresh = false, string[]? names = null, Func<Exception, bool>? userFacing = null)
     {
         if (wanted == (_ref is not null)) return;
         if (wanted)
         {
-            var host = new PkCallbackHost<TArg>(call, (bridge as PkLoggedBridge)?.Log);
+            var host = new PkCallbackHost<TArg>(call, (bridge as PkLoggedBridge)?.Log, userFacing);
             _cancelAll = host.CancelAll;
             var reference = DotNetObjectReference.Create(host);
             _ref = reference;

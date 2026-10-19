@@ -343,6 +343,13 @@ export const fieldGroupCases = [
         t.ok(control('Reference').hasAttribute('disabled') && !el.problems().some(x => x.key === 'ref'), 'disabledExpr disables the control, which takes it out of validation');
         t.eq(keys(el).includes('Paid on'), false, 'Paid on goes again');
     }],
+    ['field-group: a condition may name a value the host gave that this group does not draw (a field in another card of a record page, #1600)', async t => {
+        const el = await mountGroup(t, [{ key: 'name', label: 'Name' }, { key: 'seats', label: 'Seats', kind: 'number', whenExpr: "plan == 'team'" }], { plan: 'solo' });
+        await until(() => keys(el).includes('Name'), 'the fields to draw'); await t.settle(); await t.settle();
+        t.eq(keys(el).join('|'), 'Name', 'plan is a known value, so a false condition hides Seats instead of showing it as an unknown key');
+        el.values = { plan: 'team' }; await until(() => keys(el).includes('Seats'), 'Seats to appear once the other card says team'); await t.settle();
+        t.eq(keys(el).join('|'), 'Name|Seats', 'and it follows the value');
+    }],
     ['field-group: labelWhenExpr and helpWhenExpr change the label and help tooltip with the live values, in place, keeping focus (#1282)', async t => {
         const el = await mountGroup(t, [
             { key: 'status', label: 'Status', kind: 'select', options: [{ value: 'open', label: 'Open' }, { value: 'paid', label: 'Paid' }] },
