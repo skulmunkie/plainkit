@@ -1,6 +1,6 @@
 namespace PlainKit.Blazor;
 
-/// <summary>A node of a route tree: <see cref="Path"/> may hold <c>:name</c> segments, <c>*</c> is the not-found route, a null path is a group. The label is <see cref="Label"/>, or the value of the route parameter <see cref="LabelParam"/>.</summary>
+/// <summary>A node of a route tree: <see cref="Path"/> may hold <c>:name</c> segments, <c>*</c> is the not-found route, a trailing <c>/*</c> (<c>/stock/*</c>) owns the path and everything under it (exact routes win, then the longest prefix), a null path is a group. The label is <see cref="Label"/>, or the value of the route parameter <see cref="LabelParam"/>.</summary>
 public sealed record PkRoute(string? Path, string? Label = null, string? LabelParam = null, bool Crumb = true, string? Id = null, IReadOnlyList<PkRoute>? Children = null);
 
 /// <summary>An entry of a navigation tree: the entry whose <see cref="Route"/> matches says which row is current.</summary>
@@ -43,28 +43,28 @@ public sealed record PkPageContext(IReadOnlyList<string> Ids, string? Section, s
     private static Hit? Match(IEnumerable<PkRoute> routes, string path)
     {
         var want = Segments(path);
-        Hit? star = null, best = null;
-        var bestStatics = -1;
+        Hit? star = null, best = null; var bestStatics = -1;
         foreach (var (node, chain) in Flatten(routes))
         {
             if (node.Path is null) continue;
             if (node.Path == "*") { star ??= new(node, chain, [], true); continue; }
             var have = Segments(node.Path);
-            if (have.Length != want.Length) continue;
+            var wild = have.Length > 1 && have[^1] == "*"; if (wild) have = have[..^1]; // '/stock/*': owns /stock and everything under it
+            if (wild ? want.Length < have.Length : have.Length != want.Length) continue;
             Dictionary<string, string> ps = [];
-            var statics = 0;
-            var ok = true;
+            int statics = 0; var ok = true;
             for (var i = 0; i < have.Length && ok; i++)
             {
                 if (have[i][0] == ':') ps[have[i][1..]] = Uri.UnescapeDataString(want[i]);
                 else { statics++; ok = have[i] == want[i]; }
             }
-            if (ok && statics > bestStatics) { best = new(node, chain, ps, false); bestStatics = statics; }
+            var rank = (wild ? have.Length * 1000 : 1_000_000) + statics; // an exact route beats a prefix route; the longest prefix wins
+            if (ok && rank > bestStatics) { best = new(node, chain, ps, false); bestStatics = rank; }
         }
         return best ?? star;
     }
 
-    private static string Fill(string path, Dictionary<string, string> ps) => "/" + string.Join('/', Segments(path).Select(s => s[0] == ':' ? Uri.EscapeDataString(ps.GetValueOrDefault(s[1..], "")) : s));
+    private static string Fill(string path, Dictionary<string, string> ps) => "/" + string.Join('/', Segments(path).Where((s, i) => !(s == "*" && i > 0 && i == Segments(path).Length - 1)).Select(s => s[0] == ':' ? Uri.EscapeDataString(ps.GetValueOrDefault(s[1..], "")) : s));
 
     private static string LabelOf(PkRoute n, Dictionary<string, string> ps) => (n.LabelParam is { } k ? ps.GetValueOrDefault(k) : n.Label) ?? "";
 

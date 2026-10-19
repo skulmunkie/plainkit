@@ -37,7 +37,8 @@
   ],
   "slots": [
     { "name": "actions", "description": "Title bar content." },
-    { "name": "toolbar", "description": "End of the toolbar." }
+    { "name": "toolbar", "description": "End of the toolbar." },
+    { "name": "before-list", "description": "Content between the title bar and the list (an alert, a summary card). It does not shrink and scrolls with the page; with stickyHeader the table still fills the height left under it, so the column header and pager stay pinned." }
   ],
   "events": [
     {

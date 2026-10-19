@@ -36,47 +36,8 @@ internal static class PkTableAttr
     };
 }
 
-/// <summary>A typed column of a <see cref="PkTable{TItem}"/>: the JSON column of <see cref="PkTableColumn"/> plus what fills its cells.</summary>
-/// <typeparam name="TItem">The type of a row.</typeparam>
-/// <remarks>
-/// A cell shows, in this order: the <see cref="Cell"/> template (rendered into the element's <c>cell-&lt;rowId&gt;-&lt;key&gt;</c> slot), else the
-/// text <see cref="Text"/> returns, else the property of the item that <see cref="Key"/> names (any casing: <c>Name</c> and <c>name</c> both find
-/// the property <c>Name</c>). The key is used exactly as given everywhere: in the column definition, in the row, in the cell slot name, and as the
-/// key of <c>Sort</c>, <c>OnSort</c>, <c>Filters</c> and <c>PkListRequest.SortKey</c>. Nothing is renamed, so a host can map it to a repository column as it is.
-/// </remarks>
-public sealed record PkTableColumn<TItem>
+public sealed partial record PkTableColumn<TItem>
 {
-    /// <summary>The identity of the column: the row field it shows (the name of an item property in any casing, or any name when <see cref="Text"/> or <see cref="Cell"/> fills the cell). It is used verbatim in the column definition, the row, the cell slot and the sort and filter keys the table reports.</summary>
-    public string Key { get; init; } = "";
-
-    /// <summary>The header text.</summary>
-    public string Label { get; init; } = "";
-
-    /// <summary>What the column holds; it decides how the element sorts and filters the column when it is not in manual mode. Null leaves it to the element (text).</summary>
-    public PkTableColumnType? Type { get; init; }
-    /// <summary>The alignment of the cells; null leaves it to the element (start, or end for a number).</summary>
-    public PkTableColumnAlign? Align { get; init; }
-    /// <summary>The header can be activated to sort by this column (the table reports it; in manual mode you re-query).</summary>
-    public bool Sortable { get; init; }
-    /// <summary>Leave the column out of the card layout on a phone.</summary>
-    public bool HidePhone { get; init; }
-    /// <summary>The column that names the row (put it first): in the phone card layout its cell is the heading, without a label.</summary>
-    public bool Title { get; init; }
-    /// <summary>Drop the column when the table itself is narrower than 24rem (1), 36rem (2) or 48rem (3); null keeps it. The card layout keeps every column.</summary>
-    public int? Shed { get; init; }
-    /// <summary>The editor of the column's cells when the table is <c>Editable</c>; null leaves the column read-only. A column with a <see cref="Cell"/> template is not editable.</summary>
-    public PkTableEditor? Editor { get; init; }
-    /// <summary>The choices of a <see cref="PkTableEditor.Select"/> editor. A new list on every render counts as a changed column and re-sends the rows; keep it in a field.</summary>
-    public IReadOnlyList<string>? Options { get; init; }
-    /// <summary>An empty value is refused.</summary>
-    public bool Required { get; init; }
-    /// <summary>The smallest value of a <see cref="PkTableEditor.Number"/> editor.</summary>
-    public double? Min { get; init; }
-    /// <summary>The largest value of a <see cref="PkTableEditor.Number"/> editor.</summary>
-    public double? Max { get; init; }
-    /// <summary>The longest text a <see cref="PkTableEditor.Text"/> editor accepts.</summary>
-    public int? MaxLength { get; init; }
-
     /// <summary>The cell as text, computed from the item (a formatted date, an amount). Sent in the row under <see cref="Key"/>.</summary>
     public Func<TItem, string?>? Text { get; init; }
 
@@ -85,25 +46,6 @@ public sealed record PkTableColumn<TItem>
 
     /// <summary>Markup beside the title of the column header (a help tooltip, an icon button, a menu). Rendered as the child of the element's <c>header-&lt;key&gt;</c> slot; the text <see cref="Label"/> and the sort button stay, and the markup sits outside the sort button, so using it never sorts.</summary>
     public RenderFragment? Header { get; init; }
-
-    // Text fills the row under Key verbatim (the same key the column definition carries); PkTableRows.Serialize adds the property fallback.
-    internal PkTableColumn ToColumn() => new()
-    {
-        Key = Key,
-        Label = Label,
-        Type = Type,
-        Align = Align,
-        Sortable = Sortable,
-        HidePhone = HidePhone,
-        Title = Title,
-        Shed = Shed,
-        Editor = Cell is null ? Editor : null,
-        Options = Options,
-        Required = Required,
-        Min = Min,
-        Max = Max,
-        MaxLength = MaxLength,
-    };
 }
 
 /// <summary>The detail of the <c>pk-select</c> a <see cref="PkTable{TItem}"/> receives. A selection of 64 rows or more does not carry its ids (a big table would send more than SignalR accepts, which closes the circuit): the browser sends runs of row indexes and the table turns them into <see cref="PkSelectEventArgs.Selected"/> before it raises <c>OnSelect</c>.</summary>

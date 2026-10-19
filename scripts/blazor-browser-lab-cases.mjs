@@ -31,6 +31,15 @@ export const LAB_CASES = [
         ctx.ok(await has(ctx, 'Ticket 3'), 'the search for "Ticket 3" does not leave Ticket 3 in the list');
         await ctx.noErrors(ctx.openMark, BENIGN);
       } },
+    { name: 'list-before-list-slot', // #1603: BeforeListContent sits between the title bar and the list, inside the page frame
+      async run(ctx) {
+        await ctx.open('/lab/tickets');
+        await waitText(ctx, 'Ticket 5');
+        const r = await ctx.eval(`(() => { const lp = document.querySelector('pk-list-page'), a = document.querySelector('#lab-before-list').getBoundingClientRect(), h = lp.shadowRoot.querySelector('pk-page-shell').shadowRoot.querySelector('[part=header]').getBoundingClientRect(), t = lp.shadowRoot.querySelector('pk-data-table').getBoundingClientRect(); return { aTop: a.top, aBottom: a.bottom, aH: a.height, hBottom: h.bottom, tTop: t.top }; })()`);
+        ctx.ok(r.aH > 0 && r.aTop >= r.hBottom - 1, 'the alert sits below the title bar');
+        ctx.ok(r.aBottom <= r.tTop + 1, 'the alert sits above the list');
+        await ctx.noErrors(ctx.openMark, BENIGN);
+      } },
     { name: 'list-abort-on-navigation',
       async run(ctx) {
         await ctx.open('/lab/tickets?slow=1'); // Load takes 1.5 s and honours the request's CancellationToken
@@ -220,6 +229,21 @@ export const LAB_CASES = [
         await ctx.eval(`(() => { const t = ${TA}; t.focus(); t.setSelectionRange(5, 9); document.querySelector('pk-markdown-editor').shadowRoot.querySelector('[data-cmd="bold"]').click(); return 1; })()`);
         await waitText(ctx, 'Markdown: make **bold**', ALL); // the toolbar command, applied through the lazy commands chunk, follows too
         ctx.ok(await ctx.eval(`${TA}.value === 'make **bold**'`), 'the textarea does not show the bolded text');
+        await ctx.noErrors(ctx.openMark, BENIGN);
+      } },
+    { name: 'table-edit-columns',
+      async run(ctx) {
+        await ctx.open('/lab/table-edit'); // #1580: the generated column record reaches the element, and a textarea edit comes back through OnCellEdit
+        const TABLE = `document.querySelector('pk-table')`;
+        const CELL = `${TABLE}?.shadowRoot?.querySelector('td[data-key="notes"]')`;
+        await ctx.waitFor(`!!(${CELL})`, 'the editable table to draw its notes cell');
+        const cols = JSON.parse(await ctx.eval(`JSON.stringify(JSON.parse(${TABLE}.getAttribute('columns')))`));
+        ctx.ok(cols[0].editor === 'textarea' && cols[1].editor === 'combobox' && cols[1].free === true, 'the textarea and combobox editors or free did not reach the element');
+        ctx.ok(cols[2].min === '2026-01-01' && cols[2].max === '2026-12-31', 'the date bounds (a DateOnly and a string) did not reach the element as ISO dates');
+        await ctx.eval(`(() => { const td = ${CELL}; td.focus(); td.dispatchEvent(new KeyboardEvent('keydown', { key: 'Enter', bubbles: true, composed: true })); return 1; })()`);
+        await ctx.waitFor(`!!${TABLE}.shadowRoot.querySelector('td[data-key="notes"] textarea')`, 'Enter to open the textarea editor');
+        await ctx.eval(`(() => { const t = ${TABLE}.shadowRoot.querySelector('td[data-key="notes"] textarea'); t.value = 'second'; t.dispatchEvent(new KeyboardEvent('keydown', { key: 'Enter', bubbles: true, composed: true })); return 1; })()`);
+        await waitText(ctx, 'Edited: notes=second', ALL);
         await ctx.noErrors(ctx.openMark, BENIGN);
       } },
     { name: 'theme-toggle',

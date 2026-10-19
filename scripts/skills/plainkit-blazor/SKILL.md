@@ -144,7 +144,7 @@ A toast after the add: `<PkToastStack>` plus a conditional `<PkToast OnDismiss="
 Hand-written markup instead of `Columns` and `Items` (a static header and a `@foreach` body): set `ChildContent` (with `HeadContent`, `FootContent`) on `PkTable TItem="object"`; `references/table-raw-mode.md`. A data-driven `PkTable` also takes `FootContent` for a totals or summary row (one cell spanning every column; a trailing card on a phone).
 
 ### Select all rows of a paged `PkTable`
-
+ To edit cells in place set `Editable`, give a column an `Editor` (`PkTableEditor`: `Text`, `Number`, `Select`, `Date`, `Textarea`, `Combobox`; `Options`, `Free`, `Required`, `Min`, `Max`, `MaxLength` as the element) and update your item in `OnCellEdit`; `Min` and `Max` take a number or, for a date, a `DateOnly` or an ISO string.
 For a `PkTable` with `Manual` rows, set `SelectAllTotal` to the number of rows that match your query (all pages). `Selected` then keeps its ids when you replace `Items` for paging, search or sort. When every loaded row is selected the table offers "Select all N rows"; choosing it sets `SelectScope` to `"all"` (it follows the table, and goes back to `"page"` when the selection changes) and raises `OnSelectAll` with `Scope` (`page` or `all`) and `Count`. The ids of the other pages are not sent: on `all`, run your action from the query you already hold.
 
 ### Show a searchable, server-paged table (`PkDataTable`)
