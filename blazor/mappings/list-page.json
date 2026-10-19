@@ -99,6 +99,13 @@
       "doc": "Content in the title bar, beside the title (as PkPageHeader ActionsContent): a callback button, or a PkMenu of several actions. The title bar stays shown when Config sets no heading or breadcrumb."
     },
     {
+      "name": "BeforeListContent",
+      "map": "slot",
+      "slot": "before-list",
+      "type": "RenderFragment?",
+      "doc": "Content between the title bar and the list: a status alert, a summary card. It scrolls with the page and does not shrink, so with Config stickyHeader the list still fills the height left under it and its column header and pager stay pinned."
+    },
+    {
       "name": "ToolbarContent",
       "map": "slot",
       "slot": "toolbar",
