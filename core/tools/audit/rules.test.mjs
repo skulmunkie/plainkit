@@ -147,6 +147,13 @@ test('B3: still flags a real unknown parameter (#686)', () => {
     assert.ok(findings.some(f => f.rule === 'B3'), 'FIX: B3 did not flag a genuinely unknown parameter');
 });
 
+test('B3: accepts <Param>Changed, case-insensitive names and pass-through HTML attributes, still flags Label (#1611)', () => {
+    const ok = checkFiles([{ path: 'App.razor', text: '<PkInput Value="x" ValueChanged="F" step="1" min="0" inputmode="numeric" class="a" title="t" slot="s" spellcheck="false" autocapitalize="off"></PkInput><PkButton Slot="x"></PkButton>' }], { ruleset: 'consumer' });
+    assert.deepEqual(ok.filter(f => f.rule === 'B3'), [], 'FIX: B3 flagged valid Changed/case/pass-through attributes');
+    const bad = checkFiles([{ path: 'App.razor', text: '<PkInput Label="x" FooChanged="F"></PkInput>' }], { ruleset: 'consumer' });
+    assert.equal(bad.filter(f => f.rule === 'B3').length, 2, 'FIX: B3 must still flag Label and a Changed with no matching parameter');
+});
+
 test('B1 was removed as a duplicate of D1 (#686): a raw <table> in .razor is flagged once, by D1, not twice', () => {
     const findings = checkFiles([{ path: 'App.razor', text: '<table></table>' }], { ruleset: 'consumer' });
     assert.ok(!findings.some(f => f.rule === 'B1'), 'FIX: B1 still exists - it should have been removed as a duplicate of D1');
