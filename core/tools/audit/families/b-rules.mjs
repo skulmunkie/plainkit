@@ -31,6 +31,19 @@ const PASSTHROUGH_ATTRS = new Set(['Class', 'Style', 'id', 'key']);
 // so without this, every generic component usage was flagged as an "unknown parameter" (issue #686, B3).
 const isTypeParam = name => /^T[A-Z]\w*$/.test(name);
 
+// Global HTML attributes a component forwards through PkElementBase.AdditionalAttributes (unmatched attributes
+// land on the element), so they are never "unknown parameters" (#1611). Compared lower-case. Not names a
+// consumer mistypes for a parameter (`Label` stays flagged).
+const HTML_PASSTHROUGH = new Set(['class', 'style', 'id', 'key', 'title', 'slot', 'lang', 'dir', 'hidden', 'tabindex', 'role', 'spellcheck',
+    'autocapitalize', 'autocomplete', 'autofocus', 'inputmode', 'enterkeyhint', 'draggable', 'translate', 'contenteditable', 'part', 'is', 'name']);
+
+// Blazor matches parameter names case-insensitively, and `<Param>Changed` is the two-way binding callback.
+const isParam = (params, name) => {
+    const lower = new Set(params.map(p => p.toLowerCase()));
+    const n = name.toLowerCase();
+    return lower.has(n) || (n.endsWith('changed') && lower.has(n.slice(0, -'changed'.length)));
+};
+
 // B8: a [Parameter]/[CascadingParameter] auto-property in a .razor @code block or a .cs file; the overlap is
 // shared names over the larger of the two parameter lists, with at least two shared so a lone Label never fires.
 const B8_PARAM = /\[(?:Parameter|CascadingParameter)\b[^\]]*\]\s*(?:\[[^\]]+\]\s*)*public\s+[^;{=()]+?\s+(\w+)\s*\{/g;
@@ -91,8 +104,8 @@ export const B_RULES = [
                     continue;
                 }
                 for (const attrName of Object.keys(node.attrs)) {
-                    if (PASSTHROUGH_ATTRS.has(attrName) || attrName.startsWith('data-') || attrName.startsWith('aria-') || isTypeParam(attrName)) continue;
-                    if (!params.includes(attrName)) {
+                    if (PASSTHROUGH_ATTRS.has(attrName) || HTML_PASSTHROUGH.has(attrName.toLowerCase()) || attrName.startsWith('data-') || attrName.startsWith('aria-') || isTypeParam(attrName)) continue;
+                    if (!isParam(params, attrName)) {
                         hits.push({ line: node.line, column: node.column, message: `${attrName}=`, found: `<${node.name} ${attrName}=...> - ${attrName} is not a parameter of ${node.name} (check the spelling, or it was removed)` });
                     }
                 }
