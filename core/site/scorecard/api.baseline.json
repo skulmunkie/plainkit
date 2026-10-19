@@ -1,5 +1,5 @@
 {
- "release": "0.17.0",
+ "release": "0.18.0",
  "classes": [
   "btn-ghost",
   "btn-group",
@@ -4870,6 +4870,7 @@
   "pk-table-filters:slot:(default)",
   "pk-table:css:--pk-table-max-height",
   "pk-table:event:pk-cell-edit",
+  "pk-table:event:pk-cell-query",
   "pk-table:event:pk-cells-paste",
   "pk-table:event:pk-filter",
   "pk-table:event:pk-navigate",

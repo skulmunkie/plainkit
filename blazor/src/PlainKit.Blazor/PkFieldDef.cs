@@ -17,7 +17,6 @@ public sealed partial record PkFieldDef
     public bool Readonly { get; init; }
     /// <summary>The control is disabled.</summary>
     public bool Disabled { get; init; }
-    public string? MinLength { get; init; }
     /// <summary>The options of a select or combobox field.</summary>
     public IReadOnlyList<PkFieldOption>? Options { get; init; }
     /// <summary>Shows the field only while another field has this value; a hidden field is not rendered at all.</summary>

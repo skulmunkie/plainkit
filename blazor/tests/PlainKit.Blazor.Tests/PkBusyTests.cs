@@ -32,6 +32,15 @@ public sealed class PkBusyTests : BunitContext, IAsyncLifetime
 
     private static IDisposable Begin(IRenderedComponent<PageBaseHost> c, string label) => c.InvokeAsync(() => c.Instance.CallBeginBusy(label)).Result;
 
+    // #1586: static SSR disposes the request scope before the renderer disposes the page; dispose must not resolve anything from it.
+    [Fact]
+    public async Task Disposing_a_page_after_its_service_scope_is_gone_does_not_throw()
+    {
+        var c = Render<PageBaseHost>();
+        Services.Dispose();
+        await ((IAsyncDisposable)c.Instance).DisposeAsync();
+    }
+
     [Fact]
     public void State_is_counted_per_owner_and_labelled_by_the_latest()
     {

@@ -14,6 +14,8 @@ const pascal = tag => tag.split('-').map(p => p[0].toUpperCase() + p.slice(1)).j
 const tsType = p => (p.type === 'enum' ? p.values.map(v => JSON.stringify(v)).join(' | ') : p.type);
 const detailText = d => (typeof d === 'string' ? d : d && typeof d === 'object' ? `{ ${Object.entries(d).map(([k, v]) => `${k}: ${v}`).join(', ')} }` : 'none'); // the meta holds a string, or an object of name: type
 const defText = p => (p.type === 'string' || p.type === 'enum' ? JSON.stringify(p.default) : String(p.default));
+/** A default is stated only when it says something: an empty string or an empty JSON value is the absence of one (#1253). */
+const defOpt = p => { const d = defText(p); return d === '' || d === '""' ? {} : { default: d }; };
 
 /** One-sentence summary for files an IDE reads directly: the first sentence, at most `max` characters (cut at a word, with an ellipsis). The full text lives in dist/descriptions.json. */
 export function summarize(text, max = 100) {
@@ -53,7 +55,7 @@ export function customElementsManifest(metas) {
                 // The attribute names its field (fieldName); type, default and description live once, on that member (the CEM spec resolves the link).
                 attributes: m.props.map(p => ({ name: kebab(p.name), fieldName: p.name })),
                 members: [
-                    ...m.props.map(p => ({ kind: 'field', name: p.name, type: { text: tsType(p) }, default: defText(p), description: summarize(p.description), attribute: kebab(p.name), reflects: p.reflect })),
+                    ...m.props.map(p => ({ kind: 'field', name: p.name, type: { text: tsType(p) }, ...defOpt(p), description: summarize(p.description), attribute: kebab(p.name), ...(p.reflect ? { reflects: true } : {}) })),
                     ...m.methods.map(x => ({ kind: 'method', name: x.name, description: summarize(x.description) })),
                 ],
                 events: m.events.map(e => ({ name: e.name, type: { text: 'CustomEvent' }, description: `${summarize(e.description)} detail: ${detailText(e.detail)}` })),
@@ -85,7 +87,7 @@ export function webTypes(metas) {
             html: {
                 elements: metas.map(m => ({
                     name: m.tag, description: summarize(m.summary),
-                    attributes: m.props.map(p => ({ name: kebab(p.name), description: summarize(p.description), value: { type: p.type === 'boolean' ? 'boolean' : p.type === 'number' ? 'number' : 'string', default: defText(p) }, ...(p.type === 'enum' ? { values: p.values } : {}) })),
+                    attributes: m.props.map(p => ({ name: kebab(p.name), description: summarize(p.description), value: { type: p.type === 'boolean' ? 'boolean' : p.type === 'number' ? 'number' : 'string', ...defOpt(p) }, ...(p.type === 'enum' ? { values: p.values } : {}) })),
                     slots: m.slots.map(s => ({ name: s.name || 'default', description: summarize(s.description) })),
                     events: m.events.map(e => ({ name: e.name, description: summarize(e.description) })),
                 })),

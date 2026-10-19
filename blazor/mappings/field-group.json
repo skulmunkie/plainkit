@@ -63,7 +63,14 @@
       "doc": "The step of the control, as text."
     },
     {
+      "name": "MinLength",
+      "json": "minlength",
+      "type": "string?",
+      "doc": "The minimum length of the control's text."
+    },
+    {
       "name": "MaxLength",
+      "json": "maxlength",
       "type": "string?",
       "doc": "The maximum length of the control's text."
     },

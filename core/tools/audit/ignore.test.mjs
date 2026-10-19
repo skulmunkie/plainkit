@@ -53,3 +53,15 @@ test('CLI: an inline ignore suppresses, is counted and listed; a bare one fails 
     assert.equal(await run([], { cwd: dir, ...b }), 1);
     assert.match(b.err.join('\n'), /has no reason/);
 });
+
+test('CLI: an unused ignore warns (exit 0), fails under --strict, and is marked in --list-suppressions', async () => {
+    const dir = makeTempDir('plainkit-audit-');
+    fs.writeFileSync(path.join(dir, 'index.html'), '<!-- plainkit-audit-ignore D1 -- no longer needed -->\n<p>Fine</p>\n');
+    const w = capture();
+    assert.equal(await run([], { cwd: dir, ...w }), 0);
+    assert.match(w.err.join('\n'), /index\.html:1: plainkit-audit-ignore D1 suppresses nothing[\s\S]*FIX: delete/);
+    assert.equal(await run(['--strict'], { cwd: dir, ...capture() }), 1);
+    const l = capture();
+    await run(['--list-suppressions'], { cwd: dir, ...l });
+    assert.match(l.out.join('\n'), /D1 {2}no longer needed {2}\(unused\)/);
+});

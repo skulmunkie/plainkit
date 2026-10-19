@@ -7,7 +7,8 @@
 // Then the element tables of the skill references state their legend once (elements-index.md), not above every table, and drop an empty Values column (#1253): 914,256 packed / 3,389,474 unpacked bytes.
 // Then the editor files' one-sentence summaries cut at 100 characters instead of 120 (the full text stays in descriptions.json) and the JSX and Vue typings naming each element's props once (a `...Props` interface, `keyof` instead of a repeated name list) (#1253): 908,581 / 3,367,469 bytes.
 // Then the ~220 files the package leaves out (gallery, agent docs, descriptions.json ...) listed in their own dist/manifest.extras.json (kept out of the package) instead of in dist/manifest.json (#1253): 901,811 / 3,351,632 bytes.
-// The ceilings (907,800 / 3,366,500; measured 901,811 / 3,351,632 on 2026-10-17). NEVER RAISE THEM: make the package smaller (lower them when it shrinks).
+// Then (agent/1253-headroom-5) only the first example of each element in the skill element references, the markup, script or module header of templates, patterns and tools over 3,000 characters, and the module headers moved to references/full/ (left out of the package: the Pages site, the skills zip and NuGet carry it), json props legend once, and no empty defaults or `reflects: false` in custom-elements.json and web-types.json: 875,303 / 3,242,616 bytes (from 904,065 / 3,361,366 on main).
+// The ceilings (883,500 / 3,282,700; measured 875,303 / 3,242,616 on 2026-10-18). NEVER RAISE THEM: make the package smaller (lower them when it shrinks).
 import './needs-bootstrap.mjs';
 import test from 'node:test';
 import assert from 'node:assert/strict';
@@ -17,8 +18,8 @@ import { spawnSync } from 'node:child_process';
 import { fileURLToPath } from 'node:url';
 
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
-const MAX_PACKED_BYTES = 907_800;
-const MAX_UNPACKED_BYTES = 3_366_500;
+const MAX_PACKED_BYTES = 883_500;
+const MAX_UNPACKED_BYTES = 3_282_700;
 const TOP_LEVEL = new Set(['dist', 'LICENSE', 'README.md', 'package.json']);
 // dist/ is the runtime unit; these are the entries of dist/ the package may carry (dist/modules is the dev-tool unit, a separate download).
 const DIST = new Set(['breakpoints.report.json', 'custom-elements.json', 'elements', 'elements.d.ts', 'elements.vue.d.ts', 'icons.svg', 'js', 'llms-full.txt', 'llms.txt',

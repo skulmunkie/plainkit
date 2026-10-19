@@ -60,6 +60,18 @@ export const INTEROP_CASES = [
         ctx.ok(await ctx.eval(`!/Secret\.cs|Boom at/.test(window.__deep.text(document.querySelector('pk-settings-page')))`), 'the non-user-facing exception text reached the page');
         await ctx.noErrors(ctx.openMark, [...BENIGN, /Save refused by the sample/, /Boom at/]);
       } },
+    // #1604: SectionContent (keyed by the section key) shows inside that section's card; ChildContent of PkToolPage replaces the generated input and outcome.
+    { name: 'settings-section-content-and-tool-child-content',
+      async run(ctx) {
+        await ctx.open('/lab/pages');
+        await live(ctx, 'pk-settings-page', 'save');
+        await ctx.waitFor(`!!document.getElementById('lab-section-profile')`, 'the Profile section content');
+        ctx.ok(await ctx.eval(`(() => { const c = document.getElementById('lab-section-profile').getBoundingClientRect(), card = window.__deep.q('pk-settings-page >>> pk-card').find(k => k.heading === 'Profile').getBoundingClientRect(); return c.width > 0 && c.top >= card.top && c.bottom <= card.bottom; })()`), 'the section content is not drawn inside the Profile card');
+        await ctx.open('/lab/tool-slot');
+        await ctx.waitFor(`!!document.getElementById('lab-tool-custom')`, 'the tool page content');
+        ctx.ok(await ctx.eval(`document.getElementById('lab-tool-custom').getBoundingClientRect().width > 0 && !window.__deep.q('pk-tool-page >>> pk-button[part="run"]').some(b => b.getBoundingClientRect().width > 0)`), 'the custom content is not shown in place of the generated Run button');
+        await ctx.noErrors(ctx.openMark, BENIGN);
+      } },
     // #334: three sections turn the section nav on through the Config JSON alone. Choosing one scrolls its card in and marks it, an edit survives the switch, and a phone has tabs instead.
     { name: 'settings-page-section-nav',
       async run(ctx) {

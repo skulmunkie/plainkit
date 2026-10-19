@@ -53,6 +53,21 @@
       "description": "The breadcrumb trail as a JSON array of { \"label\", \"href\" }, drawn in a pk-breadcrumb above the title (the last crumb is the current page: aria-current, and the page title when no heading is set). An href that is not a same-site path, http(s), mailto, tel or sms address draws a crumb without a link. Use it instead of the breadcrumb slot, not with it."
     },
     {
+      "name": "actionsOverflow",
+      "type": "enum",
+      "default": "never",
+      "values": ["never", "phone", "tablet", "always"],
+      "reflect": true,
+      "description": "Collapses the actions slot into one icon button that opens a menu at the named width and below (phone, tablet) or always. Each slotted action becomes a menu item with its label, icon-name, disabled and danger state; choosing one clicks the original, so its handlers, href and events are unchanged, and the title bar stays one row high. Use plain pk-button or link actions as direct children of the slot."
+    },
+    {
+      "name": "overflowLabel",
+      "type": "string",
+      "default": "Actions",
+      "reflect": false,
+      "description": "The accessible name of the overflow button drawn by actionsOverflow."
+    },
+    {
       "name": "breadcrumbLabel",
       "type": "string",
       "default": "Breadcrumb",
@@ -133,6 +148,14 @@
     { "name": "pk-tab-change", "detail": "{ value, previous, fallback? }", "detailProps": { "value": "string", "previous": "string", "fallback": "bool" }, "description": "The docked strip chose a tab." }
   ],
   "parts": [
+    {
+      "name": "overflow",
+      "description": "The dropdown drawn by actionsOverflow."
+    },
+    {
+      "name": "overflow-button",
+      "description": "The icon button that opens the overflow menu."
+    },
     {
       "name": "header",
       "description": "The header element."
@@ -217,6 +240,10 @@
     {
       "title": "Section: title, action and note",
       "html": "<pk-page-header variant=\"section\" heading=\"Stock movements\">\n  <pk-button slot=\"actions\" size=\"mini\" variant=\"ghost\" icon-name=\"refresh\" collapse=\"phone\">Refresh</pk-button>\n  <span slot=\"meta\">Latest 50 · in 40 / out 28</span>\n</pk-page-header>"
+    },
+    {
+      "title": "Actions in an overflow menu",
+      "html": "<pk-page-header variant=\"record\" actions-overflow=\"phone\">\n  <pk-badge>Open</pk-badge>\n  <span>Acme Supply</span>\n  <pk-button slot=\"actions\" size=\"mini\" icon-name=\"import\">Receive</pk-button>\n  <pk-button slot=\"actions\" size=\"mini\" variant=\"ghost\" icon-name=\"document\">Print</pk-button>\n  <pk-button slot=\"actions\" size=\"mini\" variant=\"ghost\" disabled>Archive</pk-button>\n</pk-page-header>"
     },
     {
       "title": "Record: home crumb, chips, actions and docked tabs",

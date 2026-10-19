@@ -10,7 +10,7 @@ public abstract partial class PageBase
     protected virtual bool BusyBlocksPage => true;
 
     private PkBusyState? _pageBusy;
-
-    // Mirrors the counted busy state into PkBusyState; a no-op when AddPlainKit was not called.
-    private void ReportBusy() => (_pageBusy ??= PkServices?.GetService(typeof(PkBusyState)) as PkBusyState)?.Set(this, BusyBlocksPage && _life.IsBusy, _life.BusyLabel);
+    // Resolved once at the first SetParametersAsync (the injected provider is live) and kept: dispose runs after a static render's scope is gone, so ReportBusy never touches DI (#1586). A no-op when AddPlainKit was not called.
+    private void ResolveBusy() => _pageBusy ??= PkServices?.GetService(typeof(PkBusyState)) as PkBusyState;
+    private void ReportBusy() => _pageBusy?.Set(this, BusyBlocksPage && _life.IsBusy, _life.BusyLabel);
 }
