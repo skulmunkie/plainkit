@@ -105,6 +105,11 @@
       "doc": "The columns of a multi-column group the field takes (2 or 3); it sits in one column when the group is narrow. Span fills the whole row."
     },
     {
+      "name": "Cols",
+      "type": "int?",
+      "doc": "The field's width in twelfths of the row (1 to 12). One field with it puts the whole group on a 12-column grid: consecutive fields share a row and wrap, a field without it fills the row, and a narrow group gives none less than half the row."
+    },
+    {
       "name": "HideLabel",
       "type": "bool",
       "doc": "Hides the label visually and keeps it as the control's accessible name."
