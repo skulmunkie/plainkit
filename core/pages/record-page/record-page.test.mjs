@@ -288,6 +288,23 @@ test('Cancel emits pk-record-cancel; a new record shows Cancel only when cancell
     assert.deepEqual(events.at(-1), ['pk-record-cancel', { id: null }]);
 });
 
+test('a committed change in one card reaches the other cards, so a condition there follows it (#1600)', async () => {
+    const { el } = make();
+    el.load = async () => ({ name: 'Widget', status: 'a' });
+    el.mode = 'edit';
+    el.connected();
+    await tick();
+    const [main, side] = el.$groups;
+    assert.equal(el.$groups.length, 2, 'the main form and the Summary card');
+    side.snapshot = () => ({ status: 'a' });
+    el.mirror({ target: main, detail: { key: 'name', value: 'Changed' } });
+    assert.equal(side.values.name, 'Changed', 'the other card now knows the new value');
+    assert.equal(side.values.status, 'a', 'and keeps what it held');
+    main.values = { untouched: true };
+    el.mirror({ target: main, detail: { key: 'name', value: 'Again' } });
+    assert.deepEqual(main.values, { untouched: true }, 'the card that raised it is left alone');
+});
+
 test('a redraw while edits are unsaved keeps what was typed (the host rewrites config after a rejected save, #1598)', async () => {
     const { el, parts } = make();
     el.config = { ...el.config, id: undefined, sidebar: [] };
