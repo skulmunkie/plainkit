@@ -273,7 +273,7 @@ export const dataDisplayCases = [
         el.refresh();
         const filters = el.part('filters');
         await until(() => filters.querySelectorAll('pk-select').length === 2, 'both selects');
-        filters.toggle(true); await t.settle();
+        filters.toggle(true); await customElements.whenDefined('pk-select'); await t.settle(); await t.settle();
         const label = c => c.shadowRoot.querySelector('[part="label"]');
         for (const [key, text] of [['channel', 'Channel'], ['state', 'State']]) {
             const c = filters.querySelector('[data-key="' + key + '"]');
