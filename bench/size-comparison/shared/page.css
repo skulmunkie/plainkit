@@ -1,0 +1,11 @@
+/* The minimal stylesheet the non-Plainkit pages share, so they are not unstyled (Plainkit brings its own tokens). */
+body { font: 16px/1.5 system-ui, sans-serif; margin: 0; padding: 1rem; color: #1b1b1f; background: #fff; }
+main { max-width: 40rem; margin: 0 auto; display: grid; gap: 1rem; }
+form { display: grid; gap: .75rem; }
+label { display: grid; gap: .25rem; font-weight: 600; }
+input, select, button { font: inherit; padding: .4rem .6rem; }
+.err { color: #b00020; font-weight: 400; font-size: .875rem; }
+table { border-collapse: collapse; width: 100%; }
+th, td { text-align: start; padding: .4rem .6rem; border-bottom: 1px solid #ddd; }
+.pager { display: flex; gap: .75rem; align-items: center; }
+dialog { border: 1px solid #888; border-radius: .5rem; padding: 1rem; }
