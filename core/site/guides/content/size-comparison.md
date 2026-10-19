@@ -23,8 +23,8 @@ Measured on `main` at the time of writing (the exact versions of Plainkit and of
 | Lit 3.3 | 3 | 6.3 | 0.2 | 7.5 | 6.7 |
 | Svelte 5.57 | 3 | 13.2 | 0.2 | 15.0 | 13.5 |
 | Vue 3.5 | 3 | 23.2 | 0.2 | 26.0 | 23.6 |
+| Plainkit, one page bundle | 10 | 21.3 | 5.7 | 31.2 | 27.5 |
 | Plainkit, per element | 26 | 27.2 | 5.7 | 38.4 | 33.4 |
-| Plainkit, one page bundle | 4 | 29.2 | 5.7 | 40.3 | 35.4 |
 | Angular 22 | 3 | 35.5 | 0.2 | 40.1 | 36.0 |
 | Shoelace 2.20 | 3 | 35.3 | 2.7 | 46.1 | 38.1 |
 | React 19 | 3 | 58.0 | 0.2 | 67.9 | 58.3 |
@@ -36,7 +36,7 @@ How to read it:
 
 - **Plainkit is not in the Lit and Svelte range for this page.** Per element it costs about five times Lit and two and a half times Svelte, a little more than Vue and about the same as Angular and Shoelace, and less than React. Its 5.7 KB stylesheet (brotli) is the design tokens and the base styles, which the framework pages mostly do not have: they use a shared 0.7 KB layout stylesheet and native controls, so they are plainer on screen.
 - **The page is fixed, the stack is not.** A framework's size is a floor that your own code grows. Plainkit's grows by the elements you add: each element is its own file (the average is 1.6 KB gzip; button 2.6, input 3.7, table 4.0), and the page above uses eight.
-- **Per element vs one bundle.** Per element downloads 26 small files (a graph of ES modules, no build step). The page bundle (`core/tools/bundle-page.mjs`) is 4 requests but 2 KB larger, because the bundler also includes what the elements load lazily.
+- **Per element vs one bundle.** Per element downloads 26 small files (a graph of ES modules, no build step). The page bundle (`core/tools/bundle-page.mjs`) is 10 requests and 7 KB lighter: one file compresses better than many, and the code the elements load on demand (a table's editing and column resizing, the log toast output) stays in lazy chunks that are not downloaded until used.
 - **`mountApp` is a different page.** It draws a whole app (shell, router, breadcrumb, search, side nav, a list page and a record page, the framework's confirm dialog), so its 84 KB is what an app costs, not what this page costs. It is unbundled (72 requests).
 - **Blazor rows are not the same page.** They are the first load of the repository's own sample apps (an app shell with one page), the cost of getting a Blazor app running. WebAssembly downloads the .NET runtime (2.7 MB brotli, without the `wasm-tools` workload, so no AOT and no native relink); Server downloads only the framework script and Plainkit's files, and then keeps a WebSocket circuit open (a few KB to draw the first page; it is not in the table).
 
