@@ -6,7 +6,7 @@
       "type": "object",
       "jsonText": true,
       "prop": "config",
-      "note": "Sent as a JSON attribute: { nav?: true|false|'auto', sections: [{ key?, heading, fields: [{ key, type, label, placeholder?, required?, options?, min?, max?, step? }] }] }. nav defaults to 'auto': a section list beside the cards from three sections (tabs on a phone); false keeps the plain stack."
+      "note": "Sent as a JSON attribute: { nav?: true|false|'auto', sections: [{ key?, bare?, heading, fields: [{ key, type, label, placeholder?, required?, options?, min?, max?, step? }] }] }. nav defaults to 'auto': a section list beside the cards from three sections (tabs on a phone); false keeps the plain stack."
     },
     {
       "name": "Values",
