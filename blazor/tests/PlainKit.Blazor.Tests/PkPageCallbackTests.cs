@@ -101,6 +101,17 @@ public sealed class PkPageCallbackTests : BunitContext, IAsyncLifetime
     }
 
     [Fact]
+    public void SettingsPage_bare_section_config_and_slot_content_reach_the_element()   // #1633
+    {
+        var cut = Render<PkSettingsPage>(p => p
+            .Add(x => x.Config, """{"sections":[{"key":"cards","heading":"Cards","bare":true,"fields":[]}]}""")
+            .Add(x => x.SectionContent, new Dictionary<string, RenderFragment> { ["cards"] = b => b.AddMarkupContent(0, "<pk-card id=\"own\">x</pk-card>") }));
+
+        Assert.Contains("\"bare\":true", cut.Find("pk-settings-page").GetAttribute("config"));
+        Assert.Equal("x", cut.Find("pk-settings-page [slot='section-cards'] #own").TextContent);
+    }
+
+    [Fact]
     public void SettingsPage_SectionContent_renders_into_section_key_slots()   // #1604
     {
         var cut = Render<PkSettingsPage>(p => p.Add(x => x.SectionContent, new Dictionary<string, RenderFragment> { ["profile"] = b => b.AddMarkupContent(0, "<i id=\"mine\">x</i>") }));

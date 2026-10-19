@@ -1,0 +1,42 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Team directory</title>
+  <link rel="stylesheet" href="plainkit/plainkit.min.css">
+  <link rel="modulepreload" href="plainkit/js/loader.js">
+  <link rel="modulepreload" href="plainkit/js/log.js">
+  <link rel="modulepreload" href="plainkit/js/element.js">
+  <link rel="modulepreload" href="plainkit/js/element-core.js">
+</head>
+<body>
+  <main>
+    <pk-stack gap="4">
+      <h1>Team directory</h1>
+      <form id="f" novalidate>
+        <pk-stack gap="3">
+          <pk-field id="fname" label="Name"><pk-input name="name"></pk-input></pk-field>
+          <pk-field id="femail" label="Email"><pk-input name="email" type="email"></pk-input></pk-field>
+          <pk-field label="Role"><pk-select name="role"><option>Engineer</option><option>Designer</option><option>Manager</option></pk-select></pk-field>
+          <pk-button id="add" variant="primary">Add member</pk-button>
+          <p role="status" id="status"></p>
+        </pk-stack>
+      </form>
+      <pk-table id="t" manual label="Team"></pk-table>
+      <pk-cluster>
+        <pk-button id="prev">Previous</pk-button>
+        <span id="of"></span>
+        <pk-button id="next">Next</pk-button>
+      </pk-cluster>
+      <div><pk-button data-open="#dlg">Delete list</pk-button></div>
+    </pk-stack>
+    <pk-dialog id="dlg" heading="Delete the list?">
+      <p>This cannot be undone.</p>
+      <pk-button slot="footer" data-close>Cancel</pk-button>
+      <pk-button slot="footer" id="delete" variant="primary" data-close>Delete</pk-button>
+    </pk-dialog>
+  </main>
+  <script type="module" src="app.js"></script>
+</body>
+</html>

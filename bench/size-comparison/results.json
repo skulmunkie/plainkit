@@ -1,0 +1,2224 @@
+{
+  "meta": {
+    "plainkit": "0.19.0",
+    "node": "v24.15.0",
+    "vite": "8.3.4",
+    "dotnet": "10.0.400",
+    "measuredWith": "headless Chrome over DevTools, cache disabled, 1280x900, files served uncompressed from a local static server and compressed offline (gzip -9, brotli q11); response headers are not counted"
+  },
+  "results": [
+    {
+      "id": "plainkit-elements",
+      "label": "Plainkit, per element",
+      "versions": {},
+      "requests": 26,
+      "errors": [],
+      "raw": {
+        "html": 1730,
+        "js": 80352,
+        "css": 26384,
+        "font": 0,
+        "other": 0,
+        "total": 108466
+      },
+      "gzip": {
+        "html": 657,
+        "js": 31743,
+        "css": 6878,
+        "font": 0,
+        "other": 0,
+        "total": 39278
+      },
+      "brotli": {
+        "html": 485,
+        "js": 27823,
+        "css": 5865,
+        "font": 0,
+        "other": 0,
+        "total": 34173
+      },
+      "files": [
+        {
+          "url": "index.html",
+          "kind": "html",
+          "raw": 1730,
+          "gzip": 657,
+          "brotli": 485
+        },
+        {
+          "url": "plainkit/plainkit.min.css",
+          "kind": "css",
+          "raw": 26384,
+          "gzip": 6878,
+          "brotli": 5865
+        },
+        {
+          "url": "plainkit/js/loader.js",
+          "kind": "js",
+          "raw": 1861,
+          "gzip": 962,
+          "brotli": 861
+        },
+        {
+          "url": "plainkit/js/log.js",
+          "kind": "js",
+          "raw": 4472,
+          "gzip": 1761,
+          "brotli": 1614
+        },
+        {
+          "url": "plainkit/js/element.js",
+          "kind": "js",
+          "raw": 4284,
+          "gzip": 1853,
+          "brotli": 1643
+        },
+        {
+          "url": "plainkit/js/element-core.js",
+          "kind": "js",
+          "raw": 1121,
+          "gzip": 616,
+          "brotli": 542
+        },
+        {
+          "url": "app.js",
+          "kind": "js",
+          "raw": 1496,
+          "gzip": 647,
+          "brotli": 535
+        },
+        {
+          "url": "plainkit/js/init.js",
+          "kind": "js",
+          "raw": 475,
+          "gzip": 269,
+          "brotli": 219
+        },
+        {
+          "url": "rows.js",
+          "kind": "js",
+          "raw": 1326,
+          "gzip": 796,
+          "brotli": 706
+        },
+        {
+          "url": "plainkit/js/invokers.js",
+          "kind": "js",
+          "raw": 1211,
+          "gzip": 590,
+          "brotli": 507
+        },
+        {
+          "url": "plainkit/js/version.js",
+          "kind": "js",
+          "raw": 37,
+          "gzip": 57,
+          "brotli": 41
+        },
+        {
+          "url": "plainkit/elements/stack.js",
+          "kind": "js",
+          "raw": 1244,
+          "gzip": 576,
+          "brotli": 488
+        },
+        {
+          "url": "plainkit/elements/field.js",
+          "kind": "js",
+          "raw": 4958,
+          "gzip": 1862,
+          "brotli": 1608
+        },
+        {
+          "url": "plainkit/elements/input.js",
+          "kind": "js",
+          "raw": 11696,
+          "gzip": 4087,
+          "brotli": 3609
+        },
+        {
+          "url": "plainkit/elements/select.js",
+          "kind": "js",
+          "raw": 5975,
+          "gzip": 2347,
+          "brotli": 2036
+        },
+        {
+          "url": "plainkit/elements/button.js",
+          "kind": "js",
+          "raw": 10045,
+          "gzip": 3152,
+          "brotli": 2763
+        },
+        {
+          "url": "plainkit/elements/table.js",
+          "kind": "js",
+          "raw": 12400,
+          "gzip": 3939,
+          "brotli": 3505
+        },
+        {
+          "url": "plainkit/elements/cluster.js",
+          "kind": "js",
+          "raw": 1458,
+          "gzip": 584,
+          "brotli": 511
+        },
+        {
+          "url": "plainkit/elements/dialog.js",
+          "kind": "js",
+          "raw": 6824,
+          "gzip": 2644,
+          "brotli": 2259
+        },
+        {
+          "url": "plainkit/js/safe-url.js",
+          "kind": "js",
+          "raw": 377,
+          "gzip": 279,
+          "brotli": 235
+        },
+        {
+          "url": "plainkit/js/icon-sprite.js",
+          "kind": "js",
+          "raw": 895,
+          "gzip": 556,
+          "brotli": 493
+        },
+        {
+          "url": "plainkit/js/breakpoints.js",
+          "kind": "js",
+          "raw": 887,
+          "gzip": 519,
+          "brotli": 422
+        },
+        {
+          "url": "plainkit/js/table-vw.js",
+          "kind": "js",
+          "raw": 3363,
+          "gzip": 1624,
+          "brotli": 1440
+        },
+        {
+          "url": "plainkit/js/rowset.js",
+          "kind": "js",
+          "raw": 442,
+          "gzip": 285,
+          "brotli": 260
+        },
+        {
+          "url": "plainkit/js/menu-logic.js",
+          "kind": "js",
+          "raw": 2704,
+          "gzip": 1284,
+          "brotli": 1124
+        },
+        {
+          "url": "plainkit/js/table-data.js",
+          "kind": "js",
+          "raw": 801,
+          "gzip": 454,
+          "brotli": 402
+        }
+      ]
+    },
+    {
+      "id": "plainkit-bundle",
+      "label": "Plainkit, one page bundle",
+      "versions": {
+        "esbuild": "0.28.2"
+      },
+      "requests": 4,
+      "errors": [],
+      "raw": {
+        "html": 1497,
+        "js": 106768,
+        "css": 26384,
+        "font": 0,
+        "other": 0,
+        "total": 134649
+      },
+      "gzip": {
+        "html": 622,
+        "js": 33790,
+        "css": 6878,
+        "font": 0,
+        "other": 0,
+        "total": 41290
+      },
+      "brotli": {
+        "html": 449,
+        "js": 29924,
+        "css": 5865,
+        "font": 0,
+        "other": 0,
+        "total": 36238
+      },
+      "files": [
+        {
+          "url": "index.html",
+          "kind": "html",
+          "raw": 1497,
+          "gzip": 622,
+          "brotli": 449
+        },
+        {
+          "url": "plainkit/plainkit.bundle.css",
+          "kind": "css",
+          "raw": 26384,
+          "gzip": 6878,
+          "brotli": 5865
+        },
+        {
+          "url": "app.js",
+          "kind": "js",
+          "raw": 1853,
+          "gzip": 1021,
+          "brotli": 922
+        },
+        {
+          "url": "plainkit/plainkit.bundle.js",
+          "kind": "js",
+          "raw": 104915,
+          "gzip": 32769,
+          "brotli": 29002
+        }
+      ]
+    },
+    {
+      "id": "plainkit-app",
+      "label": "Plainkit, mountApp",
+      "versions": {},
+      "requests": 72,
+      "errors": [],
+      "raw": {
+        "html": 328,
+        "js": 226717,
+        "css": 26384,
+        "font": 0,
+        "other": 0,
+        "total": 253429
+      },
+      "gzip": {
+        "html": 229,
+        "js": 92130,
+        "css": 6878,
+        "font": 0,
+        "other": 0,
+        "total": 99237
+      },
+      "brotli": {
+        "html": 126,
+        "js": 80468,
+        "css": 5865,
+        "font": 0,
+        "other": 0,
+        "total": 86459
+      },
+      "files": [
+        {
+          "url": "index.html",
+          "kind": "html",
+          "raw": 328,
+          "gzip": 229,
+          "brotli": 126
+        },
+        {
+          "url": "plainkit/plainkit.min.css",
+          "kind": "css",
+          "raw": 26384,
+          "gzip": 6878,
+          "brotli": 5865
+        },
+        {
+          "url": "app.js",
+          "kind": "js",
+          "raw": 233,
+          "gzip": 193,
+          "brotli": 148
+        },
+        {
+          "url": "plainkit/js/app.js",
+          "kind": "js",
+          "raw": 246,
+          "gzip": 177,
+          "brotli": 139
+        },
+        {
+          "url": "plainkit/js/app/module.js",
+          "kind": "js",
+          "raw": 3697,
+          "gzip": 1664,
+          "brotli": 1501
+        },
+        {
+          "url": "plainkit/js/app/host.js",
+          "kind": "js",
+          "raw": 7874,
+          "gzip": 3589,
+          "brotli": 3254
+        },
+        {
+          "url": "plainkit/js/app/app.js",
+          "kind": "js",
+          "raw": 6443,
+          "gzip": 3043,
+          "brotli": 2727
+        },
+        {
+          "url": "plainkit/js/app/nav.js",
+          "kind": "js",
+          "raw": 2780,
+          "gzip": 1361,
+          "brotli": 1260
+        },
+        {
+          "url": "plainkit/js/route-tree.js",
+          "kind": "js",
+          "raw": 2490,
+          "gzip": 1168,
+          "brotli": 1084
+        },
+        {
+          "url": "plainkit/js/log.js",
+          "kind": "js",
+          "raw": 4472,
+          "gzip": 1761,
+          "brotli": 1614
+        },
+        {
+          "url": "plainkit/js/page.js",
+          "kind": "js",
+          "raw": 2450,
+          "gzip": 1246,
+          "brotli": 1120
+        },
+        {
+          "url": "plainkit/js/store.js",
+          "kind": "js",
+          "raw": 2077,
+          "gzip": 1238,
+          "brotli": 1149
+        },
+        {
+          "url": "plainkit/js/loader.js",
+          "kind": "js",
+          "raw": 1861,
+          "gzip": 962,
+          "brotli": 861
+        },
+        {
+          "url": "plainkit/js/theme-core.js",
+          "kind": "js",
+          "raw": 297,
+          "gzip": 160,
+          "brotli": 128
+        },
+        {
+          "url": "plainkit/js/app/boundary.js",
+          "kind": "js",
+          "raw": 1843,
+          "gzip": 1042,
+          "brotli": 886
+        },
+        {
+          "url": "plainkit/js/app/widget-host.js",
+          "kind": "js",
+          "raw": 556,
+          "gzip": 359,
+          "brotli": 312
+        },
+        {
+          "url": "plainkit/js/store-extras.js",
+          "kind": "js",
+          "raw": 529,
+          "gzip": 361,
+          "brotli": 294
+        },
+        {
+          "url": "plainkit/js/router.js",
+          "kind": "js",
+          "raw": 3299,
+          "gzip": 1628,
+          "brotli": 1480
+        },
+        {
+          "url": "plainkit/js/breakpoints.js",
+          "kind": "js",
+          "raw": 887,
+          "gzip": 519,
+          "brotli": 422
+        },
+        {
+          "url": "plainkit/js/app/lazy.js",
+          "kind": "js",
+          "raw": 1576,
+          "gzip": 801,
+          "brotli": 710
+        },
+        {
+          "url": "plainkit/js/app/config.js",
+          "kind": "js",
+          "raw": 3099,
+          "gzip": 1401,
+          "brotli": 1261
+        },
+        {
+          "url": "plainkit/js/app/shell.js",
+          "kind": "js",
+          "raw": 2190,
+          "gzip": 993,
+          "brotli": 884
+        },
+        {
+          "url": "plainkit/js/safe-url.js",
+          "kind": "js",
+          "raw": 377,
+          "gzip": 279,
+          "brotli": 235
+        },
+        {
+          "url": "plainkit/js/settings.js",
+          "kind": "js",
+          "raw": 301,
+          "gzip": 219,
+          "brotli": 194
+        },
+        {
+          "url": "plainkit/elements/stack.js",
+          "kind": "js",
+          "raw": 1244,
+          "gzip": 576,
+          "brotli": 488
+        },
+        {
+          "url": "plainkit/elements/alert.js",
+          "kind": "js",
+          "raw": 4422,
+          "gzip": 1535,
+          "brotli": 1281
+        },
+        {
+          "url": "plainkit/elements/loading-overlay.js",
+          "kind": "js",
+          "raw": 2632,
+          "gzip": 1116,
+          "brotli": 925
+        },
+        {
+          "url": "plainkit/elements/skip-link.js",
+          "kind": "js",
+          "raw": 1367,
+          "gzip": 765,
+          "brotli": 589
+        },
+        {
+          "url": "plainkit/elements/app-shell.js",
+          "kind": "js",
+          "raw": 5982,
+          "gzip": 2092,
+          "brotli": 1792
+        },
+        {
+          "url": "plainkit/elements/navbar.js",
+          "kind": "js",
+          "raw": 3669,
+          "gzip": 1391,
+          "brotli": 1137
+        },
+        {
+          "url": "plainkit/elements/dropdown.js",
+          "kind": "js",
+          "raw": 3274,
+          "gzip": 1499,
+          "brotli": 1277
+        },
+        {
+          "url": "plainkit/elements/button.js",
+          "kind": "js",
+          "raw": 10045,
+          "gzip": 3152,
+          "brotli": 2763
+        },
+        {
+          "url": "plainkit/elements/icon.js",
+          "kind": "js",
+          "raw": 1311,
+          "gzip": 647,
+          "brotli": 531
+        },
+        {
+          "url": "plainkit/elements/menu-item.js",
+          "kind": "js",
+          "raw": 6974,
+          "gzip": 2474,
+          "brotli": 2118
+        },
+        {
+          "url": "plainkit/elements/app-bar-search.js",
+          "kind": "js",
+          "raw": 9320,
+          "gzip": 3030,
+          "brotli": 2640
+        },
+        {
+          "url": "plainkit/elements/breadcrumb.js",
+          "kind": "js",
+          "raw": 3437,
+          "gzip": 1536,
+          "brotli": 1270
+        },
+        {
+          "url": "plainkit/elements/toast-stack.js",
+          "kind": "js",
+          "raw": 2713,
+          "gzip": 1143,
+          "brotli": 953
+        },
+        {
+          "url": "plainkit/elements/side-nav.js",
+          "kind": "js",
+          "raw": 8837,
+          "gzip": 3077,
+          "brotli": 2680
+        },
+        {
+          "url": "plainkit/elements/skeleton.js",
+          "kind": "js",
+          "raw": 1528,
+          "gzip": 730,
+          "brotli": 600
+        },
+        {
+          "url": "team.js",
+          "kind": "js",
+          "raw": 2261,
+          "gzip": 937,
+          "brotli": 791
+        },
+        {
+          "url": "plainkit/js/element.js",
+          "kind": "js",
+          "raw": 4284,
+          "gzip": 1853,
+          "brotli": 1643
+        },
+        {
+          "url": "plainkit/js/scroll-aids.js",
+          "kind": "js",
+          "raw": 542,
+          "gzip": 352,
+          "brotli": 308
+        },
+        {
+          "url": "plainkit/js/menu-logic.js",
+          "kind": "js",
+          "raw": 2704,
+          "gzip": 1284,
+          "brotli": 1124
+        },
+        {
+          "url": "plainkit/js/positioning.js",
+          "kind": "js",
+          "raw": 2904,
+          "gzip": 1245,
+          "brotli": 1110
+        },
+        {
+          "url": "plainkit/js/overlay.js",
+          "kind": "js",
+          "raw": 377,
+          "gzip": 274,
+          "brotli": 223
+        },
+        {
+          "url": "plainkit/js/icon-sprite.js",
+          "kind": "js",
+          "raw": 895,
+          "gzip": 556,
+          "brotli": 493
+        },
+        {
+          "url": "plainkit/js/activate-key.js",
+          "kind": "js",
+          "raw": 61,
+          "gzip": 74,
+          "brotli": 65
+        },
+        {
+          "url": "plainkit/js/nav-logic.js",
+          "kind": "js",
+          "raw": 2093,
+          "gzip": 985,
+          "brotli": 879
+        },
+        {
+          "url": "rows.js",
+          "kind": "js",
+          "raw": 1326,
+          "gzip": 796,
+          "brotli": 706
+        },
+        {
+          "url": "plainkit/js/element-core.js",
+          "kind": "js",
+          "raw": 1121,
+          "gzip": 616,
+          "brotli": 542
+        },
+        {
+          "url": "plainkit/js/app/pages/list.js",
+          "kind": "js",
+          "raw": 1396,
+          "gzip": 726,
+          "brotli": 606
+        },
+        {
+          "url": "plainkit/elements/input.js",
+          "kind": "js",
+          "raw": 11696,
+          "gzip": 4087,
+          "brotli": 3609
+        },
+        {
+          "url": "plainkit/js/page-shell.js",
+          "kind": "js",
+          "raw": 2512,
+          "gzip": 1141,
+          "brotli": 992
+        },
+        {
+          "url": "plainkit/js/app/pages/svc-page-toasts.js",
+          "kind": "js",
+          "raw": 489,
+          "gzip": 301,
+          "brotli": 278
+        },
+        {
+          "url": "plainkit/js/page-lifecycle.js",
+          "kind": "js",
+          "raw": 1128,
+          "gzip": 601,
+          "brotli": 530
+        },
+        {
+          "url": "plainkit/js/page-states.js",
+          "kind": "js",
+          "raw": 1146,
+          "gzip": 584,
+          "brotli": 472
+        },
+        {
+          "url": "plainkit/elements/list-page.js",
+          "kind": "js",
+          "raw": 3681,
+          "gzip": 1564,
+          "brotli": 1353
+        },
+        {
+          "url": "plainkit/elements/heading.js",
+          "kind": "js",
+          "raw": 2581,
+          "gzip": 977,
+          "brotli": 803
+        },
+        {
+          "url": "plainkit/elements/page-shell.js",
+          "kind": "js",
+          "raw": 1994,
+          "gzip": 852,
+          "brotli": 715
+        },
+        {
+          "url": "plainkit/elements/page-header.js",
+          "kind": "js",
+          "raw": 10236,
+          "gzip": 3200,
+          "brotli": 2839
+        },
+        {
+          "url": "plainkit/elements/tabs.js",
+          "kind": "js",
+          "raw": 7957,
+          "gzip": 2961,
+          "brotli": 2599
+        },
+        {
+          "url": "plainkit/elements/data-table.js",
+          "kind": "js",
+          "raw": 9829,
+          "gzip": 3424,
+          "brotli": 3039
+        },
+        {
+          "url": "plainkit/elements/nav-item.js",
+          "kind": "js",
+          "raw": 7422,
+          "gzip": 2543,
+          "brotli": 2206
+        },
+        {
+          "url": "plainkit/js/tab-param.js",
+          "kind": "js",
+          "raw": 211,
+          "gzip": 157,
+          "brotli": 126
+        },
+        {
+          "url": "plainkit/js/filter-controls.js",
+          "kind": "js",
+          "raw": 1266,
+          "gzip": 597,
+          "brotli": 493
+        },
+        {
+          "url": "plainkit/elements/table-filters.js",
+          "kind": "js",
+          "raw": 4256,
+          "gzip": 1392,
+          "brotli": 1160
+        },
+        {
+          "url": "plainkit/elements/table.js",
+          "kind": "js",
+          "raw": 12400,
+          "gzip": 3939,
+          "brotli": 3505
+        },
+        {
+          "url": "plainkit/elements/pagination.js",
+          "kind": "js",
+          "raw": 6026,
+          "gzip": 2265,
+          "brotli": 1994
+        },
+        {
+          "url": "plainkit/js/table-vw.js",
+          "kind": "js",
+          "raw": 3363,
+          "gzip": 1624,
+          "brotli": 1440
+        },
+        {
+          "url": "plainkit/js/rowset.js",
+          "kind": "js",
+          "raw": 442,
+          "gzip": 285,
+          "brotli": 260
+        },
+        {
+          "url": "plainkit/js/table-data.js",
+          "kind": "js",
+          "raw": 801,
+          "gzip": 454,
+          "brotli": 402
+        },
+        {
+          "url": "plainkit/js/table-scope.js",
+          "kind": "js",
+          "raw": 985,
+          "gzip": 557,
+          "brotli": 456
+        }
+      ]
+    },
+    {
+      "id": "lit",
+      "label": "Lit",
+      "versions": {
+        "lit": "3.3.3",
+        "vite": "8.3.4"
+      },
+      "requests": 3,
+      "errors": [],
+      "raw": {
+        "html": 373,
+        "js": 18473,
+        "css": 557,
+        "font": 0,
+        "other": 0,
+        "total": 19403
+      },
+      "gzip": {
+        "html": 254,
+        "js": 7136,
+        "css": 327,
+        "font": 0,
+        "other": 0,
+        "total": 7717
+      },
+      "brotli": {
+        "html": 148,
+        "js": 6466,
+        "css": 243,
+        "font": 0,
+        "other": 0,
+        "total": 6857
+      },
+      "files": [
+        {
+          "url": "index.html",
+          "kind": "html",
+          "raw": 373,
+          "gzip": 254,
+          "brotli": 148
+        },
+        {
+          "url": "assets/index-BJKbyL-l.js",
+          "kind": "js",
+          "raw": 18473,
+          "gzip": 7136,
+          "brotli": 6466
+        },
+        {
+          "url": "assets/index-C1kk0loy.css",
+          "kind": "css",
+          "raw": 557,
+          "gzip": 327,
+          "brotli": 243
+        }
+      ]
+    },
+    {
+      "id": "svelte",
+      "label": "Svelte",
+      "versions": {
+        "svelte": "5.57.2",
+        "vite": "8.3.4",
+        "@sveltejs/vite-plugin-svelte": "7.3.1"
+      },
+      "requests": 3,
+      "errors": [],
+      "raw": {
+        "html": 361,
+        "js": 37616,
+        "css": 557,
+        "font": 0,
+        "other": 0,
+        "total": 38534
+      },
+      "gzip": {
+        "html": 260,
+        "js": 14818,
+        "css": 327,
+        "font": 0,
+        "other": 0,
+        "total": 15405
+      },
+      "brotli": {
+        "html": 139,
+        "js": 13480,
+        "css": 243,
+        "font": 0,
+        "other": 0,
+        "total": 13862
+      },
+      "files": [
+        {
+          "url": "index.html",
+          "kind": "html",
+          "raw": 361,
+          "gzip": 260,
+          "brotli": 139
+        },
+        {
+          "url": "assets/index-BL5JPVf5.js",
+          "kind": "js",
+          "raw": 37616,
+          "gzip": 14818,
+          "brotli": 13480
+        },
+        {
+          "url": "assets/index-C1kk0loy.css",
+          "kind": "css",
+          "raw": 557,
+          "gzip": 327,
+          "brotli": 243
+        }
+      ]
+    },
+    {
+      "id": "vue",
+      "label": "Vue 3",
+      "versions": {
+        "vue": "3.5.44",
+        "vite": "8.3.4",
+        "@vitejs/plugin-vue": "6.0.10"
+      },
+      "requests": 3,
+      "errors": [],
+      "raw": {
+        "html": 361,
+        "js": 66577,
+        "css": 557,
+        "font": 0,
+        "other": 0,
+        "total": 67495
+      },
+      "gzip": {
+        "html": 255,
+        "js": 26042,
+        "css": 327,
+        "font": 0,
+        "other": 0,
+        "total": 26624
+      },
+      "brotli": {
+        "html": 147,
+        "js": 23773,
+        "css": 243,
+        "font": 0,
+        "other": 0,
+        "total": 24163
+      },
+      "files": [
+        {
+          "url": "index.html",
+          "kind": "html",
+          "raw": 361,
+          "gzip": 255,
+          "brotli": 147
+        },
+        {
+          "url": "assets/index-C1kk0loy.css",
+          "kind": "css",
+          "raw": 557,
+          "gzip": 327,
+          "brotli": 243
+        },
+        {
+          "url": "assets/index-ugluYkqq.js",
+          "kind": "js",
+          "raw": 66577,
+          "gzip": 26042,
+          "brotli": 23773
+        }
+      ]
+    },
+    {
+      "id": "react",
+      "label": "React",
+      "versions": {
+        "react": "19.3.1",
+        "react-dom": "19.3.1",
+        "vite": "8.3.4",
+        "@vitejs/plugin-react": "6.1.2"
+      },
+      "requests": 3,
+      "errors": [],
+      "raw": {
+        "html": 361,
+        "js": 222580,
+        "css": 557,
+        "font": 0,
+        "other": 0,
+        "total": 223498
+      },
+      "gzip": {
+        "html": 259,
+        "js": 68908,
+        "css": 327,
+        "font": 0,
+        "other": 0,
+        "total": 69494
+      },
+      "brotli": {
+        "html": 139,
+        "js": 59358,
+        "css": 243,
+        "font": 0,
+        "other": 0,
+        "total": 59740
+      },
+      "files": [
+        {
+          "url": "index.html",
+          "kind": "html",
+          "raw": 361,
+          "gzip": 259,
+          "brotli": 139
+        },
+        {
+          "url": "assets/index-C1kk0loy.css",
+          "kind": "css",
+          "raw": 557,
+          "gzip": 327,
+          "brotli": 243
+        },
+        {
+          "url": "assets/index-BS2Fx5ym.js",
+          "kind": "js",
+          "raw": 222580,
+          "gzip": 68908,
+          "brotli": 59358
+        }
+      ]
+    },
+    {
+      "id": "angular",
+      "label": "Angular",
+      "versions": {
+        "@angular/core": "22.2.3",
+        "@angular/build": "22.2.3",
+        "@angular/cli": "22.2.3",
+        "typescript": "6.0.3"
+      },
+      "requests": 3,
+      "errors": [],
+      "raw": {
+        "html": 751,
+        "js": 120661,
+        "css": 557,
+        "font": 0,
+        "other": 0,
+        "total": 121969
+      },
+      "gzip": {
+        "html": 451,
+        "js": 40325,
+        "css": 329,
+        "font": 0,
+        "other": 0,
+        "total": 41105
+      },
+      "brotli": {
+        "html": 278,
+        "js": 36354,
+        "css": 241,
+        "font": 0,
+        "other": 0,
+        "total": 36873
+      },
+      "files": [
+        {
+          "url": "index.html",
+          "kind": "html",
+          "raw": 751,
+          "gzip": 451,
+          "brotli": 278
+        },
+        {
+          "url": "main-Q4MJE4ZR.js",
+          "kind": "js",
+          "raw": 120661,
+          "gzip": 40325,
+          "brotli": 36354
+        },
+        {
+          "url": "styles-BY3T5CDC.css",
+          "kind": "css",
+          "raw": 557,
+          "gzip": 329,
+          "brotli": 241
+        }
+      ]
+    },
+    {
+      "id": "shoelace",
+      "label": "Shoelace",
+      "versions": {
+        "@shoelace-style/shoelace": "2.20.1",
+        "vite": "8.3.4"
+      },
+      "requests": 3,
+      "errors": [],
+      "raw": {
+        "html": 361,
+        "js": 164706,
+        "css": 15524,
+        "font": 0,
+        "other": 0,
+        "total": 180591
+      },
+      "gzip": {
+        "html": 261,
+        "js": 43401,
+        "css": 3564,
+        "font": 0,
+        "other": 0,
+        "total": 47226
+      },
+      "brotli": {
+        "html": 150,
+        "js": 36134,
+        "css": 2770,
+        "font": 0,
+        "other": 0,
+        "total": 39054
+      },
+      "files": [
+        {
+          "url": "index.html",
+          "kind": "html",
+          "raw": 361,
+          "gzip": 261,
+          "brotli": 150
+        },
+        {
+          "url": "assets/index-Drlbaz2O.css",
+          "kind": "css",
+          "raw": 15524,
+          "gzip": 3564,
+          "brotli": 2770
+        },
+        {
+          "url": "assets/index-CxQGYX1N.js",
+          "kind": "js",
+          "raw": 164706,
+          "gzip": 43401,
+          "brotli": 36134
+        }
+      ]
+    },
+    {
+      "id": "blazor-wasm",
+      "label": "Blazor WebAssembly (sample app)",
+      "versions": {},
+      "requests": 88,
+      "errors": [],
+      "raw": {
+        "html": 623,
+        "js": 588530,
+        "css": 32128,
+        "font": 0,
+        "other": 9049091,
+        "total": 9670372
+      },
+      "gzip": {
+        "html": 389,
+        "js": 176360,
+        "css": 7364,
+        "font": 0,
+        "other": 3476411,
+        "total": 3660524
+      },
+      "brotli": {
+        "html": 238,
+        "js": 152429,
+        "css": 6225,
+        "font": 0,
+        "other": 2786981,
+        "total": 2945873
+      },
+      "files": [
+        {
+          "url": "",
+          "kind": "html",
+          "raw": 623,
+          "gzip": 389,
+          "brotli": 238
+        },
+        {
+          "url": "_content/PlainKit.Blazor/plainkit/plainkit.css",
+          "kind": "css",
+          "raw": 32128,
+          "gzip": 7364,
+          "brotli": 6225
+        },
+        {
+          "url": "_framework/blazor.webassembly.js",
+          "kind": "js",
+          "raw": 60682,
+          "gzip": 18744,
+          "brotli": 16754
+        },
+        {
+          "url": "_framework/dotnet.js",
+          "kind": "js",
+          "raw": 53117,
+          "gzip": 15751,
+          "brotli": 13987
+        },
+        {
+          "url": "_content/PlainKit.Blazor/PlainKit.Blazor.814y9k08kv.lib.module.js",
+          "kind": "js",
+          "raw": 5654,
+          "gzip": 2085,
+          "brotli": 1794
+        },
+        {
+          "url": "_framework/dotnet.runtime.zbexyp8zrs.js",
+          "kind": "js",
+          "raw": 198480,
+          "gzip": 56674,
+          "brotli": 47830
+        },
+        {
+          "url": "_framework/dotnet.native.vzj2a6aakt.js",
+          "kind": "js",
+          "raw": 145050,
+          "gzip": 34779,
+          "brotli": 30395
+        },
+        {
+          "url": "_framework/dotnet.native.nxw7lo0lh5.wasm",
+          "kind": "other",
+          "raw": 3002094,
+          "gzip": 1195523,
+          "brotli": 976866
+        },
+        {
+          "url": "_framework/System.Runtime.InteropServices.JavaScript.4euq9hr5ei.wasm",
+          "kind": "other",
+          "raw": 43285,
+          "gzip": 19598,
+          "brotli": 16616
+        },
+        {
+          "url": "_framework/System.Private.CoreLib.axg5ymbnlp.wasm",
+          "kind": "other",
+          "raw": 1755925,
+          "gzip": 678298,
+          "brotli": 548361
+        },
+        {
+          "url": "_framework/Microsoft.AspNetCore.Components.y0oo6m3c6l.wasm",
+          "kind": "other",
+          "raw": 261397,
+          "gzip": 110397,
+          "brotli": 93548
+        },
+        {
+          "url": "_framework/Microsoft.AspNetCore.Components.Forms.yow0nhbsdx.wasm",
+          "kind": "other",
+          "raw": 19221,
+          "gzip": 9498,
+          "brotli": 8231
+        },
+        {
+          "url": "_framework/Microsoft.AspNetCore.Components.Web.hk42wekowl.wasm",
+          "kind": "other",
+          "raw": 58133,
+          "gzip": 24146,
+          "brotli": 20105
+        },
+        {
+          "url": "_framework/Microsoft.AspNetCore.Components.WebAssembly.jc3f8s9mjd.wasm",
+          "kind": "other",
+          "raw": 124181,
+          "gzip": 50286,
+          "brotli": 42134
+        },
+        {
+          "url": "_framework/Microsoft.Extensions.Configuration.o9a3igp31l.wasm",
+          "kind": "other",
+          "raw": 8981,
+          "gzip": 4205,
+          "brotli": 3650
+        },
+        {
+          "url": "_framework/Microsoft.Extensions.Configuration.Abstractions.rk2e36pjps.wasm",
+          "kind": "other",
+          "raw": 6933,
+          "gzip": 2702,
+          "brotli": 2346
+        },
+        {
+          "url": "_framework/Microsoft.Extensions.Configuration.Json.frazqtnewj.wasm",
+          "kind": "other",
+          "raw": 10517,
+          "gzip": 4838,
+          "brotli": 4197
+        },
+        {
+          "url": "_framework/Microsoft.Extensions.DependencyInjection.mt5uv2cyps.wasm",
+          "kind": "other",
+          "raw": 46869,
+          "gzip": 22598,
+          "brotli": 19478
+        },
+        {
+          "url": "_framework/Microsoft.Extensions.DependencyInjection.Abstractions.fj634qtydx.wasm",
+          "kind": "other",
+          "raw": 26901,
+          "gzip": 11784,
+          "brotli": 10141
+        },
+        {
+          "url": "_framework/Microsoft.Extensions.Logging.t2oe1fovjy.wasm",
+          "kind": "other",
+          "raw": 17685,
+          "gzip": 8826,
+          "brotli": 7656
+        },
+        {
+          "url": "_framework/Microsoft.Extensions.Logging.Abstractions.d217r1t3tk.wasm",
+          "kind": "other",
+          "raw": 30485,
+          "gzip": 14300,
+          "brotli": 12085
+        },
+        {
+          "url": "_framework/Microsoft.Extensions.Options.py64yxlf5c.wasm",
+          "kind": "other",
+          "raw": 17173,
+          "gzip": 8279,
+          "brotli": 7137
+        },
+        {
+          "url": "_framework/Microsoft.Extensions.Primitives.1w0lc1mcj1.wasm",
+          "kind": "other",
+          "raw": 12053,
+          "gzip": 5416,
+          "brotli": 4717
+        },
+        {
+          "url": "_framework/Microsoft.JSInterop.ngsf3esrbn.wasm",
+          "kind": "other",
+          "raw": 46357,
+          "gzip": 21129,
+          "brotli": 18275
+        },
+        {
+          "url": "_framework/Microsoft.JSInterop.WebAssembly.gfego8d62w.wasm",
+          "kind": "other",
+          "raw": 12053,
+          "gzip": 5729,
+          "brotli": 4889
+        },
+        {
+          "url": "_framework/System.Collections.Concurrent.z0vihdyw41.wasm",
+          "kind": "other",
+          "raw": 23317,
+          "gzip": 10810,
+          "brotli": 9565
+        },
+        {
+          "url": "_framework/System.Collections.Immutable.l2yz1xhxpb.wasm",
+          "kind": "other",
+          "raw": 55573,
+          "gzip": 24322,
+          "brotli": 20606
+        },
+        {
+          "url": "_framework/System.Collections.NonGeneric.c921h28lw6.wasm",
+          "kind": "other",
+          "raw": 5397,
+          "gzip": 2242,
+          "brotli": 1983
+        },
+        {
+          "url": "_framework/System.Collections.Specialized.f5f11xz6wc.wasm",
+          "kind": "other",
+          "raw": 10005,
+          "gzip": 4418,
+          "brotli": 3917
+        },
+        {
+          "url": "_framework/System.Collections.8u9jzljcrp.wasm",
+          "kind": "other",
+          "raw": 27925,
+          "gzip": 12005,
+          "brotli": 10524
+        },
+        {
+          "url": "_framework/System.ComponentModel.Annotations.2r0ybmc9r5.wasm",
+          "kind": "other",
+          "raw": 14613,
+          "gzip": 6958,
+          "brotli": 6103
+        },
+        {
+          "url": "_framework/System.ComponentModel.Primitives.m4gz4ge7eu.wasm",
+          "kind": "other",
+          "raw": 8469,
+          "gzip": 3723,
+          "brotli": 3293
+        },
+        {
+          "url": "_framework/System.ComponentModel.TypeConverter.8v81nnpbnw.wasm",
+          "kind": "other",
+          "raw": 62229,
+          "gzip": 27166,
+          "brotli": 23275
+        },
+        {
+          "url": "_framework/System.ComponentModel.8ywkccv6di.wasm",
+          "kind": "other",
+          "raw": 4885,
+          "gzip": 1942,
+          "brotli": 1729
+        },
+        {
+          "url": "_framework/System.Console.4kydlmvr8i.wasm",
+          "kind": "other",
+          "raw": 14613,
+          "gzip": 7267,
+          "brotli": 6189
+        },
+        {
+          "url": "_framework/System.Diagnostics.DiagnosticSource.gpjrhhbi40.wasm",
+          "kind": "other",
+          "raw": 40213,
+          "gzip": 19302,
+          "brotli": 16796
+        },
+        {
+          "url": "_framework/System.IO.Pipelines.9azjszgsci.wasm",
+          "kind": "other",
+          "raw": 5909,
+          "gzip": 2723,
+          "brotli": 2348
+        },
+        {
+          "url": "_framework/System.Linq.Expressions.xcy1t2wzi5.wasm",
+          "kind": "other",
+          "raw": 357141,
+          "gzip": 137636,
+          "brotli": 113162
+        },
+        {
+          "url": "_framework/System.Linq.ekmdsvu0m1.wasm",
+          "kind": "other",
+          "raw": 63253,
+          "gzip": 27692,
+          "brotli": 23463
+        },
+        {
+          "url": "_framework/System.Memory.bikruznpie.wasm",
+          "kind": "other",
+          "raw": 15125,
+          "gzip": 7309,
+          "brotli": 6441
+        },
+        {
+          "url": "_framework/System.ObjectModel.2ue58bdwtg.wasm",
+          "kind": "other",
+          "raw": 5909,
+          "gzip": 2584,
+          "brotli": 2261
+        },
+        {
+          "url": "_framework/System.Private.Uri.apq3an3s4e.wasm",
+          "kind": "other",
+          "raw": 66837,
+          "gzip": 30527,
+          "brotli": 26902
+        },
+        {
+          "url": "_framework/System.Runtime.InteropServices.ng7gmszazu.wasm",
+          "kind": "other",
+          "raw": 8981,
+          "gzip": 3397,
+          "brotli": 2910
+        },
+        {
+          "url": "_framework/System.Runtime.750avcprf1.wasm",
+          "kind": "other",
+          "raw": 10005,
+          "gzip": 3577,
+          "brotli": 3012
+        },
+        {
+          "url": "_framework/System.Security.Cryptography.2lkfgnu7ed.wasm",
+          "kind": "other",
+          "raw": 20757,
+          "gzip": 9710,
+          "brotli": 8147
+        },
+        {
+          "url": "_framework/System.Text.Encodings.Web.n4z4xte3l3.wasm",
+          "kind": "other",
+          "raw": 30997,
+          "gzip": 11612,
+          "brotli": 10008
+        },
+        {
+          "url": "_framework/System.Text.Json.kp37axhihv.wasm",
+          "kind": "other",
+          "raw": 388373,
+          "gzip": 155780,
+          "brotli": 129712
+        },
+        {
+          "url": "_framework/System.Text.RegularExpressions.t0u0nz0kzr.wasm",
+          "kind": "other",
+          "raw": 148757,
+          "gzip": 65351,
+          "brotli": 53314
+        },
+        {
+          "url": "_framework/System.Threading.w5hz61joqc.wasm",
+          "kind": "other",
+          "raw": 12053,
+          "gzip": 4393,
+          "brotli": 3723
+        },
+        {
+          "url": "_framework/System.1h5i8a3bq8.wasm",
+          "kind": "other",
+          "raw": 4885,
+          "gzip": 1681,
+          "brotli": 1468
+        },
+        {
+          "url": "_framework/PlainKit.Blazor.6we5fp76rb.wasm",
+          "kind": "other",
+          "raw": 1550101,
+          "gzip": 459083,
+          "brotli": 338233
+        },
+        {
+          "url": "_framework/PlainKit.AppSample.Wasm.2d5el6t9rf.wasm",
+          "kind": "other",
+          "raw": 29461,
+          "gzip": 12906,
+          "brotli": 11003
+        },
+        {
+          "url": "_framework/icudt_EFIGS.tptq2av103.dat",
+          "kind": "other",
+          "raw": 550832,
+          "gzip": 219880,
+          "brotli": 143983
+        },
+        {
+          "url": "_content/PlainKit.Blazor/plainkit.blazor.js",
+          "kind": "js",
+          "raw": 18507,
+          "gzip": 6033,
+          "brotli": 5198
+        },
+        {
+          "url": "_content/PlainKit.Blazor/plainkit/js/version.js",
+          "kind": "js",
+          "raw": 37,
+          "gzip": 57,
+          "brotli": 41
+        },
+        {
+          "url": "_content/PlainKit.Blazor/plainkit/js/init.js",
+          "kind": "js",
+          "raw": 475,
+          "gzip": 269,
+          "brotli": 219
+        },
+        {
+          "url": "_content/PlainKit.Blazor/plainkit/js/invokers.js",
+          "kind": "js",
+          "raw": 1211,
+          "gzip": 590,
+          "brotli": 507
+        },
+        {
+          "url": "_content/PlainKit.Blazor/plainkit/js/log.js",
+          "kind": "js",
+          "raw": 4472,
+          "gzip": 1761,
+          "brotli": 1614
+        },
+        {
+          "url": "_content/PlainKit.Blazor/plainkit/js/loader.js",
+          "kind": "js",
+          "raw": 1861,
+          "gzip": 962,
+          "brotli": 861
+        },
+        {
+          "url": "_content/PlainKit.Blazor/plainkit/elements/app-frame.js",
+          "kind": "js",
+          "raw": 5356,
+          "gzip": 2095,
+          "brotli": 1808
+        },
+        {
+          "url": "_content/PlainKit.Blazor/plainkit/elements/skip-link.js",
+          "kind": "js",
+          "raw": 1367,
+          "gzip": 765,
+          "brotli": 589
+        },
+        {
+          "url": "_content/PlainKit.Blazor/plainkit/elements/note-page.js",
+          "kind": "js",
+          "raw": 1287,
+          "gzip": 680,
+          "brotli": 564
+        },
+        {
+          "url": "_content/PlainKit.Blazor/plainkit/js/element.js",
+          "kind": "js",
+          "raw": 4284,
+          "gzip": 1853,
+          "brotli": 1643
+        },
+        {
+          "url": "_content/PlainKit.Blazor/plainkit/js/safe-url.js",
+          "kind": "js",
+          "raw": 377,
+          "gzip": 279,
+          "brotli": 235
+        },
+        {
+          "url": "_content/PlainKit.Blazor/plainkit/js/breakpoints.js",
+          "kind": "js",
+          "raw": 887,
+          "gzip": 519,
+          "brotli": 422
+        },
+        {
+          "url": "_content/PlainKit.Blazor/plainkit/js/scroll-aids.js",
+          "kind": "js",
+          "raw": 542,
+          "gzip": 352,
+          "brotli": 308
+        },
+        {
+          "url": "_content/PlainKit.Blazor/plainkit/js/element-core.js",
+          "kind": "js",
+          "raw": 1121,
+          "gzip": 616,
+          "brotli": 542
+        },
+        {
+          "url": "_content/PlainKit.Blazor/plainkit/elements/app-shell.js",
+          "kind": "js",
+          "raw": 5982,
+          "gzip": 2092,
+          "brotli": 1792
+        },
+        {
+          "url": "_content/PlainKit.Blazor/plainkit/elements/side-nav.js",
+          "kind": "js",
+          "raw": 8837,
+          "gzip": 3077,
+          "brotli": 2680
+        },
+        {
+          "url": "_content/PlainKit.Blazor/plainkit/elements/button.js",
+          "kind": "js",
+          "raw": 10045,
+          "gzip": 3152,
+          "brotli": 2763
+        },
+        {
+          "url": "_content/PlainKit.Blazor/plainkit/elements/icon.js",
+          "kind": "js",
+          "raw": 1311,
+          "gzip": 647,
+          "brotli": 531
+        },
+        {
+          "url": "_content/PlainKit.Blazor/plainkit/elements/navbar.js",
+          "kind": "js",
+          "raw": 3669,
+          "gzip": 1391,
+          "brotli": 1137
+        },
+        {
+          "url": "_content/PlainKit.Blazor/plainkit/elements/dropdown.js",
+          "kind": "js",
+          "raw": 3274,
+          "gzip": 1499,
+          "brotli": 1277
+        },
+        {
+          "url": "_content/PlainKit.Blazor/plainkit/elements/menu-item.js",
+          "kind": "js",
+          "raw": 6974,
+          "gzip": 2474,
+          "brotli": 2118
+        },
+        {
+          "url": "_content/PlainKit.Blazor/plainkit/elements/app-bar-search.js",
+          "kind": "js",
+          "raw": 9320,
+          "gzip": 3030,
+          "brotli": 2640
+        },
+        {
+          "url": "_content/PlainKit.Blazor/plainkit/elements/stack.js",
+          "kind": "js",
+          "raw": 1244,
+          "gzip": 576,
+          "brotli": 488
+        },
+        {
+          "url": "_content/PlainKit.Blazor/plainkit/elements/breadcrumb.js",
+          "kind": "js",
+          "raw": 3437,
+          "gzip": 1536,
+          "brotli": 1270
+        },
+        {
+          "url": "_content/PlainKit.Blazor/plainkit/elements/loading-overlay.js",
+          "kind": "js",
+          "raw": 2632,
+          "gzip": 1116,
+          "brotli": 925
+        },
+        {
+          "url": "_content/PlainKit.Blazor/plainkit/elements/heading.js",
+          "kind": "js",
+          "raw": 2581,
+          "gzip": 977,
+          "brotli": 803
+        },
+        {
+          "url": "_content/PlainKit.Blazor/plainkit/elements/card.js",
+          "kind": "js",
+          "raw": 3727,
+          "gzip": 1424,
+          "brotli": 1191
+        },
+        {
+          "url": "_content/PlainKit.Blazor/plainkit/js/menu-logic.js",
+          "kind": "js",
+          "raw": 2704,
+          "gzip": 1284,
+          "brotli": 1124
+        },
+        {
+          "url": "_content/PlainKit.Blazor/plainkit/js/icon-sprite.js",
+          "kind": "js",
+          "raw": 895,
+          "gzip": 556,
+          "brotli": 493
+        },
+        {
+          "url": "_content/PlainKit.Blazor/plainkit/js/nav-logic.js",
+          "kind": "js",
+          "raw": 2093,
+          "gzip": 985,
+          "brotli": 879
+        },
+        {
+          "url": "_content/PlainKit.Blazor/plainkit/js/positioning.js",
+          "kind": "js",
+          "raw": 2904,
+          "gzip": 1245,
+          "brotli": 1110
+        },
+        {
+          "url": "_content/PlainKit.Blazor/plainkit/js/overlay.js",
+          "kind": "js",
+          "raw": 377,
+          "gzip": 274,
+          "brotli": 223
+        },
+        {
+          "url": "_content/PlainKit.Blazor/plainkit/js/activate-key.js",
+          "kind": "js",
+          "raw": 61,
+          "gzip": 74,
+          "brotli": 65
+        },
+        {
+          "url": "_content/PlainKit.Blazor/plainkit/elements/input.js",
+          "kind": "js",
+          "raw": 11696,
+          "gzip": 4087,
+          "brotli": 3609
+        },
+        {
+          "url": "_content/PlainKit.Blazor/plainkit/icons.svg",
+          "kind": "other",
+          "raw": 12233,
+          "gzip": 2863,
+          "brotli": 2479
+        }
+      ]
+    },
+    {
+      "id": "blazor-server",
+      "label": "Blazor Server (sample app)",
+      "versions": {},
+      "requests": 52,
+      "errors": [],
+      "raw": {
+        "html": 5153,
+        "js": 379951,
+        "css": 32128,
+        "font": 0,
+        "other": 12549,
+        "total": 429781
+      },
+      "gzip": {
+        "html": 2978,
+        "js": 124407,
+        "css": 7364,
+        "font": 0,
+        "other": 3070,
+        "total": 137819
+      },
+      "brotli": {
+        "html": 2681,
+        "js": 107485,
+        "css": 6225,
+        "font": 0,
+        "other": 2650,
+        "total": 119041
+      },
+      "files": [
+        {
+          "url": "",
+          "kind": "html",
+          "raw": 5153,
+          "gzip": 2978,
+          "brotli": 2681
+        },
+        {
+          "url": "_content/PlainKit.Blazor/plainkit/plainkit.3powttfw3w.css",
+          "kind": "css",
+          "raw": 32128,
+          "gzip": 7364,
+          "brotli": 6225
+        },
+        {
+          "url": "_framework/blazor.web.js",
+          "kind": "js",
+          "raw": 200645,
+          "gzip": 55050,
+          "brotli": 47560
+        },
+        {
+          "url": "_content/PlainKit.Blazor/PlainKit.Blazor.814y9k08kv.lib.module.js",
+          "kind": "js",
+          "raw": 5654,
+          "gzip": 2085,
+          "brotli": 1794
+        },
+        {
+          "url": "_blazor/negotiate",
+          "kind": "other",
+          "raw": 316,
+          "gzip": 207,
+          "brotli": 171
+        },
+        {
+          "url": "_content/PlainKit.Blazor/plainkit.blazor.js",
+          "kind": "js",
+          "raw": 18507,
+          "gzip": 6033,
+          "brotli": 5198
+        },
+        {
+          "url": "_content/PlainKit.Blazor/plainkit/js/version.js",
+          "kind": "js",
+          "raw": 37,
+          "gzip": 57,
+          "brotli": 41
+        },
+        {
+          "url": "_content/PlainKit.Blazor/plainkit/js/init.js",
+          "kind": "js",
+          "raw": 475,
+          "gzip": 269,
+          "brotli": 219
+        },
+        {
+          "url": "_content/PlainKit.Blazor/plainkit/js/invokers.js",
+          "kind": "js",
+          "raw": 1211,
+          "gzip": 590,
+          "brotli": 507
+        },
+        {
+          "url": "_content/PlainKit.Blazor/plainkit/js/log.js",
+          "kind": "js",
+          "raw": 4472,
+          "gzip": 1761,
+          "brotli": 1614
+        },
+        {
+          "url": "_content/PlainKit.Blazor/plainkit/js/loader.js",
+          "kind": "js",
+          "raw": 1861,
+          "gzip": 962,
+          "brotli": 861
+        },
+        {
+          "url": "_content/PlainKit.Blazor/plainkit/elements/app-frame.js",
+          "kind": "js",
+          "raw": 5356,
+          "gzip": 2095,
+          "brotli": 1808
+        },
+        {
+          "url": "_content/PlainKit.Blazor/plainkit/elements/skip-link.js",
+          "kind": "js",
+          "raw": 1367,
+          "gzip": 765,
+          "brotli": 589
+        },
+        {
+          "url": "_content/PlainKit.Blazor/plainkit/elements/dashboard-page.js",
+          "kind": "js",
+          "raw": 5814,
+          "gzip": 2304,
+          "brotli": 2059
+        },
+        {
+          "url": "_content/PlainKit.Blazor/plainkit/js/element.js",
+          "kind": "js",
+          "raw": 4284,
+          "gzip": 1853,
+          "brotli": 1643
+        },
+        {
+          "url": "_content/PlainKit.Blazor/plainkit/js/safe-url.js",
+          "kind": "js",
+          "raw": 377,
+          "gzip": 279,
+          "brotli": 235
+        },
+        {
+          "url": "_content/PlainKit.Blazor/plainkit/js/breakpoints.js",
+          "kind": "js",
+          "raw": 887,
+          "gzip": 519,
+          "brotli": 422
+        },
+        {
+          "url": "_content/PlainKit.Blazor/plainkit/js/scroll-aids.js",
+          "kind": "js",
+          "raw": 542,
+          "gzip": 352,
+          "brotli": 308
+        },
+        {
+          "url": "_content/PlainKit.Blazor/plainkit/js/page-shell.js",
+          "kind": "js",
+          "raw": 2512,
+          "gzip": 1141,
+          "brotli": 992
+        },
+        {
+          "url": "_content/PlainKit.Blazor/plainkit/js/filter-controls.js",
+          "kind": "js",
+          "raw": 1266,
+          "gzip": 597,
+          "brotli": 493
+        },
+        {
+          "url": "_content/PlainKit.Blazor/plainkit/js/element-core.js",
+          "kind": "js",
+          "raw": 1121,
+          "gzip": 616,
+          "brotli": 542
+        },
+        {
+          "url": "_content/PlainKit.Blazor/plainkit/js/page-states.js",
+          "kind": "js",
+          "raw": 1146,
+          "gzip": 584,
+          "brotli": 472
+        },
+        {
+          "url": "_content/PlainKit.Blazor/plainkit/elements/app-shell.js",
+          "kind": "js",
+          "raw": 5982,
+          "gzip": 2092,
+          "brotli": 1792
+        },
+        {
+          "url": "_content/PlainKit.Blazor/plainkit/elements/side-nav.js",
+          "kind": "js",
+          "raw": 8837,
+          "gzip": 3077,
+          "brotli": 2680
+        },
+        {
+          "url": "_content/PlainKit.Blazor/plainkit/elements/button.js",
+          "kind": "js",
+          "raw": 10045,
+          "gzip": 3152,
+          "brotli": 2763
+        },
+        {
+          "url": "_content/PlainKit.Blazor/plainkit/elements/icon.js",
+          "kind": "js",
+          "raw": 1311,
+          "gzip": 647,
+          "brotli": 531
+        },
+        {
+          "url": "_content/PlainKit.Blazor/plainkit/elements/navbar.js",
+          "kind": "js",
+          "raw": 3669,
+          "gzip": 1391,
+          "brotli": 1137
+        },
+        {
+          "url": "_content/PlainKit.Blazor/plainkit/elements/dropdown.js",
+          "kind": "js",
+          "raw": 3274,
+          "gzip": 1499,
+          "brotli": 1277
+        },
+        {
+          "url": "_content/PlainKit.Blazor/plainkit/elements/menu-item.js",
+          "kind": "js",
+          "raw": 6974,
+          "gzip": 2474,
+          "brotli": 2118
+        },
+        {
+          "url": "_content/PlainKit.Blazor/plainkit/elements/app-bar-search.js",
+          "kind": "js",
+          "raw": 9320,
+          "gzip": 3030,
+          "brotli": 2640
+        },
+        {
+          "url": "_content/PlainKit.Blazor/plainkit/elements/stack.js",
+          "kind": "js",
+          "raw": 1244,
+          "gzip": 576,
+          "brotli": 488
+        },
+        {
+          "url": "_content/PlainKit.Blazor/plainkit/elements/breadcrumb.js",
+          "kind": "js",
+          "raw": 3437,
+          "gzip": 1536,
+          "brotli": 1270
+        },
+        {
+          "url": "_content/PlainKit.Blazor/plainkit/elements/loading-overlay.js",
+          "kind": "js",
+          "raw": 2632,
+          "gzip": 1116,
+          "brotli": 925
+        },
+        {
+          "url": "_content/PlainKit.Blazor/plainkit/elements/page-shell.js",
+          "kind": "js",
+          "raw": 1994,
+          "gzip": 852,
+          "brotli": 715
+        },
+        {
+          "url": "_content/PlainKit.Blazor/plainkit/elements/tabs.js",
+          "kind": "js",
+          "raw": 7957,
+          "gzip": 2961,
+          "brotli": 2599
+        },
+        {
+          "url": "_content/PlainKit.Blazor/plainkit/elements/heading.js",
+          "kind": "js",
+          "raw": 2581,
+          "gzip": 977,
+          "brotli": 803
+        },
+        {
+          "url": "_content/PlainKit.Blazor/plainkit/elements/tab.js",
+          "kind": "js",
+          "raw": 2213,
+          "gzip": 971,
+          "brotli": 779
+        },
+        {
+          "url": "_content/PlainKit.Blazor/plainkit/elements/tab-panel.js",
+          "kind": "js",
+          "raw": 644,
+          "gzip": 404,
+          "brotli": 326
+        },
+        {
+          "url": "_content/PlainKit.Blazor/plainkit/elements/card.js",
+          "kind": "js",
+          "raw": 3727,
+          "gzip": 1424,
+          "brotli": 1191
+        },
+        {
+          "url": "_content/PlainKit.Blazor/plainkit/elements/skeleton.js",
+          "kind": "js",
+          "raw": 1528,
+          "gzip": 730,
+          "brotli": 600
+        },
+        {
+          "url": "_content/PlainKit.Blazor/plainkit/js/menu-logic.js",
+          "kind": "js",
+          "raw": 2704,
+          "gzip": 1284,
+          "brotli": 1124
+        },
+        {
+          "url": "_content/PlainKit.Blazor/plainkit/js/nav-logic.js",
+          "kind": "js",
+          "raw": 2093,
+          "gzip": 985,
+          "brotli": 879
+        },
+        {
+          "url": "_content/PlainKit.Blazor/plainkit/js/icon-sprite.js",
+          "kind": "js",
+          "raw": 895,
+          "gzip": 556,
+          "brotli": 493
+        },
+        {
+          "url": "_content/PlainKit.Blazor/plainkit/elements/stat.js",
+          "kind": "js",
+          "raw": 5884,
+          "gzip": 2402,
+          "brotli": 2083
+        },
+        {
+          "url": "_content/PlainKit.Blazor/plainkit/elements/chart.js",
+          "kind": "js",
+          "raw": 7987,
+          "gzip": 3322,
+          "brotli": 2943
+        },
+        {
+          "url": "_content/PlainKit.Blazor/plainkit/js/positioning.js",
+          "kind": "js",
+          "raw": 2904,
+          "gzip": 1245,
+          "brotli": 1110
+        },
+        {
+          "url": "_content/PlainKit.Blazor/plainkit/js/overlay.js",
+          "kind": "js",
+          "raw": 377,
+          "gzip": 274,
+          "brotli": 223
+        },
+        {
+          "url": "_content/PlainKit.Blazor/plainkit/js/activate-key.js",
+          "kind": "js",
+          "raw": 61,
+          "gzip": 74,
+          "brotli": 65
+        },
+        {
+          "url": "_content/PlainKit.Blazor/plainkit/js/tab-param.js",
+          "kind": "js",
+          "raw": 211,
+          "gzip": 157,
+          "brotli": 126
+        },
+        {
+          "url": "_content/PlainKit.Blazor/plainkit/elements/page-header.js",
+          "kind": "js",
+          "raw": 10236,
+          "gzip": 3200,
+          "brotli": 2839
+        },
+        {
+          "url": "_content/PlainKit.Blazor/plainkit/icons.svg",
+          "kind": "other",
+          "raw": 12233,
+          "gzip": 2863,
+          "brotli": 2479
+        },
+        {
+          "url": "_content/PlainKit.Blazor/plainkit/elements/input.js",
+          "kind": "js",
+          "raw": 11696,
+          "gzip": 4087,
+          "brotli": 3609
+        }
+      ],
+      "circuitBytes": {
+        "sent": 2652,
+        "received": 2959
+      }
+    }
+  ]
+}

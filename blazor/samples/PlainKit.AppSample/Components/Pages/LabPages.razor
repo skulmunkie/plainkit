@@ -14,11 +14,11 @@
     private const string DashConfig = """{"widgets":[{"key":"ok","label":"Fine widget","kind":"stat"},{"key":"bad","label":"Broken widget","kind":"stat"}]}""";
     private string _values = """{"nick":"first"}""";
     private string _log = "";
-    private readonly Dictionary<string, RenderFragment> _sectionContent = new() { ["profile"] = b => b.AddMarkupContent(0, "<p id=\"lab-section-profile\">Custom profile content</p>") };
+    private readonly Dictionary<string, RenderFragment> _sectionContent = new() { ["profile"] = b => b.AddMarkupContent(0, "<p id=\"lab-section-profile\">Custom profile content</p>"), ["notifications"] = b => b.AddMarkupContent(0, "<pk-card heading=\"Email\" id=\"lab-bare-a\"><p>Own card A</p></pk-card><pk-card heading=\"Push\" id=\"lab-bare-b\"><p>Own card B</p></pk-card>") };
 
     // Config follows a C# field: Rename changes the label of the field after the first render.
     private string _label = "Nickname";
-    private string SettingsConfig => JsonSerializer.Serialize(new { sections = new[] { new { key = "profile", heading = "Profile", fields = new[] { new { key = "nick", type = "text", label = _label } } }, new { key = "notifications", heading = "Notifications", fields = new[] { new { key = "digest", type = "text", label = "Digest address" } } }, new { key = "billing", heading = "Billing", fields = new[] { new { key = "tax", type = "text", label = "Tax number" } } } } });
+    private string SettingsConfig => JsonSerializer.Serialize(new { sections = new object[] { new { key = "profile", heading = "Profile", bare = false, fields = new[] { new { key = "nick", type = "text", label = _label } } }, new { key = "notifications", heading = "Notifications", bare = true, fields = Array.Empty<object>() }, new { key = "billing", heading = "Billing", bare = false, fields = new[] { new { key = "tax", type = "text", label = "Tax number" } } } } });
 
     private void Rename() { _label = "Handle"; _values = """{"nick":"second"}"""; }
     private Task<object?> RunTool(IReadOnlyDictionary<string, JsonElement> v) => Task.FromResult<object?>("Hello " + v["name"].GetString());

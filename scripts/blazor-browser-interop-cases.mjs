@@ -67,6 +67,9 @@ export const INTEROP_CASES = [
         await live(ctx, 'pk-settings-page', 'save');
         await ctx.waitFor(`!!document.getElementById('lab-section-profile')`, 'the Profile section content');
         ctx.ok(await ctx.eval(`(() => { const c = document.getElementById('lab-section-profile').getBoundingClientRect(), card = window.__deep.q('pk-settings-page >>> pk-card').find(k => k.heading === 'Profile').getBoundingClientRect(); return c.width > 0 && c.top >= card.top && c.bottom <= card.bottom; })()`), 'the section content is not drawn inside the Profile card');
+        // #1633: a bare section draws no card or heading of its own; the app's two cards sit directly in it and stay in the nav.
+        await ctx.waitFor(`!!document.getElementById('lab-bare-a')`, 'the bare section content');
+        ctx.ok(await ctx.eval(`!window.__deep.q('pk-settings-page >>> pk-card').some(c => c.heading === 'Notifications') && window.__deep.q('pk-settings-page >>> pk-nav-item').some(i => i.textContent.trim() === 'Notifications') && document.getElementById('lab-bare-a').getBoundingClientRect().width > 0 && !document.getElementById('lab-bare-a').parentElement.closest('pk-card')`), 'the bare section is wrapped in a card or left the nav');
         await ctx.open('/lab/tool-slot');
         await ctx.waitFor(`!!document.getElementById('lab-tool-custom')`, 'the tool page content');
         ctx.ok(await ctx.eval(`document.getElementById('lab-tool-custom').getBoundingClientRect().width > 0 && !window.__deep.q('pk-tool-page >>> pk-button[part="run"]').some(b => b.getBoundingClientRect().width > 0)`), 'the custom content is not shown in place of the generated Run button');
