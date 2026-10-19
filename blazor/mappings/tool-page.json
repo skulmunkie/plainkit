@@ -21,6 +21,12 @@
       "doc": "Runs the action with the values of the input fields, keyed by field key (read text with GetString(), a number with GetDouble()). What it returns is drawn as the outcome: for text a string or an object with text, for stat an object with value and label, for table an object with columns and rows, for code a string or an object with code. Throwing shows the error state with Retry."
     },
     {
+      "name": "ChildContent",
+      "slot": "",
+      "type": "RenderFragment?",
+      "doc": "Your own content in place of the generated input fields, Run button and outcome (Config input and outcome, Run and RunLabel are then unused)."
+    },
+    {
       "name": "TitleContent",
       "map": "slot",
       "slot": "title",
