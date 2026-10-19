@@ -24,6 +24,8 @@ export default Base => class extends Base {
             main.addEventListener('submit', e => e.preventDefault());
             main.addEventListener('pk-valid', () => this.submit());
             for (const t of ['input', 'change']) for (const part of [main, this.part('side')]) part.addEventListener(t, () => this.track());
+            // Each card is its own field group, which evaluates whenExpr, disabledExpr and the rest against its own values: a committed change in one card is handed to the others, so a condition follows an edit made in another card (#1600).
+            for (const part of [main, this.part('side')]) part.addEventListener('pk-field-change', e => this.mirror(e));
         }
         // The one subscription outside this element's tree: a reload or a closed tab while edits are unsaved asks first.
         this.$leave = e => { if (this.dirty) { e.preventDefault(); e.returnValue = ''; } };
@@ -151,6 +153,11 @@ export default Base => class extends Base {
     controls() { return (this.$groups ?? []).flatMap(g => [...(g.shadowRoot?.querySelectorAll(CONTROLS) ?? [])]); }
     // A snapshot holds every value the group was given: take only the fields it draws.
     live() { return Object.assign({}, ...(this.$groups ?? []).map(g => { const own = new Set((g.fields ?? []).map(f => f.key)); return Object.fromEntries(Object.entries(g.snapshot?.() ?? {}).filter(([k]) => own.has(k))); })); }
+    mirror(e) {
+        const { key, value } = e.detail ?? {}, from = e.target;
+        if (key == null || (this.$groups?.length ?? 0) < 2) return;
+        for (const g of this.$groups) if (g !== from && typeof g.snapshot === 'function') g.values = { ...g.snapshot(), [key]: value };
+    }
     groupOf(k) { return (this.$groups ?? []).find(g => g.fields?.some(f => f.key === k)); }
     collect() {
         const out = { ...this.$values }, live = this.live();

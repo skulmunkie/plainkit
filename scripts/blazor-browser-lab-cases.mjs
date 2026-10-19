@@ -97,6 +97,18 @@ export const LAB_CASES = [
         await ctx.waitFor(`!window.__deep.field('Title') && ${MAIN}.includes('Ticket: Renamed three')`, 'the saved record to show in view mode under its new title');
         await ctx.noErrors(ctx.openMark, BENIGN);
       } },
+    // A condition follows an edit made in another card (#1600): Kind (Details) decides whether Notes (its own card) shows.
+    { name: 'record-when-follows-edit-in-another-card',
+      async run(ctx) {
+        await ctx.open('/lab/ticket-when/3');
+        await ctx.waitFor(`!!window.__deep.field('Kind')`, 'the record to open for editing');
+        await ctx.waitFor(`!!window.__deep.field('Notes')`, 'Notes to show while Kind is Bug');
+        await ctx.setField('Kind', 'task');
+        await ctx.waitFor(`!window.__deep.field('Notes')`, 'Notes to hide once Kind is Task');
+        await ctx.setField('Kind', 'bug');
+        await ctx.waitFor(`!!window.__deep.field('Notes')`, 'Notes to show again once Kind is Bug');
+        await ctx.noErrors(ctx.openMark, BENIGN);
+      } },
     { name: 'record-delete',
       async run(ctx) {
         await ctx.open('/lab/tickets/5');

@@ -22,7 +22,7 @@
       "name": "Fields",
       "map": "cells",
       "type": "IReadOnlyList<PkFieldSpec<TItem>>?",
-      "doc": "The record's fields, typed as PkFieldGroup's: Key, Label, Kind, Get and Set, plus Hint, Help, Required, Options, Span and the rest. In view mode they read as a list; in edit mode the element draws them as a pk-field-group. When, Disabled, ReadOnly, LabelWhen and HelpWhen are read from the record once it is loaded (they do not follow edits until the next load or save); a spec Editor is the body of its field in edit mode (it edits the item itself)."
+      "doc": "The record's fields, typed as PkFieldGroup's: Key, Label, Kind, Get and Set, plus Hint, Help, Required, Options, Span and the rest. In view mode they read as a list; in edit mode the element draws them as a pk-field-group. When, Disabled, ReadOnly, LabelWhen and HelpWhen are read from the record once it is loaded (they are .NET functions of the item and do not follow edits until the next load or save: a round trip per keystroke is not what the page does); for a condition that follows what the user types set the declarative WhenExpr, DisabledExpr, ReadonlyExpr, RequiredExpr, LabelWhenExpr or HelpWhenExpr on the spec: the element evaluates them in the browser against the live values, also across cards (a field in one section can decide a field in another or in the sidebar); a spec Editor is the body of its field in edit mode (it edits the item itself)."
     },
     {
       "name": "Model",
