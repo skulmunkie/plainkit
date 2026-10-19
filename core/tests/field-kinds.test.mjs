@@ -26,6 +26,7 @@ test('a spec becomes the attributes of its control: only the set ones, the type 
     assert.deepEqual(controlAttrs({ key: 'r', kind: 'range', min: 0, max: 10, required: true }), { min: 0, max: 10 }, 'a range has no required');
     assert.deepEqual(controlAttrs({ key: 's', kind: 'select', required: true }), { required: '' });
     assert.deepEqual(controlAttrs({ key: 'c', kind: 'combobox', free: true, placeholder: 'x' }), { placeholder: 'x', free: '' });
+    assert.deepEqual(controlAttrs({ key: 'c', kind: 'combobox', mode: 'select' }), { mode: 'select' }, 'a combobox field can be a styled select');
     assert.deepEqual(messageAttrs({ msg: { required: 'Enter a name.' } }), { 'data-msg-required': 'Enter a name.' });
     assert.deepEqual(messageAttrs({}), {});
 });
