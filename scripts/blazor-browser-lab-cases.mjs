@@ -91,6 +91,23 @@ export const LAB_CASES = [
         await ctx.clickDeep(`${RECORD}[part="cancel"]`);
         await ctx.waitFor(`!window.__deep.field('Title')`, 'Cancel to leave edit mode and drop the unsaved edits');
       } },
+    // A new record whose Save throws keeps every typed value (#1598): the host re-renders (Busy, Error) and the element must not rebuild the form from the blank Model.
+    { name: 'record-new-save-failure-keeps-edits',
+      async run(ctx) {
+        await ctx.open('/lab/ticket-new');
+        await ctx.waitFor(`!!window.__deep.field('Title')`, 'the new record form');
+        await ctx.waitFor(`typeof document.querySelector('pk-record-page')?.save === 'function'`, 'the circuit to take the record page over');
+        await ctx.setField('Title', 'FAIL');
+        await ctx.setField('Notes', 'kept notes');
+        await ctx.clickDeep(`${RECORD}[part="save"]`);
+        await waitText(ctx, 'Save refused by the sample');
+        const kept = await ctx.eval(`[window.__deep.field('Title').value, window.__deep.field('Notes').value]`);
+        ctx.ok(kept[0] === 'FAIL' && kept[1] === 'kept notes', `a rejected Save cleared the form: ${JSON.stringify(kept)}`);
+        await ctx.noErrors(ctx.openMark, [...BENIGN, /Save refused by the sample/]);
+        // Leave the page clean (see the case above): empty the fields so the beforeunload guard is disarmed.
+        await ctx.setField('Title', ''); await ctx.setField('Notes', '');
+        await ctx.waitFor(`document.querySelector('pk-record-page')?.dirty === false`, 'the form to be clean again');
+      } },
     // Sections are one card each, the sidebar's fields edit in the same form, the title follows the loaded record, and Cancel leaves edit mode.
     { name: 'record-sections-sidebar-title',
       async run(ctx) {
