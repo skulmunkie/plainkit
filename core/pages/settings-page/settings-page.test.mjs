@@ -235,6 +235,21 @@ test('saveNow does nothing without a save callback (no throw)', async () => {
     assert.equal(parts.saved.hidden, false, 'untouched: the stub never sets it');
 });
 
+test('a bare section draws no card or heading, keeps its slot, nav item and fields (#1633)', () => {
+    const { el, parts } = make();
+    el.config = { sections: [{ key: 'a', heading: 'A', bare: true, fields: [{ key: 'name', type: 'text', label: 'Name' }] }, { key: 'b', heading: 'B', fields: [] }, { key: 'c', heading: 'C', fields: [] }] };
+    el.connected();
+    const [a, b] = parts.sections.children;
+    assert.equal(a.localName, 'pk-stack');
+    assert.equal(a.heading, undefined);
+    assert.equal(a.dataset.pkSection, 'a');
+    assert.equal(a.dataset.pkSectionLabel, 'A');
+    assert.equal(a.children.find(c => c.localName === 'slot')?.name, 'section-a');
+    assert.equal(b.localName, 'pk-card');
+    assert.equal(parts.nav.children.length, 3);
+    assert.ok(el.$controls.name);
+});
+
 test('a section with a key gets a section-<key> slot after its fields, one without does not (#1604)', () => {
     const { el, parts } = make();
     el.config = { sections: [{ key: 'api', heading: 'API', fields: [{ key: 'name', type: 'text', label: 'Name' }] }, { heading: 'Other', fields: [] }] };

@@ -47,8 +47,10 @@ export default Base => class extends Base {
         this.$cards = {};
         this.part('empty').hidden = sections.length !== 0;
         for (const [n, section] of sections.entries()) {
-            const card = doc.createElement('pk-card');
-            if (section.heading) card.heading = section.heading;
+            // A bare section (#1633) has no card and no heading drawn: its stack is the section, so the app's fragment draws its own cards; the nav, title bar and save bar still cover it.
+            const card = doc.createElement(section.bare ? 'pk-stack' : 'pk-card');
+            const stack = section.bare ? card : doc.createElement('pk-stack');
+            if (section.heading && !section.bare) card.heading = section.heading;
             if (on) {
                 let id = String(section.key ?? section.heading ?? '').toLowerCase().normalize('NFKD').replace(/[^\w\s-]/g, '').trim().replace(/[\s_-]+/g, '-') || 'section-' + (n + 1);
                 while (keys.includes(id)) id += '-' + (n + 1);
@@ -64,7 +66,6 @@ export default Base => class extends Base {
                 item.textContent = card.dataset.pkSectionLabel;
                 items.push(item);
             }
-            const stack = doc.createElement('pk-stack');
             for (const f of section.fields ?? []) {
                 const { el, row } = buildField(doc, f);
                 stack.append(row);
@@ -72,7 +73,7 @@ export default Base => class extends Base {
             }
             // The app's own content for this section (#1604): a light-DOM child with slot="section-<key>" shows in the card after the fields; its pk-value-change and pk-change reach the form, so the save bar and Discard cover it.
             if (section.key != null) { const slot = doc.createElement('slot'); slot.name = 'section-' + section.key; stack.append(slot); }
-            card.append(stack);
+            if (!section.bare) card.append(stack);
             box.append(card);
         }
         nav.replaceChildren(...items);
