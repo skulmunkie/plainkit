@@ -14,6 +14,15 @@ export default Base => class extends Base {
         // element - core/components/detail-layout does the same for its own strip and Next button); load it once here.
         loadElements(this.shadowRoot);
         this.buildFields();
+        // Content the app puts in the default slot (#1604) takes the place of the generated input, Run button and outcome.
+        const custom = this.part('custom');
+        custom.addEventListener('slotchange', () => this.showCustom());
+        this.showCustom();
+    }
+    showCustom() {
+        const on = this.part('custom').assignedNodes().some(n => n.nodeType === 1 || (n.nodeType === 3 && n.textContent.trim()));
+        this.part('form').hidden = on;
+        this.part('outcome').hidden = on;
     }
     changed(name) { if (name === 'config') this.buildFields(); }
     updated() { this.part('run').textContent = this.runLabel || 'Run'; }

@@ -36,6 +36,15 @@ public sealed class PkListPageTests : BunitContext, IAsyncLifetime
         Assert.Equal("Export", cut.Find("[slot='toolbar'] #export").TextContent);
     }
 
+    [Fact]
+    public void BeforeListContent_fills_the_before_list_slot()
+    {
+        var cut = Render<PkListPage<Order>>(p => p
+            .Add(x => x.BeforeListContent, b => b.AddMarkupContent(0, "<pk-alert id=\"sync\">Last sync</pk-alert>")));
+
+        Assert.Equal("Last sync", cut.Find("[slot='before-list'] #sync").TextContent);
+    }
+
     private async Task<JsonElement> LoadedRows(IRenderedComponent<PkListPage<Order>> cut)
     {
         var host = Assert.IsType<DotNetObjectReference<PkCallbackHost<PkListPageQuery>>>(Assert.Single(_bridge.Invocations["setCallback"], i => i.Arguments[1] as string == "load").Arguments[2]);

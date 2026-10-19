@@ -76,7 +76,9 @@ export default Base => class extends Base {
 
     // Not named render(): the base class calls render() on every prop change (dirty, mode), which would rebuild the form under the reader on the first keystroke.
     draw() {
-        const doc = this.ownerDocument, main = this.part('main'), sideEl = this.part('side'), vals = this.$values ?? {}, editing = this.editing;
+        const doc = this.ownerDocument, main = this.part('main'), sideEl = this.part('side'), editing = this.editing;
+        // A redraw while the form holds unsaved edits (the host rewrote config after a rejected save, or fields changed) keeps what was typed (#1598).
+        const vals = editing && this.dirty && this.$groups?.length ? this.collect() : (this.$values ?? {});
         this.notice();
         const side = (this.config?.sidebar ?? []), claimed = new Set(side.flatMap(c => c.fields ?? []));
         this.$groups = [];

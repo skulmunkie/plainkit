@@ -27,6 +27,11 @@
       "type": "string"
     },
     {
+      "name": "ShowLabel",
+      "prop": "showLabel",
+      "type": "bool"
+    },
+    {
       "name": "IsInvalid",
       "prop": "invalid",
       "type": "bool"

@@ -163,6 +163,27 @@ export const headerCases = [
         t.eq(page.shadowRoot.querySelectorAll('pk-page-shell > pk-button[slot=actions]').length, 1, 'an action without a hint stays a bare button');
         t.eq(page.shadowRoot.querySelectorAll('pk-input').length, 2);
     }],
+    ['page-header: actions-overflow collapses the slotted actions into one labelled button whose menu items click the originals, keeping the bar one row high (#1602)', async t => {
+        const h = await t.mount('<pk-page-header variant="record"><span>Open</span><pk-button slot="actions" icon-name="import">Receive</pk-button><pk-button slot="actions" icon-name="document">Print</pk-button><pk-button slot="actions" disabled>Archive</pk-button></pk-page-header>');
+        await Promise.all(['pk-dropdown', 'pk-button'].map(n => customElements.whenDefined(n))); await t.settle();
+        const buttons = [...h.querySelectorAll('pk-button')], slot = h.shadowRoot.querySelector('slot[name="actions"]');
+        t.ok(h.part('overflow').hidden, 'off by default: no overflow button'); t.ok(buttons.every(b => rect(b).height > 0), 'the actions are drawn inline');
+        const inlineHeight = rect(h).height;
+        let clicks = 0; buttons[1].addEventListener('click', () => clicks++);
+        h.actionsOverflow = 'always'; await t.settle(); await t.settle();
+        t.ok(!h.part('overflow').hidden, 'the overflow dropdown shows'); t.ok(buttons.every(b => rect(b).height === 0), 'every action is hidden');
+        const trigger = h.part('overflow-button');
+        t.ok(rect(trigger).height > 0, 'one trigger is drawn'); t.eq(trigger.label, 'Actions', 'with an accessible name');
+        t.ok(rect(h).height <= inlineHeight + 1, 'the header is no taller than with the inline actions');
+        trigger.click(); await t.settle(); await t.settle();
+        await customElements.whenDefined('pk-menu-item'); await t.settle();
+        const items = [...h.part('overflow').querySelectorAll('pk-menu-item')];
+        t.eq(items.map(i => i.textContent.trim()).join(), 'Receive,Print,Archive'); t.ok(items[2].hasAttribute('disabled'), 'a disabled action is a disabled item');
+        items[1].click(); await t.settle();
+        t.eq(clicks, 1, 'choosing an item clicks the original action'); t.ok(slot.hidden, 'the slot itself stays in the light DOM, hidden');
+        h.actionsOverflow = 'never'; await t.settle();
+        t.ok(h.part('overflow').hidden && buttons.every(b => rect(b).height > 0), 'never puts the actions back');
+    }],
 ];
 
 // Issue 801: the crumbs prop (a JSON array) draws the breadcrumb, a home crumb and a back link in the element's own shadow tree.
