@@ -135,7 +135,7 @@ test('a config with no host slot content leaves a bare title bar bare', () => {
 test('the shadow template forwards the actions slot to the title bar and the toolbar slot to the data table actions slot', async () => {
     const { readFile } = await import('node:fs/promises');
     const html = await readFile(new URL('./list-page.html', import.meta.url), 'utf8');
-    assert.match(html, /<slot name="actions" slot="actions"><\/slot><pk-data-table/);
+    assert.match(html, /<slot name="actions" slot="actions"><\/slot><slot name="before-list"><\/slot><pk-data-table/);
     assert.match(html, /<slot name="toolbar" slot="actions"><\/slot>/);
 });
 
@@ -162,4 +162,10 @@ test('the initial query of the config (search, filterValues, sort, sortDir, page
     el.config = { search: 'acme', filterValues: { channel: 'ebay' }, sort: 'total', sortDir: 'descending', page: 3 };
     el.connected();
     assert.deepEqual([parts.table.search, parts.table.filterValues, parts.table.sort, parts.table.sortDir, parts.table.page], ['acme', { channel: 'ebay' }, 'total', 'descending', 3]);
+});
+
+import { readFileSync } from 'node:fs';
+test('the template has a before-list slot ahead of the table (#1603)', () => {
+    const html = readFileSync(new URL('./list-page.html', import.meta.url), 'utf8');
+    assert.ok(html.indexOf('<slot name="before-list">') > 0 && html.indexOf('<slot name="before-list">') < html.indexOf('<pk-data-table'));
 });
