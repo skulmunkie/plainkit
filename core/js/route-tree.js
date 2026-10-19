@@ -2,7 +2,8 @@
 // a nested tree of { path, label, children?, crumb? } and derive the breadcrumb trail. A `:name` path segment captures; `label` is a
 // string or (params) => string; `crumb: false` leaves a route out of the trail; static segments beat a :param at the same depth. A route
 // with path '*' is the not-found route: it matches only when nothing else does. A node with no path is a group (a nav heading): it
-// is never matched but stays in the trail.
+// is never matched but stays in the trail. A trailing '*' segment ('/stock/*') makes a route own its whole subtree: it matches /stock and every
+// path under it; an exact route beats it, and among prefix routes the longest prefix wins (#1609).
 import { schemeOf } from './safe-url.js';
 
 const segments = path => path.split(/[?#]/)[0].split('/').filter(Boolean);
@@ -28,8 +29,10 @@ export function matchRoute(routes, path) {
     for (const { node, chain } of flat(routes)) {
         if (node.path == null) continue;
         if (node.path === '*') { star ??= { node, chain, params: {}, notFound: true }; continue; }
-        const have = segments(node.path);
-        if (have.length !== want.length) continue;
+        let have = segments(node.path);
+        const wild = have.length > 1 && have[have.length - 1] === '*'; // '/stock/*': owns /stock and everything under it
+        if (wild) have = have.slice(0, -1);
+        if (wild ? want.length < have.length : have.length !== want.length) continue;
         const params = {};
         let statics = 0;
         const ok = have.every((seg, i) => {
@@ -37,14 +40,15 @@ export function matchRoute(routes, path) {
             statics++;
             return seg === want[i];
         });
-        if (ok && (!best || statics > best.statics)) best = { node, chain, params, statics };
+        const rank = (wild ? have.length * 1e3 : 1e6) + statics; // an exact route beats a prefix route; the longest prefix wins
+        if (ok && (!best || rank > best.rank)) best = { node, chain, params, rank };
     }
     return best ? { node: best.node, chain: best.chain, params: best.params } : star;
 }
 
 // The path of a route with its :params filled in from `params`. Pure.
 export function fillPath(path, params = {}) {
-    return '/' + segments(path).map(s => (s[0] === ':' ? encodeURIComponent(params[s.slice(1)] ?? '') : s)).join('/');
+    return '/' + segments(path).filter((s, i, a) => !(s === '*' && i === a.length - 1 && a.length > 1)).map(s => (s[0] === ':' ? encodeURIComponent(params[s.slice(1)] ?? '') : s)).join('/');
 }
 
 // The breadcrumb trail for a match, [{ label, href? }] in the shape createPage's setBreadcrumbs takes: the last item is the current
