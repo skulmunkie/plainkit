@@ -342,6 +342,13 @@ public sealed class PkPageCallbackTests : BunitContext, IAsyncLifetime
     }
 
     [Fact]
+    public void RecordPage_Sticky_reaches_the_element_as_the_sticky_attribute()
+    {
+        Assert.False(Render<PkRecordPage<Person>>().Find("pk-record-page").HasAttribute("sticky"));
+        Assert.True(Render<PkRecordPage<Person>>(p => p.Add(x => x.Sticky, true)).Find("pk-record-page").HasAttribute("sticky"));
+    }
+
+    [Fact]
     public async Task RecordPage_OnDelete_shows_Delete_and_Busy_and_Error_reach_the_element()
     {
         string? deleted = null;

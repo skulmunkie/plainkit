@@ -285,3 +285,21 @@ test('Cancel emits pk-record-cancel; a new record shows Cancel only when cancell
     parts.cancel.listeners.click[0]();
     assert.deepEqual(events.at(-1), ['pk-record-cancel', { id: null }]);
 });
+
+test('sticky (the prop or config.sticky) pins the shell header and moves the buttons into its actions (#1601)', async () => {
+    const { el, parts } = make();
+    el.load = async () => ({ name: 'Widget' });
+    el.connected();
+    await tick();
+    assert.equal(parts.header.getAttribute('sticky'), null);
+    assert.equal(parts.bar.getAttribute('slot'), null);
+    el.sticky = true; el.changed('sticky');
+    assert.equal(parts.header.getAttribute('sticky'), '');
+    assert.equal(parts.bar.getAttribute('slot'), 'actions');
+    assert.equal(parts.header.getAttribute('data-bare'), 'false', 'a page with no title keeps the header the buttons live in');
+    el.sticky = false; el.changed('sticky');
+    assert.equal(parts.header.getAttribute('sticky'), null);
+    assert.equal(parts.bar.getAttribute('slot'), null);
+    el.config = { ...el.config, sticky: true }; el.changed('config');
+    assert.equal(parts.header.getAttribute('sticky'), '', 'config.sticky does the same');
+});
