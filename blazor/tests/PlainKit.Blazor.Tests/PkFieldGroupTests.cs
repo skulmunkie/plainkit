@@ -209,6 +209,16 @@ public sealed class PkFieldGroupTests : BunitContext, IAsyncLifetime
         Assert.Equal("From X", slotted[0].TextContent);
     }
 
+    // Issue 1628: a Custom spec keeps its LabelAction, and LabelActionEnd is sent to the element for the field that sets it.
+    [Fact]
+    public void Custom_spec_honours_LabelAction_and_LabelActionEnd_is_sent()
+    {
+        var spec = PkFieldSpec<Order>.Custom("w", "Weight", o => b => b.AddContent(0, "body")) with { LabelAction = o => b => b.AddContent(0, "None"), LabelActionEnd = true };
+        var cut = Render([spec], new Order { Name = "X" });
+        Assert.True(Defs(cut)[0].GetProperty("labelActionEnd").GetBoolean());
+        Assert.Contains(cut.FindAll("pk-field-group > [slot]"), e => e.GetAttribute("slot") == "label-action-w" && e.TextContent == "None");
+    }
+
     // Issue 264: Custom draws the caller's own content in the element's editor-<key> slot and is sent as kind "custom".
     [Fact]
     public void Custom_slots_the_editor_and_sends_kind_custom()

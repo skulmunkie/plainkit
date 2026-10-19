@@ -32,6 +32,12 @@
       "type": "FieldLayout"
     },
     {
+      "name": "LabelActionEnd",
+      "prop": "actionEnd",
+      "type": "bool",
+      "doc": "Pins the LabelAction content to the end of the label row instead of directly after the label text."
+    },
+    {
       "name": "Warning",
       "prop": "warning",
       "type": "string"

@@ -29,8 +29,8 @@ export default Base => class extends Base {
         if (this.required && 'required' in c) c.required = true;
         const text = describe(this.help, this.error, this.warning);
         if ('description' in c) c.description = text; else if (text) c.setAttribute('aria-description', text); else c.removeAttribute('aria-description');
-        if ('invalid' in c) { this.flag(c, 'invalid', Boolean(this.error)); this.flag(c, 'warning', Boolean(this.warning) && !this.error); }
-        else { c.toggleAttribute('data-invalid', Boolean(this.error)); if (this.error) c.setAttribute('aria-invalid', 'true'); else c.removeAttribute('aria-invalid'); }
+        if ('invalid' in c) { this.flag(c, 'invalid', !!this.error); this.flag(c, 'warning', !!this.warning && !this.error); }
+        else { c.toggleAttribute('data-invalid', !!this.error); if (this.error) c.setAttribute('aria-invalid', 'true'); else c.removeAttribute('aria-invalid'); }
         this.count();
     }
     later(tag) { const w = this.$wait ??= new Set(); if (w.has(tag)) return; w.add(tag); customElements.whenDefined(tag).then(() => { w.delete(tag); this.wire(); }); }
@@ -39,9 +39,9 @@ export default Base => class extends Base {
         const c = this.control(); const n = this.part('count');
         if (!c || !(this.max > 0)) n.textContent = '';
         else { const length = String(c.value ?? '').length; n.textContent = counterText(length, this.max); n.dataset.state = counterState(length, this.max); }
-        const helpOn = Boolean(this.help) || this.slotted('help').length > 0;
-        this.part('label').hidden = !this.label && this.slotted('label').length === 0 && this.slotted('label-action').length === 0;
+        const helpOn = this.help || this.slotted('help').length;
+        this.part('label').hidden = !(this.label || this.slotted('label').length || this.slotted('label-action').length);
         this.part('help').hidden = !helpOn;
-        this.part('foot').hidden = !helpOn && !this.error && !this.warning && n.textContent === '';
+        this.part('foot').hidden = !helpOn && !this.error && !this.warning && !n.textContent;
     }
 };
