@@ -100,7 +100,7 @@ Each element is its own module in `plainkit/elements/<name>.js`, found by name (
 
 ## Ship one small request
 
-For production you can replace the lazy loading with a per-page bundle. The tool reads the `pk-*` tags in a page and writes `plainkit.bundle.js` (the init entry plus exactly those elements) and `plainkit.bundle.css`:
+For production you can replace the lazy loading with a per-page bundle. The tool reads the `pk-*` tags in a page and writes `plainkit.bundle.js` (the init entry plus exactly those elements), `plainkit.bundle.css` and a `chunks/` folder (the code the entry shares with the features an element loads on demand, such as a table's editing, which stays lazy):
 
 ```bash
 node core/tools/bundle-page.mjs --html index.html --out public/plainkit
@@ -108,7 +108,7 @@ node core/tools/bundle-page.mjs --html index.html --out public/plainkit
 # also: --app (app framework), --full (theme and colour helpers), --dist node_modules/plainkit/dist (an installed package)
 ```
 
-The page then makes two requests instead of 20 to 27 and sends about a third fewer bytes, because one file compresses better than many small ones. Link the stylesheet, load the script as a module and call the exported `initPlainkit()` from your own script file, as above. The tool needs esbuild (`npm i -D esbuild`); it is not a dependency of the package.
+The page then makes about ten requests instead of 20 to 27 and sends about a fifth fewer bytes, because fewer, larger files compress better than many small ones. Publish the whole output folder (the `chunks/` folder must sit next to the script), link the stylesheet, load the script as a module and call the exported `initPlainkit()` from your own script file, as above. The tool needs esbuild (`npm i -D esbuild`); it is not a dependency of the package.
 
 ## Themes and density
 

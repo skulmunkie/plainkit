@@ -37,7 +37,7 @@ what that click fetches is not counted).
 | Id | Stack and build | Notes |
 | --- | --- | --- |
 | `plainkit-elements` | Plainkit loaded per element: `initPlainkit()` from `core/dist`, no build, the page's own `app.js` and `rows.js` as written (not minified) | the recommended wiring of the Getting started guide, with its four `modulepreload` hints; `pk-stack`, `pk-field`, `pk-input`, `pk-select`, `pk-button`, `pk-table` (manual), `pk-cluster`, `pk-dialog` |
-| `plainkit-bundle` | Plainkit as one page bundle: `core/tools/bundle-page.mjs` (esbuild, minified) plus the page code minified with the same esbuild | the same markup, 4 requests |
+| `plainkit-bundle` | Plainkit as one page bundle: `core/tools/bundle-page.mjs` (esbuild, minified) plus the page code minified with the same esbuild | the same markup, 10 requests: the entry, the chunks it shares with the lazy code, the stylesheet (code the elements load on demand stays a lazy chunk) |
 | `plainkit-app` | Plainkit `mountApp`: a module with a `list` page (sortable columns, 5 per page, a bulk "Delete list" action that opens `ctx.dialogs.confirm`) and a `record` page (the form, with `save` returning the errors); unbundled | a different page by construction: the app shell, router, breadcrumb, search box and side nav come with it, the form is a second route (`#/team/members/new`), and the dialog is the framework's confirm. It is what an app costs, not what the same page costs |
 | `lit` | Lit 3, Vite 8 production build (esbuild minify), one `LitElement` in the light DOM | |
 | `svelte` | Svelte 5 (runes), Vite 8 with `@sveltejs/vite-plugin-svelte` | |
@@ -56,7 +56,7 @@ None of the pages loads a font (Plainkit and the shared CSS use the system font 
 - Counted: the HTML document, every JS, CSS, font, icon and JSON file the page requests during its cold load. Not counted: response headers, TLS, HTTP framing, the favicon, WebSocket frames.
 - Compressed offline, not by a server, so they are the best case a good CDN gives. Real servers often use a lower brotli level.
 - The Plainkit "per element" row downloads 26 files as a graph of ES modules; its byte count is low but the request chain is deep (see `scripts/bench/load.mjs` for the timing).
-  The page bundle is 4 requests but a little larger: the bundle tool includes the modules that elements load lazily when a feature is used.
+  The page bundle splits the code the elements load on demand (a table's editing, column resize...) into lazy chunks, so the cold load is the entry plus its shared chunks: 10 requests and about 7 KB lighter than per element.
 - Framework rows are a single tiny component, so they show the framework's floor. A real app's own code grows them; Plainkit's per-element cost grows by the elements you add (an element file averages 1.6 KB gzip; button is 2.6, input 3.7, table 4.0).
 - No time measurements: wall-clock numbers are noisy; see `scripts/bench/wire.mjs` for those.
 
