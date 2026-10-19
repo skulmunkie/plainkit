@@ -1,0 +1,19 @@
+@page "/lab/ticket-new"
+
+@* Lab: a new record (no id, Model) whose Save fails when the Title is FAIL; the typed values must stay in the form (#1598). *@
+<PkRecordPage TItem="Ticket" Config="@Config" Fields="Ticket.Specs" Model="_model" Save="Save" Busy="_busy" Error="@_error" />
+
+@code {
+    private const string Config = """{"heading":"New ticket","editable":true}""";
+    private readonly Ticket _model = new();
+    private bool _busy;
+    private string? _error;
+
+    private async Task Save(Ticket t)
+    {
+        _busy = true; _error = null; StateHasChanged();
+        try { await TicketStore.SaveAsync(t); }
+        catch (Exception ex) { _error = ex.Message; throw; }
+        finally { _busy = false; StateHasChanged(); }
+    }
+}

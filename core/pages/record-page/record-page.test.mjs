@@ -149,8 +149,10 @@ test('delete: the Delete button shows in view mode of an existing record when co
     for (const fn of parts.delete.listeners?.click ?? []) fn();
     assert.deepEqual(events.filter(e => e[0] === 'pk-record-delete'), [['pk-record-delete', { id: '7' }]]);
     el.mode = 'edit'; el.draw();
-    assert.equal(parts.delete.hidden, true, 'not while editing');
-    el.config = { ...el.config, deletable: false }; el.mode = 'view'; el.draw();
+    assert.equal(parts.delete.hidden, false, 'also while editing an existing record (#1597)');
+    el.config = { ...el.config, id: undefined }; el.$id = null; el.draw();
+    assert.equal(parts.delete.hidden, true, 'not for a new record');
+    el.$id = '7'; el.config = { ...el.config, deletable: false }; el.mode = 'view'; el.draw();
     assert.equal(parts.delete.hidden, true, 'not without config.deletable');
 });
 
@@ -284,4 +286,19 @@ test('Cancel emits pk-record-cancel; a new record shows Cancel only when cancell
     assert.equal(parts.cancel.hidden, false);
     parts.cancel.listeners.click[0]();
     assert.deepEqual(events.at(-1), ['pk-record-cancel', { id: null }]);
+});
+
+test('a redraw while edits are unsaved keeps what was typed (the host rewrites config after a rejected save, #1598)', async () => {
+    const { el, parts } = make();
+    el.config = { ...el.config, id: undefined, sidebar: [] };
+    el.save = async () => { throw new Error('offline'); };
+    el.connected();
+    await tick();
+    const group = () => parts.main.children[0].children[0].children[0];
+    group().snapshot = () => ({ name: 'Typed' });
+    el.track();
+    assert.equal(el.dirty, true);
+    el.changed('config');
+    assert.equal(group().values.name, 'Typed', 'the rebuilt form starts from the live values, not the blank ones');
+    assert.equal(el.dirty, true);
 });

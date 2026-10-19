@@ -743,3 +743,13 @@ test('"location": the component tracks NavigationManager and sends the path unle
     assert.match(c, /OpenChanged\.InvokeAsync\(false\)/);
     assert.doesNotMatch(run().files.get('PkDemo.razor'), /LocationNav/);
 });
+
+// ---- the table column records (#1580): generated from the columns description of the table meta
+
+test('table column: every column key and editor of the meta is in the generated record', () => {
+    const meta = JSON.parse(fs.readFileSync(path.join(root, 'core', 'elements', 'table', 'table.meta.json'), 'utf8'));
+    const description = meta.props.find(p => p.name === 'columns').description;
+    const text = real.files.get('PkTableColumn.cs');
+    for (const key of /\{ key, label, ([^}]*)\}\[\]/.exec(description)[1].split(',').map(x => x.trim().split('?')[0])) assert.match(text, new RegExp(`public \\S+ ${pascal(key)} \\{ get; init; \\}`), key);
+    for (const editor of /editor\?: ([a-z|]+)/.exec(description)[1].split('|')) assert.match(text, new RegExp(`JsonStringEnumMemberName\\("${editor}"\\)`), editor);
+});

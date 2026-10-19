@@ -127,3 +127,14 @@ test('createPage with a router sets breadcrumbs and the title now and on each ro
     assert.equal(document.title, 'Orders');
     delete globalThis.document;
 });
+
+test("matchRoute: a trailing * segment owns its subtree, exact routes win, the longest prefix wins (#1609)", () => {
+    const tree = [{ path: "/stock/*", label: "Stock" }, { path: "/stock/ledger/*", label: "Ledger" }, { path: "/stock/ledger/new", label: "New" }, { path: "*", label: "NF" }];
+    assert.equal(matchRoute(tree, "/stock/ledger/new").node.label, "New");
+    assert.equal(matchRoute(tree, "/stock/ledger/41/lines").node.label, "Ledger");
+    assert.equal(matchRoute(tree, "/stock/ledger").node.label, "Ledger");
+    assert.equal(matchRoute(tree, "/stock").node.label, "Stock");
+    assert.equal(matchRoute(tree, "/stock/x/y").node.label, "Stock");
+    assert.equal(matchRoute(tree, "/other").notFound, true);
+    assert.equal(fillPath("/stock/ledger/*"), "/stock/ledger");
+});

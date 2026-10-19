@@ -23,12 +23,17 @@
   ],
   "slots": [
     {
+      "name": "",
+      "description": "The app's own content. When present it replaces the generated input fields, Run button and outcome (config.input, config.outcome and run are then unused)."
+    },
+    {
       "name": "title",
       "description": "The page title: a level 1 pk-heading the built-in page factory (mountTitled) appends from config.heading, so the app can focus it after navigation."
     }
   ],
   "events": [],
   "parts": [
+    { "name": "custom", "description": "The default slot: the app's own content, which replaces the form and outcome when present." },
     { "name": "form", "description": "Wraps the fields and the Run button; submitting it (click or Enter) runs the action." },
     { "name": "fields", "description": "Holds one control per config.input entry." },
     { "name": "run", "description": "The Run button." },

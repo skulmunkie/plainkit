@@ -25,6 +25,13 @@
       "doc": "Saves the values of the fields, keyed by field key (read text with GetString(), a switch with GetBoolean()). After a successful save the Values parameter becomes the saved values (JSON) and ValuesChanged is raised (@bind-Values). Throwing keeps the unsaved changes and shows the exception message; returning marks them saved."
     },
     {
+      "name": "SectionContent",
+      "map": "slotMap",
+      "slotPrefix": "section-",
+      "type": "IReadOnlyDictionary<string, RenderFragment>?",
+      "doc": "Your own content by section key (the Config section key): each shows inside that section's card after its fields, so the section nav and the save bar cover it. Controls in it that raise pk-value-change or pk-change mark the form changed; their values are not in Save's dictionary, keep them in your own state."
+    },
+    {
       "name": "OnAction",
       "event": "pk-action",
       "note": "A title-bar action (config.actions entry without an href) was clicked; Key is its key."

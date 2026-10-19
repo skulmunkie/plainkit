@@ -100,6 +100,22 @@ public sealed class PkPageCallbackTests : BunitContext, IAsyncLifetime
         Assert.Equal("Marked.", Envelope(await marked.InvokeAsync(() => markedHost.Value.Invoke(Values("{}")))).GetProperty("message").GetString());   // the marker works without the predicate
     }
 
+    [Fact]
+    public void SettingsPage_SectionContent_renders_into_section_key_slots()   // #1604
+    {
+        var cut = Render<PkSettingsPage>(p => p.Add(x => x.SectionContent, new Dictionary<string, RenderFragment> { ["profile"] = b => b.AddMarkupContent(0, "<i id=\"mine\">x</i>") }));
+
+        Assert.Equal("x", cut.Find("pk-settings-page [slot='section-profile'] #mine").TextContent);
+    }
+
+    [Fact]
+    public void ToolPage_ChildContent_goes_in_the_default_slot()   // #1604
+    {
+        var cut = Render<PkToolPage>(p => p.AddChildContent("<b id=\"mine\">x</b>"));
+
+        Assert.Equal("x", cut.Find("pk-tool-page #mine").TextContent);
+    }
+
     private const string Generic = "Something went wrong. See the log for details.";
     private sealed class Refusal(string message) : Exception(message), IPkUserFacingException;
     private static JsonElement Envelope(object? result) => JsonSerializer.SerializeToElement(result);
