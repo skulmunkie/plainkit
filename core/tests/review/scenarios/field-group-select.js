@@ -7,10 +7,12 @@ export default {
     setup(frame) {
         const g = frame.querySelector('#g');
         g.fields = [{ key: 'ch', label: 'Channel', kind: 'combobox', mode: 'select', placeholder: 'Choose a channel', options: [{ value: 'web', label: 'Web' }, { value: 'market', label: 'Market' }, { value: 'live', label: 'Live' }] }];
-        g.values = { ch: 'market' };
+        g.fields.push({ key: 'st', label: 'Status (kind select, styled)', kind: 'select', styled: true, required: true, options: [{ value: 'open', label: 'Open' }, { value: 'closed', label: 'Closed' }] });
+        g.values = { ch: 'market', st: 'open' };
     },
-    steps: [{ wait: 600 }, { shot: 'closed' }, { click: '#g >>> pk-combobox >>> [part=trigger]' }, { shot: 'open' }],
+    steps: [{ wait: 600 }, { shot: 'closed' }, { click: '#g >>> pk-combobox >>> [part=trigger]' }, { shot: 'open' }, { key: 'Escape' }, { click: '#g >>> pk-field:nth-child(2) pk-combobox >>> [part=trigger]' }, { shot: 'open-styled-select' }],
     expect(t) {
+        if (t.shot === 'open-styled-select') { const Q = '#g >>> pk-field:nth-child(2) pk-combobox >>> [part=popup]'; t.visible(Q, 'the styled select list'); t.inViewport(Q); return; }
         if (t.shot !== 'open') return;
         const P = '#g >>> pk-combobox >>> [part=popup]';
         t.visible(P, 'the open list'); t.inViewport(P);

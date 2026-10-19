@@ -4,6 +4,9 @@
 export const INPUT_KINDS = ['text', 'number', 'email', 'password', 'date', 'datetime-local', 'time', 'url', 'tel'];
 const TAGS = { textarea: 'pk-textarea', select: 'pk-select', checkbox: 'pk-checkbox', switch: 'pk-switch', range: 'pk-range', combobox: 'pk-combobox' };
 
+/** A `kind: select` spec with `styled` becomes the combobox in select mode (the themed list; same options, value, required, disabled, keyboard); any other spec is returned as it is. */
+export const resolveSpec = spec => (spec?.kind === 'select' && spec.styled ? { ...spec, kind: 'combobox', mode: 'select', free: undefined } : spec);
+
 /** The element tag a field kind renders (pk-input for every scalar type and for a kind it does not know). */
 export const controlTag = kind => TAGS[kind] ?? 'pk-input';
 

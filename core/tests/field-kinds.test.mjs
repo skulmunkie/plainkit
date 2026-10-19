@@ -1,7 +1,7 @@
 // js/field-kinds.js: the table of what a field spec becomes, and the rules of a conditional field (pk-field-group, js/page-fields.js).
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { controlTag, isChecked, commitOf, controlAttrs, messageAttrs, isVisible, writeValue, readValue, formEntries, valuesFromEntries } from '../js/field-kinds.js';
+import { resolveSpec, controlTag, isChecked, commitOf, controlAttrs, messageAttrs, isVisible, writeValue, readValue, formEntries, valuesFromEntries } from '../js/field-kinds.js';
 
 test('every scalar kind is a pk-input; the others pick their own control', () => {
     for (const k of ['text', 'number', 'email', 'password', 'date', 'time', 'url', 'tel', 'unknown', undefined]) assert.equal(controlTag(k), 'pk-input');
@@ -27,6 +27,10 @@ test('a spec becomes the attributes of its control: only the set ones, the type 
     assert.deepEqual(controlAttrs({ key: 's', kind: 'select', required: true }), { required: '' });
     assert.deepEqual(controlAttrs({ key: 'c', kind: 'combobox', free: true, placeholder: 'x' }), { placeholder: 'x', free: '' });
     assert.deepEqual(controlAttrs({ key: 'c', kind: 'combobox', mode: 'select' }), { mode: 'select' }, 'a combobox field can be a styled select');
+    const st = resolveSpec({ key: 's', kind: 'select', styled: true, required: true, options: [] });
+    assert.deepEqual([st.kind, controlTag(st.kind), controlAttrs(st)], ['combobox', 'pk-combobox', { required: '', mode: 'select' }], 'styled turns a select into the select-mode combobox');
+    const nat = { key: 's', kind: 'select' };
+    assert.equal(resolveSpec(nat), nat, 'without styled the select stays native'); assert.equal(resolveSpec({ kind: 'text', styled: true }).kind, 'text', 'styled only applies to a select');
     assert.deepEqual(messageAttrs({ msg: { required: 'Enter a name.' } }), { 'data-msg-required': 'Enter a name.' });
     assert.deepEqual(messageAttrs({}), {});
 });
