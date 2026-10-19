@@ -15,27 +15,27 @@
       "errors": [],
       "raw": {
         "html": 1772,
-        "js": 80396,
+        "js": 78559,
         "css": 26384,
         "font": 0,
         "other": 0,
-        "total": 108552
+        "total": 106715
       },
       "gzip": {
         "html": 663,
-        "js": 31753,
+        "js": 30890,
         "css": 6878,
         "font": 0,
         "other": 0,
-        "total": 39294
+        "total": 38431
       },
       "brotli": {
         "html": 479,
-        "js": 27840,
+        "js": 27074,
         "css": 5865,
         "font": 0,
         "other": 0,
-        "total": 34184
+        "total": 33418
       },
       "files": [
         {
@@ -167,9 +167,9 @@
         {
           "url": "plainkit/elements/dialog.js",
           "kind": "js",
-          "raw": 6824,
-          "gzip": 2644,
-          "brotli": 2259
+          "raw": 6826,
+          "gzip": 2643,
+          "brotli": 2257
         },
         {
           "url": "plainkit/js/safe-url.js",
@@ -207,11 +207,11 @@
           "brotli": 260
         },
         {
-          "url": "plainkit/js/menu-logic.js",
+          "url": "plainkit/js/dialog-logic.js",
           "kind": "js",
-          "raw": 2704,
-          "gzip": 1284,
-          "brotli": 1124
+          "raw": 865,
+          "gzip": 422,
+          "brotli": 360
         },
         {
           "url": "plainkit/js/table-data.js",
@@ -248,11 +248,11 @@
       },
       "brotli": {
         "html": 453,
-        "js": 21842,
+        "js": 21808,
         "css": 5865,
         "font": 0,
         "other": 0,
-        "total": 28160
+        "total": 28126
       },
       "files": [
         {
@@ -281,7 +281,7 @@
           "kind": "js",
           "raw": 56867,
           "gzip": 15843,
-          "brotli": 14149
+          "brotli": 14115
         },
         {
           "url": "plainkit/chunks/chunk-U2KF5BTV.js",
