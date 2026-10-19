@@ -70,6 +70,8 @@ export default Base => class extends Base {
                 stack.append(row);
                 this.$controls[f.key] = { el, type: f.type };
             }
+            // The app's own content for this section (#1604): a light-DOM child with slot="section-<key>" shows in the card after the fields; its pk-value-change and pk-change reach the form, so the save bar and Discard cover it.
+            if (section.key != null) { const slot = doc.createElement('slot'); slot.name = 'section-' + section.key; stack.append(slot); }
             card.append(stack);
             box.append(card);
         }

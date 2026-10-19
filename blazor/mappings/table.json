@@ -153,6 +153,18 @@
       "doc": "Cells of columns that have an Editor edit in place (Enter, F2, or a second tap), and OnCellEdit reports each accepted value. Update your item in the handler (then Refresh, or pass a new list): the element already shows the value. An editable table of 500 or more rows windows like a read-only one (the active and edited rows stay drawn)."
     },
     {
+      "name": "Resizable",
+      "prop": "resizable",
+      "type": "bool",
+      "doc": "Columns get a resize handle (OnColumnResize)."
+    },
+    {
+      "name": "Reorderable",
+      "prop": "reorderable",
+      "type": "bool",
+      "doc": "Columns can be moved (OnColumnReorder)."
+    },
+    {
       "name": "CellErrors",
       "map": "param",
       "prop": "cellErrors",
@@ -386,6 +398,20 @@
       "type": "EventCallback<PkCellsPasteEventArgs>",
       "note": "A paste into an Editable table finished: Cells lists the cells that took a value ({ id, key, value }), Rejected those that did not ({ row, col, reason }). Each accepted cell has already raised OnCellEdit (Source is paste).",
       "listened": true
+    },
+    {
+      "name": "OnColumnResize",
+      "event": "pk-column-resize",
+      "type": "EventCallback<PkColumnResizeEventArgs>",
+      "listened": true,
+      "note": "Key and Width in px; the table keeps the width itself."
+    },
+    {
+      "name": "OnColumnReorder",
+      "event": "pk-column-reorder",
+      "type": "EventCallback<PkColumnReorderEventArgs>",
+      "listened": true,
+      "note": "Key, From, To and the new Order; it cannot be cancelled from Blazor."
     },
     {
       "name": "SortChanged",
