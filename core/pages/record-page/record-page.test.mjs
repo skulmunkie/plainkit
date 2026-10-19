@@ -350,3 +350,21 @@ test('beforeSave(values) runs before save: false stops it and keeps edit mode, a
     answer = undefined; await el.submit();
     assert.equal(saved.length, 1, 'any answer but false goes on'); assert.equal(el.mode, 'view');
 });
+
+test('sticky (the prop or config.sticky) pins the shell header and moves the buttons into its actions (#1601)', async () => {
+    const { el, parts } = make();
+    el.load = async () => ({ name: 'Widget' });
+    el.connected();
+    await tick();
+    assert.equal(parts.header.getAttribute('sticky'), null);
+    assert.equal(parts.bar.getAttribute('slot'), null);
+    el.sticky = true; el.changed('sticky');
+    assert.equal(parts.header.getAttribute('sticky'), '');
+    assert.equal(parts.bar.getAttribute('slot'), 'actions');
+    assert.equal(parts.header.getAttribute('data-bare'), 'false', 'a page with no title keeps the header the buttons live in');
+    el.sticky = false; el.changed('sticky');
+    assert.equal(parts.header.getAttribute('sticky'), null);
+    assert.equal(parts.bar.getAttribute('slot'), null);
+    el.config = { ...el.config, sticky: true }; el.changed('config');
+    assert.equal(parts.header.getAttribute('sticky'), '', 'config.sticky does the same');
+});

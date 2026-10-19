@@ -38,6 +38,12 @@
       "doc": "Value templates by field key: each replaces the text of that field in view mode (the main list and the sidebar cards). A field without one shows its value. The content is yours, so it reads the record from your own state."
     },
     {
+      "name": "Sticky",
+      "prop": "sticky",
+      "type": "bool",
+      "note": "Pins the title bar to the top of the scrolling page with Edit, Cancel, Save and Delete in it (as PkPageHeader Sticky does), so they stay in reach while a long form scrolls."
+    },
+    {
       "name": "Busy",
       "prop": "busy",
       "type": "bool",

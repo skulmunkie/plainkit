@@ -36,6 +36,13 @@
       "description": "Shows Cancel on a new record too The same as config.cancellable."
     },
     {
+      "name": "sticky",
+      "type": "boolean",
+      "default": false,
+      "reflect": true,
+      "description": "Pins the title bar to the top of the scrolling page, with Edit, Cancel, Save and Delete in it, so they stay in reach while a long form scrolls. The same as config.sticky (either one pins it)."
+    },
+    {
       "name": "busy",
       "type": "boolean",
       "default": false,
@@ -105,6 +112,7 @@
     { "name": "state", "description": "The loading, not-found or load error state, in place of the record." }
   ],
   "cssProperties": [],
+  "writes": [{ "target": "the bar part (Edit, Cancel, Save, Delete) in its own shadow tree", "attributes": ["slot"], "why": "With sticky, the bar assigns itself to the actions slot of the pk-page-shell it sits in (also in its own shadow tree), so the buttons ride in the pinned header; without sticky the attribute is removed." }],
   "a11y": "Fields are labelled pk-field controls; pk-form moves focus to the first invalid field and lists the problems in a summary, and a server error focuses its field. The loading and error states use pk-skeleton and pk-alert's own roles and announcements.",
   "examples": [
     {
