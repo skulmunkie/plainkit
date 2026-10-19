@@ -479,6 +479,10 @@ test('a hand-written component must say the namespace of its element\'s tier; a 
     assert.doesNotMatch(generic.files.get('PkGeneratedAliases.cs'), /PkDemo/);
     assert.match(generic.files.get('generated.manifest.json'), /PlainKit\.Blazor\.Pages\.PkDemo/);
 });
+test('callback: userFacing names the parameter whose predicate decides which exception messages reach the browser (#1599)', () => {
+    const m = { ...mapping, params: [...mapping.params, { name: 'Save', callback: 'save', type: 'Func<IReadOnlyDictionary<string, JsonElement>, Task>?', arg: 'Dictionary<string, JsonElement>', result: false, userFacing: 'IsUserFacing', doc: 'Saves.' }] };
+    assert.match(run(m).files.get('PkDemo.razor'), /return null; \}, userFacing: e => IsUserFacing\?\.Invoke\(e\) == true\);/);
+});
 test('callback: a delegate parameter is wired to the element property through a PkCallbackSlot, with an optional result, adapter arguments and abort token', () => {
     const m = { ...mapping, params: [...mapping.params, { name: 'Save', callback: 'save', type: 'Func<IReadOnlyDictionary<string, JsonElement>, Task>?', arg: 'Dictionary<string, JsonElement>', result: false, doc: 'Saves.' },
         { name: 'Load', callback: 'load', type: 'Func<string, CancellationToken, Task<string?>>?', arg: 'Req', args: 'a.Id', abort: true, doc: 'Loads.' }] };
@@ -738,4 +742,14 @@ test('"location": the component tracks NavigationManager and sends the path unle
     assert.match(c, /if \(!Open\) return;/);
     assert.match(c, /OpenChanged\.InvokeAsync\(false\)/);
     assert.doesNotMatch(run().files.get('PkDemo.razor'), /LocationNav/);
+});
+
+// ---- the table column records (#1580): generated from the columns description of the table meta
+
+test('table column: every column key and editor of the meta is in the generated record', () => {
+    const meta = JSON.parse(fs.readFileSync(path.join(root, 'core', 'elements', 'table', 'table.meta.json'), 'utf8'));
+    const description = meta.props.find(p => p.name === 'columns').description;
+    const text = real.files.get('PkTableColumn.cs');
+    for (const key of /\{ key, label, ([^}]*)\}\[\]/.exec(description)[1].split(',').map(x => x.trim().split('?')[0])) assert.match(text, new RegExp(`public \\S+ ${pascal(key)} \\{ get; init; \\}`), key);
+    for (const editor of /editor\?: ([a-z|]+)/.exec(description)[1].split('|')) assert.match(text, new RegExp(`JsonStringEnumMemberName\\("${editor}"\\)`), editor);
 });

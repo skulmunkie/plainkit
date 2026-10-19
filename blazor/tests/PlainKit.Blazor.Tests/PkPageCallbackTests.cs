@@ -69,6 +69,53 @@ public sealed class PkPageCallbackTests : BunitContext, IAsyncLifetime
         Assert.DoesNotContain(" at ", e.GetRawText());
     }
 
+    // #1599: PkRecordPage.IsUserFacing is PkRecordEditor.IsUserFacing for the Save (and Load) bridge: the marker or the predicate shows the message.
+    private sealed class DomainRule(string message) : Exception(message);
+
+    [Fact]
+    public async Task RecordPage_IsUserFacing_lets_a_domain_exception_message_through_Save_and_only_that()
+    {
+        var cut = Render<PkRecordPage<Person>>(p => p.Add(x => x.Fields, PersonFields).Add(x => x.Model, new Person())
+            .Add(x => x.Save, _ => throw new DomainRule("Only one location can be primary."))
+            .Add(x => x.IsUserFacing, ex => ex is DomainRule));
+        var host = Assert.IsType<DotNetObjectReference<PkCallbackHost<Dictionary<string, JsonElement>>>>(Assert.Single(_bridge.Invocations["setCallback"], i => (string)i.Arguments[1]! == "save").Arguments[2]);
+        Assert.Equal("Only one location can be primary.", Envelope(await cut.InvokeAsync(() => host.Value.Invoke(Values("{}")))).GetProperty("message").GetString());
+
+        var other = Render<PkRecordPage<Person>>(p => p.Add(x => x.Fields, PersonFields).Add(x => x.Model, new Person())
+            .Add(x => x.Save, _ => throw new InvalidOperationException("internal detail"))
+            .Add(x => x.IsUserFacing, ex => ex is DomainRule));
+        var otherHost = Assert.IsType<DotNetObjectReference<PkCallbackHost<Dictionary<string, JsonElement>>>>(_bridge.Invocations["setCallback"].Last(i => (string)i.Arguments[1]! == "save").Arguments[2]);
+        var e = Envelope(await other.InvokeAsync(() => otherHost.Value.Invoke(Values("{}"))));
+        Assert.Equal(Generic, e.GetProperty("message").GetString());
+        Assert.DoesNotContain("internal detail", e.GetRawText());
+
+        var throws = Render<PkRecordPage<Person>>(p => p.Add(x => x.Fields, PersonFields).Add(x => x.Model, new Person())
+            .Add(x => x.Save, _ => throw new DomainRule("x"))
+            .Add(x => x.IsUserFacing, _ => throw new InvalidOperationException("predicate bug")));
+        var throwsHost = Assert.IsType<DotNetObjectReference<PkCallbackHost<Dictionary<string, JsonElement>>>>(_bridge.Invocations["setCallback"].Last(i => (string)i.Arguments[1]! == "save").Arguments[2]);
+        Assert.Equal(Generic, Envelope(await throws.InvokeAsync(() => throwsHost.Value.Invoke(Values("{}")))).GetProperty("message").GetString());   // a predicate that throws counts as false
+
+        var marked = Render<PkRecordPage<Person>>(p => p.Add(x => x.Fields, PersonFields).Add(x => x.Model, new Person()).Add(x => x.Save, _ => throw new Refusal("Marked.")));
+        var markedHost = Assert.IsType<DotNetObjectReference<PkCallbackHost<Dictionary<string, JsonElement>>>>(_bridge.Invocations["setCallback"].Last(i => (string)i.Arguments[1]! == "save").Arguments[2]);
+        Assert.Equal("Marked.", Envelope(await marked.InvokeAsync(() => markedHost.Value.Invoke(Values("{}")))).GetProperty("message").GetString());   // the marker works without the predicate
+    }
+
+    [Fact]
+    public void SettingsPage_SectionContent_renders_into_section_key_slots()   // #1604
+    {
+        var cut = Render<PkSettingsPage>(p => p.Add(x => x.SectionContent, new Dictionary<string, RenderFragment> { ["profile"] = b => b.AddMarkupContent(0, "<i id=\"mine\">x</i>") }));
+
+        Assert.Equal("x", cut.Find("pk-settings-page [slot='section-profile'] #mine").TextContent);
+    }
+
+    [Fact]
+    public void ToolPage_ChildContent_goes_in_the_default_slot()   // #1604
+    {
+        var cut = Render<PkToolPage>(p => p.AddChildContent("<b id=\"mine\">x</b>"));
+
+        Assert.Equal("x", cut.Find("pk-tool-page #mine").TextContent);
+    }
+
     private const string Generic = "Something went wrong. See the log for details.";
     private sealed class Refusal(string message) : Exception(message), IPkUserFacingException;
     private static JsonElement Envelope(object? result) => JsonSerializer.SerializeToElement(result);

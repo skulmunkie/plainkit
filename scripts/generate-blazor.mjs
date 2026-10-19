@@ -255,7 +255,7 @@ export function modelElement(el, mapping, reg) {
             // A callback property of the element (set from script, not an attribute): the component hands it a .NET reference (PkCallbackSlot) that calls the delegate parameter.
             // callback: the element property; type: the delegate; arg: what JavaScript passes (deserialised); args: the delegate's arguments, from a (default a); result: false for a Task with
             // no result; argNames: the element passes several arguments, handed over as one object keyed by these names (arg is then a Dictionary<string, JsonElement>); returns: a C# expression over r (the delegate's result) for what JavaScript gets back; refresh: ask the element to redraw once the callback is set; abort: the element's abort
-            // signal as a CancellationToken, passed last (the call is cancelled when the element aborts it, and on dispose).
+            // signal as a CancellationToken, passed last (the call is cancelled when the element aborts it, and on dispose); userFacing: the name of a Func<Exception, bool>? parameter that decides which exception messages reach the browser besides IPkUserFacingException (#1599).
             if (!p.type || !p.arg || !p.doc) { skip(p.name, 'a callback needs type, arg and doc in the mapping'); continue; }
             declare({ name: p.name, kind: 'param', cs: p.type, doc: p.doc, note: p.note });
             // `updates`: a string prop parameter that follows the callback's argument once the delegate succeeds: it becomes the argument as JSON and its Changed callback is raised (@bind-Values).
@@ -265,7 +265,7 @@ export function modelElement(el, mapping, reg) {
                 const changed = `${p.updates}Changed`;
                 if (!names.has(changed)) declare({ name: changed, kind: 'param', cs: tgt.p?.jsonText ? 'EventCallback<string?>' : `EventCallback<${tgt.cs}>`, doc: `Raised when ${p.updates} changes (two-way binding: <c>@bind-${p.updates}</c>).` });
             }
-            out.callbacks.push({ updates: p.updates, name: p.name, prop: p.callback, arg: p.arg, args: p.args ?? 'a', result: p.result !== false, returns: p.returns, refresh: p.refresh === true, abort: p.abort === 'args' ? 'args' : p.abort === true, names: p.argNames });
+            out.callbacks.push({ updates: p.updates, name: p.name, prop: p.callback, arg: p.arg, args: p.args ?? 'a', result: p.result !== false, returns: p.returns, refresh: p.refresh === true, abort: p.abort === 'args' ? 'args' : p.abort === true, names: p.argNames, userFacing: p.userFacing });
         } else if (map === 'property') {
             // A property of the element that has no attribute (items, segments): the typed value is serialised (camelCase JSON) and set as el[property] through the bridge after each
             // render in which it changed (PkAttr.Json), the way a JSON attribute re-syncs. property: the element property; type: a collection or record of simple types or of types
@@ -713,7 +713,7 @@ export function renderComponent(m, mappingName, ns = 'PlainKit.Blazor') {
         for (let c of m.callbacks) {
             const call = `${c.name}!(${c.args}${c.abort === true ? ', ct' : ''})`;
             if (m.cells?.load === c.name) c = { ...c, returns: `await ShowCellsAsync(r.Items) ?? ${c.returns}` };
-            L.push(`        await ${slotName(c)}.SyncAsync<${c.arg}>(await Runtime.BridgeAsync(Assets), Element, ${c.name} is not null, async ${c.abort ? '(a, ct)' : 'a'} => ${c.returns ? `{ var r = await ${call}; return ${c.returns}; }` : c.result ? `(object?)await ${call}` : `{ await ${call};${c.updates ? ` await InvokeAsync(async () => { ${c.updates} = JsonSerializer.Serialize(a); await ${c.updates}Changed.InvokeAsync(${c.updates} as string); });` : ''} return null; }`}${c.refresh ? ', refresh: true' : ''}${c.names ? `, names: new[] { ${c.names.map(lit).join(', ')} }` : ''});`);
+            L.push(`        await ${slotName(c)}.SyncAsync<${c.arg}>(await Runtime.BridgeAsync(Assets), Element, ${c.name} is not null, async ${c.abort ? '(a, ct)' : 'a'} => ${c.returns ? `{ var r = await ${call}; return ${c.returns}; }` : c.result ? `(object?)await ${call}` : `{ await ${call};${c.updates ? ` await InvokeAsync(async () => { ${c.updates} = JsonSerializer.Serialize(a); await ${c.updates}Changed.InvokeAsync(${c.updates} as string); });` : ''} return null; }`}${c.refresh ? ', refresh: true' : ''}${c.names ? `, names: new[] { ${c.names.map(lit).join(', ')} }` : ''}${c.userFacing ? `, userFacing: e => ${c.userFacing}?.Invoke(e) == true` : ''});`);
         }
         L.push('    }');
     }
@@ -950,6 +950,59 @@ function renderFieldMembers(members, specMembers = [], factories = []) {
 }
 
 /**
+ * The table column records and their enums (#1580), from the `columns` description of core/elements/table/table.meta.json (the single list of what a column
+ * may carry) and `columnMembers`/`columnEnums` of blazor/mappings/table.json (the C# type and the words). The meta and the mapping must name the same keys
+ * and the same enum values, or the generator stops: a new column property is one meta edit plus one mapping entry, never a hand edit of a record.
+ */
+function renderTableColumn(api, mapping) {
+    const text = api.find(e => e.tag === 'pk-table')?.props?.find(p => p.name === 'columns')?.description ?? '';
+    const list = /\{ key, label, ([^}]*)\}\[\]/.exec(text)?.[1];
+    if (!list) throw new Error('table.meta.json: the columns description no longer starts with "{ key, label, ... }[]"');
+    const listed = new Map(list.split(/,\s*(?![^()]*\))/).filter(Boolean).map(x => { const [k, v] = x.trim().split('?: '); return [k.replace(/\?$/, ''), v?.split('|')]; }));
+    const members = mapping.columnMembers, enums = mapping.columnEnums;
+    const have = members.map(m => m.json ?? m.name[0].toLowerCase() + m.name.slice(1)).filter(k => k !== 'key' && k !== 'label');
+    const missing = [...listed.keys()].filter(k => !have.includes(k)), extra = have.filter(k => !listed.has(k));
+    if (missing.length || extra.length) throw new Error(`blazor/mappings/table.json columnMembers disagree with the columns description of table.meta.json: missing ${missing.join(', ') || '-'}, not in the meta ${extra.join(', ') || '-'}`);
+    const L = ['// Generated by ' + GENERATOR + ' from the columns description of core/elements/table/table.meta.json and columnMembers in blazor/mappings/table.json. Do not edit.',
+        'using System.Text.Json;', 'using System.Text.Json.Serialization;', '', 'namespace PlainKit.Blazor;', ''];
+    for (const [name, e] of Object.entries(enums)) {
+        const values = listed.get(e.key);
+        if (!values) throw new Error(`columnEnums.${name}: the meta lists no values for ${e.key}`);
+        const noDoc = values.filter(v => !(v in e.members)), stale = Object.keys(e.members).filter(v => !values.includes(v));
+        if (noDoc.length || stale.length) throw new Error(`columnEnums.${name} disagrees with the meta: undocumented ${noDoc.join(', ') || '-'}, not in the meta ${stale.join(', ') || '-'}`);
+        L.push(`/// <summary>${esc(e.doc)}</summary>`, `[JsonConverter(typeof(JsonStringEnumConverter<${name}>))]`, `public enum ${name}`, '{');
+        for (const v of values) L.push(`    /// <summary>${esc(e.members[v])}</summary>`, `    [JsonStringEnumMemberName(${lit(v)})] ${pascal(v)},`);
+        L.push('}', '');
+    }
+    const ignore = m => (m.type.endsWith('?') ? 'WhenWritingNull' : m.type === 'bool' ? 'WhenWritingDefault' : null);
+    const prop = (m, typed) => [`    /// <summary>${esc(typed && m.typedDoc ? m.typedDoc : m.doc)}</summary>`, ...(ignore(m) && !typed ? [`    [JsonIgnore(Condition = JsonIgnoreCondition.${ignore(m)})]`] : []),
+        `    public ${m.type} ${m.name} { get; init; }${m.init ? ' = ' + m.init + ';' : ''}`];
+    L.push('/// <summary>A column of a <c>pk-table</c>.</summary>', '/// <remarks>Sent to the element\'s <c>columns</c> attribute (JSON, camelCase).</remarks>',
+        'public sealed record PkTableColumn', '{', ...members.flatMap(m => prop(m, false)), '}', '');
+    L.push('/// <summary>', '/// A typed column of a <see cref="PkTable{TItem}"/>: the JSON column of <see cref="PkTableColumn"/> plus what fills its cells. A cell shows, in this order: the <see cref="Cell"/> template',
+        '/// (rendered into the element\'s <c>cell-&lt;rowId&gt;-&lt;key&gt;</c> slot), else the text <see cref="Text"/> returns, else the property of the item that <see cref="Key"/> names (any casing).',
+        '/// The key is used exactly as given everywhere: in the column definition, the row, the cell slot and the keys of <c>Sort</c>, <c>OnSort</c>, <c>Filters</c> and <c>PkListRequest.SortKey</c>.', '/// </summary>',
+        '/// <typeparam name="TItem">The type of a row.</typeparam>', 'public sealed partial record PkTableColumn<TItem>', '{', ...members.flatMap(m => prop(m, true)), '',
+        '    // Text fills the row under Key verbatim (the same key the column definition carries); PkTableRows.Serialize adds the property fallback.',
+        '    internal PkTableColumn ToColumn() => new()', '    {', ...members.map(m => `        ${m.name} = ${m.copy ?? m.name},`), '    };', '}', '');
+    L.push(...tableBound());
+    return L.join('\n') + '\n';
+}
+
+/** PkTableBound: the min or max of a column, a number for a number editor and an ISO 8601 date string for a date editor. */
+function tableBound() {
+    return ['/// <summary>The <c>Min</c> or <c>Max</c> of a <see cref="PkTableColumn"/>: a number (a number editor) or an ISO 8601 date such as <c>2026-01-07</c> (a date editor). Assign a number, a <see cref="DateOnly"/> or a string; each converts implicitly.</summary>',
+        '[JsonConverter(typeof(PkTableBoundConverter))]', 'public readonly record struct PkTableBound(object Value)', '{',
+        '    /// <summary>A numeric bound.</summary>', '    public static implicit operator PkTableBound(double value) => new(value);',
+        '    /// <summary>A date bound, written as <c>yyyy-MM-dd</c>.</summary>', '    public static implicit operator PkTableBound(DateOnly value) => new(value.ToString("yyyy-MM-dd", System.Globalization.CultureInfo.InvariantCulture));',
+        '    /// <summary>A bound as text (an ISO 8601 date).</summary>', '    public static implicit operator PkTableBound(string value) => new(value);',
+        '    /// <inheritdoc />', '    public override string ToString() => System.FormattableString.Invariant($"{Value}");', '}', '',
+        'internal sealed class PkTableBoundConverter : JsonConverter<PkTableBound>', '{',
+        '    public override PkTableBound Read(ref Utf8JsonReader reader, Type typeToConvert, JsonSerializerOptions options) => reader.TokenType == JsonTokenType.Number ? reader.GetDouble() : reader.GetString() ?? "";',
+        '    public override void Write(Utf8JsonWriter writer, PkTableBound value, JsonSerializerOptions options) { if (value.Value is double d) writer.WriteNumberValue(d); else writer.WriteStringValue((string)value.Value); }', '}'];
+}
+
+/**
  * The module manifest DTOs (#364) from core/js/app/manifest.schema.json, the single source: PkModuleManifest and its nav, route and footer records, with FromJson
  * (unknown members are an error, like readManifest) and the id check. Nothing is hand-written.
  */
@@ -1044,6 +1097,7 @@ export function generate(api, mappings, handWritten = new Set(), types = new Set
     files.set('PkGeneratedAliases.cs', renderAliases(moved));
     files.set('PlainKit.Blazor.targets', renderTargets(moved));
     if (mappings['field-group']?.fieldMembers) files.set('PkFieldGroupMembers.cs', renderFieldMembers(mappings['field-group'].fieldMembers, mappings['field-group'].specMembers, mappings['field-group'].fieldFactories));
+    if (mappings.table?.columnMembers) files.set('PkTableColumn.cs', renderTableColumn(api, mappings.table));
     if (schema) files.set('PkModuleManifest.cs', renderManifest(schema));
     files.set('PkGeneratedEnums.cs', renderEnums(reg.enums));
     files.set('PkGeneratedEvents.cs', renderEvents(reg.events, reg.eventNames));

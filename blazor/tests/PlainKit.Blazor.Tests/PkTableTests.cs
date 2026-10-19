@@ -288,4 +288,26 @@ public sealed class PkTableTests : BunitContext, IAsyncLifetime
         Assert.Equal("/orders/{id}", cut.Find("pk-table").GetAttribute("row-href-template"));
         Assert.Null(Render<PkTable<Order>>(p => p.Add(x => x.Columns, Columns).Add(x => x.Items, Orders)).Find("pk-table").GetAttribute("row-href-template"));
     }
+
+    [Fact]
+    public void The_generated_column_sends_the_new_editors_free_and_typed_bounds()
+    {
+        PkTableColumn<Order>[] cols =
+        [
+            new() { Key = "notes", Label = "Notes", Editor = PkTableEditor.Textarea, MaxLength = 200 },
+            new() { Key = "status", Label = "Status", Editor = PkTableEditor.Combobox, Options = ["Open", "Shipped"], Free = true },
+            new() { Key = "due", Label = "Due", Type = PkTableColumnType.Date, Editor = PkTableEditor.Date, Min = new DateOnly(2026, 1, 1), Max = "2026-12-31" },
+            new() { Key = "qty", Label = "Qty", Type = PkTableColumnType.Number, Editor = PkTableEditor.Number, Min = 0, Max = 99.5 },
+            new() { Key = "plain", Label = "Plain" },
+        ];
+        var cut = Render<PkTable<Order>>(p => p.Add(x => x.Columns, cols).Add(x => x.Items, Orders).Add(x => x.Editable, true));
+        using var json = JsonDocument.Parse(cut.Find("pk-table").GetAttribute("columns")!);
+        var c = json.RootElement;
+        Assert.Equal("textarea", c[0].GetProperty("editor").GetString());
+        Assert.Equal("combobox", c[1].GetProperty("editor").GetString());
+        Assert.True(c[1].GetProperty("free").GetBoolean());
+        Assert.Equal(("2026-01-01", "2026-12-31"), (c[2].GetProperty("min").GetString(), c[2].GetProperty("max").GetString()));
+        Assert.Equal((0d, 99.5), (c[3].GetProperty("min").GetDouble(), c[3].GetProperty("max").GetDouble()));
+        Assert.False(c[4].TryGetProperty("min", out _) || c[4].TryGetProperty("free", out _) || c[4].TryGetProperty("editor", out _));
+    }
 }

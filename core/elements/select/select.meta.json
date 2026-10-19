@@ -32,6 +32,13 @@
       "description": "The accessible name (aria-label). pk-field fills it from its own label when this is empty."
     },
     {
+      "name": "showLabel",
+      "type": "boolean",
+      "default": false,
+      "reflect": true,
+      "description": "Shows label as visible text above the field (linked to it), for use without a pk-field."
+    },
+    {
       "name": "description",
       "type": "string",
       "default": "",
@@ -131,6 +138,10 @@
     }
   ],
   "parts": [
+    {
+      "name": "label",
+      "description": "The visible label shown by showLabel."
+    },
     {
       "name": "box",
       "description": "The bordered field."

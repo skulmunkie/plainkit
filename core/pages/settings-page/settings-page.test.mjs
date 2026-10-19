@@ -234,3 +234,12 @@ test('saveNow does nothing without a save callback (no throw)', async () => {
     await el.saveNow();
     assert.equal(parts.saved.hidden, false, 'untouched: the stub never sets it');
 });
+
+test('a section with a key gets a section-<key> slot after its fields, one without does not (#1604)', () => {
+    const { el, parts } = make();
+    el.config = { sections: [{ key: 'api', heading: 'API', fields: [{ key: 'name', type: 'text', label: 'Name' }] }, { heading: 'Other', fields: [] }] };
+    el.connected();
+    const slotOf = card => card.children[0].children.find(c => c.localName === 'slot');
+    assert.equal(slotOf(parts.sections.children[0])?.name, 'section-api');
+    assert.equal(slotOf(parts.sections.children[1]), undefined);
+});
