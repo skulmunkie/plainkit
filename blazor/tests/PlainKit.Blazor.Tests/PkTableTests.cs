@@ -167,6 +167,26 @@ public sealed class PkTableTests : BunitContext, IAsyncLifetime
     }
 
     [Fact]
+    public async Task Column_resize_and_reorder_reach_their_handlers_with_typed_args()
+    {
+        PkColumnResizeEventArgs? resized = null;
+        PkColumnReorderEventArgs? reordered = null;
+        var cut = Render(p => p.Add(x => x.Resizable, true).Add(x => x.Reorderable, true).Add(x => x.OnColumnResize, a => resized = a).Add(x => x.OnColumnReorder, a => reordered = a));
+        var table = cut.Find("pk-table");
+        Assert.True(table.HasAttribute("resizable"));
+        Assert.True(table.HasAttribute("reorderable"));
+
+        await table.TriggerEventAsync("onpk-column-resize", new PkColumnResizeEventArgs { Key = "customer", Width = 180 });
+        Assert.Equal("customer", resized!.Key);
+        Assert.Equal(180, resized.Width);
+
+        await table.TriggerEventAsync("onpk-column-reorder", new PkColumnReorderEventArgs { Key = "customer", From = 0, To = 1, Order = ["total", "customer"] });
+        Assert.Equal("customer", reordered!.Key);
+        Assert.Equal(1, reordered.To);
+        Assert.Equal(["total", "customer"], reordered.Order!);
+    }
+
+    [Fact]
     public async Task A_row_click_maps_the_id_back_to_the_item()
     {
         PkTableRowClickArgs<Order>? clicked = null;

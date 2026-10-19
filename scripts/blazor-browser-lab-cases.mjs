@@ -277,6 +277,19 @@ export const LAB_CASES = [
         await waitText(ctx, 'Edited: notes=second', ALL);
         await ctx.noErrors(ctx.openMark, BENIGN);
       } },
+    { name: 'table-column-resize-reorder',
+      async run(ctx) {
+        await ctx.open('/lab/table-edit'); // #1580: OnColumnResize and OnColumnReorder come back through the real interop, from the keyboard paths of the lazy table-cols chunk
+        const T = `document.querySelector('pk-table')`;
+        const GRIP = `${T}?.shadowRoot?.querySelector('th[data-key="notes"] [data-resize]')`;
+        await ctx.waitFor(`!!(${GRIP})`, 'the resizable table to draw its resize handle');
+        await ctx.eval(`(() => { const g = ${GRIP}; g.focus(); g.dispatchEvent(new KeyboardEvent('keydown', { key: 'ArrowRight', bubbles: true, composed: true })); return 1; })()`);
+        await waitText(ctx, 'Resized: notes=210', ALL); // 200 px column plus one 10 px step
+        await ctx.eval(`(() => { const g = ${GRIP}; g.dispatchEvent(new KeyboardEvent('keydown', { key: 'ArrowRight', altKey: true, bubbles: true, composed: true })); return 1; })()`);
+        await waitText(ctx, 'Reordered: notes 0>1 [status,notes,due]', ALL);
+        ctx.ok(await ctx.eval(`${T}.shadowRoot.querySelector('tr:first-child > th[data-key]').dataset.key === 'status'`), 'the table did not show the new column order');
+        await ctx.noErrors(ctx.openMark, BENIGN);
+      } },
     { name: 'theme-toggle',
       async run(ctx) {
         await ctx.open('/overview');

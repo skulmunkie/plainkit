@@ -2,7 +2,9 @@
 
 @* Lab: an editable PkTable with the generated column record (#1580): a textarea editor, a combobox with Free and a date column bounded by a DateOnly, edited through the real interop. *@
 <h1 tabindex="-1">Lab table edit</h1>
-<PkTable TItem="Note" Items="_rows" Columns="_columns" IdOf="n => n.Id.ToString()" Label="Notes" Editable OnCellEdit="Edited" />
+<PkTable TItem="Note" Items="_rows" Columns="_columns" IdOf="n => n.Id.ToString()" Label="Notes" Editable Resizable Reorderable OnCellEdit="Edited" OnColumnResize="Resized" OnColumnReorder="Reordered" />
+<p>Resized: @_resized</p>
+<p>Reordered: @_reordered</p>
 <p>Edited: @_edited</p>
 
 @code {
@@ -10,13 +12,19 @@
 
     private readonly List<Note> _rows = [new(1, "first", "Open", "2026-03-01")];
     private string _edited = "";
+    private string _resized = "";
+    private string _reordered = "";
 
     private readonly IReadOnlyList<PkTableColumn<Note>> _columns =
     [
-        new() { Key = "notes", Label = "Notes", Editor = PkTableEditor.Textarea, MaxLength = 80 },
-        new() { Key = "status", Label = "Status", Editor = PkTableEditor.Combobox, Options = ["Open", "Done"], Free = true },
-        new() { Key = "due", Label = "Due", Type = PkTableColumnType.Date, Editor = PkTableEditor.Date, Min = new DateOnly(2026, 1, 1), Max = "2026-12-31" },
+        new() { Key = "notes", Label = "Notes", Editor = PkTableEditor.Textarea, MaxLength = 80, Width = 200 },
+        new() { Key = "status", Label = "Status", Editor = PkTableEditor.Combobox, Options = ["Open", "Done"], Free = true, Width = 160 },
+        new() { Key = "due", Label = "Due", Type = PkTableColumnType.Date, Editor = PkTableEditor.Date, Min = new DateOnly(2026, 1, 1), Max = "2026-12-31", Width = 140 },
     ];
 
     private void Edited(PkTableCellEditArgs<Note> e) => _edited = $"{e.Key}={e.Value}";
+
+    private void Resized(PkColumnResizeEventArgs e) => _resized = $"{e.Key}={e.Width}";
+
+    private void Reordered(PkColumnReorderEventArgs e) => _reordered = $"{e.Key} {e.From}>{e.To} [{string.Join(",", e.Order ?? [])}]";
 }
