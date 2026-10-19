@@ -231,6 +231,18 @@ export const fieldGroupCases = [
         t.eq(valid, 1); t.eq(submitted, 1);
     }],
 
+    ['field-group: a combobox field with mode select is a styled select: a button, a themed list of the options, a pick is a field change (#1621)', async t => {
+        const el = await mountGroup(t, [{ key: 'ch', label: 'Channel', kind: 'combobox', mode: 'select', placeholder: 'Choose', options: [{ value: 'web', label: 'Web' }, { value: 'live', label: 'Live' }] }], {});
+        const combo = el.shadowRoot.querySelector('pk-combobox');
+        t.eq(combo.getAttribute('mode'), 'select', 'the mode reaches the element');
+        const changes = []; el.addEventListener('pk-field-change', e => changes.push(e.detail));
+        combo.part('trigger').click(); await t.settle();
+        const pop = combo.part('popup'); t.ok(pop && pop.getBoundingClientRect().height > 40, 'the styled list opens, not the native popup');
+        t.eq(combo.querySelectorAll('option').length, 2);
+        combo.value = 'live'; combo.dispatchEvent(new Event('change', { bubbles: true })); await t.settle();
+        t.eq(el.values.ch, 'live'); t.eq(changes.at(-1)?.key, 'ch');
+    }],
+
     ['field-group: a combobox field takes its options from the search callback, does not filter them itself, and a stale answer is dropped; a label-action slot reaches the field\'s label', async t => {
         const fields = [{ key: 'city', label: 'City', kind: 'combobox', options: [{ value: 'a', label: 'Static' }] }];
         const host = t.stage('<pk-field-group label="Where"><button slot="label-action-city" type="button">Use home</button></pk-field-group>');
