@@ -106,6 +106,21 @@ export const LAB_CASES = [
         await ctx.waitFor(`!window.__deep.field('Title') && ${MAIN}.includes('Ticket: Renamed three')`, 'the saved record to show in view mode under its new title');
         await ctx.noErrors(ctx.openMark, BENIGN);
       } },
+    // BeforeSave runs after validation and before Save (#1601): false (Title HOLD) keeps the page in edit mode with the edits and Save is not called; true goes on.
+    { name: 'record-before-save',
+      async run(ctx) {
+        await ctx.open('/lab/ticket-before');
+        await ctx.waitFor(`!!window.__deep.field('Title')`, 'the new record form');
+        await ctx.waitFor(`typeof document.querySelector('pk-record-page')?.beforeSave === 'function'`, 'the circuit to take the record page over');
+        await ctx.setField('Title', 'HOLD');
+        await ctx.clickDeep(`${RECORD}[part="save"]`);
+        await ctx.waitFor(`document.querySelector('pk-record-page')?.$saving !== true && !document.querySelector('pk-record-page').part('save').busy`, 'the declined save to finish');
+        ctx.ok(await ctx.eval(`window.__deep.field('Title')?.value === 'HOLD'`), 'a declined BeforeSave left edit mode or lost the typed value');
+        await ctx.setField('Title', 'ok');
+        await ctx.clickDeep(`${RECORD}[part="save"]`);
+        await waitText(ctx, 'declined;checked;saved;'); // declined, then checked and only then saved: Save never ran for the declined one
+        await ctx.noErrors(ctx.openMark, BENIGN);
+      } },
     { name: 'record-delete',
       async run(ctx) {
         await ctx.open('/lab/tickets/5');

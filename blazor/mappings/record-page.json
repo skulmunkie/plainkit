@@ -124,6 +124,14 @@
       "returns": "KeepLoaded(r)"
     },
     {
+      "name": "BeforeSave",
+      "callback": "beforeSave",
+      "type": "Func<TItem, Task<bool>>?",
+      "arg": "Dictionary<string, JsonElement>",
+      "doc": "Runs once the form is valid and before Save, with the item the form's values were applied to (the same item Save receives): return false to stop (the page stays in edit mode with the edits and Save is not called), true to go on. The place for a confirm of your own (a dialog saying a rule collides with another record). Save shows its busy state while it runs. Throwing is a failed save.",
+      "args": "await ApplySavedAsync(a)"
+    },
+    {
       "name": "Save",
       "callback": "save",
       "type": "Func<TItem, Task>?",

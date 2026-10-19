@@ -1,0 +1,24 @@
+@page "/lab/ticket-before"
+
+@* Lab: a new record with BeforeSave (#1601): a Title of HOLD is declined (the page stays in edit mode with the edits, Save is not called); anything else goes on to Save. *@
+<PkRecordPage TItem="Ticket" Config="@Config" Fields="Ticket.Specs" Model="_model" BeforeSave="Check" Save="Save" />
+<p id="lab-log">Log: @_log</p>
+
+@code {
+    private const string Config = """{"heading":"New ticket","editable":true}""";
+    private readonly Ticket _model = new();
+    private string _log = "";
+
+    private Task<bool> Check(Ticket t)
+    {
+        var go = t.Title != "HOLD";
+        _log += go ? "checked;" : "declined;";
+        return Task.FromResult(go);   // no re-render here: the log shows with the next one (Save)
+    }
+
+    private async Task Save(Ticket t)
+    {
+        _log += "saved;";
+        await InvokeAsync(StateHasChanged); // a bridge callback is not a UI event: nothing re-renders for it
+    }
+}

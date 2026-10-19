@@ -285,3 +285,20 @@ test('Cancel emits pk-record-cancel; a new record shows Cancel only when cancell
     parts.cancel.listeners.click[0]();
     assert.deepEqual(events.at(-1), ['pk-record-cancel', { id: null }]);
 });
+
+test('beforeSave(values) runs before save: false stops it and keeps edit mode, anything else goes on (#1601)', async () => {
+    const { el, parts, events } = make();
+    el.load = async () => ({ name: 'Widget' });
+    el.mode = 'edit';
+    const saved = [], asked = [];
+    let answer = false;
+    el.save = async values => { saved.push(values); };
+    el.beforeSave = async values => { asked.push(values); return answer; };
+    el.connected();
+    await tick();
+    await el.submit();
+    assert.equal(asked.length, 1); assert.equal(saved.length, 0, 'declined: save is not called');
+    assert.equal(el.mode, 'edit'); assert.equal(parts.save.busy, false); assert.ok(!events.some(([n]) => n === 'pk-record-save'));
+    answer = undefined; await el.submit();
+    assert.equal(saved.length, 1, 'any answer but false goes on'); assert.equal(el.mode, 'view');
+});

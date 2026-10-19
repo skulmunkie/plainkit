@@ -1,6 +1,6 @@
 // Built-in page type factory, loaded on demand by js/app/module.js (#346): a route pays only for the types it uses.
 // 'record' (#353): <pk-record-page>; config: { fields, sidebar, heading, saveLabel, editable, mode, idParam } as data, and the callbacks
-// load(id, ctx) -> record, save(values, ctx) -> void | updated values (reject with { errors: { field: message } } for inline errors) and delete(id, ctx) (a Delete button, a confirm dialog, then the call).
+// load(id, ctx) -> record, beforeSave(values, ctx) -> false to stop the save (a confirm of your own; any other answer goes on), save(values, ctx) -> void | updated values (reject with { errors: { field: message } } for inline errors) and delete(id, ctx) (a Delete button, a confirm dialog, then the call).
 // Outcome toasts are on by default (#855): Saved, Could not save, Deleted, Could not delete; config.toasts false or { saved, failed, deleted, deleteFailed } words or drops them (svc-page-toasts.js).
 // The record id is the route param named config.idParam (default 'id'); with none the page is a new record.
 // Load, save and delete run through js/page-lifecycle.js (#1022): a newer load aborts the older (load gets the AbortSignal as its third argument), busy and the cleanup are the lifecycle's.
@@ -9,7 +9,7 @@
 export const PAGE_TYPE = {
     id: 'record',
     summary: 'A single record form: fields, sidebar, save.',
-    configKeys: ['fields', 'sidebar', 'heading', 'saveLabel', 'editable', 'mode', 'idParam', 'load', 'save', 'delete', 'toasts'],
+    configKeys: ['fields', 'sidebar', 'heading', 'saveLabel', 'editable', 'mode', 'idParam', 'load', 'save', 'beforeSave', 'delete', 'toasts'],
     states: [],
     useWhen: 'Viewing or editing one record identified by a route param, new or existing.',
 };
@@ -19,7 +19,7 @@ import { toaster } from './svc-page-toasts.js';
 import { createLifecycle, disposeWith } from '../../page-lifecycle.js';
 export default (host, config = {}, ctx) => {
     const el = host.ownerDocument.createElement('pk-record-page');
-    const { load, save, delete: remove, mode, idParam = 'id', ...data } = config, toast = toaster(config, ctx);
+    const { load, save, beforeSave, delete: remove, mode, idParam = 'id', ...data } = config, toast = toaster(config, ctx);
     let guard;
     // The leave guard stands aside while a save or delete runs: it is the lifecycle's busy page.
     let busy = 0;
@@ -27,7 +27,7 @@ export default (host, config = {}, ctx) => {
     data.id = data.id ?? ctx?.route?.params?.[idParam];
     if (typeof remove === 'function') data.deletable = true;
     el.config = data;
-    if (mode) el.mode = mode;
+    if (mode) el.mode = mode; if (beforeSave) el.beforeSave = values => beforeSave(values, ctx);
     if (load) el.load = id => life.load(id, signal => load(id, ctx, signal));
     const win = host.ownerDocument.defaultView;
     guard = ctx?.dialogs && win && leaveGuard(win, () => ctx.dialogs.confirm({ heading: 'Leave without saving?', message: 'Your changes to this record will be lost.', confirmLabel: 'Leave', cancelLabel: 'Stay', danger: true }));

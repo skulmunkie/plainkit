@@ -362,6 +362,23 @@ public sealed class PkPageCallbackTests : BunitContext, IAsyncLifetime
     }
 
     [Fact]
+    public async Task RecordPage_BeforeSave_gets_the_item_with_the_form_applied_and_its_answer_goes_back_to_the_element()
+    {
+        Person? seen = null; var go = false;
+        var cut = Render<PkRecordPage<Person>>(p => p.Add(x => x.Fields, PersonFields).Add(x => x.Model, new Person())
+            .Add(x => x.BeforeSave, person => { seen = person; return Task.FromResult(go); })
+            .Add(x => x.Save, _ => Task.CompletedTask));
+        var call = Assert.Single(_bridge.Invocations["setCallback"], i => (string)i.Arguments[1]! == "beforeSave");
+        var host = Assert.IsType<DotNetObjectReference<PkCallbackHost<Dictionary<string, JsonElement>>>>(call.Arguments[2]);
+
+        Assert.Equal(false, await cut.InvokeAsync(() => host.Value.Invoke(Values("{\"name\":\"Bo\",\"age\":41}"))));
+        Assert.Equal("Bo", seen!.Name);
+        Assert.Equal(41, seen.Age);
+        go = true;
+        Assert.Equal(true, await cut.InvokeAsync(() => host.Value.Invoke(Values("{}"))));
+    }
+
+    [Fact]
     public async Task RecordPage_load_gets_the_id_answers_the_values_and_save_gets_the_item_with_the_form_applied()
     {
         string? loadedId = null; Person? saved = null; var loaded = new Person { Name = "Ada", Age = 36 };
