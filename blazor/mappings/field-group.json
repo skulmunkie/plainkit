@@ -90,6 +90,11 @@
       "doc": "A combobox accepts the typed text itself as its value."
     },
     {
+      "name": "Mode",
+      "type": "string?",
+      "doc": "A combobox field's mode: \"select\" makes it a styled select (a button that opens the list, no typing); unset, or \"autocomplete\", types to filter."
+    },
+    {
       "name": "Span",
       "type": "bool",
       "doc": "The field fills the whole row of a multi-column group."
