@@ -5,6 +5,32 @@ The format follows [Keep a Changelog](https://keepachangelog.com/) and the proje
 
 ## [Unreleased]
 
+## [0.19.0] - 2026-10-19
+
+### Added
+
+- Blazor: the `PkTableColumn` record, its typed `PkTableColumn<TItem>` and the `PkTableEditor`, `PkTableColumnType` and `PkTableColumnAlign` enums are now generated from the table meta, so they follow the element. New: the `Textarea` and `Combobox` editors, `Free`, and `Min` and `Max` as a `PkTableBound` that takes a number, a `DateOnly` or an ISO date string, so a date column can be bounded. (#1580)
+- `pk-table` columns can be resized and reordered: `resizable` gives each header a separator handle (drag it, or focus it and press Left or Right) and `reorderable` lets a header be dragged (touch: press and hold) or moved with Alt+Left or Alt+Right. `pk-column-resize` reports the width and the cancelable `pk-column-reorder` the new order; the layout stays when the host sets `columns` or `rows` again, and it works with windowing and a sticky header. The code loads only for a table that sets either property. Blazor: `Resizable`, `Reorderable`, `OnColumnResize` and `OnColumnReorder` on `PkTable`. (#1580)
+- `PkRecordPage` takes `IsUserFacing` (`Func<Exception, bool>`), as `PkRecordEditor` does: a `Load` or `Save` exception it accepts shows its own message instead of "Something went wrong", so an app whose domain exception base cannot implement `IPkUserFacingException` needs no wrapper around each delegate. (#1599)
+- `PkRecordPage` takes `BeforeSave` (`Func<TItem, Task<bool>>`), and `pk-record-page` a `beforeSave(values)` property (the record page type `config.beforeSave(values, ctx)`): it runs once the form is valid and before `Save`, and returning false stops the save and keeps the page in edit mode with the edits, for a confirm of your own. (Step 3 of #1601.)
+- `PkRecordSection` takes `Columns` (and the `sections` / `sidebar` of `pk-record-page` config take `columns`): in edit mode a card's short fields flow side by side, with `ColumnSpan` and `Span` widening one and a narrow card showing one column. (Step 1 of #1601.)
+- `PkRecordPage` takes `Sticky` (`pk-record-page` takes `sticky` or `config.sticky`): the title bar stays at the top while a long form scrolls, with Edit, Cancel, Save and Delete in it so Save stays in reach. (Step 2 of #1601.)
+- pk-page-header takes `actions-overflow` (`phone`, `tablet` or `always`; Blazor `ActionsOverflow`, plus `overflow-label`): at that width the slotted actions fold into one icon button that opens a menu, each item keeping its label, icon and disabled state and clicking the original action, so the title bar stays one row high on a phone without app CSS. (#1602)
+- `pk-list-page` has a `before-list` slot between its title bar and the list (`PkListPage` `BeforeListContent`) for a status alert or a summary card. It scrolls with the page and does not shrink, so with `stickyHeader` the column header and pager stay pinned. (#1603)
+- `pk-settings-page` shows your own content in a section through a `section-<key>` slot (`PkSettingsPage` `SectionContent`, keyed by the section key): it sits inside that section's card after its fields, so the section nav and the save bar cover it. `pk-tool-page` takes its default slot (`PkToolPage` `ChildContent`) in place of the generated input fields, Run button and outcome. (#1604)
+- A route or nav entry whose path ends in `/*` (`/stock/*`) owns that path and everything under it, so a record page such as `/stock/ledger/41` keeps the Ledger row current without listing every record route. Exact routes still win, then the longest prefix. It works in the router and `pageContext`, and the same way in `PkPageContext.Compute` and `PkNavModel.Locate`. (#1609)
+
+### Changed
+
+- `PkRecordPage` / `pk-record-page` show Delete in edit mode of an existing record too (a page that opens with `Mode="Edit"` and has `OnDelete` or `deletable`), as `PkRecordForm` does; a new record still has none. (#1597)
+
+### Fixed
+
+- A select filter in pk-table-filters, pk-data-table and pk-list-page now shows its label above the control, like a text filter. pk-select gains `show-label` (Blazor: `ShowLabel`), as pk-input already has. (#1596)
+- `PkRecordPage` / `pk-record-page` keep the typed values when a Save is rejected: a redraw of the form while edits are unsaved (the host re-rendering after the failure) starts from the live values instead of the blank ones. (#1598)
+- `pk-record-page` / `PkRecordPage`: a declarative condition (`WhenExpr`, `DisabledExpr`, `ReadonlyExpr`, `RequiredExpr`, `LabelWhenExpr`, `HelpWhenExpr`) now follows an edit made in another card or the sidebar, so one select can show, hide or disable fields in other sections. `pk-field-group` conditions may also name a value the host gave that the group does not draw. The typed `When`, `Disabled` and `ReadOnly` functions are still read per load and save; the docs say to use the `*Expr` members for a condition that follows edits. (#1600)
+- The consumer audit rule B3 no longer reports valid markup as an unknown parameter: `<Param>Changed` callbacks, parameter names in any letter case, and pass-through HTML attributes such as `class`, `title`, `slot`, `spellcheck` and `inputmode` are accepted, while genuinely unknown names such as `Label` are still flagged. (#1611)
+
 ## [0.18.0] - 2026-10-18
 
 ### Added
