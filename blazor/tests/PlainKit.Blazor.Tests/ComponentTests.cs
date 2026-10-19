@@ -74,8 +74,8 @@ public sealed class ComponentTests : BunitContext, IAsyncLifetime
     [Fact]
     public void Dev_tools_page_hands_its_route_to_the_workspace_component_and_navigates_when_a_tab_is_chosen()
     {
-        var cut = Render<PkDevToolsPage>(p => p.Add(x => x.Tab, "scorecard"));
-        var workspace = cut.FindComponent<PkDevToolsWorkspace>();
+        var cut = Render<PkDevToolsWorkspace>(p => p.Add(x => x.Tab, "scorecard"));
+        var workspace = cut;
 
         Assert.Equal("scorecard", workspace.Instance.Tab);
         cut.InvokeAsync(() => workspace.Instance.SetWorkspace("files"));
@@ -88,7 +88,7 @@ public sealed class ComponentTests : BunitContext, IAsyncLifetime
         var ctx = new BunitContext();
         ctx.JSInterop.Mode = JSRuntimeMode.Loose;
         ctx.Services.AddPlainKit(o => o.DevTools = false);
-        var cut = ctx.Render<PkDevToolsPage>();
+        var cut = ctx.Render<PkDevToolsWorkspace>();
 
         Assert.Empty(cut.FindAll("pk-tab"));
         Assert.Contains("Dev tools are off", cut.Markup);

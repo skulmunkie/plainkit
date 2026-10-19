@@ -54,7 +54,7 @@ public sealed class SecurityTests : BunitContext, IAsyncLifetime
     {
         Register("Production", null);
 
-        var cut = Render<PkDevToolsPage>();
+        var cut = Render<PkDevToolsWorkspace>();
 
         Assert.Contains("Dev tools are off", cut.Markup);
         Assert.Empty(cut.FindComponents<PkDevTools>());
