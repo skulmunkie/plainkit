@@ -173,13 +173,13 @@ public sealed class PkFieldGroupTests : BunitContext, IAsyncLifetime
         [
             new() { Key = "n", Label = "N", Placeholder = "Type", Span = true, HideLabel = true, Get = o => o.Name, Set = (o, v) => o.Name = v ?? "" },
             new() { Key = "t", Label = "T", Kind = PkFieldKind.Textarea, Rows = 5, MinLength = "2", MaxLength = "40", Pattern = "x", Get = o => o.Name, Set = (o, v) => o.Name = v ?? "" },
-            new() { Key = "s", Label = "S", Kind = PkFieldKind.Combobox, Free = true, Options = [new("old", "Old")], OptionsSource = () => [new("new", "New")], Get = o => o.Name, Set = (o, v) => o.Name = v ?? "" },
+            new() { Key = "s", Label = "S", Kind = PkFieldKind.Combobox, Free = true, Mode = "select", Options = [new("old", "Old")], OptionsSource = () => [new("new", "New")], Get = o => o.Name, Set = (o, v) => o.Name = v ?? "" },
         ];
         var d = Defs(Render(fields));
         Assert.Equal("Type", d[0].GetProperty("placeholder").GetString()); Assert.True(d[0].GetProperty("span").GetBoolean()); Assert.True(d[0].GetProperty("hideLabel").GetBoolean());
         Assert.Equal("textarea", d[1].GetProperty("kind").GetString()); Assert.Equal(5, d[1].GetProperty("rows").GetInt32());
         Assert.Equal("40", d[1].GetProperty("maxlength").GetString()); Assert.Equal("2", d[1].GetProperty("minlength").GetString()); Assert.Equal("x", d[1].GetProperty("pattern").GetString());
-        Assert.Equal("combobox", d[2].GetProperty("kind").GetString()); Assert.True(d[2].GetProperty("free").GetBoolean());
+        Assert.Equal("combobox", d[2].GetProperty("kind").GetString()); Assert.True(d[2].GetProperty("free").GetBoolean()); Assert.Equal("select", d[2].GetProperty("mode").GetString());
         Assert.Equal(["new"], d[2].GetProperty("options").EnumerateArray().Select(o => o.GetProperty("value").GetString()!).ToArray());
     }
 
@@ -238,6 +238,14 @@ public sealed class PkFieldGroupTests : BunitContext, IAsyncLifetime
         Assert.Equal(("1234.5", "0.01", "99.5", "0.01", PkFieldKind.Number), (spec.Get(new Order()), spec.Min, spec.Max, spec.Step, spec.Kind));
         spec.Set(new Order(), "7.25"); Assert.Equal(7.25m, price);
         spec.Set(new Order(), ""); Assert.Null(price);
+    }
+
+    // Issue 1614: Cols reaches the element as the field's width in twelfths.
+    [Fact]
+    public void Cols_reaches_the_element()
+    {
+        var spec = new PkFieldSpec<Order> { Key = "qty", Label = "Qty", Get = _ => "", Set = (_, _) => { }, Cols = 2 };
+        Assert.Equal(2, Defs(Render([spec]))[0].GetProperty("cols").GetInt32());
     }
 
     // Issue 1313: DateTime is a datetime-local field over a DateTime? property, as invariant wall-clock text; Issue 1314: ColumnSpan reaches the element.

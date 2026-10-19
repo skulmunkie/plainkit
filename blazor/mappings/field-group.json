@@ -90,6 +90,11 @@
       "doc": "A combobox accepts the typed text itself as its value."
     },
     {
+      "name": "Mode",
+      "type": "string?",
+      "doc": "A combobox field's mode: \"select\" makes it a styled select (a button that opens the list, no typing); unset, or \"autocomplete\", types to filter."
+    },
+    {
       "name": "Span",
       "type": "bool",
       "doc": "The field fills the whole row of a multi-column group."
@@ -103,6 +108,11 @@
       "name": "LabelActionEnd",
       "type": "bool",
       "doc": "Pins LabelAction to the end of the label row (a figure or a small action opposite the label text) instead of directly after it."
+    },
+    {
+      "name": "Cols",
+      "type": "int?",
+      "doc": "The field's width in twelfths of the row (1 to 12). One field with it puts the whole group on a 12-column grid: consecutive fields share a row and wrap, a field without it fills the row, and a narrow group gives none less than half the row."
     },
     {
       "name": "HideLabel",

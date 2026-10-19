@@ -52,6 +52,7 @@ export default Base => class extends Base {
         }
         // Moving a node takes focus out of it (a blur that a form would check), so the fields are only appended when their order is not already right.
         if (shown.length !== group.children.length || shown.some((f, i) => group.children[i] !== f)) group.append(...shown);
+        group.toggleAttribute('data-twelve', shown.some(f => f.hasAttribute('data-cols')));
         this.syncState();
         if (built) loadElements(this.shadowRoot).then(() => this.sync());
         this.sync();
@@ -95,7 +96,9 @@ export default Base => class extends Base {
     // `span` fills the row; `columnSpan` (2 or 3) takes that many columns of a multi-column group, and a span that reaches every column is the whole row.
     spanOf(field, spec) {
         const n = Math.floor(Number(spec.columnSpan));
-        if (spec.span || n >= this.columns) field.setAttribute('data-span', '');
+        const c = Math.floor(Number(spec.cols)); // cols (1 to 12): the width on a 12-column grid, which the whole group then uses
+        if (c >= 1 && c <= 12) { field.setAttribute('data-cols', c); field.style.setProperty('--c', c); field.toggleAttribute('data-wide', c >= 6); }
+        else if (spec.span || n >= this.columns) field.setAttribute('data-span', '');
         else if (n > 1) field.setAttribute('data-span', n);
     }
     // The host's label-action-<key> content, on every kind (a custom field included); `labelActionEnd` pins it to the end of the label row.
