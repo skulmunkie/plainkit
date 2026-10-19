@@ -173,13 +173,13 @@ public sealed class PkFieldGroupTests : BunitContext, IAsyncLifetime
         [
             new() { Key = "n", Label = "N", Placeholder = "Type", Span = true, HideLabel = true, Get = o => o.Name, Set = (o, v) => o.Name = v ?? "" },
             new() { Key = "t", Label = "T", Kind = PkFieldKind.Textarea, Rows = 5, MinLength = "2", MaxLength = "40", Pattern = "x", Get = o => o.Name, Set = (o, v) => o.Name = v ?? "" },
-            new() { Key = "s", Label = "S", Kind = PkFieldKind.Combobox, Free = true, Options = [new("old", "Old")], OptionsSource = () => [new("new", "New")], Get = o => o.Name, Set = (o, v) => o.Name = v ?? "" },
+            new() { Key = "s", Label = "S", Kind = PkFieldKind.Combobox, Free = true, Mode = "select", Options = [new("old", "Old")], OptionsSource = () => [new("new", "New")], Get = o => o.Name, Set = (o, v) => o.Name = v ?? "" },
         ];
         var d = Defs(Render(fields));
         Assert.Equal("Type", d[0].GetProperty("placeholder").GetString()); Assert.True(d[0].GetProperty("span").GetBoolean()); Assert.True(d[0].GetProperty("hideLabel").GetBoolean());
         Assert.Equal("textarea", d[1].GetProperty("kind").GetString()); Assert.Equal(5, d[1].GetProperty("rows").GetInt32());
         Assert.Equal("40", d[1].GetProperty("maxlength").GetString()); Assert.Equal("2", d[1].GetProperty("minlength").GetString()); Assert.Equal("x", d[1].GetProperty("pattern").GetString());
-        Assert.Equal("combobox", d[2].GetProperty("kind").GetString()); Assert.True(d[2].GetProperty("free").GetBoolean());
+        Assert.Equal("combobox", d[2].GetProperty("kind").GetString()); Assert.True(d[2].GetProperty("free").GetBoolean()); Assert.Equal("select", d[2].GetProperty("mode").GetString());
         Assert.Equal(["new"], d[2].GetProperty("options").EnumerateArray().Select(o => o.GetProperty("value").GetString()!).ToArray());
     }
 
