@@ -255,7 +255,7 @@ export function modelElement(el, mapping, reg) {
             // A callback property of the element (set from script, not an attribute): the component hands it a .NET reference (PkCallbackSlot) that calls the delegate parameter.
             // callback: the element property; type: the delegate; arg: what JavaScript passes (deserialised); args: the delegate's arguments, from a (default a); result: false for a Task with
             // no result; argNames: the element passes several arguments, handed over as one object keyed by these names (arg is then a Dictionary<string, JsonElement>); returns: a C# expression over r (the delegate's result) for what JavaScript gets back; refresh: ask the element to redraw once the callback is set; abort: the element's abort
-            // signal as a CancellationToken, passed last (the call is cancelled when the element aborts it, and on dispose).
+            // signal as a CancellationToken, passed last (the call is cancelled when the element aborts it, and on dispose); userFacing: the name of a Func<Exception, bool>? parameter that decides which exception messages reach the browser besides IPkUserFacingException (#1599).
             if (!p.type || !p.arg || !p.doc) { skip(p.name, 'a callback needs type, arg and doc in the mapping'); continue; }
             declare({ name: p.name, kind: 'param', cs: p.type, doc: p.doc, note: p.note });
             // `updates`: a string prop parameter that follows the callback's argument once the delegate succeeds: it becomes the argument as JSON and its Changed callback is raised (@bind-Values).
@@ -265,7 +265,7 @@ export function modelElement(el, mapping, reg) {
                 const changed = `${p.updates}Changed`;
                 if (!names.has(changed)) declare({ name: changed, kind: 'param', cs: tgt.p?.jsonText ? 'EventCallback<string?>' : `EventCallback<${tgt.cs}>`, doc: `Raised when ${p.updates} changes (two-way binding: <c>@bind-${p.updates}</c>).` });
             }
-            out.callbacks.push({ updates: p.updates, name: p.name, prop: p.callback, arg: p.arg, args: p.args ?? 'a', result: p.result !== false, returns: p.returns, refresh: p.refresh === true, abort: p.abort === 'args' ? 'args' : p.abort === true, names: p.argNames });
+            out.callbacks.push({ updates: p.updates, name: p.name, prop: p.callback, arg: p.arg, args: p.args ?? 'a', result: p.result !== false, returns: p.returns, refresh: p.refresh === true, abort: p.abort === 'args' ? 'args' : p.abort === true, names: p.argNames, userFacing: p.userFacing });
         } else if (map === 'property') {
             // A property of the element that has no attribute (items, segments): the typed value is serialised (camelCase JSON) and set as el[property] through the bridge after each
             // render in which it changed (PkAttr.Json), the way a JSON attribute re-syncs. property: the element property; type: a collection or record of simple types or of types
@@ -713,7 +713,7 @@ export function renderComponent(m, mappingName, ns = 'PlainKit.Blazor') {
         for (let c of m.callbacks) {
             const call = `${c.name}!(${c.args}${c.abort === true ? ', ct' : ''})`;
             if (m.cells?.load === c.name) c = { ...c, returns: `await ShowCellsAsync(r.Items) ?? ${c.returns}` };
-            L.push(`        await ${slotName(c)}.SyncAsync<${c.arg}>(await Runtime.BridgeAsync(Assets), Element, ${c.name} is not null, async ${c.abort ? '(a, ct)' : 'a'} => ${c.returns ? `{ var r = await ${call}; return ${c.returns}; }` : c.result ? `(object?)await ${call}` : `{ await ${call};${c.updates ? ` await InvokeAsync(async () => { ${c.updates} = JsonSerializer.Serialize(a); await ${c.updates}Changed.InvokeAsync(${c.updates} as string); });` : ''} return null; }`}${c.refresh ? ', refresh: true' : ''}${c.names ? `, names: new[] { ${c.names.map(lit).join(', ')} }` : ''});`);
+            L.push(`        await ${slotName(c)}.SyncAsync<${c.arg}>(await Runtime.BridgeAsync(Assets), Element, ${c.name} is not null, async ${c.abort ? '(a, ct)' : 'a'} => ${c.returns ? `{ var r = await ${call}; return ${c.returns}; }` : c.result ? `(object?)await ${call}` : `{ await ${call};${c.updates ? ` await InvokeAsync(async () => { ${c.updates} = JsonSerializer.Serialize(a); await ${c.updates}Changed.InvokeAsync(${c.updates} as string); });` : ''} return null; }`}${c.refresh ? ', refresh: true' : ''}${c.names ? `, names: new[] { ${c.names.map(lit).join(', ')} }` : ''}${c.userFacing ? `, userFacing: e => ${c.userFacing}?.Invoke(e) == true` : ''});`);
         }
         L.push('    }');
     }
