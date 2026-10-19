@@ -69,7 +69,7 @@
       "event": "pk-record-delete",
       "shows": "deletable",
       "type": "EventCallback<PkRecordDeleteEventArgs>",
-      "note": "The Delete button was pressed (Id is the record's id). Setting it shows Delete in view mode of an existing record; confirm, delete and navigate away in the handler, inside TryBusyAsync on a PageBase page."
+      "note": "The Delete button was pressed (Id is the record's id). Setting it shows Delete of an existing record, in view and edit mode; confirm, delete and navigate away in the handler, inside TryBusyAsync on a PageBase page."
     },
     {
       "name": "Sections",

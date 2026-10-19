@@ -149,8 +149,10 @@ test('delete: the Delete button shows in view mode of an existing record when co
     for (const fn of parts.delete.listeners?.click ?? []) fn();
     assert.deepEqual(events.filter(e => e[0] === 'pk-record-delete'), [['pk-record-delete', { id: '7' }]]);
     el.mode = 'edit'; el.draw();
-    assert.equal(parts.delete.hidden, true, 'not while editing');
-    el.config = { ...el.config, deletable: false }; el.mode = 'view'; el.draw();
+    assert.equal(parts.delete.hidden, false, 'also while editing an existing record (#1597)');
+    el.config = { ...el.config, id: undefined }; el.$id = null; el.draw();
+    assert.equal(parts.delete.hidden, true, 'not for a new record');
+    el.$id = '7'; el.config = { ...el.config, deletable: false }; el.mode = 'view'; el.draw();
     assert.equal(parts.delete.hidden, true, 'not without config.deletable');
 });
 

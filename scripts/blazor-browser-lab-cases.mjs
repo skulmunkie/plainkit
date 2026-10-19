@@ -72,9 +72,10 @@ export const LAB_CASES = [
         await ctx.open('/lab/tickets/2');
         await waitText(ctx, 'Ticket 2');
         await edit(ctx);
+        ctx.ok(await ctx.eval(`window.__deep.one('${RECORD}[part="delete"]').hidden === false`), 'Delete is not shown in edit mode of an existing record (#1597)');
         await ctx.setField('Title', 'FAIL');
         await ctx.clickDeep(`${RECORD}[part="save"]`);
-        await waitText(ctx, 'Could not save'); // the callback threw: the page says so and stays in edit mode
+        await waitText(ctx, 'Could not save');// the callback threw: the page says so and stays in edit mode
         ctx.ok(await ctx.eval(`!!window.__deep.field('Title')`), 'a failed save left edit mode and lost the typed values');
         await ctx.noErrors(ctx.openMark, [...BENIGN, /Save refused by the sample/]); // the failure itself may be echoed once as the bridge's rejected call
         // Leave the page clean: unsaved edits arm the page's beforeunload guard, and Chrome logs "Blocked attempt to show a beforeunload confirmation panel" (an error) when the next case's navigation leaves a
