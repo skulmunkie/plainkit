@@ -3,6 +3,8 @@
 .field { display: grid; grid-template-columns: minmax(0, 1fr); gap: var(--gap-label-input); min-width: 0; }
 .lab { color: var(--pk-field-label, var(--color-text)); font-size: var(--text-read); font-weight: 500; cursor: default; }
 ::slotted([slot="label-action"]) { margin-inline-start: var(--space-2); vertical-align: middle; }
+:host([action-end]) .lab { display: flex; align-items: center; }
+:host([action-end]) ::slotted([slot="label-action"]) { margin-inline-start: auto; }
 .req { margin-inline-start: 0.2em; color: var(--field-error); }
 .foot { display: flex; flex-wrap: wrap; justify-content: space-between; gap: var(--space-1) var(--space-3); }
 .help, .msg, .count { font-size: var(--text-meta); }

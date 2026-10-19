@@ -4,3 +4,4 @@
 @container (min-width: 34rem) { [data-span='2'] { grid-column: span 2; } [data-twelve] { grid-template-columns: repeat(12, 1fr); } [data-cols] { grid-column: span var(--c); } }
 @container (min-width: 51rem) { [data-span='3'] { grid-column: span 3; } }
 @container (width < 34rem) { [data-twelve] { grid-template-columns: 1fr 1fr; } [data-wide] { grid-column: 1/-1; } }
+[action-end] > slot[slot] { display: block; margin-inline-start: auto; }

@@ -62,6 +62,13 @@
       "description": "stack puts the label above the control; row puts it in a fixed column beside it (stacks on a phone); inline puts label and control on one line at their natural width."
     },
     {
+      "name": "actionEnd",
+      "type": "boolean",
+      "default": false,
+      "reflect": true,
+      "description": "Pins the label-action slot to the end of the label row (a figure or a small action opposite the label text) instead of directly after it."
+    },
+    {
       "name": "size",
       "type": "enum",
       "default": "md",
