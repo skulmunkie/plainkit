@@ -113,7 +113,7 @@ A control that navigates is a link, not a click handler: give `pk-button` an `hr
 
 Write an icon button like any other button, with its name as the text, and add `icon`: the text is hidden visually and stays the accessible name (and the hover tooltip); only the icon is drawn. `icon-name` draws a sprite symbol for you; a `pk-icon` or an svg in the button works too. `label` overrides the text. An icon button with no name at all fails the scorecard.
 
-To show icon and text on a large screen and only the icon on a small one, give a button with an icon `collapse="phone"` (icon only on a phone) or `collapse="tablet"` (icon only on a tablet and a phone). The text stays the accessible name; a button with no icon never collapses.
+To show icon and text on a large screen and only the icon on a small one, give a button with an icon `collapse="phone"` (icon only on a phone) or `collapse="tablet"` (icon only on a tablet and a phone). The text stays the accessible name; a button with no icon never collapses. For a record page with several actions, put `actions-overflow="phone"` (or `tablet`, `always`) on `pk-page-header`: the slotted actions then fold into one "Actions" menu button at that width and below, each item keeping its label, icon, disabled state and click handler (no app CSS, no duplicated menu); Blazor: `ActionsOverflow`.
 
 ```html
 <pk-button icon variant="ghost" icon-name="plus">Add item</pk-button>

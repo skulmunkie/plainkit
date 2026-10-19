@@ -7,7 +7,46 @@ const filled = (el, name) => el.slotted(name).length > 0 || [...el.shadowRoot.qu
 
 export default Base => class extends Base {
     connected() { for (const s of ['title', 'breadcrumb', '', 'actions', 'meta', 'tabs']) this.watchSlot(s, () => this.requestUpdate()); loadElements(this.shadowRoot); }
-    disconnected() { this.$mq?.removeEventListener('change', this.$sync); this.$mq = null; this.$from = null; }
+    disconnected() { this.$mq?.removeEventListener('change', this.$sync); this.$mq = null; this.$from = null; this.$omq?.removeEventListener('change', this.$sync); this.$omq = null; this.$ofrom = null; }
+    /** actionsOverflow: at the named width and below, the slotted actions stay in the light DOM but are hidden, and one trigger opens a menu with one item per action; choosing an item clicks that action. */
+    overflow() {
+        this.$sync ??= () => this.requestUpdate();
+        if (this.$ofrom !== this.actionsOverflow) {
+            this.$omq?.removeEventListener('change', this.$sync);
+            this.$ofrom = this.actionsOverflow;
+            this.$omq = this.$ofrom === 'phone' || this.$ofrom === 'tablet' ? mediaBelow(this.$ofrom) : null;
+            this.$omq?.addEventListener('change', this.$sync);
+        }
+        const actions = this.slotted('actions'), menu = this.part('overflow'), on = actions.length > 0 && (this.$ofrom === 'always' || !!this.$omq?.matches);
+        if (!this.$ow) { // the open event refreshes the items first, so a disabled or renamed action is current when the menu shows
+            this.$ow = true;
+            menu.addEventListener('pk-open', () => this.items());
+            menu.addEventListener('pk-select', e => { e.stopPropagation(); e.detail.item.$action?.click(); });
+        }
+        this.part('actions').toggleAttribute('data-overflow', on);
+        this.shadowRoot.querySelector('slot[name="actions"]').hidden = on;
+        menu.hidden = !on;
+        if (on) this.items();
+    }
+    items() {
+        const menu = this.part('overflow'), doc = this.ownerDocument;
+        const rows = this.slotted('actions').map(a => ({ a, label: (a.label || a.getAttribute('aria-label') || a.textContent).trim() })).filter(r => r.label);
+        const key = JSON.stringify(rows.map(({ a, label }) => [label, a.getAttribute('icon-name'), a.hasAttribute('disabled'), a.getAttribute('variant')]));
+        if (this.$items === key) return;
+        this.$items = key;
+        const items = rows.map(({ a, label }) => {
+            const item = doc.createElement('pk-menu-item');
+            item.textContent = label; item.$action = a;
+            if (a.hasAttribute('disabled')) item.setAttribute('disabled', '');
+            if (a.getAttribute('variant') === 'danger') item.setAttribute('danger', '');
+            const icon = a.getAttribute('icon-name');
+            if (icon) { const i = doc.createElement('pk-icon'); i.slot = 'prefix'; i.setAttribute('name', icon); item.append(i); }
+            return item;
+        });
+        for (const old of menu.querySelectorAll('pk-menu-item')) old.remove();
+        menu.append(...items);
+        loadElements(menu);
+    }
     // The crumbs prop: a JSON array of { label, href }. A bad value is reported once and draws no trail.
     list() {
         if (!this.crumbs) return [];
@@ -68,6 +107,7 @@ export default Base => class extends Base {
         this.trail(!!this.heading || filled(this, 'title'));
         this.part('crumbs').hidden = !filled(this, 'breadcrumb') && this.part('trail').hidden;
         this.part('actions').hidden = !filled(this, 'actions');
+        this.overflow();
         this.part('meta').hidden = !filled(this, 'meta');
         this.part('tabs').hidden = !this.dock();
         this.part('chips').hidden = !filled(this, '');
