@@ -87,7 +87,7 @@ export default Base => class extends Base {
             let tip = field.querySelector('pk-tooltip[help]');
             if (!help) tip?.remove();
             else if (tip) tip.setAttribute('text', help);
-            else { tip = this.ownerDocument.createElement('pk-tooltip'); for (const [k, v] of [['slot', 'label-action'], ['help', ''], ['interactive', ''], ['text', help]]) tip.setAttribute(k, v); (control ?? field.lastElementChild).after(tip); loadElements(this.shadowRoot); }
+            else { tip = this.tip(this.ownerDocument, help); (control ?? field.lastElementChild).after(tip); loadElements(this.shadowRoot); }
         }
     }
     /** Draws the fields again: call it after changing the visible(spec, values) callback property, which nothing watches. */
@@ -97,6 +97,12 @@ export default Base => class extends Base {
         const n = Math.floor(Number(spec.columnSpan));
         if (spec.span || n >= this.columns) field.setAttribute('data-span', '');
         else if (n > 1) field.setAttribute('data-span', n);
+    }
+    // The host's label-action-<key> content, on every kind (a custom field included); `labelActionEnd` pins it to the end of the label row.
+    tip(doc, text) { const tip = doc.createElement('pk-tooltip'); for (const [k, v] of [['slot', 'label-action'], ['help', ''], ['interactive', ''], ['text', text]]) tip.setAttribute(k, v); return tip; }
+    labelAction(doc, field, spec) {
+        const slot = doc.createElement('slot'); slot.setAttribute('name', `label-action-${spec.key}`); slot.setAttribute('slot', 'label-action'); field.append(slot);
+        if (spec.labelActionEnd) field.setAttribute('action-end', '');
     }
     build(doc, spec) {
         const kind = spec.kind ?? 'text', tag = controlTag(kind);
@@ -112,8 +118,8 @@ export default Base => class extends Base {
         if (spec.required) field.setAttribute('required', '');
         this.spanOf(field, spec);
         field.append(control);
-        if (spec.help) { const tip = doc.createElement('pk-tooltip'); tip.setAttribute('slot', 'label-action'); tip.setAttribute('help', ''); tip.setAttribute('interactive', ''); tip.setAttribute('text', spec.help); field.append(tip); }
-        const slot = doc.createElement('slot'); slot.setAttribute('name', `label-action-${spec.key}`); slot.setAttribute('slot', 'label-action'); field.append(slot);
+        if (spec.help) field.append(this.tip(doc, spec.help));
+        this.labelAction(doc, field, spec);
         const commit = commitOf(kind), row = { spec, kind, field, control };
         control.addEventListener(commit.event, e => {
             if (e.target !== control) return;
@@ -150,6 +156,7 @@ export default Base => class extends Base {
         this.spanOf(field, spec);
         slot.setAttribute('name', `editor-${spec.key}`);
         field.append(slot);
+        this.labelAction(doc, field, spec);
         this.$rows.set(spec.key, row);
         return row;
     }

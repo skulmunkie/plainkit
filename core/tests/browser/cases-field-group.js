@@ -231,6 +231,20 @@ export const fieldGroupCases = [
         t.eq(valid, 1); t.eq(submitted, 1);
     }],
 
+    ['field-group: label-action-<key> reaches the label of a custom field too, and labelActionEnd pins it to the end of the label row', async t => {
+        const host = t.stage('<pk-field-group label="Order"><b slot="label-action-w">None</b><i slot="label-action-q">kg</i><div slot="editor-w">body</div></pk-field-group>');
+        const el = host.firstElementChild;
+        el.fields = [{ key: 'w', label: 'Weight', kind: 'custom', labelActionEnd: true }, { key: 'q', label: 'Qty', kind: 'number' }]; el.values = {};
+        await t.load(host); await t.load(el.shadowRoot); await t.settle(); await t.settle();
+        const [custom, plain] = el.shadowRoot.querySelectorAll('pk-field');
+        t.ok(custom.hasAttribute('action-end') && !plain.hasAttribute('action-end'), 'only the field that asks is pinned');
+        t.ok(custom.shadowRoot.querySelector('slot[name="label-action"]').assignedElements({ flatten: true }).some(b => b.textContent === 'None'), 'a custom field draws its label action');
+        await t.load(custom.shadowRoot); await t.settle();
+        const lab = custom.part('label').getBoundingClientRect(), act = host.querySelector('b').getBoundingClientRect(), pl = plain.part('label').getBoundingClientRect(), pa = host.querySelector('i').getBoundingClientRect();
+        t.ok(lab.right - act.right < 4, `the pinned action sits at the end of the label row (label right ${lab.right}, action right ${act.right})`);
+        t.ok(pl.right - pa.right > 40, 'an unpinned action stays beside the label text');
+    }],
+
     ['field-group: a combobox field takes its options from the search callback, does not filter them itself, and a stale answer is dropped; a label-action slot reaches the field\'s label', async t => {
         const fields = [{ key: 'city', label: 'City', kind: 'combobox', options: [{ value: 'a', label: 'Static' }] }];
         const host = t.stage('<pk-field-group label="Where"><button slot="label-action-city" type="button">Use home</button></pk-field-group>');

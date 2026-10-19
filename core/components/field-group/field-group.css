@@ -4,3 +4,4 @@
 /* A column span needs that many tracks: pk-grid makes one per 16rem (plus the gap), so the span only applies once the group is wide enough. */
 @container (min-width: 34rem) { [data-span='2'] { grid-column: span 2; } }
 @container (min-width: 51rem) { [data-span='3'] { grid-column: span 3; } }
+pk-field[action-end] > slot[slot=label-action] { display: block; margin-inline-start: auto; }
