@@ -118,10 +118,27 @@ export const LAB_CASES = [
         await waitText(ctx, 'Status');
         await edit(ctx);
         ctx.ok(await ctx.eval(`!!window.__deep.field('Done') && !!window.__deep.field('Owner') && !!window.__deep.field('Notes')`), 'a sidebar or section field has no control in edit mode');
+        // Columns: 3 on the Details section (#1601): its first two fields share a row once the controls have upgraded and the layout settled.
+        await ctx.waitFor(`(() => { const top = n => Math.round(window.__deep.field(n).getBoundingClientRect().top); return top('Title') === top('Estimate'); })()`, 'Title and Estimate to share a row under Columns: 3');
         await ctx.setField('Title', 'Renamed three');
         await ctx.setField('Done', true);
         await ctx.clickDeep(`${RECORD}[part="save"]`);
         await ctx.waitFor(`!window.__deep.field('Title') && ${MAIN}.includes('Ticket: Renamed three')`, 'the saved record to show in view mode under its new title');
+        await ctx.noErrors(ctx.openMark, BENIGN);
+      } },
+    // BeforeSave runs after validation and before Save (#1601): false (Title HOLD) keeps the page in edit mode with the edits and Save is not called; true goes on.
+    { name: 'record-before-save',
+      async run(ctx) {
+        await ctx.open('/lab/ticket-before');
+        await ctx.waitFor(`!!window.__deep.field('Title')`, 'the new record form');
+        await ctx.waitFor(`typeof document.querySelector('pk-record-page')?.beforeSave === 'function'`, 'the circuit to take the record page over');
+        await ctx.setField('Title', 'HOLD');
+        await ctx.clickDeep(`${RECORD}[part="save"]`);
+        await ctx.waitFor(`document.querySelector('pk-record-page')?.$saving !== true && !document.querySelector('pk-record-page').part('save').busy`, 'the declined save to finish');
+        ctx.ok(await ctx.eval(`window.__deep.field('Title')?.value === 'HOLD'`), 'a declined BeforeSave left edit mode or lost the typed value');
+        await ctx.setField('Title', 'ok');
+        await ctx.clickDeep(`${RECORD}[part="save"]`);
+        await waitText(ctx, 'declined;checked;saved;'); // declined, then checked and only then saved: Save never ran for the declined one
         await ctx.noErrors(ctx.openMark, BENIGN);
       } },
     // A condition follows an edit made in another card (#1600): Kind (Details) decides whether Notes (its own card) shows.

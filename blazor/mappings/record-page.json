@@ -38,6 +38,12 @@
       "doc": "Value templates by field key: each replaces the text of that field in view mode (the main list and the sidebar cards). A field without one shows its value. The content is yours, so it reads the record from your own state."
     },
     {
+      "name": "Sticky",
+      "prop": "sticky",
+      "type": "bool",
+      "note": "Pins the title bar to the top of the scrolling page with Edit, Cancel, Save and Delete in it (as PkPageHeader Sticky does), so they stay in reach while a long form scrolls."
+    },
+    {
       "name": "Busy",
       "prop": "busy",
       "type": "bool",
@@ -75,7 +81,7 @@
       "name": "Sections",
       "map": "param",
       "type": "IReadOnlyList<PkRecordSection>?",
-      "doc": "Titled cards of fields in the main column (Heading, Fields: the keys). Fields no section or sidebar card names come first, under Config's heading. In edit mode each card is a field group of the one form."
+      "doc": "Titled cards of fields in the main column (Heading, Fields: the keys, and Columns: in edit mode the card's fields flow into that many columns, a narrow card shows one, and a spec ColumnSpan or Span widens a field, as on PkFieldGroup). Fields no section or sidebar card names come first, under Config's heading. In edit mode each card is a field group of the one form."
     },
     {
       "name": "Sidebar",
@@ -129,6 +135,15 @@
       "args": "a.ValueKind == JsonValueKind.String ? a.GetString()! : a.ToString()",
       "doc": "Loads the record whose id (config.id, the route's param) is given; null shows the 'record not found' state. Its field values are read through Fields.Get. Not called for a new record (no id). Throwing shows the element's error state.",
       "returns": "KeepLoaded(r)"
+    },
+    {
+      "name": "BeforeSave",
+      "callback": "beforeSave",
+      "type": "Func<TItem, Task<bool>>?",
+      "arg": "Dictionary<string, JsonElement>",
+      "userFacing": "IsUserFacing",
+      "doc": "Runs once the form is valid and before Save, with the item the form's values were applied to (the same item Save receives): return false to stop (the page stays in edit mode with the edits and Save is not called), true to go on. The place for a confirm of your own (a dialog saying a rule collides with another record). Save shows its busy state while it runs. Throwing is a failed save (the message follows IsUserFacing).",
+      "args": "await ApplySavedAsync(a)"
     },
     {
       "name": "Save",

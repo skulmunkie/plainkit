@@ -373,6 +373,13 @@ public sealed class PkPageCallbackTests : BunitContext, IAsyncLifetime
     }
 
     [Fact]
+    public void RecordPage_Sticky_reaches_the_element_as_the_sticky_attribute()
+    {
+        Assert.False(Render<PkRecordPage<Person>>().Find("pk-record-page").HasAttribute("sticky"));
+        Assert.True(Render<PkRecordPage<Person>>(p => p.Add(x => x.Sticky, true)).Find("pk-record-page").HasAttribute("sticky"));
+    }
+
+    [Fact]
     public async Task RecordPage_OnDelete_shows_Delete_and_Busy_and_Error_reach_the_element()
     {
         string? deleted = null;
@@ -390,6 +397,33 @@ public sealed class PkPageCallbackTests : BunitContext, IAsyncLifetime
 
         await el.TriggerEventAsync("onpk-record-delete", new PkRecordDeleteEventArgs { Id = "7" });
         Assert.Equal("7", deleted);
+    }
+
+    [Fact]
+    public async Task RecordPage_IsUserFacing_applies_to_a_BeforeSave_that_throws()
+    {
+        var cut = Render<PkRecordPage<Person>>(p => p.Add(x => x.Fields, PersonFields).Add(x => x.Model, new Person())
+            .Add(x => x.BeforeSave, _ => throw new DomainRule("Collides with order 4."))
+            .Add(x => x.IsUserFacing, ex => ex is DomainRule));
+        var host = Assert.IsType<DotNetObjectReference<PkCallbackHost<Dictionary<string, JsonElement>>>>(Assert.Single(_bridge.Invocations["setCallback"], i => (string)i.Arguments[1]! == "beforeSave").Arguments[2]);
+        Assert.Equal("Collides with order 4.", Envelope(await cut.InvokeAsync(() => host.Value.Invoke(Values("{}")))).GetProperty("message").GetString());
+    }
+
+    [Fact]
+    public async Task RecordPage_BeforeSave_gets_the_item_with_the_form_applied_and_its_answer_goes_back_to_the_element()
+    {
+        Person? seen = null; var go = false;
+        var cut = Render<PkRecordPage<Person>>(p => p.Add(x => x.Fields, PersonFields).Add(x => x.Model, new Person())
+            .Add(x => x.BeforeSave, person => { seen = person; return Task.FromResult(go); })
+            .Add(x => x.Save, _ => Task.CompletedTask));
+        var call = Assert.Single(_bridge.Invocations["setCallback"], i => (string)i.Arguments[1]! == "beforeSave");
+        var host = Assert.IsType<DotNetObjectReference<PkCallbackHost<Dictionary<string, JsonElement>>>>(call.Arguments[2]);
+
+        Assert.Equal(false, await cut.InvokeAsync(() => host.Value.Invoke(Values("{\"name\":\"Bo\",\"age\":41}"))));
+        Assert.Equal("Bo", seen!.Name);
+        Assert.Equal(41, seen.Age);
+        go = true;
+        Assert.Equal(true, await cut.InvokeAsync(() => host.Value.Invoke(Values("{}"))));
     }
 
     [Fact]

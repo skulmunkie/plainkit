@@ -319,3 +319,52 @@ test('a redraw while edits are unsaved keeps what was typed (the host rewrites c
     assert.equal(group().values.name, 'Typed', 'the rebuilt form starts from the live values, not the blank ones');
     assert.equal(el.dirty, true);
 });
+
+test('a section or sidebar card with columns gives its field group that many columns in edit mode (#1601)', async () => {
+    const { el, parts } = make();
+    el.config = { ...el.config, sections: [{ heading: 'Name', fields: ['name'], columns: 3 }], sidebar: [{ heading: 'Summary', fields: ['status'], columns: 2 }] };
+    el.load = async () => ({ name: 'Widget', status: 'a' });
+    el.mode = 'edit';
+    el.connected();
+    await tick();
+    assert.deepEqual(el.$groups.map(g => g.columns), [3, 2]);
+    el.config = { ...el.config, sections: [{ heading: 'Name', fields: ['name'], columns: null }], sidebar: [] };
+    el.changed('config');
+    assert.equal(el.$groups[0].columns, undefined, 'null or 1 leaves the group at its own default');
+    assert.ok(parts.main.children.length);
+});
+
+test('beforeSave(values) runs before save: false stops it and keeps edit mode, anything else goes on (#1601)', async () => {
+    const { el, parts, events } = make();
+    el.load = async () => ({ name: 'Widget' });
+    el.mode = 'edit';
+    const saved = [], asked = [];
+    let answer = false;
+    el.save = async values => { saved.push(values); };
+    el.beforeSave = async values => { asked.push(values); return answer; };
+    el.connected();
+    await tick();
+    await el.submit();
+    assert.equal(asked.length, 1); assert.equal(saved.length, 0, 'declined: save is not called');
+    assert.equal(el.mode, 'edit'); assert.equal(parts.save.busy, false); assert.ok(!events.some(([n]) => n === 'pk-record-save'));
+    answer = undefined; await el.submit();
+    assert.equal(saved.length, 1, 'any answer but false goes on'); assert.equal(el.mode, 'view');
+});
+
+test('sticky (the prop or config.sticky) pins the shell header and moves the buttons into its actions (#1601)', async () => {
+    const { el, parts } = make();
+    el.load = async () => ({ name: 'Widget' });
+    el.connected();
+    await tick();
+    assert.equal(parts.header.getAttribute('sticky'), null);
+    assert.equal(parts.bar.getAttribute('slot'), null);
+    el.sticky = true; el.changed('sticky');
+    assert.equal(parts.header.getAttribute('sticky'), '');
+    assert.equal(parts.bar.getAttribute('slot'), 'actions');
+    assert.equal(parts.header.getAttribute('data-bare'), 'false', 'a page with no title keeps the header the buttons live in');
+    el.sticky = false; el.changed('sticky');
+    assert.equal(parts.header.getAttribute('sticky'), null);
+    assert.equal(parts.bar.getAttribute('slot'), null);
+    el.config = { ...el.config, sticky: true }; el.changed('config');
+    assert.equal(parts.header.getAttribute('sticky'), '', 'config.sticky does the same');
+});

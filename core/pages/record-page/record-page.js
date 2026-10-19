@@ -37,6 +37,7 @@ export default Base => class extends Base {
         if (!this.$w || !this.isConnected) return;
         if (name === 'config') { if ((this.config?.id ?? null) !== this.$id) this.fetch(); else { if (this.$id == null && !this.dirty) this.$values = { ...this.config?.values }; this.bar(); this.draw(); } }
         else if (name === 'mode') this.draw();
+        else if (name === 'sticky') this.bar();
         else if (name === 'deletable') this.part('delete').hidden = this.deleteHidden();
         else if (name === 'cancellable') this.part('cancel').hidden = this.cancelHidden();
         else if (name === 'error') this.notice();
@@ -71,6 +72,9 @@ export default Base => class extends Base {
     bar() {
         const t = this.config?.titleField, v = t ? text(this.$values?.[t]).trim() : '';
         showTitleBar(this, this.part('header'), { ...this.config, heading: v || this.config?.title });
+        // sticky (#1601): the header stays at the top while a long form scrolls, and Edit, Cancel, Save and Delete move into its actions so they stay in reach.
+        const sticky = Boolean(this.sticky || this.config?.sticky), shell = this.part('header'), bar = this.part('bar');
+        if (sticky) { shell.setAttribute('sticky', ''); bar.setAttribute('slot', 'actions'); shell.setAttribute('data-bare', 'false'); } else { shell.removeAttribute('sticky'); bar.removeAttribute('slot'); }
     }
     done() { renderState(this.part('state'), 'ready'); this.setDirty(false); this.bar(); this.draw(); }
     get editing() { return this.mode === 'edit' || this.$id == null; }
@@ -86,7 +90,7 @@ export default Base => class extends Base {
         this.$groups = [];
         if (editing) {
             main.replaceChildren(this.form(doc, vals, claimed));
-            sideEl.replaceChildren(...side.map(s => this.card(doc, s.heading, this.group(doc, this.fields.filter(f => s.fields?.includes(key(f))), vals, s.heading, FORM_ID))));
+            sideEl.replaceChildren(...side.map(s => this.card(doc, s.heading, this.group(doc, this.fields.filter(f => s.fields?.includes(key(f))), vals, s.heading, FORM_ID, s.columns))));
         } else {
             main.replaceChildren(...this.mainSections(this.config?.sections?.length ? claimed : new Set()).map(g => this.list(doc, g.fields, vals, g.heading)));
             sideEl.replaceChildren(...side.map(s => this.card(doc, s.heading, this.list(doc, this.fields.filter(f => s.fields?.includes(key(f))), vals, '', true))));
@@ -128,15 +132,17 @@ export default Base => class extends Base {
     mainSections(skip) {
         const sections = this.config?.sections ?? [], named = new Set(sections.flatMap(s => s.fields ?? []));
         const rest = this.fields.filter(f => !named.has(key(f)) && !skip.has(key(f)));
-        const own = sections.map(s => ({ heading: s.heading, fields: this.fields.filter(f => (s.fields ?? []).includes(key(f)) && !skip.has(key(f))) }));
+        const own = sections.map(s => ({ heading: s.heading, columns: s.columns, fields: this.fields.filter(f => (s.fields ?? []).includes(key(f)) && !skip.has(key(f))) }));
         return [{ heading: this.config?.heading, fields: rest }, ...own].filter(g => g.fields.length);
     }
     card(doc, heading, ...kids) { const card = doc.createElement('pk-card'); card.setAttribute('heading', heading ?? ''); card.append(...kids); return card; }
     // Sidebar groups sit outside the form element, so they join it through its id (the form attribute).
-    group(doc, fields, vals, label, formId) {
+    group(doc, fields, vals, label, formId, columns) {
         const group = doc.createElement('pk-field-group');
         group.setAttribute('label', label || this.config?.title || 'Record');
         if (formId) group.setAttribute('form', formId);
+        // A section's columns (#1601): its short fields flow side by side, a field's columnSpan or span widens it; a narrow card still shows one.
+        if (columns > 1) group.columns = columns;
         group.fields = fields.map(spec);
         group.values = { ...vals };
         // A custom field's body is the host's editor-<key> child: forward that slot into the group's own.
@@ -149,7 +155,7 @@ export default Base => class extends Base {
         pf.setAttribute('summary', '');
         form.id = FORM_ID;
         const sections = this.config?.sections?.length;
-        form.append(...this.mainSections(skip).map(g => { const grp = this.group(doc, g.fields, vals, g.heading); return sections ? this.card(doc, g.heading, grp) : grp; }));
+        form.append(...this.mainSections(skip).map(g => { const grp = this.group(doc, g.fields, vals, g.heading, undefined, g.columns); return sections ? this.card(doc, g.heading, grp) : grp; }));
         pf.append(form);
         return pf;
     }
@@ -178,6 +184,9 @@ export default Base => class extends Base {
         renderState(this.part('notice'), 'ready');
         for (const g of this.$groups ?? []) g.report?.(false);
         try {
+            // beforeSave(values) runs once the form is valid and before save: false keeps the page in edit mode with the edits (a confirm the host shows, #1601).
+            if (typeof this.beforeSave === 'function' && (await this.beforeSave(values)) === false) return;
+            if (gen !== this.$gen) return;
             const out = await this.save(values);
             if (gen !== this.$gen) return;
             this.$values = { ...values, ...(out && typeof out === 'object' ? out : {}) };
