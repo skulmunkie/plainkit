@@ -137,6 +137,8 @@ export const LAB_CASES = [
         await ctx.setField('Title', 'ok');
         await ctx.clickDeep(`${RECORD}[part="save"]`);
         await waitText(ctx, 'declined;checked;saved;'); // declined, then checked and only then saved: Save never ran for the declined one
+        await ctx.noErrors(ctx.openMark, BENIGN);
+      } },
     // A condition follows an edit made in another card (#1600): Kind (Details) decides whether Notes (its own card) shows.
     { name: 'record-when-follows-edit-in-another-card',
       async run(ctx) {
