@@ -1,4 +1,6 @@
 :host { display: block; --_bd: var(--pk-control-border, var(--color-input-border)); }
+label { display: none; margin-block-end: var(--space-1); }
+:host([show-label]) label { display: block; }
 :host(:is([invalid], [aria-invalid="true"])) { --_bd: var(--field-error); }
 :host([warning]) { --_bd: var(--field-warn); }
 :host([valid]) { --_bd: var(--field-ok); }

@@ -267,6 +267,20 @@ export const dataDisplayCases = [
         await until(() => tr() === 5, 'the searched rows'); t.ok(el.selected.length > 1, 'the ids stay selected');
     }],
 
+    ['data-table: a select filter draws its label above the control, like a text filter, and the control keeps the label as its accessible name (#1596)', async t => {
+        const el = await mountDataTable(t, `<pk-data-table columns='[{"key":"sku","label":"SKU"}]' page-size="5" filters='[{"key":"channel","type":"select","label":"Channel","options":["a","b"]},{"key":"state","type":"select","label":"State","options":["x","y"]},{"key":"note","type":"text","label":"Note"}]'></pk-data-table>`);
+        el.load = async () => ({ rows: [], total: 0 });
+        el.refresh();
+        const filters = el.part('filters');
+        await until(() => filters.querySelectorAll('pk-select').length === 2, 'both selects');
+        filters.toggle(true); await t.settle();
+        const label = c => c.shadowRoot.querySelector('[part="label"]');
+        for (const [key, text] of [['channel', 'Channel'], ['state', 'State']]) {
+            const c = filters.querySelector('[data-key="' + key + '"]');
+            t.eq(label(c).textContent, text); t.ok(label(c).getBoundingClientRect().height > 0, key + ' label is drawn');
+            t.eq(c.shadowRoot.querySelector('select').getAttribute('aria-label'), text);
+        }
+    }],
     ['data-table: a multiselect filter is a checklist whose chosen values reach load(query).filters as an array, count once, and Clear filters unticks them (#1025)', async t => {
         const el = await mountDataTable(t, `<pk-data-table columns='[{"key":"sku","label":"SKU"}]' page-size="5" filters='[{"key":"status","type":"multiselect","label":"Status","options":["Open","Paid",{"value":"void","label":"Void"}]}]'></pk-data-table>`);
         const queries = [];
