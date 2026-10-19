@@ -22,7 +22,8 @@ const make = () => {
     const outcome = fakeEl('div');
     outcome.ownerDocument = { createElement: fakeEl };
     fields.ownerDocument = { createElement: fakeEl };
-    const parts = { form, fields, run, outcome };
+    const custom = fakeEl('slot'); custom.assignedNodes = () => custom.nodes ?? [];
+    const parts = { form, fields, run, outcome, custom };
     const loaded = [];
     const fakeRoot = { querySelectorAll: () => [], matches: () => false };
     const el = new (behaviour(class {
@@ -119,4 +120,16 @@ test('updated sets the Run button text from runLabel, defaulting to "Run"', () =
     el.runLabel = 'Count';
     el.updated();
     assert.equal(parts.run.textContent, 'Count');
+});
+
+test('content in the default slot hides the generated form and outcome, and its removal shows them again (#1604)', () => {
+    const { el, parts } = make();
+    el.connected();
+    assert.equal(!!parts.form.hidden, false);
+    parts.custom.nodes = [{ nodeType: 3, textContent: '  ' }, { nodeType: 1 }];
+    parts.custom.fire('slotchange');
+    assert.equal(parts.form.hidden, true); assert.equal(parts.outcome.hidden, true);
+    parts.custom.nodes = [{ nodeType: 3, textContent: '\n' }];
+    parts.custom.fire('slotchange');
+    assert.equal(parts.form.hidden, false); assert.equal(parts.outcome.hidden, false);
 });
