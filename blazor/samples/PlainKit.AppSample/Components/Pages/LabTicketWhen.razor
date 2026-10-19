@@ -1,0 +1,12 @@
+@page "/lab/ticket-when/{Id}"
+
+@* Lab: a condition on a field that follows an edit made in another card (#1600). Kind sits in the Details card; Notes (a second card) shows only for a bug, by the declarative WhenExpr. *@
+<PkRecordPage TItem="Ticket" Mode="RecordPageMode.Edit" Config="@Config" Fields="_fields" Sections="_sections" Load="TicketStore.GetAsync" Save="TicketStore.SaveAsync" />
+
+@code {
+    [Parameter] public string Id { get; set; } = "";
+    private string Config => System.Text.Json.JsonSerializer.Serialize(new { id = Id, title = "Ticket", editable = true });
+
+    private static readonly PkFieldSpec<Ticket>[] _fields = Ticket.Specs.Where(f => f.Key is "title" or "kind" or "notes").Select(f => f.Key == "notes" ? f with { WhenExpr = "kind == 'bug'" } : f).ToArray();
+    private static readonly PkRecordSection[] _sections = [new("Details", ["title", "kind"]), new("Extra", ["notes"])];
+}

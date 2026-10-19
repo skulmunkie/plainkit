@@ -24,6 +24,8 @@ export default Base => class extends Base {
             main.addEventListener('submit', e => e.preventDefault());
             main.addEventListener('pk-valid', () => this.submit());
             for (const t of ['input', 'change']) for (const part of [main, this.part('side')]) part.addEventListener(t, () => this.track());
+            // Each card is its own field group, which evaluates whenExpr, disabledExpr and the rest against its own values: a committed change in one card is handed to the others, so a condition follows an edit made in another card (#1600).
+            for (const part of [main, this.part('side')]) part.addEventListener('pk-field-change', e => this.mirror(e));
         }
         // The one subscription outside this element's tree: a reload or a closed tab while edits are unsaved asks first.
         this.$leave = e => { if (this.dirty) { e.preventDefault(); e.returnValue = ''; } };
@@ -76,7 +78,9 @@ export default Base => class extends Base {
 
     // Not named render(): the base class calls render() on every prop change (dirty, mode), which would rebuild the form under the reader on the first keystroke.
     draw() {
-        const doc = this.ownerDocument, main = this.part('main'), sideEl = this.part('side'), vals = this.$values ?? {}, editing = this.editing;
+        const doc = this.ownerDocument, main = this.part('main'), sideEl = this.part('side'), editing = this.editing;
+        // A redraw while the form holds unsaved edits (the host rewrote config after a rejected save, or fields changed) keeps what was typed (#1598).
+        const vals = editing && this.dirty && this.$groups?.length ? this.collect() : (this.$values ?? {});
         this.notice();
         const side = (this.config?.sidebar ?? []), claimed = new Set(side.flatMap(c => c.fields ?? []));
         this.$groups = [];
@@ -99,7 +103,8 @@ export default Base => class extends Base {
     }
     // Cancel leaves edit mode of an existing record; a new record has nowhere to go back to unless the host handles pk-record-cancel (cancellable).
     cancelHidden() { return !this.editing || (this.$id == null && !(this.cancellable || this.config?.cancellable)); }
-    deleteHidden() { return this.editing || this.$id == null || !(this.deletable || this.config?.deletable); }
+    // Delete belongs to an existing record in view and edit mode alike (#1597); a new record has nothing to delete.
+    deleteHidden() { return this.$id == null || !(this.deletable || this.config?.deletable); }
     // The host's `error` text is the notice above the form (a save's own failure replaces it until the host sets it again); `busy` is the host's work in flight, so every button waits.
     notice() { if (this.error) showState(this.part('notice'), 'error', { description: this.error }); else renderState(this.part('notice'), 'ready'); }
     lock() { for (const p of ['edit', 'cancel', 'save', 'delete']) this.part(p).disabled = Boolean(this.busy); this.part('save').busy = Boolean(this.busy || this.$saving); }
@@ -153,6 +158,11 @@ export default Base => class extends Base {
     controls() { return (this.$groups ?? []).flatMap(g => [...(g.shadowRoot?.querySelectorAll(CONTROLS) ?? [])]); }
     // A snapshot holds every value the group was given: take only the fields it draws.
     live() { return Object.assign({}, ...(this.$groups ?? []).map(g => { const own = new Set((g.fields ?? []).map(f => f.key)); return Object.fromEntries(Object.entries(g.snapshot?.() ?? {}).filter(([k]) => own.has(k))); })); }
+    mirror(e) {
+        const { key, value } = e.detail ?? {}, from = e.target;
+        if (key == null || (this.$groups?.length ?? 0) < 2) return;
+        for (const g of this.$groups) if (g !== from && typeof g.snapshot === 'function') g.values = { ...g.snapshot(), [key]: value };
+    }
     groupOf(k) { return (this.$groups ?? []).find(g => g.fields?.some(f => f.key === k)); }
     collect() {
         const out = { ...this.$values }, live = this.live();
