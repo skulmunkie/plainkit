@@ -285,3 +285,18 @@ test('Cancel emits pk-record-cancel; a new record shows Cancel only when cancell
     parts.cancel.listeners.click[0]();
     assert.deepEqual(events.at(-1), ['pk-record-cancel', { id: null }]);
 });
+
+test('a redraw while edits are unsaved keeps what was typed (the host rewrites config after a rejected save, #1598)', async () => {
+    const { el, parts } = make();
+    el.config = { ...el.config, id: undefined, sidebar: [] };
+    el.save = async () => { throw new Error('offline'); };
+    el.connected();
+    await tick();
+    const group = () => parts.main.children[0].children[0].children[0];
+    group().snapshot = () => ({ name: 'Typed' });
+    el.track();
+    assert.equal(el.dirty, true);
+    el.changed('config');
+    assert.equal(group().values.name, 'Typed', 'the rebuilt form starts from the live values, not the blank ones');
+    assert.equal(el.dirty, true);
+});
