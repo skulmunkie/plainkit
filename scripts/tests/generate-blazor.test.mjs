@@ -479,6 +479,10 @@ test('a hand-written component must say the namespace of its element\'s tier; a 
     assert.doesNotMatch(generic.files.get('PkGeneratedAliases.cs'), /PkDemo/);
     assert.match(generic.files.get('generated.manifest.json'), /PlainKit\.Blazor\.Pages\.PkDemo/);
 });
+test('callback: userFacing names the parameter whose predicate decides which exception messages reach the browser (#1599)', () => {
+    const m = { ...mapping, params: [...mapping.params, { name: 'Save', callback: 'save', type: 'Func<IReadOnlyDictionary<string, JsonElement>, Task>?', arg: 'Dictionary<string, JsonElement>', result: false, userFacing: 'IsUserFacing', doc: 'Saves.' }] };
+    assert.match(run(m).files.get('PkDemo.razor'), /return null; \}, userFacing: e => IsUserFacing\?\.Invoke\(e\) == true\);/);
+});
 test('callback: a delegate parameter is wired to the element property through a PkCallbackSlot, with an optional result, adapter arguments and abort token', () => {
     const m = { ...mapping, params: [...mapping.params, { name: 'Save', callback: 'save', type: 'Func<IReadOnlyDictionary<string, JsonElement>, Task>?', arg: 'Dictionary<string, JsonElement>', result: false, doc: 'Saves.' },
         { name: 'Load', callback: 'load', type: 'Func<string, CancellationToken, Task<string?>>?', arg: 'Req', args: 'a.Id', abort: true, doc: 'Loads.' }] };

@@ -90,6 +90,12 @@
       "doc": "The page title from the loaded record (or the Model of a new one), read on every render, a save included; Config's title is the fallback while it returns nothing."
     },
     {
+      "name": "IsUserFacing",
+      "map": "param",
+      "type": "Func<Exception, bool>?",
+      "doc": "Decides that an exception thrown by Load or Save is written for the person even though it does not implement IPkUserFacingException, as PkRecordEditor.IsUserFacing does: its message then reaches the page (an app whose domain exception base cannot reference PlainKit.Blazor passes ex => ex is AppException). Either the marker or the predicate shows the message; a predicate that throws is logged and counts as false. Any other exception shows a generic line and is logged. It covers the two callbacks the element calls; OnDelete is your own handler (inside TryBusyAsync, DescribeError chooses the text)."
+    },
+    {
       "name": "OnCancel",
       "event": "pk-record-cancel",
       "shows": "cancellable",
@@ -118,6 +124,7 @@
       "callback": "load",
       "type": "Func<string, Task<TItem?>>?",
       "refresh": true,
+      "userFacing": "IsUserFacing",
       "arg": "JsonElement",
       "args": "a.ValueKind == JsonValueKind.String ? a.GetString()! : a.ToString()",
       "doc": "Loads the record whose id (config.id, the route's param) is given; null shows the 'record not found' state. Its field values are read through Fields.Get. Not called for a new record (no id). Throwing shows the element's error state.",
@@ -130,6 +137,7 @@
       "arg": "Dictionary<string, JsonElement>",
       "result": false,
       "refresh": true,
+      "userFacing": "IsUserFacing",
       "doc": "Saves the record: the loaded item (or Model for a new one) with the form's values applied through each field's Set (or SetAsync). Having it shows Edit and Save. Throwing keeps the edits and shows the exception message; returning switches to view mode.",
       "args": "await ApplySavedAsync(a)"
     }
