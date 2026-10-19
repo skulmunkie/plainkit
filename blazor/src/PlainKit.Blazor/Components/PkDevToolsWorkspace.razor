@@ -1,12 +1,13 @@
+@page "/_plainkit"
+@page "/_plainkit/{Tab}"
 @implements IAsyncDisposable
+@inject NavigationManager Nav
 @inject PkRuntime Runtime
 @inject PkOptions Options
 @inject PkSourceProvider Source
 @inject IServiceProvider Services
 
-@* The toolkit's dev tools page as one SDK module (core/modules/devtools/workspace.js): the Gallery, Files and Scorecard tabs and the dev tools dock, with PlainKit.Blazor's
-   own Blazor and Components dock tabs. JavaScript owns the element's subtree; Blazor renders only the marker. The data the module needs is handed over here: the gallery's Blazor
-   sections, the score targets and, when the Files tab is first shown, the snapshot. *@
+@* The toolkit's dev tools (served at /_plainkit in Development, see PkOptions.DevTools) as one SDK module (core/modules/devtools/workspace.js): the Gallery, Files and Scorecard tabs and the dock, plus the Blazor and Components dock tabs. JavaScript owns the subtree; Blazor renders the marker and hands over the gallery sections, score targets and snapshot. *@
 <PkStyles />
 @if (!Enabled)
 {
@@ -20,7 +21,6 @@ else
 @code {
     private static readonly string[] Workspaces = ["gallery", "files", "scorecard"];
 
-    // The dock's tabs: the SDK's, then the two PlainKit.Blazor adds.
     private static readonly string[] Tools = ["console", "logs", "logging", "performance", "quality", "inspector", "theme", "blazor", "blazor-components"];
 
     private ElementReference _host;
@@ -85,7 +85,7 @@ else
     public Task SetWorkspace(string key)
     {
         _workspace = key;
-        return InvokeAsync(() => OnWorkspace.InvokeAsync(key));
+        return OnWorkspace.HasDelegate ? InvokeAsync(() => OnWorkspace.InvokeAsync(key)) : InvokeAsync(() => Nav.NavigateTo($"/_plainkit/{key}"));
     }
 
     /// <summary>Called from the page when the Files tab is first shown: the snapshot as a lean file list and a reader, never as file contents (#959). Null when there is no source to browse.</summary>

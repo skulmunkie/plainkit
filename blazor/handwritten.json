@@ -26,10 +26,6 @@
       "category": "mount",
       "blazorOnly": "mounts the devtools module (core/modules/devtools); the tag pk-devtools has no dash"
     },
-    "Components/PkDevToolsPage.razor": {
-      "category": "wrapper",
-      "blazorOnly": "Blazor page that hosts the dev tools modules; no element of its own"
-    },
     "Components/PkDevToolsWorkspace.razor": {
       "category": "mount",
       "blazorOnly": "mounts the devtools workspace module (core/modules/devtools/workspace.js); the tag has no element"
