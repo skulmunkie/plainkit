@@ -184,6 +184,9 @@ export default Base => class extends Base {
         renderState(this.part('notice'), 'ready');
         for (const g of this.$groups ?? []) g.report?.(false);
         try {
+            // beforeSave(values) runs once the form is valid and before save: false keeps the page in edit mode with the edits (a confirm the host shows, #1601).
+            if (typeof this.beforeSave === 'function' && (await this.beforeSave(values)) === false) return;
+            if (gen !== this.$gen) return;
             const out = await this.save(values);
             if (gen !== this.$gen) return;
             this.$values = { ...values, ...(out && typeof out === 'object' ? out : {}) };

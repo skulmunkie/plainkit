@@ -334,6 +334,23 @@ test('a section or sidebar card with columns gives its field group that many col
     assert.ok(parts.main.children.length);
 });
 
+test('beforeSave(values) runs before save: false stops it and keeps edit mode, anything else goes on (#1601)', async () => {
+    const { el, parts, events } = make();
+    el.load = async () => ({ name: 'Widget' });
+    el.mode = 'edit';
+    const saved = [], asked = [];
+    let answer = false;
+    el.save = async values => { saved.push(values); };
+    el.beforeSave = async values => { asked.push(values); return answer; };
+    el.connected();
+    await tick();
+    await el.submit();
+    assert.equal(asked.length, 1); assert.equal(saved.length, 0, 'declined: save is not called');
+    assert.equal(el.mode, 'edit'); assert.equal(parts.save.busy, false); assert.ok(!events.some(([n]) => n === 'pk-record-save'));
+    answer = undefined; await el.submit();
+    assert.equal(saved.length, 1, 'any answer but false goes on'); assert.equal(el.mode, 'view');
+});
+
 test('sticky (the prop or config.sticky) pins the shell header and moves the buttons into its actions (#1601)', async () => {
     const { el, parts } = make();
     el.load = async () => ({ name: 'Widget' });

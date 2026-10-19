@@ -23,6 +23,7 @@ export default {
         { wait: 600 }, { shot: 'resting' },
         { set: '#g', prop: 'values', value: { name: 'Acme Hardware', qty: '12', status: 'closed', note: 'Shipped and paid.' } }, { shot: 'conditional' },
         { set: '#g', attr: 'columns', value: '2' }, { shot: 'two-columns' },
+        { set: '#g', prop: 'fields', value: [{ key: 'qty', label: 'Quantity', kind: 'number', cols: 2 }, { key: 'grade', label: 'Grade', cols: 2 }, { key: 'when', label: 'Released', kind: 'date', cols: 3 }, { key: 'price', label: 'Price', kind: 'number', cols: 3 }, { key: 'name', label: 'Title' }] }, { shot: 'twelfths' },
         { set: '#g', attr: 'disabled', value: '' }, { shot: 'disabled' },
         { set: '#stage', attr: 'dir', value: 'rtl' }, { shot: 'rtl' },
     ],
