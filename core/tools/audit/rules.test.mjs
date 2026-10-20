@@ -195,6 +195,18 @@ test('B4: does not fire anywhere in an app that shows no sign of PageBase adopti
     assert.equal(findings.filter(f => f.rule === 'B4').length, 0, 'FIX: B4 fired on an app with no PageBase adoption signal anywhere');
 });
 
+test('B4: does not fire on a @page hosted by PkListPage or PkRecordPage, still fires on one hosting its own state (#1670)', () => {
+    const files = [
+        { path: 'Home.razor', text: '@page "/"\n@inherits HomePageBase\n<PkTable></PkTable>' },
+        { path: 'Orders.razor', text: '@page "/orders"\n@using App\n<PkListPage Load="LoadAsync"></PkListPage>' },
+        { path: 'Order.razor', text: '@page "/order/{Id}"\n<PkRecordPage Load="LoadAsync"></PkRecordPage>' },
+        { path: 'Other.razor', text: '@page "/other"\n<PkTable></PkTable>' },
+    ];
+    const b4 = checkFiles(files, { ruleset: 'consumer' }).filter(f => f.rule === 'B4');
+    assert.deepEqual(b4.map(f => f.file), ['Other.razor'], `FIX: B4 should fire only on Other.razor, got ${JSON.stringify(b4)}`);
+});
+
+
 // #719: against a real external app, B6's `<script>` check fired on lines with no `<script>` tag at all - a
 // self-closing PkSpinner, an inline <svg>, a javascript: URI bookmarklet href. Each case below matches one of
 // those reported shapes (a real <script> tag is included as the positive control).
