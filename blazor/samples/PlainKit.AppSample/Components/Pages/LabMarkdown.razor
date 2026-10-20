@@ -1,10 +1,16 @@
 @page "/lab/markdown"
 
-@* Lab: PkMarkdownEditor with @bind-Value over the real interop (#1522): typed Markdown and a toolbar command both reach the bound field. *@
+@* Lab: PkMarkdownEditor with @bind-Value over the real interop (#1522): typed Markdown and a toolbar command both reach the bound field.
+   PkMarkdown (#1673): a read-only view of fixed Markdown, a relative link handed to OnLinkClick (InterceptLinks), raw HTML shown as text. *@
 <h1 tabindex="-1">Lab markdown</h1>
 <PkMarkdownEditor Label="Notes" @bind-Value="_text" />
 <p>Markdown: @_text</p>
+<PkMarkdown Markdown="@View" InterceptLinks="true" OnLinkClick="@(e => _link = e.Href)" />
+<p>Link: @_link</p>
 
 @code {
     private string? _text;
+    private string? _link;
+
+    private const string View = "## Read-only view\n\nSee [the guide](guide/intro) and **bold** text <script>window.__mdXss = 1</script>";
 }

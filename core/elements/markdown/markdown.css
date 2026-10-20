@@ -1,0 +1,14 @@
+:host { display: block; min-inline-size: 0; overflow-wrap: anywhere; }
+:host([hidden]) { display: none; }
+[part="content"] > :first-child { margin-block-start: 0; }
+[part="content"] > :last-child { margin-block-end: 0; }
+[part="content"] :is(h1, h2, h3) { margin-block: var(--space-4) var(--space-2); line-height: 1.25; }
+[part="content"] h1 { font-size: var(--text-h1); } [part="content"] h2 { font-size: var(--text-h2); } [part="content"] h3 { font-size: var(--text-h3); }
+[part="content"] :is(p, ul, ol, pre, blockquote) { margin-block: 0 var(--space-3); }
+[part="content"] :is(ul, ol) { padding-inline-start: var(--space-5); }
+[part="content"] blockquote { padding-inline-start: var(--space-3); border-inline-start: 3px solid var(--color-border); color: var(--color-muted); }
+[part="content"] code { font-size: 0.9em; background: var(--color-surface-alt); border-radius: var(--radius-sm); padding-inline: var(--space-1); }
+[part="content"] pre { overflow: auto; padding: var(--space-2) var(--space-3); background: var(--color-surface-alt); border-radius: var(--radius-sm); }
+[part="content"] pre code { padding: 0; background: none; }
+[part="content"] a { color: var(--color-link); } [part="content"] a:hover { color: var(--color-link-hover); }
+[part="content"] a:focus-visible { outline: var(--focus-ring); outline-offset: 2px; }
