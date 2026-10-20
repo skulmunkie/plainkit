@@ -31,6 +31,16 @@ export const LAB_CASES = [
         ctx.ok(await has(ctx, 'Ticket 3'), 'the search for "Ticket 3" does not leave Ticket 3 in the list');
         await ctx.noErrors(ctx.openMark, BENIGN);
       } },
+    { name: 'list-filter-option-labels-from-the-result', // #1683: PkListResult.FilterOptions goes through the bridge and replaces the option labels of the filter
+      async run(ctx) {
+        const labels = "[...document.querySelector('pk-list-page').part('filters').querySelectorAll('[data-key=\"view\"] option')].map(o => o.textContent).join('|')";
+        await ctx.open('/lab/tickets');
+        await waitText(ctx, 'Ticket 5');
+        await ctx.waitFor(`${labels} === 'Any|All (5)'`, 'the filter option to read "All (5)" from the load result');
+        await ctx.typeInto('pk-list-page >>> input[type="search"]', 'Ticket 3');
+        await ctx.waitFor(`${labels} === 'Any|All (1)'`, 'the filter option to read "All (1)" after the search');
+        await ctx.noErrors(ctx.openMark, BENIGN);
+      } },
     { name: 'list-before-list-slot', // #1603: BeforeListContent sits between the title bar and the list, inside the page frame
       async run(ctx) {
         await ctx.open('/lab/tickets');

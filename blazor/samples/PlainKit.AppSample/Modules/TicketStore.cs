@@ -50,7 +50,8 @@ public static class TicketStore
     {
         if (slow) await Task.Delay(1500, r.CancellationToken);
         var rows = _all.Where(t => r.Search is null || t.Title.Contains(r.Search, StringComparison.OrdinalIgnoreCase)).ToList();
-        return new PkListResult<Ticket>(rows, rows.Count);
+        // A filter's option labels come from the result (#1683): the count of what the search found.
+        return new PkListResult<Ticket>(rows, rows.Count, new Dictionary<string, IReadOnlyList<PkFilterOption>> { ["view"] = [new("all", $"All ({rows.Count})")] });
     }
 
     public static Task<Ticket?> GetAsync(string id) => Task.FromResult(_all.FirstOrDefault(t => t.Id == id));

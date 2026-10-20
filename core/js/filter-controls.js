@@ -11,12 +11,20 @@ function multiControl(doc, f) {
     el.append(legend);
     el.dataset.key = f.key;
     el.setAttribute('part', 'multiselect');
-    const boxes = (f.options ?? []).map(o => {
-        const box = doc.createElement('pk-checkbox');
-        box.value = String(o.value ?? o); box.label = box.textContent = o.label ?? String(o);
-        return box;
-    });
-    el.append(...boxes);
+    let boxes = [];
+    // Also how setFilterOptions replaces the options: the ticked values that are still offered stay ticked.
+    const fill = options => {
+        const on = new Set(boxes.filter(b => b.checked).map(b => b.value));
+        boxes.forEach(b => b.remove());
+        boxes = (options ?? []).map(o => {
+            const box = doc.createElement('pk-checkbox');
+            box.value = String(o.value ?? o); box.label = box.textContent = o.label ?? String(o); box.checked = on.has(box.value);
+            return box;
+        });
+        el.append(...boxes);
+    };
+    fill(f.options);
+    el.setOptions = fill;
     Object.defineProperty(el, 'value', {
         get: () => boxes.filter(b => b.checked).map(b => b.value),
         set: v => { const on = Array.isArray(v) ? v.map(String) : []; for (const b of boxes) b.checked = on.includes(b.value); },
@@ -41,7 +49,19 @@ export function filterControl(doc, f) {
         const any = doc.createElement('option');
         any.value = ''; any.textContent = f.anyLabel ?? 'Any';
         el.append(any);
-        for (const o of f.options ?? []) { const opt = doc.createElement('option'); opt.value = String(o.value ?? o); opt.textContent = o.label ?? String(o); el.append(opt); }
+        addOptions(doc, el, f.options);
     }
     return el;
+}
+
+const addOptions = (doc, el, options) => { for (const o of options ?? []) { const opt = doc.createElement('option'); opt.value = String(o.value ?? o); opt.textContent = o.label ?? String(o); el.append(opt); } };
+
+/** Replaces the options of a built select or multiselect control ([{ value, label }], what a load result's filterOptions carries); the chosen value stays chosen. Any other control is left alone. */
+export function setFilterOptions(doc, el, options) {
+    if (el?.setOptions) return el.setOptions(options);
+    if (el?.localName !== 'pk-select') return;
+    const keep = el.value;
+    for (const o of [...el.querySelectorAll('option')].slice(1)) o.remove(); // the first is the "any" option
+    addOptions(doc, el, options);
+    el.value = keep;
 }

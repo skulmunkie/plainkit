@@ -554,6 +554,18 @@ public sealed class PkPageCallbackTests : BunitContext, IAsyncLifetime
         Assert.Equal("A-1", json.GetProperty("rows")[0].GetProperty("OrderNo").GetString());
     }
 
+    // Issue 1683: the filter options of a result go back to the element beside rows and total.
+    [Fact]
+    public async Task ListPage_load_returns_the_filter_options_of_the_result()
+    {
+        var cut = Render<PkListPage<Order>>(p => p.Add(x => x.Config, "{\"columns\":[{\"key\":\"orderNo\",\"label\":\"No\"}]}")
+            .Add(x => x.Load, r => Task.FromResult(new PkListResult<Order>([new("A-1", 5)], 1, new Dictionary<string, IReadOnlyList<PkFilterOption>> { ["status"] = [new("open", "Open (3)")] }))));
+        var host = Assert.IsType<DotNetObjectReference<PkCallbackHost<PkListPageQuery>>>(Assert.Single(_bridge.Invocations["setCallback"]).Arguments[2]);
+        var json = JsonSerializer.SerializeToElement(await cut.InvokeAsync(() => host.Value.Invoke(new PkListPageQuery())));
+        var option = json.GetProperty("filterOptions").GetProperty("status")[0];
+        Assert.Equal("open", option.GetProperty("Value").GetString()); Assert.Equal("Open (3)", option.GetProperty("Label").GetString());
+    }
+
     [Fact]
     public async Task ListPage_load_gets_a_multiselect_filter_as_a_list_and_a_text_filter_as_text()
     {
