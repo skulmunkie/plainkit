@@ -22,13 +22,25 @@
       "name": "Fields",
       "map": "cells",
       "type": "IReadOnlyList<PkFieldSpec<TItem>>?",
-      "doc": "The record's fields, typed as PkFieldGroup's: Key, Label, Kind, Get and Set, plus Hint, Help, Required, Options, Span and the rest. In view mode they read as a list; in edit mode the element draws them as a pk-field-group. When, Disabled, ReadOnly, LabelWhen and HelpWhen are read from the record once it is loaded (they are .NET functions of the item and do not follow edits until the next load or save: a round trip per keystroke is not what the page does); for a condition that follows what the user types set the declarative WhenExpr, DisabledExpr, ReadonlyExpr, RequiredExpr, LabelWhenExpr or HelpWhenExpr on the spec: the element evaluates them in the browser against the live values, also across cards (a field in one section can decide a field in another or in the sidebar); a spec Editor is the body of its field in edit mode (it edits the item itself)."
+      "doc": "The record's fields, typed as PkFieldGroup's: Key, Label, Kind, Get and Set, plus Hint, Help, Required, Options, Span and the rest. In view mode they read as a list; in edit mode the element draws them as a pk-field-group. When, Disabled, ReadOnly, LabelWhen and HelpWhen are read from the record once it is loaded (they are .NET functions of the item and do not follow edits until the next load or save: a round trip per keystroke is not what the page does; set FollowEdits to have them follow each committed change); for a condition that follows what the user types set the declarative WhenExpr, DisabledExpr, ReadonlyExpr, RequiredExpr, LabelWhenExpr or HelpWhenExpr on the spec: the element evaluates them in the browser against the live values, also across cards (a field in one section can decide a field in another or in the sidebar); a spec Editor is the body of its field in edit mode (it edits the item itself)."
     },
     {
       "name": "Model",
       "map": "cells",
       "type": "TItem?",
       "doc": "The record a new one (Config without an id) starts from and Save receives: set it to an instance to fill. A record with an id is what Load returns."
+    },
+    {
+      "name": "FollowEdits",
+      "map": "param",
+      "type": "bool",
+      "doc": "Makes the typed When, Disabled, ReadOnly, LabelWhen and HelpWhen follow what the person edits, not only the loaded or saved record. Each committed field change (a blur or a choice, not each keystroke: one round trip per change, and none for a page that does not set this or OnFieldChanged) is applied through that field's Set (or SetAsync) to a draft copy of the item, the functions read the draft, and the form updates in place: the control being edited keeps its focus and text. The loaded item is not touched before Save; Cancel, a successful Save and a new Load drop the draft, and a rejected Save keeps it with the typed values. Set it before the first render. The copy is a shallow MemberwiseClone unless CopyOf is set; a field's Set runs on it for every committed change, so it must not throw for text a person can type. A field hidden by a typed When has no control, so what was typed in it is not part of the values Save receives."
+    },
+    {
+      "name": "CopyOf",
+      "map": "param",
+      "type": "Func<TItem, TItem>?",
+      "doc": "How FollowEdits copies the item into its draft (default: a shallow member-wise copy). Set it when a field's Set changes a nested object or a collection the copy would share with the loaded item."
     },
     {
       "name": "ViewFields",
@@ -68,12 +80,14 @@
     {
       "name": "OnFieldChanged",
       "event": "pk-record-change",
-      "listened": true,
+      "listened": "FollowEdits",
+      "before": "await FollowAsync(e);",
       "note": "A field's change was committed (not each keystroke): Key and Value are the field, Values every field's current value in all the cards (a JSON object keyed by field key). Redraw your own content beside the form, such as a summary card in MainAfter, from it; the item itself is not touched before Save."
     },
     {
       "name": "OnSave",
       "event": "pk-record-save",
+      "before": "_draft = default;",
       "note": "Save resolved and the page is back in view mode (Save already received the values)."
     },
     {
@@ -110,6 +124,7 @@
     {
       "name": "OnCancel",
       "event": "pk-record-cancel",
+      "before": "_draft = default;",
       "shows": "cancellable",
       "note": "Cancel was pressed (Id is null for a new record). Setting it shows Cancel on a new record too; an existing record leaves edit mode itself, so navigate away only for a new one."
     },

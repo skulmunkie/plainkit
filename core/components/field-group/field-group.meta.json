@@ -128,6 +128,7 @@
     { "name": "setError(key, message)", "description": "Shows a message in one field, for an answer from the server; an empty message clears it, and report(false) clears every message." },
     { "name": "focusField(key)", "description": "Focuses one field's control." },
     { "name": "focus()", "description": "Focuses the first invalid field, else the first field." },
+    { "name": "patch(fields)", "description": "Sets fields without rebuilding the controls of the fields that stay (same key): their disabled, readonly, label and help change in place, so the control the user is typing in keeps its focus and text; fields that left are removed and new ones drawn. A page whose conditions follow the edits (pk-record-page) uses it." },
     { "name": "refresh()", "description": "Draws the fields again; call it after changing the visible(spec, values) callback property." }
   ]
 }

@@ -153,6 +153,25 @@ export const LAB_CASES = [
         await waitText(ctx, 'Summary: Typed twice (2 changes)');
         await ctx.noErrors(ctx.openMark, BENIGN);
       } },
+    // FollowEdits (#1641): the typed When, Disabled and LabelWhen follow a committed change through a draft, the form updates in place (the Title control is the same node and keeps its text), and Save still gets the edits.
+    { name: 'record-follow-edits',
+      async run(ctx) {
+        await ctx.open('/lab/ticket-follow');
+        await ctx.waitFor(`!!window.__deep.field('Title') && !!window.__deep.field('Notes')`, 'the new bug form with Notes');
+        await ctx.waitFor(`typeof document.querySelector('pk-record-page')?.save === 'function'`, 'the circuit to take the record page over');
+        await ctx.setField('Title', 'Kept text');
+        await ctx.eval(`window.__deep.field('Title').__mark = 1`);
+        await ctx.setField('Kind', 'task');
+        await ctx.waitFor(`!window.__deep.field('Notes')`, 'Notes to hide once Kind is Task (typed When on the draft)');
+        await ctx.waitFor(`window.__deep.field('Estimate')?.hasAttribute('disabled')`, 'Estimate to disable for a task (typed Disabled)');
+        await ctx.waitFor(`!!window.__deep.field('Title (task)')`, 'the Title label to follow the kind (typed LabelWhen)');
+        ctx.ok(await ctx.eval(`window.__deep.field('Title (task)').__mark === 1 && window.__deep.field('Title (task)').value === 'Kept text'`), 'the form was rebuilt (the Title control changed or lost its text)');
+        await ctx.setField('Kind', 'bug');
+        await ctx.waitFor(`!!window.__deep.field('Notes') && !window.__deep.field('Estimate').hasAttribute('disabled')`, 'Notes to show and Estimate to enable again for a bug');
+        await ctx.clickDeep(`${RECORD}[part="save"]`);
+        await waitText(ctx, 'saved:bug:Kept text;');
+        await ctx.noErrors(ctx.openMark, BENIGN);
+      } },
     // A condition follows an edit made in another card (#1600): Kind (Details) decides whether Notes (its own card) shows.
     { name: 'record-when-follows-edit-in-another-card',
       async run(ctx) {
@@ -380,6 +399,12 @@ export async function onPhone(ctx, fn) {
 export const LAB_SHOTS = [
     async (ctx, vp, theme) => { await ctx.open('/lab/fields'); await ctx.sleep(500); await ctx.shot('lab-fields', vp, theme); },
     async (ctx, vp, theme) => { await ctx.open('/lab/tickets'); await ctx.sleep(800); await ctx.shot('lab-list', vp, theme); },
+    async (ctx, vp, theme) => {
+        await ctx.open('/lab/ticket-follow'); await ctx.sleep(800);
+        await ctx.shot('lab-follow-bug', vp, theme);
+        await ctx.setField('Kind', 'task'); await ctx.sleep(800);
+        await ctx.shot('lab-follow-task', vp, theme);
+    },
     async (ctx, vp, theme) => { await ctx.open('/_plainkit/files'); await ctx.sleep(1500); await ctx.shot('devtools-files', vp, theme); },
     async (ctx, vp, theme) => {
         await ctx.open('/lab/tickets/3'); await ctx.sleep(800);

@@ -35,7 +35,7 @@ export default Base => class extends Base {
     disconnected() { this.$gen = (this.$gen ?? 0) + 1; window.removeEventListener('beforeunload', this.$leave); }
     changed(name) {
         if (!this.$w || !this.isConnected) return;
-        if (name === 'config') { if ((this.config?.id ?? null) !== this.$id) this.fetch(); else { if (this.$id == null && !this.dirty) this.$values = { ...this.config?.values }; this.bar(); this.draw(); } }
+        if (name === 'config') { if ((this.config?.id ?? null) !== this.$id) this.fetch(); else { if (this.$id == null && !this.dirty) this.$values = { ...this.config?.values }; this.bar(); if (!this.patch()) this.draw(); } }
         else if (name === 'mode') this.draw();
         else if (name === 'sticky') this.bar();
         else if (name === 'deletable') this.part('delete').hidden = this.deleteHidden();
@@ -44,6 +44,17 @@ export default Base => class extends Base {
         else if (name === 'busy') this.lock();
     }
 
+    // Only the fields changed (a host whose typed conditions follow the edits sends new disabled, readonly, labels or hidden fields, #1641): the form is not rebuilt, so the control the user moved to keeps its focus and its text. false: the shape of the page changed, draw it again.
+    shape() { return JSON.stringify({ ...this.config, fields: undefined, values: undefined }); }
+    patch() {
+        if (!this.editing || !this.$groups?.length || this.shape() !== this.$shape) return false;
+        const side = this.config?.sidebar ?? [], claimed = new Set(side.flatMap(c => c.fields ?? []));
+        const lists = [...this.mainSections(claimed).map(g => g.fields), ...side.map(s => this.fields.filter(f => s.fields?.includes(key(f))))];
+        if (lists.length !== this.$groups.length || this.$groups.some(g => typeof g.patch !== 'function')) return false;
+        lists.forEach((l, i) => this.$groups[i].patch(l.map(spec)));
+        this.lock();
+        return true;
+    }
     refresh() { if (this.$w && this.isConnected) this.fetch(); }
 
     // The record is loaded by id (config.id, the route's param) through the load(id) callback; no id means a new record (no load, edit mode).
@@ -87,7 +98,7 @@ export default Base => class extends Base {
         const vals = editing && this.dirty && this.$groups?.length ? this.collect() : (this.$values ?? {});
         this.notice();
         const side = (this.config?.sidebar ?? []), claimed = new Set(side.flatMap(c => c.fields ?? []));
-        this.$groups = [];
+        this.$groups = []; this.$shape = this.shape();
         if (editing) {
             main.replaceChildren(this.form(doc, vals, claimed));
             sideEl.replaceChildren(...side.map(s => this.card(doc, s.heading, this.group(doc, this.fields.filter(f => s.fields?.includes(key(f))), vals, s.heading, FORM_ID, s.columns))));
