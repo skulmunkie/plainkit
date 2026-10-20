@@ -38,6 +38,7 @@
     "PkCallbackError.cs": 24,
     "PkChartData.cs": 22,
     "PkComponentBase.cs": 73,
+    "PkComponentBase.Tick.cs": 50,
     "PkCrumb.cs": 6,
     "PkDockTypes.cs": 6,
     "PkElementBase.cs": 106,

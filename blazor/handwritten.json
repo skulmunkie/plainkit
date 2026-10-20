@@ -132,6 +132,9 @@
     "PkChartData.cs": {
       "category": "dto"
     },
+    "PkComponentBase.Tick.cs": {
+      "category": "runtime"
+    },
     "PkComponentBase.cs": {
       "category": "runtime"
     },
