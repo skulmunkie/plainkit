@@ -6,6 +6,7 @@
   "summary": "A pan and zoom ground for design tools: slotted content sits in a world you drag, pinch or Ctrl+wheel around, over an optional grid. pointToWorld and worldToPoint convert units, data-surface-selected nodes get a frame, and the page owns the selection.",
   "group": "Layout & structure",
   "tier": "component",
+  "package": "plainkit.canvas",
   "props": [
     { "name": "zoom", "type": "number", "default": 1, "reflect": true, "commit": "pk-view-change", "description": "The scale: 1 is actual size." },
     { "name": "panX", "type": "number", "default": 0, "reflect": true, "commit": "pk-view-change", "description": "Where the world origin sits, px from the left." },

@@ -4,6 +4,7 @@
   "summary": "A scrolling ground that frames a page being edited at full, tablet or phone width, draws selection, drop-target, hidden and empty marks around the page's nodes, and places an action chip beside a node.",
   "group": "Layout",
   "tier": "element",
+  "package": "plainkit.canvas",
   "props": [
     { "name": "width", "type": "enum", "default": "full", "values": ["full", "tablet", "phone"], "reflect": true, "description": "The page's width frame: full fills the surface, tablet and phone cap it (768px and 375px, from --pk-design-surface-tablet-w and --pk-design-surface-phone-w) and centre it." },
     { "name": "label", "type": "string", "default": "", "reflect": false, "description": "The surface's accessible name (it is a focusable role=group); warns once when empty." },
