@@ -124,5 +124,8 @@
       "html": "<pk-record-page id=\"product-sections\"><pk-card slot=\"main-after\" heading=\"Activity\">Created by the import on 3 March.</pk-card><pk-card slot=\"side-after\" heading=\"Related\">Two open orders.</pk-card></pk-record-page>"
     }
   ],
-  "methods": [{ "name": "refresh()", "description": "Loads the record again by config.id through load(id); called when the load callback is set after the page connected (the Blazor wrapper does)." }]
+  "methods": [
+    { "name": "refresh()", "description": "Loads the record again by config.id through load(id); called when the load callback is set after the page connected (the Blazor wrapper does)." },
+    { "name": "requestSave(skipBeforeSave)", "description": "Saves the form the way the Save button does (validation, busy state, dirty reset, switch to view) and resolves true when it was saved, false when it was invalid, busy, not in edit mode or rejected. skipBeforeSave leaves out the beforeSave callback for this run: a host whose beforeSave declined to ask the person calls it once they confirm." }
+  ]
 }

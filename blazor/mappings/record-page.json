@@ -161,6 +161,7 @@
   "typeparam": "TItem",
   "recordModel": true,
   "methods": [
-    { "name": "RefreshAsync", "method": "refresh" }
+    { "name": "RefreshAsync", "method": "refresh" },
+    { "name": "SaveAsync", "method": "requestSave", "args": [{ "name": "skipBeforeSave", "type": "bool" }], "returns": "bool" }
   ]
 }

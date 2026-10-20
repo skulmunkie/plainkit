@@ -438,6 +438,22 @@ public sealed class PkPageCallbackTests : BunitContext, IAsyncLifetime
     }
 
     [Fact]
+    public async Task RecordPage_SaveAsync_asks_the_element_to_save_through_its_normal_path_and_returns_its_answer()
+    {
+        _bridge.Setup<bool>("call", _ => true).SetResult(true);
+        var cut = Render<PkRecordPage<Person>>(p => p.Add(x => x.Fields, PersonFields).Add(x => x.Model, new Person()));
+
+        Assert.True(await cut.InvokeAsync(() => cut.Instance.SaveAsync(skipBeforeSave: true)));
+        Assert.True(await cut.InvokeAsync(() => cut.Instance.SaveAsync(false)));
+
+        var calls = _bridge.Invocations["call"].ToList();
+        Assert.Equal(2, calls.Count);
+        Assert.All(calls, c => Assert.Equal("requestSave", c.Arguments[1]));
+        Assert.Equal(true, ((object?[])calls[0].Arguments[2]!)[0]);
+        Assert.Equal(false, ((object?[])calls[1].Arguments[2]!)[0]);
+    }
+
+    [Fact]
     public async Task RecordPage_load_gets_the_id_answers_the_values_and_save_gets_the_item_with_the_form_applied()
     {
         string? loadedId = null; Person? saved = null; var loaded = new Person { Name = "Ada", Age = 36 };
