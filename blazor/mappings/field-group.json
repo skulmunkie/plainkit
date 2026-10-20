@@ -145,6 +145,11 @@
       "doc": "The BCP 47 locale of the money format."
     },
     {
+      "name": "SelectOnFocus",
+      "type": "bool",
+      "doc": "Selects the whole value when the field gains focus (an input kind, the money format included), so typing replaces it."
+    },
+    {
       "name": "WhenExpr",
       "type": "string?",
       "doc": "A declarative condition the element evaluates against the live committed values as the user edits, with no server round trip: the field shows while it is true, e.g. \"status == 'paid' && amount > 100\" (field keys, 'text' and number literals, == != < <= > >=, in [a, b], !, && and ||; no function calls). The typed When still runs once per load; use this one for what must follow the user's edits."

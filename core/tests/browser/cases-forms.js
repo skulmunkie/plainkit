@@ -109,6 +109,27 @@ export const formCases = [
         t.eq(ti.selectionStart, 0); t.eq(ti.selectionEnd, 6);
     }],
 
+    ['input: select-on-focus selects the whole number of a money-formatted input and keeps it through the mouse-up (#1678)', async t => {
+        const el = await t.mount('<pk-input label="Cost" format="money" currency="USD" select-on-focus value="1234.5"></pk-input>'); const i = el.part('control');
+        i.focus(); await t.settle(); await new Promise(r => requestAnimationFrame(() => setTimeout(r, 30)));
+        t.ok(i.selectionStart === 0 && i.selectionEnd === i.value.length && i.value.length > 0, 'the editing text is selected whole (' + i.selectionStart + '-' + i.selectionEnd + ' of "' + i.value + '")');
+        const up = new MouseEvent('mouseup', { bubbles: true, cancelable: true }); i.dispatchEvent(up); t.ok(up.defaultPrevented, 'the mouse-up after the focusing press is cancelled so the selection stays');
+        i.blur(); await t.settle();
+        const off = await t.mount('<pk-input label="Cost" format="money" currency="USD" value="1234.5"></pk-input>'); const oi = off.part('control');
+        oi.focus(); await t.settle(); await new Promise(r => requestAnimationFrame(() => setTimeout(r, 30)));
+        const up2 = new MouseEvent('mouseup', { bubbles: true, cancelable: true }); oi.dispatchEvent(up2); t.ok(!up2.defaultPrevented, 'without the attribute the mouse-up is left alone');
+    }],
+
+    ['field-group: a spec with selectOnFocus selects the number of a money field when it gains focus (#1678)', async t => {
+        const g = await t.mount('<pk-field-group label="Order" fields=\'[{"key":"cost","label":"Cost","kind":"number","format":"money","currency":"USD","selectOnFocus":true},{"key":"qty","label":"Qty","kind":"number"}]\' values=\'{"cost":"1234.5","qty":"7"}\'></pk-field-group>');
+        await t.settle(); await new Promise(r => requestAnimationFrame(() => setTimeout(r, 50)));
+        const inputs = g.shadowRoot.querySelectorAll('pk-input'), i = inputs[0].part('control'), q = inputs[1].part('control');
+        i.focus(); await t.settle(); await new Promise(r => requestAnimationFrame(() => setTimeout(r, 30)));
+        t.ok(inputs[0].hasAttribute('select-on-focus') && !inputs[1].hasAttribute('select-on-focus'), 'only the spec that asks gets the attribute');
+        t.ok(i.value.length > 0 && i.selectionStart === 0 && i.selectionEnd === i.value.length, 'the money field selects its whole number on focus');
+        q.focus(); await t.settle(); t.ok(q.selectionStart === q.selectionEnd, 'a field without it selects nothing');
+    }],
+
     ['input: copyable copies the value, gives transient feedback, and disables itself while empty', async t => {
         const el = await t.mount('<pk-input type="password" label="API key" reveal copyable value="sk_live_1"></pk-input>');
         const copy = el.part('copy'); t.ok(!copy.disabled, 'a value makes the button live');

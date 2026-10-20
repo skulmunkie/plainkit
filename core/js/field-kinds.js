@@ -39,7 +39,7 @@ export function controlAttrs(spec) {
     else if (kind === 'select' || isChecked(kind)) set('required', spec.required);
     else if (kind === 'combobox') { set('required', spec.required); set('placeholder', spec.placeholder); set('free', spec.free); set('mode', spec.mode); }
     else if (kind === 'textarea') { for (const k of ['required', 'minlength', 'maxlength', 'placeholder', 'rows']) set(k, spec[k]); }
-    else { a.type = INPUT_KINDS.includes(kind) ? kind : 'text'; for (const k of ['required', 'min', 'max', 'step', 'minlength', 'maxlength', 'pattern', 'placeholder', 'format', 'decimals', 'currency', 'locale']) set(k, spec[k]); if (AUTOCOMPLETE.includes(kind)) set('autocomplete', spec.autocomplete); }
+    else { a.type = INPUT_KINDS.includes(kind) ? kind : 'text'; for (const k of ['required', 'min', 'max', 'step', 'minlength', 'maxlength', 'pattern', 'placeholder', 'format', 'decimals', 'currency', 'locale']) set(k, spec[k]); set('select-on-focus', spec.selectOnFocus); if (AUTOCOMPLETE.includes(kind)) set('autocomplete', spec.autocomplete); }
     return a;
 }
 
