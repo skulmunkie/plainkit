@@ -220,6 +220,14 @@ test('B6: flags a real <script> tag at its own line, not a self-closing componen
     assert.equal(b6Script[0].line, 9, `FIX: B6 reported the <script> finding at the wrong line, got ${JSON.stringify(b6Script[0])}`);
 });
 
+test('B6: a root document loads its Assets scripts and an anchor may cancel navigation; other scripts still fire (#1671)', () => {
+    const root = ['<!DOCTYPE html>', '<html>', '<head></head>', '<body>', '<script src="@Assets[`_framework/blazor.web.js`]"></script>', '<a href="@Bookmarklet" onclick="return false;">Drag</a>', '</body>', '</html>'].join('\n');
+    const ok = checkFiles([{ path: 'App.razor', text: root }], { ruleset: 'consumer' });
+    assert.equal(ok.filter(f => f.rule === 'B6').length, 0, `FIX: B6 flagged a root document, got ${JSON.stringify(ok)}`);
+    const page = checkFiles([{ path: 'Page.razor', text: ['<script src="@Assets[`x.js`]"></script>', '<div onclick="go()"></div>'].join('\n') }], { ruleset: 'consumer' });
+    assert.equal(page.filter(f => f.rule === 'B6').length, 2, `FIX: B6 must still fire outside a root document, got ${JSON.stringify(page)}`);
+});
+
 test('B6: a Razor ternary attribute value that reuses the outer HTML quote character does not desync the scanner (#719)', () => {
     // `Class="@(IsLoading ? "spin" : "")"` is common, valid Razor: the C# ternary's own quoted strings reuse
     // the surrounding HTML attribute's quote character. A naive scanner would end the value at the first
