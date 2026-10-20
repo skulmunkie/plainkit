@@ -17,8 +17,13 @@
 [part="clear"] { all: unset; cursor: pointer; padding: var(--space-1) var(--space-2); border-radius: var(--radius-sm); color: var(--color-accent); }
 [part="clear"]:hover { background: var(--color-surface-alt); }
 [part="clear"]:focus-visible { outline: var(--focus-ring); }
+[part="trigger-icon"] { inline-size: 1.25em; block-size: 1.25em; flex: none; fill: none; stroke: currentColor; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
 @media (--phone) {
     [part="search"] { inline-size: 100%; min-block-size: var(--touch-target); font-size: 16px; }
     [part="trigger"], [part="close"], [part="clear"] { min-block-size: var(--touch-target); }
     [part="close"] { min-inline-size: var(--touch-target); }
+    /* icon only on a phone: the word folds into the icon (font-size 0 keeps it the accessible name); the active count stays as a badge on the corner. */
+    [part="trigger"] { min-inline-size: var(--touch-target); justify-content: center; padding-inline: 0; gap: 0; }
+    [part="trigger-label"] { font-size: 0; line-height: 0; }
+    [part="count"] { position: absolute; inset-block-start: 0; inset-inline-end: 0; transform: translate(35%, -35%); }
 }

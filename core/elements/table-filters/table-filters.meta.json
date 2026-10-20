@@ -83,6 +83,14 @@
       "description": "The Filters trigger button"
     },
     {
+      "name": "trigger-icon",
+      "description": "The filter icon on the trigger"
+    },
+    {
+      "name": "trigger-label",
+      "description": "The trigger's word; it folds into the icon on a phone and stays the accessible name"
+    },
+    {
       "name": "count",
       "description": "The active-filter-count badge"
     },
@@ -129,7 +137,7 @@
   ],
   "methods": [],
   "a11y": "The search box is labelled by label. The Filters trigger reflects aria-expanded; the panel is a normal document region (not a modal: no focus trap, no backdrop), so the page behind stays usable. The close button is labelled Close filters.",
-  "mobile": "The search box grows to full width; the trigger, close and clear buttons are 44px.",
+  "mobile": "The search box grows to full width; the trigger shows only its filter icon (the word stays its accessible name, the active count stays as a badge) and the trigger, close and clear buttons are 44px.",
   "examples": [
     {
       "title": "In a table's toolbar",
