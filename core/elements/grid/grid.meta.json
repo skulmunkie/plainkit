@@ -27,6 +27,13 @@
       "description": "Unequal columns as a ratio, for example 2:1 (a wide main column and a narrow side) or 1:2:1. Empty keeps equal auto-fit columns. Overrides min and columns; on a phone (640px and below) the grid falls back to auto columns so it stacks."
     },
     {
+      "name": "tracks",
+      "type": "string",
+      "default": "",
+      "reflect": true,
+      "description": "An explicit column track list as CSS writes it, for a fixed grid such as a 12-column dashboard (repeat(12, minmax(0, 1fr))) or uneven columns (minmax(0, 1.5fr) minmax(0, 1fr), 12rem 1fr). Use minmax(0, ...) so wide content does not blow a track out. Children then take columns with data-col-span (see the default slot). Overrides ratio, min and columns; a value the browser cannot parse is ignored with one warning. On a phone (640px and below) the grid falls back to auto columns so it stacks and data-col-span and data-row-span stop applying. For plain proportions, ratio (1.5:1) is shorter."
+    },
+    {
       "name": "gap",
       "type": "enum",
       "default": "md",
@@ -45,7 +52,7 @@
   "slots": [
     {
       "name": "",
-      "description": "The items to lay out."
+      "description": "The items to lay out. Any child can carry data-col-span=\"2\" to \"12\" (spans that many columns) and data-row-span=\"2\" to \"4\" (spans that many rows), meant for a grid with tracks; on a pk-* child it is a plain attribute (<PkCard data-col-span=\"6\"> in Blazor). Not applied on a phone."
     }
   ],
   "cssProperties": [
@@ -67,6 +74,14 @@
   ],
   "a11y": "A plain layout box with no role; the DOM order is the reading order, so a single column on a phone keeps the same order.",
   "examples": [
+    {
+      "title": "A 12-column dashboard",
+      "html": "<pk-grid tracks=\"repeat(12, minmax(0, 1fr))\"><pk-card heading=\"Revenue\" data-col-span=\"8\">Wide</pk-card><pk-card heading=\"Users\" data-col-span=\"4\">Narrow</pk-card><pk-card heading=\"Orders\" data-col-span=\"4\">A</pk-card><pk-card heading=\"Refunds\" data-col-span=\"4\">B</pk-card><pk-card heading=\"Churn\" data-col-span=\"4\">C</pk-card><pk-card heading=\"Activity\" data-col-span=\"12\">Full width</pk-card></pk-grid>"
+    },
+    {
+      "title": "Uneven tracks",
+      "html": "<pk-grid tracks=\"minmax(0, 1.5fr) minmax(0, 1fr)\"><pk-card heading=\"Main\">1.5 parts</pk-card><pk-card heading=\"Side\">1 part</pk-card></pk-grid>"
+    },
     {
       "title": "Auto columns",
       "html": "<pk-grid min=\"10rem\"><pk-card heading=\"One\">A</pk-card><pk-card heading=\"Two\">B</pk-card><pk-card heading=\"Three\">C</pk-card><pk-card heading=\"Four\">D</pk-card></pk-grid>"

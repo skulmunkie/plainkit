@@ -17,6 +17,11 @@
       "type": "string"
     },
     {
+      "name": "Tracks",
+      "prop": "tracks",
+      "type": "string"
+    },
+    {
       "name": "Gap",
       "prop": "gap",
       "type": "GridGap"
