@@ -87,3 +87,37 @@ test('CRLF and LF files behave the same: scanIgnores finds the marker, and the C
     assert.equal(results[1][1], 1);
     assert.match(results[1][2], /index\.html:1 {2}D1 {2}legacy markup/);
 });
+
+test('block ignores: start/end bracket a range; unknown rule, unended and stray markers are problems (#1518)', () => {
+    const known = new Set(['D1', 'T2']);
+    for (const eol of ['\n', '\r\n']) {
+        const text = ['<!-- plainkit-audit-ignore-start D1 -- legacy block -->', '<b>x</b>', '<b>y</b>', '<!-- plainkit-audit-ignore-end -->', '<b>z</b>'].join(eol);
+        const { ignores, problems } = scanIgnores([{ path: 'a.html', text }], known);
+        assert.deepEqual(problems, []);
+        const f = line => ({ file: 'a.html', rule: 'D1', line });
+        const r = applyIgnores([f(2), f(3), f(5)], ignores);
+        assert.deepEqual(r.kept.map(x => x.line), [5]);
+        assert.equal(r.suppressed[0].reason, 'legacy block');
+    }
+    const bad = text => scanIgnores([{ path: 'a.html', text }], known).problems.map(p => p.message);
+    assert.deepEqual(bad('<!-- plainkit-audit-ignore Z9 -- why -->'), ['names unknown rule Z9']);
+    assert.deepEqual(bad('// plainkit-audit-ignore-start D1 -- why'), ['starts a block that is never ended']);
+    assert.deepEqual(bad('// plainkit-audit-ignore-end'), ['ends a block that was never started']);
+    assert.deepEqual(bad('@* plainkit-audit-ignore-start D1 *@'), ['has no reason']);
+});
+
+test('CLI: an unknown rule id fails the run; a block ignore is reported as ignored with reason', async () => {
+    const dir = makeTempDir('plainkit-audit-');
+    const file = path.join(dir, 'index.html');
+    fs.writeFileSync(file, '<!-- plainkit-audit-ignore Z9 -- typo -->\n<button>Go</button>\n');
+    const u = capture();
+    assert.equal(await run([], { cwd: dir, ...u }), 1);
+    assert.match(u.err.join('\n'), /names unknown rule Z9/);
+
+    fs.writeFileSync(file, '<!-- plainkit-audit-ignore-start D1 -- legacy block -->\n<button>Go</button>\n<button>Stay</button>\n<!-- plainkit-audit-ignore-end -->\n');
+    const c = capture();
+    await run(['--no-color'], { cwd: dir, ...c });
+    const text = c.out.join('\n');
+    assert.match(text, /index\.html:2 {2}ignored with reason {2}\[D1\] {2}legacy block/);
+    assert.match(text, /2 suppressed inline/);
+});

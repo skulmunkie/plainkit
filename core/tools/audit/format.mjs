@@ -15,6 +15,7 @@ export function formatText(findings, summary, { color = true } = {}) {
         lines.push(`${f.file}:${f.line}:${f.column}  ${paint(f.severity, COLORS[f.severity], color)}  [${f.rule}]  ${f.message}`);
         if (f.fix) lines.push(`  ${f.fix}`);
     }
+    for (const g of summary.ignoredWithReason || []) lines.push(`${g.file}:${g.line}  ignored with reason  [${g.rule}]  ${g.reason}`);
     if (lines.length) lines.push('');
     lines.push(formatSummaryLine(summary));
     return lines.join('\n');

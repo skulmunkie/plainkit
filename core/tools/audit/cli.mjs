@@ -194,10 +194,10 @@ export async function run(argv, { cwd = process.cwd(), stdout = console.log, std
     }).filter(f => f.severity !== 'off');
 
     // Inline `plainkit-audit-ignore` comments (A-6b): a malformed one is an error, a suppression is counted.
-    const scanned = scanIgnores(files);
+    const scanned = scanIgnores(files, new Set(RULES.map(r => r.id)));
     for (const p of scanned.problems) {
         stderr(`plainkit audit: ${p.file}:${p.line}: plainkit-audit-ignore comment ${p.message}.`);
-        stderr('FIX: write `plainkit-audit-ignore RULE -- reason` (a rule id such as D1 and a reason after `--`).');
+        stderr('FIX: write `plainkit-audit-ignore RULE -- reason` (a known rule id such as D1 and a reason after `--`; for a block, bracket it with plainkit-audit-ignore-start and plainkit-audit-ignore-end).');
     }
     const ignored = applyIgnores(findings, scanned.ignores);
     findings = ignored.kept;
@@ -274,7 +274,10 @@ export async function run(argv, { cwd = process.cwd(), stdout = console.log, std
         mode,
         skippedRules: skippedRuleIds,
     };
-    if (ignored.suppressed.length) summary.suppressed = ignored.suppressed.length;
+    if (ignored.suppressed.length) {
+        summary.suppressed = ignored.suppressed.length;
+        summary.ignoredWithReason = ignored.suppressed.map(f => ({ file: f.file, line: f.line, rule: f.rule, reason: f.reason }));
+    }
     const skipped = { unsupported: skippedUnsupported, other: skippedOther };
 
     if (!opts.quiet) {
