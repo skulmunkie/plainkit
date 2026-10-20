@@ -6,6 +6,7 @@
   "summary": "A persistent, non-modal tool panel pinned to a viewport edge (bottom, top, start or end) with a floating launcher and a small, medium or large size choice. No backdrop, no focus trap: the page behind stays usable. Opens from its launcher or a keyboard chord (hotkey), closes from Close, Escape inside it or the chord. Choose pk-drawer for a modal panel, pk-dock for panels arranged inside a page, and pk-tray for a tool panel over a page.",
   "group": "Overlays",
   "tier": "component",
+  "package": "plainkit.canvas",
   "props": [
     {
       "name": "open",

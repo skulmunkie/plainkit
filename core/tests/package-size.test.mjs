@@ -8,7 +8,8 @@
 // Then the editor files' one-sentence summaries cut at 100 characters instead of 120 (the full text stays in descriptions.json) and the JSX and Vue typings naming each element's props once (a `...Props` interface, `keyof` instead of a repeated name list) (#1253): 908,581 / 3,367,469 bytes.
 // Then the ~220 files the package leaves out (gallery, agent docs, descriptions.json ...) listed in their own dist/manifest.extras.json (kept out of the package) instead of in dist/manifest.json (#1253): 901,811 / 3,351,632 bytes.
 // Then (agent/1253-headroom-5) only the first example of each element in the skill element references, the markup, script or module header of templates, patterns and tools over 3,000 characters, and the module headers moved to references/full/ (left out of the package: the Pages site, the skills zip and NuGet carry it), json props legend once, and no empty defaults or `reflects: false` in custom-elements.json and web-types.json: 875,303 / 3,242,616 bytes (from 904,065 / 3,361,366 on main).
-// The ceilings (900,000 / 3,350,000). Owner decision 2026-10-20: headroom is raised once, by about 16 KB packed / 57 KB unpacked, because capping the package was capping new components; the long-term answer is separate packages for the larger components (#1656), after which the ceilings go back down. Until then no further raise without the owner: make the package smaller.
+// Then (#1656 phase 1) the 33 dev-tool helper files of dist/js left the package for the plainkit.tools artifact (packages.json; the audit-free import graph test scripts/tests/packages.test.mjs proves no core file imports them): 887,507 / 3,277,473 on main before, 845,001 / 3,168,976 after. The ceilings go back down to the measurement plus 0.5 percent (850,000 / 3,185,000); the stopgap raise (900,000 / 3,350,000) is undone.
+// The previous ceilings (900,000 / 3,350,000). Owner decision 2026-10-20: headroom is raised once, by about 16 KB packed / 57 KB unpacked, because capping the package was capping new components; the long-term answer is separate packages for the larger components (#1656), after which the ceilings go back down. Until then no further raise without the owner: make the package smaller.
 import './needs-bootstrap.mjs';
 import test from 'node:test';
 import assert from 'node:assert/strict';
@@ -18,8 +19,8 @@ import { spawnSync } from 'node:child_process';
 import { fileURLToPath } from 'node:url';
 
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
-const MAX_PACKED_BYTES = 900_000;
-const MAX_UNPACKED_BYTES = 3_350_000;
+const MAX_PACKED_BYTES = 850_000;
+const MAX_UNPACKED_BYTES = 3_185_000;
 const TOP_LEVEL = new Set(['dist', 'LICENSE', 'README.md', 'package.json']);
 // dist/ is the runtime unit; these are the entries of dist/ the package may carry (dist/modules is the dev-tool unit, a separate download).
 const DIST = new Set(['breakpoints.report.json', 'custom-elements.json', 'elements', 'elements.d.ts', 'elements.vue.d.ts', 'icons.svg', 'js', 'llms-full.txt', 'llms.txt',

@@ -37,7 +37,7 @@ public sealed class Ticket
         new() { Key = "phone", Label = "Phone", Kind = PkFieldKind.Tel, Get = t => t.Phone, Set = (t, v) => t.Phone = v ?? "" },
         new() { Key = "kind", Label = "Kind", Kind = PkFieldKind.Select, Options = Kinds, Get = t => t.Kind, Set = (t, v) => t.Kind = v ?? "" },
         new() { Key = "done", Label = "Done", Kind = PkFieldKind.Checkbox, Get = t => t.Done, Set = (t, v) => t.Done = v ?? "" },
-        new() { Key = "owner", Label = "Owner", Kind = PkFieldKind.Combobox, Options = [new("ada", "Ada"), new("grace", "Grace")], Get = t => t.Owner, Set = (t, v) => t.Owner = v ?? "" },
+        new() { Key = "owner", Label = "Owner", Kind = PkFieldKind.Combobox, Clearable = true, Options = [new("ada", "Ada"), new("grace", "Grace")], Get = t => t.Owner, Set = (t, v) => t.Owner = v ?? "" },
     ];
 }
 
@@ -50,7 +50,8 @@ public static class TicketStore
     {
         if (slow) await Task.Delay(1500, r.CancellationToken);
         var rows = _all.Where(t => r.Search is null || t.Title.Contains(r.Search, StringComparison.OrdinalIgnoreCase)).ToList();
-        return new PkListResult<Ticket>(rows, rows.Count);
+        // A filter's option labels come from the result (#1683): the count of what the search found.
+        return new PkListResult<Ticket>(rows, rows.Count, new Dictionary<string, IReadOnlyList<PkFilterOption>> { ["view"] = [new("all", $"All ({rows.Count})")] });
     }
 
     public static Task<Ticket?> GetAsync(string id) => Task.FromResult(_all.FirstOrDefault(t => t.Id == id));

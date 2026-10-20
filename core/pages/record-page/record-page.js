@@ -22,7 +22,7 @@ export default Base => class extends Base {
             this.part('delete').addEventListener('click', () => this.emit('pk-record-delete', { id: this.$id }));
             const main = this.part('main');
             main.addEventListener('submit', e => e.preventDefault());
-            main.addEventListener('pk-valid', () => this.submit());
+            main.addEventListener('pk-valid', () => { this.$run = this.submit(this.$skip); });
             for (const t of ['input', 'change']) for (const part of [main, this.part('side')]) part.addEventListener(t, () => this.track());
             // Each card is its own field group, which evaluates whenExpr, disabledExpr and the rest against its own values: a committed change in one card is handed to the others, so a condition follows an edit made in another card (#1600).
             for (const part of [main, this.part('side')]) part.addEventListener('pk-field-change', e => this.mirror(e));
@@ -35,7 +35,7 @@ export default Base => class extends Base {
     disconnected() { this.$gen = (this.$gen ?? 0) + 1; window.removeEventListener('beforeunload', this.$leave); }
     changed(name) {
         if (!this.$w || !this.isConnected) return;
-        if (name === 'config') { if ((this.config?.id ?? null) !== this.$id) this.fetch(); else { if (this.$id == null && !this.dirty) this.$values = { ...this.config?.values }; this.bar(); this.draw(); } }
+        if (name === 'config') { if ((this.config?.id ?? null) !== this.$id) this.fetch(); else { if (this.$id == null && !this.dirty) this.$values = { ...this.config?.values }; this.bar(); if (!this.patch()) this.draw(); } }
         else if (name === 'mode') this.draw();
         else if (name === 'sticky') this.bar();
         else if (name === 'deletable') this.part('delete').hidden = this.deleteHidden();
@@ -44,6 +44,25 @@ export default Base => class extends Base {
         else if (name === 'busy') this.lock();
     }
 
+    // Saves through the same path as the Save button (validation, the busy state, the dirty reset and the switch to view), for a host that stopped a save in beforeSave to ask and now resumes it (#1652). skipBeforeSave leaves beforeSave out of this one run. Resolves true when saved; false when the form is invalid, a save is running or it was rejected.
+    async requestSave(skipBeforeSave) {
+        const form = this.editing ? this.part('main').querySelector('form') : null;
+        if (!form || this.$saving || this.busy || typeof this.save !== 'function') return false;
+        this.$run = null; this.$skip = skipBeforeSave === true;
+        try { form.requestSubmit(); } finally { this.$skip = false; }
+        return (await this.$run) === true;
+    }
+    // Only the fields changed (a host whose typed conditions follow the edits sends new disabled, readonly, labels or hidden fields, #1641): the form is not rebuilt, so the control the user moved to keeps its focus and its text. false: the shape of the page changed, draw it again.
+    shape() { return JSON.stringify({ ...this.config, fields: undefined, values: undefined }); }
+    patch() {
+        if (!this.editing || !this.$groups?.length || this.shape() !== this.$shape) return false;
+        const side = this.config?.sidebar ?? [], claimed = new Set(side.flatMap(c => c.fields ?? []));
+        const lists = [...this.mainSections(claimed).map(g => g.fields), ...side.map(s => this.fields.filter(f => s.fields?.includes(key(f))))];
+        if (lists.length !== this.$groups.length || this.$groups.some(g => typeof g.patch !== 'function')) return false;
+        lists.forEach((l, i) => this.$groups[i].patch(l.map(spec)));
+        this.lock();
+        return true;
+    }
     refresh() { if (this.$w && this.isConnected) this.fetch(); }
 
     // The record is loaded by id (config.id, the route's param) through the load(id) callback; no id means a new record (no load, edit mode).
@@ -87,7 +106,7 @@ export default Base => class extends Base {
         const vals = editing && this.dirty && this.$groups?.length ? this.collect() : (this.$values ?? {});
         this.notice();
         const side = (this.config?.sidebar ?? []), claimed = new Set(side.flatMap(c => c.fields ?? []));
-        this.$groups = [];
+        this.$groups = []; this.$shape = this.shape();
         if (editing) {
             main.replaceChildren(this.form(doc, vals, claimed));
             sideEl.replaceChildren(...side.map(s => this.card(doc, s.heading, this.group(doc, this.fields.filter(f => s.fields?.includes(key(f))), vals, s.heading, FORM_ID, s.columns))));
@@ -164,7 +183,10 @@ export default Base => class extends Base {
     live() { return Object.assign({}, ...(this.$groups ?? []).map(g => { const own = new Set((g.fields ?? []).map(f => f.key)); return Object.fromEntries(Object.entries(g.snapshot?.() ?? {}).filter(([k]) => own.has(k))); })); }
     mirror(e) {
         const { key, value } = e.detail ?? {}, from = e.target;
-        if (key == null || (this.$groups?.length ?? 0) < 2) return;
+        if (key == null) return;
+        // The host hears every committed change with the values of all the cards (not per keystroke), so app content beside the form (a summary, a preview) can follow the edit (#1651).
+        this.emit('pk-record-change', { key, value, values: { ...this.collect(), [key]: value } });
+        if ((this.$groups?.length ?? 0) < 2) return;
         for (const g of this.$groups) if (g !== from && typeof g.snapshot === 'function') g.values = { ...g.snapshot(), [key]: value };
     }
     groupOf(k) { return (this.$groups ?? []).find(g => g.fields?.some(f => f.key === k)); }
@@ -177,31 +199,33 @@ export default Base => class extends Base {
     track() { if (this.editing) { const live = this.live(); this.setDirty(Object.keys(live).some(k => norm(live[k]) !== norm(this.$values?.[k]))); } }
     setDirty(v) { if (v !== Boolean(this.dirty)) { this.dirty = v; this.emit('pk-record-dirty', { dirty: v }); } }
 
-    async submit() {
-        if (this.$saving || this.busy || typeof this.save !== 'function') return;
+    async submit(skip) {
+        if (this.$saving || this.busy || typeof this.save !== 'function') return false;
         const gen = this.$gen, save = this.part('save'), values = this.collect();
         this.$saving = true; save.busy = true;
         renderState(this.part('notice'), 'ready');
         for (const g of this.$groups ?? []) g.report?.(false);
         try {
             // beforeSave(values) runs once the form is valid and before save: false keeps the page in edit mode with the edits (a confirm the host shows, #1601).
-            if (typeof this.beforeSave === 'function' && (await this.beforeSave(values)) === false) return;
-            if (gen !== this.$gen) return;
+            if (!skip && typeof this.beforeSave === 'function' && (await this.beforeSave(values)) === false) return false;
+            if (gen !== this.$gen) return false;
             const out = await this.save(values);
-            if (gen !== this.$gen) return;
+            if (gen !== this.$gen) return false;
             this.$values = { ...values, ...(out && typeof out === 'object' ? out : {}) };
             this.bar();
             this.emit('pk-record-save', { values: this.$values });
             this.setDirty(false);
             if (this.$id != null) this.mode = 'view'; else this.draw();
+            return true;
         } catch (err) {
-            if (gen !== this.$gen) return;
+            if (gen !== this.$gen) return false;
             this.log.error('record save failed', err);
             // A rejection carrying { errors: { fieldName: message } } marks those fields inline; any other is a notice above the form.
             const fields = Object.entries(err?.errors ?? {}).filter(([n]) => this.fields.some(f => key(f) === n));
             for (const [n, m] of fields) this.groupOf(n)?.setError(n, text(m));
             if (fields.length) this.groupOf(fields[0][0])?.focusField(fields[0][0]);
             else { showState(this.part('notice'), 'error', { heading: 'Could not save', error: err }); }
+            return false;
         } finally { this.$saving = false; this.lock(); }
     }
 };

@@ -14,9 +14,10 @@ export default Base => class extends Base {
         this.watchSlot('', rebuild);
         new MutationObserver(rebuild).observe(this,{ childList: true, subtree: true, characterData: true, attributes: true, attributeFilter: ['value', 'disabled', 'label'] });
         const inp = this.part('control'), tr = this.part('trigger'), pop = this.part('popup');
-        inp.addEventListener('input', () => { this.$typing = true; this.$query = inp.value; if (this.free) this.value = inp.value; this.setOpen(true); this.emit('pk-combo-query', { query: inp.value }); this.filter(); });
+        inp.addEventListener('input', () => { this.$typing = true; this.$query = inp.value; if (this.free) this.value = inp.value; this.setOpen(true); this.query(inp.value); this.filter(); });
         inp.addEventListener('click', () => { if (!this.open) this.show(); });
         tr.addEventListener('click', () => { if (this.open) this.hide(); else this.show(); });
+        this.part('clear').addEventListener('click', () => this.clear());
         pop.addEventListener('mousedown', e => e.preventDefault());
         pop.addEventListener('click', e => { const o = e.target.closest('.op'); if (o && o.getAttribute('aria-disabled') !== 'true') this.pick(o); });
         this.addEventListener('focusout', e => {
@@ -26,6 +27,12 @@ export default Base => class extends Base {
             if (this.mode !== 'select' && !this.free) { this.$typing = false; this.requestUpdate(); }
         });
         this.addEventListener('keydown', e => this.keys(e));
+    }
+    // pk-combo-query, after a pause in typing when debounce is set (the latest text only); the client filter does not wait.
+    query(text) {
+        clearTimeout(this.$qt);
+        const send = () => this.emit('pk-combo-query', { query: text });
+        if (this.debounce > 0) this.$qt = setTimeout(send, this.debounce); else send();
     }
     ops() { return [...this.part('popup').querySelectorAll('.op')]; }
     live() { return this.ops().filter(o => !o.hidden && o.getAttribute('aria-disabled') !== 'true'); }
@@ -58,6 +65,12 @@ export default Base => class extends Base {
         this.hide(); this.ctl().focus();
         this.dispatchEvent(new Event('change', { bubbles: true, composed: true }));
         this.emit('pk-combo-select', { value: this.value, label: op.textContent });
+    }
+    // The clear button: an empty value is a commit like a pick (change and pk-combo-select), so a host that mirrors the value hears it.
+    clear() {
+        this.$typing = false; this.value = ''; this.hide(); this.ctl().focus();
+        this.dispatchEvent(new Event('change', { bubbles: true, composed: true }));
+        this.emit('pk-combo-select', { value: '', label: '' });
     }
     keys(e) {
         const src = e.composedPath()[0];
@@ -103,6 +116,7 @@ export default Base => class extends Base {
         for (const o of this.ops()) o.setAttribute('aria-selected', String(o === chosen));
         if (this.mode === 'select') { tr.textContent = chosen ? chosen.textContent : ''; tr.dataset.placeholder = this.placeholder; }
         else if (!this.$typing) inp.value = chosen ? chosen.textContent : this.free ? this.value : '';
+        this.part('clear').hidden = !(this.clearable && this.mode !== 'select' && !this.disabled && this.value !== '');
         pop.hidden = !this.open;
         for (const c of [inp, tr]) c.setAttribute('aria-expanded', String(this.open));
         this.float();
@@ -111,6 +125,6 @@ export default Base => class extends Base {
     }
     onReset() { this.value = this.$initial ?? ''; this.$typing = false; }
     onRestore(state) { this.value = state ?? ''; }
-    disconnected() { this.$au?.(); this.$au = null; }
+    disconnected() { clearTimeout(this.$qt); this.$au?.(); this.$au = null; }
     focus(o) { this.ctl().focus(o); }
 };

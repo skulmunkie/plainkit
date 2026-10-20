@@ -1,0 +1,21 @@
+@page "/lab/ticket-summary"
+
+@* Lab: a card beside the fields that follows the edits (#1651): OnFieldChanged hands the committed key and every field's current value, so the summary redraws before Save. *@
+<PkRecordPage TItem="Ticket" Config="@Config" Fields="Ticket.Specs" Model="_model" OnFieldChanged="Changed" Save="Save">
+    <MainAfter><PkCard Heading="Summary"><p id="lab-summary">Summary: @_title (@_count changes)</p></PkCard></MainAfter>
+</PkRecordPage>
+
+@code {
+    private const string Config = """{"heading":"New ticket","editable":true}""";
+    private readonly Ticket _model = new();
+    private string _title = "";
+    private int _count;
+
+    private void Changed(PkRecordChangeEventArgs e)
+    {
+        _count++;
+        _title = e.Values is { ValueKind: System.Text.Json.JsonValueKind.Object } v && v.TryGetProperty("title", out var t) ? t.GetString() ?? "" : "";
+    }
+
+    private Task Save(Ticket t) => Task.CompletedTask;
+}

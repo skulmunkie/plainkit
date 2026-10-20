@@ -135,6 +135,14 @@ export const B_RULES = [
         scan(file) {
             if (!/@page\b/.test(file.text)) return [];
             if (/@inherits\s+\S*PageBase\b/.test(file.text)) return [];
+            // A page hosted by a page-type component that owns load, busy, error and empty states (the first element in
+            // the markup is the PkListPage or PkRecordPage) gains nothing from the base class (#1670).
+            const root = scanHtml(file.text).nodes.find(n => !n.closing);
+            if (root && /^Pk(?:List|Record)Page$/.test(root.name)) return [];
+            // A static framework error page (route /error, /not-found, /404...) has no load, busy state, injected services
+            // or actions, and must render even when the lifecycle the base class provides has failed (#1669).
+            const isErrorRoute = /@page\s+"\/(?:error|not-?found|[1-5]\d\d)(?:[\/"{])/i.test(file.text);
+            if (isErrorRoute && !/@inject\b|\basync\b|\bawait\b|\bTask\b|@on\w+|\bOn[A-Z]\w*\s*=|\b(?:bool|Exception)\??\s+_?(?:busy|isBusy|loading|isLoading|saving|error|errorMessage|loadError)\b/i.test(file.text.replace(/@page\b[^\r\n]*/, ''))) return [];
             const m = /@page\b[^\r\n]*/.exec(file.text);
             return [hitAt(file.text, m.index, '@page', { found: 'this @page component has no @inherits ...PageBase - the app framework\'s page lifecycle (loading/error/empty states) will not run' })];
         },
@@ -166,12 +174,20 @@ export const B_RULES = [
         scan(file) {
             const { nodes } = scanHtml(file.text);
             const hits = [];
+            // The root document component (the one holding the html and body tags) is the only place the boot script and
+            // fingerprinted Assets scripts can live (#1671).
+            const isRootDocument = /<html\b/i.test(file.text) && /<body\b/i.test(file.text);
             for (const node of nodes) {
                 if (node.closing) continue;
                 if (node.name.toLowerCase() === 'script') {
+                    const src = String(node.attrs.src ?? '');
+                    if (isRootDocument && /Assets\s*\[|^_framework\//.test(src)) continue;
                     hits.push({ line: node.line, column: node.column, message: '<script>', found: '<script> element in Razor markup - use a PlainKit element or its documented API instead of hand-written script' });
                 }
-                if (!isPkComponent(node.name) && node.attrs.onclick !== undefined) {
+                // An anchor whose onclick only cancels navigation, or whose href is a javascript: bookmarklet the user
+                // drags to the bookmarks bar, is intentional (#1671).
+                const cancelsOnly = node.name.toLowerCase() === 'a' && (/^\s*(?:return\s+false|event\.preventDefault\(\))\s*;?\s*$/.test(String(node.attrs.onclick ?? '')) || /^\s*javascript:/i.test(String(node.attrs.href ?? '')));
+                if (!isPkComponent(node.name) && node.attrs.onclick !== undefined && !cancelsOnly) {
                     hits.push({ line: node.line, column: node.column, message: `<${node.name} onclick>`, found: `<${node.name}> has an inline onclick; use @onclick on a real interactive element or compose a pk-* one` });
                 }
             }

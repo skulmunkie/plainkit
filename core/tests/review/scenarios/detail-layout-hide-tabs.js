@@ -5,7 +5,7 @@ export default {
     elements: ['detail-layout', 'page-header', 'card'],
     html: `<pk-page-header id="ph" heading="Blue mug" tabs-from="always" tabs='[{"value":"details","label":"Details"},{"value":"pricing","label":"Pricing"}]'></pk-page-header>
 <pk-card id="above" heading="Pricing summary" data-pk-section="pricing"><p>Margin 38%.</p></pk-card>
-<pk-detail-layout id="dl" hide-tabs sections-above tab-param="tab" section="pricing">
+<pk-detail-layout id="dl" hide-tabs tabs-from="always" sections-above tab-param="tab" section="pricing">
 <pk-card id="details" heading="Details" data-pk-section="details"><p>Name, SKU, description.</p></pk-card>
 <pk-card id="pricing" heading="Pricing" data-pk-section="pricing"><p>Price, cost, margin.</p></pk-card>
 <div slot="sidebar"><pk-card heading="Status"><p>Active</p></pk-card></div>

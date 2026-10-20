@@ -225,6 +225,9 @@ export const PK_VERSION = '${version}';
             if (fs.statSync(src).isFile() && !f.endsWith('.test.mjs') && !(sub === 'tools/audit' && f === 'data.mjs')) w(`dist/${sub}/${f.replace(/\\/g, '/')}`, minifyJs(read(src))); // minified like dist/js (esbuild keeps the shebang and every export name): comments and whitespace were about a quarter of the package's gzip
         }
     }
+    // audit.mjs: the entry of the plainkit.audit module (`node audit.mjs <path>`), and plainkit-cli.mjs: core's `bin` stub that says where the module is (packages.json, #1656).
+    w('dist/audit.mjs', minifyJs(read(path.join(root, 'tools/audit-entry.mjs'))));
+    w('dist/tools/plainkit-cli.mjs', minifyJs(read(path.join(root, 'tools/plainkit-cli.mjs'))));
     // The API surface as it is now, for the scorecard's API section to diff against the baseline (kept current by the build, checked by a test).
     w('site/scorecard/api.current.json', JSON.stringify(surface(), null, 1) + '\n');
     // The scorecard's size-sweep section reads site/scorecard/sweep-report.json, which only a local `scorecard-sweep --write-report` writes: until then an empty marker stands in, so the route never requests a missing file (a 404 in the page's network log). Written outside `out` so the build check stays deterministic, and never over a real report.

@@ -35,6 +35,7 @@ _site/
 ## The list is scripts/generated.mjs (node scripts/generated.mjs list); scripts/tests/generated-paths.test.mjs keeps the two in step.
 ## Release artefacts (core/site/scorecard/api.baseline.json, core/VERSION) are NOT generated and stay tracked.
 /core/dist/
+/dist-packages/
 /core/plainkit.css
 /core/elements/elements.css
 /core/elements/registry.js

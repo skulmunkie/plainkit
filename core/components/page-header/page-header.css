@@ -1,6 +1,4 @@
-/* pk-page-header: crumbs, a title bar (title + chips left, actions right), a note line and a docked tabs row. variant: page (default), section, record. Stacks by its own width.
-   Without an explicit heading (the last crumb doubles as the title), the crumbs, chips and actions collapse onto one row by default; the spacious attribute opts back into the
-   older multi-row breakdown (crumbs row, then title bar, then note) for a title too long or too many badges to share a row. */
+/* pk-page-header: crumbs, a title bar, a note line and a docked tabs row; variant page, section, record. Stacks by its own width. With no heading the crumbs are the title and share a row with the chips and actions; spacious restores the multi-row breakdown. */
 :host { display: block; inline-size: 100%; container-type: inline-size; min-inline-size: 0; }
 [part="header"] { display: flex; flex-direction: column; gap: var(--space-1); padding: var(--pk-page-header-padding, var(--space-1) 0); }
 [part="crumbs"] { font-size: var(--text-meta); color: var(--page-crumbs-fg); }
@@ -55,3 +53,5 @@ slot[name="actions"][hidden], [part="overflow"][hidden] { display: none; }
 }
 /* Its own stacking context, one above the in-body sticky strips (--z-sticky), so a popover opened from the header is not drawn under them. */
 :host([sticky]) { position: sticky; inset-block-start: var(--pk-page-header-sticky-top, 0); z-index: calc(var(--z-sticky) + 1); isolation: isolate; background: var(--color-bg); }
+@media (--phone) { :host([sticky-from=phone]), :host([sticky-from=tablet]) { position: static; } }
+@media (--tablet) { :host([sticky-from=tablet]) { position: static; } }

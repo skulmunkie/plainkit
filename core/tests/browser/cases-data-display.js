@@ -281,6 +281,22 @@ export const dataDisplayCases = [
             t.eq(c.shadowRoot.querySelector('select').getAttribute('aria-label'), text);
         }
     }],
+    ['data-table: a load result with filterOptions replaces the option labels of a select and a multiselect filter, keeps the chosen value, and survives a filters rebuild (#1683)', async t => {
+        const el = await mountDataTable(t, `<pk-data-table columns='[{"key":"sku","label":"SKU"}]' page-size="5" filters='[{"key":"img","type":"select","label":"Image","options":[{"value":"missing","label":"Missing"},{"value":"ok","label":"Has image"}]},{"key":"tag","type":"multiselect","label":"Tag","options":["a","b"]}]'></pk-data-table>`);
+        let n = 0;
+        el.load = async () => ({ rows: [{ id: 1, sku: 'A' }], total: 1, filterOptions: ++n === 1 ? undefined : { img: [{ value: 'missing', label: 'Missing (12)' }, { value: 'ok', label: 'Has image (30)' }], tag: [{ value: 'a', label: 'Alpha (3)' }, { value: 'b', label: 'Beta (1)' }, { value: 'c', label: 'Gamma (0)' }] } });
+        el.refresh();
+        const filters = el.part('filters'), texts = k => [...filters.querySelectorAll('[data-key="' + k + '"] option')].map(o => o.textContent).join('|'), boxes = () => [...filters.querySelectorAll('[data-key="tag"] pk-checkbox')];
+        await until(() => texts('img') === 'Any|Missing|Has image' && boxes().length === 2, 'the static options');
+        filters.querySelector('[data-key="img"]').value = 'ok'; boxes()[1].checked = true;
+        el.refresh();
+        await until(() => texts('img') === 'Any|Missing (12)|Has image (30)' && boxes().length === 3, 'the loaded labels');
+        t.eq(boxes().map(b => b.label).join('|'), 'Alpha (3)|Beta (1)|Gamma (0)');
+        t.eq(filters.querySelector('[data-key="img"]').value, 'ok', 'the chosen select value is kept');
+        t.ok(boxes()[1].checked && !boxes()[0].checked, 'the ticked box is kept');
+        el.filters = [...el.filters, { key: 'note', type: 'text', label: 'Note' }]; await t.settle();
+        await until(() => texts('img') === 'Any|Missing (12)|Has image (30)', 'the loaded labels after the filters were rebuilt');
+    }],
     ['data-table: a multiselect filter is a checklist whose chosen values reach load(query).filters as an array, count once, and Clear filters unticks them (#1025)', async t => {
         const el = await mountDataTable(t, `<pk-data-table columns='[{"key":"sku","label":"SKU"}]' page-size="5" filters='[{"key":"status","type":"multiselect","label":"Status","options":["Open","Paid",{"value":"void","label":"Void"}]}]'></pk-data-table>`);
         const queries = [];
@@ -727,6 +743,23 @@ export const dataDisplayCases = [
         const cells = [...big.shadowRoot.querySelector('tbody tr[data-pk-context]').children].filter(c => getComputedStyle(c).display !== 'none');
         t.eq(big.$virtual, true, 'the table windows'); t.eq(cells.length, heads.length, 'a windowed row has as many cells as headers');
         t.ok(cells.every((c, i) => Math.abs(c.getBoundingClientRect().left - heads[i].getBoundingClientRect().left) < 2), 'windowed cells line up with their headers');
+    }],
+    ['table: shed takes any width (a length like "60rem" or "900px", or a number of rem above 3), measured on the table, next to the 1-3 steps; no horizontal scroll at the width it fixes (#1684)', async t => {
+        const cols = '[{"key":"a","label":"A"},{"key":"b","label":"B","shed":"60rem"},{"key":"c","label":"C","shed":72},{"key":"d","label":"D","shed":"900px"},{"key":"e","label":"E","shed":2}]';
+        const shown = el => ['a', 'b', 'c', 'd', 'e'].filter(k => ['thead th', 'tbody td'].every(s => { const c = el.shadowRoot.querySelector(s + '[data-key="' + k + '"]'); return c && getComputedStyle(c).display !== 'none'; })).join('');
+        const rem = parseFloat(getComputedStyle(document.documentElement).fontSize), at = async width => {
+            const box = await t.mount(`<div style="width:${width}px"><pk-table label="S" columns='${cols}' rows='[{"id":1,"a":"1","b":"2","c":"3","d":"4","e":"5"}]'></pk-table></div>`);
+            const el = box.querySelector('pk-table'); await until(() => el.shadowRoot?.querySelector('tbody td'), 'the table'); await t.settle(); await t.settle(); return el;
+        };
+        // the width rules come from a lazily loaded module, so each state is awaited
+        const is = async (width, want, why) => { const el = await at(width * rem); await until(() => shown(el) === want, why + ' (shows ' + shown(el) + ', wanted ' + want + ')'); return el; };
+        await is(80, 'abcde', 'wider than every shed width shows every column');
+        await is(65, 'abde', 'under 72rem the number 72 goes');
+        await is(55, 'ae', 'under 60rem the "60rem" column goes, and under 900px the "900px" one');
+        await is(40, 'ae', 'a step 2 column (36rem) stays above 36rem');
+        await is(30, 'a', 'under 36rem the step 2 column goes with the rest');
+        const wide = await is(65, 'abde', 'the 65rem table'); const sc = wide.part('scroll'); t.ok(sc.scrollWidth <= sc.clientWidth + 1, 'a table whose shed columns dropped does not scroll sideways');
+        const live = await is(80, 'abcde', 'the 80rem table'); live.parentElement.style.width = (55 * rem) + 'px'; await until(() => shown(live) === 'ae', 'the columns to drop when the container shrinks');
     }],
     ['table (375px): a slotted pk-card in a cell keeps a real width in the cards layout, and the row does not grow absurdly (#1146)', async t => {
         const { sampleDoc } = await import('../../site/gallery/frame.js');

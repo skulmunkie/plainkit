@@ -1,0 +1,32 @@
+@page "/lab/ticket-resume"
+
+@* Lab: a new record whose BeforeSave declines to ask (#1652); the button below is the app's "Save anyway": it resumes the save with SaveAsync(skipBeforeSave: true). *@
+<PkRecordPage TItem="Ticket" @ref="_page" Config="@Config" Fields="Ticket.Specs" Model="_model" BeforeSave="Ask" Save="Save" />
+<PkButton id="lab-confirm" OnClick="Confirm">Save anyway</PkButton>
+<p id="lab-log">Log: @_log</p>
+
+@code {
+    private const string Config = """{"heading":"New ticket","editable":true}""";
+    private readonly Ticket _model = new();
+    private PkRecordPage<Ticket>? _page;
+    private string _log = "";
+
+    private async Task<bool> Ask(Ticket t)
+    {
+        _log += "asked;";
+        await InvokeAsync(StateHasChanged);
+        return false;
+    }
+
+    private async Task Save(Ticket t)
+    {
+        _log += "saved;";
+        await InvokeAsync(StateHasChanged);
+    }
+
+    private async Task Confirm()
+    {
+        var saved = await _page!.SaveAsync(skipBeforeSave: true);
+        _log += $"resumed:{saved};";
+    }
+}

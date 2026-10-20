@@ -166,7 +166,7 @@ export const D_RULES = [
         detects: 'custom CSS styling a PlainKit element from outside (excluding documented ::part() styling)',
         severity: { normal: 'warn', strict: 'error' },
         docs: 'docs/superpowers/specs/2026-09-28-conformance-audit-cli-design.md#21-family-d-duplicating-an-element-or-its-interaction-logic-owner-goal-1',
-        fixTemplate: 'FIX: {file}:{line} styles {found} from outside. Use the element\'s documented attribute or --pk-<element>-<part> hook instead of an external selector. [D8]',
+        fixTemplate: 'FIX: {file}:{line} styles {found} from outside. Use the element\'s documented attribute or --pk-<element>-<part> hook instead of an external selector (setting only --pk-* properties is fine); space adjacent buttons with pk-cluster, not a margin on pk-button. [D8]',
         applies: isCss,
         scan(file) {
             const { nodes } = scanCss(file.text);
@@ -181,6 +181,9 @@ export const D_RULES = [
                     return /\bpk-[a-z][a-z0-9-]*/i.test(selector);
                 });
                 if (offending == null) continue;
+                // A rule that only sets documented --pk-* custom properties (e.g. `.cell pk-button { --pk-button-padding: ... }`)
+                // uses the element's sanctioned hook from an ancestor selector; it overrides nothing from outside (#1676).
+                if (node.declarations.length > 0 && node.declarations.every(d => d.property.startsWith('--pk-'))) continue;
                 const m = /\bpk-[a-z][a-z0-9-]*/i.exec(offending);
                 hits.push({ line: node.line, column: node.column, message: node.name.trim(), found: m[0] });
             }

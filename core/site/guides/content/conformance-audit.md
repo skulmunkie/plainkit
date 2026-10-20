@@ -4,17 +4,19 @@ order: 9
 summary: A CLI that checks a consumer app's own source for patterns Plainkit already has an element or a pattern for - duplicated markup, literal colours and sizes, missing accessible names, hand-built pages instead of the app framework. Rule ids, severity in normal and strict mode, and where the same rules live in the agent skills.
 ---
 
-Plainkit ships components, tokens and an app framework so an app never has to re-invent a dialog, a data table or a themed colour. Nothing stops an app from doing it anyway - a hand-rolled modal `<div>`, a literal `#ff0000`, a page built with its own header and nav instead of `mountApp`. `npx plainkit audit` is a CLI that reads an app's own HTML, CSS, JS/TS and Razor files and reports exactly that: places where the app duplicates something Plainkit already provides, skips a token, or is missing an accessible name.
+Plainkit ships components, tokens and an app framework so an app never has to re-invent a dialog, a data table or a themed colour. Nothing stops an app from doing it anyway - a hand-rolled modal `<div>`, a literal `#ff0000`, a page built with its own header and nav instead of `mountApp`. `node audit.mjs` is a CLI that reads an app's own HTML, CSS, JS/TS and Razor files and reports exactly that: places where the app duplicates something Plainkit already provides, skips a token, or is missing an accessible name.
 
 ## Running it
 
+The audit is its own module, `plainkit.audit`, and is not part of the npm package (there is no npm package for it): unzip `plainkit.audit-<version>.zip` from the GitHub release (the full `plainkit-dist` zip contains it too) or take the files from the Pages folder `packages/plainkit.audit/`, and run `node audit.mjs` from that folder with Node 18 or newer. `npx plainkit audit` only prints these instructions.
+
 ```text
-npx plainkit audit                 # normal mode: only real problems are errors
-npx plainkit audit --strict        # strict mode: most warnings become errors too
-npx plainkit audit --list-rules    # every rule id, its severity in both modes, what it detects
-npx plainkit audit --explain D2    # one rule's detects/severity/docs/fix text
-npx plainkit audit --format json   # for another tool to read
-npx plainkit audit --format sarif  # for github/codeql-action/upload-sarif
+node audit.mjs                 # normal mode: only real problems are errors
+node audit.mjs --strict        # strict mode: most warnings become errors too
+node audit.mjs --list-rules    # every rule id, its severity in both modes, what it detects
+node audit.mjs --explain D2    # one rule's detects/severity/docs/fix text
+node audit.mjs --format json   # for another tool to read
+node audit.mjs --format sarif  # for github/codeql-action/upload-sarif
 ```
 
 A finding is one line - file, line, column, severity, rule id, message - followed by a `FIX:` line naming the element, token or pattern to use instead. The exit code is non-zero when strict mode (or a maximum-warnings flag) is not satisfied, so it can gate a build the same way `node scripts/verify.mjs` gates this repository's own CI.
@@ -43,9 +45,9 @@ Most rules are a warning in normal mode and an error in strict mode - useful dur
 Three edits are deterministic and reversible, and run only when you name them. The first rewrites `<hr>` to `<pk-divider>` and an empty `<progress value max>` to `<pk-progress value max>` when the tag has no other attribute. The second adds `label` to an icon-only `<pk-button>` from its static `title` (the title stays). The third removes a dead entry and lowers a stale `count` in `plainkit.audit.json`. Add the dry-run flag to print a diff and write nothing. A line carrying, or right after, a `plainkit-audit-ignore` comment is never rewritten; everything else stays a suggestion. An ignore comment that suppresses nothing is reported with its file and line (a warning, an error in strict mode), and the list-suppressions flag marks it (unused).
 
 ```bash
-npx plainkit audit --fix D1-simple --dry-run
-npx plainkit audit --fix D1-simple,A1-label
-npx plainkit audit --update-allow
+node audit.mjs --fix D1-simple --dry-run
+node audit.mjs --fix D1-simple,A1-label
+node audit.mjs --update-allow
 ```
 
 ## Running it before it is published
@@ -55,8 +57,8 @@ Until the CLI ships as part of the npm/NuGet packages, it only exists in a plain
 then can check out plainkit as a sibling repo and run the CLI from there - `examples/audit-cli/` in this
 repository has a minimal bash and PowerShell runner for exactly that, including the baseline flags
 (see `core/tools/audit/baseline.mjs`) for gating on new findings only, not the whole existing backlog. Once
-`npx plainkit audit` works from the published package, drop the sibling checkout and those example scripts.
+`node audit.mjs` works from the published package, drop the sibling checkout and those example scripts.
 
 ## An agent that cannot run the CLI
 
-The agent skills carry the same rule table as a "Check your work" step (their `SKILL.md`, near the end of the workflows): run `npx plainkit audit --strict` before finishing, fix each finding by its id, and treat a finding that is a genuine SDK gap as a tracker issue rather than a local workaround. For an agent with no way to run Node, the same step lists every rule id grouped by family as an inline checklist.
+The agent skills carry the same rule table as a "Check your work" step (their `SKILL.md`, near the end of the workflows): run `node audit.mjs --strict` before finishing, fix each finding by its id, and treat a finding that is a genuine SDK gap as a tracker issue rather than a local workaround. For an agent with no way to run Node, the same step lists every rule id grouped by family as an inline checklist.

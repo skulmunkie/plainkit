@@ -31,6 +31,31 @@ export const LAB_CASES = [
         ctx.ok(await has(ctx, 'Ticket 3'), 'the search for "Ticket 3" does not leave Ticket 3 in the list');
         await ctx.noErrors(ctx.openMark, BENIGN);
       } },
+    { name: 'list-filter-option-labels-from-the-result', // #1683: PkListResult.FilterOptions goes through the bridge and replaces the option labels of the filter
+      async run(ctx) {
+        const labels = "[...document.querySelector('pk-list-page').part('filters').querySelectorAll('[data-key=\"view\"] option')].map(o => o.textContent).join('|')";
+        await ctx.open('/lab/tickets');
+        await waitText(ctx, 'Ticket 5');
+        await ctx.waitFor(`${labels} === 'Any|All (5)'`, 'the filter option to read "All (5)" from the load result');
+        await ctx.typeInto('pk-list-page >>> input[type="search"]', 'Ticket 3');
+        await ctx.waitFor(`${labels} === 'Any|All (1)'`, 'the filter option to read "All (1)" after the search');
+        await ctx.noErrors(ctx.openMark, BENIGN);
+      } },
+    { name: 'table-named-detail-panels', // #1685: DetailPanels renders one slot="detail-<rowId>.<name>" per panel and row; the host opens one through Expanded
+      async run(ctx) {
+        await ctx.open('/lab/detail-panels');
+        await waitText(ctx, 'Widget');
+        const shown = "(() => { const t = document.querySelector('pk-table'); return [...t.shadowRoot.querySelectorAll('tr[data-detail]')].filter(r => !r.hidden).map(r => r.querySelector('slot').assignedElements().map(e => e.textContent).join()).join('|'); })()";
+        ctx.ok(await ctx.eval(`${shown} === ''`), 'a named panel is open before the host opened it');
+        ctx.ok(await ctx.eval("['1.channel', '1.bundle', '2.channel', '2.bundle'].every(k => !!document.querySelector('pk-table > [slot=\"detail-' + k + '\"]'))"), 'a named panel is not rendered for every row');
+        await ctx.clickDeep('pk-button', 'Open channel');
+        await ctx.waitFor(`${shown} === 'Channel detail of Widget'`, 'only the channel panel of row 1 to open');
+        await ctx.clickDeep('pk-button', 'Open bundle');
+        await ctx.waitFor(`${shown} === 'Bundle contents of Widget'`, 'only the bundle panel of row 1 to open');
+        const r = await ctx.eval("(() => { const t = document.querySelector('pk-table'), row = t.shadowRoot.querySelector('tr[data-pk-context=\"1\"]').getBoundingClientRect(), d = [...t.shadowRoot.querySelectorAll('tr[data-detail]')].find(x => !x.hidden).getBoundingClientRect(); return { rowBottom: row.bottom, dTop: d.top, dH: d.height }; })()");
+        ctx.ok(r.dH > 0 && r.dTop >= r.rowBottom - 1, 'the open panel sits under its row');
+        await ctx.noErrors(ctx.openMark, BENIGN);
+      } },
     { name: 'list-before-list-slot', // #1603: BeforeListContent sits between the title bar and the list, inside the page frame
       async run(ctx) {
         await ctx.open('/lab/tickets');
@@ -141,6 +166,52 @@ export const LAB_CASES = [
         await waitText(ctx, 'declined;checked;saved;'); // declined, then checked and only then saved: Save never ran for the declined one
         await ctx.noErrors(ctx.openMark, BENIGN);
       } },
+    // OnFieldChanged (#1651): a card in MainAfter shows the typed title before Save, and each committed change is counted.
+    { name: 'record-field-changed',
+      async run(ctx) {
+        await ctx.open('/lab/ticket-summary');
+        await ctx.waitFor(`!!window.__deep.field('Title')`, 'the new record form');
+        await ctx.waitFor(`typeof document.querySelector('pk-record-page')?.save === 'function'`, 'the circuit to take the record page over');
+        await ctx.setField('Title', 'Typed once');
+        await waitText(ctx, 'Summary: Typed once (1 changes)');
+        await ctx.setField('Title', 'Typed twice');
+        await waitText(ctx, 'Summary: Typed twice (2 changes)');
+        await ctx.noErrors(ctx.openMark, BENIGN);
+      } },
+    // SaveAsync(skipBeforeSave: true) resumes a save BeforeSave declined (#1652): the confirm the app shows calls it, and the page saves through its normal path (busy, dirty reset).
+    { name: 'record-save-resume',
+      async run(ctx) {
+        await ctx.open('/lab/ticket-resume');
+        await ctx.waitFor(`!!window.__deep.field('Title')`, 'the new record form');
+        await ctx.waitFor(`typeof document.querySelector('pk-record-page')?.beforeSave === 'function'`, 'the circuit to take the record page over');
+        await ctx.setField('Title', 'Confirm me');
+        await ctx.clickDeep(`${RECORD}[part="save"]`);
+        await waitText(ctx, 'asked;');
+        ctx.ok(await ctx.eval(`window.__deep.field('Title')?.value === 'Confirm me'`), 'a declined BeforeSave left edit mode or lost the typed value');
+        await ctx.clickDeep('#lab-confirm');
+        await waitText(ctx, 'asked;saved;resumed:True;');
+        await ctx.waitFor(`document.querySelector('pk-record-page')?.dirty === false && !document.querySelector('pk-record-page').part('save').busy`, 'the resumed save to reset the dirty state and the busy state (a new record stays in edit mode)');
+        await ctx.noErrors(ctx.openMark, BENIGN);
+      } },
+    // FollowEdits (#1641): the typed When, Disabled and LabelWhen follow a committed change through a draft, the form updates in place (the Title control is the same node and keeps its text), and Save still gets the edits.
+    { name: 'record-follow-edits',
+      async run(ctx) {
+        await ctx.open('/lab/ticket-follow');
+        await ctx.waitFor(`!!window.__deep.field('Title') && !!window.__deep.field('Notes')`, 'the new bug form with Notes');
+        await ctx.waitFor(`typeof document.querySelector('pk-record-page')?.save === 'function'`, 'the circuit to take the record page over');
+        await ctx.setField('Title', 'Kept text');
+        await ctx.eval(`window.__deep.field('Title').__mark = 1`);
+        await ctx.setField('Kind', 'task');
+        await ctx.waitFor(`!window.__deep.field('Notes')`, 'Notes to hide once Kind is Task (typed When on the draft)');
+        await ctx.waitFor(`window.__deep.field('Estimate')?.hasAttribute('disabled')`, 'Estimate to disable for a task (typed Disabled)');
+        await ctx.waitFor(`!!window.__deep.field('Title (task)')`, 'the Title label to follow the kind (typed LabelWhen)');
+        ctx.ok(await ctx.eval(`window.__deep.field('Title (task)').__mark === 1 && window.__deep.field('Title (task)').value === 'Kept text'`), 'the form was rebuilt (the Title control changed or lost its text)');
+        await ctx.setField('Kind', 'bug');
+        await ctx.waitFor(`!!window.__deep.field('Notes') && !window.__deep.field('Estimate').hasAttribute('disabled')`, 'Notes to show and Estimate to enable again for a bug');
+        await ctx.clickDeep(`${RECORD}[part="save"]`);
+        await waitText(ctx, 'saved:bug:Kept text;');
+        await ctx.noErrors(ctx.openMark, BENIGN);
+      } },
     // A condition follows an edit made in another card (#1600): Kind (Details) decides whether Notes (its own card) shows.
     { name: 'record-when-follows-edit-in-another-card',
       async run(ctx) {
@@ -182,6 +253,12 @@ export const LAB_CASES = [
         await ctx.setField('Kind', 'task');
         await ctx.setField('Done', true);
         await waitText(ctx, 'Changes: 4, last title: Changed, opened: 2026-10-14T09:30');
+        await ctx.setField('Owner', 'ada');
+        await waitText(ctx, 'Changes: 5');
+        ctx.ok(await ctx.eval(`!window.__deep.field('Owner').part('clear').hidden`), 'a Clearable combobox field shows its clear button while a value is chosen');
+        await ctx.eval(`window.__deep.field('Owner').part('clear').click()`); // the empty commit goes through the interop dispatcher back to Set and ModelChanged
+        await waitText(ctx, 'Changes: 6');
+        ctx.ok(await ctx.eval(`window.__deep.field('Owner').value === '' && window.__deep.field('Owner').part('clear').hidden`), 'clearing did not leave the combobox empty');
         await ctx.noErrors(ctx.openMark, BENIGN);
       } },
     { name: 'dialog-and-toast',
@@ -368,6 +445,12 @@ export async function onPhone(ctx, fn) {
 export const LAB_SHOTS = [
     async (ctx, vp, theme) => { await ctx.open('/lab/fields'); await ctx.sleep(500); await ctx.shot('lab-fields', vp, theme); },
     async (ctx, vp, theme) => { await ctx.open('/lab/tickets'); await ctx.sleep(800); await ctx.shot('lab-list', vp, theme); },
+    async (ctx, vp, theme) => {
+        await ctx.open('/lab/ticket-follow'); await ctx.sleep(800);
+        await ctx.shot('lab-follow-bug', vp, theme);
+        await ctx.setField('Kind', 'task'); await ctx.sleep(800);
+        await ctx.shot('lab-follow-task', vp, theme);
+    },
     async (ctx, vp, theme) => { await ctx.open('/_plainkit/files'); await ctx.sleep(1500); await ctx.shot('devtools-files', vp, theme); },
     async (ctx, vp, theme) => {
         await ctx.open('/lab/tickets/3'); await ctx.sleep(800);
