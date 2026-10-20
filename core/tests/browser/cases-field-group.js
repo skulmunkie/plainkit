@@ -333,6 +333,20 @@ export const fieldGroupCases = [
         el.disabled = true; await t.settle(); t.ok(combo.hasAttribute('disabled'), 'disabled reaches the control');
     }],
 
+    ['field-group: an unpinned label action keeps a gap from the label text, and the pinned one still sits at the end of the row (#1632)', async t => {
+        const host = t.stage('<pk-field-group label="Order"><b slot="label-action-q">kg</b><i slot="label-action-w">None</i></pk-field-group>');
+        const el = host.firstElementChild;
+        el.fields = [{ key: 'q', label: 'Quantity', kind: 'number' }, { key: 'w', label: 'Weight', kind: 'number', labelActionEnd: true }]; el.values = {};
+        await t.load(host); await t.load(el.shadowRoot); await t.settle(); await t.settle();
+        const [plain, pinned] = el.shadowRoot.querySelectorAll('pk-field');
+        await t.load(plain.shadowRoot); await t.load(pinned.shadowRoot); await t.settle();
+        const labText = plain.part('label').querySelector('slot[name="label"]').assignedNodes({ flatten: true }), range = document.createRange();
+        const node = labText[0] ?? plain.part('label').querySelector('slot[name="label"]').firstChild; range.selectNodeContents(node);
+        const gap = host.querySelector('b').getBoundingClientRect().left - range.getBoundingClientRect().right;
+        t.ok(gap >= 4, `the unpinned action starts at least 4px after the label text (gap ${gap})`);
+        const lab = pinned.part('label').getBoundingClientRect(), act = host.querySelector('i').getBoundingClientRect();
+        t.ok(lab.right - act.right < 4, `the pinned action still sits at the end of the label row (label right ${lab.right}, action right ${act.right})`);
+    }],
     ['field-group: a combobox field takes its options from the search callback, does not filter them itself, and a stale answer is dropped; a label-action slot reaches the field\'s label', async t => {
         const fields = [{ key: 'city', label: 'City', kind: 'combobox', options: [{ value: 'a', label: 'Static' }] }];
         const host = t.stage('<pk-field-group label="Where"><button slot="label-action-city" type="button">Use home</button></pk-field-group>');

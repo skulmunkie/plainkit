@@ -7,4 +7,5 @@
 :host([layout=inline]) { display: flex; flex-wrap: wrap; align-items: end; gap: var(--space-3); }
 :host([layout=inline]) [part=group] { display: contents; }
 :host([layout=inline]) [part=group] > * { flex: 0 1 12rem; min-inline-size: 0; }
+slot[slot="label-action"] { display: inline-block; margin-inline-start: var(--space-2); vertical-align: middle; }
 [action-end] > slot[slot] { display: block; margin-inline-start: auto; }
