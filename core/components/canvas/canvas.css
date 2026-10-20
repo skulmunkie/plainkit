@@ -23,6 +23,8 @@
 
 [part="world"] { position: absolute; inline-size: var(--pk-canvas-width, 24rem); inset-block-start: 0; inset-inline-start: 0; transform-origin: 0 0; transform: translate(calc(var(--ds-x, 0) * 1px), calc(var(--ds-y, 0) * 1px)) scale(var(--ds-zoom, 1)); }
 
+[part="status"] { position: absolute; inline-size: 1px; block-size: 1px; overflow: hidden; clip-path: inset(50%); white-space: nowrap; }
+
 [part="overlay"] { position: absolute; inset: 0; pointer-events: none; }
 
 [part="overlay"] > [part="mark"] { position: absolute; box-sizing: border-box; outline: 2px solid var(--color-accent); }
