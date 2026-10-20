@@ -7,10 +7,15 @@
     { "name": "Grid", "type": "double", "default": 0, "map": "prop", "prop": "grid" },
     { "name": "MinZoom", "type": "double", "default": 0.25, "map": "prop", "prop": "minZoom" },
     { "name": "MaxZoom", "type": "double", "default": 4, "map": "prop", "prop": "maxZoom" },
+    { "name": "Wheel", "type": "string", "default": "auto", "map": "prop", "prop": "wheel" },
     { "name": "Label", "type": "string", "default": "", "map": "prop", "prop": "label" },
     { "name": "ChildContent", "type": "RenderFragment?", "map": "slot", "slot": "" },
     { "name": "OnViewChange", "event": "pk-view-change" },
     { "name": "OnPick", "event": "pk-canvas-pick" },
     { "name": "OnKey", "event": "pk-canvas-key" }
+  ],
+  "methods": [
+    { "name": "ZoomToFitAsync", "method": "zoomToFit" },
+    { "name": "CenterOnAsync", "method": "centerOn", "args": [{ "name": "x", "type": "double" }, { "name": "y", "type": "double" }] }
   ]
 }

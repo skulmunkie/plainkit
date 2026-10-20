@@ -1,7 +1,7 @@
 // Tests for the pure viewport pan/zoom logic behind the canvas work (core/js/viewport-logic.js, #430 step 1).
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { toScreen, toWorld, clampZoom, pan, zoomAt } from '../js/viewport-logic.js';
+import { toScreen, toWorld, clampZoom, pan, zoomAt, toOrigin, fromOrigin, zoomToFit, centerOn } from '../js/viewport-logic.js';
 
 const close = (a, b, eps = 1e-9) => assert.ok(Math.abs(a - b) < eps, `expected ${a} to be within ${eps} of ${b}`);
 const closePoint = (a, b, eps = 1e-9) => { close(a.x, b.x, eps); close(a.y, b.y, eps); };
@@ -127,4 +127,33 @@ test('repeated zoom-in/zoom-out at the same focal point round-trips the viewport
     close(vp.zoom, 1, 1e-6);
     close(vp.x, 5, 1e-6);
     close(vp.y, 5, 1e-6);
+});
+
+test('toOrigin and fromOrigin convert between the two forms of a view', () => {
+    const vp = { x: 12, y: -7, zoom: 2.5 };
+    const o = toOrigin(vp);
+    close(o.x, -30, 1e-9); close(o.y, 17.5, 1e-9);
+    const back = fromOrigin(o);
+    close(back.x, vp.x, 1e-9); close(back.y, vp.y, 1e-9); assert.equal(back.zoom, 2.5);
+    // The origin form puts the world origin at (o.x, o.y) in pixels.
+    const s = toScreen(vp, { x: 0, y: 0 });
+    close(s.x, o.x, 1e-9); close(s.y, o.y, 1e-9);
+});
+
+test('zoomToFit contains the rect, centres it and respects the limits', () => {
+    const r = { x: 100, y: 50, w: 400, h: 200 };
+    const vp = zoomToFit(r, 800, 600, 20);
+    close(vp.zoom, 1.9, 1e-9); // (800 - 40) / 400 is the tighter side
+    const a = toScreen(vp, { x: r.x, y: r.y }), b = toScreen(vp, { x: r.x + r.w, y: r.y + r.h });
+    assert.ok(a.x >= 20 - 1e-6 && b.x <= 780 + 1e-6 && a.y >= 20 - 1e-6 && b.y <= 580 + 1e-6, 'inside the padded container');
+    close((a.x + b.x) / 2, 400, 1e-6); close((a.y + b.y) / 2, 300, 1e-6);
+    assert.equal(zoomToFit(r, 800, 600, 20, { max: 1 }).zoom, 1, 'the limit holds');
+    assert.equal(zoomToFit(r, 800, 600, 20, { min: 3 }).zoom, 3);
+});
+
+test('centerOn puts a world point in the middle and keeps the zoom', () => {
+    const vp = centerOn({ x: 0, y: 0, zoom: 2 }, 100, 40, 800, 600);
+    assert.equal(vp.zoom, 2);
+    const s = toScreen(vp, { x: 100, y: 40 });
+    close(s.x, 400, 1e-9); close(s.y, 300, 1e-9);
 });

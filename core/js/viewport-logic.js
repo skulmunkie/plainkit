@@ -38,3 +38,16 @@ export function zoomAt(state, factor, focalX, focalY, { min = 0, max = Infinity 
     // Shift x/y so the focal point maps back to (focalX, focalY): solve toScreen(next, before) == (focalX, focalY) for x, y.
     return pan(next, focalX - after.x, focalY - after.y);
 }
+
+// pk-canvas keeps the pixel position of the world origin ({ x, y } = where (0, 0) sits); these convert to and from the form above.
+export const toOrigin = ({ x, y, zoom }) => ({ x: -x * zoom, y: -y * zoom, zoom });
+export const fromOrigin = ({ x, y, zoom }) => ({ x: -x / zoom, y: -y / zoom, zoom });
+
+// The viewport that shows the world rect r ({ x, y, w, h }) centred in a w by h container with `pad` px around it, as large as the limits allow.
+export function zoomToFit(r, w, h, pad = 0, { min = 0, max = Infinity } = {}) {
+    const zoom = clampZoom(Math.min((w - 2 * pad) / r.w, (h - 2 * pad) / r.h), min, max);
+    return { x: r.x + r.w / 2 - w / 2 / zoom, y: r.y + r.h / 2 - h / 2 / zoom, zoom };
+}
+
+// The viewport with the world point (wx, wy) in the middle of a w by h container, zoom unchanged.
+export const centerOn = ({ zoom }, wx, wy, w, h) => ({ x: wx - w / 2 / zoom, y: wy - h / 2 / zoom, zoom });
