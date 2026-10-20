@@ -123,7 +123,6 @@
 /* Component tokens: */
 :root {
     --btn-primary-fg: #fff;
-    --a-btn-primary-hover-fg: #fff;
     --btn-warn-bg: #b45309;
     --btn-warn-fg: #fff;
     --btn-warn-hover-bg: #a34a08;
@@ -144,14 +143,9 @@
     --chip-accent-bg: #3b1e5f;
     --chip-accent-fg: #ddd6fe;
     --flyout-backdrop-bg: rgba(0, 0, 0, 0.4);
-    --flyout-loading-overlay-bg: rgba(54, 54, 54, 0.55);
-    --flyout-body-input-modified-invalid-border: #f87171;
-    --flyout-body-input-modified-invalid-shadow: 0 0 0 2px rgba(248, 113, 113, 0.15);
     --modal-overlay-bg: rgba(0, 0, 0, 0.62);
     --modal-card-t-product-fg: #1f2328;
     --modal-card-t-archived-fg: #1f2328;
-    --flyout-spinner-accent: #3b82f6;
-    --flyout-body-muted-bg: rgba(255, 255, 255, 0.02);
     --modal-card-t-product-bg: #ecfdf5;
     --modal-card-t-product-bd: #059669;
     --modal-card-t-archived-bg: #fef2f2;
@@ -278,7 +272,6 @@
 
 /* Gallery preview chrome (core/site/gallery/frame.css): schematic-only sizes with no equivalent on the shared scale. */
 :root {
-    --_gal-pv-max-w: 72rem;
     --_gal-pv-border-w: 1px;
     --_gal-shell-side-w: 7rem;
     --_gal-shell-min-h: 10rem;
@@ -311,12 +304,6 @@
 /* Code explorer chrome (core/modules/code-explorer/code-explorer.css): schematic-only sizes with no equivalent on the shared scale. */
 :root {
     --_ce-border-w: 1px;
-    --_ce-focus-offset: -2px;
-    --_ce-kind-w: 4.5em;
-    --_ce-kind-tracking: 0.03em;
-    --_ce-name-basis: 12rem;
-    --_ce-no-w: 3em;
-    --_ce-active-bar-w: 3px;
 }
 
 /* Layout builder chrome (core/modules/layout-builder/layout-builder.css): schematic-only sizes with no equivalent on the shared scale. */
@@ -349,7 +336,6 @@
     --_gx-swatch-size: 1.5rem;
     --_gx-stage-reserve: 24rem;
     --_gx-stage-min-h: 30rem;
-    --_gx-page-max-w: 72rem;
     --_gx-el-group-min-w: 14rem;
     --_gx-el-log-max-h: 10rem;
     --_gx-nav-w: 17.5rem;
@@ -357,8 +343,6 @@
     --_gx-focus-offset: -2px;
     --_gx-title-min-w: 6rem;
     --_gx-api-table-min-w: 36rem;
-    --_gx-hidden-size: 1px;
-    --_gx-table-col1-min-w: 5rem;
 }
 
 /* pk-tray: the panel's extent per size choice (height for the bottom and top edges, width for the start and end edges). */
@@ -385,7 +369,6 @@
 /* Spacing roles. */
 :root {
     --gap-label-input: var(--space-1);      /* label to its input */
-    --gap-input-help: var(--space-1);       /* input to its help or error line */
     --gap-field: var(--space-4);            /* field to field in a form */
     --gap-control: var(--space-2);          /* control to control in a row (buttons, chips, filters) */
     --gap-heading: var(--space-2);          /* heading to the content it introduces */
