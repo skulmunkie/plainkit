@@ -32,12 +32,12 @@ export default Base => class extends Base {
             this.part('reset').addEventListener('click', () => this.reset());
             this.$pts = new Map();
         }
-        this.$mo ??= new MutationObserver(() => this.marks());
-        this.$mo.observe(this, { subtree: true, attributes: true, attributeFilter: ['data-surface-selected'], childList: true });
+        this.$mo ??= new MutationObserver(() => { this.marks(); this.$L?.select?.then(l => l?.draw()); });
+        this.$mo.observe(this, { subtree: true, attributes: true, attributeFilter: ['data-surface-selected', 'data-id', 'data-x', 'data-y', 'data-w', 'data-h'], childList: true });
         if (typeof ResizeObserver === 'function') { this.$ro ??= new ResizeObserver(() => this.marks()); this.$ro.observe(this.part('world')); }
         loadElements(this.shadowRoot);
     }
-    disconnected() { this.$mo?.disconnect(); this.$ro?.disconnect(); this.$rl?.then(r => r?.stop()); this.$rl = null; }
+    disconnected() { this.$mo?.disconnect(); this.$ro?.disconnect(); for (const p of Object.values(this.$L ?? {})) p?.then(l => l?.stop()); this.$L = {}; }
     // Px per display unit (unit mm: 96/25.4). The grid in world units: the set spacing, or with auto-grid the 1-2-5 step that keeps the lines 8 to 20 px apart (major: five minors or more).
     ppu() { return this.pxPerUnit || { mm: 96 / 25.4, in: 96, pt: 96 / 72 }[this.unit] || 1; }
     steps() { const p = this.ppu(), s = gridSteps(this.zoom * p); return this.autoGrid ? { minor: s.minor * p, major: s.major * p } : { minor: this.grid, major: 0 }; }
@@ -71,8 +71,12 @@ export default Base => class extends Base {
     down(e) {
         if (e.target.closest?.('pk-button')) return;
         const frame = this.part('frame');
-        this.$pts.set(e.pointerId, { x: e.clientX, y: e.clientY, sx: e.clientX, sy: e.clientY });
-        if (this.$pts.size === 1) { this.$ground = e.button === 1 || !(e.target !== this && this.contains(e.target)); this.$moved = false; }
+        this.$pts.set(e.pointerId, { x: e.clientX, y: e.clientY, sx: e.clientX, sy: e.clientY, t: e.target });
+        if (this.$pts.size === 1) { // a press on bare ground drags the view, or in a selectable canvas (mode select) a marquee, except for touch
+            const on = e.target !== this && this.contains(e.target);
+            this.$mq = !on && e.button === 0 && e.pointerType !== 'touch' && this.selectable && this.mode === 'select';
+            this.$ground = e.button === 1 || !(on || this.$mq); this.$moved = false;
+        }
         else { this.$ground = true; this.$moved = true; }
         frame.setPointerCapture?.(e.pointerId);
     }
@@ -93,9 +97,9 @@ export default Base => class extends Base {
         if (this.$ground) this.set({ ...this.view(), x: this.panX + dx, y: this.panY + dy });
     }
     up(e, cancelled) {
-        const had = this.$pts.delete(e.pointerId);
+        const t = this.$pts.get(e.pointerId)?.t, had = this.$pts.delete(e.pointerId); // t: what was pressed (the captured pointerup reports the frame)
         if (!had || cancelled || this.$moved || this.$pts.size) return;
-        const node = e.target !== this && this.contains(e.target) ? e.target : null; // a press without movement picks the deepest node under it, or none
+        const node = t !== this && this.contains(t) ? t : null; // a press without movement picks the deepest node under it, or none
         this.emit('pk-canvas-pick', { target: node, additive: e.shiftKey || e.ctrlKey || e.metaKey }, { cancelable: false });
     }
     key(e) {
@@ -110,6 +114,14 @@ export default Base => class extends Base {
         else if (pan || e.key === 'Delete' || e.key === 'Escape') this.emit('pk-canvas-key', { key: e.key, shiftKey: e.shiftKey, altKey: e.altKey, ctrlKey: e.ctrlKey }, { cancelable: false });
         else return;
         e.preventDefault();
+    }
+    // The optional layers (own modules) load when first switched on, redraw with every update and stop when switched off.
+    layers() {
+        const L = (this.$L ??= {});
+        for (const [k, on, load] of [['grid', this.autoGrid, () => import('../../js/canvas-style.js')], ['rulers', this.rulers, () => import('../../js/canvas-rulers.js')], ['select', this.selectable, () => import('../../js/canvas-select.js')]]) {
+            if (on) (L[k] ??= load().then(m => m.mount(this), e => this.log.error(`canvas ${k} failed to load`, e))).then(l => l?.draw());
+            else if (L[k]) { L[k].then(l => l?.stop()); L[k] = null; }
+        }
     }
     // One box per flagged node, in frame pixels, so they follow pan and zoom without scaling their outline.
     marks() {
@@ -128,9 +140,7 @@ export default Base => class extends Base {
         this.part('level').textContent = `${Math.round(this.zoom * 100)}%`;
         this.part('in').disabled = this.zoom >= this.maxZoom; this.part('out').disabled = this.zoom <= this.minZoom;
         this.marks();
-        if (this.autoGrid) this.$gs ??= import('../../js/canvas-style.js').then(m => m.adopt(this, 'grid'), e => this.log.error('canvas-style failed to load', e));
-        if (this.rulers) (this.$rl ??= import('../../js/canvas-rulers.js').then(m => m.mount(this), e => this.log.error('canvas-rulers failed to load', e))).then(r => r?.draw());
-        else if (this.$rl) { this.$rl.then(r => r?.stop()); this.$rl = null; }
+        this.layers();
         if (!this.label) this.warnOnce('label', 'has no label: the surface has no accessible name');
     }
 };

@@ -4,8 +4,18 @@ const rect = e => e.getBoundingClientRect();
 const near = (a, b, tol = 1.5) => Math.abs(a - b) <= tol;
 const SURFACE = (attrs = '') => `<pk-canvas label="Artboard" ${attrs}><div id="node" data-surface-selected>Page</div></pk-canvas>`;
 const mount = async (t, attrs) => { const s = await t.mount(SURFACE(attrs)); await t.settle(); return s; };
-const ptr = (target, type, id, x, y) => target.dispatchEvent(new PointerEvent(type, { pointerId: id, bubbles: true, button: 0, clientX: x, clientY: y }));
+const ptr = (target, type, id, x, y, mods = {}) => target.dispatchEvent(new PointerEvent(type, { pointerId: id, bubbles: true, button: 0, isPrimary: true, clientX: x, clientY: y, ...mods }));
 const drag = (s, from, to) => { const f = s.part('frame'); ptr(f, 'pointerdown', 1, ...from); ptr(f, 'pointermove', 1, ...to); ptr(f, 'pointerup', 1, ...to); };
+
+// A selectable canvas with two items declared through their SVG attributes: a at world (40,40) 100x60, b at (200,30) 80x40. Waits for the lazy layer to load.
+const ITEMS = '<svg width="400" height="300"><rect data-id="a" x="40" y="40" width="100" height="60" fill="none" tabindex="0"></rect><rect data-id="b" x="200" y="30" width="80" height="40" fill="none" tabindex="0"></rect></svg>';
+const selectable = async (t, attrs) => {
+    const s = await t.mount(`<pk-canvas label="Plan" selectable ${attrs}>${ITEMS}</pk-canvas>`);
+    for (let i = 0; i < 80 && !s.$L?.select; i++) await wait(50);
+    await s.$L.select; await t.settle(); return s;
+};
+// A press and release with no movement (a click) on an element at client coordinates.
+const click = (el, x, y, mods) => { ptr(el, 'pointerdown', 9, x, y, mods); ptr(el, 'pointerup', 9, x, y, mods); };
 
 export const canvasCases = [
     ['canvas: defaults; the content sits at the origin of the frame at actual size', async t => {
@@ -175,5 +185,84 @@ export const canvasCases = [
         const f = rect(c.part('frame')), rx = rect(c.part('ruler')), ry = rect(c.shadowRoot.querySelector('[data-axis=y]')), zero = [...c.part('ruler').children].find(x => x.textContent === '0');
         t.ok(near(ry.left, f.left, 2) && near(rx.top, f.top, 2), 'the vertical ruler is on the left, the horizontal on the top');
         t.ok(zero && near(rect(zero).left, f.left + 40, 2), 'the origin label is 40px from the left');
+    }],
+
+    // Selection (#430 phase C3): items declare a world rect through their own SVG attributes (or data-*), the canvas draws the frames and reports ids.
+    ['canvas: the selection layer is not loaded until selectable; then a click selects, Shift toggles, bare ground clears, and the frame is the declared rect in frame pixels', async t => {
+        const plain = await mount(t); t.ok(!plain.$L?.select, 'a canvas that is not selectable loads no selection layer');
+        const s = await selectable(t, 'pan-x="20" pan-y="10" zoom="2"');
+        t.ok(s.$L.select, 'selectable loads it');
+        const ids = []; s.addEventListener('pk-canvas-select', e => ids.push(e.detail.ids.join(',')));
+        const a = s.querySelector('[data-id=a]'), b = s.querySelector('[data-id=b]'), f = rect(s.part('frame')), ra = () => rect(a);
+        click(a, ra().left + 5, ra().top + 5); await t.settle();
+        t.eq(s.selection.join(','), 'a'); t.eq(ids.at(-1), 'a');
+        const box = () => s.part('selection').querySelector('[data-sel]');
+        t.ok(box() && near(rect(box()).left, f.left + 20 + 40 * 2, 2) && near(rect(box()).width, 100 * 2, 1), 'the frame is x*zoom+pan from the left and w*zoom wide');
+        click(b, rect(b).left + 5, rect(b).top + 5, { shiftKey: true }); await t.settle();
+        t.eq(s.selection.join(','), 'a,b'); t.eq(s.part('selection').querySelectorAll('[data-sel]').length, 2, 'two frames');
+        click(a, ra().left + 5, ra().top + 5, { shiftKey: true }); await t.settle();
+        t.eq(s.selection.join(','), 'b', 'Shift on a selected item deselects it');
+        click(s.part('frame'), f.left + 300, f.top + 300); await t.settle();
+        t.eq(s.selection.length, 0, 'a click on bare ground clears'); t.eq(ids.at(-1), '');
+        t.ok(/Selection cleared/.test(s.part('status').textContent), `announced (${s.part('status').textContent})`);
+        s.selection = ['b']; await t.settle();
+        t.eq(s.part('selection').querySelectorAll('[data-sel]').length, 1, 'setting selection from code draws the frame');
+    }],
+
+    ['canvas: a marquee drag on bare ground selects what it touches in world units, Shift adds; mode="pan" and touch pan instead', async t => {
+        const s = await selectable(t, 'zoom="2" min-zoom="0.5"'), f = rect(s.part('frame')), fr = s.part('frame');
+        // World rect (30,30)-(150,110) at zoom 2 is frame px (60,60)-(300,220): touches a (40,40,100x60) only.
+        ptr(fr, 'pointerdown', 5, f.left + 60, f.top + 60); ptr(fr, 'pointermove', 5, f.left + 200, f.top + 150);
+        t.ok(!s.part('marquee').hidden, 'the marquee shows during the drag'); t.ok(near(rect(s.part('marquee')).width, 140, 1), 'and follows the pointer');
+        ptr(fr, 'pointermove', 5, f.left + 300, f.top + 220); ptr(fr, 'pointerup', 5, f.left + 300, f.top + 220); await t.settle();
+        t.eq(s.selection.join(','), 'a'); t.eq(s.panX, 0, 'the view did not pan'); t.ok(s.part('marquee').hidden, 'the marquee is gone');
+        ptr(fr, 'pointerdown', 6, f.left + 400, f.top + 60, { shiftKey: true }); ptr(fr, 'pointermove', 6, f.left + 560, f.top + 140, { shiftKey: true }); ptr(fr, 'pointerup', 6, f.left + 560, f.top + 140, { shiftKey: true }); await t.settle();
+        t.eq(s.selection.join(','), 'a,b', 'Shift adds b (world 200..280 by 30..70)');
+        const p = await selectable(t, 'mode="pan"'), pf = rect(p.part('frame'));
+        drag(p, [pf.left + 300, pf.top + 200], [pf.left + 340, pf.top + 230]); await t.settle();
+        t.eq(p.panX, 40, 'mode=pan drags the view'); t.eq(p.selection.length, 0);
+        const th = await selectable(t, ''), tf = th.part('frame');
+        tf.dispatchEvent(new PointerEvent('pointerdown', { pointerId: 7, pointerType: 'touch', bubbles: true, button: 0, isPrimary: true, clientX: pf.left + 300, clientY: pf.top + 200 }));
+        tf.dispatchEvent(new PointerEvent('pointermove', { pointerId: 7, pointerType: 'touch', bubbles: true, isPrimary: true, clientX: pf.left + 330, clientY: pf.top + 200 }));
+        tf.dispatchEvent(new PointerEvent('pointerup', { pointerId: 7, pointerType: 'touch', bubbles: true, isPrimary: true, clientX: pf.left + 330, clientY: pf.top + 200 })); await t.settle();
+        t.eq(th.panX, 30, 'one finger pans');
+    }],
+
+    ['canvas: Ctrl+A selects every item, the first Escape clears the selection, the second reaches pk-canvas-key; the change is announced', async t => {
+        const s = await selectable(t, ''), fr = s.part('frame'), keys = [], key = (k, mods = {}) => fr.dispatchEvent(new KeyboardEvent('keydown', { key: k, bubbles: true, cancelable: true, ...mods }));
+        s.addEventListener('pk-canvas-key', e => keys.push(e.detail.key));
+        key('a', { ctrlKey: true }); await t.settle();
+        t.eq(s.selection.join(','), 'a,b'); t.eq(s.part('status').textContent, '2 items selected');
+        key('Escape'); await t.settle(); t.eq(s.selection.length, 0); t.eq(keys.length, 0, 'the first Escape is the selection\'s');
+        key('Escape'); t.eq(keys.join(','), 'Escape', 'the second reaches the page');
+    }],
+
+    ['canvas: keyboard focus on an item selects it (Tab through the items), and the canvas does not write to the items', async t => {
+        const s = await selectable(t, ''), a = s.querySelector('[data-id=a]'), b = s.querySelector('[data-id=b]'), before = s.innerHTML;
+        s.part('frame').focus(); s.part('frame').dispatchEvent(new KeyboardEvent('keydown', { key: 'Tab', bubbles: true }));
+        a.focus(); await t.settle(); t.eq(s.selection.join(','), 'a', `focus selects`);
+        b.focus(); await t.settle(); t.eq(s.selection.join(','), 'b');
+        t.eq(s.innerHTML, before, 'the light DOM is untouched');
+    }],
+
+    ['canvas: in a right-to-left page the selection frame is still at the declared position', async t => {
+        const host = await t.mount('<div dir="rtl"><pk-canvas label="Plan" selectable selection=\'["a"]\' pan-x="20" pan-y="10"><svg width="300" height="150"><rect data-id="a" x="40" y="40" width="100" height="60"></rect></svg></pk-canvas></div>'); await t.settle();
+        const s = host.querySelector('pk-canvas') || host;
+        for (let i = 0; i < 40 && !s.part('selection').querySelector('[data-sel]'); i++) await wait(50);
+        const f = rect(s.part('frame')), box = s.part('selection').querySelector('[data-sel]');
+        t.ok(box && near(rect(box).left, f.left + 20 + 40, 1.5), `the frame is 60px from the left edge (${box && rect(box).left - f.left})`);
+    }],
+
+    ['canvas: 2000 declared items stay selectable (Ctrl+A) and a pan step stays cheap (timings reported)', async t => {
+        const rects = Array.from({ length: 2000 }, (_, i) => `<rect data-id="i${i}" x="${(i % 50) * 30}" y="${Math.floor(i / 50) * 30}" width="24" height="24"></rect>`).join('');
+        const s = await t.mount(`<pk-canvas label="Many" selectable min-zoom="0.05"><svg width="1500" height="1200">${rects}</svg></pk-canvas>`);
+        for (let i = 0; i < 80 && !s.$L?.select; i++) await wait(50);
+        await t.settle();
+        const fr = s.part('frame'), t0 = performance.now();
+        fr.dispatchEvent(new KeyboardEvent('keydown', { key: 'a', ctrlKey: true, bubbles: true, cancelable: true })); await t.settle();
+        const select = performance.now() - t0;
+        t.eq(s.selection.length, 2000, 'all 2000 are selected');
+        const t1 = performance.now(); for (let i = 0; i < 10; i++) { s.panX = i; await t.settle(); } const step = (performance.now() - t1) / 10;
+        t.ok(select < 3000 && step < 400, `select all ${Math.round(select)} ms, a pan step ${Math.round(step)} ms (generous bounds; the numbers are the record)`);
     }],
 ];
