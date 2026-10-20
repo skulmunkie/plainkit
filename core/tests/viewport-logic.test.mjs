@@ -1,7 +1,17 @@
 // Tests for the pure viewport pan/zoom logic behind the canvas work (core/js/viewport-logic.js, #430 step 1).
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { toScreen, toWorld, clampZoom, pan, zoomAt, toOrigin, fromOrigin, zoomToFit, centerOn } from '../js/viewport-logic.js';
+import { toScreen, toWorld, clampZoom, pan, zoomAt, toOrigin, fromOrigin, zoomToFit, centerOn, gridSteps } from '../js/viewport-logic.js';
+
+test('gridSteps keeps the minor gap between 8 and 20 px over a zoom sweep, and the major at least five minors', () => {
+    for (let z = 0.01; z < 500; z *= 1.07) {
+        const { minor, major } = gridSteps(z);
+        assert.ok(minor * z >= 8 - 1e-9 && minor * z < 20, `minor gap ${minor * z} at zoom ${z}`);
+        assert.ok(major >= minor * 5 - 1e-9);
+    }
+    assert.deepEqual(gridSteps(1), { minor: 10, major: 50 });
+    assert.deepEqual(gridSteps(4), { minor: 2, major: 10 });
+});
 
 const close = (a, b, eps = 1e-9) => assert.ok(Math.abs(a - b) < eps, `expected ${a} to be within ${eps} of ${b}`);
 const closePoint = (a, b, eps = 1e-9) => { close(a.x, b.x, eps); close(a.y, b.y, eps); };

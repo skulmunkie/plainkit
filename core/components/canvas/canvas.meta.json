@@ -11,6 +11,10 @@
     { "name": "panX", "type": "number", "default": 0, "reflect": true, "commit": "pk-view-change", "description": "Where the world origin sits, px from the left." },
     { "name": "panY", "type": "number", "default": 0, "reflect": true, "commit": "pk-view-change", "description": "Where the world origin sits, px from the top." },
     { "name": "grid", "type": "number", "default": 0, "reflect": true, "description": "The grid spacing in world units (0 none); pointToWorld snaps to it." },
+    { "name": "autoGrid", "type": "boolean", "default": false, "reflect": true, "description": "An adaptive grid: lines at the 1, 2, 5, 10, 20, 50 ... step that stays 8 to 20 px apart at every zoom, with a stronger line every fifth step or more (colour: --pk-canvas-grid-major). Overrides grid; pointToWorld snaps to the fine step." },
+    { "name": "unit", "type": "string", "default": "none", "reflect": true, "values": ["none", "px", "mm", "in", "pt"], "description": "The unit of the rulers and the auto grid. Only labels change: the stored world numbers never do." },
+    { "name": "pxPerUnit", "type": "number", "default": 0, "reflect": true, "description": "World units per display unit: 0 derives it from unit (mm 96/25.4, in 96, pt 96/72, otherwise 1). Set 1 when the world is already in the unit." },
+    { "name": "rulers", "type": "boolean", "default": false, "reflect": true, "description": "Rulers along the top and left with a pointer readout, in unit; hidden on a phone, thickness --pk-canvas-ruler-size (1.5rem). Loaded on first use." },
     { "name": "minZoom", "type": "number", "default": 0.25, "reflect": true, "description": "The smallest scale." },
     { "name": "maxZoom", "type": "number", "default": 4, "reflect": true, "description": "The largest scale." },
     { "name": "wheel", "type": "string", "default": "auto", "reflect": true, "values": ["auto", "zoom", "pan", "page"], "description": "The plain wheel: auto pans only with focus (else the page scrolls), pan, zoom, or page (never taken). Ctrl or Cmd with the wheel, and pinch, always zoom." },
@@ -34,7 +38,11 @@
     { "name": "mark", "description": "The frame template" },
     { "name": "toolbar", "description": "The buttons" },
     { "name": "level", "description": "The zoom as a percentage" },
-    { "name": "status", "description": "The live region that announces the zoom" }
+    { "name": "status", "description": "The live region that announces the zoom" },
+    { "name": "rulers", "description": "The rulers layer (rulers on)" },
+    { "name": "ruler", "description": "One ruler strip, data-axis x or y" },
+    { "name": "ruler-corner", "description": "The corner with the unit" },
+    { "name": "ruler-readout", "description": "The pointer position in the unit" }
   ],
   "cssProperties": [
     { "name": "--pk-canvas-bg", "description": "The ground behind the content", "default": "a page and text mix" },
@@ -53,6 +61,10 @@
   "a11y": "A labelled group and one tab stop. Arrows pan (mirrored in right-to-left), + and - zoom, 0 resets, 1 or Home fits; Delete, Escape and Shift+arrow reach the page. Zoom changes are announced; the plain wheel is the page's until focus.",
   "mobile": "One finger pans, two pinch, a tap picks; the toolbar folds to icons with 44px targets.",
   "examples": [
+    {
+      "title": "Millimetre rulers with an adaptive grid",
+      "html": "<pk-canvas label=\"Sign layout\" unit=\"mm\" rulers auto-grid pan-x=\"60\" pan-y=\"48\"><pk-card data-surface-selected><h3>Sign</h3><p>Zoom: the grid and the rulers keep their spacing readable.</p></pk-card></pk-canvas>"
+    },
     {
       "title": "Pan and zoom surface with a grid",
       "html": "<pk-canvas label=\"Artboard\" grid=\"20\"><pk-card data-surface-selected><h3>Page</h3><p>Drag the ground, or use Ctrl and the wheel to zoom.</p></pk-card></pk-canvas>"

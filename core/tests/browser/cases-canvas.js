@@ -129,4 +129,51 @@ export const canvasCases = [
         const w = c.pointToWorld(rect(f).left, rect(f).top);
         t.ok(near(w.x, 40, 0.5), 'world x still grows to the right');
     }],
+
+    ['canvas: in a right-to-left page the world and the marks sit where the view says (#1660): the origin is at the frame left, not mirrored', async t => {
+        const host = await t.mount('<div dir="rtl"><pk-canvas label="Artboard" pan-x="30" pan-y="20"><div id="node" data-surface-selected style="width:50px;height:30px">Page</div></pk-canvas></div>'); await t.settle();
+        const c = host.querySelector('pk-canvas') || host, f = rect(c.part('frame')), w = rect(c.part('world')), n = rect(c.querySelector('#node')), m = rect(c.part('overlay').firstElementChild);
+        t.ok(near(w.left, f.left + 1 + 30, 2), `the world starts 30px from the frame's left edge, as the view says (${w.left - f.left})`);
+        t.ok(near(m.left, n.left, 1) && near(m.width, n.width, 1), 'the mark hugs the node');
+        const p = c.worldToPoint(0, 0);
+        t.ok(near(p.x, f.left + 30, 1), 'worldToPoint agrees');
+    }],
+
+    ['canvas: auto-grid keeps the fine line gap between 8 and 20px across ten zoom steps, and snaps to the fine step', async t => {
+        const s = await mount(t, 'auto-grid min-zoom="0.05" max-zoom="40"');
+        for (let i = 0; i < 40 && getComputedStyle(s.part('frame')).backgroundSize.split(',').length < 4; i++) await wait(50); // the grid layer loads on first use
+        for (let i = 0; i < 10; i++) {
+            const cell = parseFloat(getComputedStyle(s.part('frame')).backgroundSize.split(',')[2]);
+            t.ok(cell >= 8 - 0.01 && cell < 20, `zoom ${s.zoom.toFixed(2)}: gap ${cell}px`);
+            s.zoomTo(s.zoom * (i < 5 ? 1.6 : 0.4)); await t.settle();
+        }
+        s.reset(); await t.settle();
+        const f = rect(s.part('frame')), p = s.pointToWorld(f.left + 57, f.top + 61);
+        t.ok(p.x % 10 === 0 && p.y % 10 === 0, `snapped to the 10 step at zoom 1 (${p.x},${p.y})`);
+    }],
+
+    ['canvas: rulers load on first use, label every major step in the unit and report the pointer; millimetres label millimetres', async t => {
+        const s = await mount(t, 'rulers unit="mm" pan-x="40" pan-y="40"');
+        for (let i = 0; i < 40 && !s.part('ruler').firstElementChild; i++) await wait(50);
+        const rx = s.part('ruler'), ry = s.shadowRoot.querySelector('[data-axis=y]'), f = rect(s.part('frame'));
+        t.ok(!s.part('rulers').hidden && rx.children.length >= 2 && ry.children.length >= 2, 'ticks are labelled on both rulers');
+        t.eq(s.part('ruler-corner').textContent, 'mm');
+        const px = 96 / 25.4, a = [...rx.children].find(x => x.textContent === '0');
+        t.ok(a && near(rect(a).left, f.left + 40, 2), 'the 0 label sits at the world origin');
+        const b = [...rx.children].find(x => x.textContent === '50');
+        t.ok(b && near(rect(b).left - rect(a).left, 50 * px, 1.5), `50 mm is ${50 * px} px apart (${b && rect(b).left - rect(a).left})`);
+        s.part('frame').dispatchEvent(new PointerEvent('pointermove', { bubbles: true, clientX: f.left + 40 + 10 * px, clientY: f.top + 40 + 20 * px }));
+        t.eq(s.part('ruler-readout').textContent, '10, 20 mm', 'the readout is in the unit');
+        s.rulers = false; await t.settle();
+        t.ok(s.part('rulers').hidden, 'turning rulers off hides them');
+    }],
+
+    ['canvas: rulers do not mirror in a right-to-left page', async t => {
+        const host = await t.mount('<div dir="rtl"><pk-canvas label="Artboard" rulers pan-x="40" pan-y="40"><div>Page</div></pk-canvas></div>'); await t.settle();
+        const c = host.querySelector('pk-canvas') || host;
+        for (let i = 0; i < 40 && !c.part('ruler').firstElementChild; i++) await wait(50);
+        const f = rect(c.part('frame')), rx = rect(c.part('ruler')), ry = rect(c.shadowRoot.querySelector('[data-axis=y]')), zero = [...c.part('ruler').children].find(x => x.textContent === '0');
+        t.ok(near(ry.left, f.left, 2) && near(rx.top, f.top, 2), 'the vertical ruler is on the left, the horizontal on the top');
+        t.ok(zero && near(rect(zero).left, f.left + 40, 2), 'the origin label is 40px from the left');
+    }],
 ];
