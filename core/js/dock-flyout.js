@@ -4,7 +4,8 @@
 // and reads/writes the same private fields dock.js always did ($flyout); nothing here is a public API of its own.
 import { place, onOutside, unplace } from './positioning.js';
 import { loadElements } from './loader.js';
-import { findGroup } from './dock-model.js';
+import { createStore } from './store.js';
+import { findGroup, defaultLayout, fromJson, toJson } from './dock-model.js';
 
 // Close panel: it stops being declared to the model (updated() drops it from its group, or removes an emptied group, the same repair path a
 // panel leaving the host's DOM already takes), but the host keeps the child in its light DOM, so reopening loses nothing about it.
@@ -109,4 +110,45 @@ export function onToggle(el, e, collapsePanel, expandPanel) {
     // draw() rebuilds the whole group subtree (a new button), so the one the pointer or keyboard just used is gone: without this the next Tab (or
     // the next Enter, for a screen reader user who does not re-locate the button) would land somewhere else.
     el.part('root').querySelector?.(`[data-panel="${panel}"]`)?.focus?.();
+}
+
+// Persistence and the confirmLayout round trip, moved out of dock.js for headroom (#432 phase D0).
+// The layout document can be large (up to dock-model's own 64 KB limit): the store's default 1 KB per-key limit is raised for it.
+const PERSIST_SCHEMA = { layout: { maxLength: 65536 } };
+
+// Creates (or replaces) the per-element store when persistKey changes; restores a saved layout the first time there is no layout prop yet.
+export function syncPersist(el) {
+    if (el.persistKey === el.$persisted) return;
+    el.$mod?.destroy(); el.$store?.destroy(); el.$mod = el.$store = undefined;
+    el.$persisted = el.persistKey;
+    if (!el.persistKey) return;
+    el.$store = createStore({ prefix: `pk-dock:${el.persistKey}` });
+    el.$mod = el.$store.module('layout', { defaults: { layout: {} }, schema: PERSIST_SCHEMA, persist: ['layout'] });
+    const saved = el.$mod.get('layout');
+    if (el.layout == null && saved && saved.version) el.layout = saved;
+}
+
+// A host that wants every change to round-trip first (Blazor's controlled mode, #592) sets confirmLayout(arg) as a callback property. arg is
+// { layout: <JSON string>, reason }; the settled result (a JSON string to apply, or null/undefined to keep the previous layout) is validated the
+// same way an incoming layout attribute is, then applied and pk-layout-change fires with the confirmed doc. A rejection keeps the previous
+// layout. el.$applied always holds the last confirmed/drawn doc (unlike el.$doc, which the caller already moved to the proposed one before this
+// runs), so it is what a null result or a rejection falls back to. Once a layout is confirmed and drawn, it is what persistKey saves.
+export function confirm(el, reason, panels) {
+    const proposed = el.$doc;
+    const previous = el.$applied, phone = Boolean(el.$mq?.matches);
+    Promise.resolve(el.confirmLayout({ layout: toJson(proposed), reason }))
+        .then(result => {
+            const json = typeof result === 'string' ? result : previous && toJson(previous);
+            const r = json == null ? { doc: defaultLayout(panels), problems: [] } : fromJson(json, { panels });
+            for (const p of r.problems) el.warnOnce(`${p.code}:${p.path}`, p.message, { code: p.code });
+            el.$doc = el.$applied = el.$given = el.layout = r.doc;
+            el.draw(phone);
+            el.$mod?.set('layout', el.$doc);
+            el.emit('pk-layout-change', { layout: r.doc, reason }, { cancelable: false });
+        })
+        .catch(error => {
+            el.warnOnce('confirm-layout-rejected', 'confirmLayout rejected; keeping the previous layout', { error });
+            el.$doc = previous;
+            el.draw(phone);
+        });
 }
