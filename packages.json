@@ -8,8 +8,8 @@
       "built": true,
       "requires": [],
       "blazorOption": null,
-      "maxPackedBytes": 600800,
-      "maxUnpackedBytes": 2352100
+      "maxPackedBytes": 597500,
+      "maxUnpackedBytes": 2343100
     },
     {
       "id": "plainkit.tools",
@@ -95,7 +95,7 @@
     {
       "id": "plainkit.markdown",
       "title": "Markdown editor",
-      "built": false,
+      "built": true,
       "requires": [
         "plainkit"
       ],
@@ -110,8 +110,8 @@
         "markdown/render.js"
       ],
       "maxPackedBytes": null,
-      "maxUnpackedBytes": null,
-      "maxZipBytes": null
+      "maxUnpackedBytes": 21690,
+      "maxZipBytes": 9400
     },
     {
       "id": "plainkit.dock",

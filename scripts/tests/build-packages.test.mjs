@@ -21,7 +21,7 @@ after(() => fs.rmSync(tmp, { recursive: true, force: true }));
 const names = id => listZip(fs.readFileSync(path.join(zips, zipName(id, version)))).map(e => e.name);
 
 test('core, tools, audit and canvas are built, each with a zip and a manifest asset named by the id and the version', () => {
-    assert.deepEqual(report.map(r => r.id), ['plainkit', 'plainkit.tools', 'plainkit.audit', 'plainkit.canvas']);
+    assert.deepEqual(report.map(r => r.id), ['plainkit', 'plainkit.tools', 'plainkit.audit', 'plainkit.markdown', 'plainkit.canvas']);
     assert.equal(zipName('plainkit', version), `plainkit-${version}.zip`);
     assert.equal(zipName('plainkit.tools', version), `plainkit.tools-${version}.zip`);
     for (const r of report) { assert.ok(fs.existsSync(path.join(zips, zipName(r.id, version)))); assert.ok(fs.existsSync(path.join(zips, manifestName(r.id, version)))); }
@@ -30,7 +30,7 @@ test('core, tools, audit and canvas are built, each with a zip and a manifest as
 test('the checker passes on freshly built zips', async () => assert.deepEqual(await checkPackageZips(zips), []));
 
 test('the union of the package zips is the release: the dist zip (dist/ without modules/) and the modules zip, every file once', () => {
-    const union = [...names('plainkit'), ...names('plainkit.tools'), ...names('plainkit.audit'), ...names('plainkit.canvas')].filter(n => !n.endsWith('.manifest.json') || !/^plainkit(\.[a-z]+)?\.manifest\.json$/.test(n));
+    const union = [...names('plainkit'), ...names('plainkit.tools'), ...names('plainkit.audit'), ...names('plainkit.markdown'), ...names('plainkit.canvas')].filter(n => !n.endsWith('.manifest.json') || !/^plainkit(\.[a-z]+)?\.manifest\.json$/.test(n));
     assert.equal(new Set(union).size, union.length, 'no file is in two zips');
     const distZip = distFiles(path.join(REPO, 'core', 'dist')).filter(f => !f.startsWith('modules/'));
     const modulesZip = distFiles(path.join(REPO, 'core', 'dist')).filter(f => f.startsWith('modules/'));
@@ -77,6 +77,12 @@ test('canvas holds pk-canvas, its viewport and logic helpers and the SVG toolkit
     assert.ok([...c].every(n => !n.startsWith('js/svg/') && !/^js\/canvas-/.test(n)), 'no canvas helper left in core');
     assert.ok(k.has('plainkit.canvas.manifest.json') && !k.has('manifest.json'));
     for (const f of canvas.js.filter(x => !x.endsWith('/'))) assert.ok(k.has(`js/${f}`), `canvas lacks js/${f}`);
+});
+
+test('markdown holds pk-markdown, pk-markdown-editor and js/markdown/, and core holds none of them', () => {
+    const k = new Set(names('plainkit.markdown')), c = new Set(names('plainkit'));
+    for (const f of ['elements/markdown.js', 'elements/markdown-editor.js', 'js/markdown/parse.js', 'js/markdown/render.js', 'js/markdown/commands.js']) assert.ok(k.has(f) && !c.has(f), `${f} lives in plainkit.markdown only`);
+    assert.ok(k.has('plainkit.markdown.manifest.json') && !k.has('manifest.json'));
 });
 
 test('the npm package model leaves exactly the files of the built packages out of core (core/package.json files)', () => {

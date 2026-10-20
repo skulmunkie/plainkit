@@ -11,6 +11,7 @@
 // Then (#1656 phase 1) the 33 dev-tool helper files of dist/js left the package for the plainkit.tools artifact (packages.json; the audit-free import graph test scripts/tests/packages.test.mjs proves no core file imports them): 887,507 / 3,277,473 on main before, 845,001 / 3,168,976 after. The ceilings go back down to the measurement plus 0.5 percent (850,000 / 3,185,000); the stopgap raise (900,000 / 3,350,000) is undone.
 // Then (#1656) the agent skills left the package for the Pages site (skills/, scripts/skills-site.mjs): 648,336 packed / 2,493,363 unpacked bytes (from about 861,900 / 3,219,900 with them). The ceilings went DOWN to 660,000 / 2,540,000, a ratchet again; the owner raise of 2026-10-20 is gone with the skills, which were most of it.
 // Then (#1656 phase 3b) pk-canvas, its viewport and logic helpers (js/viewport-logic.js, canvas-geometry/rulers/select/style.js) and the SVG toolkit (js/svg/) left the package for the plainkit.canvas artifact (packages.json), after the skills move (648,336 / 2,493,363 plus the canvas layers C2/C3 and the SVG model S3): 594,818 / 2,328,751 after both moves. The ceilings go down to the measurement plus 1 percent (600,800 / 2,352,100).
+// Then (#1656 phase 3c) pk-markdown, pk-markdown-editor and js/markdown/ left the package for the plainkit.markdown artifact (packages.json), after queue 4 had grown it to 601,835 / 2,352,3xx: 594,504 / 2,331,383 after. The ceilings go down to the measurement plus 0.5 percent (597,500 / 2,343,100).
 // The previous ceilings (900,000 / 3,350,000). Owner decision 2026-10-20: headroom is raised once, by about 16 KB packed / 57 KB unpacked, because capping the package was capping new components; the long-term answer is separate packages for the larger components (#1656), after which the ceilings go back down. Until then no further raise without the owner: make the package smaller.
 import './needs-bootstrap.mjs';
 import test from 'node:test';
@@ -21,8 +22,8 @@ import { spawnSync } from 'node:child_process';
 import { fileURLToPath } from 'node:url';
 
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
-const MAX_PACKED_BYTES = 600_800;
-const MAX_UNPACKED_BYTES = 2_352_100;
+const MAX_PACKED_BYTES = 597_500;
+const MAX_UNPACKED_BYTES = 2_343_100;
 const TOP_LEVEL = new Set(['dist', 'LICENSE', 'README.md', 'package.json']);
 // dist/ is the runtime unit; these are the entries of dist/ the package may carry (dist/modules is the dev-tool unit, a separate download).
 const DIST = new Set(['breakpoints.report.json', 'custom-elements.json', 'elements', 'elements.d.ts', 'elements.vue.d.ts', 'icons.svg', 'js', 'llms-full.txt', 'llms.txt',
