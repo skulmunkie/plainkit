@@ -275,3 +275,10 @@ test('P10: flags a page factory with AbortController, a busy flag and its own de
     assert.equal(run(`import { createLifecycle } from 'plainkit/page-lifecycle.js';\n${own}`).length, 0);
     assert.equal(run('const ac = new AbortController(); ac.abort();').length, 0);
 });
+
+test('S3: the documented num class on a raw pk-table th or td is not flagged, any other class still is (#1692)', () => {
+    const run = text => checkFiles([{ path: 'app.html', text }], { ruleset: 'consumer' }).filter(f => f.rule === 'S3');
+    assert.equal(run('<pk-table><table><thead><tr><th class="num">Amount</th></tr></thead><tbody><tr><td class="num">1.00</td></tr></tbody></table></pk-table>').length, 0);
+    assert.equal(run('<pk-table><table><tbody><tr><td class="num big">1.00</td></tr></tbody></table></pk-table>').length, 1);
+    assert.equal(run('<div class="num">1</div>').length, 1);
+});
