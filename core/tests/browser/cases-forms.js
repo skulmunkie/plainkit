@@ -230,6 +230,21 @@ export const formCases = [
         press(tr, 'm'); await t.settle(); t.eq(sel.value, 'e', 'a letter on the closed trigger picks the match');
     }],
 
+    ['combobox clearable: a clear button shows only while a value is chosen, sits inside the box, and an empty commit raises change and pk-combo-select (#1687)', async t => {
+        const host = t.stage('<form><pk-combobox clearable name="v" label="Variant" value="2"><option value="1">Widget A</option><option value="2">Gadget</option></pk-combobox><pk-combobox name="w" label="Plain" value="2"><option value="2">Gadget</option></pk-combobox></form>'); await t.load(host); await t.settle();
+        const [ac, plain] = host.querySelectorAll('pk-combobox'), clr = ac.part('clear');
+        t.ok(!clr.hidden, 'visible while a value is chosen'); t.ok(plain.part('clear').hidden, 'absent without clearable');
+        const box = ac.part('box').getBoundingClientRect(), c = clr.getBoundingClientRect();
+        t.ok(c.width > 0 && c.left >= box.left && c.right <= box.right && c.top >= box.top && c.bottom <= box.bottom, 'the button sits inside the box');
+        t.ok(c.left >= ac.part('control').getBoundingClientRect().right - 1, 'it sits after the input');
+        const got = []; ac.addEventListener('change', () => got.push('change')); ac.addEventListener('pk-combo-select', e => got.push(JSON.stringify(e.detail)));
+        clr.click(); await t.settle();
+        t.eq(ac.value, ''); t.eq(ac.part('control').value, ''); t.ok(clr.hidden, 'hidden again once empty'); t.eq(got.join('|'), 'change|{"value":"","label":""}');
+        t.eq(new FormData(host.firstElementChild).get('v'), ''); t.ok(ac.matches(':focus-within'), 'focus returns to the input');
+        ac.value = '1'; await t.settle(); t.ok(!clr.hidden, 'shows again for a new value');
+        ac.setAttribute('mode', 'select'); await t.settle(); t.ok(clr.hidden, 'not in select mode');
+    }],
+
     ['select multiple and tag-input: the values array and the JSON attribute drive the selection and the joined value; the commit event carries the array (#850)', async t => {
         const host = t.stage('<form><pk-select name="m" multiple values=\'["a,b","c"]\'><option value="a,b">AB</option><option value="c">C</option><option value="d">D</option></pk-select><pk-tag-input name="t"></pk-tag-input></form>'); await t.load(host); await t.settle();
         const [m, ti] = [host.querySelector('pk-select'), host.querySelector('pk-tag-input')];

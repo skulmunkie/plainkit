@@ -37,7 +37,7 @@ public sealed class Ticket
         new() { Key = "phone", Label = "Phone", Kind = PkFieldKind.Tel, Get = t => t.Phone, Set = (t, v) => t.Phone = v ?? "" },
         new() { Key = "kind", Label = "Kind", Kind = PkFieldKind.Select, Options = Kinds, Get = t => t.Kind, Set = (t, v) => t.Kind = v ?? "" },
         new() { Key = "done", Label = "Done", Kind = PkFieldKind.Checkbox, Get = t => t.Done, Set = (t, v) => t.Done = v ?? "" },
-        new() { Key = "owner", Label = "Owner", Kind = PkFieldKind.Combobox, Options = [new("ada", "Ada"), new("grace", "Grace")], Get = t => t.Owner, Set = (t, v) => t.Owner = v ?? "" },
+        new() { Key = "owner", Label = "Owner", Kind = PkFieldKind.Combobox, Clearable = true, Options = [new("ada", "Ada"), new("grace", "Grace")], Get = t => t.Owner, Set = (t, v) => t.Owner = v ?? "" },
     ];
 }
 

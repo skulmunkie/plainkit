@@ -90,6 +90,11 @@
       "doc": "A combobox accepts the typed text itself as its value."
     },
     {
+      "name": "Clearable",
+      "type": "bool",
+      "doc": "A combobox shows a clear button while a value is chosen: it commits an empty value (for an optional picked value)."
+    },
+    {
       "name": "Mode",
       "type": "string?",
       "doc": "A combobox field's mode: \"select\" makes it a styled select (a button that opens the list, no typing); unset, or \"autocomplete\", types to filter."

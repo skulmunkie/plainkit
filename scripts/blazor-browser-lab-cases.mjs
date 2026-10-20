@@ -182,6 +182,12 @@ export const LAB_CASES = [
         await ctx.setField('Kind', 'task');
         await ctx.setField('Done', true);
         await waitText(ctx, 'Changes: 4, last title: Changed, opened: 2026-10-14T09:30');
+        await ctx.setField('Owner', 'ada');
+        await waitText(ctx, 'Changes: 5');
+        ctx.ok(await ctx.eval(`!window.__deep.field('Owner').part('clear').hidden`), 'a Clearable combobox field shows its clear button while a value is chosen');
+        await ctx.eval(`window.__deep.field('Owner').part('clear').click()`); // the empty commit goes through the interop dispatcher back to Set and ModelChanged
+        await waitText(ctx, 'Changes: 6');
+        ctx.ok(await ctx.eval(`window.__deep.field('Owner').value === '' && window.__deep.field('Owner').part('clear').hidden`), 'clearing did not leave the combobox empty');
         await ctx.noErrors(ctx.openMark, BENIGN);
       } },
     { name: 'dialog-and-toast',

@@ -20,6 +20,17 @@ public sealed class ComboboxAsyncSearchTests : BunitContext, IAsyncLifetime
         Services.AddPlainKit();
     }
 
+    // Issue 1687: Clearable is the element's clearable attribute; clearing is the element's pk-combo-select with an empty value, which @bind-Value takes.
+    [Fact]
+    public async Task Clearable_reaches_the_element_and_an_empty_select_reaches_bind_value()
+    {
+        string? value = "a";
+        var cut = Render<PkCombobox>(p => p.Add(x => x.Clearable, true).Bind(x => x.Value, value, v => value = v));
+        Assert.True(cut.Find("pk-combobox").HasAttribute("clearable"));
+        await cut.Find("pk-combobox").TriggerEventAsync("onpk-combo-select", new PkComboSelectEventArgs { Value = "" });
+        Assert.Equal("", value);
+    }
+
     [Fact]
     public async Task The_query_reaches_the_callback_the_host_replaces_the_options_and_a_pick_reaches_bind_value()
     {

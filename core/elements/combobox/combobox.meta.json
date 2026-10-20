@@ -84,6 +84,13 @@
       "description": "Autocomplete: keep typed text that is not an option, and use it as the value."
     },
     {
+      "name": "clearable",
+      "type": "boolean",
+      "default": false,
+      "reflect": true,
+      "description": "Autocomplete: shows a clear button while a value is chosen. It sets the value to empty, raises change and pk-combo-select (value \"\", label \"\"), and puts focus back on the input. For an optional picked value."
+    },
+    {
       "name": "filtering",
       "type": "enum",
       "default": "client",
@@ -163,6 +170,10 @@
       "description": "The button (select mode)."
     },
     {
+      "name": "clear",
+      "description": "The clear button (clearable)."
+    },
+    {
       "name": "chevron",
       "description": "The arrow (select mode)."
     },
@@ -215,6 +226,10 @@
     {
       "title": "Autocomplete",
       "html": "<pk-combobox label=\"Variant\" placeholder=\"Type to search\"><option value=\"AC-1001\">AC-1001 - Widget 1</option><option value=\"AC-1002\">AC-1002 - Widget 2</option><option value=\"AC-1003\">AC-1003 - Widget 3</option></pk-combobox>"
+    },
+    {
+      "title": "Clearable",
+      "html": "<pk-combobox clearable label=\"Variant\" placeholder=\"Type to search\" value=\"AC-1002\"><option value=\"AC-1001\">AC-1001 - Widget 1</option><option value=\"AC-1002\">AC-1002 - Widget 2</option></pk-combobox>"
     },
     {
       "title": "Custom select",

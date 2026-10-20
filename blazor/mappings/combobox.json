@@ -37,6 +37,11 @@
       "type": "bool"
     },
     {
+      "name": "Clearable",
+      "prop": "clearable",
+      "type": "bool"
+    },
+    {
       "name": "Filtering",
       "prop": "filtering",
       "type": "ComboboxFiltering"
