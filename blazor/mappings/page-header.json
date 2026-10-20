@@ -33,6 +33,11 @@
       "type": "bool"
     },
     {
+      "name": "StickyFrom",
+      "type": "PageHeaderStickyFrom",
+      "prop": "stickyFrom"
+    },
+    {
       "name": "Spacious",
       "prop": "spacious",
       "type": "bool"
