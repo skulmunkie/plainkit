@@ -10,6 +10,8 @@
     public List<CancellationToken> Tokens { get; } = [];
     public Task<string?> Run(Func<CancellationToken, Task<string>> action) => RunAsync(action, "Saving");
     public Task CallInvokeStateChanged() => InvokeStateChanged();
+    public int Ticks { get; private set; }
+    public ValueTask<IAsyncDisposable> Every(TimeSpan period) => RunEveryAsync(period, _ => { Ticks++; return Task.CompletedTask; });
 
     protected override async Task OnLoadAsync(CancellationToken cancel)
     {

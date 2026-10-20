@@ -233,6 +233,16 @@ export function endDialogs(scopeId) {
     scopes.delete(scopeId);
 }
 
+// A component-scoped repeating call (PkComponentBase.RunEveryAsync, js/tick.js): each tick calls the .NET object's Tick; stopTick (or the page ending) stops it.
+const ticks = new Map();
+let tickId = 0;
+export async function startTick(target, ms) {
+    const { every } = await import('./plainkit/js/tick.js'), id = ++tickId;
+    ticks.set(id, every(ms, () => target.invokeMethodAsync('Tick')));
+    return id;
+}
+export function stopTick(id) { ticks.get(id)?.(); ticks.delete(id); }
+
 // Logging. configureLogging applies the app's settings to the SDK logger; writeLog is how .NET writes into it (IPkLog); the forwarder is a
 // sink that hands entries to a .NET object, which writes them to ILogger.
 let stopForwarding = null;
