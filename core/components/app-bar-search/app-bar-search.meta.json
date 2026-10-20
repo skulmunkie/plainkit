@@ -160,6 +160,16 @@
       "default": "auto"
     },
     {
+      "name": "--pk-app-bar-search-radius",
+      "description": "Corner radius of the field. Defaults to the control radius, like buttons and inputs; set var(--radius-pill) for a pill.",
+      "default": "var(--pk-control-radius, var(--radius-sm))"
+    },
+    {
+      "name": "--pk-control-radius",
+      "description": "The shared control radius, used when the element hook is not set.",
+      "default": "var(--radius-sm)"
+    },
+    {
       "name": "--pk-app-bar-search-popup-width",
       "description": "Minimum width of the results panel, which may be wider than the field (never wider than the viewport).",
       "default": "24rem"

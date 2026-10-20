@@ -854,17 +854,29 @@ export const dataDisplayCases = [
         }
     }],
 
-    ['table-filters: the search box and filter trigger are pills (a length radius, never a percentage that draws an ellipse) at a wide and a narrow width', async t => {
+    ['table-filters: the search box and filter trigger default to the input radius; --pk-table-filters-radius makes them a pill, always a length (never an ellipse), at a wide and a narrow width (#1706)', async t => {
+        const ref = getComputedStyle((await t.mount('<pk-input label="Ref"></pk-input>')).part('box')).borderTopLeftRadius;
         for (const width of ['40rem', '12rem']) {
             const host = t.stage('<pk-table-filters label="Search products" filter-count="1"><pk-select label="Category"><option>A</option></pk-select></pk-table-filters>');
             host.style.inlineSize = width;
             const el = host.firstElementChild; await t.load(host);
+            for (const name of ['search', 'trigger']) t.eq(getComputedStyle(el.part(name)).borderTopLeftRadius, ref, `${name} at ${width}: the input's radius by default`);
+            el.style.setProperty('--pk-table-filters-radius', 'var(--radius-pill)'); await t.settle();
             for (const name of ['search', 'trigger']) {
                 const part = el.part(name), r = getComputedStyle(part).borderTopLeftRadius;
-                t.ok(!/%|\s/.test(r), `${name} at ${width}: one length radius, equal horizontally and vertically (got "${r}")`);
-                t.ok(parseFloat(r) >= part.getBoundingClientRect().height / 2, `${name} at ${width}: rounded at least half the height (${r})`);
+                t.ok(!/%|\s/.test(r), `${name} at ${width}: one length radius (got "${r}")`);
+                t.ok(parseFloat(r) >= part.getBoundingClientRect().height / 2, `${name} at ${width}: a pill when the hook says so (${r})`);
             }
         }
+    }],
+
+    ['app-bar-search: the field defaults to the input radius and follows --pk-app-bar-search-radius (#1706)', async t => {
+        const ref = getComputedStyle((await t.mount('<pk-input label="Ref"></pk-input>')).part('box')).borderTopLeftRadius;
+        const el = await t.mount('<pk-app-bar-search placeholder="Search"></pk-app-bar-search>'); await customElements.whenDefined('pk-app-bar-search');
+        const box = el.part('box');
+        t.eq(getComputedStyle(box).borderTopLeftRadius, ref, 'the input radius by default');
+        el.style.setProperty('--pk-app-bar-search-radius', '7px'); await t.settle();
+        t.eq(getComputedStyle(box).borderTopLeftRadius, '7px', 'the hook value');
     }],
 
     ['table-filters: typing debounces pk-search; the trigger only shows once the default slot has content, opens/closes the panel and reports pk-toggle; Clear filters raises pk-clear-filters; the badge reflects filterCount', async t => {
