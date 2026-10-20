@@ -12,12 +12,13 @@ public sealed class PkPageTestingTests : BunitContext, IAsyncLifetime
     Task IAsyncLifetime.InitializeAsync() => Task.CompletedTask;
     async Task IAsyncLifetime.DisposeAsync() => await DisposeAsync();
 
-    private sealed class Person { public int Id { get; set; } public string Name { get; set; } = ""; public bool Active { get; set; } }
+    private sealed class Person { public int Id { get; set; } public string Name { get; set; } = ""; public bool Active { get; set; } public string Nick { get; set; } = ""; }
 
     private static readonly IReadOnlyList<PkFieldSpec<Person>> PersonFields =
     [
         new() { Key = "name", Label = "Name", Required = true, Get = p => p.Name, Set = (p, v) => p.Name = v ?? "" },
         PkFieldSpec<Person>.Bool("active", "Active", p => p.Active, (p, v) => p.Active = v),
+        new() { Key = "nick", Label = "Nickname", Required = true, Get = p => p.Nick, Set = (p, v) => p.Nick = v ?? "", When = p => p.Active },
     ];
 
     public PkPageTestingTests()
@@ -63,11 +64,11 @@ public sealed class PkPageTestingTests : BunitContext, IAsyncLifetime
         Assert.Equal(3, asked.Page);
     }
 
-    private IRenderedComponent<PkRecordPage<Person>> RecordPage(Func<Person, Task>? save = null, Action<string?>? onDelete = null, Action<string?>? onAction = null) => Render<PkRecordPage<Person>>(p => p
+    private IRenderedComponent<PkRecordPage<Person>> RecordPage(Func<Person, Task>? save = null, Func<Person, Task<bool>>? beforeSave = null, Action<string?>? onDelete = null, Action<string?>? onAction = null) => Render<PkRecordPage<Person>>(p => p
         .Add(x => x.Config, "{\"id\":\"7\",\"title\":\"Person\",\"sidebar\":[{\"heading\":\"Status\",\"fields\":[\"active\"]}]}")
         .Add(x => x.Fields, PersonFields)
         .Add(x => x.Load, id => Task.FromResult<Person?>(new Person { Id = int.Parse(id), Name = "Ada" }))
-        .Add(x => x.Save, save)
+        .Add(x => x.BeforeSave, beforeSave).Add(x => x.Save, save)
         .Add(x => x.OnDelete, EventCallback.Factory.Create<PkRecordDeleteEventArgs>(this, e => onDelete?.Invoke(e.Id)))
         .Add(x => x.OnAction, EventCallback.Factory.Create<PkActionEventArgs>(this, e => onAction?.Invoke(e.Key))));
 
@@ -91,6 +92,7 @@ public sealed class PkPageTestingTests : BunitContext, IAsyncLifetime
 
         cut.Instance.SetField("name", "Grace");
         cut.Instance.SetField("active", true);
+        cut.Instance.SetField("nick", "Countess");
         Assert.Null(await cut.Instance.SaveAsync());
         Assert.Equal("Grace", saved!.Name);
         Assert.True(saved.Active);
@@ -117,5 +119,52 @@ public sealed class PkPageTestingTests : BunitContext, IAsyncLifetime
         await cut.Instance.ActionAsync("print");
         Assert.Equal("7", deleted);
         Assert.Equal("print", action);
+    }
+
+    [Fact]
+    public async Task Save_runs_required_validation_then_BeforeSave_then_Save()
+    {
+        var calls = new List<string>();
+        var cut = RecordPage(p => { calls.Add("save"); return Task.CompletedTask; }, p => { calls.Add("before:" + p.Name); return Task.FromResult(true); });
+        await cut.Instance.LoadAsync("7");
+
+        cut.Instance.SetField("name", "");
+        Assert.Equal("Name is required.", await cut.Instance.SaveAsync());
+        Assert.Empty(calls);
+
+        cut.Instance.SetField("name", "Grace");
+        Assert.Null(await cut.Instance.SaveAsync());
+        Assert.Equal(new[] { "before:Grace", "save" }, calls);
+    }
+
+    [Fact]
+    public async Task BeforeSave_returning_false_stops_the_save_and_keeps_the_edits()
+    {
+        var saved = false;
+        var cut = RecordPage(_ => { saved = true; return Task.CompletedTask; }, _ => Task.FromResult(false));
+        await cut.Instance.LoadAsync("7");
+        cut.Instance.SetField("name", "Grace");
+
+        Assert.Null(await cut.Instance.SaveAsync());
+        Assert.False(saved);
+        Assert.Equal("Grace", cut.Instance.Field("name").Value);
+    }
+
+    [Fact]
+    public async Task SetField_re_runs_When_so_a_dependent_field_appears_and_its_Required_applies()
+    {
+        var cut = RecordPage(_ => Task.CompletedTask);
+        await cut.Instance.LoadAsync("7");
+        Assert.DoesNotContain(cut.Instance.Fields(), f => f.Key == "nick");
+
+        cut.Instance.SetField("active", true);
+        Assert.Contains(cut.Instance.Fields(), f => f.Key == "nick");
+        Assert.Equal("Nickname is required.", await cut.Instance.SaveAsync());
+
+        cut.Instance.SetField("nick", "Countess");
+        Assert.Null(await cut.Instance.SaveAsync());
+
+        cut.Instance.SetField("active", false);
+        Assert.DoesNotContain(cut.Instance.Fields(), f => f.Key == "nick");
     }
 }
