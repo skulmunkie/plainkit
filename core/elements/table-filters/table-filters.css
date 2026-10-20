@@ -25,5 +25,5 @@
     /* icon only on a phone: the word folds into the icon (font-size 0 keeps it the accessible name); the active count stays as a badge on the corner. */
     [part="trigger"] { min-inline-size: var(--touch-target); justify-content: center; padding-inline: 0; gap: 0; }
     [part="trigger-label"] { font-size: 0; line-height: 0; }
-    [part="count"] { position: absolute; inset-block-start: 0; inset-inline-end: 0; transform: translate(35%, -35%); }
+    [part="count"] { position: absolute; inset-block-start: 0; inset-inline-end: 0; transform: translateY(-35%); }
 }
