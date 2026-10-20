@@ -1,5 +1,5 @@
 import { loadElements } from '../../js/loader.js';
-import { toWorld, toScreen, zoomAt, zoomToFit, centerOn, toOrigin, fromOrigin } from '../../js/viewport-logic.js';
+import { toWorld, toScreen, zoomAt, zoomToFit, centerOn, toOrigin, fromOrigin, gridSteps } from '../../js/viewport-logic.js';
 
 // The canvas keeps a view as { x, y, zoom }: the world origin sits at (x, y) in frame pixels and a world unit is `zoom` pixels. The maths is js/viewport-logic.js.
 export const snap = (n, grid) => (grid > 0 ? Math.round(n / grid) * grid : n);
@@ -37,7 +37,10 @@ export default Base => class extends Base {
         if (typeof ResizeObserver === 'function') { this.$ro ??= new ResizeObserver(() => this.marks()); this.$ro.observe(this.part('world')); }
         loadElements(this.shadowRoot);
     }
-    disconnected() { this.$mo?.disconnect(); this.$ro?.disconnect(); }
+    disconnected() { this.$mo?.disconnect(); this.$ro?.disconnect(); this.$rl?.then(r => r?.stop()); this.$rl = null; }
+    // Px per display unit (unit mm: 96/25.4). The grid in world units: the set spacing, or with auto-grid the 1-2-5 step that keeps the lines 8 to 20 px apart (major: five minors or more).
+    ppu() { return this.pxPerUnit || { mm: 96 / 25.4, in: 96, pt: 96 / 72 }[this.unit] || 1; }
+    steps() { const p = this.ppu(), s = gridSteps(this.zoom * p); return this.autoGrid ? { minor: s.minor * p, major: s.major * p } : { minor: this.grid, major: 0 }; }
     view() { return { x: this.panX, y: this.panY, zoom: this.zoom }; }
     // Frame pixels of a pointer or wheel event.
     local(e) { const r = this.part('frame').getBoundingClientRect(); return { x: e.clientX - r.left, y: e.clientY - r.top }; }
@@ -63,7 +66,7 @@ export default Base => class extends Base {
     // Put the world point (x, y) in the middle of the frame.
     centerOn(x, y) { this.put(centerOn(fromOrigin(this.view()), x, y, ...this.frameSize())); }
     // A client point as world units, and a world point as client pixels (for a host that snaps what it drags).
-    pointToWorld(clientX, clientY) { const r = this.part('frame').getBoundingClientRect(), w = toWorld(fromOrigin(this.view()), { x: clientX - r.left, y: clientY - r.top }); return { x: snap(w.x, this.grid), y: snap(w.y, this.grid) }; }
+    pointToWorld(clientX, clientY) { const r = this.part('frame').getBoundingClientRect(), w = toWorld(fromOrigin(this.view()), { x: clientX - r.left, y: clientY - r.top }); return { x: snap(w.x, this.steps().minor), y: snap(w.y, this.steps().minor) }; }
     worldToPoint(wx, wy) { const r = this.part('frame').getBoundingClientRect(), s = toScreen(fromOrigin(this.view()), { x: wx, y: wy }); return { x: s.x + r.left, y: s.y + r.top }; }
     down(e) {
         if (e.target.closest?.('pk-button')) return;
@@ -115,16 +118,19 @@ export default Base => class extends Base {
             const b = markBox(n.getBoundingClientRect(), f), d = this.part('mark').cloneNode();
             d.hidden = false;
 
-            for (const [k, v] of Object.entries({ 'inset-inline-start': b.left, 'inset-block-start': b.top, 'inline-size': b.width, 'block-size': b.height })) d.style.setProperty(k, `${v}px`);
+            for (const [k, v] of Object.entries({ left: b.left, top: b.top, width: b.width, height: b.height })) d.style.setProperty(k, `${v}px`);
             return d;
         }));
     }
     updated() {
         this.style.setProperty('--ds-x', String(this.panX)); this.style.setProperty('--ds-y', String(this.panY));
-        this.style.setProperty('--ds-zoom', String(this.zoom)); this.style.setProperty('--ds-grid', String(this.grid));
+        this.style.setProperty('--ds-zoom', String(this.zoom)); const g = this.steps(); this.style.setProperty('--ds-grid', String(g.minor)); this.style.setProperty('--ds-major', String(g.major));
         this.part('level').textContent = `${Math.round(this.zoom * 100)}%`;
         this.part('in').disabled = this.zoom >= this.maxZoom; this.part('out').disabled = this.zoom <= this.minZoom;
         this.marks();
+        if (this.autoGrid) this.$gs ??= import('../../js/canvas-style.js').then(m => m.adopt(this, 'grid'), e => this.log.error('canvas-style failed to load', e));
+        if (this.rulers) (this.$rl ??= import('../../js/canvas-rulers.js').then(m => m.mount(this), e => this.log.error('canvas-rulers failed to load', e))).then(r => r?.draw());
+        else if (this.$rl) { this.$rl.then(r => r?.stop()); this.$rl = null; }
         if (!this.label) this.warnOnce('label', 'has no label: the surface has no accessible name');
     }
 };
