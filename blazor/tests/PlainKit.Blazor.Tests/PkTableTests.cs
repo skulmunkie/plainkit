@@ -100,6 +100,21 @@ public sealed class PkTableTests : BunitContext, IAsyncLifetime
         Assert.True(full.Find("pk-table").HasAttribute("expandable"));
     }
 
+    // Issue 1685: DetailPanels renders one slot="detail-<rowId>.<name>" per named panel and row, next to the default detail, only when Expandable.
+    [Fact]
+    public void DetailPanels_render_a_named_slot_per_panel_and_row_beside_the_default_detail()
+    {
+        RenderFragment<Order> Of(string text) => o => b => b.AddContent(0, text + o.Number);
+        var panels = new Dictionary<string, RenderFragment<Order>> { ["channel"] = Of("Channel "), ["bundle"] = Of("Bundle ") };
+        Assert.Empty(Render(p => p.Add(x => x.DetailPanels, panels)).FindAll("[slot^=detail-]"));   // not Expandable: nothing drawn
+
+        var cut = Render(p => p.Add(x => x.Expandable, true).Add(x => x.DetailTemplate, Of("Lines ")).Add(x => x.DetailPanels, panels));
+        Assert.Equal("Lines 1043", cut.Find("[slot=detail-1043]").TextContent);
+        Assert.Equal("Channel 1043", cut.Find("[slot='detail-1043.channel']").TextContent);
+        Assert.Equal("Bundle 1043", cut.Find("[slot='detail-1043.bundle']").TextContent);
+        Assert.Equal(Orders.Length * 3, cut.FindAll("[slot^=detail-]").Count);
+    }
+
     [Fact]
     public void CurrentRow_is_a_host_set_attribute_and_absent_when_unset()
     {
