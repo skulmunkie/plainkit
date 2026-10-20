@@ -73,6 +73,19 @@ public sealed class PkNotifyDialogsTests : BunitContext, IAsyncLifetime
     }
 
     [Fact]
+    public async Task OnConfirm_is_handed_to_the_bridge_as_a_callback_and_never_serialised()
+    {
+        var d = Services.GetRequiredService<IPkDialogs>();
+        Bridge.Setup<bool?>("dialog", _ => true).SetResult(true);
+        await d.ConfirmAsync(new() { Heading = "Delete?", OnConfirm = () => Task.FromResult<string?>("Refused") });
+        await d.ConfirmAsync(new() { Heading = "Delete?" });
+        var calls = Bridge.Invocations.Where(i => i.Identifier == "dialog").ToList();
+        Assert.NotNull(calls[0].Arguments[3]);
+        Assert.DoesNotContain("onConfirm", calls[0].Arguments[2]!.ToString()!, StringComparison.OrdinalIgnoreCase);
+        Assert.Null(calls[1].Arguments[3]);
+    }
+
+    [Fact]
     public async Task Every_call_of_one_service_shares_a_scope_which_disposing_ends()
     {
         var d = Services.GetRequiredService<IPkDialogs>();

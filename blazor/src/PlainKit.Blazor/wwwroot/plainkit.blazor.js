@@ -222,7 +222,8 @@ export async function notify(kind, title, details, duration) {
     if (['info', 'success', 'warn', 'error'].includes(kind)) n[kind](title, details, { duration });
 }
 
-export async function dialog(scopeId, kind, config) {
+export async function dialog(scopeId, kind, config, confirmRef) {
+    if (confirmRef) config = { ...config, onConfirm: () => confirmRef.invokeMethodAsync('Run') }; // OnConfirm: a message keeps the dialog open (js/dialogs.js)
     if (!scopes.has(scopeId)) scopes.set(scopeId, (await manager('dialogs', () => import('./plainkit/js/dialogs.js'), (m, load) => m.createDialogs({ container: document.body, load }))).scope());
     return (await scopes.get(scopeId)[kind]?.(config)) ?? null;
 }
