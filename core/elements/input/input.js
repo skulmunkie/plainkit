@@ -38,7 +38,7 @@ export default Base => class extends Base {
         const i = this.part('control');
         i.addEventListener('input', () => this.fromInner());
         i.addEventListener('change', () => this.fire(['change']));
-        i.addEventListener('focus', () => { this.edit(true); if (this.selectOnFocus && !this.money()) { this.$sel = true; i.select(); } });
+        i.addEventListener('focus', () => { this.edit(true); if (this.selectOnFocus) { this.$sel = true; i.select(); } });
         i.addEventListener('mouseup', e => { if (this.$sel) { e.preventDefault(); this.$sel = false; } });
         i.addEventListener('blur', () => this.edit(false));
         i.addEventListener('keydown', e => this.keys(e));

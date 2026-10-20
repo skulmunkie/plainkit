@@ -63,6 +63,13 @@ public sealed class PkFieldGroupTests : BunitContext, IAsyncLifetime
     }
 
     [Fact]
+    public void SelectOnFocus_reaches_the_element_on_a_money_field()
+    {
+        var d = Defs(Render([new PkFieldSpec<Order> { Key = "amount", Label = "Amount", Kind = PkFieldKind.Number, Get = _ => "9", Set = (_, _) => { }, Format = "money", SelectOnFocus = true }]))[0];
+        Assert.True(d.GetProperty("selectOnFocus").GetBoolean());
+    }
+
+    [Fact]
     public void AutoComplete_reaches_the_element_under_the_attribute_name_and_is_left_out_when_unset()
     {
         var d = Defs(Render([
