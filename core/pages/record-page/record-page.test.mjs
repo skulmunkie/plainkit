@@ -386,3 +386,25 @@ test('every committed field change is raised as pk-record-change with the values
     el.mirror({ target: main, detail: {} });
     assert.equal(events.filter(([n]) => n === 'pk-record-change').length, 2, 'no key, no event');
 });
+
+test('requestSave(skipBeforeSave) runs the normal save path: validation, beforeSave unless skipped, view mode after (#1652)', async () => {
+    const { el, parts, events } = make();
+    el.load = async () => ({ name: 'Widget' });
+    el.mode = 'edit';
+    const saved = [], asked = [];
+    el.save = async values => { saved.push(values); };
+    el.beforeSave = async values => { asked.push(values); return false; };
+    el.connected();
+    await tick();
+    let valid = true;
+    parts.main.querySelector = () => ({ requestSubmit() { if (valid) for (const f of parts.main.listeners['pk-valid'] ?? []) f(); } });
+    assert.equal(await el.requestSave(), false, 'beforeSave declines again');
+    assert.equal(asked.length, 1); assert.equal(saved.length, 0);
+    valid = false;
+    assert.equal(await el.requestSave(true), false, 'an invalid form is not saved'); assert.equal(saved.length, 0);
+    valid = true;
+    assert.equal(await el.requestSave(true), true, 'resumes the save');
+    assert.equal(asked.length, 1, 'beforeSave is left out of this run'); assert.equal(saved.length, 1);
+    assert.equal(el.mode, 'view'); assert.equal(parts.save.busy, false); assert.ok(events.some(([n]) => n === 'pk-record-save'));
+    assert.equal(el.$skip, false, 'the skip applies to one run only');
+});

@@ -153,6 +153,21 @@ export const LAB_CASES = [
         await waitText(ctx, 'Summary: Typed twice (2 changes)');
         await ctx.noErrors(ctx.openMark, BENIGN);
       } },
+    // SaveAsync(skipBeforeSave: true) resumes a save BeforeSave declined (#1652): the confirm the app shows calls it, and the page saves through its normal path (busy, dirty reset).
+    { name: 'record-save-resume',
+      async run(ctx) {
+        await ctx.open('/lab/ticket-resume');
+        await ctx.waitFor(`!!window.__deep.field('Title')`, 'the new record form');
+        await ctx.waitFor(`typeof document.querySelector('pk-record-page')?.beforeSave === 'function'`, 'the circuit to take the record page over');
+        await ctx.setField('Title', 'Confirm me');
+        await ctx.clickDeep(`${RECORD}[part="save"]`);
+        await waitText(ctx, 'asked;');
+        ctx.ok(await ctx.eval(`window.__deep.field('Title')?.value === 'Confirm me'`), 'a declined BeforeSave left edit mode or lost the typed value');
+        await ctx.clickDeep('#lab-confirm');
+        await waitText(ctx, 'asked;saved;resumed:True;');
+        await ctx.waitFor(`document.querySelector('pk-record-page')?.dirty === false && !document.querySelector('pk-record-page').part('save').busy`, 'the resumed save to reset the dirty state and the busy state (a new record stays in edit mode)');
+        await ctx.noErrors(ctx.openMark, BENIGN);
+      } },
     // A condition follows an edit made in another card (#1600): Kind (Details) decides whether Notes (its own card) shows.
     { name: 'record-when-follows-edit-in-another-card',
       async run(ctx) {
