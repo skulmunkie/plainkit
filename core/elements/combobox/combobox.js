@@ -14,7 +14,7 @@ export default Base => class extends Base {
         this.watchSlot('', rebuild);
         new MutationObserver(rebuild).observe(this,{ childList: true, subtree: true, characterData: true, attributes: true, attributeFilter: ['value', 'disabled', 'label'] });
         const inp = this.part('control'), tr = this.part('trigger'), pop = this.part('popup');
-        inp.addEventListener('input', () => { this.$typing = true; this.$query = inp.value; if (this.free) this.value = inp.value; this.setOpen(true); this.emit('pk-combo-query', { query: inp.value }); this.filter(); });
+        inp.addEventListener('input', () => { this.$typing = true; this.$query = inp.value; if (this.free) this.value = inp.value; this.setOpen(true); this.query(inp.value); this.filter(); });
         inp.addEventListener('click', () => { if (!this.open) this.show(); });
         tr.addEventListener('click', () => { if (this.open) this.hide(); else this.show(); });
         pop.addEventListener('mousedown', e => e.preventDefault());
@@ -26,6 +26,12 @@ export default Base => class extends Base {
             if (this.mode !== 'select' && !this.free) { this.$typing = false; this.requestUpdate(); }
         });
         this.addEventListener('keydown', e => this.keys(e));
+    }
+    // pk-combo-query, after a pause in typing when debounce is set (the latest text only); the client filter does not wait.
+    query(text) {
+        clearTimeout(this.$qt);
+        const send = () => this.emit('pk-combo-query', { query: text });
+        if (this.debounce > 0) this.$qt = setTimeout(send, this.debounce); else send();
     }
     ops() { return [...this.part('popup').querySelectorAll('.op')]; }
     live() { return this.ops().filter(o => !o.hidden && o.getAttribute('aria-disabled') !== 'true'); }
@@ -111,6 +117,6 @@ export default Base => class extends Base {
     }
     onReset() { this.value = this.$initial ?? ''; this.$typing = false; }
     onRestore(state) { this.value = state ?? ''; }
-    disconnected() { this.$au?.(); this.$au = null; }
+    disconnected() { clearTimeout(this.$qt); this.$au?.(); this.$au = null; }
     focus(o) { this.ctl().focus(o); }
 };

@@ -230,6 +230,19 @@ export const formCases = [
         press(tr, 'm'); await t.settle(); t.eq(sel.value, 'e', 'a letter on the closed trigger picks the match');
     }],
 
+    ['combobox debounce: pk-combo-query waits for a pause in typing and carries the latest text; 0 fires on every keystroke; the client filter stays immediate (#1664)', async t => {
+        const host = t.stage('<pk-combobox debounce="150" label="Variant"><option value="1">Widget A</option><option value="2">Gadget</option></pk-combobox><pk-combobox label="Plain"><option value="1">Widget A</option></pk-combobox>');
+        await t.load(host); await t.settle();
+        const [ac, plain] = host.querySelectorAll('pk-combobox'), q = [], pq = [];
+        ac.addEventListener('pk-combo-query', e => q.push(e.detail.query)); plain.addEventListener('pk-combo-query', e => pq.push(e.detail.query));
+        const type = async (c, s) => { const i = c.part('control'); i.value = s; i.dispatchEvent(new Event('input', { bubbles: true, composed: true })); await t.settle(); };
+        await type(ac, 'w'); await type(ac, 'wi'); await type(ac, 'wid');
+        t.eq(q.length, 0, 'nothing fires while typing continues');
+        t.eq([...ac.part('popup').querySelectorAll('.op')].filter(o => !o.hidden).length, 1, 'the client filter is not delayed');
+        await new Promise(r => setTimeout(r, 260)); t.eq(q.join('|'), 'wid', 'one query with the latest text after the pause');
+        await type(plain, 'a'); await type(plain, 'ab'); t.eq(pq.join('|'), 'a|ab', 'without debounce every keystroke fires');
+    }],
+
     ['select multiple and tag-input: the values array and the JSON attribute drive the selection and the joined value; the commit event carries the array (#850)', async t => {
         const host = t.stage('<form><pk-select name="m" multiple values=\'["a,b","c"]\'><option value="a,b">AB</option><option value="c">C</option><option value="d">D</option></pk-select><pk-tag-input name="t"></pk-tag-input></form>'); await t.load(host); await t.settle();
         const [m, ti] = [host.querySelector('pk-select'), host.querySelector('pk-tag-input')];
