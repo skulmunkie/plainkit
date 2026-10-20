@@ -27,7 +27,7 @@ export default {
         t.inViewport(TB); t.within(TB, F);
         if (t.shot === 'resting' || t.shot === 'focus' || t.shot === 'reset' || t.shot === 'fit') t.within(MARK, F); // zoomed and panned, the node legitimately leaves the frame
         if (t.shot === 'focus') { t.ringVisible(F); }
-        if (t.shot === 'fit') { const m = t.rect(MARK), fr = t.rect(F); if (m && fr) t.ok(Math.abs((m.x + m.width / 2) - (fr.x + fr.width / 2)) <= 2 && Math.abs((m.y + m.height / 2) - (fr.y + fr.height / 2)) <= 2, 'the fitted content is centred in the surface'); }
+        if (t.shot === 'fit') { const m = t.rect('#surface >>> [part=world]'), fr = t.rect(F); if (m && fr) t.ok(Math.abs((m.x + m.width / 2) - (fr.x + fr.width / 2)) <= 2 && Math.abs((m.y + m.height / 2) - (fr.y + fr.height / 2)) <= 2, 'the fitted content is centred in the surface'); }
         if (t.viewport.name === 'phone') {
             for (const b of [IN, OUT, RESET]) { const r = t.rect(b); if (r) t.ok(r.width >= 44 && r.height >= 44, `${b} is at least 44px (${Math.round(r.width)}x${Math.round(r.height)})`); }
         }
