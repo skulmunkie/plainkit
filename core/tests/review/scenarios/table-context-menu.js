@@ -30,8 +30,9 @@ export default {
     steps: [
         { shot: 'closed' },
         { focus: '#t1 >>> tbody tr[data-pk-context="2"] [data-select]' }, { key: 'ContextMenu' },
-        // The menu opens on the key press but its items are built and upgraded a frame or two later: wait for the last one to have a box before measuring (#1495).
-        { waitFor: '#menu > pk-menu-item:nth-of-type(2)' }, { shot: 'open-keyboard' },
+        // The menu opens on the key press but its items are built a frame or two later and each pk-menu-item is upgraded by a lazily loaded chunk: an item has a box
+        // (as plain inline text) before that, so wait for the label part inside each item's shadow tree, which exists only once it is upgraded (#1495).
+        { waitFor: '#menu >>> [part=menu]' }, { waitFor: '#menu > pk-menu-item:nth-of-type(1) >>> [part=label]' }, { waitFor: '#menu > pk-menu-item:nth-of-type(2) >>> [part=label]' }, { shot: 'open-keyboard' },
         { key: 'Escape' }, 
     ],
     expect(t) {

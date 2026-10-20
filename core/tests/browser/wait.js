@@ -19,3 +19,14 @@ export async function until(fn, what, { every = 30, tries = 100 } = {}) {
         await wait(every);
     }
 }
+
+/** Resolves once `el` has no running animation or transition (itself, its shadow tree, its descendants) and its box has not moved for two polls: the state a measuring case needs after something opens (#1565). */
+export async function still(el, what, { every = 30, tries = 100 } = {}) {
+    let last = '';
+    return until(() => {
+        const r = el.getBoundingClientRect(), box = `${r.left}|${r.top}|${r.width}|${r.height}`;
+        const running = [el, ...el.querySelectorAll('*'), ...(el.shadowRoot ? el.shadowRoot.querySelectorAll('*') : [])].some(e => e.getAnimations().some(a => a.playState === 'running' || a.pending));
+        const stable = box === last; last = box;
+        return stable && !running;
+    }, `${what} to stop moving`, { every, tries });
+}
