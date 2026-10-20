@@ -107,6 +107,32 @@ test('notify: an ended scope lets its toasts finish and ignores later calls; an 
     assert.equal(shell.children.length, 0); assert.ok(shell.isConnected, 'the shell stack stays');
 });
 
+test('dialogs: onConfirm keeps the dialog open busy, shows a failure in it, and closes on success', async () => {
+    const doc = makeDom(), d = createDialogs({ container: doc.body });
+    let release, calls = 0;
+    const p = d.confirm({ heading: 'Delete?', danger: true, onConfirm: () => { calls++; return new Promise(r => { release = r; }); } });
+    btn(doc, 'Confirm').click();
+    assert.equal(calls, 1); assert.equal(btn(doc, 'Confirm').busy, true); assert.equal(btn(doc, 'Cancel').disabled, true);
+    btn(doc, 'Confirm').click(); assert.equal(calls, 1, 'a second press while busy does nothing');
+    dialogOf(doc).request('escape'); assert.equal(dialogOf(doc).open, true, 'Escape is refused while busy');
+    release('Refused: referenced by other records.'); await flush();
+    assert.equal(dialogOf(doc).open, true); assert.equal(btn(doc, 'Confirm').busy, false); assert.equal(btn(doc, 'Cancel').disabled, false);
+    const note = dialogOf(doc).find('pk-alert')[0];
+    assert.equal(note.textContent, 'Refused: referenced by other records.'); assert.equal(note.kind, 'error');
+    btn(doc, 'Confirm').click(); release(null); assert.equal(await p, true); assert.equal(dialogOf(doc), undefined);
+    const q = d.confirm({ heading: 'Again', onConfirm: async () => { throw new Error('boom'); } });
+    btn(doc, 'Confirm').click(); await flush();
+    assert.match(dialogOf(doc).find('pk-alert')[0].textContent, /Something went wrong/); btn(doc, 'Cancel').click(); assert.equal(await q, false);
+});
+
+test('dialogs: a checkbox field comes back as true or false in an open dialog', async () => {
+    const doc = makeDom(), d = createDialogs({ container: doc.body });
+    const p = d.open({ heading: 'Rename', fields: [{ name: 'name', label: 'Name', value: 'A' }, { name: 'related', label: 'Also apply to related rows', type: 'checkbox' }] });
+    const box = dialogOf(doc).find('pk-checkbox')[0]; assert.equal(box.label, 'Also apply to related rows');
+    box.checked = true; btn(doc, 'OK').click();
+    assert.deepEqual(await p, { action: 'ok', values: { name: 'A', related: 'true' } });
+});
+
 test('dialogs: confirm, alert, prompt and open resolve with the choice; cancel values; focus goes in and back to the trigger', async () => {
     const doc = makeDom(), d = createDialogs({ container: doc.body });
     const trigger = doc.createElement('pk-button'); doc.body.append(trigger); trigger.focus();

@@ -199,6 +199,9 @@
     "PkNotifications.cs": {
       "category": "runtime"
     },
+    "PkDialogOptions.cs": {
+      "category": "dto"
+    },
     "PkOptions.cs": {
       "category": "runtime"
     },
