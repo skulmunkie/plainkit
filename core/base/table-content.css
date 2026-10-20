@@ -34,6 +34,10 @@ pk-table.dg-body {
 
 @media (max-width: 640px) {
 
+    /* a form control in a raw table cell asks for its own intrinsic width (about 12rem), so a table of name, amount and action overflowed 375px and the last column scrolled out of view (#1698):
+       on a phone the control fills its cell and the column keeps an 8rem floor (a 44px touch target inside the cell padding and the box padding). */
+    pk-table:not(.dg-body) td:has(> :is(pk-input, pk-select, pk-textarea)) { min-inline-size: 8rem; & > :is(pk-input, pk-select, pk-textarea) { inline-size: 100%; contain: inline-size; } }
+
     /* a table grid: rows scroll in a bounded frame, the header and the identity column stay put */
     pk-table.dg-body {
         &:has(table:not(.dg-cards)) { --pk-table-max-height: max(14rem, calc(100dvh - var(--app-header-h) - var(--app-footer-h) - 16rem)); }
