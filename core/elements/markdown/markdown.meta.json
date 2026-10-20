@@ -3,6 +3,7 @@
   "title": "Markdown",
   "group": "Data display",
   "tier": "element",
+  "package": "plainkit.markdown",
   "summary": "A read-only view of Markdown text, drawn with the toolkit's own parser and renderer (the one behind pk-markdown-editor's preview): DOM calls only, so raw HTML is shown as text, a link must be http, https, mailto or a relative address, and nothing from the source becomes markup. The Markdown subset is paragraphs, bold, italic, code, fenced code, headings 1 to 3, quotes, lists and links. A click on a relative link raises pk-link-click, so the app routes or rewrites it. Use it instead of writing rendered HTML into the page yourself.",
   "props": [
     {
