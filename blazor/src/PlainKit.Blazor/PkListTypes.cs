@@ -24,8 +24,8 @@ public sealed record PkListRequest(string? Search, string? SortKey, bool Descend
 /// <summary>One page of a list, and how many items the whole (searched) list has.</summary>
 /// <typeparam name="T">The type of an item.</typeparam>
 /// <param name="Items">The items of the requested page.</param>
-/// <param name="Total">The number of items in the whole list for the request's search, not only this page. The pager and the last-page correction use it.</param>
-public sealed record PkListResult<T>(IReadOnlyList<T> Items, int Total);
+/// <param name="Total">The number of items in the whole list for the request's search, not only this page. The pager and the last-page correction use it.</param> <param name="FilterOptions">Optional: the options of select and multiselect filters, by filter key, replacing the configured ones with this result (labels with a count, options that follow the data). A filter not named keeps its options; the chosen values stay.</param>
+public sealed record PkListResult<T>(IReadOnlyList<T> Items, int Total, IReadOnlyDictionary<string, IReadOnlyList<PkFilterOption>>? FilterOptions = null);
 
 /// <summary>Reads the query of a <see cref="Components.PkDataTable{TItem}"/> selection.</summary>
 public static class PkSelectQuery

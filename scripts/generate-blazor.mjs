@@ -664,7 +664,7 @@ export function renderComponent(m, mappingName, ns = 'PlainKit.Blazor') {
             '        if (cancel.IsCancellationRequested) return new { rows = Array.Empty<object>(), total = 0 };',
             '        var rows = new System.Text.Json.Nodes.JsonArray();', '        var shown = new List<Row>(result.Items.Count);', '        foreach (var item in result.Items)', '        {',
             '            var id = IdOf(item);', '            var node = PkTableRows.Serialize(item, Columns);', '            node["id"] = id;', '            rows.Add(node);', '            shown.Add(new Row(id, item));', '        }',
-            '        await InvokeAsync(() => { _rows = shown; StateHasChanged(); });', '        return new { rows, total = result.Total };', '    }',
+            '        await InvokeAsync(() => { _rows = shown; StateHasChanged(); });', '        return new { rows, total = result.Total, filterOptions = result.FilterOptions };', '    }',
             '', '    private async Task HandleSelectAsync(PkTableSelectEventArgs e)', '    {',
             '        // A selection of 64 rows or more arrives as runs of row indexes into the page the element shows: back to ids.',
             '        if (e.Ranges is not null && !PkTableRows.TryExpand(e, _rows.Select(r => r.Id).ToList())) return;',

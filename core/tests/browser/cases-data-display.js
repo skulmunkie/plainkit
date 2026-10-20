@@ -281,6 +281,22 @@ export const dataDisplayCases = [
             t.eq(c.shadowRoot.querySelector('select').getAttribute('aria-label'), text);
         }
     }],
+    ['data-table: a load result with filterOptions replaces the option labels of a select and a multiselect filter, keeps the chosen value, and survives a filters rebuild (#1683)', async t => {
+        const el = await mountDataTable(t, `<pk-data-table columns='[{"key":"sku","label":"SKU"}]' page-size="5" filters='[{"key":"img","type":"select","label":"Image","options":[{"value":"missing","label":"Missing"},{"value":"ok","label":"Has image"}]},{"key":"tag","type":"multiselect","label":"Tag","options":["a","b"]}]'></pk-data-table>`);
+        let n = 0;
+        el.load = async () => ({ rows: [{ id: 1, sku: 'A' }], total: 1, filterOptions: ++n === 1 ? undefined : { img: [{ value: 'missing', label: 'Missing (12)' }, { value: 'ok', label: 'Has image (30)' }], tag: [{ value: 'a', label: 'Alpha (3)' }, { value: 'b', label: 'Beta (1)' }, { value: 'c', label: 'Gamma (0)' }] } });
+        el.refresh();
+        const filters = el.part('filters'), texts = k => [...filters.querySelectorAll('[data-key="' + k + '"] option')].map(o => o.textContent).join('|'), boxes = () => [...filters.querySelectorAll('[data-key="tag"] pk-checkbox')];
+        await until(() => texts('img') === 'Any|Missing|Has image' && boxes().length === 2, 'the static options');
+        filters.querySelector('[data-key="img"]').value = 'ok'; boxes()[1].checked = true;
+        el.refresh();
+        await until(() => texts('img') === 'Any|Missing (12)|Has image (30)' && boxes().length === 3, 'the loaded labels');
+        t.eq(boxes().map(b => b.label).join('|'), 'Alpha (3)|Beta (1)|Gamma (0)');
+        t.eq(filters.querySelector('[data-key="img"]').value, 'ok', 'the chosen select value is kept');
+        t.ok(boxes()[1].checked && !boxes()[0].checked, 'the ticked box is kept');
+        el.filters = [...el.filters, { key: 'note', type: 'text', label: 'Note' }]; await t.settle();
+        await until(() => texts('img') === 'Any|Missing (12)|Has image (30)', 'the loaded labels after the filters were rebuilt');
+    }],
     ['data-table: a multiselect filter is a checklist whose chosen values reach load(query).filters as an array, count once, and Clear filters unticks them (#1025)', async t => {
         const el = await mountDataTable(t, `<pk-data-table columns='[{"key":"sku","label":"SKU"}]' page-size="5" filters='[{"key":"status","type":"multiselect","label":"Status","options":["Open","Paid",{"value":"void","label":"Void"}]}]'></pk-data-table>`);
         const queries = [];
