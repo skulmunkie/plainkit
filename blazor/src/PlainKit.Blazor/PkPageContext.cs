@@ -1,7 +1,7 @@
 namespace PlainKit.Blazor;
 
-/// <summary>A node of a route tree: <see cref="Path"/> may hold <c>:name</c> segments, <c>*</c> is the not-found route, a trailing <c>/*</c> (<c>/stock/*</c>) owns the path and everything under it (exact routes win, then the longest prefix), a null path is a group. The label is <see cref="Label"/>, or the value of the route parameter <see cref="LabelParam"/>.</summary>
-public sealed record PkRoute(string? Path, string? Label = null, string? LabelParam = null, bool Crumb = true, string? Id = null, IReadOnlyList<PkRoute>? Children = null);
+/// <summary>A node of a route tree: <see cref="Path"/> may hold <c>:name</c> segments, <c>*</c> is the not-found route, a trailing <c>/*</c> (<c>/stock/*</c>) owns the path and everything under it (exact routes win, then the longest prefix), a null path is a group, <see cref="Under"/> puts a flat route below the route owning that path in the crumb trail and nav row without nesting it in the tree (<c>/things/:id</c> with <c>Under: "/things"</c>). The label is <see cref="Label"/>, or the value of the route parameter <see cref="LabelParam"/>.</summary>
+public sealed record PkRoute(string? Path, string? Label = null, string? LabelParam = null, bool Crumb = true, string? Id = null, IReadOnlyList<PkRoute>? Children = null, string? Under = null);
 
 /// <summary>An entry of a navigation tree: the entry whose <see cref="Route"/> matches says which row is current.</summary>
 public sealed record PkNavEntry(string Id, string Title, string? Route = null, IReadOnlyList<PkNavEntry>? Children = null);
@@ -33,8 +33,7 @@ public sealed record PkPageContext(IReadOnlyList<string> Ids, string? Section, s
     {
         foreach (var node in routes)
         {
-            var chain = new List<PkRoute>(parents ?? []) { node };
-            yield return (node, chain);
+            var chain = new List<PkRoute>(parents ?? []) { node }; yield return (node, chain);
             foreach (var x in Flatten(node.Children ?? [], chain)) yield return x;
         }
     }
@@ -51,8 +50,7 @@ public sealed record PkPageContext(IReadOnlyList<string> Ids, string? Section, s
             var have = Segments(node.Path);
             var wild = have.Length > 1 && have[^1] == "*"; if (wild) have = have[..^1]; // '/stock/*': owns /stock and everything under it
             if (wild ? want.Length < have.Length : have.Length != want.Length) continue;
-            Dictionary<string, string> ps = [];
-            int statics = 0; var ok = true;
+            Dictionary<string, string> ps = []; int statics = 0; var ok = true;
             for (var i = 0; i < have.Length && ok; i++)
             {
                 if (have[i][0] == ':') ps[have[i][1..]] = Uri.UnescapeDataString(want[i]);
@@ -61,8 +59,11 @@ public sealed record PkPageContext(IReadOnlyList<string> Ids, string? Section, s
             var rank = (wild ? have.Length * 1000 : 1_000_000) + statics; // an exact route beats a prefix route; the longest prefix wins
             if (ok && rank > bestStatics) { best = new(node, chain, ps, false); bestStatics = rank; }
         }
-        return best ?? star;
+        return best is null ? star : Lift(routes, best);
     }
+
+    private static Hit Lift(IEnumerable<PkRoute> routes, Hit m, int depth = 0) =>
+        m.Node.Under is { } u && depth <= 4 && Match(routes, Fill(u, m.Params)) is { NotFound: false } up ? m with { Chain = [.. Lift(routes, up, depth + 1).Chain, m.Node] } : m;
 
     private static string Fill(string path, Dictionary<string, string> ps) => "/" + string.Join('/', Segments(path).Where((s, i) => !(s == "*" && i > 0 && i == Segments(path).Length - 1)).Select(s => s[0] == ':' ? Uri.EscapeDataString(ps.GetValueOrDefault(s[1..], "")) : s));
 
@@ -80,8 +81,7 @@ public sealed record PkPageContext(IReadOnlyList<string> Ids, string? Section, s
     private static (List<string> Ids, List<PkCrumb> Crumbs) Locate(IReadOnlyList<PkRoute> routes, List<PkRoute> tree, string path)
     {
         var m = Match(routes, path);
-        var chain = m is { NotFound: false } ? m.Chain : [];
-        var ps = m?.Params ?? [];
+        var chain = m is { NotFound: false } ? m.Chain : []; var ps = m?.Params ?? [];
         var entries = Flatten(tree).Where(x => x.Node.Path is not null).ToList();
         for (var i = chain.Count - 1; i >= 0; i--)
         {
