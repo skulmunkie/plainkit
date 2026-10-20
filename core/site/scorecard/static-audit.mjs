@@ -38,7 +38,7 @@ export function readPlainkit(root = sdkRoot) {
 }
 
 export function runStaticAudit(root = sdkRoot) {
-    const metrics = staticMetrics({ ...readPlainkit(root), pairs: TEXT_PAIRS });
+    const metrics = staticMetrics({ ...readPlainkit(root), pairs: TEXT_PAIRS, pageCss: PRIMARY_CSS });
     const measured = { cssKb: metrics.cssKb, jsKb: metrics.jsKb, literalColours: metrics.literalColours, literalSizes: metrics.literalSizes, contrastFail: metrics.contrastFail };
     return { metrics, measured, scores: scoreAll(SCORING, measured) };
 }
