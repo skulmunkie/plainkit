@@ -7,7 +7,7 @@
 // collapsed rail short of reloading or clearing persistKey's stored layout, and deliberately a separate action from opening/closing the flyout.
 import { mediaBelow } from '../../js/breakpoints.js';
 import { loadElements } from '../../js/loader.js';
-import { defaultLayout, fromJson, resize, activate, groups, toJson, collapsePanel, expandPanel, floaters } from '../../js/dock-model.js';
+import { fromJson, resize, activate, groups, toJson, collapsePanel, expandPanel, floaters } from '../../js/dock-model.js';
 // Rendering (draw() and everything it calls), the pointer drag-to-dock/floater-keyboard cluster and the collapse-to-rail flyout are split into
 // their own modules (issue #639): dock.js's own gzip size stayed over the blanket per-element budget even after real minification (#600), because
 // nobody had yet cut its own source size. Every export takes this element instance as its first argument; see each file for why it was pulled out.
@@ -94,8 +94,8 @@ export default Base => {
     updated() {
         this.syncPersist();
         // update() runs once from connectedCallback before connected() gets to set anything up
-        this.$closed ??= new Set();
         const all = readPanels(this.children), phone = Boolean(this.$mq?.matches);
+        if (!this.$closed) render.init(this, all);
         // A closed panel stays a host child (so its state, and the memory that it exists, are not lost) but is left out of what the model is told is
         // declared: fromJson then drops it from its group like any panel that is no longer declared, and reopening (removing it from $closed) is just
         // the mirror of a panel newly appearing, which fromJson already re-adds to a group. No dock-model.js change needed for either direction.
@@ -105,7 +105,7 @@ export default Base => {
         if (this.layout === this.$given && key === this.$key) return;
         const first = !this.$doc, own = this.layout === this.$given;
         const source = own ? this.$doc && toJson(this.$doc) : this.layout;
-        const r = source == null ? { doc: defaultLayout(panels), problems: [] } : fromJson(source, { panels });
+        const r = source == null ? { doc: render.seed(this, panels), problems: [] } : fromJson(source, { panels });
         for (const p of r.problems) this.warnOnce(`${p.code}:${p.path}`, p.message, { code: p.code });
         const repaired = !first && own && readingOrder(this.$doc).length > 0 && toJson(r.doc) !== toJson(this.$doc);
         this.$doc = this.$applied = r.doc; this.$given = this.layout; this.$key = key; this.$titles = new Map(all.map(p => [p.id, p.title]));
@@ -148,6 +148,8 @@ export default Base => {
     }
     // Re-finds the rail button for an open flyout after a redraw and repositions over it; js/dock-flyout.js (issue #639).
     reflyout() { flyout.reflyout(this); }
+    // Public: back to the default arrangement (js/dock-decl.js); fires pk-layout-change with reason 'reset'.
+    resetLayout() { render.reset(this, readPanels(this.children)); }
     onResize(e) {
         e.stopPropagation();
         const id = e.target.closest?.('pk-splitter')?.getAttribute('data-node');
