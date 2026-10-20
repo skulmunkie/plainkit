@@ -42,16 +42,6 @@
       "type": "string"
     },
     {
-      "name": "KeepUnknownValue",
-      "prop": "keepUnknownValue",
-      "type": "bool"
-    },
-    {
-      "name": "UnknownValueLabel",
-      "prop": "unknownValueLabel",
-      "type": "string"
-    },
-    {
       "name": "Multiple",
       "prop": "multiple",
       "type": "bool"
