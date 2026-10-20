@@ -1,0 +1,21 @@
+{
+  "component": "PkMarkdown",
+  "params": [
+    {
+      "name": "Markdown",
+      "prop": "markdown",
+      "type": "string"
+    },
+    {
+      "name": "InterceptLinks",
+      "prop": "interceptLinks",
+      "type": "bool"
+    },
+    {
+      "name": "OnLinkClick",
+      "event": "pk-link-click",
+      "type": "EventCallback<PkLinkClickEventArgs>"
+    }
+  ],
+  "notes": "A read-only Markdown view, drawn with DOM nodes only: no MarkupString. A Blazor callback cannot cancel an event, so set InterceptLinks when OnLinkClick routes or rewrites a relative link."
+}

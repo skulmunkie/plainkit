@@ -261,6 +261,17 @@ export const LAB_CASES = [
         ctx.ok(await ctx.eval(`${TA}.value === 'make **bold**'`), 'the textarea does not show the bolded text');
         await ctx.noErrors(ctx.openMark, BENIGN);
       } },
+    { name: 'markdown-view',
+      async run(ctx) {
+        await ctx.open('/lab/markdown'); // #1673: PkMarkdown draws Markdown with DOM nodes only and hands a relative link to OnLinkClick
+        const ROOT = `document.querySelector('pk-markdown')?.shadowRoot?.querySelector('[part=content]')`;
+        await ctx.waitFor(`!!${ROOT}?.querySelector('h2') && !!${ROOT}.querySelector('strong')`, 'pk-markdown to draw its heading and bold text');
+        ctx.ok(await ctx.eval(`${ROOT}.textContent.includes('<script>') && !${ROOT}.querySelector('script') && !window.__mdXss`), 'raw HTML in the Markdown was not shown as text');
+        await ctx.eval(`(() => { ${ROOT}.querySelector('a').click(); return 1; })()`);
+        await waitText(ctx, 'Link: guide/intro', ALL); // the relative link reached OnLinkClick
+        ctx.ok(await ctx.eval(`location.pathname === '/lab/markdown'`), 'the relative link navigated instead of going to OnLinkClick');
+        await ctx.noErrors(ctx.openMark, BENIGN);
+      } },
     { name: 'table-edit-columns',
       async run(ctx) {
         await ctx.open('/lab/table-edit'); // #1580: the generated column record reaches the element, and a textarea edit comes back through OnCellEdit
