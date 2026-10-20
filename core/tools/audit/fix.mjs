@@ -13,6 +13,8 @@ const HR = /<hr\s*\/?>/gi;
 const BUTTON = /<pk-button\b([^<>]*)>(\s*)<\/pk-button>/gi;
 
 function isIgnored(text, offset) {
+    const before = text.slice(0, offset);   // inside an ignore-start ... ignore-end block (a promise the lines are intentional)
+    if (before.lastIndexOf('plainkit-audit-ignore-start') > before.lastIndexOf('plainkit-audit-ignore-end')) return true;
     const lineStart = text.lastIndexOf('\n', offset - 1) + 1;
     const prevStart = text.lastIndexOf('\n', lineStart - 2) + 1;
     const lineEnd = text.indexOf('\n', offset);
