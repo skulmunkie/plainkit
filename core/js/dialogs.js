@@ -9,6 +9,9 @@
 //   await dialogs.open({ heading: 'New customer', message: '…', template: 'tpl-id',                                                   // a <template> already in the DOM, cloned
 //       fields: [{ name: 'email', label: 'Email', type: 'email', required: true }], actions: [{ label: 'Create', value: 'ok' }],
 //       validate: values => (values.email.includes('@') ? '' : 'Enter an email address.') });                                           // { action, values } | null (cancelled)
+//   await dialogs.confirm({ heading: 'Delete?', danger: true, onConfirm: async () => (await remove()) ? null : 'Refused: referenced by other records.' });
+//   // onConfirm (confirm, prompt, open) runs when the confirming button is pressed, with the values: the dialog stays open, that button busy and the rest inert; null/'' closes it
+//   // (resolved as confirmed), a message stays inside the dialog (cancel or retry); a throw is logged and shows a generic message. A field `{ type: 'checkbox' }` is a pk-checkbox: its value is 'true' | 'false'.
 //
 // One dialog is open at a time for the whole app (one manager per app): a call while one is open QUEUES and opens when it closes. Policy: Escape and the close
 // button cancel; the backdrop does not (pk-dialog's house rule) unless config.backdrop is true; config.blocking removes all three, so only an action closes it.
@@ -52,6 +55,7 @@ export function createDialogs({ container, log = createLogger('dialogs'), load }
             d.append(tpl.content.cloneNode(true));
         }
         const inputs = fieldsOf(kind, c).map(f => {
+            if (f.type === 'checkbox') { const box = el('pk-checkbox', { name: String(f.name), label: clipS(f.label ?? f.name, 200), checked: f.value === true || f.value === 'true' }); d.append(box); return { f, input: box, field: {} }; }
             const input = el('pk-input', { name: String(f.name), value: String(f.value ?? ''), placeholder: clipS(f.placeholder, 200) });
             if (['email', 'url', 'tel', 'number', 'password', 'date'].includes(f.type)) input.type = f.type;
             const field = el('pk-field', { label: clipS(f.label ?? f.name, 200), help: clipS(f.help, 300), required: !!f.required });
@@ -59,10 +63,12 @@ export function createDialogs({ container, log = createLogger('dialogs'), load }
             return { f, input, field };
         });
         const buttons = actionsOf(kind, c).map(a => { const b = el('pk-button', { slot: 'footer', textContent: clipS(a.label, 80) }); b.setAttribute('variant', a.variant ?? 'primary'); b.dataset.result = String(a.value ?? 'ok'); d.append(b); return b; });
-        const values = () => Object.fromEntries(inputs.map(({ f, input }) => [String(f.name), String(input.value ?? '').trim()]));
+        const values = () => Object.fromEntries(inputs.map(({ f, input }) => [String(f.name), f.type === 'checkbox' ? String(!!input.checked) : String(input.value ?? '').trim()]));
+        let busy = false, note = null;
         const problem = () => {
             let bad = false;
             for (const { f, input, field } of inputs) {
+                if (f.type === 'checkbox') continue;
                 const v = String(input.value ?? '').trim();
                 field.error = f.required && !v ? 'This field is required.' : f.maxLength > 0 && v.length > f.maxLength ? `Use at most ${f.maxLength} characters.` : '';
                 if (field.error && !bad) { bad = true; input.focus?.(); }
@@ -71,7 +77,20 @@ export function createDialogs({ container, log = createLogger('dialogs'), load }
             try { const msg = c.validate(values()); if (msg) { (inputs[0]?.field ?? {}).error = clipS(msg, 300); return true; } } catch (e) { log.error('a dialog validate() threw; the dialog stays open', e); return true; }
             return false;
         };
-        const choose = r => { if (r && problem()) return; req.result = r; d.open = false; settle(req); }; // settle at once: before pk-dialog is upgraded no close event ever comes (#897)
+        const finish = r => { req.result = r; d.open = false; settle(req); };
+        // onConfirm: the confirming button is busy and the rest inert while it runs; a message stays in the dialog, nothing closes it until the work says so.
+        const confirmed = async r => {
+            const ok = buttons.find(b => b.dataset.result === r), rest = [...buttons.filter(b => b !== ok), ...inputs.map(x => x.input)];
+            busy = true; ok.busy = true; for (const x of rest) x.disabled = true;
+            let msg = '';
+            try { msg = await c.onConfirm(values()); } catch (e) { log.error('a dialog onConfirm() threw; the dialog stays open', e); msg = 'Something went wrong. Try again.'; }
+            if (req.done) return;
+            busy = false; ok.busy = false; for (const x of rest) x.disabled = false;
+            if (!msg) { finish(r); return; }
+            if (!note) { note = el('pk-alert', { kind: 'error' }); d.append(note); }
+            note.textContent = clipS(msg, 500);
+        };
+        const choose = r => { if (busy || (r && problem())) return; if (r && typeof c.onConfirm === 'function') { confirmed(r); return; } finish(r); }; // settle at once: before pk-dialog is upgraded no close event ever comes (#897)
         const first = inputs[0]?.input ?? (kind === 'confirm' && c.danger ? buttons[0] : buttons.at(-1));
         const on = (type, fn) => { d.addEventListener(type, fn); req.offs.push(() => d.removeEventListener(type, fn)); };
         on('click', e => {
@@ -80,7 +99,7 @@ export function createDialogs({ container, log = createLogger('dialogs'), load }
             else if (c.backdrop && !c.blocking && e.composedPath?.()[0]?.localName === 'dialog') choose('');
         });
         on('keydown', e => { if (e.key === 'Enter' && e.target?.localName === 'pk-input') { e.preventDefault(); choose(buttons.at(-1).dataset.result); } });
-        on('pk-close', e => { if (c.blocking) e.preventDefault(); else req.result = ''; });
+        on('pk-close', e => { if (c.blocking || busy) e.preventDefault(); else req.result = ''; });
         on('close', () => settle(req));
         on('pk-open', () => first.focus?.()); // pk-dialog raises it once showModal ran, so focus lands inside the open modal
         req.values = values; req.dialog = d; req.trigger = doc.activeElement ?? null;

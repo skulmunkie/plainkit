@@ -36,6 +36,13 @@
       "description": "The chosen item."
     },
     {
+      "name": "href",
+      "type": "string",
+      "default": "",
+      "reflect": false,
+      "description": "Makes the label a real link (middle click, copy link, status-bar URL). A plain click selects the row and is reported as a cancelable pk-navigate; a modified click navigates natively."
+    },
+    {
       "name": "disabled",
       "type": "boolean",
       "default": false,
@@ -72,6 +79,19 @@
       },
       "description": "The row was activated.",
       "cancelable": false
+    },
+    {
+      "name": "pk-navigate",
+      "detail": {
+        "to": "string",
+        "href": "string"
+      },
+      "detailProps": {
+        "to": "string",
+        "href": "string"
+      },
+      "description": "A plain click on a row with href, before any navigation. Cancelable: the app router calls preventDefault and handles it; if nothing cancels it the row navigates normally.",
+      "cancelable": true
     },
     {
       "name": "pk-toggle",
@@ -128,6 +148,10 @@
     {
       "title": "Leaf and branch",
       "html": "<pk-tree-item label=\"Puzzles\" selected></pk-tree-item>"
+    },
+    {
+      "title": "Link rows (a page-local navigation tree)",
+      "html": "<pk-tree label=\"Pages\" value=\"Setup\"><pk-tree-item label=\"Guides\" expanded><pk-tree-item label=\"Setup\" href=\"#setup\"></pk-tree-item><pk-tree-item label=\"Theming\" href=\"#theming\"></pk-tree-item></pk-tree-item></pk-tree>"
     }
   ]
 }

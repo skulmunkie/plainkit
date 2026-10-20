@@ -1,12 +1,33 @@
 using Bunit;
+using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging.Abstractions;
 using PlainKit.Blazor;
 
 namespace PlainKit.Blazor.Tests;
 
 // Issue 1022, step 3: PkComponentBase and PkRecordEditor on PkLifecycle (the shared rules are in PkLifecycleTests, from page-lifecycle.json).
-public sealed class PkComponentBaseTests : BunitContext
+public sealed class PkComponentBaseTests : BunitContext, IAsyncLifetime
 {
+    Task IAsyncLifetime.InitializeAsync() => Task.CompletedTask;
+    async Task IAsyncLifetime.DisposeAsync() => await DisposeAsync();
+
+    private BunitJSModuleInterop Bridge()
+    {
+        JSInterop.Mode = JSRuntimeMode.Loose;
+        var bridge = JSInterop.SetupModule(PkAssets.Bridge);
+        bridge.Mode = JSRuntimeMode.Loose;
+        Services.AddPlainKit();
+        Services.AddScoped<IPkStorage>(_ => new NoStorage());
+        return bridge;
+    }
+
+    private sealed class NoStorage : IPkStorage
+    {
+        public ValueTask<string?> GetAsync(string key) => ValueTask.FromResult<string?>(null);
+        public ValueTask SetAsync(string key, string value) => ValueTask.CompletedTask;
+        public void Warn(string message) { }
+    }
+
     private IRenderedComponent<ComponentBaseHost> Card(Func<CancellationToken, Task>? load = null) =>
         Render<ComponentBaseHost>(p => p.Add(x => x.Key, 1).Add(x => x.Load, load));
 
@@ -52,6 +73,34 @@ public sealed class PkComponentBaseTests : BunitContext
         var cut = Card();
         await Assert.ThrowsAsync<InvalidOperationException>(() => cut.InvokeAsync(() => cut.Instance.Run(_ => throw new InvalidOperationException("no"))));
         Assert.DoesNotContain("busy", cut.Markup);
+    }
+
+    [Fact]
+    public async Task RunEveryAsync_starts_the_core_timer_runs_the_tick_and_rerenders_and_disposal_stops_it()
+    {
+        var bridge = Bridge();
+        var cut = Card();
+        var handle = await cut.Instance.Every(TimeSpan.FromSeconds(1));
+        var start = Assert.Single(bridge.Invocations, i => i.Identifier == "startTick");
+        Assert.Equal(1000.0, start.Arguments[1]);
+        var target = (Microsoft.JSInterop.DotNetObjectReference<PkTickTarget>)start.Arguments[0]!;
+        await cut.InvokeAsync(() => target.Value.Tick());
+        Assert.Equal(1, cut.Instance.Ticks);
+        await handle.DisposeAsync();
+        Assert.Contains(bridge.Invocations, i => i.Identifier == "stopTick");
+        await ((IAsyncDisposable)cut.Instance).DisposeAsync();
+        await target.Value.Tick();
+        Assert.Equal(1, cut.Instance.Ticks);
+    }
+
+    [Fact]
+    public async Task Disposing_the_component_stops_a_running_tick()
+    {
+        var bridge = Bridge();
+        var cut = Card();
+        await cut.Instance.Every(TimeSpan.FromSeconds(1));
+        await ((IAsyncDisposable)cut.Instance).DisposeAsync();
+        Assert.Contains(bridge.Invocations, i => i.Identifier == "stopTick");
     }
 
     private sealed class Row;

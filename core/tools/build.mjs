@@ -104,9 +104,7 @@ ${beh}
 export default define(class extends ${base} {
     static tag = ${JSON.stringify(m.tag)};
     static props = ${JSON.stringify(propsObject(m))};
-    static delegatesFocus = ${Boolean(m.delegatesFocus)};
-    static formAssociated = ${Boolean(m.formAssociated)};
-    static template = ${JSON.stringify(el.template)};
+${m.delegatesFocus ? '    static delegatesFocus = true;\n' : ''}${m.formAssociated ? '    static formAssociated = true;\n' : ''}    static template = ${JSON.stringify(el.template)};
     static css = ${JSON.stringify(minifyCss ? minifyCssReal(el.css) : el.css)};
 });
 `;
@@ -207,7 +205,9 @@ export const PK_VERSION = '${version}';
     // breaks that tooling for no real benefit.
     w('dist/js/version.js', versionModule.slice(versionModule.indexOf('\n') + 1)); // the shipped copy drops the comment line: it is request weight on every page
     // The shipped loader finds a module by name instead of fetching the registry (#1502): flip its marker, and fail if the source stopped carrying it.
-    const distSource = (f, code) => { if (f !== 'loader.js') return code; if (!code.includes('/*dist*/ false')) throw new Error('js/loader.js lost its /*dist*/ false marker'); return code.replace('/*dist*/ false', 'true'); };
+    // The shipped init.js carries the version itself instead of importing js/version.js: one request less on every page (the module stays in dist for the modules that import it).
+    const inlineVersion = code => { const imp = /^import \{ PK_VERSION \} from '\.\/version\.js';\r?\n/m, exp = /^export \* from '\.\/version\.js';/m; if (!imp.test(code) || !exp.test(code)) throw new Error('js/init.js lost its version.js import or re-export'); return code.replace(imp, `const PK_VERSION = '${version}';\n`).replace(exp, 'export { PK_VERSION };'); };
+    const distSource = (f, code) => { if (f === 'init.js') return inlineVersion(code); if (f !== 'loader.js') return code; if (!code.includes('/*dist*/ false')) throw new Error('js/loader.js lost its /*dist*/ false marker'); return code.replace(/^const BY_NAME = .*\r?\n/m, '').replace(/\bBY_NAME\b/g, 'true'); }; // inlined so the minifier drops the registry-fetching branch, dead in dist
     for (const f of fs.readdirSync(path.join(root, 'js'), { recursive: true })) {
         const src = path.join(root, 'js', f);
         // js/code-explorer/*.js only re-export modules/code-explorer for the old import path: a runtime file must not import from the modules unit, so they stay out of dist.

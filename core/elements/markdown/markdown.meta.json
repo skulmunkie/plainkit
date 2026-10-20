@@ -1,0 +1,50 @@
+{
+  "tag": "pk-markdown",
+  "title": "Markdown",
+  "group": "Data display",
+  "tier": "element",
+  "package": "plainkit.markdown",
+  "summary": "A read-only view of Markdown text, drawn with the toolkit's own parser and renderer (the one behind pk-markdown-editor's preview): DOM calls only, so raw HTML is shown as text, a link must be http, https, mailto or a relative address, and nothing from the source becomes markup. The Markdown subset is paragraphs, bold, italic, code, fenced code, headings 1 to 3, quotes, lists and links. A click on a relative link raises pk-link-click, so the app routes or rewrites it. Use it instead of writing rendered HTML into the page yourself.",
+  "props": [
+    {
+      "name": "markdown",
+      "type": "string",
+      "default": "",
+      "reflect": false,
+      "description": "The Markdown text to show. Text longer than 200000 characters is cut and a note is added."
+    },
+    {
+      "name": "interceptLinks",
+      "type": "boolean",
+      "default": false,
+      "reflect": true,
+      "description": "Cancel the click on a relative link (not an #anchor, not an absolute address) so the page does not navigate; pk-link-click still reports its address. Without it the link navigates unless a pk-link-click listener calls preventDefault. A click with a modifier key or a middle click is left to the browser."
+    }
+  ],
+  "slots": [],
+  "events": [
+    {
+      "name": "pk-link-click",
+      "detail": {
+        "href": "string"
+      },
+      "description": "A relative link was clicked: href is its address as written. Cancel it (preventDefault), or set interceptLinks, to route or rewrite it yourself.",
+      "cancelable": true
+    }
+  ],
+  "parts": [
+    {
+      "name": "content",
+      "description": "The rendered Markdown."
+    }
+  ],
+  "cssProperties": [],
+  "methods": [],
+  "a11y": "Headings, lists, quotes and links are real elements, so the text keeps its structure for assistive technology; a heading takes its place in the page outline.",
+  "examples": [
+    {
+      "title": "Basic",
+      "html": "<pk-markdown markdown=\"## Release notes\n\nThe **spring** update adds *two* things:\n\n- a [guide](guide/intro)\n- `code` samples\"></pk-markdown>"
+    }
+  ]
+}

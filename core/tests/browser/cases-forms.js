@@ -620,7 +620,7 @@ export const formCases = [
         day('2026-09-20').click(); await t.settle(); t.ok(pop.open && got.length === 0, 'the first click only sets the start');
         day('2026-09-25').click(); await t.settle();
         t.ok(!pop.open, 'the second click closes it'); t.eq(got.length, 1, 'one pk-range-change');
-        t.eq(JSON.stringify(got[0]), JSON.stringify({ start: '2026-09-20', end: '2026-09-25', valid: true }));
+        t.eq(JSON.stringify(got[0]), JSON.stringify({ start: '2026-09-20', end: '2026-09-25', valid: true, preset: '' }));
         t.eq(el.start, '2026-09-20'); t.eq(el.end, '2026-09-25'); t.eq(el.part('start').value, '2026-09-20', 'the native field follows');
         t.ok(el.part('opener').matches(':focus-within') || el.shadowRoot.activeElement === opener, 'focus returns to the opener');
     }],

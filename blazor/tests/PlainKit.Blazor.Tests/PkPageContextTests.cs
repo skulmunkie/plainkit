@@ -23,7 +23,7 @@ public sealed class PkPageContextTests
     private static string? Str(JsonElement e, string name) => e.TryGetProperty(name, out var v) && v.ValueKind == JsonValueKind.String ? v.GetString() : null;
 
     private static List<PkRoute> Routes(JsonElement list) => list.EnumerateArray()
-        .Select(r => new PkRoute(Str(r, "path"), Str(r, "label"), Str(r, "labelParam"), !r.TryGetProperty("crumb", out var c) || c.GetBoolean(), Children: r.TryGetProperty("children", out var k) ? Routes(k) : null)).ToList();
+        .Select(r => new PkRoute(Str(r, "path"), Str(r, "label"), Str(r, "labelParam"), !r.TryGetProperty("crumb", out var c) || c.GetBoolean(), Children: r.TryGetProperty("children", out var k) ? Routes(k) : null, Under: Str(r, "under"))).ToList();
 
     private static List<PkNavEntry> Nav(JsonElement list) => list.EnumerateArray()
         .Select(n => new PkNavEntry(Str(n, "id")!, Str(n, "title")!, Str(n, "route"), n.TryGetProperty("children", out var k) ? Nav(k) : null)).ToList();

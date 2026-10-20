@@ -101,6 +101,7 @@
       ],
       "blazorOption": "markdown",
       "elements": [
+        "pk-markdown",
         "pk-markdown-editor"
       ],
       "js": [

@@ -6,7 +6,8 @@ import behaviour from './tree-item.js';
 const make = (props = {}, children = [], ancestors = 0) => {
     const emitted = []; const vars = {}; const row = { listeners: [], addEventListener(t, fn) { this.listeners.push(fn); } };
     const toggle = { name: 'toggle' }; const kids = { hidden: null };
-    const parts = { row, toggle, children: kids };
+    const attrs = {}, label = { attrs, setAttribute(k, v) { attrs[k] = v; }, removeAttribute(k) { delete attrs[k]; }, click: () => row.listeners[0]({ composedPath: () => [label], preventDefault() { label.prevented = true; } }) };
+    const parts = { row, toggle, label, children: kids };
     // A chain of pk-tree-item ancestors: each one's parentElement.closest finds the next one up.
     let parent = null;
     for (let i = 0; i < ancestors; i++) { const up = parent; parent = { parentElement: up ? { closest: () => up } : null }; }
@@ -16,11 +17,12 @@ const make = (props = {}, children = [], ancestors = 0) => {
         slotted() { return children; }
         emit(n, d) { emitted.push([n, d]); return true; }
         watchSlot() {}
+        get ownerDocument() { return { defaultView: { location: { assign() {} } } }; }
         get style() { return { setProperty: (k, v) => { vars[k] = v; } }; }
         get parentElement() { return nearest ? { closest: () => nearest } : null; }
     }))();
     Object.assign(el, { value: '', label: 'Books', disabled: false, expanded: false, expandable: false }, props);
-    return { el, row, toggle, emitted, vars, kids, click: path => row.listeners[0]({ composedPath: () => path }) };
+    return { el, row, toggle, label, emitted, vars, kids, click: path => row.listeners[0]({ composedPath: () => path }) };
 };
 const child = { localName: 'pk-tree-item' };
 
@@ -83,4 +85,27 @@ test('connecting twice adds one row listener', () => {
     const { el, row } = make();
     el.connected(); el.connected();
     assert.equal(row.listeners.length, 1);
+});
+
+test('href makes the label a real link, aria-current when selected; an unsafe href is no link', () => {
+    const a = make({ href: '/guides/setup', selected: true }); a.el.warnOnce = () => {}; a.el.updated();
+    assert.equal(a.label.attrs.href, '/guides/setup'); assert.equal(a.label.attrs['aria-current'], 'page');
+    const b = make({ href: 'ftp://example.com/x' }); b.el.warnOnce = () => {}; b.el.updated();
+    assert.equal(b.label.attrs.href, undefined);
+});
+
+test('a plain click on a link row selects and reports a cancelable pk-navigate; the row padding clicks the link', () => {
+    const { el, row, label, click, emitted } = make({ href: '/a/b', value: 'b' }, []);
+    el.warnOnce = () => {}; el.connected(); el.updated();
+    click([row]);
+    assert.equal(label.prevented, true);
+    assert.deepEqual(emitted.map(e => e[0]), ['pk-select', 'pk-navigate']);
+    assert.deepEqual(emitted[1][1], { to: '/a/b', href: '/a/b' });
+});
+
+test('a modified click on a link row navigates natively', () => {
+    const { el, row, label, emitted } = make({ href: '/a/b' }, []);
+    el.warnOnce = () => {}; el.connected(); el.updated();
+    row.listeners[0]({ composedPath: () => [label], ctrlKey: true, preventDefault() { label.prevented = true; } });
+    assert.equal(label.prevented, undefined); assert.deepEqual(emitted.map(e => e[0]), ['pk-select']);
 });

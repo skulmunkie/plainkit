@@ -44,6 +44,11 @@
       ]
     },
     {
+      "path": "/returns/:id",
+      "labelParam": "id",
+      "under": "/orders"
+    },
+    {
       "path": "*",
       "label": "Not found"
     }
@@ -187,6 +192,27 @@
           }
         ],
         "title": "42"
+      }
+    },
+    {
+      "name": "flat record route under a list (under)",
+      "path": "/returns/7",
+      "expect": {
+        "ids": [
+          "orders"
+        ],
+        "section": "orders",
+        "current": "orders",
+        "crumbs": [
+          {
+            "label": "Orders",
+            "href": "/orders"
+          },
+          {
+            "label": "7"
+          }
+        ],
+        "title": "7"
       }
     },
     {

@@ -285,7 +285,7 @@
   "slots": [
     {
       "name": "",
-      "description": "A raw table (thead, tbody, tfoot, any rows). The page-level layer styles it; the element frames it."
+      "description": "A raw table (thead, tbody, tfoot, any rows). The page-level layer styles it; the element frames it. Put the num class on a th or td to right-align a numeric cell with tabular figures: the consumer audit rule S3 (class=) exempts exactly that class on a th or td."
     },
     {
       "name": "toolbar",

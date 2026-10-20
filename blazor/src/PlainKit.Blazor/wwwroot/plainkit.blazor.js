@@ -222,7 +222,8 @@ export async function notify(kind, title, details, duration) {
     if (['info', 'success', 'warn', 'error'].includes(kind)) n[kind](title, details, { duration });
 }
 
-export async function dialog(scopeId, kind, config) {
+export async function dialog(scopeId, kind, config, confirmRef) {
+    if (confirmRef) config = { ...config, onConfirm: () => confirmRef.invokeMethodAsync('Run') }; // OnConfirm: a message keeps the dialog open (js/dialogs.js)
     if (!scopes.has(scopeId)) scopes.set(scopeId, (await manager('dialogs', () => import('./plainkit/js/dialogs.js'), (m, load) => m.createDialogs({ container: document.body, load }))).scope());
     return (await scopes.get(scopeId)[kind]?.(config)) ?? null;
 }
@@ -231,6 +232,16 @@ export function endDialogs(scopeId) {
     scopes.get(scopeId)?.end();
     scopes.delete(scopeId);
 }
+
+// A component-scoped repeating call (PkComponentBase.RunEveryAsync, js/tick.js): each tick calls the .NET object's Tick; stopTick (or the page ending) stops it.
+const ticks = new Map();
+let tickId = 0;
+export async function startTick(target, ms) {
+    const { every } = await import('./plainkit/js/tick.js'), id = ++tickId;
+    ticks.set(id, every(ms, () => target.invokeMethodAsync('Tick')));
+    return id;
+}
+export function stopTick(id) { ticks.get(id)?.(); ticks.delete(id); }
 
 // Logging. configureLogging applies the app's settings to the SDK logger; writeLog is how .NET writes into it (IPkLog); the forwarder is a
 // sink that hands entries to a .NET object, which writes them to ILogger.

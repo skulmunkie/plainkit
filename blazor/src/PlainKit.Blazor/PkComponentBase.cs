@@ -11,7 +11,7 @@ namespace PlainKit.Blazor;
 ///   &lt;PkButton Disabled="@IsBusy" @onpk-click="Save"&gt;Save&lt;/PkButton&gt;
 ///   @code { protected override async Task OnLoadAsync(CancellationToken cancel) =&gt; Rows = await Client.GetAsync(cancel); Task Save() =&gt; RunAsync(c =&gt; Client.SaveAsync(Rows, c), "Saving…"); }
 /// </summary>
-public abstract class PkComponentBase : ComponentBase, IAsyncDisposable
+public abstract partial class PkComponentBase : ComponentBase, IAsyncDisposable
 {
     private readonly PkLifecycle _life;
     private IReadOnlyDictionary<string, object?>? _parameters;
@@ -67,7 +67,7 @@ public abstract class PkComponentBase : ComponentBase, IAsyncDisposable
 
     async ValueTask IAsyncDisposable.DisposeAsync()
     {
-        _life.Dispose();
+        _life.Dispose(); await StopTicksAsync();
         await OnDisposeAsync();
     }
 }

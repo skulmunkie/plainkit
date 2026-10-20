@@ -188,4 +188,25 @@ export const markdownEditorCases = [
         m.sel(0, 5); m.cmd('bold').click(); await wait(80);
         t.eq(m.value, 'hello', 'a command that would pass maxlength is a no-op');
     }],
+    ['markdown: pk-markdown draws the text with DOM nodes only, shows raw HTML as text and refuses a script address (#1673)', async t => {
+        const host = t.stage(`<div><pk-markdown markdown="## Title&#10;&#10;<b id=x>raw</b> **bold** [bad](${JS}alert(1)) [ok](https://example.test)"></pk-markdown></div>`); await t.load(host);
+        const el = host.querySelector('pk-markdown');
+        const c = await until(() => el.part('content').querySelector('strong') && el.part('content'), 'the markdown to draw');
+        t.eq(c.querySelector('h2')?.textContent, 'Title'); t.ok(!c.querySelector('b'), 'raw HTML is not parsed'); t.ok(c.textContent.includes('<b id=x>raw</b>'), 'raw HTML shows as text');
+        t.eq([...c.querySelectorAll('a')].map(a => a.getAttribute('href')).join(), 'https://example.test', 'only the safe link is a link');
+        el.markdown = 'changed'; await until(() => c.textContent === 'changed', 'a new value to redraw');
+    }],
+    ['markdown: a relative link click raises pk-link-click, interceptLinks cancels it, absolute and anchor links are left alone (#1673)', async t => {
+        const host = t.stage('<div><pk-markdown markdown="[a](guide/intro) [b](https://example.test) [c](#top)"></pk-markdown></div>'); await t.load(host);
+        const el = host.querySelector('pk-markdown');
+        await until(() => el.part('content').querySelector('a'), 'the links to draw');
+        const seen = [], prevented = []; el.addEventListener('pk-link-click', e => seen.push(e.detail.href));
+        el.addEventListener('click', e => { prevented.push(e.defaultPrevented); e.preventDefault(); }); // after the element's own handler: records its verdict, and keeps the test page from navigating
+        const click = n => el.part('content').querySelectorAll('a')[n].dispatchEvent(new MouseEvent('click', { bubbles: true, cancelable: true, composed: true }));
+        click(0); click(1); click(2);
+        t.eq(seen.join(), 'guide/intro', 'only the relative link is reported');
+        t.eq(prevented.join(), 'false,false,false', 'a plain relative link is left to the page');
+        el.interceptLinks = true; await t.settle(); click(0);
+        t.eq(prevented.at(-1), true, 'interceptLinks cancels the navigation');
+    }],
 ];

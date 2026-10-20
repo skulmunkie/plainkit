@@ -50,7 +50,14 @@
       "type": "string",
       "default": "today,7d,30d,month",
       "reflect": false,
-      "description": "The quick ranges to offer, comma separated, in order: today, 7d, 30d, 90d, month, lastmonth, year. Empty for none. A range is cut to min and max."
+      "description": "The quick ranges to offer, comma separated, in order: today, 7d, 30d, 90d, month, lastmonth, quarter, lastquarter, year, lastyear. Empty for none. A range is cut to min and max. Keys of presetItems may be named here to place them; the ones not named follow."
+    },
+    {
+      "name": "presetItems",
+      "type": "json",
+      "default": [],
+      "reflect": false,
+      "description": "The caller's own named presets as data: [{ key, label, start, end }] (ISO dates), for a period vocabulary of your own. They are quick ranges like the built-in ones (cut to min and max, pressed when the range matches) and pk-range-change reports the matching key in detail.preset, so a named period can be stored and re-resolved later."
     },
     {
       "name": "calendar",
@@ -130,13 +137,14 @@
     },
     {
       "name": "pk-range-change",
-      "detail": "{ start: string, end: string, valid: boolean }",
+      "detail": "{ start: string, end: string, valid: boolean, preset: string }",
       "detailProps": {
         "start": "string",
         "end": "string",
-        "valid": "bool"
+        "valid": "bool",
+        "preset": "string"
       },
-      "description": "The range changed by the user (a date typed or picked, a quick range, clear). valid is false when the end is before the start or a date is outside min and max; the values are still reported so the host can show its own message."
+      "description": "The range changed by the user (a date typed or picked, a quick range, clear). valid is false when the end is before the start or a date is outside min and max; the values are still reported so the host can show its own message. preset is the key of the quick range the range equals (built in or from presetItems), else empty."
     }
   ],
   "parts": [
@@ -221,6 +229,10 @@
     {
       "title": "Limited to a window, no quick ranges",
       "html": "<pk-date-range-picker label=\"Trip dates\" min=\"2026-09-01\" max=\"2026-09-30\" presets=\"\" start=\"2026-09-10\" end=\"2026-09-18\"></pk-date-range-picker>"
+    },
+    {
+      "title": "This quarter, last quarter and last year",
+      "html": "<pk-date-range-picker label=\"Period\" presets=\"quarter,lastquarter,year,lastyear\"></pk-date-range-picker>"
     },
     {
       "title": "End before start (invalid)",

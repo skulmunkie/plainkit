@@ -18,6 +18,10 @@ const isMarkupOrScript = file => fileIs(file, [...MARKUP_EXTENSIONS, ...SCRIPT_E
 // syntax to strip, so they scan the raw text unchanged.
 const scriptSafeText = file => (isScript(file) ? stripJsCommentsAndKeepStrings(file.text) : file.text);
 
+// A numeric cell of a raw pk-table is right-aligned by the documented `num` class on its th or td (core/base/table-content.css), the one class the
+// page layer defines for it: S3 leaves exactly that out (#1692).
+const isNumCell = (text, m) => /^class\s*=\s*(["'])num\1/.test(text.slice(m.index, m.index + 24)) && /<(?:th|td)\b[^<>]*$/i.test(text.slice(Math.max(0, m.index - 200), m.index));
+
 export const S_RULES = [
     {
         id: 'S1',
@@ -79,7 +83,7 @@ export const S_RULES = [
                 [/\bclassName\s*=/g, 'className'],
                 [/\bclassList\b/g, 'classList'],
             ]) {
-                hits.push(...hitsForEach(text, re, m => hitAt(file.text, m.index, label, { found: label })));
+                hits.push(...hitsForEach(text, re, m => (isNumCell(text, m) ? null : hitAt(file.text, m.index, label, { found: label }))).filter(Boolean));
             }
             return hits;
         },
