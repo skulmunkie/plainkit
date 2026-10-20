@@ -1,0 +1,38 @@
+{
+  "tag": "pk-label-sheet",
+  "title": "Label sheet",
+  "group": "Layout",
+  "tier": "element",
+  "summary": "A grid of fixed physical cells for labels, bin tags and entry cards: set the cell size in mm, in or pt, a gap and the cells per row; each child is one cell and is never split across a printed page. Use it inside pk-print-page, whose size and margin define the sheet and which hides the app chrome. Cells show at true scale on screen.",
+  "props": [
+    { "name": "cellWidth", "type": "string", "default": "50mm", "reflect": true, "description": "Cell width: a number with mm, cm, in, pt or px. Anything else falls back to 50mm and warns once." },
+    { "name": "cellHeight", "type": "string", "default": "25mm", "reflect": true, "description": "Cell height, same units. Falls back to 25mm." },
+    { "name": "columns", "type": "number", "default": 0, "reflect": true, "description": "Cells per row; 0 fits as many as the width allows." },
+    { "name": "gap", "type": "string", "default": "0", "reflect": true, "description": "Gap between cells, same units." },
+    { "name": "offsetX", "type": "string", "default": "0", "reflect": true, "description": "Sheet origin from the left of its box, for pre-cut stock." },
+    { "name": "offsetY", "type": "string", "default": "0", "reflect": true, "description": "Sheet origin from the top of its box, for pre-cut stock." },
+    { "name": "outline", "type": "boolean", "default": false, "reflect": true, "description": "Dashed cut guides around every cell, on screen and in print." }
+  ],
+  "slots": [
+    { "name": "", "description": "The cells: one element per label (a pk-card, a div with an SVG barcode). A child larger than its cell is clipped and marked data-clipped." }
+  ],
+  "events": [],
+  "parts": [],
+  "cssProperties": [
+    { "name": "--pk-label-sheet-cell-width", "description": "Overrides cell-width.", "default": "cell-width" },
+    { "name": "--pk-label-sheet-cell-height", "description": "Overrides cell-height.", "default": "cell-height" },
+    { "name": "--pk-label-sheet-gap", "description": "Overrides gap.", "default": "gap" },
+    { "name": "--pk-label-sheet-pad", "description": "Padding inside every cell.", "default": "0" }
+  ],
+  "methods": [],
+  "writes": [
+    { "target": "each cell (the slotted children)", "attributes": ["data-clipped"], "why": "A flag only: set while a cell's content is larger than the cell and clipped, so a page or test can find the label that does not fit. Nothing else on a cell is written." }
+  ],
+  "a11y": "Adds no semantics: the cells keep their own roles and text. Colours and fills print (print-color-adjust: exact).",
+  "examples": [
+    {
+      "title": "Bin labels, three to a row",
+      "html": "<pk-label-sheet cell-width=\"50mm\" cell-height=\"25mm\" columns=\"3\" gap=\"2mm\" outline>\n  <pk-card heading=\"Bin A1\"><p>M6 bolts</p></pk-card>\n  <pk-card heading=\"Bin A2\"><p>M8 nuts</p></pk-card>\n  <pk-card heading=\"Bin A3\"><p>Washers</p></pk-card>\n  <pk-card heading=\"Bin B1\"><p>Springs</p></pk-card>\n</pk-label-sheet>"
+    }
+  ]
+}
