@@ -88,6 +88,20 @@
       "description": "Width: xs to 2xl, or a CSS length."
     },
     {
+      "name": "keepUnknownValue",
+      "type": "boolean",
+      "default": false,
+      "reflect": true,
+      "description": "When the value is not offered by any option (a saved id whose list has not loaded, an option since retired), keep it: a stand-in option holding the value is added first and selected, so the control never shows a value it does not hold and a save does not write the first option back. Single select only."
+    },
+    {
+      "name": "unknownValueLabel",
+      "type": "string",
+      "default": "",
+      "reflect": false,
+      "description": "The text of the stand-in option added by keepUnknownValue. Empty shows the value itself. The option carries data-pk-unknown."
+    },
+    {
       "name": "multiple",
       "type": "boolean",
       "default": false,

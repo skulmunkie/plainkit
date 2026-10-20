@@ -392,6 +392,21 @@ export const formCases = [
         t.ok(a.hasAttribute('sticky')); t.eq(a.slotted('status').length, 1); t.eq(a.slotted().length, 1);
     }],
 
+    ['select: keep-unknown-value shows a value no option offers as a marked stand-in, submits it, and drops it once an offered value is chosen (#1682)', async t => {
+        const el = await t.mount('<form><pk-select name="s" value="gone" keep-unknown-value unknown-value-label="Retired (gone)"><option value="">none</option><option value="a">A</option></pk-select><pk-select name="p" value="gone"><option value="">none</option><option value="a">A</option></pk-select><pk-select name="m" value="zz" keep-unknown-value><option value="">none</option><option value="a">A</option></pk-select></form>');
+        await t.settle();
+        const [k, plain, one] = el.querySelectorAll('pk-select'), sel = x => x.part('control');
+        t.eq(sel(k).selectedOptions[0].textContent, 'Retired (gone)', 'the stand-in is selected with its label');
+        t.ok(sel(k).selectedOptions[0].hasAttribute('data-pk-unknown'), 'and marked');
+        t.eq(new FormData(el).get('s'), 'gone', 'the held value is what the form submits');
+        t.ok(sel(plain).selectedOptions[0].textContent === 'none' && !sel(plain).querySelector('[data-pk-unknown]'), 'without the switch the first option shows, as before');
+        t.eq(sel(one).selectedOptions[0].textContent, 'zz', 'no label: the value itself');
+        k.value = 'a'; await t.settle();
+        t.ok(!sel(k).querySelector('[data-pk-unknown]') && sel(k).value === 'a', 'an offered value removes the stand-in');
+        k.value = 'other'; await t.settle();
+        t.ok(sel(k).selectedOptions[0].hasAttribute('data-pk-unknown') && sel(k).value === 'other', 'a new unknown value gets the stand-in again');
+    }],
+
     ['select: a value set from outside (a Blazor re-render) moves the inner select', async t => {
         const s = await t.mount('<pk-select label="S" value="a"><option value="a">A</option><option value="b">B</option><option value="">None</option></pk-select>'); await t.settle();
         t.eq(s.part('control').value, 'a'); s.setAttribute('value', 'b'); await t.settle(); t.eq(s.part('control').value, 'b');
