@@ -1,0 +1,9 @@
+@* Starts the toolkit's elements from the root document: one external module script, so it runs under a strict CSP (no inline script). Put <PkScripts />
+   at the end of <body> in App.razor, after <Routes /> and next to <script src="_framework/blazor.web.js">, pairing with <PkStyles /> in the head. The pk-*
+   elements then upgrade on the prerendered HTML, before the circuit connects (PkRuntime wires the same call, idempotently, after the first component renders). *@
+<script type="module" src="@Src"></script>
+
+@code {
+    /// <summary>The module that calls <c>initPlainkit()</c> (<c>plainkit.init.js</c>), as the host's fingerprinted static asset URL when the app calls <c>app.MapStaticAssets()</c>, else the plain path.</summary>
+    private string Src => Assets["_content/PlainKit.Blazor/plainkit.init.js"];
+}

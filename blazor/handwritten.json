@@ -45,6 +45,10 @@
     "Components/PkScorecard.razor": {
       "category": "mount"
     },
+    "Components/PkScripts.razor": {
+      "category": "runtime",
+      "blazorOnly": "writes the init module script; there is no element"
+    },
     "Components/PkStyles.razor": {
       "category": "wrapper",
       "blazorOnly": "writes the stylesheet link; there is no element"
