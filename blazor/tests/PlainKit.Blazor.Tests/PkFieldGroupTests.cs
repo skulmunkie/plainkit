@@ -292,6 +292,15 @@ public sealed class PkFieldGroupTests : BunitContext, IAsyncLifetime
         Assert.True(Defs(Render([spec]))[0].GetProperty("clearable").GetBoolean());
     }
 
+    // Issue 1688: Layout is the element's layout attribute and EndContent fills its end slot.
+    [Fact]
+    public void Layout_inline_and_EndContent_reach_the_element()
+    {
+        var cut = Render<PkFieldGroup<Order>>(p => p.Add(x => x.Fields, Fields()).Add(x => x.Model, new Order()).Add(x => x.Layout, FieldGroupLayout.Inline).Add(x => x.EndContent, (RenderFragment)(b => b.AddMarkupContent(0, "<button id=\"add\">Add</button>"))));
+        Assert.Equal("inline", cut.Find("pk-field-group").GetAttribute("layout"));
+        Assert.Equal("end", cut.Find("pk-field-group #add").ParentElement!.GetAttribute("slot") ?? cut.Find("pk-field-group #add").GetAttribute("slot"));
+    }
+
     // Issue 753 gap 2: PkFieldKind.Combobox, its options from Options or from an async Search callback the element runs as the user types.
     private sealed class Pick { public string Sku { get; set; } = ""; }
 
