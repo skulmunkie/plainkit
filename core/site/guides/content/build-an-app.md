@@ -42,7 +42,7 @@ export default {
 };
 ```
 
-`modules` is the top of the menu **and the allow-list**: it is the only code the app ever imports, and each `load` is a lazy `import()`, so a module costs nothing until someone opens it. The config is checked when it is mounted: a bad value throws with the key named, an unknown key is one warning. The rest of the keys (`home`, `search`, `theme`, `storage`, `auth`, `can`) are in the [app reference](../../dist/skills/plainkit-sdk/references/app.md).
+`modules` is the top of the menu **and the allow-list**: it is the only code the app ever imports, and each `load` is a lazy `import()`, so a module costs nothing until someone opens it. The config is checked when it is mounted: a bad value throws with the key named, an unknown key is one warning. The rest of the keys (`home`, `search`, `theme`, `storage`, `auth`, `can`) are in the [app reference](https://skulmunkie.github.io/plainkit/skills/plainkit-sdk/references/app.md).
 
 ## Write a module
 
@@ -253,6 +253,6 @@ A module is plain data, so most of it needs no browser. `defineModule` and `read
 ## Where to go next
 
 - [Choosing what to build with](choosing-what-to-build-with.md) for the page types and elements to start from.
-- The [app reference](../../dist/skills/plainkit-sdk/references/app.md) for every `ctx` member, the module header and the config header.
+- The [app reference](https://skulmunkie.github.io/plainkit/skills/plainkit-sdk/references/app.md) for every `ctx` member, the module header and the config header.
 - [Logging](logging.md) for the `app:<id>` scopes a module's errors are logged under.
 - In Blazor: [Build an app in Blazor](blazor-build-an-app.md).

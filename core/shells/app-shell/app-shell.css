@@ -1,4 +1,4 @@
-/* pk-app-shell: nav column + a main column whose body is the only scroller and the containing block of the page's absolutely positioned content (else it resolves against the page and the document scrolls too). The body is itself a flex column of definite height (issue 1551), so a page type that sets flex: 1 1 auto and min-height: 0 (a list page with a pinned header) fills it and only its rows scroll; ordinary content keeps its height and the body scrolls. Header and footer are sticky by construction; the safe area is added to their padding. */
+/* pk-app-shell: nav column + a main column; the body is the only scroller and a flex column of definite height (1551), so a filling page type (flex: 1 1 auto, min-height: 0) pins its header and only its rows scroll. Header and footer are sticky; the safe area pads them. */
 :host { display: grid; grid-template-columns: auto minmax(0, 1fr); height: 100vh; height: 100dvh; background: var(--color-bg); color: var(--color-text); }
 
 /* The main column is always the last one: with no nav in the nav slot it must not fall into the nav's (auto) column and take only its content width. */
@@ -25,8 +25,12 @@
 
 [part="body"] { flex: 1; min-height: 0; display: flex; flex-direction: column; position: relative; overflow-y: auto; scrollbar-gutter: stable; overscroll-behavior: contain; --pk-page-header-sticky-top: calc(-1 * var(--pad-page)); padding: var(--pad-page); padding-inline: max(var(--pad-page), env(safe-area-inset-left)) max(var(--pad-page), env(safe-area-inset-right)); }
 
-/* Ordinary content keeps its height: a flex item shrinks below an explicit height and the body would never scroll. A filling page type opts in with --pk-fill-shrink: 1 on its host (issue 1551). */
+/* Ordinary content keeps its height; a filling page type opts in with --pk-fill-shrink: 1 (1551). */
 [part="body"] > slot:not([name])::slotted(*) { flex-shrink: var(--pk-fill-shrink, 0); }
+
+/* contain (1675): the body is a named inline-size container (@container page), clips sideways and its one child fills the height. */
+:host([contain]) [part="body"] { container: var(--pk-app-shell-container, page) / inline-size; overflow-x: clip; }
+:host([contain]) [part="body"] > slot:not([name])::slotted(*) { flex: 1 1 auto; min-block-size: 0; }
 
 :host([flush]) [part="body"] { --pk-page-header-sticky-top: 0px; padding: 0; padding-inline: env(safe-area-inset-left) env(safe-area-inset-right); }
 

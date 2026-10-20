@@ -1,0 +1,13 @@
+{
+  "component": "PkLabelSheet",
+  "params": [
+    { "name": "CellWidth", "prop": "cellWidth", "type": "string" },
+    { "name": "CellHeight", "prop": "cellHeight", "type": "string" },
+    { "name": "Columns", "prop": "columns", "type": "int" },
+    { "name": "Gap", "prop": "gap", "type": "string" },
+    { "name": "OffsetX", "prop": "offsetX", "type": "string" },
+    { "name": "OffsetY", "prop": "offsetY", "type": "string" },
+    { "name": "Outline", "prop": "outline", "type": "bool" },
+    { "name": "ChildContent", "slot": "", "type": "RenderFragment" }
+  ]
+}

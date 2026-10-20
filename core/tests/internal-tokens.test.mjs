@@ -29,7 +29,7 @@ test('internal tokens are not in the API surface', () => {
 });
 
 test('no public doc, skill, guide or gallery sample mentions an internal token', () => {
-    const roots = [path.join(repo, 'scripts', 'skills'), path.join(repo, 'docs'), path.join(core, 'dist', 'skills'), path.join(core, 'site', 'guides'), path.join(core, 'site', 'gallery'),
+    const roots = [path.join(repo, 'scripts', 'skills'), path.join(repo, 'docs'), path.join(repo, 'dist-skills'), path.join(core, 'site', 'guides'), path.join(core, 'site', 'gallery'),
         path.join(core, 'elements'), path.join(core, 'components'), path.join(core, 'pages'), path.join(core, 'shells')];
     const files = [...roots.flatMap(walk), ...fs.readdirSync(repo).filter(f => f.endsWith('.md')).map(f => path.join(repo, f)), path.join(core, 'STANDARDS.md')]
         .filter(f => /\.(md|html|json)$/.test(f) && !/\.(test|element)\./.test(f) && !/[\/]superpowers[\/]/.test(f) && !/gallery\.data\.js$/.test(f));

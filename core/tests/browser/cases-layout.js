@@ -568,6 +568,36 @@ export const layoutCases = [
         const kept = box.scrollTop; await wait(200);
         t.eq(box.scrollTop, kept, 'after the drop the box stays put');
     }],
+    // #1675 phase 1: pk-app-shell `contain`. The shell is given a definite height through CSSOM (the strict CSP forbids style attributes).
+    ['app-shell contain (#1675): any single slotted child fills the body height, without it the child keeps its own height, and flush composes', async t => {
+        const shell = async (attrs, w) => { const host = t.stage(`<pk-app-shell ${attrs}><div>short</div></pk-app-shell>`); host.style.inlineSize = `${w}px`; await t.load(host); const el = host.firstElementChild; el.style.blockSize = '600px'; await t.settle(); return el; };
+        for (const w of [1280, 375]) {
+            const body = el => el.shadowRoot.querySelector('[part=body]'), content = el => { const b = body(el).getBoundingClientRect(), cs = getComputedStyle(body(el)); return b.bottom - px(cs.paddingBottom); };
+            const on = await shell('contain', w), kid = on.firstElementChild;
+            t.ok(Math.abs(kid.getBoundingClientRect().bottom - content(on)) <= 1, `${w}px: the child's bottom meets the body's content bottom (${kid.getBoundingClientRect().bottom} vs ${content(on)})`);
+            t.ok(body(on).scrollHeight <= body(on).clientHeight, `${w}px: the body does not scroll`);
+            const off = await shell('', w);
+            t.ok(off.firstElementChild.getBoundingClientRect().height < 60, `${w}px: without contain the child keeps its natural height (${off.firstElementChild.getBoundingClientRect().height})`);
+            const fl = await shell('contain flush', w), fk = fl.firstElementChild;
+            t.ok(Math.abs(fk.getBoundingClientRect().bottom - body(fl).getBoundingClientRect().bottom) <= 1 && fk.getBoundingClientRect().height > 400, `${w}px: contain with flush fills edge to edge`);
+        }
+    }],
+    ['app-shell contain (#1675): the body is the container named page, @container page answers to the body width and not the viewport, and the name is a hook', async t => {
+        const host = t.stage('<pk-app-shell contain><div class="probe">x</div></pk-app-shell>'); host.style.inlineSize = '300px'; await t.load(host);
+        const el = host.firstElementChild, body = el.shadowRoot.querySelector('[part=body]'), probe = el.firstElementChild, cs = getComputedStyle(body);
+        t.eq(cs.containerType, 'inline-size'); t.eq(cs.containerName, 'page'); t.eq(cs.overflowX, 'hidden', 'sideways overflow is clipped (clip beside a scrolling y computes to hidden)');
+        const sheet = new CSSStyleSheet(); sheet.replaceSync('@container page (min-width: 900px) { .probe { margin-left: 11px; } } @container page (max-width: 600px) { .probe { margin-right: 7px; } }');
+        document.adoptedStyleSheets = [...document.adoptedStyleSheets, sheet];
+        try {
+            await t.settle();
+            const m = getComputedStyle(probe);
+            t.eq(m.marginRight, '7px', 'the narrow body matches max-width: 600px'); t.eq(m.marginLeft, '0px', 'the wide query does not match: the body is 300px wide, the viewport is wider');
+            el.style.setProperty('--pk-app-shell-container', 'main'); await t.settle();
+            t.eq(getComputedStyle(body).containerName, 'main', '--pk-app-shell-container renames it');
+        } finally { document.adoptedStyleSheets = document.adoptedStyleSheets.filter(s => s !== sheet); }
+        const plain = t.stage('<pk-app-shell><div>x</div></pk-app-shell>'); await t.load(plain);
+        t.eq(getComputedStyle(plain.firstElementChild.shadowRoot.querySelector('[part=body]')).containerType, 'normal', 'without contain the body is no container');
+    }],
 ];
 
 // Issue 837: the actions of a card header (a PkCardMenu button) stay on the header row at the inline end when the heading is long and wraps.
@@ -671,5 +701,47 @@ layoutCases.push(
             t.ok(left(trs[2]) - left(trs[0]) >= 8, `${at}: indent moves the row in (${Math.round(left(trs[2]) - left(trs[0]))}px)`);
             fr.remove();
         }
+    }],
+);
+
+// Issue 1674: pk-label-sheet cells have physical sizes. 1 CSS inch is 96px, 1mm is 96/25.4px, 1pt is 96/72px (the suite measures screen scale).
+layoutCases.push(
+    ['label-sheet: a cell is cell-width x cell-height in mm, in and pt, within half a pixel', async t => {
+        for (const [w, h, pw, ph] of [['50mm', '25mm', 50 * 96 / 25.4, 25 * 96 / 25.4], ['2in', '1in', 192, 96], ['150pt', '60pt', 200, 80]]) {
+            const s = await t.mount(`<pk-label-sheet cell-width="${w}" cell-height="${h}"><div>a</div></pk-label-sheet>`);
+            await t.settle();
+            const r = s.children[0].getBoundingClientRect();
+            t.ok(Math.abs(r.width - pw) < 0.5 && Math.abs(r.height - ph) < 0.5, `${w} x ${h} measures ${r.width} x ${r.height}, wanted ${pw} x ${ph}`);
+            s.remove();
+        }
+    }],
+    ['label-sheet: columns=3 puts three cells on a row, the fourth on the next, and the gap is the distance between them', async t => {
+        const s = await t.mount('<pk-label-sheet cell-width="20mm" cell-height="10mm" columns="3" gap="2mm">' + '<div>x</div>'.repeat(4) + '</pk-label-sheet>');
+        await t.settle();
+        const r = [...s.children].map(c => c.getBoundingClientRect()), mm = 96 / 25.4;
+        t.ok(r[0].top === r[1].top && r[1].top === r[2].top, 'three share a row');
+        t.ok(r[3].top > r[0].top && Math.abs(r[3].left - r[0].left) < 0.5, 'the fourth starts a new row at the left');
+        t.ok(Math.abs(r[1].left - r[0].right - 2 * mm) < 0.5, 'the column gap is 2mm');
+        t.ok(Math.abs(r[3].top - r[0].bottom - 2 * mm) < 0.5, 'the row gap is 2mm');
+        s.remove();
+    }],
+    ['label-sheet: columns=0 fits floor((W+gap)/(cell+gap)) cells, and offset-x moves the origin', async t => {
+        const s = await t.mount('<pk-label-sheet cell-width="30mm" cell-height="10mm" gap="2mm" offset-x="5mm">' + '<div>x</div>'.repeat(8) + '</pk-label-sheet>');
+        await t.settle();
+        const mm = 96 / 25.4, kids = [...s.children].map(c => c.getBoundingClientRect()), box = s.getBoundingClientRect();
+        const perRow = kids.filter(k => k.top === kids[0].top).length;
+        t.eq(perRow, Math.min(8, Math.max(1, Math.floor((box.width + 2 * mm) / (32 * mm)))), 'cells per row');
+        t.ok(Math.abs(kids[0].left - box.left) < 0.5, 'the first cell starts at the host edge (the offset is the host margin)');
+        t.ok(Math.abs(box.left - s.parentElement.getBoundingClientRect().left - 5 * mm) < 0.5 || getComputedStyle(s).marginInlineStart !== '0px', 'offset-x is applied as the start margin');
+        s.remove();
+    }],
+    ['label-sheet: every cell keeps break-inside avoid, an oversize child is clipped and marked, a bad length falls back', async t => {
+        const s = await t.mount('<pk-label-sheet cell-width="bad" cell-height="10mm"><div>' + 'wide '.repeat(200) + '</div></pk-label-sheet>');
+        await t.settle();
+        const c = s.children[0];
+        t.eq(getComputedStyle(c).breakInside, 'avoid', 'break-inside');
+        t.ok(Math.abs(c.getBoundingClientRect().width - 50 * 96 / 25.4) < 0.5, 'the bad width fell back to 50mm');
+        t.ok(c.hasAttribute('data-clipped'), 'the oversize child is marked data-clipped');
+        s.remove();
     }],
 );

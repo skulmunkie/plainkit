@@ -1,12 +1,11 @@
-// Builds the agent skills bundle for developer agents that build their own apps on Plainkit: core/dist/skills/<skill>/ with a thin SKILL.md
+// Builds the agent skills bundle for developer agents that build their own apps on Plainkit: dist-skills/<skill>/ (beside core, not in core/dist; Pages serves it at skills/) with a thin SKILL.md
 // (the Claude Code wrapper: valid frontmatter, short workflows) and references/*.md (plain, format-neutral markdown, so other agent formats can
 // be exported from the same files later, issue #36). Node only, no dependencies.
 //
-//   node scripts/build-skills.mjs           write core/dist/skills/ and refresh dist/manifest.json (the SRI manifest lists the skills)
+//   node scripts/build-skills.mjs           write dist-skills/ (the manifest of the Pages copy, with hashes, is written by scripts/skills-site.mjs)
 //   node scripts/build-skills.mjs --check   change nothing; exit 1 when the skills on disk are stale (CI)
 //
-// Order: node core/tools/build.mjs, node scripts/generate-blazor.mjs, node scripts/build-skills.mjs, node scripts/publish-dist.mjs. The build
-// keeps whatever is under dist/skills in the manifest, so it stays independent of this script; this script rebuilds the manifest after writing.
+// Order: node core/tools/build.mjs, node scripts/generate-blazor.mjs, node scripts/build-skills.mjs, node scripts/publish-dist.mjs. The skills are not in core/dist, so they are in no package or SRI manifest of it.
 //
 // Everything in a skill is generated from a source of truth, nothing is invented: core/dist/elements/api.json (elements), blazor/mappings and
 // Generated/generated.manifest.json plus the C# sources (Blazor), the sample folders (templates, patterns, layouts), the header comments of the tool
@@ -17,7 +16,7 @@ import fs from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { pkName, kebab } from './generate-blazor.mjs';
-import { loadSamples, build } from '../core/tools/build.mjs';
+import { loadSamples } from '../core/tools/build.mjs';
 import { MODULES } from '../core/tools/modules-dist.mjs';
 import { parseTokenBlocks } from '../core/js/theme.js';
 import { loadBreakpoints } from '../core/tools/breakpoints.mjs';
@@ -28,7 +27,7 @@ const here = path.dirname(fileURLToPath(import.meta.url));
 export const root = path.resolve(here, '..');
 const core = path.join(root, 'core');
 const pkg = path.join(root, 'blazor', 'src', 'PlainKit.Blazor');
-export const SKILLS_DIR = path.join(core, 'dist', 'skills');
+export const SKILLS_DIR = path.join(root, 'dist-skills'); // generated, not in git, and not part of core/dist: Pages serves it at skills/ (scripts/build-pages.mjs), the release attaches it as plainkit-skills-<version>.zip
 export const SKILL_NAMES = ['plainkit-sdk', 'plainkit-blazor'];
 const GENERATOR = 'scripts/build-skills.mjs';
 
@@ -326,7 +325,7 @@ function sdkElementFiles(src) {
         const name = `references/elements-${slug}.md`;
         const more = new Map();
         const sections = els.map(e => { const m = []; const t = elementSection(e, m); if (m.length) more.set(e, m); return t; });
-        files.set(name, [`# Elements: ${groupTitle(slug)}`, '', stamp(src, 'core/dist/elements/api.json'), '', 'How to read these tables: see `elements-index.md`. Each element shows its first example; the others are in `references/full/examples-' + slug + '.md` (not in the npm package: the Pages site, the skills zip and NuGet carry it).', '', sections.join('\n\n')].join('\n') + '\n');
+        files.set(name, [`# Elements: ${groupTitle(slug)}`, '', stamp(src, 'core/dist/elements/api.json'), '', 'How to read these tables: see `elements-index.md`. Each element shows its first example; the others are in `references/full/examples-' + slug + '.md` (kept apart so the group files stay short).', '', sections.join('\n\n')].join('\n') + '\n');
         if (more.size) files.set(`references/full/examples-${slug}.md`, [`# Elements: ${groupTitle(slug)}, further examples`, '', stamp(src, 'core/dist/elements/api.full.json'), '', 'The element sections in `elements-' + slug + '.md` show the first example of each element; these are the rest.', '', [...more].map(([e, xs]) => [`## ${code(e.tag)}`, ...xs.flatMap(x => ['', `Example: ${x.title}`, '', fence('html', x.html)])].join('\n')).join('\n\n')].join('\n') + '\n');
         for (const e of els) index.push({ e, file: name });
     }
@@ -346,7 +345,7 @@ function sampleBody(body, full, file, id) {
     const text = body.join('\n');
     if (text.length <= LONG_SAMPLE) return body;
     full.push(`## ${id}`, '', text, '');
-    return [`The full text is long (${text.length} characters): it is in \`references/full/${file}.md\`, section \`${id}\` (not in the npm package: the Pages site, the skills zip and NuGet carry it).`];
+    return [`The full text is long (${text.length} characters): it is in \`references/full/${file}.md\`, section \`${id}\` (kept apart so the group files stay short).`];
 }
 function templatesMd(src, full) {
     const out = ['# Page templates', '', stamp(src, 'core/samples/templates and the element API'), '',
@@ -513,7 +512,7 @@ function loadingMd(src) {
         'The full entry module `dist/js/plainkit.js` (also reachable as `dist/plainkit.js`), verbatim:', '', fence('text', src.entryHeader), '',
         `Exports of the full entry module: ${src.entryExports.map(code).join(', ')}.`, '',
         '## How elements load', '', `\`initPlainkit(root = document)\` installs the declarative openers, imports the modules of the \`pk-*\` tags found under \`root\` (each element is its own module, \`dist/elements/<name>.js\`, found by name: \`pk-card\` is \`dist/elements/card.js\`) and watches for tags added later. A tag with no module (usually a typo, checked against \`registry.js\`) is logged as a warning by the \`loader\` scope and stays inert. Exports of \`dist/js/loader.js\`: ${src.loaderExports.map(code).join(', ')}.`, '',
-        '`dist/manifest.json` lists the runtime files with their size and SRI hash (`dist/modules/manifest.json` does the same for the modules unit, `dist/manifest.extras.json` for the files the npm package leaves out); the SDK makes no runtime request to another origin. Editor support is generated into `dist/`: `custom-elements.json`, `vscode.html-custom-data.json`, `web-types.json`, `elements.d.ts`.', ''].join('\n');
+        '`dist/manifest.json` lists the runtime files with their size and SRI hash (`dist/modules/manifest.json` does the same for the modules unit, `dist/manifest.extras.json` for the files the npm package leaves out, which is also where the agent docs are); the SDK makes no runtime request to another origin. Editor support is generated into `dist/`: `custom-elements.json`, `vscode.html-custom-data.json`, `web-types.json`, `elements.d.ts`.', ''].join('\n');
 }
 
 const SDK_GAPS = [
@@ -906,7 +905,7 @@ const RECORD_PAGE_SAMPLE = String.raw`@* LocationEdit.razor: the record page, on
         files.set('references/table-raw-mode.md', ['# PkTable raw mode: HeadContent/ChildContent/FootContent composed into pk-table\'s raw slot', '', stamp(src, 'Components/PkTable.razor'), '',
             'Set `ChildContent` on `PkTable<TItem>` (write `TItem="object"`; `Columns` and `Items` are then ignored) to author the table markup yourself: the element\'s default slot takes one complete table (`thead`, `tbody`, `tfoot`), which Blazor composes from `HeadContent`, `ChildContent` and `FootContent`, so a static header and a `@foreach` body over your own collection need no wrapper. The scroll frame, `ToolbarContent`/`FooterContent` and sticky header/column are shared with the data-driven mode.', '',
             '```razor', '<PkTable TItem="object" Label="Orders" Caption="Recent orders">', '    <HeadContent><tr><th>Number</th><th>Total</th></tr></HeadContent>', '    <ChildContent>', '        @foreach (var order in _orders)', '        {', '            <tr><td>@order.Number</td><td>@order.Total.ToString("C")</td></tr>', '        }', '    </ChildContent>', '</PkTable>', '```', '',
-            '`class` and other attributes go to the `pk-table` frame, `TableClass` to the inner table. Set `IsEmpty` with `EmptyText` or `EmptyContent` to show that instead of a header over no rows.', '', '## Raw-mode parameters of `PkTable`', '', table(['Parameter', 'Type', 'Description'], rt.params.filter(p => raw.includes(p.name)).map(p => [code(p.name), code(p.type), p.doc])), ''].join('\n'));
+            '`class` and other attributes go to the `pk-table` frame, `TableClass` to the inner table. A column width needs no class: put `width="fit"` (shrink to the content, no wrap) or `width="sm"`, `"md"`, `"lg"` (6, 10 or 16rem) on a `th` or `td`. Set `IsEmpty` with `EmptyText` or `EmptyContent` to show that instead of a header over no rows.', '', '## Raw-mode parameters of `PkTable`', '', table(['Parameter', 'Type', 'Description'], rt.params.filter(p => raw.includes(p.name)).map(p => [code(p.name), code(p.type), p.doc])), ''].join('\n'));
     }
 
     // reading picked files: PkDropzone and PkImageGallery with Blazor's InputFile (issue #83, then #201 for the gallery); a workflow, so no element table
@@ -1115,7 +1114,7 @@ export function generate(src = collect()) {
     put('plainkit-blazor', 'references/conformance-rules.md', conformanceRulesMd(src));
     const CHOOSING_DESC = 'choose before you build: decision path, use-case table (page type to template, layout, pattern, element, component), anti-patterns, how to ask for a missing component';
     const CONFORMANCE_DESC = 'the audit CLI\'s full rule catalogue (id, normal/strict severity, what it detects, a wrong/right snippet) - what `npx plainkit audit --explain <id>` also shows';
-    const describe = { 'choosing.md': CHOOSING_DESC, 'conformance-rules.md': CONFORMANCE_DESC, 'elements-index.md': 'every tag by group, with the file that documents the group (start here to find an element). `references/full/` holds what the npm package leaves out (further `examples-<group>.md`, and the templates, patterns and tool headers over 3,000 characters, by id); the skills zip, NuGet and https://skulmunkie.github.io/plainkit/dist/skills/plainkit-sdk/references/full/ carry it', 'templates.md': 'full-page starting points', 'patterns.md': 'composed patterns (confirm delete, filter table, forms, ...), and the paged list and cross-page selection (`pk-data-table`, `pk-table` `total`)', 'layouts.md': 'page anatomies (list, record, setup, tool, wizard)', 'tools.md': 'dev tools dock, logs, logging settings, scorecard, performance, console, quality, theme editor, layout builder, code explorer, gallery: `mountX(container, options)` and events', 'logging.md': 'the SDK logger: levels, scopes, routes, `?pk-log=`, `PkLog`, measuring a page (`measurePage`, `watchVitals`)', 'openers.md': '`data-open`, `data-toggle`, `data-close`', 'page.md': '`createPage`: busy overlay, breadcrumbs from a route tree, a `pk-card` whose body a page draws loading, empty and error states into, `pk-property-grid`', 'custom-sdk.md': 'exporting a themed or re-breakpointed `dist` from the theme editor, and the `.zip` builder underneath', 'state.md': 'the state store: `createStore`, namespaced validated versioned state, `readSetting`/`writeSetting`', 'build-an-app.md': 'build an app: `mountPage` or `mountApp`, a module, every page type with a running example, routes, nav, state, guards, the speed, reliability and security tenets', 'app.md': 'app modules: `defineModule`, `moduleFromMount`, `createModuleHost` (lifecycle, boundaries, ctx, custom page types and layouts)', 'theming.md': 'tokens and themes', 'loading.md': 'ways to load Plainkit, `initPlainkit`, the element loader', 'known-gaps.md': 'what is not built, what not to assume', 'upgrading.md': 'moving this app to a newer Plainkit version: a blast-radius checklist, not a changelog readout' };
+    const describe = { 'choosing.md': CHOOSING_DESC, 'conformance-rules.md': CONFORMANCE_DESC, 'elements-index.md': 'every tag by group, with the file that documents the group (start here to find an element). `references/full/` holds the long form (further `examples-<group>.md`, and the templates, patterns and tool headers over 3,000 characters, by id)', 'templates.md': 'full-page starting points', 'patterns.md': 'composed patterns (confirm delete, filter table, forms, ...), and the paged list and cross-page selection (`pk-data-table`, `pk-table` `total`)', 'layouts.md': 'page anatomies (list, record, setup, tool, wizard)', 'tools.md': 'dev tools dock, logs, logging settings, scorecard, performance, console, quality, theme editor, layout builder, code explorer, gallery: `mountX(container, options)` and events', 'logging.md': 'the SDK logger: levels, scopes, routes, `?pk-log=`, `PkLog`, measuring a page (`measurePage`, `watchVitals`)', 'openers.md': '`data-open`, `data-toggle`, `data-close`', 'page.md': '`createPage`: busy overlay, breadcrumbs from a route tree, a `pk-card` whose body a page draws loading, empty and error states into, `pk-property-grid`', 'custom-sdk.md': 'exporting a themed or re-breakpointed `dist` from the theme editor, and the `.zip` builder underneath', 'state.md': 'the state store: `createStore`, namespaced validated versioned state, `readSetting`/`writeSetting`', 'build-an-app.md': 'build an app: `mountPage` or `mountApp`, a module, every page type with a running example, routes, nav, state, guards, the speed, reliability and security tenets', 'app.md': 'app modules: `defineModule`, `moduleFromMount`, `createModuleHost` (lifecycle, boundaries, ctx, custom page types and layouts)', 'theming.md': 'tokens and themes', 'loading.md': 'ways to load Plainkit, `initPlainkit`, the element loader', 'known-gaps.md': 'what is not built, what not to assume', 'upgrading.md': 'moving this app to a newer Plainkit version: a blast-radius checklist, not a changelog readout' };
     const listRefs = (skill, extra) => [...[...out.keys()].filter(k => k.startsWith(skill + '/references/') && !k.includes('/references/full/')).map(k => k.split('/').pop())].sort().map(f => `- \`references/${f}\`${extra[f] ? `: ${extra[f]}` : ''}`).join('\n');
     const sdkGroupFiles = sdk.slugs.map(s => `- \`references/elements-${s}.md\`: ${groupTitle(s)}`).join('\n');
     const bzGroupFiles = blazor.slugs.map(s => `- \`references/components-${s}.md\`: ${groupTitle(s)}`).join('\n');
@@ -1162,11 +1161,10 @@ if (process.argv[1] && path.resolve(process.argv[1]) === fileURLToPath(import.me
     try { gen = generate(); } catch (e) { console.error(`build-skills: ${e.message}`); process.exit(2); }
     if (process.argv.includes('--check')) {
         const d = differences(gen);
-        if (d.length) { console.error(`core/dist/skills is out of date (${d.length} differences); run node scripts/build-skills.mjs\n${d.slice(0, 15).join('\n')}`); process.exit(1); }
-        console.log(`core/dist/skills matches its sources (${gen.size} files)`);
+        if (d.length) { console.error(`dist-skills is out of date (${d.length} differences); run node scripts/build-skills.mjs\n${d.slice(0, 15).join('\n')}`); process.exit(1); }
+        console.log(`dist-skills matches its sources (${gen.size} files)`);
     } else {
         const n = write(gen);
-        if (!process.argv.includes('--no-manifest')) build({ write: true }); // the SRI manifest lists the skills, so rebuild it now that they are on disk (--no-manifest: the bootstrap rebuilds it once afterwards)
-        console.log(`${n} skill files written to core/dist/skills; dist/manifest.json refreshed`);
+        console.log(`${n} skill files written to dist-skills`);
     }
 }

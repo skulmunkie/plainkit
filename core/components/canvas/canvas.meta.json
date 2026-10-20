@@ -60,7 +60,7 @@
   "methods": [
     { "name": "pointToWorld(clientX, clientY)", "description": "Returns { x, y } world units for a client point, grid-snapped" },
     { "name": "worldToPoint(x, y)", "description": "Returns { x, y } in client pixels for a world point" },
-    { "name": "zoomToFit(rect?)", "description": "Fits a world rect { x, y, w, h }, or the slotted content, in the surface" },
+    { "name": "zoomToFit(rect?)", "description": "Fits a world rect { x, y, w, h }, or the slotted content, above the toolbar in the surface" },
     { "name": "zoomTo(zoom, anchor?)", "description": "Zooms around a surface pixel { x, y } (default the middle)" },
     { "name": "centerOn(x, y)", "description": "Centres a world point" },
     { "name": "reset()", "description": "Back to zoom 1 at the origin" }

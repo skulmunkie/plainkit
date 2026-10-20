@@ -6,7 +6,7 @@ import behaviour from './tree-item.js';
 const make = (props = {}, children = [], ancestors = 0) => {
     const emitted = []; const vars = {}; const row = { listeners: [], addEventListener(t, fn) { this.listeners.push(fn); } };
     const toggle = { name: 'toggle' }; const kids = { hidden: null };
-    const attrs = {}, label = { attrs, setAttribute(k, v) { attrs[k] = v; }, removeAttribute(k) { delete attrs[k]; }, click: () => row.listeners[0]({ composedPath: () => [label], preventDefault() { label.prevented = true; } }) };
+    const attrs = {}, label = { attrs, addEventListener() {}, setAttribute(k, v) { attrs[k] = v; }, removeAttribute(k) { delete attrs[k]; }, click: () => row.listeners[0]({ composedPath: () => [label], preventDefault() { label.prevented = true; } }) };
     const parts = { row, toggle, label, children: kids };
     // A chain of pk-tree-item ancestors: each one's parentElement.closest finds the next one up.
     let parent = null;

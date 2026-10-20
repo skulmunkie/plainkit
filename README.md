@@ -28,7 +28,7 @@ Where you get the files, and which versions are pinned:
 | Way | Version |
 |---|---|
 | `plainkit-dist-<version>.zip` on the [GitHub releases](https://github.com/skulmunkie/plainkit/releases) page; unzip it anywhere (`plainkit-modules-<version>.zip` is the dev tools, its own unit: unzip it into the same folder) | pinned |
-| Lean alternative: `plainkit-<version>.zip` (core) plus the extras you use, for now `plainkit.tools-<version>.zip` (the dev tools); unzip the extra over the core folder. Full or core + modules is your choice; nothing is lost either way | pinned |
+| Lean alternative: `plainkit-<version>.zip` (core) plus the extras you use, for now `plainkit.tools-<version>.zip` (the dev tools) and `plainkit.canvas-<version>.zip` (`pk-canvas` and the SVG toolkit); unzip the extra over the core folder. Full or core + modules is your choice; nothing is lost either way | pinned |
 | `dotnet add package PlainKit.Blazor` (the package carries `dist` as static web assets) | pinned |
 | The [Pages site](https://skulmunkie.github.io/plainkit/) (gallery, guides and tools; `dist/` sits under it, for example `.../dist/plainkit.min.css`) | latest `main`, not pinned |
 
@@ -36,7 +36,7 @@ There is no CDN link by git tag: the repository does not contain `core/dist` (it
 
 ## Working in a clone
 
-Generated files (`core/dist`, the element modules, the Blazor wrappers, the agent skills, the package copy of `dist`) are **not in git**. After cloning, and after switching branches or editing sources, run one command (Node only, about 4 seconds):
+Generated files (`core/dist`, the element modules, the Blazor wrappers, the agent skills in `dist-skills/`, the package copy of `dist`) are **not in git**. After cloning, and after switching branches or editing sources, run one command (Node only, about 4 seconds):
 
 ```
 node scripts/bootstrap.mjs
@@ -50,14 +50,14 @@ Then `node core/tools/serve.mjs` (the gallery, guides, theme editor and scorecar
 core/      the vanilla toolkit: source, tests, tools, gallery; its only output is core/dist (generated, not in git)
 blazor/    PlainKit.Blazor (src/, a Razor class library), its bUnit tests (tests/) and a host app (samples/)
 scripts/   bootstrap.mjs runs everything below in order; publish-dist.mjs copies core/dist into the package; generate-blazor.mjs writes the Pk* components;
-           build-skills.mjs writes the agent skills into core/dist/skills; generated.mjs lists what is generated
+           build-skills.mjs writes the agent skills into dist-skills/ (Pages serves them at skills/); generated.mjs lists what is generated
 ```
 
 ## Agent skills
 
 `plainkit-skills` is a bundle of two skills for developer agents that build their own apps on Plainkit: `plainkit-sdk` (the `pk-*` elements, page templates, patterns, tool modules, logging, theming) and `plainkit-blazor` (the `Pk*` components, options, the `ILogger` bridge, dev tools). Each is a short `SKILL.md` plus `references/*.md`: plain markdown generated from the same sources as the toolkit (the element API, the Blazor mappings, the sample folders, the tool modules), with every code sample tested, so the skills cannot drift from what ships. They carry the version of the release.
 
-- **Claude Code:** copy the skill folders (`plainkit-sdk/`, `plainkit-blazor/`) into `.claude/skills/` of your project, or into `~/.claude/skills/` to use them everywhere. You get them from the `plainkit-skills-<version>.zip` on the [GitHub releases](https://github.com/skulmunkie/plainkit/releases) page (unzip it there), from `skills/` inside `plainkit-dist-<version>.zip`, from `core/dist/skills/` in a clone after `node scripts/bootstrap.mjs` (generated, not in git), or from `_content/PlainKit.Blazor/plainkit/skills/` in an app that references PlainKit.Blazor.
+- **Claude Code:** copy the skill folders (`plainkit-sdk/`, `plainkit-blazor/`) into `.claude/skills/` of your project, or into `~/.claude/skills/` to use them everywhere. You get them from the `plainkit-skills-<version>.zip` on the [GitHub releases](https://github.com/skulmunkie/plainkit/releases) page (unzip it there), from the [Pages skills page](https://skulmunkie.github.io/plainkit/skills/index.html) (each file under `skills/`), or from `dist-skills/` in a clone after `node scripts/bootstrap.mjs` (generated, not in git). The skills are **not** packaged in the npm package, the `dist` zip or the NuGet package: they are pointed at, not shipped with the toolkit.
 - **Any other agent:** the references are plain markdown, so point the agent at the files under `references/`. Start with `elements-index.md` (SDK) or `components-index.md` (Blazor); each file names the next one to open.
 - **Maintainers:** `node scripts/bootstrap.mjs` regenerates them (with everything else generated; they are not committed); the node tests prove the generator is deterministic and the files on disk are its output. Exports to other agent formats are tracked in issue #36.
 
@@ -70,10 +70,8 @@ For an app of several pages, the `plainkit-sdk` skill has a **Build an app** wor
 | You have | Install (from the project root) |
 |---|---|
 | The GitHub release | `gh release list --repo skulmunkie/plainkit` shows the versions, then `gh release download <tag> --repo skulmunkie/plainkit --pattern "plainkit-skills-*.zip"` (for example the newest tag), then unzip into `.claude/skills/` (each skill is one folder: `plainkit-sdk/`, `plainkit-blazor/`) |
-| The NuGet package (PlainKit.Blazor) | copy `<version>/staticwebassets/plainkit/skills/*` from the NuGet cache into `.claude/skills/`; `dotnet nuget locals global-packages -l` prints the cache folder (usually `~/.nuget/packages/plainkit.blazor/`) |
-| The npm package | copy `node_modules/plainkit/dist/skills/*` into `.claude/skills/` |
-| A clone (after `node scripts/bootstrap.mjs`) or the `dist` zip | copy `core/dist/skills/*` (in the zip: `skills/*`) into `.claude/skills/` |
-| Nothing local, only the internet | each file is also served on the [Pages site](https://skulmunkie.github.io/plainkit/) at `dist/skills/<skill>/SKILL.md` (and `dist/skills/<skill>/references/<file>.md`) |
+| A clone (after `node scripts/bootstrap.mjs`) | copy `dist-skills/*` (generated, not in git) into `.claude/skills/` |
+| The Pages site (nothing to install) | point the agent at <https://skulmunkie.github.io/plainkit/skills/index.html>: it lists each skill with its files and a one-line instruction, and `manifest.json` beside it has every file with its size and SHA-256 hash. Each file is `skills/<skill>/SKILL.md` or `skills/<skill>/references/<file>.md` under the Pages root; the skills are not inside the npm package, the `dist` zip or the NuGet package |
 
 Commit the folders to the project so every agent and teammate gets them, and re-copy them when you upgrade Plainkit (they carry the version of the release they came from, in their first lines).
 

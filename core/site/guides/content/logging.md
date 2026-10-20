@@ -4,7 +4,7 @@ order: 7
 summary: What the SDK logs and when, how to turn it up, how to write your own entries into the same log, and how to see them.
 ---
 
-Nothing in Plainkit fails silently. A mistake in your markup, a module that did not load, a value that had to fall back to its default: each is logged, by one small logger that your own code can use too. The default level is `warn`, so a production page stays quiet until something is wrong. The agent skill's [logging reference](../../dist/skills/plainkit-sdk/references/logging.md) has the full API; this guide is the practical part.
+Nothing in Plainkit fails silently. A mistake in your markup, a module that did not load, a value that had to fall back to its default: each is logged, by one small logger that your own code can use too. The default level is `warn`, so a production page stays quiet until something is wrong. The agent skill's [logging reference](https://skulmunkie.github.io/plainkit/skills/plainkit-sdk/references/logging.md) has the full API; this guide is the practical part.
 
 ## What you will see
 
