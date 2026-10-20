@@ -139,22 +139,26 @@
     },
     {
       "id": "plainkit.canvas",
-      "title": "Canvas and design surface",
-      "built": false,
+      "title": "Canvas",
+      "built": true,
       "requires": [
         "plainkit"
       ],
       "blazorOption": "canvas",
       "elements": [
-        "pk-canvas",
-        "pk-design-surface",
-        "pk-tray",
-        "pk-property-grid"
+        "pk-canvas"
       ],
-      "js": [],
+      "js": [
+        "canvas-geometry.js",
+        "canvas-rulers.js",
+        "canvas-select.js",
+        "canvas-style.js",
+        "svg/",
+        "viewport-logic.js"
+      ],
       "maxPackedBytes": null,
-      "maxUnpackedBytes": null,
-      "maxZipBytes": null
+      "maxUnpackedBytes": 47100,
+      "maxZipBytes": 21710
     }
   ],
   "siteOnly": [

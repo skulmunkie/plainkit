@@ -146,7 +146,7 @@ if (location.hostname === 'localhost') {
 }
 ```
 
-Development only (Ctrl+\` toggles it). The tools are their own unit, `dist/modules/`: unzip `plainkit-modules-<version>.zip` (or `plainkit.tools-<version>.zip`, the same modules plus the helper files they use, for a core + modules setup) into the runtime `dist` folder so it lands at `plainkit/modules/`. Options, the handle, custom panels and every other tool (`mountLogs`, `mountScorecard`, `mountThemeEditor`, ...): `references/tools.md`.
+Development only (Ctrl+\` toggles it). The tools are their own unit, `dist/modules/`: unzip `plainkit-modules-<version>.zip` (or `plainkit.tools-<version>.zip`, the same modules plus the helper files they use, for a core + modules setup). `pk-canvas` (with `js/svg/`, the SVG toolkit) is likewise its own unit in a lean setup: `plainkit.canvas-<version>.zip` unzipped over the runtime folder; the full zip and `dist/` already contain it into the runtime `dist` folder so it lands at `plainkit/modules/`. Options, the handle, custom panels and every other tool (`mountLogs`, `mountScorecard`, `mountThemeEditor`, ...): `references/tools.md`.
 
 `mountDevTools` is a thin consumer of `mountToolDock`, the generic docked tabbed panel (`pk-tray` is the same job in your own markup); when to use each, how it differs from `pk-dock`, and the options: `references/tools.md`, "Tool dock and tray".
 
