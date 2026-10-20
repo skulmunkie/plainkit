@@ -12,7 +12,7 @@
 //
 // Options: baselineUrl (where to fetch the module baseline JSON from; default '/_audit/module-baseline.json', served by core/tools/serve.mjs
 // from the repo-root plainkit.audit.modules.baseline.json), theme, height (any CSS length; default 32rem), persistKey (pk-dock layout
-// persistence, see pk-dock's own persistKey), reviewUrl (review-output/manifest.json; default '/_audit/ui-review-manifest.json'; absent = empty state).
+// persistence, see pk-dock's own persistKey), reviewUrl (review-output/manifest.json; default '/_audit/ui-review-manifest.json'; absent = empty state), screensBase (where the screenshot PNGs are served from; default '/_audit/review/', see tools/serve.mjs --review-dir; absent = empty state).
 // Returns { refresh(), selectBaseline(id), destroy() }.
 
 import { ensureStyles, styleUrls, loadJson, h, on } from '../../js/mount-support.js';
@@ -25,11 +25,12 @@ const log = createLogger('audit-dashboard');
 const STYLES = ['../../plainkit.css'];
 export const DEFAULT_BASELINE_URL = '/_audit/module-baseline.json';
 export const DEFAULT_REVIEW_URL = '/_audit/ui-review-manifest.json';
+export const DEFAULT_SCREENS_BASE = '/_audit/review/';
 const COLUMNS = [{ key: 'file', label: 'File' }, { key: 'rule', label: 'Rule' }, { key: 'count', label: 'Count' }];
 const REGEN_COMMAND = 'node scripts/audit-modules.mjs';
 
 export async function mountAuditDashboard(container, options = {}) {
-    const { baselineUrl = DEFAULT_BASELINE_URL, reviewUrl = DEFAULT_REVIEW_URL, theme, height, persistKey } = options;
+    const { baselineUrl = DEFAULT_BASELINE_URL, reviewUrl = DEFAULT_REVIEW_URL, screensBase = DEFAULT_SCREENS_BASE, theme, height, persistKey } = options;
     const doc = container.ownerDocument;
     await ensureStyles(styleUrls(STYLES, import.meta.url), doc);
 
@@ -59,7 +60,9 @@ export async function mountAuditDashboard(container, options = {}) {
     // The UI-review panel is its own chunk: fetched here, at mount, never as part of the app entry graph.
     const { createReviewPanel } = await import('./review-panel.js');
     const review = createReviewPanel(doc, { reviewUrl, onSelect: finding => showDetail(review.detail(finding)) });
-    const dock = h(doc, 'pk-dock', { label: 'Audit dashboard', fill: true }, baselinePanel, review.panel, propertiesPanel);
+    const { createScreensPanel } = await import('./screens-panel.js');
+    const screens = createScreensPanel(doc, { reviewUrl, screensBase });
+    const dock = h(doc, 'pk-dock', { label: 'Audit dashboard', fill: true }, baselinePanel, review.panel, screens.panel, propertiesPanel);
     if (persistKey) dock.setAttribute('persist-key', persistKey);
     const root = h(doc, 'div', { class: 'ad-module' }, dock);
     if (theme) root.setAttribute('data-theme', theme);
@@ -114,9 +117,9 @@ export async function mountAuditDashboard(container, options = {}) {
     on(refreshBtn, 'click', () => load());
     on(table, 'pk-row-click', e => { selectedId = e.detail?.id ?? null; drawProperties(); });
 
-    await Promise.all([load(), review.load()]);
+    await Promise.all([load(), review.load(), screens.load()]);
     return {
-        refresh: () => Promise.all([load(), review.load()]),
+        refresh: () => Promise.all([load(), review.load(), screens.load()]),
         selectBaseline(id) { selectedId = rows.some(r => r.id === id) ? id : null; drawProperties(); },
         destroy() { root.remove(); },
     };

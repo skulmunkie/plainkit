@@ -356,6 +356,7 @@ import { fieldGroupCases } from './cases-field-group.js'; cases.push(...fieldGro
 import { recordFormCases } from './cases-record-form.js'; cases.push(...recordFormCases);
 import { moduleMountCases, zeroGapCases, markdownInBuilderCases } from './cases-modules-mount.js'; cases.push(...moduleMountCases, ...zeroGapCases, ...markdownInBuilderCases);
 import { auditDashboardCases } from './cases-audit-dashboard.js'; cases.push(...auditDashboardCases);
+import { auditScreensCases } from './cases-audit-screens.js'; cases.push(...auditScreensCases);
 import { dockCases } from './cases-dock.js'; cases.push(...dockCases);
 import { navItemCases } from './cases-nav-item.js'; cases.push(...navItemCases);
 import { emptyPartsCases } from './cases-empty-parts.js'; cases.push(...emptyPartsCases);

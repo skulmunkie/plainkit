@@ -8,6 +8,7 @@ import net from 'node:net';
 import path from 'node:path';
 import { spawn } from 'node:child_process';
 import { fileURLToPath } from 'node:url';
+import { makeTempDir, removeTree } from '../tools/tempdir.mjs';
 import './needs-bootstrap.mjs';
 
 const core = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
@@ -86,4 +87,32 @@ test('with --write-reports, a report is written only by a same-origin request: a
             assert.equal(fs.readFileSync(report, 'utf8'), before, 'a cross-site POST changed report.json');
         });
     } finally { if (existed) fs.writeFileSync(report, before); else fs.rmSync(report, { force: true }); } // leave a pre-existing report untouched; remove the one we seeded
+});
+
+test('the review route serves only png files and manifest.json of the one review folder (--review-dir), read-only, never listing or leaving it', async () => {
+    const dir = makeTempDir('pk-review-');
+    const inner = path.join(dir, 'review');
+    fs.mkdirSync(inner);
+    fs.writeFileSync(path.join(inner, 'pk-card__01__desktop__light.png'), 'PNGDATA');
+    fs.writeFileSync(path.join(inner, 'manifest.json'), '{"findings":[]}');
+    fs.writeFileSync(path.join(inner, 'notes.txt'), 'TXT-SECRET');
+    fs.writeFileSync(path.join(dir, 'outside.png'), 'OUTSIDE-SECRET');
+    try {
+        await withServer([`--review-dir=${inner}`], async port => {
+            const ok = await raw(port, 'GET /_audit/review/pk-card__01__desktop__light.png');
+            assert.equal(ok.status, 200); assert.ok(ok.body.includes('PNGDATA'));
+            assert.equal((await raw(port, 'GET /_audit/review/manifest.json')).status, 200);
+            assert.ok((await raw(port, 'GET /_audit/ui-review-manifest.json')).body.includes('findings'), 'the manifest alias follows --review-dir');
+            const head = (await raw(port, 'GET /_audit/review/manifest.json')).body;
+            assert.ok(head.includes('findings'));
+            const refused = ['/_audit/review/', '/_audit/review', '/_audit/review/notes.txt', '/_audit/review/missing.png', '/_audit/review/..%2foutside.png', '/_audit/review/%2e%2e%2foutside.png',
+                '/_audit/review/..\outside.png', '/_audit/review/..%5coutside.png', '/_audit/review/../outside.png', '/_audit/review/.hidden.png', '/_audit/review/a.png%00.txt', '/_audit/review/sub/x.png',
+                `/_audit/review/${encodeURIComponent(path.join(dir, 'outside.png'))}`, '/_audit/review/%2e%2e/outside.png'];
+            for (const t of refused) {
+                const r = await raw(port, `GET ${t}`);
+                assert.ok(r.status !== 200 && !r.body.includes('SECRET'), `${t} answered ${r.status}`);
+            }
+            assert.equal((await raw(port, 'POST /_audit/review/x.png', { 'content-length': 0 })).status === 200, false, 'the route is read only');
+        });
+    } finally { removeTree(dir); }
 });
