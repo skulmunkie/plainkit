@@ -20,6 +20,15 @@ public sealed class PkBindTests : BunitContext, IAsyncLifetime
     }
 
     [Fact]
+    public void Select_KeepUnknownValue_and_UnknownValueLabel_reach_the_element()
+    {
+        var cut = Render<PkSelect>(p => p.Add(x => x.Value, "gone").Add(x => x.KeepUnknownValue, true).Add(x => x.UnknownValueLabel, "Retired"));
+        var el = cut.Find("pk-select");
+        Assert.True(el.HasAttribute("keep-unknown-value"));
+        Assert.Equal("Retired", el.GetAttribute("unknown-value-label"));
+    }
+
+    [Fact]
     public async Task Tabs_ValueChanged_follows_pk_tab_change()
     {
         string? got = null;
