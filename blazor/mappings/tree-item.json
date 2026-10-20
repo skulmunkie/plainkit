@@ -24,6 +24,11 @@
       "type": "bool"
     },
     {
+      "name": "Href",
+      "prop": "href",
+      "type": "string"
+    },
+    {
       "name": "Disabled",
       "prop": "disabled",
       "type": "bool"
@@ -52,6 +57,12 @@
       "name": "OnSelect",
       "event": "pk-select",
       "type": "EventCallback<PkSelectEventArgs>"
+    },
+    {
+      "name": "OnNavigate",
+      "event": "pk-navigate",
+      "type": "EventCallback",
+      "cancelable": true
     },
     {
       "name": "OnToggle",
