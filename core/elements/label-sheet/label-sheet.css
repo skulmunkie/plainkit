@@ -1,0 +1,3 @@
+:host { display: grid; grid-template-columns: repeat(var(--_cols, auto-fill), var(--pk-label-sheet-cell-width, var(--_cw))); grid-auto-rows: var(--pk-label-sheet-cell-height, var(--_ch)); gap: var(--pk-label-sheet-gap, var(--_gap)); justify-content: start; overflow-x: auto; margin-block-start: var(--_oy); margin-inline-start: var(--_ox); print-color-adjust: exact; }
+::slotted(*) { box-sizing: border-box; overflow: clip; break-inside: avoid; page-break-inside: avoid; padding: var(--pk-label-sheet-pad, 0); }
+:host([outline]) ::slotted(*) { outline: 1px dashed var(--color-border); outline-offset: 0; }
