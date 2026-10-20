@@ -113,7 +113,7 @@ jobs:
 
       # The agent skills as their own asset: the skill folders (plainkit-sdk/, plainkit-blazor/) at the top of the zip, ready to unzip into .claude/skills/.
       - name: Zip the agent skills for the release
-        run: cd core/dist/skills && zip -r ../../../plainkit-skills-$VERSION.zip .
+        run: cd dist-skills && zip -r ../plainkit-skills-$VERSION.zip .
 
       - name: Collect the release assets
         run: |

@@ -38,6 +38,33 @@ async function inlineGallery(t, id, width) {
 }
 
 export const dataDisplayCases = [
+    ['pk-table raw mode (#1698): width=fit shrinks a column to its content, width=sm|md|lg set 6, 10 and 16rem, with no class', async t => {
+        const el = await t.mount('<pk-table label="W"><table><thead><tr><th>Name</th><th width="sm">S</th><th width="md">M</th><th width="lg">L</th><th width="fit">F</th></tr></thead><tbody><tr><td>A long name that wants the room</td><td>1</td><td>2</td><td>3</td><td><button>Remove</button></td></tr></tbody></table></pk-table>');
+        await t.settle();
+        const ths = [...el.querySelectorAll('th')], w = i => ths[i].getBoundingClientRect().width, rem = parseFloat(getComputedStyle(el).fontSize);
+        const box = ths[4].getBoundingClientRect(), btn = el.querySelector('button').getBoundingClientRect();
+        t.ok(Math.abs(w(1) - 6 * rem) <= 2, `sm is 6rem, got ${w(1)}px`); t.ok(Math.abs(w(2) - 10 * rem) <= 2, `md is 10rem, got ${w(2)}px`); t.ok(Math.abs(w(3) - 16 * rem) <= 2, `lg is 16rem, got ${w(3)}px`);
+        t.ok(box.width <= btn.width + 2 * 2 * rem, `fit hugs its content: ${box.width}px for a ${btn.width}px button`);
+        t.ok(w(0) > w(4), 'the unmarked column takes the rest');
+    }],
+    ['pk-table raw mode (#1698), 375px: a name, amount (width=sm input) and action (width=fit button) table fits the frame, the input keeps the 44px touch target, and at 1200px nothing changes', async t => {
+        const { sampleDoc } = await import('../../site/gallery/frame.js');
+        const html = '<pk-table label="Lines"><table><thead><tr><th>Name</th><th width="sm">Amount</th><th width="fit"><span class="u-sr-only">Actions</span></th></tr></thead><tbody><tr><td>Bracket</td><td><pk-input value="4.00"></pk-input></td><td><pk-button size="mini" variant="ghost">Remove</pk-button></td></tr></tbody></table></pk-table>';
+        const at = async width => {
+            const host = t.stage(''), f = document.createElement('iframe');
+            f.title = 'sample'; f.style.width = `${width}px`; f.style.height = '320px'; f.style.border = '0';
+            const loaded = new Promise(r => f.addEventListener('load', r, { once: true })); host.append(f); f.srcdoc = sampleDoc(html); await loaded;
+            const el = await until(() => f.contentDocument.querySelector('pk-table')?.shadowRoot?.querySelector('[part="scroll"]') && f.contentDocument.querySelector('pk-table'), 'the table');
+            await Promise.all(['pk-input', 'pk-button'].map(n => f.contentWindow.customElements.whenDefined(n))); await new Promise(r => setTimeout(r, 300));
+            const r = el.getBoundingClientRect(), b = el.querySelector('pk-button').getBoundingClientRect(), sc = el.shadowRoot.querySelector('[part="scroll"]'), inp = el.querySelector('pk-input').shadowRoot.querySelector('input').getBoundingClientRect();
+            return { left: b.left - r.left, right: r.right - b.right, over: sc.scrollWidth - sc.clientWidth, inpW: inp.width, inpH: inp.height };
+        };
+        const phone = await at(375);
+        t.ok(phone.right >= -0.5 && phone.left >= 0, `the action button sits inside the table (${phone.left}px from the start, ${phone.right}px from the end)`);
+        t.ok(phone.over <= 1, `the table does not scroll sideways (${phone.over}px over)`);
+        t.ok(phone.inpW >= 44 && phone.inpH >= 44, `the amount input keeps the touch target (${phone.inpW}x${phone.inpH}px)`);
+        const wide = await at(1200); t.ok(wide.inpW > 100, `on a wide screen the input keeps its usual width (${wide.inpW}px)`);
+    }],
     // ---- the gallery's inline pattern views run the pattern's script inside the sample frame -------------------------------------------------
     ['gallery inline patterns: notifications, unsaved settings and onboarding respond to clicks and edits in the sample frame, at desktop and phone width, with nothing in the log', async t => {
         for (const width of [1200, 375]) {

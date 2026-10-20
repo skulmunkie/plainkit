@@ -218,11 +218,11 @@ app.MapRazorComponents<App>()
 
 ### The skills, the references and the most-used parameters
 
-The package carries two agent skills, `plainkit-blazor` and `plainkit-sdk`, and their `references/` folders hold every component with its parameters, enums and events. **Start with `references/components-index.md`** (in the `plainkit-blazor` skill): it lists every component and names the file with its parameters. Copy the skills into your project once (see "Agent skills" below for every source):
+The agent skills are **not** in the package: they are served by the Pages site (https://skulmunkie.github.io/plainkit/skills/index.html) and attached to each release as `plainkit-skills-<version>.zip`. They are two skills, `plainkit-blazor` and `plainkit-sdk`, and their `references/` folders hold every component with its parameters, enums and events. **Start with `references/components-index.md`** (in the `plainkit-blazor` skill): it lists every component and names the file with its parameters. Point your agent at the Pages page, or copy the skills into your project once (see "Agent skills" below for every source):
 
 ```bash
-# the NuGet cache folder: dotnet nuget locals global-packages -l
-cp -r ~/.nuget/packages/plainkit.blazor/<version>/staticwebassets/plainkit/skills/* .claude/skills/
+# unzip the release asset into the project
+unzip plainkit-skills-<version>.zip -d .claude/skills/
 ```
 
 The most-used parameters (the full lists are in the references):
@@ -566,9 +566,9 @@ await PkLog.SetLevelAsync(PkLogLevel.Debug);
 
 ## Agent skills
 
-The package serves two skills for developer agents (Claude Code and others) as static web assets, next to the toolkit: `plainkit-blazor` (these components, their parameters, enums and events, `AddPlainKit`, `PkOptions`, `IPkLog`, the dev tools, what is not available yet) and `plainkit-sdk` (the underlying `pk-*` elements, needed for the raw elements that have no component yet). Each is a short `SKILL.md` plus plain markdown `references/`, generated from the same sources as the components and tested, at the version of this package.
+Two skills for developer agents (Claude Code and others) are served beside the toolkit on the Pages site, not packaged in this NuGet package: `plainkit-blazor` (these components, their parameters, enums and events, `AddPlainKit`, `PkOptions`, `IPkLog`, the dev tools, what is not available yet) and `plainkit-sdk` (the underlying `pk-*` elements, needed for the raw elements that have no component yet). Each is a short `SKILL.md` plus plain markdown `references/`, generated from the same sources as the components and tested, at the version of the release.
 
-- **Claude Code:** copy the two folders into `.claude/skills/` of your project (or `~/.claude/skills/`). Get them from the `plainkit-skills-<version>.zip` on the [GitHub release](https://github.com/skulmunkie/plainkit/releases), or from a running app: `_content/PlainKit.Blazor/plainkit/skills/<skill>/SKILL.md` and `.../references/<file>.md` (verified in Development).
+- **Claude Code:** copy the two folders into `.claude/skills/` of your project (or `~/.claude/skills/`). Get them from the `plainkit-skills-<version>.zip` on the [GitHub release](https://github.com/skulmunkie/plainkit/releases), or from the Pages site: `https://skulmunkie.github.io/plainkit/skills/<skill>/SKILL.md` and `.../references/<file>.md` (index and hashes: `https://skulmunkie.github.io/plainkit/skills/index.html`).
 - **Any other agent:** read the markdown under `references/` (start with `components-index.md`); nothing in it is specific to one tool.
 
 ### Using the skills with an agent
@@ -578,10 +578,8 @@ The package serves two skills for developer agents (Claude Code and others) as s
 | You have | Install (from the project root) |
 |---|---|
 | The GitHub release | `gh release list --repo skulmunkie/plainkit` shows the versions, then `gh release download <tag> --repo skulmunkie/plainkit --pattern "plainkit-skills-*.zip"` (for example the newest tag), then unzip into `.claude/skills/` (each skill is one folder: `plainkit-sdk/`, `plainkit-blazor/`) |
-| The NuGet package (PlainKit.Blazor) | copy `<version>/staticwebassets/plainkit/skills/*` from the NuGet cache into `.claude/skills/`; `dotnet nuget locals global-packages -l` prints the cache folder (usually `~/.nuget/packages/plainkit.blazor/`) |
-| The npm package | copy `node_modules/plainkit/dist/skills/*` into `.claude/skills/` |
-| A clone (after `node scripts/bootstrap.mjs`) or the `dist` zip | copy `core/dist/skills/*` (in the zip: `skills/*`) into `.claude/skills/` |
-| Nothing local, only the internet | each file is also served on the [Pages site](https://skulmunkie.github.io/plainkit/) at `dist/skills/<skill>/SKILL.md` (and `dist/skills/<skill>/references/<file>.md`) |
+| A clone (after `node scripts/bootstrap.mjs`) | copy `dist-skills/*` (generated, not in git) into `.claude/skills/` |
+| The Pages site (nothing to install) | point the agent at <https://skulmunkie.github.io/plainkit/skills/index.html>: it lists each skill with its files and a one-line instruction, and `manifest.json` beside it has every file with its size and SHA-256 hash. Each file is `skills/<skill>/SKILL.md` or `skills/<skill>/references/<file>.md` under the Pages root; the skills are not inside the npm package, the `dist` zip or the NuGet package |
 
 Commit the folders to the project so every agent and teammate gets them, and re-copy them when you upgrade Plainkit (they carry the version of the release they came from, in their first lines).
 

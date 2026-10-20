@@ -9,12 +9,18 @@ import { checkPackage, checkNpmPackage, listZip, readEntry, inspectNupkg, findNu
 import { makeTempDir } from '../../core/tools/tempdir.mjs';
 
 const GOOD = ['PlainKit.Blazor.nuspec', 'README.md', 'lib/net10.0/PlainKit.Blazor.dll', 'lib/net10.0/PlainKit.Blazor.xml', 'staticwebassets/plainkit/manifest.json', 'staticwebassets/plainkit/modules/manifest.json', ...['devtools/devtools.js', 'theme-editor/theme-editor.js', 'logs/logs.js', 'layout-builder/layout-builder.js', 'scorecard/scorecard.js'].map(f => `staticwebassets/plainkit/modules/${f}`),
-    'staticwebassets/plainkit/plainkit.css', 'staticwebassets/plainkit/skills/plainkit-sdk/SKILL.md', 'staticwebassets/plainkit/skills/plainkit-blazor/SKILL.md', 'buildTransitive/PlainKit.Blazor.targets'];
+    'staticwebassets/plainkit/plainkit.css', 'buildTransitive/PlainKit.Blazor.targets'];
 const TARGETS = '<Project><ItemGroup>' + ['Components', 'Pages', 'Shells'].map(t => `<Using Include="PlainKit.Blazor.${t}" />`).join('') + '</ItemGroup></Project>';
 const nuspec = v => `<package><metadata><id>PlainKit.Blazor</id><version>${v}</version></metadata></package>`;
 const input = (over = {}) => ({ entries: GOOD, nuspec: nuspec('1.2.3-alpha.1'), fileName: 'PlainKit.Blazor.1.2.3-alpha.1.nupkg', version: '1.2.3-alpha.1', ...over });
 
 test('a good package has no problems', () => assert.deepEqual(checkPackage(input()), []));
+
+test('the agent skills are not packaged: a skills/ static web asset is refused (#1656)', () => {
+    const p = checkPackage(input({ entries: [...GOOD, 'staticwebassets/plainkit/skills/plainkit-sdk/SKILL.md'] }));
+    assert.equal(p.length, 1);
+    assert.match(p[0], /skills\/.*not packaged/);
+});
 
 test('content/ and contentFiles/ entries are refused', () => {
     const p = checkPackage(input({ entries: [...GOOD, 'content/Generated/generated.manifest.json', 'contentFiles/any/net10.0/x.json'] }));
@@ -40,9 +46,9 @@ test('a frameworkReference in the nuspec is refused (a Blazor WebAssembly app ca
 });
 
 test('missing pieces are named', () => {
-    const p = checkPackage(input({ entries: GOOD.filter(e => !/dll|plainkit-blazor\/SKILL|^staticwebassets\/plainkit\/manifest\.json$/.test(e) || e.endsWith('.nuspec')) }));
-    assert.equal(p.filter(x => x.startsWith('missing')).length, 3);
-    assert.ok(p.some(x => /assembly/.test(x)) && p.some(x => /plainkit-blazor skill/.test(x)) && p.some(x => /static web assets/.test(x)));
+    const p = checkPackage(input({ entries: GOOD.filter(e => !/dll|^staticwebassets\/plainkit\/manifest\.json$/.test(e) || e.endsWith('.nuspec')) }));
+    assert.equal(p.filter(x => x.startsWith('missing')).length, 2);
+    assert.ok(p.some(x => /assembly/.test(x)) && p.some(x => /static web assets/.test(x)));
 });
 
 test('the modules unit is required: its manifest and the tools the Blazor wrappers import', () => {

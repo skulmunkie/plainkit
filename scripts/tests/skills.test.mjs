@@ -1,4 +1,4 @@
-// The agent skills bundle (core/dist/skills, built by scripts/build-skills.mjs): current, deterministic, valid, complete, and every code sample in it
+// The agent skills bundle (dist-skills/, served by Pages at skills/, built by scripts/build-skills.mjs): current, deterministic, valid, complete, and every code sample in it
 // verified against the sources of truth: the SDK samples parse as HTML and use only real pk-* tags, props, slots and enum values from api.json;
 // the JavaScript samples parse and import only real exports with real options; the Razor and C# samples use only real Pk* components, parameters,
 // enums and options from the generated components and the C# sources.
@@ -10,6 +10,7 @@ import path from 'node:path';
 import crypto from 'node:crypto';
 import { spawnSync } from 'node:child_process';
 import { collect, generate, differences, diskFiles, crlf, exportsOf, parseFrontmatter, SKILL_NAMES, GROUP_FILES, EXAMPLE_ISSUES, groupSlug, csMembers, razorParams, csEnums, csEventArgs, headerComment, root } from '../build-skills.mjs';
+import { skillsManifest, skillsIndexHtml } from '../skills-site.mjs';
 import { kebab, pkName } from '../generate-blazor.mjs';
 import { src, byTag, knownTypes, checkHtml, checkRazor, checkCode, checkJs } from './sample-checkers.mjs';
 
@@ -84,25 +85,30 @@ test('no personal paths or real email addresses in any file', () => {
     }
 });
 
-test('the SRI manifest lists every skill file with its size and hash', () => {
-    // two manifests: the package's files, and the extras (here the plainkit-blazor skill, which the npm package leaves out, #1253)
-    const listed = new Map(['manifest.json', 'manifest.extras.json'].flatMap(n => JSON.parse(read(path.join(dist, n))).files).map(f => [f.path, f]));
-    for (const [f, text] of gen) {
-        const e = listed.get(`skills/${f}`);
-        assert.ok(e, `skills/${f} is not in dist/manifest.json: run node scripts/build-skills.mjs`);
-        const bytes = Buffer.from(crlf(text));
-        assert.equal(e.bytes, bytes.length);
-        assert.equal(e.integrity, 'sha256-' + crypto.createHash('sha256').update(bytes).digest('base64'));
-    }
-    assert.equal([...listed.keys()].filter(p => p.startsWith('skills/')).length, gen.size);
-});
-
-test('the package copy of dist carries the skills as static web assets (wwwroot), not as project content', () => {
+test('the skills are not in core/dist or its manifests, and not in the package copy of dist (wwwroot): Pages serves them at skills/ with their own manifest (#1656)', () => {
+    for (const n of ['manifest.json', 'manifest.extras.json']) assert.deepEqual(JSON.parse(read(path.join(dist, n))).files.filter(f => f.path.startsWith('skills/')), [], n);
+    assert.ok(!fs.existsSync(path.join(dist, 'skills')), 'core/dist/skills must not exist');
     const csproj = read(path.join(root, 'blazor', 'src', 'PlainKit.Blazor', 'PlainKit.Blazor.csproj'));
     assert.doesNotMatch(csproj, /skills/i);
     assert.doesNotMatch(csproj, /<Content Include/);
-    const copy = path.join(root, 'blazor', 'src', 'PlainKit.Blazor', 'wwwroot', 'plainkit', 'skills');
-    assert.deepEqual([...diskFiles(copy).keys()].sort(), [...gen.keys()].sort(), 'run node scripts/bootstrap.mjs');
+    assert.ok(!fs.existsSync(path.join(root, 'blazor', 'src', 'PlainKit.Blazor', 'wwwroot', 'plainkit', 'skills')), 'run node scripts/bootstrap.mjs');
+});
+
+test('the Pages skills page lists every skill file with its size and hash, and an index with one instruction per skill (scripts/skills-site.mjs)', () => {
+    const files = [...gen].map(([f, text]) => ({ path: f, data: Buffer.from(crlf(text)) })).sort((x, y) => (x.path < y.path ? -1 : 1));
+    const version = read(path.join(core, 'VERSION')).trim();
+    const manifest = JSON.parse(skillsManifest(files, version));
+    assert.equal(manifest.version, version);
+    assert.equal(manifest.files.length, gen.size);
+    for (const e of manifest.files) {
+        const bytes = Buffer.from(crlf(gen.get(e.path)));
+        assert.equal(e.bytes, bytes.length, e.path);
+        assert.equal(e.integrity, 'sha256-' + crypto.createHash('sha256').update(bytes).digest('base64'), e.path);
+    }
+    const html = skillsIndexHtml(files, version);
+    for (const name of SKILL_NAMES) { assert.ok(html.includes(`href="${name}/SKILL.md"`), name); assert.ok(html.includes(`skills/${name}/SKILL.md, then`), name); }
+    for (const [f] of gen) assert.ok(html.includes(`href="${f}"`), f);
+    assert.doesNotMatch(html, /<style|<script|style="| on\w+=/);
 });
 
 test('node scripts/build-skills.mjs --check passes on a current bundle', () => {

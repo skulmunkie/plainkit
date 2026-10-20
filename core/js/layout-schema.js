@@ -11,13 +11,14 @@ export const has = (o, k) => Object.prototype.hasOwnProperty.call(o, k);
 // ---------------------------------------------------------------- what may exist: pk-* elements from the API, and native content tags
 
 export const S = 'string', B = 'boolean', N = 'number';
+const CELL_W = ['fit', 'sm', 'md', 'lg'];
 export const NATIVE = {
     h1: {}, h2: {}, h3: {}, h4: {}, h5: {}, h6: {}, p: {}, div: {}, span: {}, section: {}, article: {}, aside: {}, header: {}, footer: {}, main: {}, nav: {},
     ul: {}, ol: { start: N, reversed: B }, li: { value: N }, dl: {}, dt: {}, dd: {}, blockquote: { cite: S }, pre: {}, figure: {}, figcaption: {},
     a: { href: S, target: S, rel: S, download: S }, strong: {}, em: {}, b: {}, i: {}, u: {}, small: {}, code: {}, kbd: {}, mark: {}, sub: {}, sup: {},
     abbr: {}, cite: {}, q: { cite: S }, time: { datetime: S }, label: { for: S }, br: {}, hr: {},
     img: { src: S, alt: S, width: N, height: N, loading: ['lazy', 'eager'] },
-    table: {}, caption: {}, thead: {}, tbody: {}, tfoot: {}, tr: {}, th: { colspan: N, rowspan: N, scope: ['row', 'col', 'rowgroup', 'colgroup'] }, td: { colspan: N, rowspan: N },
+    table: {}, caption: {}, thead: {}, tbody: {}, tfoot: {}, tr: {}, th: { colspan: N, rowspan: N, scope: ['row', 'col', 'rowgroup', 'colgroup'], width: CELL_W }, td: { colspan: N, rowspan: N, width: CELL_W },
     input: { type: ['text', 'search', 'email', 'tel', 'url', 'number', 'password', 'checkbox', 'radio', 'date', 'time', 'range', 'color'], name: S, value: S, placeholder: S, checked: B, disabled: B, readonly: B, required: B, min: S, max: S, step: S, minlength: N, maxlength: N, pattern: S, autocomplete: S },
     option: { value: S, selected: B, disabled: B, label: S }, button: { type: ['button', 'submit', 'reset'], disabled: B, name: S, value: S },
 };

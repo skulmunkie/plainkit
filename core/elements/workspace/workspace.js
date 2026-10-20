@@ -2,6 +2,8 @@
 // tab strip switches it. The pure logic (which panes exist, which one shows, how the arrow keys move) is exported so node can test it.
 import { mediaBelow } from '../../js/breakpoints.js';
 
+// navWidth words to widths; anything else is taken as a CSS length (an unknown word is ignored by the browser).
+export const NAV_WIDTHS = { sm: '12rem', md: '17.5rem', lg: '24rem', xl: '32rem' };
 export const PANES = ['nav', 'main', 'aside'];
 
 // Pure: which panel ids are visible, given the list of panel ids and the active one. Unknown ids show nothing.
@@ -57,6 +59,8 @@ export default Base => class extends Base {
         if (focus) this.part('strip').querySelector(`[data-pane="${pane}"]`)?.focus();
     }
     updated() {
+        const w = this.navWidth;
+        if (w) this.style.setProperty('--pk-workspace-nav-w', NAV_WIDTHS[w] ?? w); else this.style.removeProperty('--pk-workspace-nav-w');
         const root = this.part('root');
         const hasNav = this.slotted('nav').length > 0; const hasAside = this.slotted('aside').length > 0;
         const avail = this.$avail = availablePanes({ nav: hasNav, aside: hasAside, asideOpen: this.asideOpen });

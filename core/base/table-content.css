@@ -4,6 +4,10 @@ pk-table {
     & table { inline-size: 100%; border-collapse: collapse; font-size: var(--text-base); }
     & :is(th, td) { padding: var(--pad-cell); border-block-end: 1px solid var(--color-border); text-align: start; }
     & th { color: var(--color-muted); font-size: var(--text-meta); font-weight: 500; letter-spacing: 0.05em; text-transform: uppercase; }
+    & [width="fit"] { inline-size: 1%; white-space: nowrap; }
+    & [width="sm"] { inline-size: 6rem; }
+    & [width="md"] { inline-size: 10rem; }
+    & [width="lg"] { inline-size: 16rem; }
     & :is(th, td).num { text-align: end; font-variant-numeric: tabular-nums; }
     & td code { padding: 0.1rem 0.4rem; border-radius: var(--radius-xs); background: var(--color-bg); font-size: var(--text-md); }
     & th[aria-sort] { cursor: pointer; user-select: none; }
@@ -29,6 +33,10 @@ pk-table.dg-body {
 }
 
 @media (max-width: 640px) {
+
+    /* a form control in a raw table cell asks for its own intrinsic width (about 12rem), so a table of name, amount and action overflowed 375px and the last column scrolled out of view (#1698):
+       on a phone the control fills its cell and the column keeps an 8rem floor (a 44px touch target inside the cell padding and the box padding). */
+    pk-table:not(.dg-body) td:has(> :is(pk-input, pk-select, pk-textarea)) { min-inline-size: 8rem; & > :is(pk-input, pk-select, pk-textarea) { inline-size: 100%; contain: inline-size; } }
 
     /* a table grid: rows scroll in a bounded frame, the header and the identity column stay put */
     pk-table.dg-body {

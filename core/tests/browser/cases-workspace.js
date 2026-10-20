@@ -372,4 +372,26 @@ export const workspaceCases = [
         }
         t.ok(win.innerWidth === 375, 'a phone-width frame');
     }],
+    ['workspace (1200px, #1696): nav-width sets the nav column (a word or a CSS length) and clearing it restores the default; a long tree label is cut with an ellipsis and carries its full text as a title only while it is cut', async t => {
+        const long = 'quarterly_revenue_by_region_and_product_line_2026';
+        const html = `<pk-workspace nav-width="sm"><pk-tree slot="nav" label="Tables"><pk-tree-item label="${long}" id="long"></pk-tree-item><pk-tree-item label="a" id="short"></pk-tree-item></pk-tree><div>Main</div></pk-workspace>`;
+        const { doc, win } = await frame(t, html, 1200);
+        await until(() => win.customElements.get('pk-tree-item'), 'pk-tree-item to be defined in the frame');
+        const ws = doc.querySelector('pk-workspace'); const navW = () => Math.round(pane(ws, 'nav').getBoundingClientRect().width);
+        const rem = parseFloat(getComputedStyle(doc.documentElement).fontSize);
+        t.ok(Math.abs(navW() - 12 * rem) <= 1, `sm is 12rem, got ${navW()}px`);
+        ws.navWidth = 'xl'; await t.settle(); t.ok(Math.abs(navW() - 32 * rem) <= 1, `xl is 32rem, got ${navW()}px`);
+        ws.navWidth = '20rem'; await t.settle(); t.ok(Math.abs(navW() - 20 * rem) <= 1, `a CSS length is used as given, got ${navW()}px`);
+        ws.navWidth = 'sm'; await t.settle();
+        const label = id => doc.getElementById(id).shadowRoot.querySelector('[part="label"]');
+        const row = id => doc.getElementById(id).shadowRoot.querySelector('[part="row"]');
+        const n = pane(ws, 'nav').getBoundingClientRect();
+        t.ok(row('long').getBoundingClientRect().right <= n.right + 1, 'the long row stays inside the nav pane');
+        t.eq(getComputedStyle(label('long')).textOverflow, 'ellipsis'); t.eq(getComputedStyle(label('long')).whiteSpace, 'nowrap');
+        t.ok(label('long').scrollWidth > label('long').clientWidth, 'the long label is cut off');
+        label('long').dispatchEvent(new win.PointerEvent('pointerenter')); label('short').dispatchEvent(new win.PointerEvent('pointerenter'));
+        t.eq(label('long').title, long, 'a cut label carries its full text as a title');
+        t.ok(!label('short').hasAttribute('title'), 'a label that fits has no title');
+        ws.navWidth = ''; await t.settle(); t.ok(Math.abs(navW() - 13.75 * rem) <= 1, `cleared: back to the default (13.75rem on a wide screen), got ${navW()}px`);
+    }],
 ];

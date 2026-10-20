@@ -11,6 +11,7 @@ import path from 'node:path';
 import { spawnSync } from 'node:child_process';
 import { fileURLToPath } from 'node:url';
 import { ensureGenerated } from './generated.mjs';
+import { writeSkillsSite } from './skills-site.mjs';
 import { TIER_FOLDERS, existingTierFolders } from '../core/tools/element-folders.mjs';
 
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
@@ -53,6 +54,8 @@ for (const item of FULL) {
 // The release packages (packages.json, #1656): every extra also lives at packages/<id>/ (core is dist/, which stays the full tree: FULL is first class, every old path keeps working).
 const pk = spawnSync(process.execPath, [path.join(root, 'scripts', 'build-packages.mjs'), '--pages', out], { stdio: 'inherit' });
 if (pk.status !== 0) throw new Error('scripts/build-packages.mjs failed');
+// The agent skills (dist-skills/, built by scripts/build-skills.mjs) are their own page at skills/, not part of dist/: an index, a manifest with hashes and the files.
+writeSkillsSite(path.join(out, 'skills'));
 // Pages must not run the site through Jekyll (it would hide any folder that starts with an underscore).
 fs.writeFileSync(path.join(out, '.nojekyll'), '');
 
