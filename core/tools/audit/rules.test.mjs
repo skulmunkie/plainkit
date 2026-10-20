@@ -91,6 +91,13 @@ test('D8: does not flag ::part() selectors, but still flags a raw override shari
     assert.ok(hit.fix.includes('styles pk-tabs from outside'), `FIX: D8 reported the wrong offending selector, got ${JSON.stringify(hit)}`);
 });
 
+test('D8: does not flag a rule that only sets documented --pk-* properties, still flags an outer margin (#1676)', () => {
+    const ok = checkFiles([{ path: 'app.css', text: '.cell pk-button { --pk-button-padding: var(--space-1); }' }], { ruleset: 'consumer' });
+    assert.ok(!ok.some(f => f.rule === 'D8'), `FIX: D8 flagged a --pk-* custom property, got ${JSON.stringify(ok)}`);
+    const bad = checkFiles([{ path: 'app.css', text: '.cell pk-button { --pk-button-padding: 0; margin-right: var(--space-1); }' }], { ruleset: 'consumer' });
+    assert.ok(bad.some(f => f.rule === 'D8'), 'FIX: D8 did not flag a margin on pk-button');
+});
+
 test('D2: does not flag a utility class that merely contains a hint word, but still flags the exact class (#684)', () => {
     const clean = checkFiles([{ path: 'app.css', text: '.text-danger { color: var(--color-danger); }\n.stat-grid { display: grid; }' }], { ruleset: 'consumer' });
     assert.ok(!clean.some(f => f.rule === 'D2'), `FIX: D2 flagged .text-danger/.stat-grid as hand-rolled duplicates, got ${JSON.stringify(clean.filter(f => f.rule === 'D2'))}`);
