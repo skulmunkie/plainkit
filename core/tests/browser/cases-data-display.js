@@ -728,6 +728,23 @@ export const dataDisplayCases = [
         t.eq(big.$virtual, true, 'the table windows'); t.eq(cells.length, heads.length, 'a windowed row has as many cells as headers');
         t.ok(cells.every((c, i) => Math.abs(c.getBoundingClientRect().left - heads[i].getBoundingClientRect().left) < 2), 'windowed cells line up with their headers');
     }],
+    ['table: shed takes any width (a length like "60rem" or "900px", or a number of rem above 3), measured on the table, next to the 1-3 steps; no horizontal scroll at the width it fixes (#1684)', async t => {
+        const cols = '[{"key":"a","label":"A"},{"key":"b","label":"B","shed":"60rem"},{"key":"c","label":"C","shed":72},{"key":"d","label":"D","shed":"900px"},{"key":"e","label":"E","shed":2}]';
+        const shown = el => ['a', 'b', 'c', 'd', 'e'].filter(k => ['thead th', 'tbody td'].every(s => { const c = el.shadowRoot.querySelector(s + '[data-key="' + k + '"]'); return c && getComputedStyle(c).display !== 'none'; })).join('');
+        const rem = parseFloat(getComputedStyle(document.documentElement).fontSize), at = async width => {
+            const box = await t.mount(`<div style="width:${width}px"><pk-table label="S" columns='${cols}' rows='[{"id":1,"a":"1","b":"2","c":"3","d":"4","e":"5"}]'></pk-table></div>`);
+            const el = box.querySelector('pk-table'); await until(() => el.shadowRoot?.querySelector('tbody td'), 'the table'); await t.settle(); await t.settle(); return el;
+        };
+        // the width rules come from a lazily loaded module, so each state is awaited
+        const is = async (width, want, why) => { const el = await at(width * rem); await until(() => shown(el) === want, why + ' (shows ' + shown(el) + ', wanted ' + want + ')'); return el; };
+        await is(80, 'abcde', 'wider than every shed width shows every column');
+        await is(65, 'abde', 'under 72rem the number 72 goes');
+        await is(55, 'ae', 'under 60rem the "60rem" column goes, and under 900px the "900px" one');
+        await is(40, 'ae', 'a step 2 column (36rem) stays above 36rem');
+        await is(30, 'a', 'under 36rem the step 2 column goes with the rest');
+        const wide = await is(65, 'abde', 'the 65rem table'); const sc = wide.part('scroll'); t.ok(sc.scrollWidth <= sc.clientWidth + 1, 'a table whose shed columns dropped does not scroll sideways');
+        const live = await is(80, 'abcde', 'the 80rem table'); live.parentElement.style.width = (55 * rem) + 'px'; await until(() => shown(live) === 'ae', 'the columns to drop when the container shrinks');
+    }],
     ['table (375px): a slotted pk-card in a cell keeps a real width in the cards layout, and the row does not grow absurdly (#1146)', async t => {
         const { sampleDoc } = await import('../../site/gallery/frame.js');
         const html = `<pk-table cards label="C" columns='[{"key":"name","label":"Name"},{"key":"c","label":"Colour in the dark theme scope"}]' rows='[{"id":1,"name":"Primary"}]'><pk-card slot="cell-1-c" data-theme="dark"><span style="display:inline-block;width:2rem;height:1rem;background:red"></span> <code>#336699</code></pk-card></pk-table>`;

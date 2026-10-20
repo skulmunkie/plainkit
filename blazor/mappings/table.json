@@ -518,7 +518,7 @@
     {
       "name": "Shed",
       "type": "int?",
-      "doc": "Drop the column when the table itself is narrower than 24rem (1), 36rem (2) or 48rem (3); null keeps it. The card layout keeps every column."
+      "doc": "Drop the column when the table itself is narrower than 24rem (1), 36rem (2) or 48rem (3), or than that many rem for a larger number (60 is 60rem); null keeps it. The card layout keeps every column."
     },
     {
       "name": "Editor",

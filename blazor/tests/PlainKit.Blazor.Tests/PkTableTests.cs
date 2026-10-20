@@ -40,6 +40,15 @@ public sealed class PkTableTests : BunitContext, IAsyncLifetime
             more?.Invoke(p);
         });
 
+    // Issue 1684: a Shed above 3 is a width in rem; the element reads the number.
+    [Fact]
+    public void A_Shed_width_in_rem_reaches_the_column_definition()
+    {
+        var cut = Render<PkTable<Order>>(p => p.Add(x => x.Columns, [new() { Key = "number", Label = "No" }, new() { Key = "status", Label = "Status", Shed = 60 }]).Add(x => x.Items, Orders).Add(x => x.IdOf, o => o.Number.ToString()));
+        using var columns = JsonDocument.Parse(cut.Find("pk-table").GetAttribute("columns")!);
+        Assert.Equal(60, columns.RootElement[1].GetProperty("shed").GetInt32());
+    }
+
     [Fact]
     public void Columns_and_rows_are_camelCase_JSON_attributes_with_the_row_key()
     {
