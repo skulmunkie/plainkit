@@ -206,6 +206,17 @@ test('B4: does not fire on a @page hosted by PkListPage or PkRecordPage, still f
     assert.deepEqual(b4.map(f => f.file), ['Other.razor'], `FIX: B4 should fire only on Other.razor, got ${JSON.stringify(b4)}`);
 });
 
+test('B4: does not fire on a static error page, still fires when that page loads data or has a non-error route (#1669)', () => {
+    const files = [
+        { path: 'Home.razor', text: '@page "/"\n@inherits HomePageBase\n<PkTable></PkTable>' },
+        { path: 'Error.razor', text: '@page "/Error"\n<h1>Error</h1>\n<p>Request ID: @RequestId</p>\n@code {\n    string? RequestId;\n    protected override void OnInitialized() => RequestId = "x";\n}' },
+        { path: 'Error2.razor', text: '@page "/error"\n@inject IOrders Orders\n<h1>Error</h1>' },
+        { path: 'Static.razor', text: '@page "/static"\n<h1>Static</h1>' },
+    ];
+    const b4 = checkFiles(files, { ruleset: 'consumer' }).filter(f => f.rule === 'B4');
+    assert.deepEqual(b4.map(f => f.file).sort(), ['Error2.razor', 'Static.razor'], `FIX: B4 should skip only the static Error page, got ${JSON.stringify(b4)}`);
+});
+
 
 // #719: against a real external app, B6's `<script>` check fired on lines with no `<script>` tag at all - a
 // self-closing PkSpinner, an inline <svg>, a javascript: URI bookmarklet href. Each case below matches one of
