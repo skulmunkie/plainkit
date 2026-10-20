@@ -368,3 +368,21 @@ test('sticky (the prop or config.sticky) pins the shell header and moves the but
     el.config = { ...el.config, sticky: true }; el.changed('config');
     assert.equal(parts.header.getAttribute('sticky'), '', 'config.sticky does the same');
 });
+
+test('every committed field change is raised as pk-record-change with the values of all the cards (#1651)', async () => {
+    const { el, events } = make();
+    el.load = async () => ({ name: 'Widget', status: 'a' });
+    el.mode = 'edit';
+    el.connected();
+    await tick();
+    const [main, side] = el.$groups;
+    main.snapshot = () => ({ name: 'Changed' });
+    side.snapshot = () => ({ status: 'a' });
+    el.mirror({ target: main, detail: { key: 'name', value: 'Changed' } });
+    assert.deepEqual(events.filter(([n]) => n === 'pk-record-change'), [['pk-record-change', { key: 'name', value: 'Changed', values: { name: 'Changed', status: 'a' } }]]);
+    el.$groups = [main];
+    el.mirror({ target: main, detail: { key: 'name', value: 'Again' } });
+    assert.equal(events.filter(([n]) => n === 'pk-record-change').length, 2, 'a page with one card raises it too');
+    el.mirror({ target: main, detail: {} });
+    assert.equal(events.filter(([n]) => n === 'pk-record-change').length, 2, 'no key, no event');
+});

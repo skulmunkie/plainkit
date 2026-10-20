@@ -141,6 +141,18 @@ export const LAB_CASES = [
         await waitText(ctx, 'declined;checked;saved;'); // declined, then checked and only then saved: Save never ran for the declined one
         await ctx.noErrors(ctx.openMark, BENIGN);
       } },
+    // OnFieldChanged (#1651): a card in MainAfter shows the typed title before Save, and each committed change is counted.
+    { name: 'record-field-changed',
+      async run(ctx) {
+        await ctx.open('/lab/ticket-summary');
+        await ctx.waitFor(`!!window.__deep.field('Title')`, 'the new record form');
+        await ctx.waitFor(`typeof document.querySelector('pk-record-page')?.save === 'function'`, 'the circuit to take the record page over');
+        await ctx.setField('Title', 'Typed once');
+        await waitText(ctx, 'Summary: Typed once (1 changes)');
+        await ctx.setField('Title', 'Typed twice');
+        await waitText(ctx, 'Summary: Typed twice (2 changes)');
+        await ctx.noErrors(ctx.openMark, BENIGN);
+      } },
     // A condition follows an edit made in another card (#1600): Kind (Details) decides whether Notes (its own card) shows.
     { name: 'record-when-follows-edit-in-another-card',
       async run(ctx) {
