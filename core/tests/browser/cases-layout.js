@@ -321,7 +321,7 @@ export const layoutCases = [
     }],
 
     ['detail-layout: hide-tabs draws no strip of its own and shows one section at a time from a pk-page-header strip on a wide layout (#1241)', async t => {
-        const root = await t.mount('<div><pk-page-header heading="Item" tabs-from="always"></pk-page-header><pk-detail-layout hide-tabs><pk-card id="a" heading="A" data-pk-section="details">a</pk-card><pk-card id="b" heading="B" data-pk-section="pricing">b</pk-card></pk-detail-layout></div>');
+        const root = await t.mount('<div><pk-page-header heading="Item" tabs-from="always"></pk-page-header><pk-detail-layout hide-tabs tabs-from="always"><pk-card id="a" heading="A" data-pk-section="details">a</pk-card><pk-card id="b" heading="B" data-pk-section="pricing">b</pk-card></pk-detail-layout></div>');
         const head = root.querySelector('pk-page-header'), el = root.querySelector('pk-detail-layout');
         head.tabs = [{ value: 'details', label: 'Details' }, { value: 'pricing', label: 'Pricing' }];
         head.addEventListener('pk-tab-change', e => { el.section = e.detail.value; });
@@ -332,6 +332,22 @@ export const layoutCases = [
         t.ok(shown('a') && !shown('b'), 'only the first section shows, though the layout is two-column wide');
         head.part('strip').querySelector('pk-tab[value="pricing"]').click(); await settle();
         t.ok(!shown('a') && shown('b'), 'choosing a tab on the header shows that section');
+    }],
+
+    ['detail-layout: hide-tabs collapses to one section only where tabs-from says the strip applies, not at every width (#1680)', async t => {
+        const root = await t.mount('<div><pk-detail-layout hide-tabs tabs-from="phone"><pk-card id="a" heading="A" data-pk-section="a">a</pk-card><pk-card id="b" heading="B" data-pk-section="b">b</pk-card><pk-card id="c" slot="sidebar" heading="C" data-pk-section="c">c</pk-card></pk-detail-layout><pk-detail-layout id="d" hide-tabs><pk-card id="d1" heading="A" data-pk-section="a">a</pk-card><pk-card id="d2" heading="B" data-pk-section="b">b</pk-card></pk-detail-layout></div>');
+        const el = root.querySelector('pk-detail-layout'), dflt = root.querySelector('#d');
+        const shown = (host, id) => getComputedStyle(host.querySelector('#' + id)).display !== 'none';
+        const settle = async () => { await t.settle(); await new Promise(r => requestAnimationFrame(() => setTimeout(r, 50))); };
+        size(el, rem(60)); size(dflt, rem(60)); await settle();
+        t.ok(shown(el, 'a') && shown(el, 'b') && shown(el, 'c'), 'wide: every section shows, hide-tabs hides no more than the strip');
+        t.ok(shown(dflt, 'd1') && shown(dflt, 'd2'), 'wide, default tabs-from: both columns show');
+        size(dflt, rem(30)); await settle();
+        t.ok(shown(dflt, 'd1') && !shown(dflt, 'd2'), 'collapsed layout, default tabs-from: one section at a time, driven by the host');
+        dflt.section = 'b'; await settle();
+        t.ok(!shown(dflt, 'd1') && shown(dflt, 'd2'), 'the host chooses the section with section=');
+        el.tabsFrom = 'always'; await settle();
+        t.ok(shown(el, 'a') && !shown(el, 'b') && !shown(el, 'c'), 'tabs-from=always: one section at a time at every width');
     }],
 
     ['detail-layout: hide-next removes the Next button after the main column; without it the button shows in the collapsed layout (#1433)', async t => {

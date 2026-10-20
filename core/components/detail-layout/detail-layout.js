@@ -59,7 +59,9 @@ export default Base => class extends Base {
         const from = this.tabsFrom;
         if (this.$from !== from) { this.$mq?.removeEventListener('change', this.$sync); this.$from = from; this.$mq = from === 'phone' || from === 'tablet' ? mediaBelow(from) : null; this.$sync ??= () => this.sync(); this.$mq?.addEventListener('change', this.$sync); }
         tabs.toggleAttribute('data-on', on && (from === 'always' || !!this.$mq?.matches));
-        const collapsed = on && (this.hideTabs || getComputedStyle(tabs).display !== 'none');
+        // hideTabs (issue 1680) only hides the layout's own strip: sections still go one at a time only where that strip would show (tabsFrom), measured here because a hidden strip has no display to read
+        const narrow = from === 'always' || (this.$mq ? this.$mq.matches : this.clientWidth <= 48 * parseFloat(getComputedStyle(this.ownerDocument.documentElement).fontSize));
+        const collapsed = on && (this.hideTabs ? narrow : getComputedStyle(tabs).display !== 'none');
         if (this.section && on && !names.includes(this.section)) this.warnOnce('section:' + this.section, `section="${this.section}" matches no data-pk-section: showing the first`, { section: this.section, sections: names });
         if (on && this.tabParam && this.$last === undefined) { const want = paramGet(this.ownerDocument.defaultView, this.tabParam); if (names.includes(want)) this.section = want; }
         const active = this.$active = names.includes(this.section) ? this.section : names[0];
