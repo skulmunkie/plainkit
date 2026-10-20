@@ -65,3 +65,25 @@ test('CLI: an unused ignore warns (exit 0), fails under --strict, and is marked 
     await run(['--list-suppressions'], { cwd: dir, ...l });
     assert.match(l.out.join('\n'), /D1 {2}no longer needed {2}\(unused\)/);
 });
+
+test('CRLF and LF files behave the same: scanIgnores finds the marker, and the CLI suppresses and lists it (#1655)', async () => {
+    const lines = ['<!-- plainkit-audit-ignore D1 -- legacy markup until pk-button lands -->', '<button>Go</button>', '<button>Stay</button>', ''];
+    const scanned = eol => scanIgnores([{ path: 'a.html', text: lines.join(eol) }]);
+    assert.deepEqual(scanned('\r\n'), scanned('\n'));
+    assert.deepEqual(scanned('\r\n').ignores.map(g => [g.line, g.rules, g.reason]), [[1, ['D1'], 'legacy markup until pk-button lands']]);
+
+    const results = [];
+    for (const eol of ['\n', '\r\n']) {
+        const dir = makeTempDir('plainkit-audit-');
+        fs.writeFileSync(path.join(dir, 'index.html'), lines.join(eol));
+        const c = capture();
+        await run(['--format', 'json'], { cwd: dir, ...c });
+        const out = JSON.parse(c.out.join('\n'));
+        const l = capture();
+        await run(['--list-suppressions'], { cwd: dir, ...l });
+        results.push([out.findings.filter(f => f.id === 'D1').map(f => f.line), out.summary.suppressed, l.out.join('\n')]);
+    }
+    assert.deepEqual(results[1], results[0]);
+    assert.equal(results[1][1], 1);
+    assert.match(results[1][2], /index\.html:1 {2}D1 {2}legacy markup/);
+});
