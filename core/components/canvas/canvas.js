@@ -1,15 +1,8 @@
 import { loadElements } from '../../js/loader.js';
+import { toWorld, toScreen, zoomAt, zoomToFit, centerOn, toOrigin, fromOrigin } from '../../js/viewport-logic.js';
 
-// Canvas maths. Pure, so it can be tested without a DOM. A view is { x, y, zoom }: the world origin sits at (x, y) in frame pixels and a world unit is `zoom` pixels.
-export const clampZoom = (z, min, max) => Math.min(max, Math.max(min, z));
-export const toWorld = (v, px, py) => ({ x: (px - v.x) / v.zoom, y: (py - v.y) / v.zoom });
-export const toScreen = (v, wx, wy) => ({ x: wx * v.zoom + v.x, y: wy * v.zoom + v.y });
+// The canvas keeps a view as { x, y, zoom }: the world origin sits at (x, y) in frame pixels and a world unit is `zoom` pixels. The maths is js/viewport-logic.js.
 export const snap = (n, grid) => (grid > 0 ? Math.round(n / grid) * grid : n);
-// Zoom by `factor` keeping the world point under the frame pixel (px, py) where it is.
-export function zoomAt(v, factor, px, py, min, max) {
-    const zoom = clampZoom(v.zoom * factor, min, max), k = zoom / v.zoom;
-    return { x: px - (px - v.x) * k, y: py - (py - v.y) * k, zoom };
-}
 // A node's box inside the frame, for the marks layer.
 export const markBox = (node, frame) => ({ left: node.left - frame.left, top: node.top - frame.top, width: node.width, height: node.height });
 export const STEP = 1.25;
@@ -24,10 +17,13 @@ export default Base => class extends Base {
             frame.addEventListener('pointermove', e => this.move(e));
             frame.addEventListener('pointerup', e => this.up(e));
             frame.addEventListener('pointercancel', e => this.up(e, true));
+            // Ctrl/Cmd+wheel (and a trackpad pinch) always zoom. A plain wheel is the page's unless `wheel` says otherwise (auto: pan only while the frame has focus).
             frame.addEventListener('wheel', e => {
+                const z = e.ctrlKey || e.metaKey, m = this.wheel;
+                if (!z && !(m === 'zoom' || m === 'pan' || (m === 'auto' && this.shadowRoot.activeElement === frame))) return;
                 e.preventDefault();
                 const p = this.local(e);
-                if (e.ctrlKey || e.metaKey) this.set(zoomAt(this.view(), Math.exp(-e.deltaY * 0.01), p.x, p.y, this.minZoom, this.maxZoom));
+                if (z || m === 'zoom') this.zoomAt(Math.exp(-e.deltaY * 0.01), p.x, p.y);
                 else this.set({ ...this.view(), x: this.panX - e.deltaX, y: this.panY - e.deltaY });
             }, { passive: false });
             frame.addEventListener('keydown', e => this.key(e));
@@ -50,11 +46,25 @@ export default Base => class extends Base {
         this.panX = v.x; this.panY = v.y; this.zoom = v.zoom;
         this.emit('pk-view-change', { x: v.x, y: v.y, zoom: v.zoom }, { cancelable: false });
     }
-    zoomBy(f) { const r = this.part('frame').getBoundingClientRect(); this.set(zoomAt(this.view(), f, r.width / 2, r.height / 2, this.minZoom, this.maxZoom)); }
-    reset() { this.set({ x: 0, y: 0, zoom: 1 }); }
+    // The view as a viewport-logic viewport (the world point at the frame's top-left) is what the maths takes; `say` also announces the zoom to a screen reader.
+    put(v, say) { this.set(toOrigin(v)); if (say) this.part('status').textContent = `Zoom ${Math.round(this.zoom * 100)} percent`; }
+    zoomAt(f, px, py, say) { this.put(zoomAt(fromOrigin(this.view()), f, px, py, { min: this.minZoom, max: this.maxZoom }), say); }
+    frameSize() { const r = this.part('frame').getBoundingClientRect(); return [r.width, r.height]; }
+    zoomBy(f) { const [w, h] = this.frameSize(); this.zoomAt(f, w / 2, h / 2, true); }
+    // Zoom to `z` around the frame pixel `anchor` ({ x, y }, the middle by default).
+    zoomTo(z, a) { const [w, h] = this.frameSize(); this.zoomAt(z / this.zoom, a ? a.x : w / 2, a ? a.y : h / 2, true); }
+    reset() { this.put(fromOrigin({ x: 0, y: 0, zoom: 1 }), true); }
+    // Fit a world rect { x, y, w, h } (default: the content area at the world origin) in the frame with a 16px margin.
+    zoomToFit(rect) {
+        const [w, h] = this.frameSize(), world = this.part('world');
+        rect ||= { x: 0, y: 0, w: world.offsetWidth, h: world.offsetHeight };
+        if (rect.w > 0 && rect.h > 0 && w > 0) this.put(zoomToFit(rect, w, h, 16, { min: this.minZoom, max: this.maxZoom }), true);
+    }
+    // Put the world point (x, y) in the middle of the frame.
+    centerOn(x, y) { this.put(centerOn(fromOrigin(this.view()), x, y, ...this.frameSize())); }
     // A client point as world units, and a world point as client pixels (for a host that snaps what it drags).
-    pointToWorld(clientX, clientY) { const r = this.part('frame').getBoundingClientRect(); const w = toWorld(this.view(), clientX - r.left, clientY - r.top); return { x: snap(w.x, this.grid), y: snap(w.y, this.grid) }; }
-    worldToPoint(wx, wy) { const r = this.part('frame').getBoundingClientRect(); const s = toScreen(this.view(), wx, wy); return { x: s.x + r.left, y: s.y + r.top }; }
+    pointToWorld(clientX, clientY) { const r = this.part('frame').getBoundingClientRect(), w = toWorld(fromOrigin(this.view()), { x: clientX - r.left, y: clientY - r.top }); return { x: snap(w.x, this.grid), y: snap(w.y, this.grid) }; }
+    worldToPoint(wx, wy) { const r = this.part('frame').getBoundingClientRect(), s = toScreen(fromOrigin(this.view()), { x: wx, y: wy }); return { x: s.x + r.left, y: s.y + r.top }; }
     down(e) {
         if (e.target.closest?.('pk-button')) return;
         const frame = this.part('frame');
@@ -71,7 +81,7 @@ export default Base => class extends Base {
             const [a, b] = [...this.$pts.values()], before = Math.hypot(a.x - b.x, a.y - b.y);
             p.x = e.clientX; p.y = e.clientY;
             const after = Math.hypot(a.x - b.x, a.y - b.y), mid = this.local({ clientX: (a.x + b.x) / 2, clientY: (a.y + b.y) / 2 });
-            if (before > 0) this.set(zoomAt(this.view(), after / before, mid.x, mid.y, this.minZoom, this.maxZoom));
+            if (before > 0) this.zoomAt(after / before, mid.x, mid.y);
             return;
         }
         p.x = e.clientX; p.y = e.clientY;
@@ -86,12 +96,14 @@ export default Base => class extends Base {
         this.emit('pk-canvas-pick', { target: node, additive: e.shiftKey || e.ctrlKey || e.metaKey }, { cancelable: false });
     }
     key(e) {
-        const pan = { ArrowLeft: [40, 0], ArrowRight: [-40, 0], ArrowUp: [0, 40], ArrowDown: [0, -40] }[e.key];
+        // Left and right follow the reading direction; the world itself is never mirrored.
+        const s = getComputedStyle(this).direction === 'rtl' ? -1 : 1, pan = { ArrowLeft: [40 * s, 0], ArrowRight: [-40 * s, 0], ArrowUp: [0, 40], ArrowDown: [0, -40] }[e.key];
         if (e.target !== this.part('frame')) return;
         if (pan && !e.shiftKey) this.set({ ...this.view(), x: this.panX + pan[0], y: this.panY + pan[1] });
         else if (e.key === '+' || e.key === '=') this.zoomBy(STEP);
         else if (e.key === '-') this.zoomBy(1 / STEP);
         else if (e.key === '0') this.reset();
+        else if (e.key === '1' || e.key === 'Home') this.zoomToFit();
         else if (pan || e.key === 'Delete' || e.key === 'Escape') this.emit('pk-canvas-key', { key: e.key, shiftKey: e.shiftKey, altKey: e.altKey, ctrlKey: e.ctrlKey }, { cancelable: false });
         else return;
         e.preventDefault();
