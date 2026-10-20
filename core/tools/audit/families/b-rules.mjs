@@ -135,6 +135,10 @@ export const B_RULES = [
         scan(file) {
             if (!/@page\b/.test(file.text)) return [];
             if (/@inherits\s+\S*PageBase\b/.test(file.text)) return [];
+            // A static framework error page (route /error, /not-found, /404...) has no load, busy state, injected services
+            // or actions, and must render even when the lifecycle the base class provides has failed (#1669).
+            const isErrorRoute = /@page\s+"\/(?:error|not-?found|[1-5]\d\d)(?:[\/"{])/i.test(file.text);
+            if (isErrorRoute && !/@inject\b|\basync\b|\bawait\b|\bTask\b|@on\w+|\bOn[A-Z]\w*\s*=|\b(?:bool|Exception)\??\s+_?(?:busy|isBusy|loading|isLoading|saving|error|errorMessage|loadError)\b/i.test(file.text.replace(/@page\b[^\r\n]*/, ''))) return [];
             const m = /@page\b[^\r\n]*/.exec(file.text);
             return [hitAt(file.text, m.index, '@page', { found: 'this @page component has no @inherits ...PageBase - the app framework\'s page lifecycle (loading/error/empty states) will not run' })];
         },
