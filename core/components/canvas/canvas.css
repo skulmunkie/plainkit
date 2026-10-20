@@ -13,7 +13,7 @@
     border-radius: var(--radius-md);
 }
 
-:host([grid]:not([grid="0"])) [part="frame"] {
+:host([grid]:not([grid="0"])) [part="frame"], :host([auto-grid]) [part="frame"] {
     background-image: linear-gradient(var(--ds-line) 1px, transparent 1px), linear-gradient(90deg, var(--ds-line) 1px, transparent 1px);
     background-size: var(--ds-cell) var(--ds-cell);
     background-position: calc(var(--ds-x, 0) * 1px) calc(var(--ds-y, 0) * 1px);
@@ -21,7 +21,7 @@
 
 [part="frame"]:focus-visible { outline: var(--focus-ring); outline-offset: -2px; }
 
-[part="world"] { position: absolute; inline-size: var(--pk-canvas-width, 24rem); inset-block-start: 0; inset-inline-start: 0; transform-origin: 0 0; transform: translate(calc(var(--ds-x, 0) * 1px), calc(var(--ds-y, 0) * 1px)) scale(var(--ds-zoom, 1)); }
+[part="world"] { position: absolute; inline-size: var(--pk-canvas-width, 24rem); top: 0; left: 0; transform-origin: 0 0; transform: translate(calc(var(--ds-x, 0) * 1px), calc(var(--ds-y, 0) * 1px)) scale(var(--ds-zoom, 1)); }
 
 [part="status"] { position: absolute; clip-path: inset(50%); }
 

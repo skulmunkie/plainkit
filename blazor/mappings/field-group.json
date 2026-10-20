@@ -7,6 +7,16 @@
       "type": "int?"
     },
     {
+      "name": "Layout",
+      "prop": "layout",
+      "type": "FieldGroupLayout"
+    },
+    {
+      "name": "EndContent",
+      "slot": "end",
+      "type": "RenderFragment"
+    },
+    {
       "name": "Fields",
       "map": "fieldGroup",
       "role": "fields",
@@ -90,6 +100,11 @@
       "doc": "A combobox accepts the typed text itself as its value."
     },
     {
+      "name": "Clearable",
+      "type": "bool",
+      "doc": "A combobox shows a clear button while a value is chosen: it commits an empty value (for an optional picked value)."
+    },
+    {
       "name": "Mode",
       "type": "string?",
       "doc": "A combobox field's mode: \"select\" makes it a styled select (a button that opens the list, no typing); unset, or \"autocomplete\", types to filter."
@@ -143,6 +158,11 @@
       "name": "Locale",
       "type": "string?",
       "doc": "The BCP 47 locale of the money format."
+    },
+    {
+      "name": "SelectOnFocus",
+      "type": "bool",
+      "doc": "Selects the whole value when the field gains focus (an input kind, the money format included), so typing replaces it."
     },
     {
       "name": "WhenExpr",

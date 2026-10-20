@@ -60,6 +60,7 @@ export default Base => class extends Base {
         if (this.total) this.$p ??= import('../../js/table-scope.js').then(m => { this.$s = m; this.requestUpdate(); }, e => this.log.error('table-scope failed', e));
         if (this.editable) this.$w ??= import('../../js/table-edit.js').then(m => { this.$e = m; this.requestUpdate(); }, e => this.log.error('table-edit failed', e));
         if (this.resizable || this.reorderable) this.$cxw ??= import('../../js/table-cols.js').then(m => { this.$cx = m; this.requestUpdate(); }, e => this.log.error('table-cols failed', e));
+        if (k.some(c => c.shed && ![1, 2, 3].includes(+c.shed))) this.$sh ??= import('../../js/table-shed.js').then(m => { this.$sd = m; this.requestUpdate(); }, e => this.log.error('table-shed failed', e));
         const x = this.expandable && this.$m, hx = this.expander != 'none' && x, lead = +this.selectable + !!hx;
         V.frame(this, tb, k.length + lead, r.length);
 
@@ -72,7 +73,7 @@ export default Base => class extends Base {
             return x ? x.rows(this, tr, id, i, k.length + lead, h) : [tr];
         });
         this.part('body').replaceChildren(...body);
-        this.$m?.after(this); this.$e?.after(this); this.$cx?.after(this);
+        this.$m?.after(this); this.$e?.after(this); this.$cx?.after(this); this.$sd?.after(this);
         this.$s?.after(this, r.length, sel.checked);
     }
 };

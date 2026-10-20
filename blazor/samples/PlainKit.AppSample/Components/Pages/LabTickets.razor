@@ -7,7 +7,7 @@
 </PkListPage>
 
 @code {
-    private const string Config = """{"heading":"Tickets"}""";
+    private const string Config = """{"heading":"Tickets","filters":[{"key":"view","type":"select","label":"View","options":[{"value":"all","label":"All"}]}]}""";
     private static readonly PkTableColumn<Ticket>[] _columns = [new() { Key = "id", Label = "Ticket" }, new() { Key = "title", Label = "Title" }];
 
     private Task<PkListResult<Ticket>> Load(PkListRequest r) => TicketStore.ListAsync(r, Nav.Uri.Contains("slow=1"));

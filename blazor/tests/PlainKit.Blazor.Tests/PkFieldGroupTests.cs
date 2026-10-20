@@ -63,6 +63,13 @@ public sealed class PkFieldGroupTests : BunitContext, IAsyncLifetime
     }
 
     [Fact]
+    public void SelectOnFocus_reaches_the_element_on_a_money_field()
+    {
+        var d = Defs(Render([new PkFieldSpec<Order> { Key = "amount", Label = "Amount", Kind = PkFieldKind.Number, Get = _ => "9", Set = (_, _) => { }, Format = "money", SelectOnFocus = true }]))[0];
+        Assert.True(d.GetProperty("selectOnFocus").GetBoolean());
+    }
+
+    [Fact]
     public void AutoComplete_reaches_the_element_under_the_attribute_name_and_is_left_out_when_unset()
     {
         var d = Defs(Render([
@@ -275,6 +282,23 @@ public sealed class PkFieldGroupTests : BunitContext, IAsyncLifetime
         var def = Defs(Render([spec]))[0];
         Assert.Equal("datetime-local", def.GetProperty("kind").GetString()); Assert.Equal(2, def.GetProperty("columnSpan").GetInt32());
         Assert.Equal("3", Render<PkFieldGroup<Order>>(p => p.Add(x => x.Fields, [spec]).Add(x => x.Model, new Order()).Add(x => x.Columns, 3)).Find("pk-field-group").GetAttribute("columns"));
+    }
+
+    // Issue 1687: Clearable on a combobox spec reaches the element's field definition.
+    [Fact]
+    public void Clearable_reaches_the_field_definition_of_a_combobox()
+    {
+        var spec = new PkFieldSpec<Order> { Key = "sku", Label = "SKU", Kind = PkFieldKind.Combobox, Clearable = true, Get = o => "", Set = (o, v) => { } };
+        Assert.True(Defs(Render([spec]))[0].GetProperty("clearable").GetBoolean());
+    }
+
+    // Issue 1688: Layout is the element's layout attribute and EndContent fills its end slot.
+    [Fact]
+    public void Layout_inline_and_EndContent_reach_the_element()
+    {
+        var cut = Render<PkFieldGroup<Order>>(p => p.Add(x => x.Fields, Fields()).Add(x => x.Model, new Order()).Add(x => x.Layout, FieldGroupLayout.Inline).Add(x => x.EndContent, (RenderFragment)(b => b.AddMarkupContent(0, "<button id=\"add\">Add</button>"))));
+        Assert.Equal("inline", cut.Find("pk-field-group").GetAttribute("layout"));
+        Assert.Equal("end", cut.Find("pk-field-group #add").ParentElement!.GetAttribute("slot") ?? cut.Find("pk-field-group #add").GetAttribute("slot"));
     }
 
     // Issue 753 gap 2: PkFieldKind.Combobox, its options from Options or from an async Search callback the element runs as the user types.

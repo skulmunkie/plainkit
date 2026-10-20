@@ -421,6 +421,56 @@ public sealed class PkPageCallbackTests : BunitContext, IAsyncLifetime
     }
 
     [Fact]
+    public async Task RecordPage_OnFieldChanged_gets_the_key_the_value_and_every_field_value()
+    {
+        PkRecordChangeEventArgs? seen = null;
+        var cut = Render<PkRecordPage<Person>>(p => p.Add(x => x.Fields, PersonFields).Add(x => x.Model, new Person())
+            .Add(x => x.OnFieldChanged, EventCallback.Factory.Create<PkRecordChangeEventArgs>(this, e => seen = e)));
+
+        await cut.Find("pk-record-page").TriggerEventAsync("onpk-record-change", new PkRecordChangeEventArgs { Key = "name", Value = JsonSerializer.SerializeToElement("Bo"), Values = JsonSerializer.SerializeToElement(new { name = "Bo", age = 3 }) });
+
+        Assert.Equal("name", seen!.Key);
+        Assert.Equal("Bo", seen.Value!.Value.GetString());
+        Assert.Equal(3, seen.Values!.Value.GetProperty("age").GetInt32());
+    }
+
+    [Fact]
+    public async Task RecordPage_FollowEdits_reads_the_typed_conditions_from_a_draft_and_never_touches_the_item()
+    {
+        var model = new Person();
+        var fields = PersonFields.Select(f => f.Key == "age" ? f with { When = p => p.Name != "hide" } : f).ToList();
+        var cut = Render<PkRecordPage<Person>>(p => p.Add(x => x.Fields, fields).Add(x => x.Model, model).Add(x => x.FollowEdits, true));
+        string[] Keys() => JsonDocument.Parse(cut.Find("pk-record-page").GetAttribute("config")!).RootElement.GetProperty("fields").EnumerateArray().Select(f => f.GetProperty("key").GetString()!).ToArray();
+        Assert.Contains("age", Keys());
+
+        await cut.Find("pk-record-page").TriggerEventAsync("onpk-record-change", new PkRecordChangeEventArgs { Key = "name", Value = JsonSerializer.SerializeToElement("hide") });
+        Assert.DoesNotContain("age", Keys());
+        Assert.Equal("", model.Name);   // the item the page was given is not edited before Save
+
+        await cut.Find("pk-record-page").TriggerEventAsync("onpk-record-change", new PkRecordChangeEventArgs { Key = "name", Value = JsonSerializer.SerializeToElement("show") });
+        Assert.Contains("age", Keys());
+
+        await cut.Find("pk-record-page").TriggerEventAsync("onpk-record-change", new PkRecordChangeEventArgs { Key = "name", Value = JsonSerializer.SerializeToElement("hide") });
+        await cut.Find("pk-record-page").TriggerEventAsync("onpk-record-cancel", new PkRecordCancelEventArgs());
+        Assert.Contains("age", Keys());   // Cancel drops the draft
+
+        await cut.Find("pk-record-page").TriggerEventAsync("onpk-record-change", new PkRecordChangeEventArgs { Key = "name", Value = JsonSerializer.SerializeToElement("hide") });
+        await cut.Find("pk-record-page").TriggerEventAsync("onpk-record-save", EventArgs.Empty);
+        Assert.Contains("age", Keys());   // so does a saved record
+    }
+
+    [Fact]
+    public async Task RecordPage_FollowEdits_uses_CopyOf_for_the_draft()
+    {
+        var copies = 0;
+        var cut = Render<PkRecordPage<Person>>(p => p.Add(x => x.Fields, PersonFields).Add(x => x.Model, new Person()).Add(x => x.FollowEdits, true)
+            .Add(x => x.CopyOf, o => { copies++; return new Person { Name = o.Name }; }));
+        await cut.Find("pk-record-page").TriggerEventAsync("onpk-record-change", new PkRecordChangeEventArgs { Key = "name", Value = JsonSerializer.SerializeToElement("A") });
+        await cut.Find("pk-record-page").TriggerEventAsync("onpk-record-change", new PkRecordChangeEventArgs { Key = "name", Value = JsonSerializer.SerializeToElement("B") });
+        Assert.Equal(1, copies);   // one draft per edit session
+    }
+
+    [Fact]
     public async Task RecordPage_BeforeSave_gets_the_item_with_the_form_applied_and_its_answer_goes_back_to_the_element()
     {
         Person? seen = null; var go = false;
@@ -435,6 +485,22 @@ public sealed class PkPageCallbackTests : BunitContext, IAsyncLifetime
         Assert.Equal(41, seen.Age);
         go = true;
         Assert.Equal(true, await cut.InvokeAsync(() => host.Value.Invoke(Values("{}"))));
+    }
+
+    [Fact]
+    public async Task RecordPage_SaveAsync_asks_the_element_to_save_through_its_normal_path_and_returns_its_answer()
+    {
+        _bridge.Setup<bool>("call", _ => true).SetResult(true);
+        var cut = Render<PkRecordPage<Person>>(p => p.Add(x => x.Fields, PersonFields).Add(x => x.Model, new Person()));
+
+        Assert.True(await cut.InvokeAsync(() => cut.Instance.SaveAsync(skipBeforeSave: true)));
+        Assert.True(await cut.InvokeAsync(() => cut.Instance.SaveAsync(false)));
+
+        var calls = _bridge.Invocations["call"].ToList();
+        Assert.Equal(2, calls.Count);
+        Assert.All(calls, c => Assert.Equal("requestSave", c.Arguments[1]));
+        Assert.Equal(true, ((object?[])calls[0].Arguments[2]!)[0]);
+        Assert.Equal(false, ((object?[])calls[1].Arguments[2]!)[0]);
     }
 
     [Fact]
@@ -552,6 +618,18 @@ public sealed class PkPageCallbackTests : BunitContext, IAsyncLifetime
         var json = JsonSerializer.SerializeToElement(result);
         Assert.Equal(41, json.GetProperty("total").GetInt32());
         Assert.Equal("A-1", json.GetProperty("rows")[0].GetProperty("OrderNo").GetString());
+    }
+
+    // Issue 1683: the filter options of a result go back to the element beside rows and total.
+    [Fact]
+    public async Task ListPage_load_returns_the_filter_options_of_the_result()
+    {
+        var cut = Render<PkListPage<Order>>(p => p.Add(x => x.Config, "{\"columns\":[{\"key\":\"orderNo\",\"label\":\"No\"}]}")
+            .Add(x => x.Load, r => Task.FromResult(new PkListResult<Order>([new("A-1", 5)], 1, new Dictionary<string, IReadOnlyList<PkFilterOption>> { ["status"] = [new("open", "Open (3)")] }))));
+        var host = Assert.IsType<DotNetObjectReference<PkCallbackHost<PkListPageQuery>>>(Assert.Single(_bridge.Invocations["setCallback"]).Arguments[2]);
+        var json = JsonSerializer.SerializeToElement(await cut.InvokeAsync(() => host.Value.Invoke(new PkListPageQuery())));
+        var option = json.GetProperty("filterOptions").GetProperty("status")[0];
+        Assert.Equal("open", option.GetProperty("Value").GetString()); Assert.Equal("Open (3)", option.GetProperty("Label").GetString());
     }
 
     [Fact]

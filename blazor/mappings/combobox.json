@@ -37,9 +37,19 @@
       "type": "bool"
     },
     {
+      "name": "Clearable",
+      "prop": "clearable",
+      "type": "bool"
+    },
+    {
       "name": "Filtering",
       "prop": "filtering",
       "type": "ComboboxFiltering"
+    },
+    {
+      "name": "DebounceMs",
+      "prop": "debounce",
+      "type": "int"
     },
     {
       "name": "Open",

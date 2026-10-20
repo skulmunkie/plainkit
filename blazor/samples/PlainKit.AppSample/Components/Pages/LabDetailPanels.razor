@@ -1,0 +1,21 @@
+@page "/lab/detail-panels"
+
+@* Lab: an expandable PkTable with two named detail panels per row (#1685). The host opens one panel at a time by binding Expanded to "<rowId>.<name>"; the table has no toggle column (Expander="none"). *@
+<h1 tabindex="-1">Lab detail panels</h1>
+<PkTable TItem="Line" Items="_rows" Columns="_columns" IdOf="n => n.Id" Label="Lines" Expandable Expander="none" @bind-Expanded="_open" DetailPanels="_panels" />
+<p>Open: @string.Join(",", _open ?? [])</p>
+<pk-button id="open-channel" @onclick="@(() => _open = ["1.channel"])">Open channel</pk-button>
+<pk-button id="open-bundle" @onclick="@(() => _open = ["1.bundle"])">Open bundle</pk-button>
+
+@code {
+    private sealed record Line(string Id, string Name);
+
+    private readonly List<Line> _rows = [new("1", "Widget"), new("2", "Gadget")];
+    private IReadOnlyList<string>? _open = [];
+    private readonly IReadOnlyList<PkTableColumn<Line>> _columns = [new() { Key = "name", Label = "Name" }];
+    private readonly IReadOnlyDictionary<string, RenderFragment<Line>> _panels = new Dictionary<string, RenderFragment<Line>>
+    {
+        ["channel"] = l => b => b.AddContent(0, "Channel detail of " + l.Name),
+        ["bundle"] = l => b => b.AddContent(0, "Bundle contents of " + l.Name),
+    };
+}

@@ -1,0 +1,162 @@
+{
+  "$comment": "The package declaration (spec docs/superpowers/specs/2026-10-20-separate-packages-design.md, #1656). Declared and tested (scripts/tests/packages.test.mjs); scripts/build-packages.mjs assembles the built packages. plainkit (core) owns every file no other package claims. Ceilings only ratchet down; an extra sets its first ceiling in the phase that builds it (measured plus 1 percent). hotkey.js stays in core: modules/tool-dock imports it as well as pk-tray (found by the P1 import test). siteOnly files are owned by core, ship in FULL and on Pages, are in no module, and may import every package. built: true packages are assembled into their own folder, zip and manifest by scripts/build-packages.mjs; the files of a package that is not built yet are carried inside core until the phase that builds it.",
+  "schema": 1,
+  "packages": [
+    {
+      "id": "plainkit",
+      "title": "Core",
+      "built": true,
+      "requires": [],
+      "blazorOption": null,
+      "maxPackedBytes": 850000,
+      "maxUnpackedBytes": 3185000
+    },
+    {
+      "id": "plainkit.tools",
+      "title": "Dev tools",
+      "built": true,
+      "requires": [
+        "plainkit",
+        "plainkit.audit"
+      ],
+      "blazorOption": "tools",
+      "modules": [
+        "code-explorer",
+        "console",
+        "devtools",
+        "layout-builder",
+        "log-settings",
+        "logs",
+        "performance",
+        "quality",
+        "scorecard",
+        "theme-editor",
+        "tool-dock"
+      ],
+      "js": [
+        "audit.js",
+        "brand-palette-logic.js",
+        "console-logic.js",
+        "custom-sdk-breakpoints.js",
+        "custom-sdk-files.js",
+        "custom-sdk-logic.js",
+        "custom-sdk.js",
+        "element-inspector-logic.js",
+        "element-inspector.js",
+        "framework-checks.js",
+        "history.js",
+        "inspect-logic.js",
+        "layout-builder-logic.js",
+        "layout-html.js",
+        "layout-model.js",
+        "layout-ops.js",
+        "layout-schema.js",
+        "layout-tree.js",
+        "layout-validate.js",
+        "log-settings-logic.js",
+        "log-view-logic.js",
+        "measure.js",
+        "mount-support.js",
+        "perf-logic.js",
+        "quality.js",
+        "scoring.js",
+        "share-link.js",
+        "theme-editor-logic.js",
+        "theme-history-logic.js",
+        "theme-presets-logic.js",
+        "theme-share-logic.js",
+        "tree-reorder.js",
+        "zip-store.js"
+      ],
+      "maxPackedBytes": null,
+      "maxUnpackedBytes": 292100,
+      "maxZipBytes": 129300,
+      "files": [
+        "modules/manifest.json"
+      ]
+    },
+    {
+      "id": "plainkit.audit",
+      "title": "Audit CLI",
+      "built": true,
+      "requires": [
+        "plainkit"
+      ],
+      "blazorOption": null,
+      "files": [
+        "audit.mjs",
+        "tools/audit/",
+        "tools/strict/"
+      ],
+      "maxPackedBytes": null,
+      "maxUnpackedBytes": 137500,
+      "maxZipBytes": 52500
+    },
+    {
+      "id": "plainkit.markdown",
+      "title": "Markdown editor",
+      "built": false,
+      "requires": [
+        "plainkit"
+      ],
+      "blazorOption": "markdown",
+      "elements": [
+        "pk-markdown-editor"
+      ],
+      "js": [
+        "markdown/commands.js",
+        "markdown/parse.js",
+        "markdown/render.js"
+      ],
+      "maxPackedBytes": null,
+      "maxUnpackedBytes": null,
+      "maxZipBytes": null
+    },
+    {
+      "id": "plainkit.dock",
+      "title": "Dock workspace",
+      "built": false,
+      "requires": [
+        "plainkit"
+      ],
+      "blazorOption": "dock",
+      "elements": [
+        "pk-dock"
+      ],
+      "js": [
+        "dock-drag.js",
+        "dock-float.js",
+        "dock-flyout.js",
+        "dock-json.js",
+        "dock-model.js",
+        "dock-render.js",
+        "dock-tree.js"
+      ],
+      "maxPackedBytes": null,
+      "maxUnpackedBytes": null,
+      "maxZipBytes": null
+    },
+    {
+      "id": "plainkit.canvas",
+      "title": "Canvas and design surface",
+      "built": false,
+      "requires": [
+        "plainkit"
+      ],
+      "blazorOption": "canvas",
+      "elements": [
+        "pk-canvas",
+        "pk-design-surface",
+        "pk-tray",
+        "pk-property-grid"
+      ],
+      "js": [],
+      "maxPackedBytes": null,
+      "maxUnpackedBytes": null,
+      "maxZipBytes": null
+    }
+  ],
+  "siteOnly": [
+    "gallery/"
+  ]
+}

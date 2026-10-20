@@ -51,3 +51,14 @@ export function zoomToFit(r, w, h, pad = 0, { min = 0, max = Infinity } = {}) {
 
 // The viewport with the world point (wx, wy) in the middle of a w by h container, zoom unchanged.
 export const centerOn = ({ zoom }, wx, wy, w, h) => ({ x: wx - w / 2 / zoom, y: wy - h / 2 / zoom, zoom });
+
+// The 1-2-5 ladder of grid spacings (…, 0.5, 1, 2, 5, 10, 20, 50, …) in display units, for an on-screen scale of `scale` px per unit (zoom times px per unit).
+// minor is the smallest step that is at least 8 px apart (so under 20 px), major the smallest step at least five times the minor; both in the same units.
+export function gridSteps(scale) {
+    const at = n => [1, 2, 5][((n % 3) + 3) % 3] * 10 ** Math.floor(n / 3);
+    let n = Math.floor(3 * Math.log10(8 / scale)) - 1;
+    while (at(n) * scale < 8) n++;
+    const minor = at(n);
+    while (at(n) < minor * 5) n++;
+    return { minor, major: at(n) };
+}

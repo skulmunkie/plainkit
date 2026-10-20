@@ -91,6 +91,13 @@ test('D8: does not flag ::part() selectors, but still flags a raw override shari
     assert.ok(hit.fix.includes('styles pk-tabs from outside'), `FIX: D8 reported the wrong offending selector, got ${JSON.stringify(hit)}`);
 });
 
+test('D8: does not flag a rule that only sets documented --pk-* properties, still flags an outer margin (#1676)', () => {
+    const ok = checkFiles([{ path: 'app.css', text: '.cell pk-button { --pk-button-padding: var(--space-1); }' }], { ruleset: 'consumer' });
+    assert.ok(!ok.some(f => f.rule === 'D8'), `FIX: D8 flagged a --pk-* custom property, got ${JSON.stringify(ok)}`);
+    const bad = checkFiles([{ path: 'app.css', text: '.cell pk-button { --pk-button-padding: 0; margin-right: var(--space-1); }' }], { ruleset: 'consumer' });
+    assert.ok(bad.some(f => f.rule === 'D8'), 'FIX: D8 did not flag a margin on pk-button');
+});
+
 test('D2: does not flag a utility class that merely contains a hint word, but still flags the exact class (#684)', () => {
     const clean = checkFiles([{ path: 'app.css', text: '.text-danger { color: var(--color-danger); }\n.stat-grid { display: grid; }' }], { ruleset: 'consumer' });
     assert.ok(!clean.some(f => f.rule === 'D2'), `FIX: D2 flagged .text-danger/.stat-grid as hand-rolled duplicates, got ${JSON.stringify(clean.filter(f => f.rule === 'D2'))}`);
@@ -188,6 +195,29 @@ test('B4: does not fire anywhere in an app that shows no sign of PageBase adopti
     assert.equal(findings.filter(f => f.rule === 'B4').length, 0, 'FIX: B4 fired on an app with no PageBase adoption signal anywhere');
 });
 
+test('B4: does not fire on a @page hosted by PkListPage or PkRecordPage, still fires on one hosting its own state (#1670)', () => {
+    const files = [
+        { path: 'Home.razor', text: '@page "/"\n@inherits HomePageBase\n<PkTable></PkTable>' },
+        { path: 'Orders.razor', text: '@page "/orders"\n@using App\n<PkListPage Load="LoadAsync"></PkListPage>' },
+        { path: 'Order.razor', text: '@page "/order/{Id}"\n<PkRecordPage Load="LoadAsync"></PkRecordPage>' },
+        { path: 'Other.razor', text: '@page "/other"\n<PkTable></PkTable>' },
+    ];
+    const b4 = checkFiles(files, { ruleset: 'consumer' }).filter(f => f.rule === 'B4');
+    assert.deepEqual(b4.map(f => f.file), ['Other.razor'], `FIX: B4 should fire only on Other.razor, got ${JSON.stringify(b4)}`);
+});
+
+test('B4: does not fire on a static error page, still fires when that page loads data or has a non-error route (#1669)', () => {
+    const files = [
+        { path: 'Home.razor', text: '@page "/"\n@inherits HomePageBase\n<PkTable></PkTable>' },
+        { path: 'Error.razor', text: '@page "/Error"\n<h1>Error</h1>\n<p>Request ID: @RequestId</p>\n@code {\n    string? RequestId;\n    protected override void OnInitialized() => RequestId = "x";\n}' },
+        { path: 'Error2.razor', text: '@page "/error"\n@inject IOrders Orders\n<h1>Error</h1>' },
+        { path: 'Static.razor', text: '@page "/static"\n<h1>Static</h1>' },
+    ];
+    const b4 = checkFiles(files, { ruleset: 'consumer' }).filter(f => f.rule === 'B4');
+    assert.deepEqual(b4.map(f => f.file).sort(), ['Error2.razor', 'Static.razor'], `FIX: B4 should skip only the static Error page, got ${JSON.stringify(b4)}`);
+});
+
+
 // #719: against a real external app, B6's `<script>` check fired on lines with no `<script>` tag at all - a
 // self-closing PkSpinner, an inline <svg>, a javascript: URI bookmarklet href. Each case below matches one of
 // those reported shapes (a real <script> tag is included as the positive control).
@@ -218,6 +248,14 @@ test('B6: flags a real <script> tag at its own line, not a self-closing componen
     const b6Script = findings.filter(f => f.rule === 'B6' && f.message === '<script>');
     assert.equal(b6Script.length, 1, `FIX: expected exactly one B6 <script> finding, got ${JSON.stringify(b6Script)}`);
     assert.equal(b6Script[0].line, 9, `FIX: B6 reported the <script> finding at the wrong line, got ${JSON.stringify(b6Script[0])}`);
+});
+
+test('B6: a root document loads its Assets scripts and an anchor may cancel navigation; other scripts still fire (#1671)', () => {
+    const root = ['<!DOCTYPE html>', '<html>', '<head></head>', '<body>', '<script src="@Assets[`_framework/blazor.web.js`]"></script>', '<a href="@Bookmarklet" onclick="return false;">Drag</a>', '</body>', '</html>'].join('\n');
+    const ok = checkFiles([{ path: 'App.razor', text: root }], { ruleset: 'consumer' });
+    assert.equal(ok.filter(f => f.rule === 'B6').length, 0, `FIX: B6 flagged a root document, got ${JSON.stringify(ok)}`);
+    const page = checkFiles([{ path: 'Page.razor', text: ['<script src="@Assets[`x.js`]"></script>', '<div onclick="go()"></div>'].join('\n') }], { ruleset: 'consumer' });
+    assert.equal(page.filter(f => f.rule === 'B6').length, 2, `FIX: B6 must still fire outside a root document, got ${JSON.stringify(page)}`);
 });
 
 test('B6: a Razor ternary attribute value that reuses the outer HTML quote character does not desync the scanner (#719)', () => {

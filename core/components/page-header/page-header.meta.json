@@ -46,6 +46,14 @@
       "description": "Pins the header to the top of the scrolling page body while the content scrolls: in pk-app-shell flush under the app bar (the body is the scroller), in a plain page at the top of the viewport. It is its own stacking context one above in-body sticky strips, so a popover opened from the header draws over them."
     },
     {
+      "name": "stickyFrom",
+      "type": "enum",
+      "default": "always",
+      "values": ["always", "phone", "tablet"],
+      "reflect": true,
+      "description": "With sticky, the width above which the header stays pinned: always (every width), phone (above the phone breakpoint) or tablet (above the tablet breakpoint). At and below it the header scrolls away in normal flow, so a focused field on a phone has room above the on-screen keyboard. The opposite sense of tabs-from, which names the width at and below which something shows."
+    },
+    {
       "name": "crumbs",
       "type": "string",
       "default": "",
@@ -228,6 +236,10 @@
     {
       "title": "Docked tabs from data",
       "html": "<pk-page-header heading=\"Blue mug\" level=\"2\" sticky tabs-from=\"phone\" tabs='[{\"value\":\"details\",\"label\":\"Details\"},{\"value\":\"orders\",\"label\":\"Orders\",\"count\":3},{\"value\":\"audit\",\"label\":\"Audit\",\"visible\":false}]'></pk-page-header>"
+    },
+    {
+      "title": "Sticky only from a width up",
+      "html": "<pk-page-header heading=\"Phone and up\" level=\"2\" sticky sticky-from=\"phone\"></pk-page-header>\n<pk-page-header heading=\"Tablet and up\" level=\"2\" sticky sticky-from=\"tablet\"></pk-page-header>"
     },
     {
       "title": "Page: crumbs, title and actions",
