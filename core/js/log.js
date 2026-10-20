@@ -65,12 +65,14 @@ export function parseConfig(text) {
 // Failures met while the logger itself is starting (nothing to log with yet): recorded here, reported at debug level once it is up.
 let early = null;
 
+// The level the page itself asks for (URL, then the html attribute), then `stored`.
+const pageLevel = stored => levelFrom({ search: globalThis.location?.search ?? '', attr: globalThis.document?.documentElement?.getAttribute?.('data-pk-log') ?? null, stored });
+
 function readSources() {
     const g = globalThis;
     let stored = null, saved = {};
     try { stored = g.localStorage?.getItem('pk-log') ?? null; saved = parseConfig(g.localStorage?.getItem(CONFIG_KEY) ?? ''); } catch (err) { early = err; }
-    const level = levelFrom({ search: g.location?.search ?? '', attr: g.document?.documentElement?.getAttribute?.('data-pk-log') ?? null, stored: saved.level ?? stored });
-    return { level, scopes: saved.scopes ?? {}, routes: { ...DEFAULT_ROUTES, ...(saved.routes ?? {}) } };
+    return { level: pageLevel(saved.level ?? stored), scopes: saved.scopes ?? {}, routes: { ...DEFAULT_ROUTES, ...(saved.routes ?? {}) } };
 }
 
 let config = readSources();
@@ -108,7 +110,7 @@ export function configureLogging(partial, { persist = false, replace = false } =
 // Forgets the saved settings and goes back to the defaults (the URL and page attribute still win for the level).
 export function resetLogging() {
     try { globalThis.localStorage?.removeItem(CONFIG_KEY); } catch (err) { internal('warn', 'settings not removed', err); }
-    config = { level: levelFrom({ search: globalThis.location?.search ?? '', attr: globalThis.document?.documentElement?.getAttribute?.('data-pk-log') ?? null }), scopes: {}, routes: { ...DEFAULT_ROUTES } };
+    config = { level: pageLevel(), scopes: {}, routes: { ...DEFAULT_ROUTES } };
     return getLoggingConfig();
 }
 
