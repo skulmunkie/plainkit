@@ -43,7 +43,7 @@ export default Base => class extends Base {
     above_() { const out = []; if (this.sectionsAbove) for (let e = this.previousElementSibling; e; e = e.previousElementSibling) if (e.dataset.pkSection) out.unshift(e); return out; }
     watch_() {
         const p = this.parentElement;
-        if (!this.sectionsAbove || !p) return;
+        if (!this.sectionsAbove || !p || !this.$mo) return; // changed() can run before connected() has made the observer (issue 1681)
         this.$mo.observe(p, { childList: true });
         for (let e = this.previousElementSibling; e; e = e.previousElementSibling) this.$mo.observe(e, { attributes: true, attributeFilter: SECTION_ATTRS });
     }

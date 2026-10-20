@@ -334,6 +334,17 @@ export const layoutCases = [
         t.ok(!shown('a') && shown('b'), 'choosing a tab on the header shows that section');
     }],
 
+    ['detail-layout: sections-above set before the first connect throws nothing (#1681)', async t => {
+        const errors = [], on = e => errors.push(e.message);
+        window.addEventListener('error', on);
+        try {
+            const root = await t.mount('<div><pk-card id="top" heading="Top" data-pk-section="a">t</pk-card><pk-detail-layout sections-above tabs-from="phone"><pk-card heading="A" data-pk-section="a">a</pk-card><pk-card heading="B" data-pk-section="b">b</pk-card></pk-detail-layout></div>');
+            await t.settle();
+            t.ok(!!root.querySelector('pk-detail-layout'), 'mounted');
+        } finally { window.removeEventListener('error', on); }
+        t.eq(errors.join('|'), '', 'no error was reported on first render');
+    }],
+
     ['detail-layout: hide-next removes the Next button after the main column; without it the button shows in the collapsed layout (#1433)', async t => {
         const root = await t.mount('<div><pk-detail-layout id="a"><pk-card heading="A" data-pk-section="details">a</pk-card><pk-card heading="B" data-pk-section="pricing">b</pk-card></pk-detail-layout><pk-detail-layout id="b" hide-next><pk-card heading="A" data-pk-section="details">a</pk-card><pk-card heading="B" data-pk-section="pricing">b</pk-card></pk-detail-layout></div>');
         const [on, off] = [root.querySelector('#a'), root.querySelector('#b')];
