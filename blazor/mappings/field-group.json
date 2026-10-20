@@ -7,6 +7,16 @@
       "type": "int?"
     },
     {
+      "name": "Layout",
+      "prop": "layout",
+      "type": "FieldGroupLayout"
+    },
+    {
+      "name": "EndContent",
+      "slot": "end",
+      "type": "RenderFragment"
+    },
+    {
       "name": "Fields",
       "map": "fieldGroup",
       "role": "fields",

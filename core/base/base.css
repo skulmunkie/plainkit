@@ -30,21 +30,12 @@ textarea::placeholder {
     opacity: 1;   /* Firefox dims placeholders by default; keep them legible */
 }
 
-/* Global link baseline, and the same argument as the form controls above: an
-   unstyled control inherits the browser's defaults, which were never chosen
-   against this palette. A bare <a> rendered in default browser blue — roughly 2.3:1 on the
-   dark panel, and the purple :visited variant is worse — which is what the
-   "Tools → File importer" links in the order page's cards were doing.
-
-   Scoped with :not([class]) rather than to every anchor on purpose. An anchor
-   that carries a class has been dressed deliberately — a.btn-primary, the docs
-   nav, the help-flyout footer — and a blanket `a { }` would fight all of them
-   over colour and underline. This targets exactly the case that has no answer
-   at all. Note it ties on specificity with rules like .docs-body a, so it sits
-   here near the top of the file where source order lets those win. An element that dresses its own slotted
-   links (pk-navbar, pk-breadcrumb) marks itself with [data-dresses-links], set in its own connected(), and
-   is left out: a document rule always beats a ::slotted one, so the blanket rule would undo their colour,
-   underline and current-page weight. */
+/* Global link baseline, the same argument as the form controls: a bare <a> in default browser blue
+   is about 2.3:1 on the dark panel (the purple :visited is worse). Scoped with :not([class]) because an
+   anchor with a class was dressed on purpose (a.btn-primary, the docs nav) and a blanket `a { }` would
+   fight it. It ties on specificity with rules like .docs-body a, so it sits near the top where source
+   order lets those win. An element that dresses its own slotted links (pk-navbar, pk-breadcrumb) marks
+   itself [data-dresses-links] and is left out: a document rule always beats a ::slotted one. */
 
 a:not([class], [data-dresses-links] > a) {
     color: var(--color-link);

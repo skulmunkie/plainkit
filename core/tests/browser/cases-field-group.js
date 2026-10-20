@@ -272,6 +272,25 @@ export const fieldGroupCases = [
         t.eq(el.values.ch, 'live'); t.eq(changes.at(-1)?.key, 'ch');
     }],
 
+    ['field-group: layout inline puts short fields and the end slot on one bottom-aligned row, wrapping on a narrow container, without the 16rem column minimum (#1688)', async t => {
+        const fields = [{ key: 'sku', label: 'SKU' }, { key: 'qty', label: 'Quantity', kind: 'number' }, { key: 'note', label: 'Note' }];
+        const host = t.stage('<div><pk-field-group label="Add line" layout="inline"><pk-button slot="end" id="add">Add</pk-button><pk-button slot="end" id="cancel" variant="ghost">Cancel</pk-button></pk-field-group></div>');
+        const el = host.querySelector('pk-field-group'); el.fields = fields; el.values = {};
+        await t.load(host); await t.load(el.shadowRoot); await t.settle(); await t.settle();
+        const fs = [...el.shadowRoot.querySelectorAll('pk-field')].map(f => f.getBoundingClientRect()), add = host.querySelector('#add').getBoundingClientRect(), cancel = host.querySelector('#cancel').getBoundingClientRect();
+        t.eq(fs.length, 3);
+        t.ok(fs.every(r => Math.abs(r.top - fs[0].top) < 2) || fs.every(r => Math.abs(r.bottom - fs[0].bottom) < 2), 'the three fields share one row');
+        t.ok(fs[0].right <= fs[1].left + 1 && fs[1].right <= fs[2].left + 1, 'left to right, no overlap');
+        t.ok(add.left >= fs[2].right - 1 && cancel.left >= add.right - 1, 'Add and Cancel follow the fields on the same row');
+        const bottom = Math.max(...fs.map(r => r.bottom)); t.ok(Math.abs(add.bottom - bottom) < 24 && add.top >= fs[0].top - 2, `the buttons sit on the fields' row (button bottom ${add.bottom}, row bottom ${bottom})`);
+        t.ok(fs[0].width < 16 * 16, 'a field is not stretched to a full column');
+        host.style.width = '320px'; await t.settle(); await t.settle();
+        const narrow = [...el.shadowRoot.querySelectorAll('pk-field')].map(f => f.getBoundingClientRect()), box = el.getBoundingClientRect();
+        t.ok(narrow.every(r => r.right <= box.right + 1 && r.left >= box.left - 1), 'on a narrow container every field stays inside it');
+        t.ok(narrow[2].top > narrow[0].top + 10, 'and the row wraps');
+        const grid = await t.mount('<pk-field-group label="Plain"></pk-field-group>'); t.ok(!grid.hasAttribute('layout'), 'grid stays the default');
+    }],
+
     ['field-group: a select field with styled renders the themed list with the native select value, change, required, disabled and keyboard behaviour (#1621)', async t => {
         const opts = [{ value: 'open', label: 'Open' }, { value: 'closed', label: 'Closed' }];
         const { el, form } = await inForm(t, [{ key: 'st', label: 'Status', kind: 'select', styled: true, required: true, options: opts, msg: { required: 'Pick a status.' } }, { key: 'nat', label: 'Native', kind: 'select', options: opts }], {});
