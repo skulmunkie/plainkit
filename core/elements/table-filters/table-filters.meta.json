@@ -88,7 +88,7 @@
     },
     {
       "name": "trigger-label",
-      "description": "The trigger's word; it folds into the icon on a phone and stays the accessible name"
+      "description": "The trigger's word; icon only on a phone"
     },
     {
       "name": "count",
@@ -126,18 +126,18 @@
   "cssProperties": [
     {
       "name": "--pk-table-filters-radius",
-      "description": "Corner radius of the search box and the Filters trigger. Defaults to the control radius, like buttons and inputs; set var(--radius-pill) for a pill (a length, so it stays a stadium and never an ellipse).",
+      "description": "Corner radius of the search box and trigger; var(--radius-pill) for a pill.",
       "default": "var(--pk-control-radius, var(--radius-sm))"
     },
     {
       "name": "--pk-control-radius",
-      "description": "The shared control radius, used when the element hook is not set.",
+      "description": "The shared control radius.",
       "default": "var(--radius-sm)"
     }
   ],
   "methods": [],
   "a11y": "The search box is labelled by label. The Filters trigger reflects aria-expanded; the panel is a normal document region (not a modal: no focus trap, no backdrop), so the page behind stays usable. The close button is labelled Close filters.",
-  "mobile": "The search box grows to full width; the trigger shows only its filter icon (the word stays its accessible name, the active count stays as a badge) and the trigger, close and clear buttons are 44px.",
+  "mobile": "The search box grows to full width; the trigger shows only its icon (the word stays its name) and the trigger, close and clear buttons are 44px.",
   "examples": [
     {
       "title": "In a table's toolbar",

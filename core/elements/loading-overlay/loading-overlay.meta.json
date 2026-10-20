@@ -45,7 +45,7 @@
       "type": "boolean",
       "default": false,
       "reflect": true,
-      "description": "Take the height of a definite-height flex column and pass it to the covered content (a pk-list-page keeps its pinned header row and pager): the host and the content part become a flex column with flex 1 and min-block-size 0, the --pk-fill-shrink protocol of the page types."
+      "description": "Fill a definite-height flex column and pass that height to the covered content (a pk-list-page keeps its pinned header and pager)."
     }
   ],
   "slots": [
@@ -80,7 +80,7 @@
   "cssProperties": [
     {
       "name": "--pk-fill-shrink",
-      "description": "Read on the slotted content with fill: set it to 1 on a filling page so it may shrink to the height the overlay passes down (the page types already do).",
+      "description": "Set to 1 on slotted content with fill so it may shrink to the overlay height (page types do).",
       "default": "0"
     }
   ],

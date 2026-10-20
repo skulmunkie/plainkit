@@ -161,12 +161,12 @@
     },
     {
       "name": "--pk-app-bar-search-radius",
-      "description": "Corner radius of the field. Defaults to the control radius, like buttons and inputs; set var(--radius-pill) for a pill.",
+      "description": "Corner radius of the field; var(--radius-pill) for a pill.",
       "default": "var(--pk-control-radius, var(--radius-sm))"
     },
     {
       "name": "--pk-control-radius",
-      "description": "The shared control radius, used when the element hook is not set.",
+      "description": "The shared control radius.",
       "default": "var(--radius-sm)"
     },
     {

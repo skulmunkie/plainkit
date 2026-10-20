@@ -1,12 +1,9 @@
 // Inline suppression comments for the audit CLI (design 5.3, A-6b, #1518):
 //   <!-- plainkit-audit-ignore D1 -- why this is fine -->   // plainkit-audit-ignore D1,T2 -- why   @* ... *@
-// A single comment suppresses the named rule(s) on its own line and on the line right after it. The rule id and a
-// reason after `--` are required; a comment without either is reported (and suppresses nothing), so a bare
-// ignore can never hide a finding silently. Pure functions; no I/O.
-// Block form: `plainkit-audit-ignore-start RULE -- reason` ... `plainkit-audit-ignore-end` suppresses the rule between them.
+// One comment suppresses a rule on its line and the next; needs an id and a `--` reason. Block: `-start RULE -- reason` ... `-end`.
 const MARKER = /plainkit-audit-ignore(-start|-end)?\b(.*)$/;
 
-export function scanIgnores(files, known) {   // `known`: optional Set of rule ids; an unknown id is a problem
+export function scanIgnores(files, known) {   // known: optional Set of rule ids
     const ignores = [];
     const problems = [];
     for (const file of files) {
@@ -25,13 +22,12 @@ export function scanIgnores(files, known) {   // `known`: optional Set of rule i
             const reason = rest.join(' -- ').trim();
             const rules = ruleText.split(',').map(s => s.trim()).filter(Boolean);
             const valid = rules.length > 0 && rules.every(r => /^[A-Za-z]\d+$/.test(r));
-            const unknown = valid && known ? rules.find(r => !known.has(r)) : null;
+            const unknown = rules.find(r => known && !known.has(r));
             if (!valid || !reason || unknown) { problem(!valid ? 'names no rule id' : unknown ? `names unknown rule ${unknown}` : 'has no reason'); continue; }
             const g = { file: file.path, line: i + 1, rules, reason };
-            if (m[1] === '-start') {
-                if (open) problem('starts a block inside another block');
-                open = g;
-                g.to = Infinity;
+            if (m[1]) {
+                if (open) problem('blocks cannot nest');
+                open = g; g.to = Infinity;
             }
             ignores.push(g);
         }

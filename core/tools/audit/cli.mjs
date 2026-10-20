@@ -197,7 +197,7 @@ export async function run(argv, { cwd = process.cwd(), stdout = console.log, std
     const scanned = scanIgnores(files, new Set(RULES.map(r => r.id)));
     for (const p of scanned.problems) {
         stderr(`plainkit audit: ${p.file}:${p.line}: plainkit-audit-ignore comment ${p.message}.`);
-        stderr('FIX: write `plainkit-audit-ignore RULE -- reason` (a known rule id such as D1 and a reason after `--`; for a block, bracket it with plainkit-audit-ignore-start and plainkit-audit-ignore-end).');
+        stderr('FIX: write `plainkit-audit-ignore RULE -- reason` (a known rule id, a reason after `--`).');
     }
     const ignored = applyIgnores(findings, scanned.ignores);
     findings = ignored.kept;
@@ -276,7 +276,7 @@ export async function run(argv, { cwd = process.cwd(), stdout = console.log, std
     };
     if (ignored.suppressed.length) {
         summary.suppressed = ignored.suppressed.length;
-        summary.ignoredWithReason = ignored.suppressed.map(f => ({ file: f.file, line: f.line, rule: f.rule, reason: f.reason }));
+        summary.ignoredWithReason = ignored.suppressed.map(({ file, line, rule, reason }) => ({ file, line, rule, reason }));
     }
     const skipped = { unsupported: skippedUnsupported, other: skippedOther };
 
