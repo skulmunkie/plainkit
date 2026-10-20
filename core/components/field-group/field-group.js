@@ -10,14 +10,15 @@ import { messageFor } from '../../js/validation.js';
 // The same value, as the text the controls show.
 const EXPR = ['whenExpr', 'disabledExpr', 'readonlyExpr', 'requiredExpr', 'labelWhenExpr', 'helpWhenExpr'];
 const same = (a, b) => String(a ?? '') === String(b ?? '');
+const put = (el, attrs) => { for (const k in attrs) el.setAttribute(k, attrs[k]); };
+const list = v => Array.isArray(v) ? v : [];
 
 export default Base => class extends Base {
     connected() {
         if (this.$w) return;
         this.$w = true;
         this.$rows = new Map();
-        this.$base = { ...(this.values ?? {}) }; // what a form reset goes back to: the values the host last gave
-        this.$vals = { ...this.$base };
+        this.rebase();
         const group = this.part('group');
         for (const type of ['input', 'change']) group.addEventListener(type, () => this.sync());
         // Enter in a text control commits what was typed first, as leaving the field would: a form that submits on Enter (pk-record-form, #1365) then sees the typed value, not the last committed one.
@@ -28,14 +29,15 @@ export default Base => class extends Base {
     }
     changed(name) {
         if (!this.$w) return;
-        if (name === 'values') { if (!this.$own) { this.$base = { ...(this.values ?? {}) }; this.$vals = { ...this.$base }; this.reconcile(); this.recheck(); } }
+        if (name === 'values') { if (!this.$own) { this.rebase(); this.reconcile(); this.recheck(); } }
         else if (name === 'fields' && this.$patching) this.patchRows();
-        else if (name === 'fields' || name === 'columns') { for (const row of this.$rows.values()) row.field.remove(); this.$rows.clear(); this.reconcile(); }
+        else if (name === 'fields' || name === 'columns') { for (const [k, row] of this.$rows) this.drop(k, row); this.reconcile(); }
         else if (name === 'disabled' || name === 'readonly') { this.syncState(); this.sync(); }
-        else if (name === 'label') this.aria({ role: 'group', ariaLabel: this.label || null });
+        else if (name === 'label') this.updated();
     }
     // Replaces the specs without rebuilding the fields that stay (#1641): a record page whose conditions follow the edits sends new disabled, readonly, label and help for the same keys, and the control the user is in keeps its focus and its text; fields that left are removed, new ones drawn.
     patch(fields) { this.$patching = true; this.fields = fields; this.$patching = false; }
+    rebase() { this.$base = { ...(this.values ?? {}) }; this.$vals = { ...this.$base }; } // $base is what a form reset goes back to: the values the host last gave
     drop(key, row) { row.field.remove(); this.$rows.delete(key); }
     patchRows() {
         const next = new Map(this.fields.map(f => [f?.key, f]));
@@ -47,7 +49,7 @@ export default Base => class extends Base {
 
     // Draws every field that shows, in order, removes the ones that no longer do, and writes any value that differs into its control.
     reconcile() {
-        const doc = this.ownerDocument, group = this.part('group'), specs = Array.isArray(this.fields) ? this.fields : [];
+        const doc = this.ownerDocument, group = this.part('group'), specs = list(this.fields);
         const shown = [];
         let built = false;
         const mod = this.conditions(specs);
@@ -75,7 +77,7 @@ export default Base => class extends Base {
         return undefined;
     }
     // The keys a condition may name: this group's fields and every value the host gave, so a page of several groups (pk-record-page's cards) can condition a field on one that another card draws (#1600).
-    known() { return new Set([...(Array.isArray(this.fields) ? this.fields : []).map(f => f?.key), ...Object.keys(this.$vals ?? {})]); }
+    known() { return new Set([...list(this.fields).map(f => f?.key), ...Object.keys(this.$vals ?? {})]); }
     // One condition of a spec against the committed values: undefined when the spec declares none, false while the module is not loaded, else the answer
     // (an unknown field or a syntax error is warned once and reads as true for whenExpr, false for the rest).
     test(spec, name, mod) {
@@ -107,25 +109,28 @@ export default Base => class extends Base {
         else if (n > 1) field.setAttribute('data-span', n);
     }
     // The host's label-action-<key> content, on every kind (a custom field included); `labelActionEnd` pins it to the end of the label row.
-    mk(tag, attrs) { const e = this.ownerDocument.createElement(tag); for (const k in attrs) e.setAttribute(k, attrs[k]); return e; }
+    mk(tag, attrs) { const e = this.ownerDocument.createElement(tag); put(e, attrs); return e; }
     tip(text) { return this.mk('pk-tooltip', { slot: 'label-action', help: '', interactive: '', text }); }
     labelAction(field, spec) {
         field.append(this.mk('slot', { name: `label-action-${spec.key}`, slot: 'label-action' }));
         if (spec.labelActionEnd) field.setAttribute('action-end', '');
     }
+    frame(spec, body) {
+        const field = this.ownerDocument.createElement('pk-field');
+        if (spec.hint) field.setAttribute('help', spec.hint);
+        this.spanOf(field, spec);
+        field.append(body);
+        this.labelAction(field, spec);
+        return field;
+    }
     build(doc, raw) {
         const spec = resolveSpec(raw), kind =spec.kind ?? 'text', tag = controlTag(kind);
         if (kind === 'custom') return this.buildCustom(doc, spec);
-        const control = doc.createElement(tag), field = doc.createElement('pk-field');
-        const put = (el, attrs) => { for (const [k, v] of Object.entries(attrs)) el.setAttribute(k, v); };
+        const control = doc.createElement(tag), field = this.frame(spec, control);
         put(control, { ...controlAttrs(spec), ...messageAttrs(spec) });
         if (kind === 'select') control.options = spec.options ?? [];
         if (kind === 'combobox') control.append(...this.opts(doc, spec.options));
-        if (spec.hint) field.setAttribute('help', spec.hint);
         if (spec.required) field.setAttribute('required', '');
-        this.spanOf(field, spec);
-        field.append(control);
-        this.labelAction(field, spec);
         const commit = commitOf(kind), row = { spec, kind, field, control };
         control.addEventListener(commit.event, e => {
             if (e.target !== control) return;
@@ -157,11 +162,7 @@ export default Base => class extends Base {
     }
     // A custom field has no control: its body is the host's own content in the editor-<key> slot, with no value, no validation and no part in the form.
     buildCustom(doc, spec) {
-        const field = doc.createElement('pk-field'), slot = this.mk('slot', { name: `editor-${spec.key}` }), row = { spec, kind: 'custom', field, control: null };
-        if (spec.hint) field.setAttribute('help', spec.hint);
-        this.spanOf(field, spec);
-        field.append(slot);
-        this.labelAction(field, spec);
+        const field = this.frame(spec, this.mk('slot', { name: `editor-${spec.key}` })), row = { spec, kind: 'custom', field, control: null };
         this.$rows.set(spec.key, row);
         return row;
     }
@@ -204,7 +205,7 @@ export default Base => class extends Base {
         const bad = this.invalidRows()[0];
         if (bad) this.setValidity({ customError: true }, messageFor(bad.control), bad.control); else this.setValidity({});
     }
-    invalidRows() { return [...this.$rows.values()].filter(r => r.control?.validity && r.control.validity.valid === false && r.control.willValidate !== false); }
+    invalidRows() { return [...this.$rows.values()].filter(r => r.control?.validity?.valid === false && r.control.willValidate !== false); }
     // pk-form's protocol: every problem in order, show or clear the messages in the fields, re-check one field, and focus the first problem.
     problems() { return this.invalidRows().map(r => ({ key: r.spec.key, label: r.spec.label ?? r.spec.key, message: messageFor(r.control), control: r.control, focus: () => r.control.focus() })); }
     report(on = true) {
@@ -215,7 +216,7 @@ export default Base => class extends Base {
     checkField(which) {
         const r = this.rowOf(which);
         if (!r) return true;
-        const message = !r.control ? '' : r.control.validity?.valid === false ? messageFor(r.control) : '';
+        const message = r.control?.validity?.valid === false ? messageFor(r.control) : '';
         r.field.error = message;
         return message === '';
     }
@@ -234,14 +235,14 @@ export default Base => class extends Base {
     onReset() {
         this.report(false);
         this.$vals = { ...this.$base };
-        this.own({ ...this.$base });
+        this.own(this.$vals);
         this.reconcile();
     }
     onRestore(state) {
         if (!(state instanceof FormData)) return;
         const saved = valuesFromEntries([...state.entries()], this.prefix ? this.name : '');
         const next = { ...this.$vals };
-        for (const spec of Array.isArray(this.fields) ? this.fields : []) if (spec?.key) next[spec.key] = isChecked(spec.kind) ? spec.key in saved : saved[spec.key] ?? next[spec.key];
+        for (const spec of list(this.fields)) if (spec?.key) next[spec.key] = isChecked(spec.kind) ? spec.key in saved : saved[spec.key] ?? next[spec.key];
         this.$vals = next;
         this.own(next);
         this.reconcile();
