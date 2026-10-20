@@ -1,7 +1,7 @@
 // The field builder tool-page and settings-page share (#423): one config field ({ key, type, label, options, ... }) becomes the pk-* control
 // that edits it. Only existing components (STANDARDS.md): pk-input carries every scalar type through its `type`; pk-switch (checked) and
 // pk-range (wrapped in a pk-field, it has no label of its own) differ, so read/write hide that.
-import { controlTag } from './field-kinds.js';
+import { controlTag, resolveSpec } from './field-kinds.js';
 
 /** The control's current value. */
 export const read = (el, type) => (type === 'switch' ? el.checked : el.value);
@@ -37,7 +37,7 @@ export function buildField(doc, f) {
 }
 
 function buildBase(doc, f) {
-    const tag = controlTag(f.type);
+    const spec = resolveSpec({ ...f, kind: f.type }), tag = controlTag(spec.kind);   // a select with `styled` is the combobox in select mode, as in pk-field-group (#1646)
     const el = doc.createElement(tag);
     if (tag === 'pk-switch') { el.textContent = f.label ?? f.key; return { el, row: el }; }
     if (tag === 'pk-range') {
@@ -53,6 +53,7 @@ function buildBase(doc, f) {
     if (f.placeholder) el.placeholder = f.placeholder;
     if (f.required) el.required = true;
     if (tag === 'pk-input') el.type = f.type ?? 'text';
-    if (tag === 'pk-select') for (const o of f.options ?? []) { const opt = doc.createElement('option'); opt.value = String(o.value ?? o); opt.textContent = o.label ?? String(o); el.append(opt); }
+    if (tag === 'pk-combobox' && spec.mode) el.setAttribute('mode', spec.mode);
+    if (tag === 'pk-select' || tag === 'pk-combobox') for (const o of f.options ?? []) { const opt = doc.createElement('option'); opt.value = String(o.value ?? o); opt.textContent = o.label ?? String(o); el.append(opt); }
     return { el, row: el };
 }

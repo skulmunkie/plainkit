@@ -1,4 +1,4 @@
-/* pk-canvas: a pan and zoom ground for design tools. The world layer carries the slotted content under one transform; the grid and the marks are drawn in screen space. */
+/* pk-canvas: pan and zoom ground; the world layer carries the content under one transform. */
 :host { display: block; position: relative; block-size: var(--pk-canvas-height, 24rem); --ds-cell: calc(var(--ds-grid, 0) * var(--ds-zoom, 1) * 1px); --ds-line: var(--pk-canvas-grid, color-mix(in srgb, var(--color-text) 14%, transparent)); }
 
 [part="frame"] {
@@ -22,6 +22,8 @@
 [part="frame"]:focus-visible { outline: var(--focus-ring); outline-offset: -2px; }
 
 [part="world"] { position: absolute; inline-size: var(--pk-canvas-width, 24rem); inset-block-start: 0; inset-inline-start: 0; transform-origin: 0 0; transform: translate(calc(var(--ds-x, 0) * 1px), calc(var(--ds-y, 0) * 1px)) scale(var(--ds-zoom, 1)); }
+
+[part="status"] { position: absolute; clip-path: inset(50%); }
 
 [part="overlay"] { position: absolute; inset: 0; pointer-events: none; }
 

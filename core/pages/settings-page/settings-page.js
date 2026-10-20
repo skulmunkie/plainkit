@@ -13,7 +13,7 @@ export default Base => class extends Base {
         // does the same for its own strip and Next button, and pk-tool-page for its Run button).
         loadElements(this.shadowRoot);
         this.part('form').addEventListener('submit', e => { e.preventDefault(); this.saveNow(); });
-        for (const type of ['pk-value-change', 'pk-change', 'pk-range']) this.part('form').addEventListener(type, () => this.paint());
+        for (const type of ['pk-value-change', 'pk-change', 'pk-range', 'change']) this.part('form').addEventListener(type, () => this.paint());
         this.part('discard').addEventListener('click', () => this.discard());
         this.part('nav').addEventListener('click', e => { const item = e.target.closest?.('pk-nav-item'); if (item) { e.preventDefault(); this.go(item.dataset.key); } });
         this.buildTitleBar();
