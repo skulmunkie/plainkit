@@ -19,6 +19,16 @@ export const headerCases = [
         t.eq(none.variant, 'page');
     }],
 
+    ['page-header: sticky-from releases the pinned header to normal flow at and below its breakpoint, measured in this viewport (#1679)', async t => {
+        const host = await t.mount('<div><pk-page-header sticky heading="A"></pk-page-header><pk-page-header sticky sticky-from="phone" heading="B"></pk-page-header><pk-page-header sticky sticky-from="tablet" heading="C"></pk-page-header><pk-page-header sticky-from="phone" heading="D"></pk-page-header></div>');
+        const { mediaBelow } = await import('../../js/breakpoints.js');
+        const phone = mediaBelow('phone').matches, tablet = mediaBelow('tablet').matches;
+        const pos = i => getComputedStyle(host.children[i]).position;
+        t.eq(pos(0), 'sticky', 'sticky alone is pinned at every width');
+        t.eq(pos(1), phone ? 'static' : 'sticky', 'sticky-from=phone is pinned only above a phone');
+        t.eq(pos(2), tablet ? 'static' : 'sticky', 'sticky-from=tablet is pinned only above a tablet');
+        t.eq(pos(3), 'static', 'sticky-from without sticky pins nothing');
+    }],
     ['page-header: section and record variants reflect, and a pk-breadcrumb slots in above the title', async t => {
         const s = await t.mount('<pk-page-header variant="section" heading="Movements"><button slot="actions">Refresh</button><span slot="meta">Latest 50</span></pk-page-header>');
         t.eq(s.getAttribute('variant'), 'section'); t.eq(s.part('title').getAttribute('aria-level'), '2');
