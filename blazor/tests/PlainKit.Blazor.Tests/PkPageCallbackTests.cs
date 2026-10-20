@@ -435,6 +435,42 @@ public sealed class PkPageCallbackTests : BunitContext, IAsyncLifetime
     }
 
     [Fact]
+    public async Task RecordPage_FollowEdits_reads_the_typed_conditions_from_a_draft_and_never_touches_the_item()
+    {
+        var model = new Person();
+        var fields = PersonFields.Select(f => f.Key == "age" ? f with { When = p => p.Name != "hide" } : f).ToList();
+        var cut = Render<PkRecordPage<Person>>(p => p.Add(x => x.Fields, fields).Add(x => x.Model, model).Add(x => x.FollowEdits, true));
+        string[] Keys() => JsonDocument.Parse(cut.Find("pk-record-page").GetAttribute("config")!).RootElement.GetProperty("fields").EnumerateArray().Select(f => f.GetProperty("key").GetString()!).ToArray();
+        Assert.Contains("age", Keys());
+
+        await cut.Find("pk-record-page").TriggerEventAsync("onpk-record-change", new PkRecordChangeEventArgs { Key = "name", Value = JsonSerializer.SerializeToElement("hide") });
+        Assert.DoesNotContain("age", Keys());
+        Assert.Equal("", model.Name);   // the item the page was given is not edited before Save
+
+        await cut.Find("pk-record-page").TriggerEventAsync("onpk-record-change", new PkRecordChangeEventArgs { Key = "name", Value = JsonSerializer.SerializeToElement("show") });
+        Assert.Contains("age", Keys());
+
+        await cut.Find("pk-record-page").TriggerEventAsync("onpk-record-change", new PkRecordChangeEventArgs { Key = "name", Value = JsonSerializer.SerializeToElement("hide") });
+        await cut.Find("pk-record-page").TriggerEventAsync("onpk-record-cancel", new PkRecordCancelEventArgs());
+        Assert.Contains("age", Keys());   // Cancel drops the draft
+
+        await cut.Find("pk-record-page").TriggerEventAsync("onpk-record-change", new PkRecordChangeEventArgs { Key = "name", Value = JsonSerializer.SerializeToElement("hide") });
+        await cut.Find("pk-record-page").TriggerEventAsync("onpk-record-save", EventArgs.Empty);
+        Assert.Contains("age", Keys());   // so does a saved record
+    }
+
+    [Fact]
+    public async Task RecordPage_FollowEdits_uses_CopyOf_for_the_draft()
+    {
+        var copies = 0;
+        var cut = Render<PkRecordPage<Person>>(p => p.Add(x => x.Fields, PersonFields).Add(x => x.Model, new Person()).Add(x => x.FollowEdits, true)
+            .Add(x => x.CopyOf, o => { copies++; return new Person { Name = o.Name }; }));
+        await cut.Find("pk-record-page").TriggerEventAsync("onpk-record-change", new PkRecordChangeEventArgs { Key = "name", Value = JsonSerializer.SerializeToElement("A") });
+        await cut.Find("pk-record-page").TriggerEventAsync("onpk-record-change", new PkRecordChangeEventArgs { Key = "name", Value = JsonSerializer.SerializeToElement("B") });
+        Assert.Equal(1, copies);   // one draft per edit session
+    }
+
+    [Fact]
     public async Task RecordPage_BeforeSave_gets_the_item_with_the_form_applied_and_its_answer_goes_back_to_the_element()
     {
         Person? seen = null; var go = false;

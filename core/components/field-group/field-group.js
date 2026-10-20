@@ -29,9 +29,18 @@ export default Base => class extends Base {
     changed(name) {
         if (!this.$w) return;
         if (name === 'values') { if (!this.$own) { this.$base = { ...(this.values ?? {}) }; this.$vals = { ...this.$base }; this.reconcile(); this.recheck(); } }
+        else if (name === 'fields' && this.$patching) this.patchRows();
         else if (name === 'fields' || name === 'columns') { for (const row of this.$rows.values()) row.field.remove(); this.$rows.clear(); this.reconcile(); }
         else if (name === 'disabled' || name === 'readonly') { this.syncState(); this.sync(); }
         else if (name === 'label') this.aria({ role: 'group', ariaLabel: this.label || null });
+    }
+    // Replaces the specs without rebuilding the fields that stay (#1641): a record page whose conditions follow the edits sends new disabled, readonly, label and help for the same keys, and the control the user is in keeps its focus and its text; fields that left are removed, new ones drawn.
+    patch(fields) { this.$patching = true; try { this.fields = fields; } finally { this.$patching = false; } }
+    patchRows() {
+        const next = new Map((Array.isArray(this.fields) ? this.fields : []).filter(f => f?.key).map(f => [f.key, f]));
+        this.$vals = this.snapshot(); // text typed but not committed yet stays in its control: reconcile would write the committed value over it
+        for (const [key, row] of [...this.$rows]) { if (next.has(key)) row.spec = resolveSpec(next.get(key)); else { row.field.remove(); this.$rows.delete(key); } }
+        this.reconcile();
     }
     updated() { this.aria({ role: 'group', ariaLabel: this.label || null }); }
 
@@ -51,7 +60,7 @@ export default Base => class extends Base {
             shown.push(row.field);
         }
         // Moving a node takes focus out of it (a blur that a form would check), so the fields are only appended when their order is not already right.
-        if (shown.length !== group.children.length || shown.some((f, i) => group.children[i] !== f)) group.append(...shown);
+        shown.forEach((f, i) => { if (group.children[i] !== f) group.insertBefore(f, group.children[i] ?? null); }); // only a field that is out of place moves, so the control being typed in keeps its focus
         group.toggleAttribute('data-twelve', shown.some(f => f.hasAttribute('data-cols')));
         this.syncState();
         if (built) loadElements(this.shadowRoot).then(() => this.sync());
@@ -75,21 +84,16 @@ export default Base => class extends Base {
         const known = this.known();
         return mod.evaluate(src, this.$vals, known, name === 'whenExpr', m => this.warnOnce(`cond:${spec.key}:${name}`, m));
     }
-    // The label and the help tooltip of a field follow labelWhenExpr / helpWhenExpr (conditional text, `cond ? 'text' : other`); an empty answer keeps the spec's own label or help.
+    // The label and the help tooltip of a field: the spec's own, or what labelWhenExpr / helpWhenExpr answer (conditional text, `cond ? 'text' : other`; an empty answer keeps the spec's own). Written on every reconcile, so a patched spec shows at once.
     texts(row, mod) {
         const { spec, kind, field, control } = row, known = this.known();
         const ask = name => (typeof spec[name] === 'string' && mod ? mod.evaluateText(spec[name], this.$vals, known, m => this.warnOnce(`cond:${spec.key}:${name}`, m)) : '');
-        if (typeof spec.labelWhenExpr === 'string') {
-            const label = ask('labelWhenExpr') || spec.label || spec.key;
-            if (kind === 'switch') control.textContent = label; else if (kind !== 'custom' && spec.hideLabel) control.setAttribute('aria-label', label); else field.setAttribute('label', label);
-        }
-        if (typeof spec.helpWhenExpr === 'string') {
-            const help = ask('helpWhenExpr') || spec.help || '';
-            let tip = field.querySelector('pk-tooltip[help]');
-            if (!help) tip?.remove();
-            else if (tip) tip.setAttribute('text', help);
-            else { tip = this.tip(this.ownerDocument, help); (control ?? field.lastElementChild).after(tip); loadElements(this.shadowRoot); }
-        }
+        const label = ask('labelWhenExpr') || spec.label || spec.key, help = ask('helpWhenExpr') || spec.help || '';
+        if (kind === 'switch') control.textContent = label; else if (kind !== 'custom' && spec.hideLabel) control.setAttribute('aria-label', label); else field.setAttribute('label', label);
+        let tip = field.querySelector('pk-tooltip[help]');
+        if (!help) tip?.remove();
+        else if (tip) tip.setAttribute('text', help);
+        else { tip = this.tip(this.ownerDocument, help); (control ?? field.lastElementChild).after(tip); loadElements(this.shadowRoot); }
     }
     /** Draws the fields again: call it after changing the visible(spec, values) callback property, which nothing watches. */
     refresh() { this.reconcile(); }

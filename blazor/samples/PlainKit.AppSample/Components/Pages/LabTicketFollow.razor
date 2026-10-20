@@ -1,0 +1,25 @@
+@page "/lab/ticket-follow"
+
+@* Lab: FollowEdits (#1641). The typed conditions follow what is committed: Notes shows only for a bug (When), Estimate is disabled for a task (Disabled), and Title's label says it is a task (LabelWhen). The record handed in is never edited before Save. *@
+<PkRecordPage TItem="Ticket" Config="@Config" Fields="_fields" Model="_model" FollowEdits="true" Save="Save" />
+<p id="lab-log">Log: @_log</p>
+
+@code {
+    private const string Config = """{"heading":"New ticket","editable":true}""";
+    private readonly Ticket _model = new() { Kind = "bug" };
+    private string _log = "";
+
+    private static readonly PkFieldSpec<Ticket>[] _fields = Ticket.Specs.Where(f => f.Key is "title" or "kind" or "notes" or "estimate").Select(f => f.Key switch
+    {
+        "notes" => f with { When = t => t.Kind == "bug" },
+        "estimate" => f with { Disabled = t => t.Kind == "task" },
+        "title" => f with { LabelWhen = t => t.Kind == "task" ? "Title (task)" : "Title" },
+        _ => f,
+    }).ToArray();
+
+    private async Task Save(Ticket t)
+    {
+        _log += $"saved:{t.Kind}:{t.Title};";
+        await InvokeAsync(StateHasChanged);
+    }
+}

@@ -408,3 +408,21 @@ test('requestSave(skipBeforeSave) runs the normal save path: validation, beforeS
     assert.equal(el.mode, 'view'); assert.equal(parts.save.busy, false); assert.ok(events.some(([n]) => n === 'pk-record-save'));
     assert.equal(el.$skip, false, 'the skip applies to one run only');
 });
+
+test('a config that only changes the fields patches the groups in place; a changed shape draws again (#1641)', async () => {
+    const { el, parts } = make();
+    el.load = async () => ({ name: 'Widget', status: 'a' });
+    el.mode = 'edit';
+    el.connected();
+    await tick();
+    const patched = [];
+    for (const [i, g] of el.$groups.entries()) g.patch = fields => patched.push([i, fields.map(f => f.key + (f.disabled ? '!' : ''))]);
+    const kids = parts.main.children;
+    el.config = { ...el.config, fields: el.config.fields.map(f => f.name === 'name' ? { ...f, disabled: true } : f) };
+    el.changed('config');
+    assert.equal(parts.main.children, kids, 'the form was not rebuilt');
+    assert.ok(patched[0][1].includes('name!'), 'the main group got the new specs');
+    el.config = { ...el.config, saveLabel: 'Store' };
+    el.changed('config');
+    assert.notEqual(parts.main.children, kids, 'a change outside fields draws again');
+});
