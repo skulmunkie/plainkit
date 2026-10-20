@@ -47,6 +47,11 @@
       "type": "ComboboxFiltering"
     },
     {
+      "name": "DebounceMs",
+      "prop": "debounce",
+      "type": "int"
+    },
+    {
       "name": "Open",
       "prop": "open",
       "type": "bool",

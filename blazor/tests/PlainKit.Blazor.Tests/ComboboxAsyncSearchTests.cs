@@ -31,6 +31,14 @@ public sealed class ComboboxAsyncSearchTests : BunitContext, IAsyncLifetime
         Assert.Equal("", value);
     }
 
+    // Issue 1664: DebounceMs is the element's debounce property (the wait happens in the element, so the callback is raised once per pause).
+    [Fact]
+    public void DebounceMs_is_sent_to_the_element()
+    {
+        var cut = Render<PkCombobox>(p => p.Add(x => x.DebounceMs, 250));
+        Assert.Equal("250", cut.Find("pk-combobox").GetAttribute("debounce"));
+    }
+
     [Fact]
     public async Task The_query_reaches_the_callback_the_host_replaces_the_options_and_a_pick_reaches_bind_value()
     {

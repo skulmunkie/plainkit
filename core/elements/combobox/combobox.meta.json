@@ -102,6 +102,13 @@
       "description": "client also filters the options here; off leaves filtering to the host, which listens for pk-combo-query and replaces the options."
     },
     {
+      "name": "debounce",
+      "type": "number",
+      "default": 0,
+      "reflect": false,
+      "description": "Milliseconds to wait after typing before pk-combo-query fires, with the latest text only; 0 fires on every keystroke. The client filter is not delayed. For a host that fetches options from the query."
+    },
+    {
       "name": "open",
       "type": "boolean",
       "default": false,
