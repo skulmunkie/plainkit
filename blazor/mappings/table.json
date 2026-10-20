@@ -303,6 +303,13 @@
       "note": "The slot name is dynamic: the component renders one slot=\"detail-<rowId>\" per row when Expandable is set, and only those rows get a toggle."
     },
     {
+      "name": "DetailPanels",
+      "map": "param",
+      "type": "IReadOnlyDictionary<string, RenderFragment<TItem>>?",
+      "doc": "Further named detail panels of a row, by panel name (the element's detail-<rowId>.<name> slots), next to or instead of DetailTemplate. Needs Expandable. A named panel has no toggle: the host opens it by putting \"<rowId>.<name>\" in Expanded (Expander \"none\" drops the toggle column), and several can be open at once.",
+      "note": "The slot name is dynamic: the component renders one slot=\"detail-<rowId>.<name>\" per panel and row when Expandable is set; the element shows the ones named in expanded."
+    },
+    {
       "name": "ChildContent",
       "map": "param",
       "type": "RenderFragment?",

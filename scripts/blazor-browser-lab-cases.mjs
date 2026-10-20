@@ -41,6 +41,21 @@ export const LAB_CASES = [
         await ctx.waitFor(`${labels} === 'Any|All (1)'`, 'the filter option to read "All (1)" after the search');
         await ctx.noErrors(ctx.openMark, BENIGN);
       } },
+    { name: 'table-named-detail-panels', // #1685: DetailPanels renders one slot="detail-<rowId>.<name>" per panel and row; the host opens one through Expanded
+      async run(ctx) {
+        await ctx.open('/lab/detail-panels');
+        await waitText(ctx, 'Widget');
+        const shown = "(() => { const t = document.querySelector('pk-table'); return [...t.shadowRoot.querySelectorAll('tr[data-detail]')].filter(r => !r.hidden).map(r => r.querySelector('slot').assignedElements().map(e => e.textContent).join()).join('|'); })()";
+        ctx.ok(await ctx.eval(`${shown} === ''`), 'a named panel is open before the host opened it');
+        ctx.ok(await ctx.eval("['1.channel', '1.bundle', '2.channel', '2.bundle'].every(k => !!document.querySelector('pk-table > [slot=\"detail-' + k + '\"]'))"), 'a named panel is not rendered for every row');
+        await ctx.clickDeep('pk-button', 'Open channel');
+        await ctx.waitFor(`${shown} === 'Channel detail of Widget'`, 'only the channel panel of row 1 to open');
+        await ctx.clickDeep('pk-button', 'Open bundle');
+        await ctx.waitFor(`${shown} === 'Bundle contents of Widget'`, 'only the bundle panel of row 1 to open');
+        const r = await ctx.eval("(() => { const t = document.querySelector('pk-table'), row = t.shadowRoot.querySelector('tr[data-pk-context=\"1\"]').getBoundingClientRect(), d = [...t.shadowRoot.querySelectorAll('tr[data-detail]')].find(x => !x.hidden).getBoundingClientRect(); return { rowBottom: row.bottom, dTop: d.top, dH: d.height }; })()");
+        ctx.ok(r.dH > 0 && r.dTop >= r.rowBottom - 1, 'the open panel sits under its row');
+        await ctx.noErrors(ctx.openMark, BENIGN);
+      } },
     { name: 'list-before-list-slot', // #1603: BeforeListContent sits between the title bar and the list, inside the page frame
       async run(ctx) {
         await ctx.open('/lab/tickets');
