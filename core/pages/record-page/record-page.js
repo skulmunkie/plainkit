@@ -164,7 +164,10 @@ export default Base => class extends Base {
     live() { return Object.assign({}, ...(this.$groups ?? []).map(g => { const own = new Set((g.fields ?? []).map(f => f.key)); return Object.fromEntries(Object.entries(g.snapshot?.() ?? {}).filter(([k]) => own.has(k))); })); }
     mirror(e) {
         const { key, value } = e.detail ?? {}, from = e.target;
-        if (key == null || (this.$groups?.length ?? 0) < 2) return;
+        if (key == null) return;
+        // The host hears every committed change with the values of all the cards (not per keystroke), so app content beside the form (a summary, a preview) can follow the edit (#1651).
+        this.emit('pk-record-change', { key, value, values: { ...this.collect(), [key]: value } });
+        if ((this.$groups?.length ?? 0) < 2) return;
         for (const g of this.$groups) if (g !== from && typeof g.snapshot === 'function') g.values = { ...g.snapshot(), [key]: value };
     }
     groupOf(k) { return (this.$groups ?? []).find(g => g.fields?.some(f => f.key === k)); }

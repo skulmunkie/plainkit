@@ -421,6 +421,20 @@ public sealed class PkPageCallbackTests : BunitContext, IAsyncLifetime
     }
 
     [Fact]
+    public async Task RecordPage_OnFieldChanged_gets_the_key_the_value_and_every_field_value()
+    {
+        PkRecordChangeEventArgs? seen = null;
+        var cut = Render<PkRecordPage<Person>>(p => p.Add(x => x.Fields, PersonFields).Add(x => x.Model, new Person())
+            .Add(x => x.OnFieldChanged, EventCallback.Factory.Create<PkRecordChangeEventArgs>(this, e => seen = e)));
+
+        await cut.Find("pk-record-page").TriggerEventAsync("onpk-record-change", new PkRecordChangeEventArgs { Key = "name", Value = JsonSerializer.SerializeToElement("Bo"), Values = JsonSerializer.SerializeToElement(new { name = "Bo", age = 3 }) });
+
+        Assert.Equal("name", seen!.Key);
+        Assert.Equal("Bo", seen.Value!.Value.GetString());
+        Assert.Equal(3, seen.Values!.Value.GetProperty("age").GetInt32());
+    }
+
+    [Fact]
     public async Task RecordPage_BeforeSave_gets_the_item_with_the_form_applied_and_its_answer_goes_back_to_the_element()
     {
         Person? seen = null; var go = false;

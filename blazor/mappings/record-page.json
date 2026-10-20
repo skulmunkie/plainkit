@@ -66,6 +66,12 @@
       "note": "The unsaved-changes state changed (Dirty): confirm before leaving the page."
     },
     {
+      "name": "OnFieldChanged",
+      "event": "pk-record-change",
+      "listened": true,
+      "note": "A field's change was committed (not each keystroke): Key and Value are the field, Values every field's current value in all the cards (a JSON object keyed by field key). Redraw your own content beside the form, such as a summary card in MainAfter, from it; the item itself is not touched before Save."
+    },
+    {
       "name": "OnSave",
       "event": "pk-record-save",
       "note": "Save resolved and the page is back in view mode (Save already received the values)."
