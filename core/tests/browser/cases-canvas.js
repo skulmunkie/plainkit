@@ -96,13 +96,13 @@ export const canvasCases = [
         }
     }],
 
-    ['canvas: zoomToFit puts the content inside the frame with a margin, centred, and Home does the same by key', async t => {
+    ['canvas: zoomToFit puts the content inside the frame with a margin, centred above the toolbar, and Home does the same by key (#1661)', async t => {
         const s = await t.mount('<pk-canvas label="Plan" min-zoom="0.1" max-zoom="8"><div id="node">Plan</div></pk-canvas>'); await t.settle();
-        const node = s.querySelector('#node'); node.style.height = '60px';
+        const node = s.querySelector('#node'); node.style.height = '200px';
         s.zoomToFit(); await t.settle();
-        const f = rect(s.part('frame')), n = rect(node);
-        t.ok(n.left >= f.left && n.right <= f.right && n.top >= f.top && n.bottom <= f.bottom, 'the content is inside the frame');
-        t.ok(near((n.left + n.right) / 2, (f.left + f.right) / 2, 1.5) && near((n.top + n.bottom) / 2, (f.top + f.bottom) / 2, 1.5), 'and centred');
+        const fr = rect(s.part('frame')), tb = rect(s.part('toolbar')), n = rect(node), f = { left: fr.left, right: fr.right, top: fr.top, bottom: tb.top };
+        t.ok(n.left >= f.left && n.right <= f.right && n.top >= f.top && n.bottom <= f.bottom, 'the content is inside the frame and clear of the toolbar (bottom ' + n.bottom + ' vs toolbar top ' + tb.top + ')');
+        t.ok(near((n.left + n.right) / 2, (f.left + f.right) / 2, 1.5) && near((n.top + n.bottom) / 2, (f.top + f.bottom) / 2, 1.5), 'and centred in the area above the toolbar');
         t.ok(near(Math.min(n.left - f.left, f.right - n.right, n.top - f.top, f.bottom - n.bottom), 16, 2) || s.zoom === 8, 'with the margin on the tight side');
         s.reset(); await t.settle();
         s.part('frame').dispatchEvent(new KeyboardEvent('keydown', { key: 'Home', bubbles: true, cancelable: true })); await t.settle();

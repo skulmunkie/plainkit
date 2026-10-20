@@ -54,9 +54,11 @@ export default Base => class extends Base {
     // Zoom to `z` around the frame pixel `anchor` ({ x, y }, the middle by default).
     zoomTo(z, a) { const [w, h] = this.frameSize(); this.zoomAt(z / this.zoom, a ? a.x : w / 2, a ? a.y : h / 2, true); }
     reset() { this.put(fromOrigin({ x: 0, y: 0, zoom: 1 }), true); }
-    // Fit a world rect { x, y, w, h } (default: the content area at the world origin) in the frame with a 16px margin.
+    // Fit a world rect { x, y, w, h } (default: the content area at the world origin) in the frame with a 16px margin, above the floating toolbar:
+    // the strip the toolbar covers along the bottom edge is left out of the fitted area (#1661), so the content never sits under it.
     zoomToFit(rect) {
-        const [w, h] = this.frameSize(), world = this.part('world');
+        const [w, h0] = this.frameSize(), world = this.part('world'), tb = this.part('toolbar').getBoundingClientRect(), fr = this.part('frame').getBoundingClientRect();
+        const h = h0 - Math.max(0, fr.bottom - tb.top) > 32 ? h0 - Math.max(0, fr.bottom - tb.top) : h0;
         rect ||= { x: 0, y: 0, w: world.offsetWidth, h: world.offsetHeight };
         if (rect.w > 0 && rect.h > 0 && w > 0) this.put(zoomToFit(rect, w, h, 16, { min: this.minZoom, max: this.maxZoom }), true);
     }
