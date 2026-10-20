@@ -281,7 +281,7 @@ export async function mountScorecard(container, options = {}) {
         setProgress('Reading stylesheets and scripts…');
         const cssFiles = await readTexts(files.css, doc);
         const jsFiles = await readTexts(files.js, doc);
-        const stat = staticMetrics({ cssFiles, jsFiles, tokensCss: cssFiles[files.tokens] ?? '', pairs: files.pairs ?? [] });
+        const stat = staticMetrics({ cssFiles, jsFiles, tokensCss: cssFiles[files.tokens] ?? '', pairs: files.pairs ?? [], pageCss: files.pageCss });
         let total = 0; let unused = 0;
         if (files.frame) {
             setProgress('Estimating unused selectors…');
