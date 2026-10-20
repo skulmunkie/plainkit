@@ -73,6 +73,12 @@
       }
     },
     {
+      "name": "Contain",
+      "prop": "contain",
+      "type": "bool",
+      "extra": true
+    },
+    {
       "name": "Flush",
       "prop": "flush",
       "type": "bool"

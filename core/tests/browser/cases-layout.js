@@ -526,6 +526,36 @@ export const layoutCases = [
         const kept = box.scrollTop; await wait(200);
         t.eq(box.scrollTop, kept, 'after the drop the box stays put');
     }],
+    // #1675 phase 1: pk-app-shell `contain`. The shell is given a definite height through CSSOM (the strict CSP forbids style attributes).
+    ['app-shell contain (#1675): any single slotted child fills the body height, without it the child keeps its own height, and flush composes', async t => {
+        const shell = async (attrs, w) => { const host = t.stage(`<pk-app-shell ${attrs}><div>short</div></pk-app-shell>`); host.style.inlineSize = `${w}px`; await t.load(host); const el = host.firstElementChild; el.style.blockSize = '600px'; await t.settle(); return el; };
+        for (const w of [1280, 375]) {
+            const body = el => el.shadowRoot.querySelector('[part=body]'), content = el => { const b = body(el).getBoundingClientRect(), cs = getComputedStyle(body(el)); return b.bottom - px(cs.paddingBottom); };
+            const on = await shell('contain', w), kid = on.firstElementChild;
+            t.ok(Math.abs(kid.getBoundingClientRect().bottom - content(on)) <= 1, `${w}px: the child's bottom meets the body's content bottom (${kid.getBoundingClientRect().bottom} vs ${content(on)})`);
+            t.ok(body(on).scrollHeight <= body(on).clientHeight, `${w}px: the body does not scroll`);
+            const off = await shell('', w);
+            t.ok(off.firstElementChild.getBoundingClientRect().height < 60, `${w}px: without contain the child keeps its natural height (${off.firstElementChild.getBoundingClientRect().height})`);
+            const fl = await shell('contain flush', w), fk = fl.firstElementChild;
+            t.ok(Math.abs(fk.getBoundingClientRect().bottom - body(fl).getBoundingClientRect().bottom) <= 1 && fk.getBoundingClientRect().height > 400, `${w}px: contain with flush fills edge to edge`);
+        }
+    }],
+    ['app-shell contain (#1675): the body is the container named page, @container page answers to the body width and not the viewport, and the name is a hook', async t => {
+        const host = t.stage('<pk-app-shell contain><div class="probe">x</div></pk-app-shell>'); host.style.inlineSize = '300px'; await t.load(host);
+        const el = host.firstElementChild, body = el.shadowRoot.querySelector('[part=body]'), probe = el.firstElementChild, cs = getComputedStyle(body);
+        t.eq(cs.containerType, 'inline-size'); t.eq(cs.containerName, 'page'); t.eq(cs.overflowX, 'hidden', 'sideways overflow is clipped (clip beside a scrolling y computes to hidden)');
+        const sheet = new CSSStyleSheet(); sheet.replaceSync('@container page (min-width: 900px) { .probe { margin-left: 11px; } } @container page (max-width: 600px) { .probe { margin-right: 7px; } }');
+        document.adoptedStyleSheets = [...document.adoptedStyleSheets, sheet];
+        try {
+            await t.settle();
+            const m = getComputedStyle(probe);
+            t.eq(m.marginRight, '7px', 'the narrow body matches max-width: 600px'); t.eq(m.marginLeft, '0px', 'the wide query does not match: the body is 300px wide, the viewport is wider');
+            el.style.setProperty('--pk-app-shell-container', 'main'); await t.settle();
+            t.eq(getComputedStyle(body).containerName, 'main', '--pk-app-shell-container renames it');
+        } finally { document.adoptedStyleSheets = document.adoptedStyleSheets.filter(s => s !== sheet); }
+        const plain = t.stage('<pk-app-shell><div>x</div></pk-app-shell>'); await t.load(plain);
+        t.eq(getComputedStyle(plain.firstElementChild.shadowRoot.querySelector('[part=body]')).containerType, 'normal', 'without contain the body is no container');
+    }],
 ];
 
 // Issue 837: the actions of a card header (a PkCardMenu button) stay on the header row at the inline end when the heading is long and wraps.
