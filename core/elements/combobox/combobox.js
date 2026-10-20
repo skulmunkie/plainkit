@@ -17,6 +17,7 @@ export default Base => class extends Base {
         inp.addEventListener('input', () => { this.$typing = true; this.$query = inp.value; if (this.free) this.value = inp.value; this.setOpen(true); this.emit('pk-combo-query', { query: inp.value }); this.filter(); });
         inp.addEventListener('click', () => { if (!this.open) this.show(); });
         tr.addEventListener('click', () => { if (this.open) this.hide(); else this.show(); });
+        this.part('clear').addEventListener('click', () => this.clear());
         pop.addEventListener('mousedown', e => e.preventDefault());
         pop.addEventListener('click', e => { const o = e.target.closest('.op'); if (o && o.getAttribute('aria-disabled') !== 'true') this.pick(o); });
         this.addEventListener('focusout', e => {
@@ -58,6 +59,12 @@ export default Base => class extends Base {
         this.hide(); this.ctl().focus();
         this.dispatchEvent(new Event('change', { bubbles: true, composed: true }));
         this.emit('pk-combo-select', { value: this.value, label: op.textContent });
+    }
+    // The clear button: an empty value is a commit like a pick (change and pk-combo-select), so a host that mirrors the value hears it.
+    clear() {
+        this.$typing = false; this.value = ''; this.hide(); this.ctl().focus();
+        this.dispatchEvent(new Event('change', { bubbles: true, composed: true }));
+        this.emit('pk-combo-select', { value: '', label: '' });
     }
     keys(e) {
         const src = e.composedPath()[0];
@@ -103,6 +110,7 @@ export default Base => class extends Base {
         for (const o of this.ops()) o.setAttribute('aria-selected', String(o === chosen));
         if (this.mode === 'select') { tr.textContent = chosen ? chosen.textContent : ''; tr.dataset.placeholder = this.placeholder; }
         else if (!this.$typing) inp.value = chosen ? chosen.textContent : this.free ? this.value : '';
+        this.part('clear').hidden = !(this.clearable && this.mode !== 'select' && !this.disabled && this.value !== '');
         pop.hidden = !this.open;
         for (const c of [inp, tr]) c.setAttribute('aria-expanded', String(this.open));
         this.float();

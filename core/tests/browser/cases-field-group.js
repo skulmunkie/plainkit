@@ -290,6 +290,14 @@ export const fieldGroupCases = [
         t.eq(el.values.ch, 'live'); t.eq(changes.at(-1)?.key, 'ch');
     }],
 
+    ['field-group: a combobox spec with clearable shows the clear button and clearing commits an empty value as a field change (#1687)', async t => {
+        const el = await mountGroup(t, [{ key: 'v', label: 'Variant', kind: 'combobox', clearable: true, options: [{ value: 'a', label: 'Alpha' }] }], { v: 'a' });
+        const combo = el.shadowRoot.querySelector('pk-combobox'); t.ok(combo.hasAttribute('clearable'), 'the spec reaches the element');
+        const changes = []; el.addEventListener('pk-field-change', e => changes.push(e.detail));
+        combo.part('clear').click(); await t.settle(); await t.settle();
+        t.eq(el.values.v, ''); t.eq(changes.at(-1)?.key, 'v');
+    }],
+
     ['field-group: a select field with styled renders the themed list with the native select value, change, required, disabled and keyboard behaviour (#1621)', async t => {
         const opts = [{ value: 'open', label: 'Open' }, { value: 'closed', label: 'Closed' }];
         const { el, form } = await inForm(t, [{ key: 'st', label: 'Status', kind: 'select', styled: true, required: true, options: opts, msg: { required: 'Pick a status.' } }, { key: 'nat', label: 'Native', kind: 'select', options: opts }], {});

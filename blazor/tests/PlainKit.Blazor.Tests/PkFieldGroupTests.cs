@@ -284,6 +284,14 @@ public sealed class PkFieldGroupTests : BunitContext, IAsyncLifetime
         Assert.Equal("3", Render<PkFieldGroup<Order>>(p => p.Add(x => x.Fields, [spec]).Add(x => x.Model, new Order()).Add(x => x.Columns, 3)).Find("pk-field-group").GetAttribute("columns"));
     }
 
+    // Issue 1687: Clearable on a combobox spec reaches the element's field definition.
+    [Fact]
+    public void Clearable_reaches_the_field_definition_of_a_combobox()
+    {
+        var spec = new PkFieldSpec<Order> { Key = "sku", Label = "SKU", Kind = PkFieldKind.Combobox, Clearable = true, Get = o => "", Set = (o, v) => { } };
+        Assert.True(Defs(Render([spec]))[0].GetProperty("clearable").GetBoolean());
+    }
+
     // Issue 753 gap 2: PkFieldKind.Combobox, its options from Options or from an async Search callback the element runs as the user types.
     private sealed class Pick { public string Sku { get; set; } = ""; }
 
