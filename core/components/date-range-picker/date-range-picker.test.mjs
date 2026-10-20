@@ -4,7 +4,7 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import fs from 'node:fs';
 import { fileURLToPath } from 'node:url';
-import behaviour, { cleanIso, presetList, presetRange, clampRange, rangeProblems, DEFAULT_PRESETS, PRESETS } from './date-range-picker.js';
+import behaviour, { cleanIso, presetList, presetRange, customOf, presetLabel, activePreset, clampRange, rangeProblems, DEFAULT_PRESETS, PRESETS } from './date-range-picker.js';
 
 const read = ext => fs.readFileSync(fileURLToPath(new URL(`./date-range-picker.${ext}`, import.meta.url)), 'utf8');
 const meta = JSON.parse(read('meta.json'));
@@ -79,7 +79,7 @@ test('committing a date raises change and pk-range-change with the range and its
     parts.end.value = '2026-08-01'; parts.end.l.change({ stopPropagation() {} });
     assert.equal(el.end, '2026-08-01');
     const ev = el.events.at(-1);
-    assert.equal(ev.name, 'pk-range-change'); assert.deepEqual(ev.detail, { start: '2026-09-01', end: '2026-08-01', valid: false });
+    assert.equal(ev.name, 'pk-range-change'); assert.deepEqual(ev.detail, { start: '2026-09-01', end: '2026-08-01', valid: false, preset: '' });
     assert.equal(el.events.at(-2).name, 'change');
     el.updated();
     assert.equal(parts.error.hidden, false); assert.match(parts.error.textContent, /before the start/);
@@ -127,4 +127,25 @@ test('the meta names the commit event on both two-way props and the css uses tok
         assert.ok(meta.cssProperties.some(p => p.name === h), `${h} is documented`);
         assert.match(read('css'), new RegExp(`\\[part="start"\\], \\[part="end"\\] \\{[^}]*${h}: var\\(--_`), `${h} is passed on to the pk-input fields`);
     }
+});
+
+test('quarter, last quarter and last year are calendar quarters and years ending the day before', () => {
+    const t = '2026-08-19';
+    assert.deepEqual(presetRange('quarter', t), { start: '2026-07-01', end: t });
+    assert.deepEqual(presetRange('lastquarter', t), { start: '2026-04-01', end: '2026-06-30' });
+    assert.deepEqual(presetRange('lastquarter', '2026-02-10'), { start: '2025-10-01', end: '2025-12-31' });
+    assert.deepEqual(presetRange('lastyear', t), { start: '2025-01-01', end: '2025-12-31' });
+    assert.deepEqual(presetList('quarter lastquarter lastyear'), ['quarter', 'lastquarter', 'lastyear']);
+});
+
+test('caller-supplied presets: listed after the named ones, labelled and resolved from their dates, matched by activePreset', () => {
+    const custom = customOf([{ key: 'fy', label: 'Fiscal year', start: '2026-04-01', end: '2027-03-31' }, { key: '', label: 'no key' }, null, { key: 'bad', label: 'Bad', start: '2026-05-01', end: '2026-04-01' }]);
+    assert.deepEqual(custom.map(c => c.key), ['fy', 'bad']);
+    assert.deepEqual(presetList('7d', custom), ['7d', 'fy', 'bad']);
+    assert.deepEqual(presetList('fy 7d', custom), ['fy', '7d', 'bad']);
+    assert.equal(presetLabel('fy', custom), 'Fiscal year'); assert.equal(presetLabel('7d', custom), 'Last 7 days');
+    assert.deepEqual(presetRange('fy', '2026-08-19', custom), { start: '2026-04-01', end: '2027-03-31' });
+    assert.equal(presetRange('bad', '2026-08-19', custom), null);
+    assert.equal(activePreset(['7d', 'fy'], '2026-04-01', '2027-03-31', '2026-08-19', '', '', custom), 'fy');
+    assert.equal(activePreset(['7d', 'fy'], '2026-04-02', '2027-03-31', '2026-08-19', '', '', custom), '');
 });

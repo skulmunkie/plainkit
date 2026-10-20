@@ -8,16 +8,21 @@ export const cleanIso = s => (ISO.test(String(s ?? '')) ? String(s) : '');
 
 export const PRESETS = {
     today: 'Today', '7d': 'Last 7 days', '30d': 'Last 30 days', '90d': 'Last 90 days',
-    month: 'This month', lastmonth: 'Last month', year: 'This year',
+    month: 'This month', lastmonth: 'Last month', quarter: 'This quarter', lastquarter: 'Last quarter', year: 'This year', lastyear: 'Last year',
 };
 export const DEFAULT_PRESETS = 'today,7d,30d,month';
 
-// The preset keys a list names: comma or space separated, known ones only, in order, without duplicates.
-export const presetList = text => [...new Set(String(text ?? '').split(/[\s,]+/).filter(k => Object.hasOwn(PRESETS, k)))];
+// The caller's own presets (the presetItems property): [{ key, label, start, end }], the entries with a key and a label.
+export const customOf = v => (Array.isArray(v) ? v.filter(c => c && typeof c.key === 'string' && c.key && typeof c.label === 'string') : []);
+export const presetLabel = (key, custom = []) => custom.find(c => c.key === key)?.label ?? PRESETS[key];
 
-// The range a preset stands for on a day: { start, end } (ISO). Null for an unknown key.
-export function presetRange(key, today) {
-    const { y, m0 } = parseIso(today);
+// The preset keys a list names: comma or space separated, known ones (built in or custom) only, in order, without duplicates; the custom ones not named follow.
+export const presetList = (text, custom = []) => [...new Set([...String(text ?? '').split(/[\s,]+/).filter(k => Object.hasOwn(PRESETS, k) || custom.some(c => c.key === k)), ...custom.map(c => c.key)])];
+
+// The range a preset stands for on a day: { start, end } (ISO). Null for an unknown key, or a custom one without two ordered ISO dates.
+export function presetRange(key, today, custom = []) {
+    const { y, m0 } = parseIso(today), own = custom.find(c => c.key === key), q0 = m0 - (m0 % 3);
+    if (own) { const start = cleanIso(own.start), end = cleanIso(own.end); return start && end && start <= end ? { start, end } : null; }
     switch (key) {
         case 'today': return { start: today, end: today };
         case '7d': return { start: addDays(today, -6), end: today };
@@ -25,7 +30,10 @@ export function presetRange(key, today) {
         case '90d': return { start: addDays(today, -89), end: today };
         case 'month': return { start: isoDate(y, m0, 1), end: today };
         case 'lastmonth': return { start: addMonths(isoDate(y, m0, 1), -1), end: addDays(isoDate(y, m0, 1), -1) };
+        case 'quarter': return { start: isoDate(y, q0, 1), end: today };
+        case 'lastquarter': return { start: addMonths(isoDate(y, q0, 1), -3), end: addDays(isoDate(y, q0, 1), -1) };
         case 'year': return { start: isoDate(y, 0, 1), end: today };
+        case 'lastyear': return { start: isoDate(y - 1, 0, 1), end: addDays(isoDate(y, 0, 1), -1) };
         default: return null;
     }
 }
@@ -36,6 +44,9 @@ export function clampRange(range, min, max) {
     const start = min && range.start < min ? min : range.start, end = max && range.end > max ? max : range.end;
     return start > end ? null : { start, end };
 }
+
+// The key of the preset whose range is exactly start to end today, or ''.
+export const activePreset = (keys, start, end, today, min, max, custom = []) => keys.find(k => { const r = clampRange(presetRange(k, today, custom), min, max); return r && r.start === start && r.end === end; }) ?? '';
 
 // What is wrong with a range, as native-style flags plus a message: the end before the start, a date outside min and max, a missing date when required.
 export function rangeProblems(start, end, { min = '', max = '', required = false } = {}) {
@@ -67,7 +78,7 @@ export default Base => class extends Base {
         this.part('presets').addEventListener('click', ev => {
             const b = ev.target.closest?.('pk-button[data-preset]');
             if (!b || b.disabled) return;
-            const r = clampRange(presetRange(b.dataset.preset, todayIso()), cleanIso(this.min), cleanIso(this.max));
+            const r = clampRange(presetRange(b.dataset.preset, todayIso(), customOf(this.presetItems)), cleanIso(this.min), cleanIso(this.max));
             if (!r) return;
             this.start = r.start; this.end = r.end; this.commit(true);
             this.requestUpdate(); // the toggle flipped itself on the click: put its pressed state back to what the range says
@@ -102,7 +113,8 @@ export default Base => class extends Base {
     commit(done) {
         const { start, end } = this, valid = !rangeProblems(start, end, { min: this.min, max: this.max }).invalid;
         this.dispatchEvent(new Event(done ? 'change' : 'input', { bubbles: true, composed: true }));
-        this.emit('pk-range-change', { start, end, valid });
+        const custom = customOf(this.presetItems), preset = activePreset(presetList(this.presets, custom), cleanIso(start), cleanIso(end), todayIso(), cleanIso(this.min), cleanIso(this.max), custom);
+        this.emit('pk-range-change', { start, end, valid, preset });
     }
     updated() {
         const doc = this.ownerDocument;
@@ -119,15 +131,15 @@ export default Base => class extends Base {
         const err = this.part('error');
         err.textContent = shown; err.hidden = !shown;
         for (const key of ['start', 'end']) { const f = this.part(key); f.invalid = Boolean(this.invalid) || Boolean(shown); f.description = shown; }
-        const bar = this.part('presets'), keys = presetList(this.presets), today = todayIso();
-        if (this.$keys !== keys.join('|')) {
-            this.$keys = keys.join('|');
-            bar.replaceChildren(...keys.map(k => { const b = doc.createElement('pk-button'); b.variant = 'ghost'; b.toggle = true; b.dataset.preset = k; b.textContent = PRESETS[k]; return b; }));
+        const bar = this.part('presets'), custom = customOf(this.presetItems), keys = presetList(this.presets, custom), today = todayIso(), sig = keys.map(k => `${k}:${presetLabel(k, custom)}`).join('|');
+        if (this.$keys !== sig) {
+            this.$keys = sig;
+            bar.replaceChildren(...keys.map(k => { const b = doc.createElement('pk-button'); b.variant = 'ghost'; b.toggle = true; b.dataset.preset = k; b.textContent = presetLabel(k, custom); return b; }));
             loadElements(bar);
         }
         bar.hidden = keys.length === 0;
         for (const b of bar.children) {
-            const r = clampRange(presetRange(b.dataset.preset, today), min, max);
+            const r = clampRange(presetRange(b.dataset.preset, today, custom), min, max);
             b.disabled = this.disabled || this.readonly || !r;
             b.pressed = Boolean(r && r.start === start && r.end === end);
         }

@@ -263,6 +263,9 @@
     "PkScoreTarget.cs": {
       "category": "dto"
     },
+    "PkDatePreset.cs": {
+      "category": "dto"
+    },
     "PkSelectOption.cs": {
       "category": "dto"
     },
