@@ -71,4 +71,62 @@ export const canvasCases = [
         key('+'); await t.settle(); t.ok(s.zoom > 1, 'plus zooms in');
         key('0'); await t.settle(); t.eq(s.zoom, 1); t.eq(s.panX, 0);
     }],
+    ['canvas: wheel="auto" leaves a plain wheel to the page until the frame has focus; Ctrl+wheel zooms around the pointer either way', async t => {
+        const s = await mount(t), f = s.part('frame'), r = rect(f);
+        const wheel = init => { const e = new WheelEvent('wheel', { bubbles: true, cancelable: true, clientX: r.left + 100, clientY: r.top + 80, ...init }); f.dispatchEvent(e); return e; };
+        t.eq(s.wheel, 'auto');
+        t.ok(!wheel({ deltaY: 50 }).defaultPrevented, 'an unfocused canvas does not take the plain wheel (the page scrolls)'); t.eq(s.panY, 0);
+        const before = s.pointToWorld(r.left + 100, r.top + 80), z = wheel({ deltaY: -40, ctrlKey: true });
+        await t.settle();
+        t.ok(z.defaultPrevented && s.zoom > 1, 'Ctrl+wheel zooms');
+        const after = s.pointToWorld(r.left + 100, r.top + 80);
+        t.ok(near(after.x, before.x, 1) && near(after.y, before.y, 1), 'the world point under the pointer stays put');
+        f.focus(); await t.settle();
+        const py = s.panY, e = wheel({ deltaY: 30 });
+        t.ok(e.defaultPrevented && near(s.panY, py - 30, 0.5), 'with focus the plain wheel pans');
+    }],
+
+    ['canvas: wheel="pan", "zoom" and "page" take the plain wheel as named', async t => {
+        for (const [mode, prevented] of [['pan', true], ['zoom', true], ['page', false]]) {
+            const s = await mount(t, `wheel="${mode}"`), f = s.part('frame'), r = rect(f);
+            const e = new WheelEvent('wheel', { bubbles: true, cancelable: true, deltaY: -30, clientX: r.left + 50, clientY: r.top + 50 });
+            f.dispatchEvent(e); await t.settle();
+            t.eq(e.defaultPrevented, prevented, `${mode}: prevented`);
+            if (mode === 'pan') t.eq(s.panY, 30); else if (mode === 'zoom') t.ok(s.zoom > 1, 'zoomed'); else t.eq(s.zoom, 1);
+        }
+    }],
+
+    ['canvas: zoomToFit puts the content inside the frame with a margin, centred, and Home does the same by key', async t => {
+        const s = await t.mount('<pk-canvas label="Plan" min-zoom="0.1" max-zoom="8"><div id="node">Plan</div></pk-canvas>'); await t.settle();
+        const node = s.querySelector('#node'); node.style.height = '60px';
+        s.zoomToFit(); await t.settle();
+        const f = rect(s.part('frame')), n = rect(node);
+        t.ok(n.left >= f.left && n.right <= f.right && n.top >= f.top && n.bottom <= f.bottom, 'the content is inside the frame');
+        t.ok(near((n.left + n.right) / 2, (f.left + f.right) / 2, 1.5) && near((n.top + n.bottom) / 2, (f.top + f.bottom) / 2, 1.5), 'and centred');
+        t.ok(near(Math.min(n.left - f.left, f.right - n.right, n.top - f.top, f.bottom - n.bottom), 16, 2) || s.zoom === 8, 'with the margin on the tight side');
+        s.reset(); await t.settle();
+        s.part('frame').dispatchEvent(new KeyboardEvent('keydown', { key: 'Home', bubbles: true, cancelable: true })); await t.settle();
+        t.ok(s.zoom > 1, 'Home fits');
+        t.ok(/^Zoom \d+ percent$/.test(s.part('status').textContent), `the zoom is announced (${s.part('status').textContent})`);
+    }],
+
+    ['canvas: centerOn and zoomTo keep the coordinate API consistent', async t => {
+        const s = await mount(t), f = rect(s.part('frame'));
+        s.centerOn(500, 300); await t.settle();
+        const c = s.worldToPoint(500, 300);
+        t.ok(near(c.x, f.left + f.width / 2, 1) && near(c.y, f.top + f.height / 2, 1), 'the point is in the middle');
+        s.zoomTo(2); await t.settle();
+        t.eq(s.zoom, 2);
+        const c2 = s.worldToPoint(500, 300);
+        t.ok(near(c2.x, c.x, 1) && near(c2.y, c.y, 1), 'zooming about the middle keeps it there');
+    }],
+
+    ['canvas: in a right-to-left page the arrow keys follow the reading direction and the world is not mirrored', async t => {
+        const host = await t.mount('<div dir="rtl"><pk-canvas label="Artboard"><div id="node">Page</div></pk-canvas></div>'); await t.settle();
+        const c = host.querySelector('pk-canvas') || host, f = c.part('frame');
+        f.dispatchEvent(new KeyboardEvent('keydown', { key: 'ArrowLeft', bubbles: true, cancelable: true })); await t.settle();
+        t.eq(c.panX, -40, 'ArrowLeft moves the view toward the end side, mirrored');
+        const w = c.pointToWorld(rect(f).left, rect(f).top);
+        t.ok(near(w.x, 40, 0.5), 'world x still grows to the right');
+    }],
 ];
