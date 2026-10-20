@@ -38,6 +38,15 @@ async function inlineGallery(t, id, width) {
 }
 
 export const dataDisplayCases = [
+    ['pk-table raw mode (#1698): width=fit shrinks a column to its content, width=sm|md|lg set 6, 10 and 16rem, with no class', async t => {
+        const el = await t.mount('<pk-table label="W"><table><thead><tr><th>Name</th><th width="sm">S</th><th width="md">M</th><th width="lg">L</th><th width="fit">F</th></tr></thead><tbody><tr><td>A long name that wants the room</td><td>1</td><td>2</td><td>3</td><td><button>Remove</button></td></tr></tbody></table></pk-table>');
+        await t.settle();
+        const ths = [...el.querySelectorAll('th')], w = i => ths[i].getBoundingClientRect().width, rem = parseFloat(getComputedStyle(el).fontSize);
+        const box = ths[4].getBoundingClientRect(), btn = el.querySelector('button').getBoundingClientRect();
+        t.ok(Math.abs(w(1) - 6 * rem) <= 2, `sm is 6rem, got ${w(1)}px`); t.ok(Math.abs(w(2) - 10 * rem) <= 2, `md is 10rem, got ${w(2)}px`); t.ok(Math.abs(w(3) - 16 * rem) <= 2, `lg is 16rem, got ${w(3)}px`);
+        t.ok(box.width <= btn.width + 2 * 2 * rem, `fit hugs its content: ${box.width}px for a ${btn.width}px button`);
+        t.ok(w(0) > w(4), 'the unmarked column takes the rest');
+    }],
     // ---- the gallery's inline pattern views run the pattern's script inside the sample frame -------------------------------------------------
     ['gallery inline patterns: notifications, unsaved settings and onboarding respond to clicks and edits in the sample frame, at desktop and phone width, with nothing in the log', async t => {
         for (const width of [1200, 375]) {
