@@ -34,6 +34,13 @@
       "prop": "navLabel"
     },
     {
+      "name": "NavWidth",
+      "type": "string",
+      "default": "",
+      "map": "prop",
+      "prop": "navWidth"
+    },
+    {
       "name": "MainLabel",
       "type": "string",
       "default": "Content",
