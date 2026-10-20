@@ -9,6 +9,7 @@
     { "name": "activePane", "type": "enum", "default": "main", "values": ["nav", "main", "aside"], "reflect": true, "description": "The pane shown on a phone. On a wider screen every pane shows. A pane that does not exist falls back to the main pane. A tab tap raises a cancelable pk-pane-change first and the element changes the pane itself only when it is not cancelled; a host that owns the pane from a route calls preventDefault() and changes the route instead (see the routed-list-detail template)." },
     { "name": "asideOpen", "type": "boolean", "default": false, "reflect": true, "description": "Show the aside: a docked column on a wide screen, a panel over the main pane on a tablet and its own pane on a phone." },
     { "name": "navLabel", "type": "string", "default": "Contents", "reflect": true, "description": "The nav pane's accessible name and its tab on a phone." },
+    { "name": "navWidth", "type": "string", "default": "", "reflect": true, "description": "Width of the nav column on a wide screen: sm, md, lg or xl (12, 17.5, 24 or 32rem), or a CSS length. Empty keeps the default (the --pk-workspace-nav-w hook). On a phone the panes show one at a time, so it has no effect there." },
     { "name": "mainLabel", "type": "string", "default": "Content", "reflect": true, "description": "The main pane's accessible name and its tab on a phone." },
     { "name": "asideLabel", "type": "string", "default": "Details", "reflect": true, "description": "The aside's accessible name and its tab on a phone." }
   ],
@@ -44,6 +45,10 @@
     {
       "title": "Nav and main",
       "html": "<pk-workspace nav-label=\"Sections\">\n  <div slot=\"nav\" class=\"stack\"><a href=\"#overview\">Overview</a><a href=\"#channels\">Channels</a><a href=\"#integrations\">Integrations</a></div>\n  <div class=\"stack\"><h2>Overview</h2><p>The main pane scrolls on its own. Below 640px only the nav or this pane shows, switched by the strip above.</p></div>\n</pk-workspace>"
+    },
+    {
+      "title": "A wide nav pane",
+      "html": "<pk-workspace nav-width=\"lg\" nav-label=\"Tables\">\n  <pk-tree slot=\"nav\" label=\"Tables\"><pk-tree-item label=\"quarterly_revenue_by_region_and_product_line\"></pk-tree-item><pk-tree-item label=\"customers\"></pk-tree-item></pk-tree>\n  <div class=\"stack\"><h2>Tables</h2><p>nav-width takes sm, md, lg, xl or a CSS length. A tree label that is still too long is cut with an ellipsis and shows its full text as a tooltip.</p></div>\n</pk-workspace>"
     },
     {
       "title": "With a docked aside",
