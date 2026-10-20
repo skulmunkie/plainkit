@@ -27,10 +27,20 @@ const rulers = () => `
 [part="ruler-readout"]:empty { display: none; }
 @media (max-width: ${breakpoint('phone')}px) { [part="rulers"] { display: none; } }`;
 
-const LAYERS = { grid, rulers };
+// The selection layer: a frame per selected item and the marquee. Outlines have a shape, so forced colours keep them.
+const select = () => `
+[part="selection"] { position: absolute; inset: 0; pointer-events: none; }
+[part="selection"] > [data-sel] { position: absolute; box-sizing: border-box; outline: 2px solid var(--color-accent); outline-offset: 1px; }
+[part="marquee"] { position: absolute; box-sizing: border-box; border: 1px dashed var(--color-accent); background: color-mix(in srgb, var(--color-accent) 14%, transparent); }
+@media (forced-colors: active) { [part="selection"] > [data-sel] { outline-color: Highlight; } [part="marquee"] { border-color: Highlight; } }`;
+
+const LAYERS = { grid, rulers, select };
 const sheets = new Map();
 
-// Adopt the sheet of `kind` ('grid' | 'rulers') into the host's shadow root, once per host.
+// The auto grid has no behaviour of its own: mounting it adopts its sheet (the canvas calls draw and stop on every layer alike).
+export const mount = host => { adopt(host, 'grid'); return { draw() {}, stop() {} }; };
+
+// Adopt the sheet of `kind` ('grid' | 'rulers' | 'select') into the host's shadow root, once per host.
 export function adopt(host, kind) {
     const used = (host.$cs ??= new Set());
     if (used.has(kind)) return;

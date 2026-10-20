@@ -9,6 +9,9 @@
     { "name": "Unit", "type": "string", "default": "none", "map": "prop", "prop": "unit" },
     { "name": "PxPerUnit", "type": "double", "default": 0, "map": "prop", "prop": "pxPerUnit" },
     { "name": "Rulers", "type": "bool", "default": false, "map": "prop", "prop": "rulers" },
+    { "name": "Selectable", "type": "bool", "default": false, "map": "prop", "prop": "selectable" },
+    { "name": "Mode", "type": "string", "default": "select", "map": "prop", "prop": "mode" },
+    { "name": "Selection", "type": "IReadOnlyList<string>?", "json": true, "prop": "selection", "note": "The ids of the selected items, as JSON text; items declare their world rect with data-id, data-x, data-y, data-w, data-h (the geometry callback is JS only)." },
     { "name": "MinZoom", "type": "double", "default": 0.25, "map": "prop", "prop": "minZoom" },
     { "name": "MaxZoom", "type": "double", "default": 4, "map": "prop", "prop": "maxZoom" },
     { "name": "Wheel", "type": "string", "default": "auto", "map": "prop", "prop": "wheel" },
@@ -16,7 +19,8 @@
     { "name": "ChildContent", "type": "RenderFragment?", "map": "slot", "slot": "" },
     { "name": "OnViewChange", "event": "pk-view-change" },
     { "name": "OnPick", "event": "pk-canvas-pick" },
-    { "name": "OnKey", "event": "pk-canvas-key" }
+    { "name": "OnKey", "event": "pk-canvas-key" },
+    { "name": "OnSelect", "event": "pk-canvas-select" }
   ],
   "methods": [
     { "name": "ZoomToFitAsync", "method": "zoomToFit" },
