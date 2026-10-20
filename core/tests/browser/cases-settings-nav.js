@@ -95,4 +95,21 @@ export const settingsNavCases = [
         t.ok(!shown(page.part('nav')), 'nav: false draws none');
         t.ok(cards.length === 4);
     }],
+    ['settings-page: a select field with styled is the themed list (a select-mode combobox), a plain select stays native, and a pick reaches the page values (#1646)', async t => {
+        const options = [{ value: 'web', label: 'Web' }, { value: 'live', label: 'Live' }];
+        const { page } = await frame(t, 1280, 600, { sections: [{ heading: 'General', fields: [
+            { key: 'styledSel', type: 'select', label: 'Channel', styled: true, options },
+            { key: 'plainSel', type: 'select', label: 'Native', options },
+        ] }, ...SECTIONS.slice(1)] });
+        const combo = page.shadowRoot.querySelector('pk-combobox'), native = page.shadowRoot.querySelector('pk-select');
+        t.ok(combo && native, 'the styled select is a pk-combobox and the plain one stays pk-select');
+        t.eq(combo.getAttribute('mode'), 'select', 'in select mode');
+        t.eq(combo.querySelectorAll('option').length, 2, 'the options carried over');
+        combo.part('trigger').click(); await t.settle();
+        const pop = combo.part('popup');
+        t.ok(pop && rect(pop).height > 40, 'the themed list opens');
+        combo.value = 'live'; combo.dispatchEvent(new Event('change', { bubbles: true })); await t.settle();
+        t.eq(page.currentValues().styledSel, 'live', 'the pick is read as the field value');
+        t.ok(!page.part('discard').hidden && getComputedStyle(page.part('discard')).display !== 'none', 'the pick marks the page changed (the save bar shows)');
+    }],
 ];
