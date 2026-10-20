@@ -26,53 +26,6 @@ namespace PlainKit.Blazor.Pages
             return row is null ? Task.CompletedTask : HandlePkRowClick(new PkRowClickEventArgs { Id = id, Row = JsonSerializer.SerializeToElement(row, new JsonSerializerOptions(JsonSerializerDefaults.Web)) });
         }
     }
-
-    public partial class PkRecordPage<TItem>
-    {
-        private readonly Dictionary<string, JsonElement> _testEdits = [];
-
-        internal JsonObject SentForTest() => JsonNode.Parse(ConfigWithFields()) as JsonObject ?? new JsonObject();
-
-        internal async Task<TItem?> LoadForTestAsync(string id)
-        {
-            var item = await (Load ?? throw new InvalidOperationException("The page has no Load."))(id);
-            KeepLoaded(item);
-            _testEdits.Clear();
-            return item;
-        }
-
-        internal IReadOnlyList<PkFieldState> FieldsForTest()
-        {
-            var model = _loaded ?? Model;
-            var values = model is null ? [] : PkFieldSpecs.Values(Fields ?? [], model);
-            return PkFieldSpecs.Defs(Fields ?? [], model).Select(d => new PkFieldState(d.Key!, d.Label, d.Readonly, d.Disabled, d.Required,
-                PkFieldSpecs.Text(_testEdits.TryGetValue(d.Key!, out var e) ? e : JsonSerializer.SerializeToElement(values.GetValueOrDefault(d.Key!))))).ToList();
-        }
-
-        internal void SetForTest(string key, object? value)
-        {
-            if (FieldsForTest().All(f => f.Key != key)) throw new InvalidOperationException($"The record page shows no field '{key}'.");
-            _testEdits[key] = JsonSerializer.SerializeToElement(value);
-        }
-
-        internal void CancelForTest() => _testEdits.Clear();
-
-        internal async Task<string?> SaveForTestAsync()
-        {
-            if (Save is null) throw new InvalidOperationException("The page has no Save, so the element draws no Save button.");
-            var sent = FieldsForTest().ToDictionary(f => f.Key, f => JsonSerializer.SerializeToElement(f.Value));
-            foreach (var (k, v) in _testEdits) sent[k] = v;
-            try { await Save(await ApplySavedAsync(sent)); }
-            catch (Exception ex) { return ex.Message; }   // the element keeps the edits and shows this in its notice
-            _testEdits.Clear();
-            await HandlePkRecordSave(EventArgs.Empty);
-            return null;
-        }
-
-        internal Task DeleteForTestAsync() => OnDelete.HasDelegate && SentForTest()["id"] is { } id ? HandlePkRecordDelete(new PkRecordDeleteEventArgs { Id = id.ToString() }) : Task.CompletedTask;
-
-        internal Task ActionForTestAsync(string key) => HandlePkAction(new PkActionEventArgs { Key = key });
-    }
 }
 
 namespace PlainKit.Blazor.Testing
@@ -106,10 +59,10 @@ namespace PlainKit.Blazor.Testing
         public static PkFieldState Field<TItem>(this Pages.PkRecordPage<TItem> page, string key) =>
             page.Fields().FirstOrDefault(f => f.Key == key) ?? throw new InvalidOperationException($"The record page shows no field '{key}'.");
 
-        /// <summary>Edits a field as a user would in edit mode (a bool for a checkbox, a string otherwise). Nothing reaches the item until <see cref="SaveAsync{TItem}"/>.</summary>
+        /// <summary>Edits a field as a user would in edit mode (a bool for a checkbox, a string otherwise); <c>When</c>, <c>Disabled</c> and the labels are re-evaluated against the edited values, so <see cref="Fields{TItem}"/> shows a dependent field appear or disable. Nothing reaches the loaded item until <see cref="SaveAsync{TItem}"/>.</summary>
         public static void SetField<TItem>(this Pages.PkRecordPage<TItem> page, string key, object? value) => (page ?? throw new ArgumentNullException(nameof(page))).SetForTest(key, value);
 
-        /// <summary>Presses Save: applies the edits through each field's <c>Set</c>, runs <c>Save</c>, then <c>OnSave</c>. Returns the message the element would show in its notice when <c>Save</c> throws (the edits stay), else null.</summary>
+        /// <summary>Presses Save as the page does: a shown, enabled <c>Required</c> field with no value stops it (returns "&lt;Label&gt; is required."), then the edits go through each field's <c>Set</c>, <c>BeforeSave</c> runs (false stops: null is returned, the edits stay, <c>Save</c> does not run), then <c>Save</c>, then <c>OnSave</c>. Returns the message the element would show in its notice when validation fails or <c>BeforeSave</c> or <c>Save</c> throws (the edits stay), else null.</summary>
         public static Task<string?> SaveAsync<TItem>(this Pages.PkRecordPage<TItem> page) => (page ?? throw new ArgumentNullException(nameof(page))).SaveForTestAsync();
 
         /// <summary>Presses Cancel: the edits are discarded and the fields read from the record again.</summary>

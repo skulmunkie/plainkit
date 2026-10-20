@@ -7,7 +7,6 @@
 // collapsed rail short of reloading or clearing persistKey's stored layout, and deliberately a separate action from opening/closing the flyout.
 import { mediaBelow } from '../../js/breakpoints.js';
 import { loadElements } from '../../js/loader.js';
-import { createStore } from '../../js/store.js';
 import { defaultLayout, fromJson, resize, activate, groups, toJson, collapsePanel, expandPanel, floaters } from '../../js/dock-model.js';
 // Rendering (draw() and everything it calls), the pointer drag-to-dock/floater-keyboard cluster and the collapse-to-rail flyout are split into
 // their own modules (issue #639): dock.js's own gzip size stayed over the blanket per-element budget even after real minification (#600), because
@@ -15,9 +14,6 @@ import { defaultLayout, fromJson, resize, activate, groups, toJson, collapsePane
 import * as render from '../../js/dock-render.js';
 import * as drag from '../../js/dock-drag.js';
 import * as flyout from '../../js/dock-flyout.js';
-
-// The four ways to dock a panel beside another group (zone -> its menu label). Center (add as tab) is offered separately, first.
-const ZONE_LABELS = [['left', 'Dock left of'], ['right', 'Dock right of'], ['top', 'Dock above'], ['bottom', 'Dock below']];
 
 // The pointer drop zone a position within a group's rect means: the outer EDGE fraction of each side is that edge (dockPanel), the rest is center
 // (moveTab). Pure; the hit test that finds the rect (elementFromPoint) only runs in a browser (browser suite, review scenario).
@@ -37,8 +33,6 @@ const PANEL = /^[a-z][\w-]{0,39}$/;
 // Slot names the element already gives a fixed meaning: a panel id can otherwise be any string PANEL allows, so these are reserved rather than let a
 // host's <div slot="empty"> or <div slot="toolbar-start"> become a phantom panel with no group of its own.
 const RESERVED_SLOTS = new Set(['empty', 'toolbar-start']);
-// The layout document can be large (up to dock-model's own 64 KB limit): the store's default 1 KB per-key limit is raised for it.
-const PERSIST_SCHEMA = { layout: { maxLength: 65536 } };
 
 // Pure: the panels a host declares, from its child elements: [{ id, title, group }] in DOM order; a child without a usable slot name or with a repeated one is not a panel.
 export function readPanels(children) {
@@ -56,7 +50,10 @@ export function readPanels(children) {
 export const readingOrder = doc => groups(doc).flatMap(g => g.panels);
 
 
-export default Base => class extends Base {
+const forward = (ns, names) => Object.fromEntries(names.split(' ').map(n => [n, function (...a) { return ns[n](this, ...a); }]));
+
+export default Base => {
+    const Dock = class extends Base {
     connected() {
         if (!this.$init) {
             this.$init = true;
@@ -92,17 +89,8 @@ export default Base => class extends Base {
         this.$o?.(); this.$o = undefined;
         this.$mod = this.$store = this.$persisted = undefined;
     }
-    // Creates (or replaces) the per-element store when persistKey changes; restores a saved layout the first time there is no layout prop yet.
-    syncPersist() {
-        if (this.persistKey === this.$persisted) return;
-        this.$mod?.destroy(); this.$store?.destroy(); this.$mod = this.$store = undefined;
-        this.$persisted = this.persistKey;
-        if (!this.persistKey) return;
-        this.$store = createStore({ prefix: `pk-dock:${this.persistKey}` });
-        this.$mod = this.$store.module('layout', { defaults: { layout: {} }, schema: PERSIST_SCHEMA, persist: ['layout'] });
-        const saved = this.$mod.get('layout');
-        if (this.layout == null && saved && saved.version) this.layout = saved;
-    }
+    // The per-element store behind persistKey lives in js/dock-flyout.js (headroom for dock.js, #432 phase D0).
+    syncPersist() { flyout.syncPersist(this); }
     updated() {
         this.syncPersist();
         // update() runs once from connectedCallback before connected() gets to set anything up
@@ -133,25 +121,7 @@ export default Base => class extends Base {
     // confirmed and drawn, it is what persistKey saves (never a proposed-but-rejected one).
     commit(reason) {
         const proposed = this.$doc;
-        if (this.confirmLayout) {
-            const panels = readPanels(this.children), previous = this.$applied, phone = Boolean(this.$mq?.matches);
-            Promise.resolve(this.confirmLayout({ layout: toJson(proposed), reason }))
-                .then(result => {
-                    const json = typeof result === 'string' ? result : previous && toJson(previous);
-                    const r = json == null ? { doc: defaultLayout(panels), problems: [] } : fromJson(json, { panels });
-                    for (const p of r.problems) this.warnOnce(`${p.code}:${p.path}`, p.message, { code: p.code });
-                    this.$doc = this.$applied = this.$given = this.layout = r.doc;
-                    this.draw(phone);
-                    this.$mod?.set('layout', this.$doc);
-                    this.emit('pk-layout-change', { layout: r.doc, reason }, { cancelable: false });
-                })
-                .catch(error => {
-                    this.warnOnce('confirm-layout-rejected', 'confirmLayout rejected; keeping the previous layout', { error });
-                    this.$doc = previous;
-                    this.draw(phone);
-                });
-            return;
-        }
+        if (this.confirmLayout) return flyout.confirm(this, reason, readPanels(this.children));
         this.layout = this.$given = this.$applied = this.$doc;
         this.$mod?.set('layout', this.$doc);
         this.emit('pk-layout-change', { layout: this.$doc, reason }, { cancelable: false });
@@ -208,27 +178,9 @@ export default Base => class extends Base {
     // to), the floater keyboard/focus and the pointer drag-to-dock/paint helpers below all live in js/dock-drag.js (issue #639: reached far less
     // often than the everyday open/close/resize/tab path, so they were the first cut out of dock.js's own bundle); each thin method here just
     // forwards to it with `this`.
-    settle(doc, reason, said, focusNext) { drag.settle(this, doc, reason, said, focusNext); }
-    applyMove(kind, panel, group, zone) { drag.applyMove(this, kind, panel, group, zone); }
-    floatCmd(panel) { drag.floatCmd(this, panel); }
-    focusFloater(panel) { drag.focusFloater(this, panel); }
-    applyDockFloat(floaterId, target, zone) { drag.applyDockFloat(this, floaterId, target, zone); }
-    onFloatKeys(e) { drag.onFloatKeys(this, e); }
-    onFloatFocus(e) { drag.onFloatFocus(this, e); }
-    paint(doc, id, reason, said) { drag.paint(this, doc, id, reason, said); }
-    onDragStart(e) { drag.onDragStart(this, e); }
-    grab(handle, id) { drag.grab(this, handle, id); }
+    // The other thin forwarders (each calls the same-named export of dock-drag.js / dock-flyout.js with `this` first) are added below by forward().
     onDragMove(e) { drag.onDragMove(this, e, dropZone); }
-    clearDropZone() { drag.clearDropZone(this); }
-    onDragEnd(e) { drag.onDragEnd(this, e); }
-    paintFloat(id) { drag.paintFloat(this, id); }
-    // closePanel/openPanel/focusPanel, the collapse-to-rail toggle and the flyout open/close below all live in js/dock-flyout.js (issue #639: a
-    // less-common path than the everyday open/close/resize/tab dock.js keeps for itself); each thin method here just forwards to it with `this`.
-    closePanel(panel) { flyout.closePanel(this, panel); }
-    openPanel(panel) { flyout.openPanel(this, panel); }
-    focusPanel(panel) { flyout.focusPanel(this, panel); }
     onToggle(e) { flyout.onToggle(this, e, collapsePanel, expandPanel); }
-    toggleFlyout(panel, btn) { flyout.toggleFlyout(this, panel, btn); }
-    closeFlyout(e) { flyout.closeFlyout(this, e); }
-    onFlyoutBlur(e) { flyout.onFlyoutBlur(this, e); }
+    };
+    return Object.assign(Dock.prototype, forward(drag, 'settle applyMove floatCmd focusFloater applyDockFloat onFloatKeys onFloatFocus paint onDragStart grab clearDropZone onDragEnd paintFloat'), forward(flyout, 'closePanel openPanel focusPanel toggleFlyout closeFlyout onFlyoutBlur')), Dock;
 };

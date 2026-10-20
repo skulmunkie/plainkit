@@ -9,7 +9,7 @@ export function scanIgnores(files) {
     const ignores = [];
     const problems = [];
     for (const file of files) {
-        const lines = file.text.split('\n');
+        const lines = file.text.split(/\r?\n/);   // CRLF checkouts: a trailing \r would stop the marker's `.` (#1655)
         for (let i = 0; i < lines.length; i++) {
             const m = MARKER.exec(lines[i]);
             if (!m) continue;
