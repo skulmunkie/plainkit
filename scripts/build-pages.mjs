@@ -8,6 +8,7 @@
 // Every page uses relative paths, so the site works under any prefix (https://<user>.github.io/plainkit/ included).
 import fs from 'node:fs';
 import path from 'node:path';
+import { spawnSync } from 'node:child_process';
 import { fileURLToPath } from 'node:url';
 import { ensureGenerated } from './generated.mjs';
 import { TIER_FOLDERS, existingTierFolders } from '../core/tools/element-folders.mjs';
@@ -49,6 +50,9 @@ for (const item of FULL) {
     if (!fs.existsSync(from)) throw new Error(`core/${item} is missing: run node scripts/bootstrap.mjs first`);
     copy(from, path.join(out, item), skipFull);
 }
+// The release packages (packages.json, #1656): every extra also lives at packages/<id>/ (core is dist/, which stays the full tree: FULL is first class, every old path keeps working).
+const pk = spawnSync(process.execPath, [path.join(root, 'scripts', 'build-packages.mjs'), '--pages', out], { stdio: 'inherit' });
+if (pk.status !== 0) throw new Error('scripts/build-packages.mjs failed');
 // Pages must not run the site through Jekyll (it would hide any folder that starts with an underscore).
 fs.writeFileSync(path.join(out, '.nojekyll'), '');
 
