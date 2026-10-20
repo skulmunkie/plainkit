@@ -109,6 +109,27 @@ export const formCases = [
         t.eq(ti.selectionStart, 0); t.eq(ti.selectionEnd, 6);
     }],
 
+    ['input: select-on-focus selects the whole number of a money-formatted input and keeps it through the mouse-up (#1678)', async t => {
+        const el = await t.mount('<pk-input label="Cost" format="money" currency="USD" select-on-focus value="1234.5"></pk-input>'); const i = el.part('control');
+        i.focus(); await t.settle(); await new Promise(r => requestAnimationFrame(() => setTimeout(r, 30)));
+        t.ok(i.selectionStart === 0 && i.selectionEnd === i.value.length && i.value.length > 0, 'the editing text is selected whole (' + i.selectionStart + '-' + i.selectionEnd + ' of "' + i.value + '")');
+        const up = new MouseEvent('mouseup', { bubbles: true, cancelable: true }); i.dispatchEvent(up); t.ok(up.defaultPrevented, 'the mouse-up after the focusing press is cancelled so the selection stays');
+        i.blur(); await t.settle();
+        const off = await t.mount('<pk-input label="Cost" format="money" currency="USD" value="1234.5"></pk-input>'); const oi = off.part('control');
+        oi.focus(); await t.settle(); await new Promise(r => requestAnimationFrame(() => setTimeout(r, 30)));
+        const up2 = new MouseEvent('mouseup', { bubbles: true, cancelable: true }); oi.dispatchEvent(up2); t.ok(!up2.defaultPrevented, 'without the attribute the mouse-up is left alone');
+    }],
+
+    ['field-group: a spec with selectOnFocus selects the number of a money field when it gains focus (#1678)', async t => {
+        const g = await t.mount('<pk-field-group label="Order" fields=\'[{"key":"cost","label":"Cost","kind":"number","format":"money","currency":"USD","selectOnFocus":true},{"key":"qty","label":"Qty","kind":"number"}]\' values=\'{"cost":"1234.5","qty":"7"}\'></pk-field-group>');
+        await t.settle(); await new Promise(r => requestAnimationFrame(() => setTimeout(r, 50)));
+        const inputs = g.shadowRoot.querySelectorAll('pk-input'), i = inputs[0].part('control'), q = inputs[1].part('control');
+        i.focus(); await t.settle(); await new Promise(r => requestAnimationFrame(() => setTimeout(r, 30)));
+        t.ok(inputs[0].hasAttribute('select-on-focus') && !inputs[1].hasAttribute('select-on-focus'), 'only the spec that asks gets the attribute');
+        t.ok(i.value.length > 0 && i.selectionStart === 0 && i.selectionEnd === i.value.length, 'the money field selects its whole number on focus');
+        q.focus(); await t.settle(); t.ok(q.selectionStart === q.selectionEnd, 'a field without it selects nothing');
+    }],
+
     ['input: copyable copies the value, gives transient feedback, and disables itself while empty', async t => {
         const el = await t.mount('<pk-input type="password" label="API key" reveal copyable value="sk_live_1"></pk-input>');
         const copy = el.part('copy'); t.ok(!copy.disabled, 'a value makes the button live');
@@ -228,6 +249,34 @@ export const formCases = [
         inp.dispatchEvent(new FocusEvent('focusout', { bubbles: true, composed: true })); await t.settle(); t.eq(inp.value, 'Widget C', 'stray text reverts to the chosen option');
         const tr = sel.part('trigger'); t.eq(tr.dataset.placeholder, 'Pick'); tr.click(); await t.settle(); t.ok(sel.open); press(tr, 'ArrowDown'); press(tr, 'Enter'); await t.settle(); t.eq(sel.value, 's'); t.eq(tr.textContent, 'Web');
         press(tr, 'm'); await t.settle(); t.eq(sel.value, 'e', 'a letter on the closed trigger picks the match');
+    }],
+
+    ['combobox clearable: a clear button shows only while a value is chosen, sits inside the box, and an empty commit raises change and pk-combo-select (#1687)', async t => {
+        const host = t.stage('<form><pk-combobox clearable name="v" label="Variant" value="2"><option value="1">Widget A</option><option value="2">Gadget</option></pk-combobox><pk-combobox name="w" label="Plain" value="2"><option value="2">Gadget</option></pk-combobox></form>'); await t.load(host); await t.settle();
+        const [ac, plain] = host.querySelectorAll('pk-combobox'), clr = ac.part('clear');
+        t.ok(!clr.hidden, 'visible while a value is chosen'); t.ok(plain.part('clear').hidden, 'absent without clearable');
+        const box = ac.part('box').getBoundingClientRect(), c = clr.getBoundingClientRect();
+        t.ok(c.width > 0 && c.left >= box.left && c.right <= box.right && c.top >= box.top && c.bottom <= box.bottom, 'the button sits inside the box');
+        t.ok(c.left >= ac.part('control').getBoundingClientRect().right - 1, 'it sits after the input');
+        const got = []; ac.addEventListener('change', () => got.push('change')); ac.addEventListener('pk-combo-select', e => got.push(JSON.stringify(e.detail)));
+        clr.click(); await t.settle();
+        t.eq(ac.value, ''); t.eq(ac.part('control').value, ''); t.ok(clr.hidden, 'hidden again once empty'); t.eq(got.join('|'), 'change|{"value":"","label":""}');
+        t.eq(new FormData(host.firstElementChild).get('v'), ''); t.ok(ac.matches(':focus-within'), 'focus returns to the input');
+        ac.value = '1'; await t.settle(); t.ok(!clr.hidden, 'shows again for a new value');
+        ac.setAttribute('mode', 'select'); await t.settle(); t.ok(clr.hidden, 'not in select mode');
+    }],
+
+    ['combobox debounce: pk-combo-query waits for a pause in typing and carries the latest text; 0 fires on every keystroke; the client filter stays immediate (#1664)', async t => {
+        const host = t.stage('<pk-combobox debounce="150" label="Variant"><option value="1">Widget A</option><option value="2">Gadget</option></pk-combobox><pk-combobox label="Plain"><option value="1">Widget A</option></pk-combobox>');
+        await t.load(host); await t.settle();
+        const [ac, plain] = host.querySelectorAll('pk-combobox'), q = [], pq = [];
+        ac.addEventListener('pk-combo-query', e => q.push(e.detail.query)); plain.addEventListener('pk-combo-query', e => pq.push(e.detail.query));
+        const type = async (c, s) => { const i = c.part('control'); i.value = s; i.dispatchEvent(new Event('input', { bubbles: true, composed: true })); await t.settle(); };
+        await type(ac, 'w'); await type(ac, 'wi'); await type(ac, 'wid');
+        t.eq(q.length, 0, 'nothing fires while typing continues');
+        t.eq([...ac.part('popup').querySelectorAll('.op')].filter(o => !o.hidden).length, 1, 'the client filter is not delayed');
+        await new Promise(r => setTimeout(r, 260)); t.eq(q.join('|'), 'wid', 'one query with the latest text after the pause');
+        await type(plain, 'a'); await type(plain, 'ab'); t.eq(pq.join('|'), 'a|ab', 'without debounce every keystroke fires');
     }],
 
     ['select multiple and tag-input: the values array and the JSON attribute drive the selection and the joined value; the commit event carries the array (#850)', async t => {

@@ -102,6 +102,51 @@ export function inspectNupkg(file, version) {
     return { entries: zipEntries.map(e => e.name), nuspec, fileName: path.basename(file), version, targets };
 }
 
+/**
+ * Problems with the per-package zips of a folder (written by node scripts/build-packages.mjs --zips): for every built package of packages.json the zip and its manifest asset
+ * exist, the zip holds exactly the files the package owns plus its own <id>.manifest.json, every file matches its SRI hash and the version, the sizes are under the package's
+ * ceilings, and together the zips hold every file of core/dist exactly once (the union equals the release's dist zip plus modules zip). (#1656)
+ */
+export async function checkPackageZips(dir) {
+    const { plan, zipName, manifestName, readVersion } = await import('./build-packages.mjs');
+    const { distFiles } = await import('./packages.mjs');
+    const { createHash } = await import('node:crypto');
+    const problems = [], version = readVersion(root), { packages, artifacts } = plan(root);
+    const seen = new Map();
+    for (const { id, files } of artifacts) {
+        const p = packages.find(x => x.id === id), zipFile = path.join(dir, zipName(id, version)), manFile = path.join(dir, manifestName(id, version));
+        if (!fs.existsSync(zipFile) || !fs.existsSync(manFile)) { problems.push(`${id}: missing ${path.basename(fs.existsSync(zipFile) ? manFile : zipFile)}`); continue; }
+        const buf = fs.readFileSync(zipFile), entries = listZip(buf), names = entries.map(e => e.name).sort();
+        const want = [...files, `${id}.manifest.json`].sort();
+        const missing = want.filter(n => !names.includes(n)), extra = names.filter(n => !want.includes(n));
+        if (missing.length || extra.length) problems.push(`${id}: the zip differs from packages.json (missing ${missing.slice(0, 3).join(', ') || 'none'}; unexpected ${extra.slice(0, 3).join(', ') || 'none'})`);
+        const mEntry = entries.find(e => e.name === `${id}.manifest.json`);
+        if (!mEntry) { problems.push(`${id}: the zip has no ${id}.manifest.json`); continue; }
+        const manifestText = readEntry(buf, mEntry).toString('utf8');
+        if (manifestText !== fs.readFileSync(manFile, 'utf8')) problems.push(`${id}: ${path.basename(manFile)} differs from the manifest inside the zip`);
+        const m = JSON.parse(manifestText);
+        if (m.name !== id || m.version !== version) problems.push(`${id}: the manifest says ${m.name} ${m.version}, expected ${id} ${version}`);
+        if (id !== 'plainkit' && !String(m.requires ?? '').startsWith(`plainkit ${version}`)) problems.push(`${id}: the manifest requires must name core at the exact version ${version}`);
+        let raw = 0;
+        for (const e of entries) {
+            const data = readEntry(buf, e);
+            raw += data.length;
+            if (e.name === `${id}.manifest.json`) continue;
+            const f = m.files.find(x => x.path === e.name);
+            if (!f) problems.push(`${id}: ${e.name} is not in the manifest`);
+            else if (f.integrity !== 'sha256-' + createHash('sha256').update(data).digest('base64') || f.bytes !== data.length) problems.push(`${id}: ${e.name} does not match its manifest entry`);
+            if (seen.has(e.name)) problems.push(`${e.name} is in both ${seen.get(e.name)} and ${id}`);
+            seen.set(e.name, id);
+        }
+        if (m.files.length !== entries.length - 1) problems.push(`${id}: the manifest lists ${m.files.length} files, the zip holds ${entries.length - 1}`);
+        if (p.maxZipBytes != null && buf.length > p.maxZipBytes) problems.push(`${id}: the zip is ${buf.length} bytes > ceiling ${p.maxZipBytes}. FIX: make it smaller; never raise the ceiling.`);
+        if (p.maxUnpackedBytes != null && id !== 'plainkit' && raw > p.maxUnpackedBytes) problems.push(`${id}: unpacked ${raw} bytes > ceiling ${p.maxUnpackedBytes}. FIX: make it smaller; never raise the ceiling.`);
+    }
+    const lost = distFiles(path.join(root, 'core', 'dist')).filter(f => !seen.has(f));
+    if (lost.length) problems.push(`files of core/dist in no package zip: ${lost.slice(0, 5).join(', ')}`);
+    return problems;
+}
+
 /** The one .nupkg in a folder (or the file itself). */
 export function findNupkg(target) {
     if (fs.statSync(target).isFile()) return target;
@@ -110,13 +155,10 @@ export function findNupkg(target) {
     return path.join(target, files[0]);
 }
 
-// The npm package (`plainkit`, published from core/) is the CLI's real home: core/package.json's `bin` points at
-// dist/tools/audit/cli.mjs and `files` is `["dist", ...]`. Nothing checked this before #518 A-10a - a step that stopped
-// building dist/tools (or a files/bin edit that dropped it) would only surface once a consumer ran `npx plainkit audit`.
+// The audit CLI is the module plainkit.audit now (packages.json, #1656), not part of the npm package: core/package.json's `bin` points at a stub
+// (dist/tools/plainkit-cli.mjs) that says where to get it, so `npx plainkit audit` explains itself. A bin that points at a missing file would not.
 export const NPM_REQUIRED = [
-    [/^dist\/tools\/audit\/cli\.mjs$/, 'the audit CLI entry point (dist/tools/audit/cli.mjs; core/package.json "bin")'],
-    [/^dist\/tools\/audit\/rules\.mjs$/, 'the audit rule table (dist/tools/audit/rules.mjs)'],
-    [/^dist\/tools\/strict\/engine\.mjs$/, 'the engine the audit CLI is built on (dist/tools/strict/engine.mjs)'],
+    [/^dist\/tools\/plainkit-cli\.mjs$/, 'the `plainkit` bin stub that points at the plainkit.audit module (dist/tools/plainkit-cli.mjs; core/package.json "bin")'],
 ];
 
 /** Problems with the npm package's file list (as `npm pack --dry-run` reports it): the CLI's own files, and the `bin` field pointing at one of them. Pure. */
@@ -142,6 +184,13 @@ export function npmPackFiles(coreDir) {
 
 if (process.argv[1] && path.resolve(process.argv[1]) === fileURLToPath(import.meta.url)) {
     const target = process.argv[2];
+    if (target === '--zips') {
+        // node scripts/check-package.mjs --zips <folder>: the per-package zips of node scripts/build-packages.mjs --zips <folder> (#1656)
+        const problems = await checkPackageZips(path.resolve(process.argv[3] ?? ''));
+        if (problems.length) { console.error(`the package zips are not right:\n- ${problems.join('\n- ')}`); process.exit(1); }
+        console.log('package zips: contents, manifests, versions, ceilings and the union with core/dist match');
+        process.exit(0);
+    }
     if (!target) { console.error('usage: node scripts/check-package.mjs <folder-or-.nupkg>   (after: dotnet pack blazor/src/PlainKit.Blazor -c Release -o <folder>)'); process.exit(2); }
     let info;
     try {

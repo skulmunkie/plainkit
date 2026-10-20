@@ -30,12 +30,14 @@ export function contrastFailures(tokensCss, pairs, themes = ['dark', 'light'], a
 }
 
 // cssFiles / jsFiles: { name: text }. Returns the flat measurements the scoring definitions ask for, plus a per-file table.
-export function staticMetrics({ cssFiles, jsFiles, tokensCss, pairs }) {
+// pageCss: the names of the page-level stylesheets (PRIMARY_CSS); only those count towards cssKb (raw KB), because that is what every page loads.
+// Every file in cssFiles still feeds the literal-colour and literal-size scans. Without pageCss every file counts.
+export function staticMetrics({ cssFiles, jsFiles, tokensCss, pairs, pageCss }) {
     const perFile = []; let cssBytes = 0; let literalColourCount = 0; let literalSizeCount = 0; let sizeDeclarations = 0;
     for (const [name, text] of Object.entries(cssFiles)) {
         const stats = cssStats(text);
         // Element stylesheets load on demand and are held to per-element budgets (tests/budgets.test.mjs); this is what every page loads.
-        if (!name.startsWith('elements/')) cssBytes += stats.bytes;
+        if (pageCss ? pageCss.includes(name) : true) cssBytes += stats.bytes;
         const isTokens = name.endsWith('tokens.css');
         const colours = isTokens ? [] : literalColours(text);
         const sizes = isTokens ? [] : literalSizes(text);

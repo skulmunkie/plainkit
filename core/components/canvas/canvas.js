@@ -1,5 +1,5 @@
 import { loadElements } from '../../js/loader.js';
-import { toWorld, toScreen, zoomAt, zoomToFit, centerOn, toOrigin, fromOrigin } from '../../js/viewport-logic.js';
+import { toWorld, toScreen, zoomAt, zoomToFit, centerOn, toOrigin, fromOrigin, gridSteps } from '../../js/viewport-logic.js';
 
 // The canvas keeps a view as { x, y, zoom }: the world origin sits at (x, y) in frame pixels and a world unit is `zoom` pixels. The maths is js/viewport-logic.js.
 export const snap = (n, grid) => (grid > 0 ? Math.round(n / grid) * grid : n);
@@ -32,12 +32,15 @@ export default Base => class extends Base {
             this.part('reset').addEventListener('click', () => this.reset());
             this.$pts = new Map();
         }
-        this.$mo ??= new MutationObserver(() => this.marks());
-        this.$mo.observe(this, { subtree: true, attributes: true, attributeFilter: ['data-surface-selected'], childList: true });
+        this.$mo ??= new MutationObserver(() => { this.marks(); this.$L?.select?.then(l => l?.draw()); });
+        this.$mo.observe(this, { subtree: true, attributes: true, attributeFilter: ['data-surface-selected', 'data-id', 'data-x', 'data-y', 'data-w', 'data-h'], childList: true });
         if (typeof ResizeObserver === 'function') { this.$ro ??= new ResizeObserver(() => this.marks()); this.$ro.observe(this.part('world')); }
         loadElements(this.shadowRoot);
     }
-    disconnected() { this.$mo?.disconnect(); this.$ro?.disconnect(); }
+    disconnected() { this.$mo?.disconnect(); this.$ro?.disconnect(); for (const p of Object.values(this.$L ?? {})) p?.then(l => l?.stop()); this.$L = {}; }
+    // Px per display unit (unit mm: 96/25.4). The grid in world units: the set spacing, or with auto-grid the 1-2-5 step that keeps the lines 8 to 20 px apart (major: five minors or more).
+    ppu() { return this.pxPerUnit || { mm: 96 / 25.4, in: 96, pt: 96 / 72 }[this.unit] || 1; }
+    steps() { const p = this.ppu(), s = gridSteps(this.zoom * p); return this.autoGrid ? { minor: s.minor * p, major: s.major * p } : { minor: this.grid, major: 0 }; }
     view() { return { x: this.panX, y: this.panY, zoom: this.zoom }; }
     // Frame pixels of a pointer or wheel event.
     local(e) { const r = this.part('frame').getBoundingClientRect(); return { x: e.clientX - r.left, y: e.clientY - r.top }; }
@@ -63,13 +66,17 @@ export default Base => class extends Base {
     // Put the world point (x, y) in the middle of the frame.
     centerOn(x, y) { this.put(centerOn(fromOrigin(this.view()), x, y, ...this.frameSize())); }
     // A client point as world units, and a world point as client pixels (for a host that snaps what it drags).
-    pointToWorld(clientX, clientY) { const r = this.part('frame').getBoundingClientRect(), w = toWorld(fromOrigin(this.view()), { x: clientX - r.left, y: clientY - r.top }); return { x: snap(w.x, this.grid), y: snap(w.y, this.grid) }; }
+    pointToWorld(clientX, clientY) { const r = this.part('frame').getBoundingClientRect(), w = toWorld(fromOrigin(this.view()), { x: clientX - r.left, y: clientY - r.top }); return { x: snap(w.x, this.steps().minor), y: snap(w.y, this.steps().minor) }; }
     worldToPoint(wx, wy) { const r = this.part('frame').getBoundingClientRect(), s = toScreen(fromOrigin(this.view()), { x: wx, y: wy }); return { x: s.x + r.left, y: s.y + r.top }; }
     down(e) {
         if (e.target.closest?.('pk-button')) return;
         const frame = this.part('frame');
-        this.$pts.set(e.pointerId, { x: e.clientX, y: e.clientY, sx: e.clientX, sy: e.clientY });
-        if (this.$pts.size === 1) { this.$ground = e.button === 1 || !(e.target !== this && this.contains(e.target)); this.$moved = false; }
+        this.$pts.set(e.pointerId, { x: e.clientX, y: e.clientY, sx: e.clientX, sy: e.clientY, t: e.target });
+        if (this.$pts.size === 1) { // a press on bare ground drags the view, or in a selectable canvas (mode select) a marquee, except for touch
+            const on = e.target !== this && this.contains(e.target);
+            this.$mq = !on && e.button === 0 && e.pointerType !== 'touch' && this.selectable && this.mode === 'select';
+            this.$ground = e.button === 1 || !(on || this.$mq); this.$moved = false;
+        }
         else { this.$ground = true; this.$moved = true; }
         frame.setPointerCapture?.(e.pointerId);
     }
@@ -90,9 +97,9 @@ export default Base => class extends Base {
         if (this.$ground) this.set({ ...this.view(), x: this.panX + dx, y: this.panY + dy });
     }
     up(e, cancelled) {
-        const had = this.$pts.delete(e.pointerId);
+        const t = this.$pts.get(e.pointerId)?.t, had = this.$pts.delete(e.pointerId); // t: what was pressed (the captured pointerup reports the frame)
         if (!had || cancelled || this.$moved || this.$pts.size) return;
-        const node = e.target !== this && this.contains(e.target) ? e.target : null; // a press without movement picks the deepest node under it, or none
+        const node = t !== this && this.contains(t) ? t : null; // a press without movement picks the deepest node under it, or none
         this.emit('pk-canvas-pick', { target: node, additive: e.shiftKey || e.ctrlKey || e.metaKey }, { cancelable: false });
     }
     key(e) {
@@ -108,6 +115,14 @@ export default Base => class extends Base {
         else return;
         e.preventDefault();
     }
+    // The optional layers (own modules) load when first switched on, redraw with every update and stop when switched off.
+    layers() {
+        const L = (this.$L ??= {});
+        for (const [k, on, load] of [['grid', this.autoGrid, () => import('../../js/canvas-style.js')], ['rulers', this.rulers, () => import('../../js/canvas-rulers.js')], ['select', this.selectable, () => import('../../js/canvas-select.js')]]) {
+            if (on) (L[k] ??= load().then(m => m.mount(this), e => this.log.error(`canvas ${k} failed to load`, e))).then(l => l?.draw());
+            else if (L[k]) { L[k].then(l => l?.stop()); L[k] = null; }
+        }
+    }
     // One box per flagged node, in frame pixels, so they follow pan and zoom without scaling their outline.
     marks() {
         const overlay = this.part('overlay'), f = this.part('frame').getBoundingClientRect();
@@ -115,16 +130,17 @@ export default Base => class extends Base {
             const b = markBox(n.getBoundingClientRect(), f), d = this.part('mark').cloneNode();
             d.hidden = false;
 
-            for (const [k, v] of Object.entries({ 'inset-inline-start': b.left, 'inset-block-start': b.top, 'inline-size': b.width, 'block-size': b.height })) d.style.setProperty(k, `${v}px`);
+            for (const [k, v] of Object.entries({ left: b.left, top: b.top, width: b.width, height: b.height })) d.style.setProperty(k, `${v}px`);
             return d;
         }));
     }
     updated() {
         this.style.setProperty('--ds-x', String(this.panX)); this.style.setProperty('--ds-y', String(this.panY));
-        this.style.setProperty('--ds-zoom', String(this.zoom)); this.style.setProperty('--ds-grid', String(this.grid));
+        this.style.setProperty('--ds-zoom', String(this.zoom)); const g = this.steps(); this.style.setProperty('--ds-grid', String(g.minor)); this.style.setProperty('--ds-major', String(g.major));
         this.part('level').textContent = `${Math.round(this.zoom * 100)}%`;
         this.part('in').disabled = this.zoom >= this.maxZoom; this.part('out').disabled = this.zoom <= this.minZoom;
         this.marks();
+        this.layers();
         if (!this.label) this.warnOnce('label', 'has no label: the surface has no accessible name');
     }
 };

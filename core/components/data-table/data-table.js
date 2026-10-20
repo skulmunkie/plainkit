@@ -1,6 +1,6 @@
 import { showState } from '../../js/page-shell.js';
 import { loadElements } from '../../js/loader.js';
-import { filterControl } from '../../js/filter-controls.js';
+import { filterControl, setFilterOptions } from '../../js/filter-controls.js';
 
 // The one query/load/selection machine of a paged list (#801): pk-list-page, the lookup picker and Blazor's PkDataTable all sit on this element.
 // The settings are plain props; an unset one reads its default. The defaults are the meta's (a test holds them together).
@@ -92,6 +92,13 @@ export default Base => class extends Base {
         for (const f of this.opt('filters')) box.append(this.$controls[f.key] = filterControl(this.ownerDocument, f));
         loadElements(box);
         this.seedFilters();
+        this.applyFilterOptions(this.$filterOptions);
+    }
+    // A load result's filterOptions ({ key: [{ value, label }] }) replace the options of those select and multiselect filters (labels with counts, options that follow the data); kept for a rebuild of the filters.
+    applyFilterOptions(byKey) {
+        if (!byKey || typeof byKey !== 'object') return;
+        this.$filterOptions = byKey;
+        for (const [key, options] of Object.entries(byKey)) setFilterOptions(this.ownerDocument, this.$controls?.[key], Array.isArray(options) ? options : []);
     }
     seedFilters() {
         const values = this.query.filters;
@@ -156,6 +163,7 @@ export default Base => class extends Base {
         if (!this.ownerDocument.defaultView?.customElements.get('pk-table')) await this.$ready;
         if (this.$token !== token) return;
         const rows = result?.rows ?? [], total = result?.total ?? rows.length;
+        this.applyFilterOptions(result?.filterOptions);
         // Rows deleted under the reader: a page past the last one settles on the last page (one more load), not the empty state.
         if (rows.length === 0 && total > 0 && q.page > Math.ceil(total / q.pageSize)) { this.$query = { ...q, page: Math.ceil(total / q.pageSize) }; return this.refresh(); }
         if (rows.length === 0) { this.showEmpty(q); return; }

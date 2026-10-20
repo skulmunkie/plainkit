@@ -14,7 +14,7 @@ import { SnapshotProvider, ApiProvider, LazyProvider, FeedProvider, contractProb
 import { tokenize, buildSegments, wordAt, languageOf } from '../js/code-explorer/tokenize.js';
 import { buildTree } from '../js/code-explorer/element.js';
 import { compilePattern, patternReport, largestFilesReport, longestMethodsReport, duplicateBlocksReport } from '../modules/code-explorer/reports.js';
-import { SCORING, TEXT_PAIRS } from '../site/scorecard/scoring.data.js';
+import { SCORING, TEXT_PAIRS, PRIMARY_CSS } from '../site/scorecard/scoring.data.js';
 import { runStaticAudit } from '../site/scorecard/static-audit.mjs';
 
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
@@ -252,7 +252,9 @@ test('history keeps the newest runs, survives bad storage and reports regression
 // ---- audit (real files) ------------------------------------------------------------------------------------------------
 test('the static audit measures the real SDK and every scoring metric it feeds has a definition', () => {
     const { metrics, measured, scores } = runStaticAudit();
-    assert.ok(metrics.cssKb > 15 && metrics.cssKb < 400, `css ${metrics.cssKb}KB`);
+    // cssKb is the page-level layer only (PRIMARY_CSS, raw KB): element stylesheets load on demand and have their own budgets.
+    assert.ok(metrics.cssKb > 15 && metrics.cssKb < SCORING.categories.performance.metrics.cssKb.good, `page-layer css ${metrics.cssKb}KB`);
+    assert.ok(metrics.perFile.some(f => !PRIMARY_CSS.includes(f.name)), 'element stylesheets are still scanned for literals');
     assert.equal(metrics.literalColours, 0, 'component CSS must hold no literal colours');
     assert.ok(metrics.perFile.length > 10);
     const defined = new Set(Object.values(SCORING.categories).flatMap(c => Object.keys(c.metrics)));

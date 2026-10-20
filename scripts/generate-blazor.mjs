@@ -248,7 +248,7 @@ export function modelElement(el, mapping, reg) {
                 cs = `EventCallback<${inner}>`; call = `value:${conv}`;
             } else if (!ev.fields.length) { cs = 'EventCallback'; call = 'none'; }
             else { cs = `EventCallback<${ev.args}>`; call = 'args'; }
-            if (declare({ name: p.name, kind: 'param', cs, doc: ev.description, note: p.note, cancelable: ev.cancelable })) { const hh = handler(ev); hh.callbacks.push({ name: p.name, call }); if (p.stopPropagation) hh.stop = true; if (p.listened) hh.listened = true; }
+            if (declare({ name: p.name, kind: 'param', cs, doc: ev.description, note: p.note, cancelable: ev.cancelable })) { const hh = handler(ev); hh.callbacks.push({ name: p.name, call }); if (p.stopPropagation) hh.stop = true; if (p.listened) hh.listened = p.listened; if (p.before) (hh.before ??= []).push(p.before); }
             // `shows`: a boolean prop of the element that is on exactly when the host listens (OnCancel set shows the Cancel button: cancellable).
             if (p.shows) out.attrs.push({ attr: kebab(p.shows), expr: `@${p.name}.HasDelegate`, boolean: true });
         } else if (map === 'callback') {
@@ -618,7 +618,7 @@ export function renderComponent(m, mappingName, ns = 'PlainKit.Blazor') {
     // dataTable: the header template of each column and the cell template of each column in each loaded row fill the element's header-<key> and cell-<id>-<key> slots.
     const tableSlots = m.dataTable ? '@foreach (var c in Columns.Where(c => c.Header is not null)) {<span slot="@($"header-{c.Key}")" class="u-contents" @key="@($"header-{c.Key}")">@c.Header</span>}@foreach (var row in _rows) {foreach (var column in Columns.Where(c => c.Cell is not null)) {<span slot="@($"cell-{row.Id}-{column.Key}")" class="u-contents" @key="@($"cell-{row.Id}-{column.Key}")">@column.Cell!(row.Item)</span>}}' : '';
     // table: the header template of each column, then the raw table (ChildContent) or, per row, the cell templates and the detail.
-    const rowSlots = m.table ? '@foreach (var c in _heads) {<span slot="@($"header-{c.Key}")" class="u-contents" @key="@($"header-{c.Key}")">@c.Header</span>}@if (ChildContent is not null) {<table class="@TableClass">@if (HeadContent is not null) { <thead>@HeadContent</thead> }<tbody>@ChildContent</tbody>@if (FootContent is not null) { <tfoot>@FootContent</tfoot> }</table>} else {@foreach (var row in _items) {@foreach (var column in _cells) {<span slot="@($"cell-{row.Id}-{column.Key}")" class="u-contents" @key="@($"cell-{row.Id}-{column.Key}")">@column.Cell!(row.Item)</span>}@if (Expandable && DetailTemplate is not null) {<div slot="@($"detail-{row.Id}")" @key="@($"detail-{row.Id}")">@DetailTemplate(row.Item)</div>}}}' : '';
+    const rowSlots = m.table ? '@foreach (var c in _heads) {<span slot="@($"header-{c.Key}")" class="u-contents" @key="@($"header-{c.Key}")">@c.Header</span>}@if (ChildContent is not null) {<table class="@TableClass">@if (HeadContent is not null) { <thead>@HeadContent</thead> }<tbody>@ChildContent</tbody>@if (FootContent is not null) { <tfoot>@FootContent</tfoot> }</table>} else {@foreach (var row in _items) {@foreach (var column in _cells) {<span slot="@($"cell-{row.Id}-{column.Key}")" class="u-contents" @key="@($"cell-{row.Id}-{column.Key}")">@column.Cell!(row.Item)</span>}@if (Expandable && DetailTemplate is not null) {<div slot="@($"detail-{row.Id}")" @key="@($"detail-{row.Id}")">@DetailTemplate(row.Item)</div>}@if (Expandable && DetailPanels is not null) {@foreach (var panel in DetailPanels) {<div slot="@($"detail-{row.Id}.{panel.Key}")" @key="@($"detail-{row.Id}.{panel.Key}")">@panel.Value(row.Item)</div>}}}}' : '';
     const children = children0 + cells + slotMaps + editors + groupSlots + tableSlots + rowSlots;
     // table: raw mode with no rows shows the empty state instead of the table.
     if (m.table) L.push('@if (ChildContent is not null && IsEmpty && (EmptyContent is not null || EmptyText is not null))', '{', '    <div class="u-contents">@if (EmptyContent is not null) { @EmptyContent } else { @EmptyText }</div>', '}', 'else', '{');
@@ -664,7 +664,7 @@ export function renderComponent(m, mappingName, ns = 'PlainKit.Blazor') {
             '        if (cancel.IsCancellationRequested) return new { rows = Array.Empty<object>(), total = 0 };',
             '        var rows = new System.Text.Json.Nodes.JsonArray();', '        var shown = new List<Row>(result.Items.Count);', '        foreach (var item in result.Items)', '        {',
             '            var id = IdOf(item);', '            var node = PkTableRows.Serialize(item, Columns);', '            node["id"] = id;', '            rows.Add(node);', '            shown.Add(new Row(id, item));', '        }',
-            '        await InvokeAsync(() => { _rows = shown; StateHasChanged(); });', '        return new { rows, total = result.Total };', '    }',
+            '        await InvokeAsync(() => { _rows = shown; StateHasChanged(); });', '        return new { rows, total = result.Total, filterOptions = result.FilterOptions };', '    }',
             '', '    private async Task HandleSelectAsync(PkTableSelectEventArgs e)', '    {',
             '        // A selection of 64 rows or more arrives as runs of row indexes into the page the element shows: back to ids.',
             '        if (e.Ranges is not null && !PkTableRows.TryExpand(e, _rows.Select(r => r.Id).ToList())) return;',
@@ -739,12 +739,18 @@ export function renderComponent(m, mappingName, ns = 'PlainKit.Blazor') {
         '        if (Columns is not null) node["columns"] = System.Text.Json.Nodes.JsonNode.Parse(PkAttr.Json(Columns.Select(c => c.ToColumn()))!);',
         ...m.configKeys.map(k => `        if (${k.when}) node[${lit(k.key)}] = System.Text.Json.JsonSerializer.SerializeToNode(${k.value});`),
         '        return node.ToJsonString();', '    }');
-    if (m.recordModel) L.push('', '    private TItem? _loaded;', '    private bool _isNew;', '',
-        '    private string ConfigWithFields() => PkFieldSpecs.RecordConfig(PkAttr.JsonText(Config), Fields, _loaded ?? Model, out _isNew, Sections, Sidebar, TitleOf);', '',
-        '    private object? KeepLoaded(TItem? item)', '    {', '        _loaded = item;', '        _ = InvokeAsync(StateHasChanged);', '        return item is null ? null : PkFieldSpecs.Values(Fields ?? [], item);', '    }', '',
+    if (m.recordModel) L.push('', '    private TItem? _loaded;', '    private TItem? _draft;', '    private bool _isNew;', '',
+        '    private string ConfigWithFields() => PkFieldSpecs.RecordConfig(PkAttr.JsonText(Config), Fields, _draft ?? _loaded ?? Model, out _isNew, Sections, Sidebar, TitleOf, _loaded ?? Model);', '',
+        '    private object? KeepLoaded(TItem? item)', '    {', '        _loaded = item;', '        _draft = default;', '        _ = InvokeAsync(StateHasChanged);', '        return item is null ? null : PkFieldSpecs.Values(Fields ?? [], item);', '    }', '',
         '    private async Task<TItem> ApplySavedAsync(IReadOnlyDictionary<string, JsonElement> values)', '    {',
         '        var item = (_isNew ? Model : _loaded) ?? throw new InvalidOperationException("A new record needs the Model parameter (the instance to fill); a loaded one is what Load returned.");',
-        '        await PkFieldSpecs.ApplyAsync(Fields ?? [], item, values);', '        if (TitleOf is not null) _ = InvokeAsync(StateHasChanged);', '        return item;', '    }');
+        '        await PkFieldSpecs.ApplyAsync(Fields ?? [], item, values);', '        if (TitleOf is not null) _ = InvokeAsync(StateHasChanged);', '        return item;', '    }', '',
+        // FollowEdits: the typed When/Disabled/ReadOnly/LabelWhen/HelpWhen are read from a draft copy the committed changes are applied to; the loaded item is not touched before Save (#1641).
+        '    private static readonly System.Reflection.MethodInfo MemberwiseCloneOf = typeof(object).GetMethod("MemberwiseClone", System.Reflection.BindingFlags.Instance | System.Reflection.BindingFlags.NonPublic)!;', '',
+        '    private async Task FollowAsync(PkRecordChangeEventArgs e)', '    {',
+        '        if (!FollowEdits || Fields is null || e.Key is null || (_isNew ? Model : _loaded) is not { } source) return;',
+        '        _draft ??= CopyOf is not null ? CopyOf(source) : (TItem)MemberwiseCloneOf.Invoke(source, null)!;',
+        '        await PkFieldSpecs.ApplyAsync(Fields, _draft, new Dictionary<string, JsonElement> { [e.Key] = e.Value ?? default });', '    }');
     for (const x of m.methods) L.push('', doc(x.doc), `    public ${x.returns ? `Task<${x.returns}>` : 'Task'} ${x.name}(${x.args.map(a => `${a.type} ${a.name}`).join(', ')}) => CallAsync${x.returns ? `<${x.returns}>` : ''}(${[lit(x.method), ...x.args.map(a => a.name)].join(', ')});`);
     if (m.field) L.push('', '    /// <inheritdoc />', `    protected override Expression<Func<${m.field.cs}>>? FieldExpression => ${m.field.expr};`);
     if (m.field?.values) L.push('', '    /// <inheritdoc />', `    protected override Expression<Func<IReadOnlyList<string>?>>? ValuesFieldExpression => ${m.field.values};`);
@@ -753,7 +759,7 @@ export function renderComponent(m, mappingName, ns = 'PlainKit.Blazor') {
         L.push('', '    /// <inheritdoc />', '    protected override void AddEventHandlers(Dictionary<string, object> handlers)', '    {');
         if (m.dataTable) L.push('        handlers["onpk-select"] = EventCallback.Factory.Create<PkTableSelectEventArgs>(this, HandleSelectAsync);', '        handlers["onpk-row-click"] = EventCallback.Factory.Create<PkRowClickEventArgs>(this, HandleRowClickAsync);');
         if (m.table) for (const [ev, h, t] of [['sort', 'Sort', 'PkSortEventArgs'], ['filter', 'Filter', 'PkFilterEventArgs'], ['select', 'Select', 'PkTableSelectEventArgs'], ['select-all', 'SelectAll', 'PkSelectAllEventArgs'], ['row-click', 'RowClick', 'PkRowClickEventArgs'], ['row-expand', 'RowExpand', 'PkRowExpandEventArgs'], ['cell-edit', 'CellEdit', 'PkCellEditEventArgs']]) L.push(`        handlers["onpk-${ev}"] = EventCallback.Factory.Create<${t}>(this, Handle${h});`);
-        for (const h of custom) L.push(`        ${listened(h) ? `if (${h.callbacks.map(c => `${c.name}.HasDelegate`).join(' || ')}) ` : ''}handlers[${lit(h.attr)}] = EventCallback.Factory.Create<${h.args}>(this, ${handlerName(h)});`);
+        for (const h of custom) L.push(`        ${listened(h) ? `if (${[...h.callbacks.map(c => `${c.name}.HasDelegate`), ...(typeof h.listened === 'string' ? [h.listened] : [])].join(' || ')}) ` : ''}handlers[${lit(h.attr)}] = EventCallback.Factory.Create<${h.args}>(this, ${handlerName(h)});`);
         L.push('    }');
     }
     L.push(...handlerLines(m, live));
@@ -780,6 +786,7 @@ function handlerLines(m, live) {
     for (const h of live) {
         L.push('');
         L.push(`    private async Task ${handlerName(h)}(${h.args} e)`, '    {');
+        for (const b of h.before ?? []) L.push(`        ${b}`);
         for (const u of h.updates) L.push(`        ${u.param} = ${u.assign};`);
         for (const u of h.updates) L.push(`        await ${u.changed}.InvokeAsync(${u.arg ?? u.param});`);
         if (h.multi) L.push('        if (ValuesChanged.HasDelegate)', '        {', `            Values = ${h.multi.value};`, '            await ValuesChanged.InvokeAsync(Values);', '        }');

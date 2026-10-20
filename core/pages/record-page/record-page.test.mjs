@@ -368,3 +368,61 @@ test('sticky (the prop or config.sticky) pins the shell header and moves the but
     el.config = { ...el.config, sticky: true }; el.changed('config');
     assert.equal(parts.header.getAttribute('sticky'), '', 'config.sticky does the same');
 });
+
+test('every committed field change is raised as pk-record-change with the values of all the cards (#1651)', async () => {
+    const { el, events } = make();
+    el.load = async () => ({ name: 'Widget', status: 'a' });
+    el.mode = 'edit';
+    el.connected();
+    await tick();
+    const [main, side] = el.$groups;
+    main.snapshot = () => ({ name: 'Changed' });
+    side.snapshot = () => ({ status: 'a' });
+    el.mirror({ target: main, detail: { key: 'name', value: 'Changed' } });
+    assert.deepEqual(events.filter(([n]) => n === 'pk-record-change'), [['pk-record-change', { key: 'name', value: 'Changed', values: { name: 'Changed', status: 'a' } }]]);
+    el.$groups = [main];
+    el.mirror({ target: main, detail: { key: 'name', value: 'Again' } });
+    assert.equal(events.filter(([n]) => n === 'pk-record-change').length, 2, 'a page with one card raises it too');
+    el.mirror({ target: main, detail: {} });
+    assert.equal(events.filter(([n]) => n === 'pk-record-change').length, 2, 'no key, no event');
+});
+
+test('requestSave(skipBeforeSave) runs the normal save path: validation, beforeSave unless skipped, view mode after (#1652)', async () => {
+    const { el, parts, events } = make();
+    el.load = async () => ({ name: 'Widget' });
+    el.mode = 'edit';
+    const saved = [], asked = [];
+    el.save = async values => { saved.push(values); };
+    el.beforeSave = async values => { asked.push(values); return false; };
+    el.connected();
+    await tick();
+    let valid = true;
+    parts.main.querySelector = () => ({ requestSubmit() { if (valid) for (const f of parts.main.listeners['pk-valid'] ?? []) f(); } });
+    assert.equal(await el.requestSave(), false, 'beforeSave declines again');
+    assert.equal(asked.length, 1); assert.equal(saved.length, 0);
+    valid = false;
+    assert.equal(await el.requestSave(true), false, 'an invalid form is not saved'); assert.equal(saved.length, 0);
+    valid = true;
+    assert.equal(await el.requestSave(true), true, 'resumes the save');
+    assert.equal(asked.length, 1, 'beforeSave is left out of this run'); assert.equal(saved.length, 1);
+    assert.equal(el.mode, 'view'); assert.equal(parts.save.busy, false); assert.ok(events.some(([n]) => n === 'pk-record-save'));
+    assert.equal(el.$skip, false, 'the skip applies to one run only');
+});
+
+test('a config that only changes the fields patches the groups in place; a changed shape draws again (#1641)', async () => {
+    const { el, parts } = make();
+    el.load = async () => ({ name: 'Widget', status: 'a' });
+    el.mode = 'edit';
+    el.connected();
+    await tick();
+    const patched = [];
+    for (const [i, g] of el.$groups.entries()) g.patch = fields => patched.push([i, fields.map(f => f.key + (f.disabled ? '!' : ''))]);
+    const kids = parts.main.children;
+    el.config = { ...el.config, fields: el.config.fields.map(f => f.name === 'name' ? { ...f, disabled: true } : f) };
+    el.changed('config');
+    assert.equal(parts.main.children, kids, 'the form was not rebuilt');
+    assert.ok(patched[0][1].includes('name!'), 'the main group got the new specs');
+    el.config = { ...el.config, saveLabel: 'Store' };
+    el.changed('config');
+    assert.notEqual(parts.main.children, kids, 'a change outside fields draws again');
+});

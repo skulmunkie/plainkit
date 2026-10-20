@@ -16,7 +16,7 @@ export const SCORING = {
             label: 'Performance',
             weight: 25,
             metrics: {
-                cssKb:          { label: 'Stylesheet size (KB, page-level layer; elements load on demand)', good: 90, poor: 300, lowerIsBetter: true, weight: 2 },
+                cssKb:          { label: 'Stylesheet size (raw KB, page-level layer only; elements load on demand and have their own budgets)', good: 32, poor: 100, lowerIsBetter: true, weight: 2 },
                 jsKb:           { label: 'Script size (KB, base runtime loaded on every page)', good: 40, poor: 150, lowerIsBetter: true, weight: 1 },
                 unusedRatio:    { label: 'Selectors unused by the gallery (0-1)', good: 0.25, poor: 0.7, lowerIsBetter: true, weight: 1 },
                 lcpMs:          { label: 'Largest contentful paint (ms)', good: 1200, poor: 4000, lowerIsBetter: true, weight: 2 },

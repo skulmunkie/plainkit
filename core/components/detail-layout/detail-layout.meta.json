@@ -40,7 +40,7 @@
       "type": "boolean",
       "default": false,
       "reflect": true,
-      "description": "The strip is the host's: the layout draws none and shows one data-pk-section at a time from section alone, at any width, and still draws Next. Supply the strip yourself, for example the docked tabs of a pk-page-header, and set section from its pk-tab-change."
+      "description": "The strip is the host's: the layout draws none and, where tabs-from says the strip applies (below the collapse width by default), shows one data-pk-section at a time from section alone, and still draws Next. Elsewhere every section shows. Supply the strip yourself, for example the docked tabs of a pk-page-header, and set section from its pk-tab-change."
     },
     {
       "name": "sectionsAbove",

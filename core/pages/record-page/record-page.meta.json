@@ -84,6 +84,12 @@
       "description": "Cancel was pressed; for a new record (id is null) the host decides where to go."
     },
     {
+      "name": "pk-record-change",
+      "detail": "{ key, value, values }",
+      "detailProps": { "key": "string", "value": "object", "values": "object" },
+      "description": "A field's change was committed in edit mode (a blur or a choice, not each keystroke): key and value are the field, values the current values of every field of the page, in all its cards. Not raised for a change the host makes. Use it to redraw content beside the form that reads the edits (a summary card in main-after, a preview)."
+    },
+    {
       "name": "pk-record-save",
       "detail": "{ values }",
       "detailProps": {},
@@ -124,5 +130,8 @@
       "html": "<pk-record-page id=\"product-sections\"><pk-card slot=\"main-after\" heading=\"Activity\">Created by the import on 3 March.</pk-card><pk-card slot=\"side-after\" heading=\"Related\">Two open orders.</pk-card></pk-record-page>"
     }
   ],
-  "methods": [{ "name": "refresh()", "description": "Loads the record again by config.id through load(id); called when the load callback is set after the page connected (the Blazor wrapper does)." }]
+  "methods": [
+    { "name": "refresh()", "description": "Loads the record again by config.id through load(id); called when the load callback is set after the page connected (the Blazor wrapper does)." },
+    { "name": "requestSave(skipBeforeSave)", "description": "Saves the form the way the Save button does (validation, busy state, dirty reset, switch to view) and resolves true when it was saved, false when it was invalid, busy, not in edit mode or rejected. skipBeforeSave leaves out the beforeSave callback for this run: a host whose beforeSave declined to ask the person calls it once they confirm." }
+  ]
 }

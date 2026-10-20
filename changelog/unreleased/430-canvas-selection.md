@@ -1,0 +1,5 @@
+---
+type: added
+issue: 430
+---
+`pk-canvas` gains a selection layer: with `selectable`, children that declare a world rect (`data-id` with `data-x data-y data-w data-h`, an SVG child's own `x y width height`, or a `geometry(el)` callback property) can be selected by click, toggled with Shift, Ctrl or Cmd, selected by a marquee drag on bare ground (`mode="select"`, the default; `mode="pan"` keeps the drag panning; touch and the middle button still pan), Ctrl or Cmd with A, and keyboard focus (Tab), and cleared with Escape (a second Escape reaches `pk-canvas-key`). The `selection` property holds the ids, `pk-canvas-select { ids }` reports a change, selected items get a frame drawn in the canvas's shadow tree, and the change is announced in the live region; the canvas never writes to the items. The layer is a lazy module (`js/canvas-select.js` with the pure `js/canvas-geometry.js`), so a canvas that is not `selectable` loads none of it (Blazor `Selectable`, `Mode`, `Selection`, `OnSelect`).

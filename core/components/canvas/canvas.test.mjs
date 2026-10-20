@@ -23,5 +23,5 @@ test('the view maths is imported from viewport-logic, not copied', () => {
 
 test('the surface observes its own subtree and lets go on disconnect', () => {
     const src = fs.readFileSync(new URL('./canvas.js', import.meta.url), 'utf8');
-    assert.match(src, /disconnected\(\) \{ this\.\$mo\?\.disconnect\(\); this\.\$ro\?\.disconnect\(\); \}/);
+    assert.match(src, /disconnected\(\) \{ this\.\$mo\?\.disconnect\(\); this\.\$ro\?\.disconnect\(\);/); // the lazy layers are stopped after the two observers
 });

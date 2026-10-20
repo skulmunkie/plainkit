@@ -16,7 +16,7 @@
       "type": "Func<PkListRequest, Task<PkListResult<TItem>>>?",
       "arg": "PkListPageQuery",
       "args": "a.ToRequest()",
-      "returns": "new { rows = RowsOf(r.Items), total = r.Total }",
+      "returns": "new { rows = RowsOf(r.Items), total = r.Total, filterOptions = r.FilterOptions }",
       "refresh": true,
       "doc": "Loads one page for the request's page, sort, search and filters and returns its items and the total of the whole (searched) list. Throwing shows the element's error state with Retry; zero items show the empty state."
     },
