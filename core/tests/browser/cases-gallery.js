@@ -2,7 +2,7 @@
 // the old addresses that keep working, back and forward, the query inside the hash (?q ?p) and a scoped mount's first route. Same contract as cases.js: [name, async (t) => void].
 import { instrument } from './cases-app.js';
 
-import { wait, until as poll } from './wait.js';
+import { wait, until as poll, still } from './wait.js';
 const until = (fn, what, tries = 120) => poll(fn, what, { every: 50, tries });
 
 // Opens the gallery page at a hash (and a query for the mount's options) and waits for its first view.
@@ -205,7 +205,7 @@ export const galleryCases = [
         t.ok(shell.getBoundingClientRect().height <= p.win.innerHeight + 1, 'the frame fits the window, only the view scrolls');
         const toggle = p.doc.querySelector('#gx-inspect'); toggle.hidden = false;
         if (!p.doc.querySelector('#gx-inspector').hasAttribute('open')) toggle.click();
-        await until(() => p.doc.querySelector('#gx-inspector').hasAttribute('open'), 'the Details drawer to open'); await wait(300);
+        await until(() => p.doc.querySelector('#gx-inspector').hasAttribute('open'), 'the Details drawer to open'); await still(p.doc.querySelector('#gx-inspector').shadowRoot.querySelector('[part="panel"]'), 'the Details drawer');
         const d = p.doc.querySelector('#gx-inspector').shadowRoot.querySelector('[part="panel"]').getBoundingClientRect();
         t.ok(Math.abs(d.right - v.right) < 2 && d.top >= b.bottom - 1, 'the drawer docks to the end edge of the body, under the header');
         t.ok(parseFloat(p.win.getComputedStyle(view).paddingInlineEnd) >= d.width, 'the view keeps clear of the drawer');
@@ -286,7 +286,7 @@ async function openInspector(t, width) {
     const toggle = p.doc.querySelector('#gx-inspect'); toggle.hidden = false;
     if (!p.doc.querySelector('#gx-inspector').hasAttribute('open')) toggle.click();
     p.tbl = await until(() => { const e = p.doc.querySelector('#gx-inspector-body pk-table'); return e?.shadowRoot?.querySelectorAll('tbody tr').length > 3 && e; }, 'the Properties table');
-    await wait(300); return p;
+    await still(p.doc.querySelector('#gx-inspector').shadowRoot.querySelector('[part="panel"]'), 'the Details drawer'); await still(p.tbl, 'the Properties table'); return p;
 }
 
 async function openApp(t, hash, width = 1280) {
