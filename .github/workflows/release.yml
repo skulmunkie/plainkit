@@ -123,6 +123,9 @@ jobs:
           cp core/dist/manifest.json release-assets/dist-manifest.json
           cp core/dist/manifest.extras.json release-assets/dist-manifest-extras.json
           cp core/dist/modules/manifest.json "release-assets/plainkit-modules-manifest-$VERSION.json"
+          # The per-package artifacts (packages.json, #1656), additional to the assets above: plainkit-<v>.zip, plainkit.tools-<v>.zip and one <id>-manifest-<v>.json each. Checked here against core/dist.
+          node scripts/build-packages.mjs --zips release-assets
+          node scripts/check-package.mjs --zips release-assets
 
       # No token here: this job never holds contents: write or id-token: write. The publish job downloads this artifact and does everything that touches
       # GitHub releases, NuGet and npm.
@@ -173,6 +176,11 @@ jobs:
           GH_TOKEN: ${{ github.token }}
         run: |
           files=("release-assets/plainkit-dist-$VERSION.zip" "release-assets/plainkit-modules-$VERSION.zip" "release-assets/plainkit-skills-$VERSION.zip" "release-assets/PlainKit.Blazor.$VERSION.nupkg" release-assets/dist-manifest.json release-assets/dist-manifest-extras.json "release-assets/plainkit-modules-manifest-$VERSION.json")
+          # The per-package artifacts: every one named by packages.json must exist, or the job stops before anything is uploaded.
+          for f in "release-assets/plainkit-$VERSION.zip" "release-assets/plainkit-manifest-$VERSION.json" release-assets/plainkit.*-"$VERSION".zip release-assets/plainkit.*-manifest-"$VERSION".json; do
+            [ -f "$f" ] || { echo "missing release asset: $f"; exit 1; }
+            files+=("$f")
+          done
           if gh release view "$GITHUB_REF_NAME" > /dev/null 2>&1; then
             gh release upload "$GITHUB_REF_NAME" "${files[@]}" --clobber
           else

@@ -19,6 +19,7 @@ export const BOOTSTRAP_MESSAGE = 'Generated files are missing: run node scripts/
 // [glob as written in .gitignore, regex over repository-relative paths with forward slashes, the script that writes it]
 export const GENERATED_PATTERNS = [
     ['/core/dist/', /^core\/dist\//, 'core/tools/build.mjs (dist/skills/ by scripts/build-skills.mjs; dist/AGENTS.md, dist/llms.txt, dist/llms-full.txt by scripts/build-agent-refs.mjs)'],
+    ['/dist-packages/', /^dist-packages\//, 'scripts/build-packages.mjs (on demand: the release, the Pages build, the tests; not part of the bootstrap)'],
     ['/core/plainkit.css', /^core\/plainkit\.css$/, 'core/tools/build.mjs'],
     ['/core/elements/elements.css', /^core\/elements\/elements\.css$/, 'core/tools/build.mjs'],
     ['/core/elements/registry.js', /^core\/elements\/registry\.js$/, 'core/tools/build.mjs'],
