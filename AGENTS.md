@@ -1,7 +1,7 @@
 # Agents working on Plainkit
 
-This file is for developer agents changing this repository. (Agents *using* Plainkit in another project want the skills, generated into `core/dist/skills/` by
-the bootstrap or taken from a release; see the README, "Using the skills with an agent".) People: `CONTRIBUTING.md` is the same flow with the reasons.
+This file is for developer agents changing this repository. (Agents *using* Plainkit in another project want the skills, generated into `dist-skills/` by
+the bootstrap, served on the Pages site at `skills/`, or taken from a release; see the README, "Using the skills with an agent".) People: `CONTRIBUTING.md` is the same flow with the reasons.
 
 Read first: `CONTRIBUTING.md`, `core/STANDARDS.md` (especially "Ownership and reactivity"), and the issue you were given.
 
@@ -116,7 +116,7 @@ The table is generated from the `CHECKS` table in `scripts/verify.mjs`, the one 
 
 ## Generated files: not in git, never hand-edit
 
-About 40% of what the build touches is generated, and none of it is committed: `core/dist/**` (including `core/dist/skills/` and the manifests), `blazor/src/PlainKit.Blazor/wwwroot/plainkit/**`,
+About 40% of what the build touches is generated, and none of it is committed: `core/dist/**` (including the manifests), `dist-skills/` (the agent skills: the Pages site serves them at `skills/`, they are in no package), `blazor/src/PlainKit.Blazor/wwwroot/plainkit/**`,
 `blazor/src/PlainKit.Blazor/Generated/**`, `wwwroot/PlainKit.Blazor.lib.module.js`, `core/site/files/snapshot.json`, `core/site/gallery/gallery.data.js`, `core/{elements,components,pages,shells}/*/*.element.js`,
 `core/elements/elements.css`, `core/elements/registry.js`, `core/plainkit.css`, `core/js/version.js` and `core/site/scorecard/api.current.json` (the exact list: `node scripts/generated.mjs list`, and
 the section "Generated output" of `.gitignore`). `node scripts/bootstrap.mjs` writes them; change the source and run it again.

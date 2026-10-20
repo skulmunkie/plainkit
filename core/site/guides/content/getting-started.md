@@ -120,4 +120,4 @@ Set `data-theme="dark"` or `data-theme="light"` on `<html>`, or on any element t
 - The [gallery](../../app.html#/gallery) shows every element with live examples and its API.
 - [Theming and tokens](theming.md) covers the design tokens and how to change them.
 - [Logging](logging.md) covers the one logger the SDK and your own code share.
-- The agent skills carry a reference for every element: [elements-index.md](../../dist/skills/plainkit-sdk/references/elements-index.md) lists them by group.
+- The agent skills carry a reference for every element: [elements-index.md](https://skulmunkie.github.io/plainkit/skills/plainkit-sdk/references/elements-index.md) lists them by group.

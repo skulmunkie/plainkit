@@ -52,7 +52,7 @@ test('each manifest verifies: every listed file exists in the build with the lis
         for (const f of m.files) {
             listed.add(prefix + f.path);
             const text = out.get(prefix + f.path);
-            const bytes = text !== undefined ? Buffer.from(text) : fs.readFileSync(path.join(core, prefix + f.path)); // dist/skills is written by scripts/build-skills.mjs
+            const bytes = text !== undefined ? Buffer.from(text) : fs.readFileSync(path.join(core, prefix + f.path)); // dist/AGENTS.md, llms.txt and llms-full.txt are written by scripts/build-agent-refs.mjs
             assert.equal(bytes.length, f.bytes, f.path);
             assert.equal(sri(bytes), f.integrity, f.path);
         }

@@ -4,7 +4,7 @@ order: 5
 summary: How themes and density work, how to change a colour or a size without touching an element, and how to keep text readable when you do.
 ---
 
-Plainkit has no theme files. Every colour, space, size, radius and shadow is a CSS custom property (a token), and the two themes and two densities are just different values for the same names. An element reads tokens; it never hard-codes a colour. So theming is overriding a token, in your own stylesheet, and nothing else. The complete list of tokens with their values is in the agent skill's [theming reference](../../dist/skills/plainkit-sdk/references/theming.md); this guide is about how to use them.
+Plainkit has no theme files. Every colour, space, size, radius and shadow is a CSS custom property (a token), and the two themes and two densities are just different values for the same names. An element reads tokens; it never hard-codes a colour. So theming is overriding a token, in your own stylesheet, and nothing else. The complete list of tokens with their values is in the agent skill's [theming reference](https://skulmunkie.github.io/plainkit/skills/plainkit-sdk/references/theming.md); this guide is about how to use them.
 
 ## Two themes, on any element
 

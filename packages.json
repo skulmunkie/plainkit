@@ -8,8 +8,8 @@
       "built": true,
       "requires": [],
       "blazorOption": null,
-      "maxPackedBytes": 850000,
-      "maxUnpackedBytes": 3185000
+      "maxPackedBytes": 660000,
+      "maxUnpackedBytes": 2540000
     },
     {
       "id": "plainkit.tools",

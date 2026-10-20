@@ -1,5 +1,5 @@
 // The npm tarball (`npm pack` in core/) has a size ceiling and a closed list of top-level entries: a one-way ratchet (packaging plan, step 2).
-// Measured after leaving the plainkit-blazor skill (NuGet, the skills zip and Pages carry it), then llms-full.txt, descriptions.json, gallery/ and elements/api.full.json (the usage examples) out of the package (0.14+): 935,364 packed / 3,634,548 unpacked bytes.
+// (The agent skills left the package entirely in #1656: Pages serves them at skills/. Measured after leaving the plainkit-blazor skill, then llms-full.txt, descriptions.json, gallery/ and elements/api.full.json (the usage examples) out of the package (0.14+): 935,364 packed / 3,634,548 unpacked bytes.
 // (Earlier: leaving llms-full.txt, descriptions.json, gallery/ and elements/api.full.json (the usage examples) out of the package (they ship on the Pages site and in the release zip; 0.14+): 1,056,218 packed / 4,135,277 unpacked bytes.
 // Then the CEM attributes naming their field (type, default and description once, on the member) and a compact dist/manifest.json (#1253): 929,626 packed / 3,455,522 unpacked bytes.
 // Then skill element tables without a repeated property column, a grouped elements index and the contributor sections of core/README.md moved to docs/core-development.md (#1253): 923,958 packed / 3,437,502 unpacked bytes.
@@ -9,6 +9,7 @@
 // Then the ~220 files the package leaves out (gallery, agent docs, descriptions.json ...) listed in their own dist/manifest.extras.json (kept out of the package) instead of in dist/manifest.json (#1253): 901,811 / 3,351,632 bytes.
 // Then (agent/1253-headroom-5) only the first example of each element in the skill element references, the markup, script or module header of templates, patterns and tools over 3,000 characters, and the module headers moved to references/full/ (left out of the package: the Pages site, the skills zip and NuGet carry it), json props legend once, and no empty defaults or `reflects: false` in custom-elements.json and web-types.json: 875,303 / 3,242,616 bytes (from 904,065 / 3,361,366 on main).
 // Then (#1656 phase 1) the 33 dev-tool helper files of dist/js left the package for the plainkit.tools artifact (packages.json; the audit-free import graph test scripts/tests/packages.test.mjs proves no core file imports them): 887,507 / 3,277,473 on main before, 845,001 / 3,168,976 after. The ceilings go back down to the measurement plus 0.5 percent (850,000 / 3,185,000); the stopgap raise (900,000 / 3,350,000) is undone.
+// Then (#1656) the agent skills left the package for the Pages site (skills/, scripts/skills-site.mjs): 648,336 packed / 2,493,363 unpacked bytes (from about 861,900 / 3,219,900 with them). The ceilings went DOWN to 660,000 / 2,540,000, a ratchet again; the owner raise of 2026-10-20 is gone with the skills, which were most of it.
 // The previous ceilings (900,000 / 3,350,000). Owner decision 2026-10-20: headroom is raised once, by about 16 KB packed / 57 KB unpacked, because capping the package was capping new components; the long-term answer is separate packages for the larger components (#1656), after which the ceilings go back down. Until then no further raise without the owner: make the package smaller.
 import './needs-bootstrap.mjs';
 import test from 'node:test';
@@ -19,12 +20,12 @@ import { spawnSync } from 'node:child_process';
 import { fileURLToPath } from 'node:url';
 
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
-const MAX_PACKED_BYTES = 850_000;
-const MAX_UNPACKED_BYTES = 3_185_000;
+const MAX_PACKED_BYTES = 660_000;
+const MAX_UNPACKED_BYTES = 2_540_000;
 const TOP_LEVEL = new Set(['dist', 'LICENSE', 'README.md', 'package.json']);
 // dist/ is the runtime unit; these are the entries of dist/ the package may carry (dist/modules is the dev-tool unit, a separate download).
 const DIST = new Set(['breakpoints.report.json', 'custom-elements.json', 'elements', 'elements.d.ts', 'elements.vue.d.ts', 'icons.svg', 'js', 'llms-full.txt', 'llms.txt',
-    'manifest.json', 'plainkit.css', 'plainkit.js', 'plainkit.min.css', 'skills', 'tools', 'vscode.html-custom-data.json', 'web-types.json']);
+    'manifest.json', 'plainkit.css', 'plainkit.js', 'plainkit.min.css', 'tools', 'vscode.html-custom-data.json', 'web-types.json']);
 
 const r = spawnSync('npm pack --dry-run --json', { cwd: root, encoding: 'utf8', shell: true, maxBuffer: 64 << 20 });
 const info = r.status === 0 ? JSON.parse(r.stdout)[0] : null;
@@ -48,7 +49,7 @@ test('every relative link in dist/llms.txt resolves to a file in the package', {
     const packed = new Set(info.files.map(f => f.path));
     const text = fs.readFileSync(path.join(root, 'dist', 'llms.txt'), 'utf8');
     const links = [...text.matchAll(/\]\(([^)\s]+)\)/g)].map(m => m[1].split('#')[0]).filter(l => l && !/^[a-z]+:/i.test(l));
-    assert.ok(links.length > 5);
+    assert.ok(!links.some(l => l.startsWith('skills/')), 'dist/llms.txt links a skill by a relative path; the skills are not in dist (#1656), link their Pages URL. FIX: scripts/build-agent-refs.mjs.');
     const dead = links.filter(l => !packed.has('dist/' + l));
     assert.deepEqual(dead, [], `dist/llms.txt links to files the package leaves out: ${dead.join(', ')}. FIX: change scripts/build-agent-refs.mjs or core/package.json "files".`);
 });
@@ -73,10 +74,9 @@ test('elements/api.full.json (api.json plus the usage examples) is left out of t
     assert.deepEqual(full.map(({ examples, ...rest }) => rest), slim, 'api.full.json must be api.json plus examples and nothing else.');
 });
 
-test('the plainkit-blazor skill is left out of the package; llms.txt links it at its Pages URL (#1253)', { skip: !info }, () => {
-    assert.ok(!info.files.some(f => f.path.startsWith('dist/skills/plainkit-blazor/')), 'dist/skills/plainkit-blazor is in the package. FIX: keep "!dist/skills/plainkit-blazor" in core/package.json "files"; NuGet, the skills zip and the Pages site carry it.');
-    assert.ok(info.files.some(f => f.path === 'dist/skills/plainkit-sdk/SKILL.md'), 'the plainkit-sdk skill stays in the package.');
+test('the agent skills are not in the package: Pages serves them at skills/ and llms.txt links them there (#1656)', { skip: !info }, () => {
+    assert.ok(!info.files.some(f => f.path.startsWith('dist/skills/')), 'dist/skills is in the package. FIX: the skills are generated into dist-skills/ (scripts/build-skills.mjs), served by Pages at skills/ and attached to the release; nothing under core/dist/skills.');
     const text = fs.readFileSync(path.join(root, 'dist', 'llms.txt'), 'utf8');
-    assert.ok(text.includes('](https://skulmunkie.github.io/plainkit/dist/skills/plainkit-blazor/SKILL.md)'), 'dist/llms.txt must link the plainkit-blazor skill at its Pages URL. FIX: scripts/build-agent-refs.mjs.');
-    assert.ok(fs.existsSync(path.join(root, 'dist', 'skills', 'plainkit-blazor', 'SKILL.md')), 'dist/skills/plainkit-blazor must still be generated (NuGet, skills zip, Pages).');
+    assert.ok(text.includes('](https://skulmunkie.github.io/plainkit/skills/plainkit-sdk/SKILL.md)') && text.includes('](https://skulmunkie.github.io/plainkit/skills/plainkit-blazor/SKILL.md)'), 'dist/llms.txt must link both skills at their Pages URLs. FIX: scripts/build-agent-refs.mjs.');
+    assert.ok(fs.existsSync(path.join(root, '..', 'dist-skills', 'plainkit-blazor', 'SKILL.md')), 'dist-skills must still be generated (Pages, the skills zip).');
 });

@@ -1,6 +1,6 @@
 // Exports the agent skills bundle (scripts/build-skills.mjs) in formats for developer agents that are not Claude Code (issue #36): a single
 // top-level core/dist/AGENTS.md, and an llms.txt / llms-full.txt pair (the https://llmstxt.org convention), served from the Pages site under
-// dist/ the same way dist/skills/ already is. Node only, no dependencies.
+// dist/ (the skills themselves are in dist-skills/, served by Pages). Node only, no dependencies.
 //
 //   node scripts/build-agent-refs.mjs           write core/dist/AGENTS.md, core/dist/llms.txt, core/dist/llms-full.txt
 //   node scripts/build-agent-refs.mjs --check   change nothing; exit 1 when they are stale (CI)
@@ -17,7 +17,7 @@ import { build } from '../core/tools/build.mjs';
 const here = path.dirname(fileURLToPath(import.meta.url));
 export const root = path.resolve(here, '..');
 const core = path.join(root, 'core');
-const PAGES_DIST = 'https://skulmunkie.github.io/plainkit/dist/';
+const PAGES_SKILLS = 'https://skulmunkie.github.io/plainkit/skills/'; // the skills are served by Pages, not packaged in dist (#1656)
 const GENERATOR = 'scripts/build-agent-refs.mjs';
 export const OUT_DIR = path.join(core, 'dist');
 export const OUT_NAMES = ['AGENTS.md', 'llms.txt', 'llms-full.txt'];
@@ -96,14 +96,14 @@ function llmsTxt(src, bundle) {
     const out = [
         '# Plainkit', '',
         `> Plainkit ${version}. A dependency-free UI toolkit: \`pk-*\` custom elements, CSS tokens and small ES modules for plain HTML pages with no framework and no build step, plus a Blazor component wrapper (PlainKit.Blazor).`, '',
-        'Everything in one file: `llms-full.txt`, served beside this file on the Pages site and in the release assets (the whole reference, concatenated plainly; the npm package leaves it out, its `skills/` hold the same text). The long-form element descriptions (every attribute, method, event, slot and part, keyed `tag.prop`, `tag.method()`, `tag@event`, `tag#slot`, `tag::part`, `tag/--css-property`; the editor files carry one-sentence summaries) are in [descriptions.json](https://skulmunkie.github.io/plainkit/dist/descriptions.json), served on the Pages site and in the release assets (`plainkit-dist-<version>.zip`); the npm package leaves it out. The gallery (`gallery/embed.html`, `gallery/templates/<id>/`) is served the same way, at https://skulmunkie.github.io/plainkit/dist/gallery/ and in the release zip, and is not in the npm package. Claude Code loads the skills directly: `skills/plainkit-sdk/SKILL.md` (in the npm package) and the `plainkit-blazor` skill (`skills/plainkit-blazor/SKILL.md`, linked below at its Pages URL: the npm package leaves it out, NuGet, the skills zip and the Pages site carry it).', '',
+        'Everything in one file: `llms-full.txt`, served beside this file on the Pages site and in the release assets (the whole reference, concatenated plainly; the npm package leaves it out; the skills served by the Pages site hold the same text). The long-form element descriptions (every attribute, method, event, slot and part, keyed `tag.prop`, `tag.method()`, `tag@event`, `tag#slot`, `tag::part`, `tag/--css-property`; the editor files carry one-sentence summaries) are in [descriptions.json](https://skulmunkie.github.io/plainkit/dist/descriptions.json), served on the Pages site and in the release assets (`plainkit-dist-<version>.zip`); the npm package leaves it out. The gallery (`gallery/embed.html`, `gallery/templates/<id>/`) is served the same way, at https://skulmunkie.github.io/plainkit/dist/gallery/ and in the release zip, and is not in the npm package. Claude Code loads the skills directly: `skills/plainkit-sdk/SKILL.md` (in the npm package) and the `plainkit-blazor` skill (`skills/plainkit-blazor/SKILL.md`, linked below at its Pages URL: the npm package leaves it out, NuGet, the skills zip and the Pages site carry it).', '',
     ];
     for (const skill of SKILL_NAMES) {
         const { skillMd, refs } = skillFiles(bundle, skill);
         const [, skillText] = skillMd;
         const fm = parseFrontmatter(skillText);
-        // plainkit-blazor is left out of the npm package (NuGet, the skills zip and Pages carry it, #1253): its links are Pages URLs.
-        const at = f => (skill === 'plainkit-blazor' || f.includes('/references/full/') ? PAGES_DIST : '') + 'skills/' + f;
+        // The skills are not in the npm package (Pages and the skills zip carry them, #1656): every link is a Pages URL.
+        const at = f => PAGES_SKILLS + f;
         out.push(`## ${skill}`, '', `- [SKILL.md](${at(skill + '/SKILL.md')}): ${firstSentence(fm.description)}`);
         for (const [f, text] of refs) { const rel = f.slice(skill.length + 1); out.push(`- [${rel}](${at(f)}): ${summarize(text)}`); }
         out.push('');

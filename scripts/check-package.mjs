@@ -3,8 +3,7 @@
 //   node scripts/check-package.mjs <folder-or-.nupkg>     e.g. after: dotnet pack blazor/src/PlainKit.Blazor -c Release -o <folder>
 //
 // The package must have: the DLL and its XML docs, the README, the toolkit as static web assets (staticwebassets/plainkit/, the runtime, with the dev-tool modules as their own
-// unit under modules/, which the Blazor wrappers import) with both agent skills,
-// and the version of core/VERSION (in the file name and in the nuspec). It must NOT declare a frameworkReference (Blazor WebAssembly cannot use one) and must NOT have content/ or contentFiles/ entries (they would be copied
+// unit under modules/, which the Blazor wrappers import), and the version of core/VERSION (in the file name and in the nuspec). It must NOT declare a frameworkReference (Blazor WebAssembly cannot use one) and must NOT have content/ or contentFiles/ entries (they would be copied
 // into a consumer's project; the generator manifest belongs to the repository, see PlainKit.Blazor.csproj).
 // Exit code: 0 ok, 1 the package is wrong (each problem says what to change), 2 could not read it.
 import fs from 'node:fs';
@@ -24,14 +23,14 @@ export const REQUIRED = [
     // The dev tools (dock, theme editor, log viewer, layout builder) are the modules unit, dist/modules/ with its own manifest: the wrappers import them from here.
     [/^staticwebassets\/plainkit\/modules\/manifest\.json$/, 'the modules unit manifest (staticwebassets/plainkit/modules/manifest.json)'],
     ...['devtools/devtools.js', 'theme-editor/theme-editor.js', 'logs/logs.js', 'layout-builder/layout-builder.js', 'scorecard/scorecard.js'].map(f => [new RegExp(`^staticwebassets/plainkit/modules/${f.replace(/[.]/g, '\\.')}$`), `the ${f.split('/')[0]} module (staticwebassets/plainkit/modules/${f})`]),
-    [/^staticwebassets\/plainkit\/skills\/plainkit-sdk\/SKILL\.md$/, 'the plainkit-sdk skill'],
-    [/^staticwebassets\/plainkit\/skills\/plainkit-blazor\/SKILL\.md$/, 'the plainkit-blazor skill'],
     // #768: the tier namespaces and the old-name aliases as <Using> items (generated into Generated/PlainKit.Blazor.targets; see PlainKit.Blazor.csproj). buildTransitive only: both folders would import two copies.
     [/^buildTransitive\/PlainKit\.Blazor\.targets$/, 'buildTransitive/PlainKit.Blazor.targets (the tier <Using> items; run node scripts/bootstrap.mjs before packing, and keep the None Include in PlainKit.Blazor.csproj)'],
 ];
 export const FORBIDDEN = [
     [/^content\//, 'content/ (an MSBuild Content item is being packed; see the Content Remove in PlainKit.Blazor.csproj)'],
     [/^contentFiles\//, 'contentFiles/ (an MSBuild Content item is being packed; see the Content Remove in PlainKit.Blazor.csproj)'],
+    // The agent skills are served by the Pages site (skills/) and attached to the release as plainkit-skills-<version>.zip, never packaged (#1656): scripts/publish-dist.mjs copies core/dist, which no longer holds them.
+    [/^staticwebassets\/plainkit\/skills\//, 'staticwebassets/plainkit/skills/ (the agent skills are not packaged: the Pages site serves them at skills/ and the release zips them; #1656)'],
     [/^build\/PlainKit\.Blazor\.targets$/, 'build/PlainKit.Blazor.targets (a second copy of the buildTransitive targets: its <Using> aliases would be imported twice, an error)'],
     // Design-time/editor files (#186): IDE tooling metadata and the exported agent docs are useful to npm/CDN consumers' editors and are shipped
     // separately as skills/dist release assets (#36), but nothing at runtime (no Blazor component, PkRuntime or dev tool) ever fetches them, so
@@ -208,6 +207,6 @@ if (process.argv[1] && path.resolve(process.argv[1]) === fileURLToPath(import.me
     } catch (e) { console.error(`check-package: npm package check failed: ${e.message}`); process.exit(2); }
     if (npmProblems.length) { console.error(`the npm package (core/) is not right:\n- ${npmProblems.join('\n- ')}`); process.exit(1); }
 
-    console.log(`${info.fileName}: ${info.entries.length} entries, version ${info.version}, no content/ or contentFiles/, static web assets and skills present`);
+    console.log(`${info.fileName}: ${info.entries.length} entries, version ${info.version}, no content/ or contentFiles/, static web assets present, no agent skills`);
     console.log('npm package (core/): audit CLI entry point and files present');
 }
