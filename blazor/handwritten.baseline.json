@@ -87,7 +87,8 @@
     "Testing/PkDataTableTesting.cs": 44,
     "Testing/PkFieldGroupTesting.cs": 67,
     "Testing/PkFieldTesting.cs": 53,
-    "Testing/PkPageTesting.cs": 135
+    "Testing/PkPageTesting.cs": 88,
+    "Testing/PkRecordPageTesting.cs": 79
   },
   "debt": []
 }
