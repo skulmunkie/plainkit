@@ -8,8 +8,8 @@
       "built": true,
       "requires": [],
       "blazorOption": null,
-      "maxPackedBytes": 660000,
-      "maxUnpackedBytes": 2540000
+      "maxPackedBytes": 600800,
+      "maxUnpackedBytes": 2352100
     },
     {
       "id": "plainkit.tools",
@@ -157,8 +157,8 @@
         "viewport-logic.js"
       ],
       "maxPackedBytes": null,
-      "maxUnpackedBytes": 47100,
-      "maxZipBytes": 21710
+      "maxUnpackedBytes": 47020,
+      "maxZipBytes": 21690
     }
   ],
   "siteOnly": [
