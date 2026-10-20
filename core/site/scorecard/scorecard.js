@@ -61,7 +61,7 @@ export async function startScorecard(root, concurrency, signal, doc = root.owner
             budgets: BUDGETS,
             sizes: await sizeFiles().catch(() => []),
             files: {
-                css: await stylesheetFiles(), js: scriptFiles(), tokens: 'tokens/tokens.css', pairs: TEXT_PAIRS,
+                css: await stylesheetFiles(), js: scriptFiles(), tokens: 'tokens/tokens.css', pairs: TEXT_PAIRS, pageCss: PRIMARY_CSS,
                 frame: { srcdoc: () => sampleDoc(ELEMENTS.map(m => m.examples.map(x => x.html).join('')).join(''), { theme: 'dark' }) },
                 unusedIn: ['base/utilities', 'base/spacing'],
             },
