@@ -35,11 +35,12 @@ export default Base => class extends Base {
         else if (name === 'label') this.aria({ role: 'group', ariaLabel: this.label || null });
     }
     // Replaces the specs without rebuilding the fields that stay (#1641): a record page whose conditions follow the edits sends new disabled, readonly, label and help for the same keys, and the control the user is in keeps its focus and its text; fields that left are removed, new ones drawn.
-    patch(fields) { this.$patching = true; try { this.fields = fields; } finally { this.$patching = false; } }
+    patch(fields) { this.$patching = true; this.fields = fields; this.$patching = false; }
+    drop(key, row) { row.field.remove(); this.$rows.delete(key); }
     patchRows() {
-        const next = new Map((Array.isArray(this.fields) ? this.fields : []).filter(f => f?.key).map(f => [f.key, f]));
+        const next = new Map(this.fields.map(f => [f?.key, f]));
         this.$vals = this.snapshot(); // text typed but not committed yet stays in its control: reconcile would write the committed value over it
-        for (const [key, row] of [...this.$rows]) { if (next.has(key)) row.spec = resolveSpec(next.get(key)); else { row.field.remove(); this.$rows.delete(key); } }
+        for (const [key, row] of [...this.$rows]) { if (next.has(key)) row.spec = resolveSpec(next.get(key)); else this.drop(key, row); }
         this.reconcile();
     }
     updated() { this.aria({ role: 'group', ariaLabel: this.label || null }); }
@@ -54,7 +55,7 @@ export default Base => class extends Base {
             if (!spec?.key) continue;
             const seen = isVisible(spec, this.$vals, this.visible) && this.test(spec, 'whenExpr', mod) !== false;
             let row = this.$rows.get(spec.key);
-            if (!seen) { if (row) { row.field.remove(); this.$rows.delete(spec.key); } continue; }
+            if (!seen) { if (row) this.drop(spec.key, row); continue; }
             if (!row) { row = this.build(doc, spec); built = true; }
             else if (row.control && !same(readValue(row.control, row.kind), this.$vals[spec.key] ?? (isChecked(row.kind) ? false : ''))) writeValue(row.control, row.kind, this.$vals[spec.key]);
             shown.push(row.field);
@@ -84,7 +85,7 @@ export default Base => class extends Base {
         const known = this.known();
         return mod.evaluate(src, this.$vals, known, name === 'whenExpr', m => this.warnOnce(`cond:${spec.key}:${name}`, m));
     }
-    // The label and the help tooltip of a field: the spec's own, or what labelWhenExpr / helpWhenExpr answer (conditional text, `cond ? 'text' : other`; an empty answer keeps the spec's own). Written on every reconcile, so a patched spec shows at once.
+    // The label and the help tooltip of a field: the spec's own, or what labelWhenExpr / helpWhenExpr answer (conditional text, `cond ? 'text' : other`; an empty answer keeps the spec's own). Written on every reconcile (the first draw too), so a patched spec shows at once.
     texts(row, mod) {
         const { spec, kind, field, control } = row, known = this.known();
         const ask = name => (typeof spec[name] === 'string' && mod ? mod.evaluateText(spec[name], this.$vals, known, m => this.warnOnce(`cond:${spec.key}:${name}`, m)) : '');
@@ -93,7 +94,7 @@ export default Base => class extends Base {
         let tip = field.querySelector('pk-tooltip[help]');
         if (!help) tip?.remove();
         else if (tip) tip.setAttribute('text', help);
-        else { tip = this.tip(this.ownerDocument, help); (control ?? field.lastElementChild).after(tip); loadElements(this.shadowRoot); }
+        else { tip = this.tip(help); (control ?? field.lastElementChild).after(tip); loadElements(this.shadowRoot); }
     }
     /** Draws the fields again: call it after changing the visible(spec, values) callback property, which nothing watches. */
     refresh() { this.reconcile(); }
@@ -106,9 +107,10 @@ export default Base => class extends Base {
         else if (n > 1) field.setAttribute('data-span', n);
     }
     // The host's label-action-<key> content, on every kind (a custom field included); `labelActionEnd` pins it to the end of the label row.
-    tip(doc, text) { const tip = doc.createElement('pk-tooltip'); for (const [k, v] of [['slot', 'label-action'], ['help', ''], ['interactive', ''], ['text', text]]) tip.setAttribute(k, v); return tip; }
-    labelAction(doc, field, spec) {
-        const slot = doc.createElement('slot'); slot.setAttribute('name', `label-action-${spec.key}`); slot.setAttribute('slot', 'label-action'); field.append(slot);
+    mk(tag, attrs) { const e = this.ownerDocument.createElement(tag); for (const k in attrs) e.setAttribute(k, attrs[k]); return e; }
+    tip(text) { return this.mk('pk-tooltip', { slot: 'label-action', help: '', interactive: '', text }); }
+    labelAction(field, spec) {
+        field.append(this.mk('slot', { name: `label-action-${spec.key}`, slot: 'label-action' }));
         if (spec.labelActionEnd) field.setAttribute('action-end', '');
     }
     build(doc, raw) {
@@ -117,22 +119,19 @@ export default Base => class extends Base {
         const control = doc.createElement(tag), field = doc.createElement('pk-field');
         const put = (el, attrs) => { for (const [k, v] of Object.entries(attrs)) el.setAttribute(k, v); };
         put(control, { ...controlAttrs(spec), ...messageAttrs(spec) });
-        if (kind === 'switch') control.textContent = spec.label ?? spec.key;
         if (kind === 'select') control.options = spec.options ?? [];
-        if (kind === 'combobox') for (const o of spec.options ?? []) { const opt = doc.createElement('option'); opt.value = o.value; opt.textContent = o.label ?? o.value; control.append(opt); }
-        if (kind === 'switch') { /* the switch's own text is its label */ } else if (spec.hideLabel) control.setAttribute('aria-label', spec.label ?? spec.key); else field.setAttribute('label', spec.label ?? spec.key);
+        if (kind === 'combobox') control.append(...this.opts(doc, spec.options));
         if (spec.hint) field.setAttribute('help', spec.hint);
         if (spec.required) field.setAttribute('required', '');
         this.spanOf(field, spec);
         field.append(control);
-        if (spec.help) field.append(this.tip(doc, spec.help));
-        this.labelAction(doc, field, spec);
+        this.labelAction(field, spec);
         const commit = commitOf(kind), row = { spec, kind, field, control };
         control.addEventListener(commit.event, e => {
             if (e.target !== control) return;
             e.stopPropagation(); // the control's own commit event (pk-change of a checkbox, pk-value-change) is not this element's: only pk-field-change below leaves
             this.$vals = { ...this.$vals, [spec.key]: commit.read(e) };
-            this.$own = true; this.values = this.$vals; this.$own = false;
+            this.own(this.$vals);
             if (typeof this.commit === 'function') return this.commitAsync(row);
             this.announce(spec.key);
         });
@@ -141,6 +140,7 @@ export default Base => class extends Base {
         this.$rows.set(spec.key, row);
         return row;
     }
+    own(v) { this.$own = true; this.values = v; this.$own = false; } // a change the group made itself: `values` does not redraw
     announce(key) { this.emit('pk-field-change', { key, value: this.$vals[key], values: { ...this.$vals } }); this.reconcile(); }
     // With a commit({ key, value, values }) callback property the change is handed to the host first: the field is busy until it answers, a newer edit of the same field
     // supersedes an older pending one (last wins: a stale answer changes nothing), a rejection or a returned string is the field's error message (the typed text stays), and
@@ -148,7 +148,7 @@ export default Base => class extends Base {
     async commitAsync(row) {
         const n = row.c = (row.c ?? 0) + 1, key = row.spec.key, { control, field } = row, value = this.$vals[key];
         field.error = ''; control.setAttribute('aria-busy', 'true');
-        if (!field.querySelector('[data-busy]')) { const spin = this.ownerDocument.createElement('pk-spinner'); spin.setAttribute('size', 'sm'); spin.setAttribute('label', 'Saving'); spin.setAttribute('slot', 'label-action'); spin.toggleAttribute('data-busy', true); field.append(spin); loadElements(this.shadowRoot); }
+        if (!field.querySelector('[data-busy]')) { field.append(this.mk('pk-spinner', { size: 'sm', label: 'Saving', slot: 'label-action', 'data-busy': '' })); loadElements(this.shadowRoot); }
         let error = '';
         try { const answer = await this.commit({ key, value, values: { ...this.$vals } }); if (typeof answer === 'string') error = answer; } catch (e) { error = e?.message || 'The change could not be saved.'; this.log.warn(`commit for "${key}" failed`, e); }
         if (row.c !== n || this.$rows.get(key) !== row) return;
@@ -157,18 +157,17 @@ export default Base => class extends Base {
     }
     // A custom field has no control: its body is the host's own content in the editor-<key> slot, with no value, no validation and no part in the form.
     buildCustom(doc, spec) {
-        const field = doc.createElement('pk-field'), slot = doc.createElement('slot'), row = { spec, kind: 'custom', field, control: null };
-        field.setAttribute('label', spec.label ?? spec.key);
+        const field = doc.createElement('pk-field'), slot = this.mk('slot', { name: `editor-${spec.key}` }), row = { spec, kind: 'custom', field, control: null };
         if (spec.hint) field.setAttribute('help', spec.hint);
         this.spanOf(field, spec);
-        slot.setAttribute('name', `editor-${spec.key}`);
         field.append(slot);
-        this.labelAction(doc, field, spec);
+        this.labelAction(field, spec);
         this.$rows.set(spec.key, row);
         return row;
     }
     // A combobox field with a search({ key, query }) callback property takes its options from the answer (a promise of [{ value, label }]) instead of filtering its own;
     // a newer query makes an older pending answer stale.
+    opts(doc, list) { return (list ?? []).map(o => { const opt = doc.createElement('option'); opt.value = o.value; opt.textContent = o.label ?? o.value; return opt; }); }
     async onQuery(row, e) {
         if (typeof this.search !== 'function') return;
         e.stopPropagation();
@@ -176,7 +175,7 @@ export default Base => class extends Base {
         let options;
         try { options = await this.search({ key, query: e.detail.query }); } catch (error) { this.log.warn(`search for "${key}" failed`, error); return; }
         if (row.q !== n || this.$rows.get(key) !== row) return;
-        row.control.replaceChildren(...(options ?? []).map(o => { const opt = this.ownerDocument.createElement('option'); opt.value = o.value; opt.textContent = o.label ?? o.value; return opt; }));
+        row.control.replaceChildren(...this.opts(this.ownerDocument, options));
     }
     syncState() {
         const mod = this.$cond;
@@ -185,10 +184,10 @@ export default Base => class extends Base {
             this.texts(row, mod);
             if (!control) continue;
             row.off = Boolean(this.disabled || spec.disabled || this.test(spec, 'disabledExpr', mod));
-            if (kind !== 'range' && typeof spec.requiredExpr === 'string') { const req = Boolean(spec.required || this.test(spec, 'requiredExpr', mod)); control.toggleAttribute('required', req); row.field.toggleAttribute('required', req); }
+            if (kind !== 'range' && typeof spec.requiredExpr === 'string') { const req = !!(spec.required || this.test(spec, 'requiredExpr', mod)); control.toggleAttribute('required', req); row.field.toggleAttribute('required', req); }
             if (kind === 'combobox') { if (typeof this.search === 'function') control.setAttribute('filtering', 'off'); else control.removeAttribute('filtering'); }
             control.toggleAttribute('disabled', row.off);
-            control.toggleAttribute('readonly', Boolean(this.readonly || spec.readonly || this.test(spec, 'readonlyExpr', mod)));
+            control.toggleAttribute('readonly', !!(this.readonly || spec.readonly || this.test(spec, 'readonlyExpr', mod)));
         }
     }
 
@@ -212,8 +211,9 @@ export default Base => class extends Base {
         const bad = this.invalidRows();
         for (const r of this.$rows.values()) r.field.error = on && bad.includes(r) ? messageFor(r.control) : '';
     }
+    rowOf(which) { return typeof which === 'string' ? this.$rows.get(which) : [...this.$rows.values()].find(x => x.control === which || x.field.contains?.(which)); }
     checkField(which) {
-        const r = typeof which === 'string' ? this.$rows.get(which) : [...this.$rows.values()].find(x => x.control === which || x.field.contains?.(which));
+        const r = this.rowOf(which);
         if (!r) return true;
         const message = !r.control ? '' : r.control.validity?.valid === false ? messageFor(r.control) : '';
         r.field.error = message;
@@ -223,8 +223,7 @@ export default Base => class extends Base {
     recheck() { queueMicrotask(() => queueMicrotask(() => { for (const [key, r] of this.$rows) if (r.field.error) this.checkField(key); })); }
     // Whether the field (by key, or the control or a node inside it) is showing a message now; pk-form asks before it re-checks while typing.
     showsError(which) {
-        const r = typeof which === 'string' ? this.$rows.get(which) : [...this.$rows.values()].find(x => x.control === which || x.field.contains?.(which));
-        return Boolean(r?.field.error);
+        return !!this.rowOf(which)?.field.error;
     }
     // The live values of the shown fields as the controls hold them now (the committed values of the others stay as they were); a host reads these when the user has typed without committing.
     snapshot() { const out = { ...this.$vals }; for (const [k, r] of this.$rows) if (r.control) out[k] = readValue(r.control, r.kind); return out; }
@@ -235,7 +234,7 @@ export default Base => class extends Base {
     onReset() {
         this.report(false);
         this.$vals = { ...this.$base };
-        this.$own = true; this.values = { ...this.$base }; this.$own = false;
+        this.own({ ...this.$base });
         this.reconcile();
     }
     onRestore(state) {
@@ -244,7 +243,7 @@ export default Base => class extends Base {
         const next = { ...this.$vals };
         for (const spec of Array.isArray(this.fields) ? this.fields : []) if (spec?.key) next[spec.key] = isChecked(spec.kind) ? spec.key in saved : saved[spec.key] ?? next[spec.key];
         this.$vals = next;
-        this.$own = true; this.values = next; this.$own = false;
+        this.own(next);
         this.reconcile();
     }
 };
