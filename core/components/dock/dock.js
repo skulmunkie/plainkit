@@ -107,7 +107,7 @@ export default Base => {
         const source = own ? this.$doc && toJson(this.$doc) : this.layout;
         const r = source == null ? { doc: defaultLayout(panels), problems: [] } : fromJson(source, { panels });
         for (const p of r.problems) this.warnOnce(`${p.code}:${p.path}`, p.message, { code: p.code });
-        const repaired = !first && own && toJson(r.doc) !== toJson(this.$doc);
+        const repaired = !first && own && readingOrder(this.$doc).length > 0 && toJson(r.doc) !== toJson(this.$doc);
         this.$doc = this.$applied = r.doc; this.$given = this.layout; this.$key = key; this.$titles = new Map(all.map(p => [p.id, p.title]));
         this.draw(phone);
         if (repaired) this.commit('panels');
