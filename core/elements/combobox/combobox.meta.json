@@ -4,7 +4,7 @@
   "title": "Combobox",
   "group": "Form controls",
   "tier": "element",
-  "summary": "An autocomplete (type to filter a list) or, with mode=\"select\", a custom select. ARIA combobox with the highlight tracked by aria-activedescendant, so focus stays on the control. Its options are its own option children.",
+  "summary": "An autocomplete (type to filter a list) or, with mode=\"select\", a custom select. ARIA combobox with the highlight tracked by aria-activedescendant, so focus stays on the control. Its options are its own option children. For a server search set the search(query, { signal }) property: it returns a promise of [{ value, label }] that becomes the list (client filter off); a newer query aborts the signal and late answers are dropped.",
   "delegatesFocus": true,
   "formAssociated": true,
   "props": [
@@ -99,7 +99,7 @@
         "off"
       ],
       "reflect": true,
-      "description": "client also filters the options here; off leaves filtering to the host, which listens for pk-combo-query and replaces the options."
+      "description": "client also filters the options here; off leaves filtering to the host, which listens for pk-combo-query and replaces the options (or sets the search callback, which turns the client filter off by itself)."
     },
     {
       "name": "debounce",

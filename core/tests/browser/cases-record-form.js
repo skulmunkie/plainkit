@@ -216,6 +216,31 @@ export const recordFormCases = [
         t.eq(seen.length, 1, 'one pk-row-click reaches the page host'); t.eq(seen[0].id, 'a2'); t.eq(seen[0].row.sku, 'SKU-2');
     }],
 
+    // #1705: pk-loading-overlay[fill] passes a definite-height flex column down to the list page, so the pinned header and pager survive the wrapper.
+    ['loading-overlay[fill]: a stickyHeader list page of 50 rows keeps its header and pager pinned and only the rows scroll (#1705)', async t => {
+        const host = t.stage(`<div><pk-loading-overlay fill label="Loading"><pk-list-page></pk-list-page></pk-loading-overlay></div>`);
+        Object.assign(host.firstElementChild.style, { display: 'flex', flexDirection: 'column', blockSize: '420px', inlineSize: '640px' });
+        const ov = host.querySelector('pk-loading-overlay'), el = host.querySelector('pk-list-page'), col = host.firstElementChild;
+        const rows = Array.from({ length: 50 }, (_, i) => ({ id: i + 1, sku: 'AC-' + (1000 + i) }));
+        await t.load(host); await t.load(el.shadowRoot); await t.settle();
+        el.config = { columns: [{ key: 'sku', label: 'SKU' }], pageSize: 50, stickyHeader: true }; el.load = async () => ({ rows, total: rows.length });
+        el.part('table').refresh(); await until(() => el.part('table').part('table')?.shadowRoot?.querySelectorAll('tbody tr').length === 50, 'fifty rows'); await t.settle(); await wait(300);
+        const colRect = col.getBoundingClientRect(), pageRect = el.getBoundingClientRect(), ovRect = ov.getBoundingClientRect();
+        t.ok(ovRect.height <= colRect.height + 1, 'the overlay host takes the column height, not the content height: ' + Math.round(ovRect.height) + ' in ' + Math.round(colRect.height));
+        t.ok(pageRect.height <= colRect.height + 1, 'the list page does not grow to its 50 rows: ' + Math.round(pageRect.height) + ' in ' + Math.round(colRect.height));
+        const deep = (root, fn) => { for (const n of root.querySelectorAll('*')) { if (fn(n)) return n; const r = n.shadowRoot && deep(n.shadowRoot, fn); if (r) return r; } return null; };
+        const scroller = deep(el.shadowRoot, n => n.scrollHeight > n.clientHeight + 20 && /auto|scroll/.test(getComputedStyle(n).overflowY));
+        t.ok(!!scroller, 'one region inside the page scrolls its rows');
+        const pager = deep(el.shadowRoot, n => n.localName === 'pk-pagination'), pr = pager?.getBoundingClientRect();
+        t.ok(!!pr && pr.bottom <= colRect.bottom + 1 && pr.top >= colRect.top, 'the pager is inside the visible column, pinned below the rows');
+        if (scroller) {
+            const th = deep(el.shadowRoot, n => n.localName === 'th'), before = th.getBoundingClientRect().top; scroller.scrollTop = 300; await t.settle();
+            t.ok(Math.abs(th.getBoundingClientRect().top - before) <= 1, 'the column header stays put while the rows scroll');
+        }
+        ov.removeAttribute('fill'); await t.settle();
+        t.ok(el.getBoundingClientRect().height > colRect.height, 'without fill the page is back to its content height (the defect the attribute fixes)');
+    }],
+
     // #1364/#1401: a host that binds load after the page drew its first (empty) answer, then calls the page's own refresh(), gets its first page without a typed search.
     ['list-page: a load set after the first draw is called by refresh() on the page, no search needed (#1364)', async t => {
         const el = await t.mount(`<pk-list-page config='{"columns":[{"key":"sku","label":"SKU"}]}' row-href-template="/p/{id}"></pk-list-page>`);

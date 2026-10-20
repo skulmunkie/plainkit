@@ -1,6 +1,6 @@
 :host { display: inline-flex; flex: 1 1 auto; align-items: center; min-width: 0; max-width: var(--pk-app-bar-search-width, 34rem); margin-inline: var(--pk-app-bar-search-align, auto); }
 [part="expand"] { display: none; flex: none; }
-[part="box"] { position: relative; display: flex; align-items: center; gap: var(--space-2); flex: 1 1 auto; min-width: 0; min-height: var(--ctl-h); padding-inline: var(--space-3); background: var(--color-input); border: 1px solid var(--color-input-border); border-radius: var(--radius-pill); transition: border-color 0.15s; }
+[part="box"] { position: relative; display: flex; align-items: center; gap: var(--space-2); flex: 1 1 auto; min-width: 0; min-height: var(--ctl-h); padding-inline: var(--space-3); background: var(--color-input); border: 1px solid var(--color-input-border); border-radius: var(--pk-app-bar-search-radius, var(--pk-control-radius, var(--radius-sm))); transition: border-color 0.15s; }
 [part="box"]:focus-within { border-color: var(--color-accent-hover); outline: var(--focus-ring); outline-offset: 2px; }
 /* The pill is this element's box, so the field drops its own: no box of its own, its icon and input laid into the pill's row. */
 [part="control"], [part="control"]::part(box) { display: contents; }

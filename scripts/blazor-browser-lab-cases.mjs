@@ -427,6 +427,20 @@ export const LAB_CASES = [
             ctx.ok(await ctx.eval(`!window.__deep.all('a[href$="/orders/shipped"]').some(a => a.getBoundingClientRect().right > 0)`), 'the drawer stays open over the page after a tap on one of its links (it should close once the route changed)');
         });
       } },
+    // #1664: PkCombobox OnSearch. A newer query aborts the older search's signal, which reaches the C# CancellationToken (Cancel through the real PkCallbackSlot); only the newest answer is listed.
+    { name: 'combobox-search-cancels-superseded-query',
+      async run(ctx) {
+        await ctx.open('/lab/search');
+        await ctx.waitFor(`typeof document.querySelector('pk-combobox')?.search === 'function'`, 'the circuit to hand the combobox its search callback');
+        const text = () => ctx.eval(`document.getElementById('lab-search').textContent`), options = `[...document.querySelector('pk-combobox').part('popup').querySelectorAll('.op')].map(o => o.textContent).join()`;
+        await ctx.typeInto('pk-combobox >>> input', 'a');
+        await ctx.waitFor(`document.getElementById('lab-search').textContent.includes('Calls: 1')`, 'the first search to reach C#');
+        await ctx.typeInto('pk-combobox >>> input', 'ab');
+        await ctx.waitFor(`document.getElementById('lab-search').textContent.includes('cancelled: 1')`, 'the superseded search to be cancelled in C# by the element abort');
+        await ctx.waitFor(`${options} === 'ab-one,ab-two'`, 'the answer to the newest query to be listed');
+        ctx.ok((await text()).includes('Calls: 2') && (await text()).includes('finished: 1'), `unexpected counters: ${await text()}`);
+        await ctx.noErrors(ctx.openMark, BENIGN);
+      } },
     { name: 'phone-touch-list-and-record',
       async run(ctx) {
         await onPhone(ctx, async () => {

@@ -37,6 +37,13 @@
       "prop": "fullscreen"
     },
     {
+      "name": "Fill",
+      "type": "bool",
+      "default": false,
+      "map": "prop",
+      "prop": "fill"
+    },
+    {
       "name": "ChildContent",
       "type": "RenderFragment?",
       "map": "slot",

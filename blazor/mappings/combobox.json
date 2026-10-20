@@ -81,6 +81,16 @@
       "type": "{ query: string }"
     },
     {
+      "name": "OnSearch",
+      "callback": "search",
+      "type": "Func<string, CancellationToken, Task<IReadOnlyList<PkFieldOption>>>?",
+      "arg": "string",
+      "args": "a",
+      "abort": true,
+      "returns": "r.Select(o => new { value = o.Value, label = o.Label }).ToArray()",
+      "doc": "Answers the typed text with the options to list (the answer replaces the list, and the built-in filter is off while it is set). A query a newer one replaces, or the component going away, cancels its CancellationToken and the late answer is dropped by the element. Use it instead of OnSearchInput plus re-rendering the options when the search should be cancellable."
+    },
+    {
       "name": "OnInput",
       "event": "input",
       "type": "EventCallback<ChangeEventArgs>"

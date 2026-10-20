@@ -27,6 +27,13 @@ const types = { '.html': 'text/html; charset=utf-8', '.css': 'text/css; charset=
 const baseArg = process.argv.find(a => a.startsWith('--base='));
 const base = baseArg ? '/' + baseArg.slice(7).replace(/^\/+|\/+$/g, '') : '';
 const writeReports = process.argv.includes('--write-reports');
+// The folder the UI-review screenshots are read from (the audit dashboard's Screenshots panel): review-output/ next to core/ by default, or --review-dir=<path>
+// (also --review-dir <path>), for example a CI artifact downloaded and unzipped somewhere. Chosen on the command line only, never by a request.
+const reviewArg = process.argv.findIndex(a => a === '--review-dir' || a.startsWith('--review-dir='));
+const reviewFlag = reviewArg < 0 ? null : (process.argv[reviewArg].startsWith('--review-dir=') ? process.argv[reviewArg].slice(13) : process.argv[reviewArg + 1]);
+const reviewDir = reviewFlag ? path.resolve(reviewFlag) : path.resolve(root, '..', 'review-output');
+// A file name the review route serves: one plain name in that folder, a .png or manifest.json. No separator, no dot first, so no traversal and no listing.
+const REVIEW_NAME = /^(?:manifest\.json|[A-Za-z0-9][A-Za-z0-9_.-]*\.png)$/;
 // A development server: it listens on the loopback address only (--host=0.0.0.0 to reach it from a phone on the same network) and answers only requests whose Host
 // header names this machine, so a web page on another site cannot reach it through the visitor's browser (DNS rebinding).
 const hostArg = process.argv.find(a => a.startsWith('--host='));
@@ -98,7 +105,17 @@ http.createServer((req, res) => {
         : pathname.startsWith('/_audit/') ? pathname.slice('/_audit/'.length) : null;
     if (auditPath !== null) {
         const repoRoot = path.resolve(root, '..');
-        const AUDIT_FILES = { 'module-baseline.json': path.join(repoRoot, 'plainkit.audit.modules.baseline.json'), 'ui-review-manifest.json': path.join(repoRoot, 'review-output', 'manifest.json') };
+        const AUDIT_FILES = { 'module-baseline.json': path.join(repoRoot, 'plainkit.audit.modules.baseline.json'), 'ui-review-manifest.json': path.join(reviewDir, 'manifest.json') };
+        // /_audit/review/<name>: a screenshot (or the manifest) of the review folder, read-only.
+        if (auditPath.startsWith('review/')) {
+            const name = auditPath.slice('review/'.length);
+            if (!REVIEW_NAME.test(name)) { res.writeHead(404).end('not found'); return; }
+            readFile(path.join(reviewDir, name), (err, data) => {
+                if (err) { res.writeHead(404).end('not generated yet'); return; }
+                res.writeHead(200, { 'content-type': name.endsWith('.png') ? 'image/png' : 'application/json; charset=utf-8', 'cache-control': 'no-store', 'x-content-type-options': 'nosniff' }).end(data);
+            });
+            return;
+        }
         const file = AUDIT_FILES[auditPath];
         if (!file) { res.writeHead(404).end('not found'); return; }
         readFile(file, (err, data) => {

@@ -6,6 +6,8 @@
 // whatever flex/grid row the host places <pk-table-filters> in (pk-table's toolbar), and the panel (flex-basis: 100%) wraps
 // onto its own line there when open, without pk-table needing to know anything about it.
 
+import { drawIcon } from '../../js/icon-sprite.js';
+
 export default Base => class extends Base {
     connected() {
         if (this.$c) return;
@@ -26,6 +28,7 @@ export default Base => class extends Base {
         if (this.value !== this.$v) this.part('search').value = this.$v = this.value ?? '';
         const has = this.slotted().length > 0;
         this.part('trigger').hidden = !has;
+        drawIcon(this.part('trigger-icon').firstChild, 'filter', (k, m, d) => this.warnOnce(k, m, d));
         this.part('trigger').setAttribute('aria-expanded', String(!!this.open));
         this.part('count').hidden = !this.filterCount;
         this.part('count').textContent = String(this.filterCount ?? 0);

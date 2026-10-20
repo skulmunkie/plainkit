@@ -583,7 +583,7 @@ export const overlaysCases = [
         row.style.display = 'flex'; row.style.width = '900px';
         const el = row.firstElementChild, box = el.part('box'), r = box.getBoundingClientRect();
         t.ok(r.width > 300 && r.width <= 34 * 16 + 1, 'the field fills the row up to 34rem, not a fixed 14rem');
-        t.ok(getComputedStyle(box).borderTopLeftRadius === '999px' && getComputedStyle(box).borderTopLeftRadius !== '50%', 'a pill, not an oval');
+        el.style.setProperty('--pk-app-bar-search-radius', 'var(--radius-pill)'); t.ok(getComputedStyle(box).borderTopLeftRadius === '999px' && getComputedStyle(box).borderTopLeftRadius !== '50%', 'themed to a pill (#1706), a length radius, not an oval');
         el.compact = true; await t.settle();
         t.ok(el.part('expand').getBoundingClientRect().width > 0 && box.getBoundingClientRect().width === 0, 'compact shows only the icon button on a wide row');
         el.part('expand').click(); await t.settle();

@@ -39,6 +39,13 @@
       "default": false,
       "reflect": true,
       "description": "Cover the viewport."
+    },
+    {
+      "name": "fill",
+      "type": "boolean",
+      "default": false,
+      "reflect": true,
+      "description": "Fill a definite-height flex column and pass that height to the covered content (a pk-list-page keeps its pinned header and pager)."
     }
   ],
   "slots": [
@@ -70,7 +77,13 @@
       "description": "Label text"
     }
   ],
-  "cssProperties": [],
+  "cssProperties": [
+    {
+      "name": "--pk-fill-shrink",
+      "description": "Set to 1 on slotted content with fill so it may shrink to the overlay height (page types do).",
+      "default": "0"
+    }
+  ],
   "methods": [],
   "a11y": "The overlay is a polite status region announcing the label; the covered content is inert and aria-busy while busy.",
   "mobile": "The label wraps inside a solid panel; the spinner is 28px; on a region taller than the screen the panel stays in view.",

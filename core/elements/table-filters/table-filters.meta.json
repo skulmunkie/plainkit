@@ -83,6 +83,14 @@
       "description": "The Filters trigger button"
     },
     {
+      "name": "trigger-icon",
+      "description": "The filter icon on the trigger"
+    },
+    {
+      "name": "trigger-label",
+      "description": "The trigger's word; icon only on a phone"
+    },
+    {
       "name": "count",
       "description": "The active-filter-count badge"
     },
@@ -115,10 +123,21 @@
       "description": "The Clear filters button"
     }
   ],
-  "cssProperties": [],
+  "cssProperties": [
+    {
+      "name": "--pk-table-filters-radius",
+      "description": "Corner radius of the search box and trigger; var(--radius-pill) for a pill.",
+      "default": "var(--pk-control-radius, var(--radius-sm))"
+    },
+    {
+      "name": "--pk-control-radius",
+      "description": "The shared control radius.",
+      "default": "var(--radius-sm)"
+    }
+  ],
   "methods": [],
   "a11y": "The search box is labelled by label. The Filters trigger reflects aria-expanded; the panel is a normal document region (not a modal: no focus trap, no backdrop), so the page behind stays usable. The close button is labelled Close filters.",
-  "mobile": "The search box grows to full width; the trigger, close and clear buttons are 44px.",
+  "mobile": "The search box grows to full width; the trigger shows only its icon (the word stays its name) and the trigger, close and clear buttons are 44px.",
   "examples": [
     {
       "title": "In a table's toolbar",

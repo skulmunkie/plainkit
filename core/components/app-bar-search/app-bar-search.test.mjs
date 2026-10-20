@@ -49,9 +49,9 @@ test('the phone breakpoint is named, not a literal, and collapses the pill to th
     assert.match(css, /@media \(--phone\) \{[\s\S]*\[part="expand"\] \{ display: inline-flex/);
 });
 
-test('the field is a pill (the pill token, not the 50% round token) that grows to the host, capped by the documented --pk-app-bar-search-width hook', () => {
+test('the field takes the control radius through its own hook (a pill only when a theme asks) and grows to the host, capped by the documented --pk-app-bar-search-width hook', () => {
     const css = read('css');
-    assert.match(css, /\[part="box"\] \{[^}]*border-radius: var\(--radius-pill\)/);
+    assert.match(css, /\[part="box"\] \{[^}]*border-radius: var\(--pk-app-bar-search-radius, var\(--pk-control-radius, var\(--radius-sm\)\)\)/);
     assert.doesNotMatch(css, /\[part="box"\] \{[^}]*\swidth: \d/, 'no fixed width on the field');
     assert.match(css, /:host \{[^}]*flex: 1 1 auto[^}]*max-width: var\(--pk-app-bar-search-width, 34rem\)/);
     assert.ok(meta.cssProperties.some(p => p.name === '--pk-app-bar-search-width'));

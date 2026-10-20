@@ -881,17 +881,55 @@ export const dataDisplayCases = [
         }
     }],
 
-    ['table-filters: the search box and filter trigger are pills (a length radius, never a percentage that draws an ellipse) at a wide and a narrow width', async t => {
+    ['table-filters: the search box and filter trigger default to the input radius; --pk-table-filters-radius makes them a pill, always a length (never an ellipse), at a wide and a narrow width (#1706)', async t => {
+        const ref = getComputedStyle((await t.mount('<pk-input label="Ref"></pk-input>')).part('box')).borderTopLeftRadius;
         for (const width of ['40rem', '12rem']) {
             const host = t.stage('<pk-table-filters label="Search products" filter-count="1"><pk-select label="Category"><option>A</option></pk-select></pk-table-filters>');
             host.style.inlineSize = width;
             const el = host.firstElementChild; await t.load(host);
+            for (const name of ['search', 'trigger']) t.eq(getComputedStyle(el.part(name)).borderTopLeftRadius, ref, `${name} at ${width}: the input's radius by default`);
+            el.style.setProperty('--pk-table-filters-radius', 'var(--radius-pill)'); await t.settle();
             for (const name of ['search', 'trigger']) {
                 const part = el.part(name), r = getComputedStyle(part).borderTopLeftRadius;
-                t.ok(!/%|\s/.test(r), `${name} at ${width}: one length radius, equal horizontally and vertically (got "${r}")`);
-                t.ok(parseFloat(r) >= part.getBoundingClientRect().height / 2, `${name} at ${width}: rounded at least half the height (${r})`);
+                t.ok(!/%|\s/.test(r), `${name} at ${width}: one length radius (got "${r}")`);
+                t.ok(parseFloat(r) >= part.getBoundingClientRect().height / 2, `${name} at ${width}: a pill when the hook says so (${r})`);
             }
         }
+    }],
+
+    ['table-filters: the Filters trigger is a filter-icon button; its word folds into the icon on a phone (name and count badge kept) and shows beside it on a wide screen (#1704)', async t => {
+        const { sampleDoc } = await import('../../site/gallery/frame.js');
+        const html = '<pk-table-filters label="Search products" filter-count="3"><pk-select label="Category"><option>A</option></pk-select></pk-table-filters>';
+        const measure = async width => {
+            const host = t.stage(''), f = document.createElement('iframe');
+            f.title = 'sample'; f.style.width = width + 'px'; f.style.height = '240px'; f.style.border = '0';
+            const loaded = new Promise(r => f.addEventListener('load', r, { once: true })); host.append(f); f.srcdoc = sampleDoc(html); await loaded;
+            await until(() => f.contentWindow.customElements.get('pk-table-filters') && f.contentDocument.querySelector('pk-table-filters')?.shadowRoot?.querySelector('[part="trigger"]'), 'the filters'); await new Promise(r => setTimeout(r, 300));
+            const w = f.contentWindow, el = f.contentDocument.querySelector('pk-table-filters'), q = n => el.shadowRoot.querySelector(`[part="${n}"]`);
+            const icon = q('trigger-icon').getBoundingClientRect(), trig = q('trigger').getBoundingClientRect(), label = q('trigger-label'), badge = q('count');
+            return { w: w.innerWidth, icon, trig, labelW: label.getBoundingClientRect().width, labelFont: w.getComputedStyle(label).fontSize, text: label.textContent, badgeHidden: badge.hidden, badgeBox: badge.getBoundingClientRect(), badgeText: badge.textContent, href: q('trigger-icon').firstChild.getAttribute('href') };
+        };
+        const wide = await measure(1000), phone = await measure(375);
+        t.eq(wide.w, 1000); t.eq(phone.w, 375);
+        t.ok(/#filter$/.test(wide.href ?? '') && /#filter$/.test(phone.href ?? ''), 'the trigger draws the filter icon at both widths (' + wide.href + ')');
+        t.ok(wide.icon.width > 8 && phone.icon.width > 8, 'the icon is visible at both widths');
+        t.ok(wide.labelW > 10 && wide.labelFont !== '0px', 'wide: the word "Filters" shows beside the icon (' + wide.labelW + 'px)');
+        t.ok(phone.labelW === 0 && phone.labelFont === '0px', 'phone: the word folds into the icon (width ' + phone.labelW + ', font ' + phone.labelFont + ')');
+        t.eq(phone.text, 'Filters'); t.ok(phone.trig.width < wide.trig.width, 'phone: the trigger is narrower than the wide one (' + Math.round(phone.trig.width) + ' < ' + Math.round(wide.trig.width) + ')');
+        t.ok(phone.trig.width >= 44 && phone.trig.height >= 44, 'phone: the icon-only trigger is still a 44px touch target (' + Math.round(phone.trig.width) + 'x' + Math.round(phone.trig.height) + ')');
+        for (const [n, m] of [['wide', wide], ['phone', phone]]) {
+            t.ok(!m.badgeHidden && m.badgeText === '3' && m.badgeBox.width > 0, n + ': the active-filter count badge stays visible');
+            t.ok(m.badgeBox.right <= m.w, n + ': the badge is inside the viewport');
+        }
+    }],
+
+    ['app-bar-search: the field defaults to the input radius and follows --pk-app-bar-search-radius (#1706)', async t => {
+        const ref = getComputedStyle((await t.mount('<pk-input label="Ref"></pk-input>')).part('box')).borderTopLeftRadius;
+        const el = await t.mount('<pk-app-bar-search placeholder="Search"></pk-app-bar-search>'); await customElements.whenDefined('pk-app-bar-search');
+        const box = el.part('box');
+        t.eq(getComputedStyle(box).borderTopLeftRadius, ref, 'the input radius by default');
+        el.style.setProperty('--pk-app-bar-search-radius', '7px'); await t.settle();
+        t.eq(getComputedStyle(box).borderTopLeftRadius, '7px', 'the hook value');
     }],
 
     ['table-filters: typing debounces pk-search; the trigger only shows once the default slot has content, opens/closes the panel and reports pk-toggle; Clear filters raises pk-clear-filters; the badge reflects filterCount', async t => {

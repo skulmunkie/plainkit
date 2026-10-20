@@ -279,6 +279,22 @@ export const formCases = [
         await type(plain, 'a'); await type(plain, 'ab'); t.eq(pq.join('|'), 'a|ab', 'without debounce every keystroke fires');
     }],
 
+    ['combobox search callback: the answer is the list, a newer query aborts the older signal and its late answer is dropped, disconnecting aborts, a failure keeps the list (#1664)', async t => {
+        const c = await t.mount('<pk-combobox label="V" debounce="40"><option value="0">Seed</option></pk-combobox>'); await t.settle();
+        const inp = c.part('control'), ops = () => [...c.part('popup').querySelectorAll('.op')].map(o => o.textContent).join();
+        const calls = []; c.search = (query, { signal }) => new Promise((resolve, reject) => { calls.push({ query, signal, resolve }); signal.addEventListener('abort', () => reject(signal.reason)); });
+        await type(t, inp, 'a'); await new Promise(r => setTimeout(r, 120)); t.eq(calls.length, 1, 'search runs once after the pause');
+        await type(t, inp, 'ab'); t.ok(calls[0].signal.aborted, 'typing again aborts the superseded signal at once');
+        await new Promise(r => setTimeout(r, 120)); t.eq(calls.map(x => x.query).join(), 'a,ab');
+        calls[0].resolve([{ value: 's', label: 'stale' }]); await t.settle(); t.eq(ops(), 'Seed', 'a stale answer is not applied');
+        calls[1].resolve([{ value: '1', label: 'Alpha' }, { value: '2', label: 'Abacus' }]); await t.settle(); t.eq(ops(), 'Alpha,Abacus', 'the answer is the list');
+        t.ok([...c.part('popup').querySelectorAll('.op')].every(o => !o.hidden), 'the client filter is off while search is set'); t.eq(c.children.length, 1, 'the host option children are not touched');
+        await type(t, inp, 'abc'); await new Promise(r => setTimeout(r, 120)); const last = calls[2];
+        c.remove(); t.ok(last.signal.aborted, 'disconnecting aborts the pending search');
+        const d = await t.mount('<pk-combobox label="V"><option value="0">Seed</option></pk-combobox>'); await t.settle();
+        d.search = () => Promise.reject(new Error('down')); await type(t, d.part('control'), 'x'); await t.settle(); t.eq([...d.part('popup').querySelectorAll('.op')].map(o => o.textContent).join(), 'Seed', 'a failed search keeps the list');
+    }],
+
     ['select multiple and tag-input: the values array and the JSON attribute drive the selection and the joined value; the commit event carries the array (#850)', async t => {
         const host = t.stage('<form><pk-select name="m" multiple values=\'["a,b","c"]\'><option value="a,b">AB</option><option value="c">C</option><option value="d">D</option></pk-select><pk-tag-input name="t"></pk-tag-input></form>'); await t.load(host); await t.settle();
         const [m, ti] = [host.querySelector('pk-select'), host.querySelector('pk-tag-input')];

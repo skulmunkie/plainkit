@@ -259,6 +259,10 @@ A standalone Blazor WebAssembly app needs no server and no extra package; the sa
 - **The package keeps the ASP.NET Core server framework a private compile-time reference** (`PrivateAssets="all"`), because a public framework reference cannot be restored by a WebAssembly app (NETSDK1082). A Blazor Server app has the framework from its own SDK; a plain class library that uses the package's server types needs its own `<FrameworkReference Include="Microsoft.AspNetCore.App" />`.
 - **Not verified:** AOT, the `InteractiveWebAssembly` render mode of a Blazor Web App (the same components, but no such host was run) and an ASP.NET Core hosted deployment.
 
+### Combobox search
+
+`PkCombobox` can fetch its options from the typed text: `OnSearch` is a `Func<string, CancellationToken, Task<IReadOnlyList<PkFieldOption>>>`. Its answer becomes the list (the built-in filter is off while it is set; your `<option>` children are not touched), `DebounceMs` applies, and when a newer query replaces a running search, or the component goes away, the element aborts the call and its `CancellationToken` is cancelled; a late answer to a superseded query is dropped by the element, so there is no guard to write. `OnSearchInput` (the raw `pk-combo-query` event) still works for a host that re-renders the options itself, but it has no token.
+
 ### Lookup picker
 
 `PkLookupPicker<TItem>` is a select-style field for a list too long for `PkSelect` or `PkCombobox`: the field opens a popup holding a searchable, pageable table fed by the same `Load` (`PkListRequest` in, `PkListResult<TItem>` out) and `Columns` as `PkDataTable`. `@bind-Value` holds the key of the chosen item (`IdOf`); with `Multiple`, `@bind-Values` holds the keys, the chosen items show as removable chips and `Max` limits them. Both work with `EditForm` (`ValueExpression`, `ValuesExpression`) and the form value. `LabelOf` names an item (default its key); `SelectedLabels` and the `Resolve` callback give stored keys their labels without loading their page; `@bind-Open`, `PageSize`, `Placeholder`, `Disabled`, `Readonly`, `Required`, `IsInvalid` and `AriaLabel` are the usual field parameters.

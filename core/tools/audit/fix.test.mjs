@@ -34,6 +34,20 @@ test('D1-simple: a plainkit-audit-ignore comment on the line or the line before 
     assert.equal(r.count, 1);
 });
 
+test('D1-simple and A1-label: nothing inside an ignore-start/ignore-end block is rewritten, LF or CRLF (#1518)', () => {
+    for (const eol of ['\n', '\r\n']) {
+        const source = ['<!-- plainkit-audit-ignore-start D1,A1 -- keep -->', '<br>', '<hr>', '<pk-button icon title="Go"></pk-button>', '<!-- plainkit-audit-ignore-end -->', '<br>', '<br>', '<hr>', '<pk-button icon title="Go"></pk-button>'].join(eol);
+        const r = fixD1Simple(source);
+        assert.equal(r.count, 1);
+        assert.ok(r.text.includes(`<br>${eol}<hr>${eol}<pk-button`));
+        assert.ok(r.text.endsWith(`<pk-divider></pk-divider>${eol}<pk-button icon title="Go"></pk-button>`));
+        const a = fixA1Label(source);
+        assert.equal(a.count, 1);
+        assert.ok(a.text.includes(`<hr>${eol}<pk-button icon title="Go">`));
+        assert.ok(a.text.endsWith('<pk-button label="Go" icon title="Go"></pk-button>'));
+    }
+});
+
 test('A1-label: an icon-only pk-button with a static title gains label, keeping the title', () => {
     const r = fixA1Label('<pk-button icon="x" title="Close"></pk-button>\n<pk-button icon title=\'Open\'> </pk-button>');
     assert.equal(r.text, '<pk-button label="Close" icon="x" title="Close"></pk-button>\n<pk-button label=\'Open\' icon title=\'Open\'> </pk-button>');

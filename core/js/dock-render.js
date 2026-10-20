@@ -5,7 +5,7 @@
 // pk-dock element instance (`el`) as its first argument and reads the same private fields dock.js always did ($doc, $titles, $phoneStrip, $flyout,
 // $closed); nothing here is a public API of its own.
 import { loadElements } from './loader.js';
-import { groups, isEdgeGroup } from './dock-model.js';
+import { groups, isEdgeGroup, defaultLayout, floatPanel } from './dock-model.js';
 
 // The four ways to dock a panel beside another group (zone -> its menu label). Center (add as tab) is offered separately, first.
 const ZONE_LABELS = [['left', 'Dock left of'], ['right', 'Dock right of'], ['top', 'Dock above'], ['bottom', 'Dock below']];
@@ -64,6 +64,7 @@ export function group(el, d, n, floaterId) {
         railBtn.remove();
         h.id = `h-${panel}`;
         const toggle = h.querySelector('[part="collapse-toggle"]');
+        toggle.hidden = !canCollapse(el, panel);
         toggle.pressed = !collapsed;
         toggle.controls = body;
         toggle.setAttribute('data-panel', panel);
@@ -112,12 +113,11 @@ export function panelTrigger(el, d, panel, group, movable, floaterId) {
         }
     }
     if (targets.length) dd.append(make(d, 'pk-menu-item', { type: 'divider' }));
-    if (!floaterId && !el.$phoneStrip) {
+    if (!floaterId && !el.$phoneStrip && canFloat(el, panel)) {
         const float = make(d, 'pk-menu-item', { value: `float:${panel}` }); float.textContent = 'Float';
         dd.append(float, make(d, 'pk-menu-item', { type: 'divider' }));
     }
-    const close = make(d, 'pk-menu-item', { value: `close:${panel}` }); close.textContent = 'Close';
-    dd.append(close);
+    if (canClose(el, panel)) { const close = make(d, 'pk-menu-item', { value: `close:${panel}` }); close.textContent = 'Close'; dd.append(close); }
     return dd;
 }
 
@@ -138,4 +138,38 @@ export function drawToolbar(el, d) {
     panels.append(dd);
     bar.append(panels);
     loadElements(bar);
+}
+
+// Panel declarations (issue #432 phase D1; in this module so no new dock file needs a package entry): a host declares per-panel options as data-* attributes
+// on the slotted node, read live and never written. data-closable="false" / data-collapsible="false" drop Close / the collapse toggle; data-open="false" starts a
+// panel closed; data-float starts it floating; the first panel with an explicit data-group="center" is the permanent centre (never closed or floated, and the tab the
+// phone strip starts on).
+const pnode = (el, id) => [...el.children].find(c => c.getAttribute('slot') === id);
+const off = (c, name) => c?.getAttribute(name) === 'false';
+
+// The panel id of the centre panel, or undefined.
+export const center = el => [...el.children].find(c => c.getAttribute('data-group') === 'center' && c.getAttribute('slot'))?.getAttribute('slot');
+export const canClose = (el, id) => id !== center(el) && !off(pnode(el, id), 'data-closable');
+export const canFloat = (el, id) => id !== center(el) && el.floating !== false;
+export const canCollapse = (el, id) => !off(pnode(el, id), 'data-collapsible');
+
+// First connect, and resetLayout(): panels with data-open="false" start closed and the phone strip starts on the centre panel.
+export function init(el, all) {
+    el.$closed = new Set(all.filter(p => off(pnode(el, p.id), 'data-open') && canClose(el, p.id)).map(p => p.id));
+    el.$phone = center(el);
+}
+
+// The default arrangement for the open panels, with data-float panels taken out of their groups.
+export function seed(el, panels) {
+    let doc = defaultLayout(panels);
+    for (const p of panels) if (pnode(el, p.id)?.getAttribute('data-float') != null && canFloat(el, p.id)) doc = floatPanel(doc, { panel: p.id, rect: { x: 48, y: 48, w: 260, h: 180 } }).doc;
+    return doc;
+}
+
+// resetLayout(): closed panels reopen (except data-open="false" ones) and the default arrangement returns.
+export function reset(el, all) {
+    init(el, all);
+    el.$given = {}; el.layout = null;
+    el.updated();
+    el.commit('reset');
 }

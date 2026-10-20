@@ -355,3 +355,57 @@ export const dockCases = [
         } finally { localStorage.removeItem(area); }
     }],
 ];
+const DECL = `<pk-dock label="Declared">
+  <div slot="palette" data-heading="Palette" data-group="left" data-open="false"><input id="probe" aria-label="Probe"></div>
+  <div slot="layers" data-heading="Layers" data-group="left">Layers</div>
+  <div slot="files" data-heading="Files" data-group="left">Files</div>
+  <div slot="canvas" data-heading="Canvas" data-group="center">Canvas</div>
+  <div slot="props" data-heading="Properties" data-group="right" data-closable="false" data-collapsible="false">Properties</div>
+  <div slot="notes" data-heading="Notes" data-group="right" data-float>Notes</div>
+</pk-dock>`;
+const items = (dock, part) => [...dock.shadowRoot.querySelectorAll(`${part} pk-menu-item[value]`)].map(i => i.getAttribute('value'));
+
+export const dockDeclCases = [
+    ['dock: data-open=false starts closed and data-float starts floating inside the dock; Panels offers the closed one and opening it adds it back', async t => {
+        const { doc } = await frame(t, DECL, 1200);
+        const dock = doc.querySelector('pk-dock'), root = dock.shadowRoot.querySelector('[part=root]');
+        t.ok(dock.$closed.has('palette') && !dock.$doc.collapsed.includes('palette'), 'Palette starts closed');
+        t.ok(rect(doc.querySelector('[slot=palette]')).width < 1, 'a closed panel draws nothing');
+        t.ok(items(dock, '[part=toolbar]').includes('open:palette'), 'the Panels menu offers it');
+        const fl = root.querySelector('[data-floater]'), rr = rect(root), fr = fl && rect(fl);
+        t.ok(fl && fr.left >= rr.left - 1 && fr.right <= rr.right + 1 && fr.top >= rr.top - 1 && fr.bottom <= rr.bottom + 1, 'Notes floats inside the dock bounds');
+        dock.openPanel('palette'); await t.settle(); await wait(60);
+        t.ok(!dock.$closed.has('palette') && !items(dock, '[part=toolbar]').includes('open:palette') && dock.shadowRoot.querySelector('pk-tab[value=palette]'), 'opening Palette adds its tab and drops it from the Panels menu');
+    }],
+
+    ['dock: data-closable=false removes Close, the centre panel has neither Close nor Float, and data-collapsible=false hides the collapse toggle', async t => {
+        const { doc } = await frame(t, DECL, 1200);
+        const dock = doc.querySelector('pk-dock'), menu = id => dock.shadowRoot.querySelector(`pk-button[label="${id} panel menu"]`)?.closest('pk-dropdown');
+        const vals = id => [...menu(id).querySelectorAll('pk-menu-item[value]')].map(i => i.getAttribute('value'));
+        t.ok(!vals('Canvas').some(v => v.startsWith('close:') || v.startsWith('float:')), 'the centre panel offers no Close and no Float');
+        t.ok(!vals('Properties').some(v => v.startsWith('close:')) && vals('Properties').some(v => v.startsWith('float:')), 'Properties offers Float but no Close');
+        dock.closePanel('props'); dock.closePanel('canvas'); await t.settle();
+        t.ok(!dock.$closed.has('props') && !dock.$closed.has('canvas'), 'closePanel refuses both');
+        t.ok(dock.shadowRoot.querySelector('[data-panel=props]')?.hidden, 'the collapse toggle of a data-collapsible=false panel is hidden');
+    }],
+
+    ['dock: resetLayout() reopens closed panels, docks floaters, restores the default arrangement and fires reset', async t => {
+        const { doc } = await frame(t, DECL, 1200);
+        const dock = doc.querySelector('pk-dock'), seen = []; dock.addEventListener('pk-layout-change', e => seen.push(e.detail.reason));
+        dock.openPanel('palette'); dock.closePanel('notes'); await t.settle();
+        dock.resetLayout(); await t.settle(); await wait(60);
+        t.ok(seen.includes('reset'), 'pk-layout-change reports reset');
+        t.ok(dock.$closed.has('palette') && dock.$closed.has('notes') === false, 'the declared start state returns (Palette closed, Notes open)');
+        t.ok(dock.shadowRoot.querySelector('[data-floater]'), 'Notes floats again');
+    }],
+
+    ['dock: on a phone the strip starts on the centre panel and shows one panel with no horizontal overflow', async t => {
+        const { doc } = await frame(t, DECL.replace('data-open="false"', ''), 375);
+        const dock = doc.querySelector('pk-dock'), root = dock.shadowRoot.querySelector('[part=root]');
+        const sel = root.querySelector('pk-tab[aria-selected="true"], pk-tab[selected]');
+        t.ok(rect(doc.querySelector('[slot=canvas]')).width > 100, 'Canvas is the visible panel');
+        t.ok(rect(doc.querySelector('[slot=palette]')).width < 1, 'the first-declared panel is not');
+        t.ok(root.scrollWidth <= root.clientWidth + 1, 'no horizontal overflow');
+        t.ok(sel === null || sel.textContent.trim() === 'Canvas', 'the selected tab is Canvas');
+    }],
+];
