@@ -6,11 +6,12 @@ import { place, onOutside, unplace } from './positioning.js';
 import { loadElements } from './loader.js';
 import { createStore } from './store.js';
 import { findGroup, defaultLayout, fromJson, toJson } from './dock-model.js';
+import { canClose } from './dock-render.js';
 
 // Close panel: it stops being declared to the model (updated() drops it from its group, or removes an emptied group, the same repair path a
 // panel leaving the host's DOM already takes), but the host keeps the child in its light DOM, so reopening loses nothing about it.
 export function closePanel(el, panel) {
-    if (el.$closed.has(panel) || !el.$titles.has(panel)) return;
+    if (el.$closed.has(panel) || !el.$titles.has(panel) || !canClose(el, panel)) return;
     const said = `${el.$titles.get(panel) ?? panel} closed`;
     el.$closed.add(panel);
     // synchronous, like a move: the redraw (a panel leaving its group, or the group itself) needs to happen before focus moves

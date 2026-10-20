@@ -49,5 +49,8 @@
       "doc": "Turns on controlled mode: every resize, tab switch or panel repair holds before the element applies it, calling this delegate with the proposed layout (as JSON, the same shape as Layout) and the reason (resize, activate or panels). Return the layout json to apply (typically the proposed one, stored first and returned unchanged, or a different one .NET computed), or null to keep the previous layout unchanged. A delegate that throws also keeps the previous layout. Left null (the default), the element is free-running."
     }
   ],
+  "methods": [
+    { "name": "ResetLayoutAsync", "method": "resetLayout" }
+  ],
   "notes": "confirmLayout(arg) is a callback property, set from script: the generated component hands the element a .NET reference (PkCallbackSlot) that calls the ConfirmLayout parameter. Not set, the element is free-running (a resize or tab change applies right away and then fires pk-layout-change); set, every change holds until it resolves with the confirmed layout json (or null to keep the previous one); a rejection also keeps the previous layout."
 }
