@@ -135,6 +135,10 @@ export const B_RULES = [
         scan(file) {
             if (!/@page\b/.test(file.text)) return [];
             if (/@inherits\s+\S*PageBase\b/.test(file.text)) return [];
+            // A page hosted by a page-type component that owns load, busy, error and empty states (the first element in
+            // the markup is the PkListPage or PkRecordPage) gains nothing from the base class (#1670).
+            const root = scanHtml(file.text).nodes.find(n => !n.closing);
+            if (root && /^Pk(?:List|Record)Page$/.test(root.name)) return [];
             const m = /@page\b[^\r\n]*/.exec(file.text);
             return [hitAt(file.text, m.index, '@page', { found: 'this @page component has no @inherits ...PageBase - the app framework\'s page lifecycle (loading/error/empty states) will not run' })];
         },
