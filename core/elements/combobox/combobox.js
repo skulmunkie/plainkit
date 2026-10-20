@@ -30,9 +30,18 @@ export default Base => class extends Base {
     }
     // pk-combo-query, after a pause in typing when debounce is set (the latest text only); the client filter does not wait.
     query(text) {
-        clearTimeout(this.$qt);
-        const send = () => this.emit('pk-combo-query', { query: text });
+        clearTimeout(this.$qt); this.$ac?.abort();
+        const send = () => { this.emit('pk-combo-query', { query: text }); this.lookup(text); };
         if (this.debounce > 0) this.$qt = setTimeout(send, this.debounce); else send();
+    }
+    // search(query, { signal }) => [{ value, label }] (a property, like load on pk-data-table): its answer is the list; a newer query or disconnecting aborts the signal and a stale answer is dropped.
+    async lookup(text) {
+        if (typeof this.search !== 'function') return;
+        const { signal } = (this.$ac = new AbortController());
+        let found;
+        try { found = await this.search(text, { signal }); } catch (e) { if (!signal.aborted) this.log.warn('search failed', e); return; }
+        if (signal.aborted) return;
+        this.$found = found ?? []; this.$opts = true; this.requestUpdate();
     }
     ops() { return [...this.part('popup').querySelectorAll('.op')]; }
     live() { return this.ops().filter(o => !o.hidden && o.getAttribute('aria-disabled') !== 'true'); }
@@ -45,7 +54,7 @@ export default Base => class extends Base {
     hide() { this.setOpen(false); this.highlight(null); }
     filter() {
         const ops = this.ops();
-        if (this.filtering === 'off') { this.part('empty').hidden = ops.length > 0; this.highlight(this.live()[0] ?? null); this.float(); return; }
+        if (this.filtering === 'off' || typeof this.search === 'function') { this.part('empty').hidden = ops.length > 0; this.highlight(this.live()[0] ?? null); this.float(); return; }
         const match = this.mode === 'select' ? ops.map(() => true) : filterOptions(ops.map(o => o.textContent), this.$query);
         ops.forEach((o, i) => { o.hidden = !match[i]; });
         this.part('empty').hidden = match.some(Boolean);
@@ -99,9 +108,9 @@ export default Base => class extends Base {
             const prev = this.ops().find(o => o.classList.contains('hl'))?.dataset.value;
             for (const o of this.ops()) o.remove();
             const tpl = this.shadowRoot.querySelector('template');
-            [...this.children].filter(c => c.localName === 'option').forEach((c, i) => {
+            (this.$found ?? [...this.children].filter(c => c.localName === 'option').map(c => ({ value: c.getAttribute('value') ?? c.textContent.trim(), label: c.textContent.trim(), disabled: c.disabled }))).forEach((c, i) => {
                 const el = tpl.content.firstElementChild.cloneNode(true);
-                el.id = `o${i}`; el.dataset.value = c.getAttribute('value') ?? c.textContent.trim(); el.textContent = c.textContent.trim();
+                el.id = `o${i}`; el.dataset.value = c.value; el.textContent = c.label ?? c.value;
                 if (c.disabled) el.setAttribute('aria-disabled', 'true');
                 pop.append(el);
             });
@@ -125,6 +134,6 @@ export default Base => class extends Base {
     }
     onReset() { this.value = this.$initial ?? ''; this.$typing = false; }
     onRestore(state) { this.value = state ?? ''; }
-    disconnected() { clearTimeout(this.$qt); this.$au?.(); this.$au = null; }
+    disconnected() { clearTimeout(this.$qt); this.$ac?.abort(); this.$au?.(); this.$au = null; }
     focus(o) { this.ctl().focus(o); }
 };
