@@ -32,4 +32,19 @@ public sealed class PkDateRangePickerTests : BunitContext, IAsyncLifetime
         Assert.Equal(new DateOnly(2026, 9, 14), end);
         Assert.Equal("2026-09-14", cut.Find("pk-date-range-picker").GetAttribute("end"));
     }
+
+    [Fact]
+    public async Task PresetItems_go_to_the_element_as_json_and_the_matching_key_comes_back_as_Preset()
+    {
+        string? preset = null;
+        var cut = Render<PkDateRangePicker>(p => p
+            .Add(x => x.PresetItems, [new PkDatePreset("fy", "Fiscal year", new DateOnly(2026, 4, 1), new DateOnly(2027, 3, 31))])
+            .Add(x => x.OnRangeChange, e => preset = e.Preset));
+
+        var json = cut.Find("pk-date-range-picker").GetAttribute("preset-items");
+        Assert.Contains("\"key\":\"fy\"", json);
+        Assert.Contains("\"start\":\"2026-04-01\"", json);
+        await cut.Find("pk-date-range-picker").TriggerEventAsync("onpk-range-change", new PkRangeChangeEventArgs { Start = "2026-04-01", End = "2027-03-31", Valid = true, Preset = "fy" });
+        Assert.Equal("fy", preset);
+    }
 }

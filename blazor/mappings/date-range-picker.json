@@ -48,7 +48,15 @@
     {
       "name": "Presets",
       "prop": "presets",
-      "type": "string"
+      "type": "string",
+      "note": "Built-in tokens: today, 7d, 30d, 90d, month, lastmonth, quarter, lastquarter, year, lastyear."
+    },
+    {
+      "name": "PresetItems",
+      "prop": "presetItems",
+      "type": "IReadOnlyList<PkDatePreset>?",
+      "json": true,
+      "doc": "Your own named quick ranges (Key, Label, Start, End), shown after the Presets tokens; OnRangeChange reports the Key of the one the range equals as Preset."
     },
     {
       "name": "StartLabel",

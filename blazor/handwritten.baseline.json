@@ -78,6 +78,7 @@
     "Components/PkModuleDashboard.razor": 35,
     "PkRuntime.cs": 125,
     "PkScoreTarget.cs": 25,
+    "PkDatePreset.cs": 4,
     "PkSelectOption.cs": 20,
     "PkSharedState.cs": 157,
     "PkStore.cs": 220,
