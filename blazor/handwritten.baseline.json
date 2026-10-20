@@ -11,6 +11,7 @@
     "Components/PkPerformance.razor": 55,
     "Components/PkQuality.razor": 47,
     "Components/PkScorecard.razor": 62,
+    "Components/PkScripts.razor": 9,
     "Components/PkStyles.razor": 55,
     "Components/PkTableBase.cs": 50,
     "Components/PkThemeEditor.razor": 77,

@@ -68,6 +68,15 @@ public sealed class PageAssetsTests : BunitContext, IAsyncLifetime
     }
 
     [Fact]
+    public void PkScripts_renders_one_external_module_script_and_no_inline_code()
+    {
+        var script = Render<PkScripts>().Find("script");
+        Assert.Equal("module", script.GetAttribute("type"));
+        Assert.EndsWith("_content/PlainKit.Blazor/plainkit.init.js", script.GetAttribute("src"));
+        Assert.Equal("", script.InnerHtml);
+    }
+
+    [Fact]
     public void PkStyles_renders_a_plain_link_in_place_with_the_content_hash()
     {
         var cut = Render<PkStyles>();
