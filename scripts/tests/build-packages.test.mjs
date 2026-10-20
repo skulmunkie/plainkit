@@ -21,7 +21,7 @@ after(() => fs.rmSync(tmp, { recursive: true, force: true }));
 const names = id => listZip(fs.readFileSync(path.join(zips, zipName(id, version)))).map(e => e.name);
 
 test('core and tools are built, each with a zip and a manifest asset named by the id and the version', () => {
-    assert.deepEqual(report.map(r => r.id), ['plainkit', 'plainkit.tools']);
+    assert.deepEqual(report.map(r => r.id), ['plainkit', 'plainkit.tools', 'plainkit.audit']);
     assert.equal(zipName('plainkit', version), `plainkit-${version}.zip`);
     assert.equal(zipName('plainkit.tools', version), `plainkit.tools-${version}.zip`);
     for (const r of report) { assert.ok(fs.existsSync(path.join(zips, zipName(r.id, version)))); assert.ok(fs.existsSync(path.join(zips, manifestName(r.id, version)))); }
@@ -30,7 +30,7 @@ test('core and tools are built, each with a zip and a manifest asset named by th
 test('the checker passes on freshly built zips', async () => assert.deepEqual(await checkPackageZips(zips), []));
 
 test('the union of the package zips is the release: the dist zip (dist/ without modules/) and the modules zip, every file once', () => {
-    const union = [...names('plainkit'), ...names('plainkit.tools')].filter(n => !n.endsWith('.manifest.json') || !/^plainkit(\.[a-z]+)?\.manifest\.json$/.test(n));
+    const union = [...names('plainkit'), ...names('plainkit.tools'), ...names('plainkit.audit')].filter(n => !n.endsWith('.manifest.json') || !/^plainkit(\.[a-z]+)?\.manifest\.json$/.test(n));
     assert.equal(new Set(union).size, union.length, 'no file is in two zips');
     const distZip = distFiles(path.join(REPO, 'core', 'dist')).filter(f => !f.startsWith('modules/'));
     const modulesZip = distFiles(path.join(REPO, 'core', 'dist')).filter(f => f.startsWith('modules/'));
@@ -55,6 +55,18 @@ test("core's manifest.extras.json lists only files that core's zip holds; the fu
     assert.deepEqual(listed.filter(p => !c.has(p)), []);
     const full = JSON.parse(fs.readFileSync(path.join(REPO, 'core', 'dist', 'manifest.extras.json'), 'utf8')).files.map(f => f.path);
     assert.ok(full.includes('js/custom-sdk.js'), 'the full dist keeps every old path (FULL is first class)');
+});
+
+test('audit holds the CLI, its rules and the strict engine, runs on its own from the unzipped folder, and core holds none of it', async () => {
+    const a = new Set(names('plainkit.audit')), c = new Set(names('plainkit'));
+    for (const f of ['audit.mjs', 'tools/audit/cli.mjs', 'tools/audit/rules.mjs', 'tools/audit/scanners/literals.mjs', 'tools/strict/engine.mjs', 'plainkit.audit.manifest.json']) assert.ok(a.has(f), `audit lacks ${f}`);
+    assert.ok([...c].every(f => !f.startsWith('tools/audit/') && !f.startsWith('tools/strict/') && f !== 'audit.mjs'), 'core still holds audit files');
+    assert.ok(c.has('tools/plainkit-cli.mjs'), 'core keeps the bin stub');
+    const dir = path.join(tmp, 'audit-run');
+    await write({ outDir: dir });
+    const r = spawnSync(process.execPath, [path.join(dir, 'plainkit.audit', 'audit.mjs'), '--version'], { encoding: 'utf8', cwd: dir });
+    assert.equal(r.status, 0, r.stderr);
+    assert.match(r.stdout, new RegExp(version.replace(/\./g, '\.')));
 });
 
 test('the npm package model leaves exactly the tools helpers and modules out of core (core/package.json files)', () => {
@@ -104,4 +116,5 @@ test('the Pages step copies every extra to packages/<id>/ (core stays dist/) and
     const c = spawnSync(process.execPath, [path.join(REPO, 'scripts', 'check-package.mjs'), '--zips', zips], { encoding: 'utf8' });
     assert.equal(c.status, 0, c.stderr + c.stdout);
     assert.ok(plan().built.has('plainkit.tools'));
+    assert.ok(fs.existsSync(path.join(site, 'packages', 'plainkit.audit', 'audit.mjs')));
 });

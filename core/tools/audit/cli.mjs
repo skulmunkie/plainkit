@@ -25,12 +25,16 @@ const SUPPORTED_EXTENSIONS = ['.html', '.htm', '.js', '.mjs', '.jsx', '.ts', '.t
 const MAX_FILE_BYTES = 1024 * 1024;
 
 function packageVersion() {
-    try {
-        const pkgPath = path.join(path.dirname(fileURLToPath(import.meta.url)), '..', '..', '..', 'package.json');
-        return JSON.parse(fs.readFileSync(pkgPath, 'utf8')).version;
-    } catch {
-        return '0.0.0';
+    // From the npm layout (dist/tools/audit -> package.json) or, in the plainkit.audit module, the manifest at the module root.
+    const here = path.dirname(fileURLToPath(import.meta.url));
+    for (const f of [['..', '..', '..', 'package.json'], ['..', '..', 'plainkit.audit.manifest.json']]) {
+        try {
+            return JSON.parse(fs.readFileSync(path.join(here, ...f), 'utf8')).version;
+        } catch {
+            continue;
+        }
     }
+    return '0.0.0';
 }
 
 export function parseArgs(argv) {

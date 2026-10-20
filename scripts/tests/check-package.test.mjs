@@ -64,20 +64,19 @@ test('the audit CLI must not ship in the Blazor package (#518 A-10a: it is a Nod
 });
 
 // checkNpmPackage: the files `npm pack --dry-run` would publish for core/ (the plainkit package), and its package.json.
-const NPM_GOOD = ['LICENSE', 'README.md', 'dist/tools/audit/cli.mjs', 'dist/tools/audit/rules.mjs', 'dist/tools/strict/engine.mjs', 'dist/js/plainkit.js'];
-const npmPkg = (over = {}) => ({ bin: { plainkit: 'dist/tools/audit/cli.mjs' }, ...over });
+const NPM_GOOD = ['LICENSE', 'README.md', 'dist/tools/plainkit-cli.mjs', 'dist/js/plainkit.js'];
+const npmPkg = (over = {}) => ({ bin: { plainkit: 'dist/tools/plainkit-cli.mjs' }, ...over });
 
 test('a good npm package has no problems', () => assert.deepEqual(checkNpmPackage(NPM_GOOD, npmPkg()), []));
 
-test('a missing audit CLI file is named', () => {
-    const p = checkNpmPackage(NPM_GOOD.filter(f => f !== 'dist/tools/audit/rules.mjs'), npmPkg());
-    assert.equal(p.length, 1);
-    assert.match(p[0], /missing the audit rule table/);
+test('a missing bin stub is named', () => {
+    const p = checkNpmPackage(NPM_GOOD.filter(f => f !== 'dist/tools/plainkit-cli.mjs'), npmPkg({ bin: undefined }));
+    assert.match(p[0], /missing the `plainkit` bin stub/);
 });
 
 test('a missing or mismatched "bin" is refused', () => {
     assert.match(checkNpmPackage(NPM_GOOD, npmPkg({ bin: undefined }))[0], /no "bin" entry/);
-    assert.match(checkNpmPackage(NPM_GOOD, npmPkg({ bin: { plainkit: 'dist/tools/audit/missing.mjs' } }))[0], /is not in the packed files/);
+    assert.match(checkNpmPackage(NPM_GOOD, npmPkg({ bin: { plainkit: 'dist/tools/missing.mjs' } }))[0], /is not in the packed files/);
 });
 
 // A tiny zip writer (stored or deflated) so the reader is tested without a zip tool.

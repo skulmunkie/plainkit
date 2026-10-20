@@ -155,13 +155,10 @@ export function findNupkg(target) {
     return path.join(target, files[0]);
 }
 
-// The npm package (`plainkit`, published from core/) is the CLI's real home: core/package.json's `bin` points at
-// dist/tools/audit/cli.mjs and `files` is `["dist", ...]`. Nothing checked this before #518 A-10a - a step that stopped
-// building dist/tools (or a files/bin edit that dropped it) would only surface once a consumer ran `npx plainkit audit`.
+// The audit CLI is the module plainkit.audit now (packages.json, #1656), not part of the npm package: core/package.json's `bin` points at a stub
+// (dist/tools/plainkit-cli.mjs) that says where to get it, so `npx plainkit audit` explains itself. A bin that points at a missing file would not.
 export const NPM_REQUIRED = [
-    [/^dist\/tools\/audit\/cli\.mjs$/, 'the audit CLI entry point (dist/tools/audit/cli.mjs; core/package.json "bin")'],
-    [/^dist\/tools\/audit\/rules\.mjs$/, 'the audit rule table (dist/tools/audit/rules.mjs)'],
-    [/^dist\/tools\/strict\/engine\.mjs$/, 'the engine the audit CLI is built on (dist/tools/strict/engine.mjs)'],
+    [/^dist\/tools\/plainkit-cli\.mjs$/, 'the `plainkit` bin stub that points at the plainkit.audit module (dist/tools/plainkit-cli.mjs; core/package.json "bin")'],
 ];
 
 /** Problems with the npm package's file list (as `npm pack --dry-run` reports it): the CLI's own files, and the `bin` field pointing at one of them. Pure. */

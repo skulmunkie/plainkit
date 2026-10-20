@@ -18,6 +18,7 @@ const target = path.join(root, 'blazor', 'src', 'PlainKit.Blazor', 'wwwroot', 'p
 // theme-editor modules and blazor-devtools.js — both stay). Excluding them here keeps them out of the package entirely (#186): they are still
 // built into core/dist for npm/CDN, and shipped separately as skills/dist release assets (#36).
 const EXCLUDE_FROM_BLAZOR = new Set([
+    'audit.mjs', // the entry of the plainkit.audit module: it imports tools/, which the Blazor package leaves out (#1656)
     'custom-elements.json',
     'web-types.json',
     'vscode.html-custom-data.json',

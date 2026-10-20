@@ -16,7 +16,8 @@
       "title": "Dev tools",
       "built": true,
       "requires": [
-        "plainkit"
+        "plainkit",
+        "plainkit.audit"
       ],
       "blazorOption": "tools",
       "modules": [
@@ -73,6 +74,23 @@
       "files": [
         "modules/manifest.json"
       ]
+    },
+    {
+      "id": "plainkit.audit",
+      "title": "Audit CLI",
+      "built": true,
+      "requires": [
+        "plainkit"
+      ],
+      "blazorOption": null,
+      "files": [
+        "audit.mjs",
+        "tools/audit/",
+        "tools/strict/"
+      ],
+      "maxPackedBytes": null,
+      "maxUnpackedBytes": 137500,
+      "maxZipBytes": 52500
     },
     {
       "id": "plainkit.markdown",
