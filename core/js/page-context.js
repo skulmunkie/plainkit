@@ -10,10 +10,20 @@
 //   ctx.set({ title: order.name });                           // data loaded after render: wins field by field until the next navigation
 //
 // A route's own override is its node's `context` ({ ids?, crumbs?, title? } or ({ path, params, query }) => object), as in a module's route tree.
-import { pageContext, routeContext } from './app/nav.js';
+import { pageContext as base, routeContext } from './app/nav.js';
 import { navRoutes } from './route-tree.js';
 
-export { pageContext };
+// A route with `under: '/things'` is read as a child of the route owning that path, so flat routes (/things and /things/:id) give Things > record without nesting (#1691). It is
+// applied here, on a copy of the tree, and not in js/route-tree.js: the router and mountApp keep the nested chain, and their entry graph is at its size cap.
+const flat = rs => rs.flatMap(r => [r, ...flat(r.children ?? [])]);
+export function nestUnder(routes) {
+    const all = flat(routes), moved = new Map();
+    for (const r of all) { const to = r.under && all.find(t => t !== r && t.path === r.under); if (to) moved.set(to, [...(moved.get(to) ?? []), r]); }
+    if (!moved.size) return routes;
+    const copy = r => ({ ...r, children: [...(r.children ?? []).filter(c => !(c.under && all.some(t => t !== c && t.path === c.under))), ...(moved.get(r) ?? [])].map(copy) });
+    return routes.filter(r => !(r.under && all.some(t => t !== r && t.path === r.under))).map(copy);
+}
+export const pageContext = (def, tree, path, override) => base({ ...def, routes: nestUnder(def.routes ?? []) }, tree, path, override);
 
 const same = (a, b) => JSON.stringify(a) === JSON.stringify(b);
 
