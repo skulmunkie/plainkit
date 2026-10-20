@@ -59,6 +59,12 @@ export default Base => class extends Base {
                 s.replaceChildren(...buildOptions(this.ownerDocument ?? document, data));
             } else s.replaceChildren(...[...this.children].filter(c => c.localName === 'option' || c.localName === 'optgroup').map(c => c.cloneNode(true)));
         }
+        // keepUnknownValue (issue 1682): a single select whose value no option offers gets a marked stand-in option holding it, so the control shows and submits what it holds.
+        s.querySelector('[data-pk-unknown]')?.remove();
+        if (this.keepUnknownValue && !this.multiple && this.value !== '' && ![...s.options].some(o => o.value === this.value)) {
+            const o = buildOption(this.ownerDocument ?? document, { value: this.value, label: this.unknownValueLabel || this.value });
+            o.dataset.pkUnknown = ''; s.prepend(o);
+        }
         if (!this.$typing) {
             const wanted = this.multiple ? splitValues(this.value) : [this.value];
             if ([...s.options].some(o => wanted.includes(o.value))) for (const o of s.options) o.selected = wanted.includes(o.value);
