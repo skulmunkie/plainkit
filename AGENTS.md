@@ -145,7 +145,7 @@ visible effect (tooling, refactor) uses the label `no-changelog` and says why in
   element's own hooks are `--pk-<element>-<part>`. Tokens live only in `tokens/tokens.css`.
 - **Size budgets are never raised.** Not the page layer's 10 KB gzip, not an element's. If you are over, make the source smaller. (One documented exception:
   `appEntryGzKb` in `core/site/scorecard/scoring.data.js` was revised up once, as a deliberate owner decision, #514; it is now a hard cap — any
-  further growth of that entry graph must be offset by an equal-or-greater cut elsewhere in it. Every other budget stays a one-way ratchet.)
+  further growth of that entry graph must be offset by an equal-or-greater cut elsewhere in it. Every other budget stays a one-way ratchet.) The npm package ceilings in `core/tests/package-size.test.mjs` were raised once, on 2026-10-20 by owner decision, to give new components room while separate packages for the larger components are designed (#1656); they are a one-way ratchet again and are not raised further without the owner.
 - **No silent failure.** No empty `catch`, no `.catch(() => {})`, no bare `console.*`: use the SDK logger (`createLogger(scope)` from `js/log.js`; elements have
   `this.log` and `this.warnOnce`). `core/tests/no-silent-catch.test.mjs` checks.
 - **Only existing components.** Use the `pk-*` elements that exist; a gap is recorded in the standing "Tracker: components the SDK lacks" issue (#336), not invented locally. Reuse them and hand-roll nothing: if no element does what you need, file the issue and park the work until it is resolved, do not build a local stand-in (tabular data is always `pk-table`). See `core/STANDARDS.md`, "Composition".
