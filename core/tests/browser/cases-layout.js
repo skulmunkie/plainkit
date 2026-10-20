@@ -100,6 +100,21 @@ export const layoutCases = [
         el.removeAttribute('min'); await t.settle(); t.eq(el.min, '16rem');
         t.eq(px(getComputedStyle(el).columnGap), px(token(el, '--space-4')), 'default gap is --space-4');
     }],
+    ['grid: tracks sets a fixed track list, col-span and row-span size the children in it, an unparseable list is ignored (#1666)', async t => {
+        const host = t.stage('<div><pk-grid tracks="repeat(12, minmax(0, 1fr))" gap="none"><div data-col-span="8">a</div><div data-col-span="4" data-row-span="2">b</div><div data-col-span="4">c</div><div data-col-span="4">d</div><div>e</div></pk-grid></div>');
+        host.style.inlineSize = '1200px'; await t.load(host); await t.settle();
+        const el = host.querySelector('pk-grid'), [a, b, c, d, e] = [...el.children];
+        const rect = n => n.getBoundingClientRect(), w = n => Math.round(rect(n).width);
+        t.eq(getComputedStyle(el).gridTemplateColumns.split(' ').length, 12, 'twelve tracks');
+        t.eq(w(a), 800, 'col-span 8 is two thirds'); t.eq(w(b), 400, 'col-span 4 is a third'); t.eq(w(e), 100, 'a child without a span takes one track');
+        t.ok(Math.abs(rect(a).top - rect(b).top) < 1 && rect(b).left >= rect(a).right - 1, 'the 8 and 4 share the first row');
+        t.ok(rect(b).height >= rect(c).height + rect(d).height - 2 || rect(b).bottom >= rect(d).bottom - 1, 'row-span 2 reaches down beside the next row');
+        for (const c of el.children) { c.removeAttribute('data-col-span'); c.removeAttribute('data-row-span'); }
+        el.tracks = 'minmax(0, 1.5fr) minmax(0, 1fr)'; await t.settle();
+        t.eq(getComputedStyle(el).gridTemplateColumns.split(' ').length, 2, 'a custom track list');
+        el.tracks = 'not a track list'; await t.settle();
+        t.eq(el.style.getPropertyValue('--pk-grid-ratio'), '', 'an unparseable list does not reach the css');
+    }],
     ['grid: still fills its container inside a flex row (a shrink-to-fit parent must not collapse it)', async t => {
         const host = t.stage('<div><pk-grid min="6rem"><div></div><div></div></pk-grid></div>');
         host.firstElementChild.style.display = 'flex'; host.firstElementChild.style.alignItems = 'flex-start'; host.style.inlineSize = '500px';

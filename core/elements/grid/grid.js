@@ -1,5 +1,7 @@
 // pk-grid: the min and columns props reach the css as --pk-grid-min and --pk-grid-columns (set through CSSOM, so the strict CSP is untouched).
 // The ratio prop (2:1, 1:2:1) sets explicit proportional columns in --pk-grid-ratio; on a phone the grid is back to auto columns.
+// The tracks prop is a column track list as CSS writes it (repeat(12, minmax(0, 1fr)), minmax(0, 1.5fr) minmax(0, 1fr)); it wins over ratio and is checked with CSS.supports.
+// Children size themselves in it with data-col-span (2 to 12) and data-row-span (2 to 4) attributes, which the css reads with ::slotted; a phone drops them with the tracks.
 // A min the browser cannot parse as a length is ignored and the css default applies.
 // "2:1" -> "minmax(0, 2fr) minmax(0, 1fr)" (any number of positive parts); null when the text is not a ratio.
 export const ratioColumns = text => {
@@ -13,7 +15,10 @@ export default Base => class extends Base {
         if (ok) this.style.setProperty('--pk-grid-min', this.min); else this.style.removeProperty('--pk-grid-min');
         const r = this.ratio ? ratioColumns(this.ratio) : null;
         if (this.ratio && !r) this.warnOnce('ratio', `ratio="${this.ratio}" is not like 2:1: using equal columns`);
-        if (r) this.style.setProperty('--pk-grid-ratio', r); else this.style.removeProperty('--pk-grid-ratio');
+        const t = this.tracks.trim(), tracks = t && CSS.supports('grid-template-columns', t) ? t : null;
+        if (t && !tracks) this.warnOnce('tracks', `tracks="${this.tracks}" is not a column track list: ignored`);
+        const list = tracks ?? r;
+        if (list) this.style.setProperty('--pk-grid-ratio', list); else this.style.removeProperty('--pk-grid-ratio');
         const n = Math.floor(this.columns);
         if (n > 0) this.style.setProperty('--pk-grid-columns', String(n)); else this.style.removeProperty('--pk-grid-columns');
     }
