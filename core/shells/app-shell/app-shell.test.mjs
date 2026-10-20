@@ -40,3 +40,20 @@ test('the body is a flex column, so a filling page type pins its header and page
     assert.match(rule[1], /flex-direction: column/);
     assert.match(rule[1], /overflow-y: auto/);
 });
+
+// Issue #1675: `contain` makes the body a named size container and lets any one child fill it, with no wrapper element; off by default.
+test('contain is an opt-in boolean: a named inline-size container, clipped sideways, the slotted child fills', () => {
+    assert.equal(prop('contain').type, 'boolean'); assert.equal(prop('contain').default, false); assert.equal(prop('contain').reflect, true);
+    assert.ok(meta.cssProperties.some(p => p.name === '--pk-app-shell-container' && p.default === 'page'));
+    const css = read('css');
+    assert.match(css, /:host\(\[contain\]\) \[part="body"\] \{[^}]*container: var\(--pk-app-shell-container, page\) \/ inline-size;[^}]*overflow-x: clip;/);
+    assert.match(css, /:host\(\[contain\]\) \[part="body"\] > slot:not\(\[name\]\)::slotted\(\*\) \{[^}]*flex: 1 1 auto;[^}]*min-block-size: 0;/);
+    assert.doesNotMatch(css.replace(/:host\(\[contain\]\)[^{]*\{[^}]*\}/g, ''), /container(-type|-name)?:/, 'only the contain rule makes a container');
+});
+
+// The Blazor wrapper carries it as a generated extra parameter (#1407), so a hand-written file does not grow.
+test('the Blazor mapping has Contain as an extra bool parameter', () => {
+    const m = JSON.parse(fs.readFileSync(fileURLToPath(new URL('../../../blazor/mappings/app-shell.json', import.meta.url)), 'utf8'));
+    const p = m.params.find(x => x.name === 'Contain');
+    assert.ok(p && p.prop === 'contain' && p.type === 'bool' && p.extra === true);
+});

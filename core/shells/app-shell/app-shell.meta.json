@@ -28,6 +28,13 @@
       "description": "Removes the body padding so a workspace, table or map sits edge to edge (the safe-area insets on a notched phone stay)."
     },
     {
+      "name": "contain",
+      "type": "boolean",
+      "default": false,
+      "reflect": true,
+      "description": "Makes the body a named inline-size container (name from --pk-app-shell-container, default page) so @container page (...) answers to the body width with no wrapper element, clips sideways overflow, and lets any single slotted child fill the height (flex 1, min-height 0) so a list page or a fixed region plus a scrolling one needs no :has() hack. Off by default; composes with flush."
+    },
+    {
       "name": "backHref",
       "type": "string",
       "default": "",
@@ -93,6 +100,7 @@
     }
   ],
   "cssProperties": [
+    { "name": "--pk-app-shell-container", "description": "The container name of the body when contain is set (an identifier, not a length); @container <name> (...) queries the body width.", "default": "page" },
     { "name": "--pk-fill-shrink", "description": "Set on a page type's host (1) so it may shrink to the height left in the body instead of keeping its own height; the default 0 keeps ordinary content at its height so the body scrolls. List pages and filling (fill) master-detail and workspace pages set it." }
   ],
   "methods": [],
@@ -105,6 +113,10 @@
     {
       "title": "App shell with a sticky footer",
       "html": "<pk-app-shell><pk-side-nav slot=\"nav\" label=\"Main\"><a slot=\"brand\" href=\"#\">App</a><pk-nav-item href=\"#\" current>Home</pk-nav-item><pk-nav-item href=\"#\">Reports</pk-nav-item></pk-side-nav><div slot=\"header\"><pk-button data-nav-toggle aria-label=\"Open the menu\" variant=\"ghost\">Menu</pk-button></div><pk-stack><h2>Home</h2><p>Content scrolls here; the header and footer stay put.</p></pk-stack><span slot=\"footer\">Plainkit</span></pk-app-shell>"
+    },
+    {
+      "title": "Contain: the one child fills the body",
+      "html": "<pk-app-shell contain><pk-card heading=\"Fills the body\"><p>With contain the single child takes the height of the body with no wrapper, and @container page queries answer to the body width.</p></pk-card></pk-app-shell>"
     },
     {
       "title": "Back link",
