@@ -1,0 +1,22 @@
+@page "/lab/search"
+
+@* Lab: PkCombobox OnSearch over the real interop (#1664): the element aborts a superseded search (its CancellationToken is cancelled through PkCallbackSlot) and drops the stale answer. *@
+<h1 tabindex="-1">Lab search</h1>
+<PkCombobox AriaLabel="Fruit" OnSearch="Find" />
+<p id="lab-search">Calls: @_calls, cancelled: @_cancelled, finished: @_finished</p>
+
+@code {
+    private int _calls, _cancelled, _finished;
+
+    // Each search takes 1.5 s and honours its token; the answer carries the query, so the list shows which search it came from.
+    private async Task<IReadOnlyList<PkFieldOption>> Find(string query, CancellationToken ct)
+    {
+        _calls++;
+        await InvokeAsync(StateHasChanged);
+        try { await Task.Delay(1500, ct); }
+        catch (OperationCanceledException) { _cancelled++; await InvokeAsync(StateHasChanged); throw; }
+        _finished++;
+        await InvokeAsync(StateHasChanged);
+        return [new PkFieldOption("1", query + "-one"), new PkFieldOption("2", query + "-two")];
+    }
+}

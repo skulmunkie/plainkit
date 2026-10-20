@@ -1,6 +1,7 @@
 using Bunit;
 using Microsoft.AspNetCore.Components;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.JSInterop;
 using PlainKit.Blazor;
 
 namespace PlainKit.Blazor.Tests;
@@ -12,10 +13,12 @@ public sealed class ComboboxAsyncSearchTests : BunitContext, IAsyncLifetime
     Task IAsyncLifetime.InitializeAsync() => Task.CompletedTask;
     async Task IAsyncLifetime.DisposeAsync() => await DisposeAsync();
 
+    private readonly BunitJSModuleInterop _bridge;
+
     public ComboboxAsyncSearchTests()
     {
         JSInterop.Mode = JSRuntimeMode.Loose;
-        var bridge = JSInterop.SetupModule(PkAssets.Bridge);
+        var bridge = _bridge = JSInterop.SetupModule(PkAssets.Bridge);
         bridge.Mode = JSRuntimeMode.Loose;
         Services.AddPlainKit();
     }
@@ -61,5 +64,36 @@ public sealed class ComboboxAsyncSearchTests : BunitContext, IAsyncLifetime
 
         await cut.Find("pk-combobox").TriggerEventAsync("onpk-combo-select", new PkComboSelectEventArgs { Value = "Abacus" });
         Assert.Equal("Abacus", value);
+    }
+
+    // Issue 1664: OnSearch is the element's search callback property (PkCallbackSlot): the text goes in, the options come back as { value, label } and
+    // the element's abort cancels the token (the element drops a stale answer; no guard lives in the wrapper).
+    [Fact]
+    public async Task OnSearch_runs_through_the_callback_slot_with_a_token_the_element_can_cancel()
+    {
+        CancellationToken seen = default;
+        var cut = Render<PkCombobox>(p => p.Add(x => x.OnSearch, (q, ct) => { seen = ct; return Task.FromResult<IReadOnlyList<PkFieldOption>>([new PkFieldOption("1", q + "!")]); }));
+        var call = Assert.Single(_bridge.Invocations["setCallback"]);
+        Assert.Equal("search", call.Arguments[1]);
+        var host = Assert.IsType<DotNetObjectReference<PkCallbackHost<string>>>(call.Arguments[2]);
+
+        var result = System.Text.Json.JsonSerializer.Serialize(await cut.InvokeAsync(() => host.Value.Invoke("ab", 7)));
+        Assert.Equal("[{\"value\":\"1\",\"label\":\"ab!\"}]", result);
+        Assert.False(seen.IsCancellationRequested);
+
+        var pending = new TaskCompletionSource<IReadOnlyList<PkFieldOption>>();
+        cut.Render(p => p.Add(x => x.OnSearch, (q, ct) => { seen = ct; return pending.Task; }));
+        var running = cut.InvokeAsync(() => host.Value.Invoke("abc", 8));
+        host.Value.Cancel(8);
+        Assert.True(seen.IsCancellationRequested);
+        pending.SetCanceled();
+        await Assert.ThrowsAsync<TaskCanceledException>(() => running);
+    }
+
+    [Fact]
+    public void Without_OnSearch_no_callback_is_set()
+    {
+        Render<PkCombobox>();
+        Assert.DoesNotContain(_bridge.Invocations, i => i.Identifier == "setCallback");
     }
 }
