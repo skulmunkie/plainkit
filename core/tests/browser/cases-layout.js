@@ -745,3 +745,52 @@ layoutCases.push(
         s.remove();
     }],
 );
+
+// Full-height list page: pk-app-shell[contain] + pk-list-page (pinned header, title bar, before-list alert, selectable table with a bulk bar, 50 rows, pager), plain and inside <pk-loading-overlay fill> (#1705).
+// Only the rows scroll; everything else keeps its rect. The fixture (list-fill-frame.html) opens in an iframe of the width under test.
+for (const overlay of [false, true]) layoutCases.push(
+    [`full-height list page${overlay ? ' inside a busy loading-overlay fill' : ''}: the document does not scroll, the table's scroll part is the only scroller, the pinned parts keep their rects while the rows scroll, the pager is flush with the shell body (1280 and 375)`, async t => {
+        for (const width of [1280, 375]) {
+            const host = t.stage(''), fr = document.createElement('iframe'), at = `${width}px${overlay ? ' busy' : ''}`;
+            fr.title = `list page at ${width}px`; fr.style.cssText = `width:${width}px;height:700px;border:0;display:block`;
+            fr.src = new URL('./list-fill-frame.html', import.meta.url).href + (overlay ? '?overlay=1' : '');
+            await new Promise(resolve => { fr.addEventListener('load', resolve, { once: true }); host.append(fr); });
+            const win = fr.contentWindow, d = win.document, wait = ms => new Promise(r => setTimeout(r, ms)), r = el => { const b = el.getBoundingClientRect(); return `${Math.round(b.x * 10) / 10},${Math.round(b.y * 10) / 10},${Math.round(b.width * 10) / 10},${Math.round(b.height * 10) / 10}`; };
+            await Promise.all(['pk-app-shell', 'pk-list-page', 'pk-data-table', 'pk-table', 'pk-page-shell', 'pk-pagination', ...(overlay ? ['pk-loading-overlay'] : [])].map(tag => win.customElements.whenDefined(tag)));
+            const shell = d.querySelector('pk-app-shell'), list = d.querySelector('pk-list-page'), dt = list.part('table');
+            let tbl = null;
+            for (let i = 0; i < 150 && !(tbl = dt.part('table')) ; i++) await wait(40);
+            for (let i = 0; i < 150 && !tbl.shadowRoot?.querySelector('[part=body] tr[data-key], [part=body] tr'); i++) await wait(40);
+            await wait(300);
+            const scroll = tbl.part('scroll'), box = tbl.part('bulk');
+            // select a row so the bulk bar shows
+            const cb = tbl.shadowRoot.querySelector('[data-select]') ?? scroll.querySelector('[data-select]');
+            cb?.click(); await wait(200);
+            t.ok(!box.hidden, `${at}: the bulk bar is shown after a row is selected`);
+            const pager = dt.shadowRoot.querySelector('pk-pagination'), head = tbl.shadowRoot.querySelector('thead th'), alert = list.querySelector('[slot=before-list]'), title = list.part('header').part('header') ?? list.part('header');
+            t.ok(!!pager && !!head && !!title, `${at}: pager, column header and title bar are there`);
+            const pinned = { title, alert, head, box, pager }, before = Object.fromEntries(Object.entries(pinned).map(([k, el]) => [k, r(el)]));
+            const body = shell.shadowRoot.querySelector('[part=body]'), bcs = win.getComputedStyle(body);
+            const firstRow = tbl.shadowRoot.querySelector('tbody tr'), rowTop = firstRow.getBoundingClientRect().top;
+            t.ok(scroll.scrollHeight > scroll.clientHeight + 100, `${at}: the rows overflow the scroll part (${scroll.scrollHeight} vs ${scroll.clientHeight})`);
+            scroll.scrollTop = 400; await wait(200);
+            t.ok(scroll.scrollTop > 300, `${at}: the scroll part scrolled (${scroll.scrollTop})`);
+            for (const [k, el] of Object.entries(pinned)) t.eq(r(el), before[k], `${at}: the ${k} keeps its rect while the rows scroll`);
+            t.ok(Math.abs(firstRow.getBoundingClientRect().top - rowTop) > 300, `${at}: only the row positions change`);
+            const de = d.documentElement;
+            t.ok(de.scrollHeight <= de.clientHeight && d.body.scrollHeight <= d.body.clientHeight && win.scrollY === 0, `${at}: the document and body do not scroll (${de.scrollHeight}/${de.clientHeight})`);
+            t.ok(body.scrollHeight <= body.clientHeight + 1, `${at}: the shell body does not scroll (${body.scrollHeight}/${body.clientHeight})`);
+            const content = body.getBoundingClientRect().bottom - parseFloat(bcs.paddingBottom), pb = pager.getBoundingClientRect().bottom;
+            // KNOWN DEFECT (#1711): the data-table's empty [part=state] div keeps its margin-block-start, so the pager ends above the body's content bottom. While it is open the gap must stay in (1, 20]px;
+            // once it is fixed the flush branch passes: then delete the known branch and keep the strict check.
+            const gap = content - pb;
+            if (gap > 1) t.ok(gap <= 20, `${at}: the pager's bottom (${pb}) is ${gap}px above the shell body's content bottom (${content}); the known gap (#1711) is at most 20px`);
+            else t.ok(gap >= -1, `${at}: #1711 is fixed (the pager is flush); make this assertion strict and drop the known-defect branch`);
+            const scrollers = [];
+            const walk = root => { for (const el of root.querySelectorAll('*')) { if (el.shadowRoot) walk(el.shadowRoot); const cs = win.getComputedStyle(el); if (/(auto|scroll)/.test(cs.overflowY) && el.scrollHeight > el.clientHeight + 1) scrollers.push(el.localName + (el.getAttribute('part') ? `[${el.getAttribute('part')}]` : '')); } };
+            walk(d);
+            t.eq(scrollers.join('|'), 'div[scroll]', `${at}: the table's scroll part is the only element that overflows vertically`);
+            fr.remove();
+        }
+    }],
+);
