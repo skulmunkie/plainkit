@@ -7,6 +7,8 @@
 [part="actions"] { display: flex; flex-wrap: wrap; max-inline-size: 100%; gap: var(--space-2); align-items: center; margin-inline-start: auto; }
 [part="filters"][data-nosearch]::part(search) { display: none; }
 [part="state"], [part="empty"] { margin-block-start: var(--space-4); }
+/* An idle state part has no content and takes no space: its margin would leave a gap under the table (issue 1711). */
+[part="state"]:empty { margin: 0; }
 /* The loading skeleton stands in for the rows that replace it: it reserves a typical page of rows, so the table arriving does not push what follows it down (CLS, issue 1304). */
 [part="state"]:has(> pk-skeleton) { min-block-size: calc(var(--space-12) * 5); }
 /* A multiselect filter (issue 1025): a legend over a wrapping row of checkboxes, one fieldset in the filter panel. */

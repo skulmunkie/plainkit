@@ -781,11 +781,8 @@ for (const overlay of [false, true]) layoutCases.push(
             t.ok(de.scrollHeight <= de.clientHeight && d.body.scrollHeight <= d.body.clientHeight && win.scrollY === 0, `${at}: the document and body do not scroll (${de.scrollHeight}/${de.clientHeight})`);
             t.ok(body.scrollHeight <= body.clientHeight + 1, `${at}: the shell body does not scroll (${body.scrollHeight}/${body.clientHeight})`);
             const content = body.getBoundingClientRect().bottom - parseFloat(bcs.paddingBottom), pb = pager.getBoundingClientRect().bottom;
-            // KNOWN DEFECT (#1711): the data-table's empty [part=state] div keeps its margin-block-start, so the pager ends above the body's content bottom. While it is open the gap must stay in (1, 20]px;
-            // once it is fixed the flush branch passes: then delete the known branch and keep the strict check.
             const gap = content - pb;
-            if (gap > 1) t.ok(gap <= 20, `${at}: the pager's bottom (${pb}) is ${gap}px above the shell body's content bottom (${content}); the known gap (#1711) is at most 20px`);
-            else t.ok(gap >= -1, `${at}: #1711 is fixed (the pager is flush); make this assertion strict and drop the known-defect branch`);
+            t.ok(gap <= 1 && gap >= -1, `${at}: the pager's bottom (${pb}) is ${gap}px from the shell body's content bottom (${content}); it must be flush`);
             const scrollers = [];
             const walk = root => { for (const el of root.querySelectorAll('*')) { if (el.shadowRoot) walk(el.shadowRoot); const cs = win.getComputedStyle(el); if (/(auto|scroll)/.test(cs.overflowY) && el.scrollHeight > el.clientHeight + 1) scrollers.push(el.localName + (el.getAttribute('part') ? `[${el.getAttribute('part')}]` : '')); } };
             walk(d);

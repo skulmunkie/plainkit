@@ -35,9 +35,8 @@ export default {
         t.noOverlap(SCROLL, PAGER);
         t.within(PAGER, BODY);
         t.within('pk-list-page > pk-alert', BODY);
-        // Known gap (#1711): the empty state div under the pager keeps a margin, so the pager ends a little above the body bottom.
         const gap = body.y + body.height - parseFloat(t.style(BODY, 'padding-bottom')) - (pager.y + pager.height);
-        t.known(1711, gap <= 1, `the pager ends ${Math.round(gap)}px above the shell body content bottom`);
+        t.ok(gap <= 1, `the pager ends ${Math.round(gap)}px above the shell body content bottom`);
         t.ok(scroll.height > 150, `the rows get ${Math.round(scroll.height)}px of the page`);
     },
 };
