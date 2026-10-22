@@ -904,3 +904,51 @@ layoutCases.push(['align="center" on cluster, stack, field-row, container and fo
         }
     }
 }]);
+
+// Issues 1718 and 1722: the pk-grid tablet step, fill and rows, and the data-show-above / data-hide-above helper, in an iframe of the width and height under test (the media queries answer to the frame).
+async function gridFrame(t, v, width, height = 600) {
+    const host = t.stage(''), fr = document.createElement('iframe');
+    fr.title = `grid ${v} at ${width}px`; fr.style.cssText = `width:${width}px;height:${height}px;border:0;display:block`;
+    fr.src = new URL(`./grid-frame.html?v=${v}`, import.meta.url).href;
+    await new Promise(resolve => { fr.addEventListener('load', resolve, { once: true }); host.append(fr); });
+    const win = fr.contentWindow; if (v !== 'show') await win.customElements.whenDefined('pk-grid'); await new Promise(r => setTimeout(r, 80));
+    return { fr, d: win.document, win, cols: () => win.getComputedStyle(win.document.getElementById('g')).gridTemplateColumns.split(' ').length, rect: el => el.getBoundingClientRect() };
+}
+layoutCases.push(
+    ['grid: tablet-tracks halves a 12-track grid and its spans at 1024 and 768, leaves it at 1280, and a phone stacks (#1718)', async t => {
+        for (const [width, cols] of [[1280, 12], [1024, 6], [768, 6], [375, 1]]) {
+            const f = await gridFrame(t, 'tablet', width), g = f.d.getElementById('g'), [a, b] = [...g.children], at = `${width}px`;
+            t.eq(f.cols(), cols, `${at}: ${cols} column track(s)`);
+            if (width === 1024 || width === 768) t.ok(Math.abs(f.rect(a).width - f.rect(g).width / 2) < 2 && f.rect(b).left > f.rect(a).left, `${at}: span 6 halves to span 3 of 6, so two cells share the row`);
+            if (width === 1280) t.ok(Math.abs(f.rect(a).width - f.rect(g).width / 2) < 2, `${at}: span 6 of 12 is half`);
+            if (width === 375) t.ok(f.rect(b).top >= f.rect(a).bottom - 1, `${at}: children stack`);
+            f.fr.remove();
+        }
+    }],
+    ['grid: stack-below="tablet" stacks at 1024 and 768 and not at 1280 (#1718)', async t => {
+        for (const [width, stacked] of [[1280, false], [1024, true], [768, true], [375, true]]) {
+            const f = await gridFrame(t, 'stack', width), [a, b] = [...f.d.getElementById('g').children];
+            t.eq(f.rect(b).top >= f.rect(a).bottom - 1, stacked, `${width}px: ${stacked ? 'stacked' : 'side by side'}`);
+            f.fr.remove();
+        }
+    }],
+    ['grid: fill takes the remaining height under a header and rows share it by weight; a phone drops both (#1722)', async t => {
+        for (const width of [1280, 375]) {
+            const f = await gridFrame(t, 'fill', width, 600), g = f.d.getElementById('g'), bar = f.d.getElementById('bar'), cells = [...g.children];
+            if (width === 1280) {
+                t.ok(Math.abs(f.rect(g).bottom - 600) < 2 && Math.abs(f.rect(g).top - f.rect(bar).bottom) < 2, 'the grid ends at the bottom of the frame, right under the header');
+                const h1 = f.rect(cells[0]).height, h2 = f.rect(cells[2]).height;
+                t.ok(Math.abs(h2 - 3 * h1) < 2, `rows 1fr and 3fr share the height (${Math.round(h1)}px and ${Math.round(h2)}px)`);
+                t.ok(f.d.documentElement.scrollHeight <= 600, 'no page scroll');
+            } else t.ok(f.rect(g).height < 400 && f.rect(cells[1]).top >= f.rect(cells[0]).bottom - 1, '375px: sized to content and stacked');
+            f.fr.remove();
+        }
+    }],
+    ['data-show-above and data-hide-above show and hide content at the named breakpoints (#1722)', async t => {
+        for (const [width, shown] of [[1280, ['above-tablet', 'above-phone']], [768, ['below-tablet', 'above-phone']], [375, ['below-tablet', 'phone-only']]]) {
+            const f = await gridFrame(t, 'show', width);
+            for (const id of ['above-tablet', 'below-tablet', 'above-phone', 'phone-only']) t.eq(f.win.getComputedStyle(f.d.getElementById(id)).display !== 'none', shown.includes(id), `${width}px: ${id}`);
+            f.fr.remove();
+        }
+    }],
+);
