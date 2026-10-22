@@ -5,6 +5,55 @@ The format follows [Keep a Changelog](https://keepachangelog.com/) and the proje
 
 ## [Unreleased]
 
+## [0.21.0] - 2026-10-22
+
+### Breaking
+
+- The editor and IDE metadata (`elements.d.ts`, `elements.vue.d.ts`, `custom-elements.json`, `web-types.json`, `vscode.html-custom-data.json`, about 890 KB) is now the package `plainkit.ide`: `plainkit.ide-<version>.zip` (with its own manifest), the Pages folder `packages/plainkit.ide/`, and still part of the full `plainkit-dist-<version>.zip` and `dist/`, so no path moves there. The npm package no longer carries these files, and its `exports` entries `plainkit/custom-elements.json` and `plainkit/web-types.json` are gone with them; take the files from the zip or the Pages folder. Core's npm size drops from 586,151 to 402,675 bytes packed (2,312,345 to 1,419,663 unpacked), and the core ceilings come down to 406,700 and 1,433,900. (#1656)
+
+### Added
+
+- The loader names the package to add when a tag from an extra (`<pk-canvas>`, `<pk-markdown>`, `<pk-markdown-editor>`) is on a page and its module is not in the folder: one log line gives the package id, the zip (`plainkit.canvas-<version>.zip`, unzipped over the runtime folder) and the Pages path, instead of the generic "could not load". The shipped registry exports `extras` (tag to package id, from `packages.json`) for it. (#1656)
+- `pk-tree` and `pk-tree-item` take `navigate` (router, host or none, as on `pk-link`): `host` makes a plain click on an `href` item a non-cancelable `pk-navigate` notification and nothing navigates, so a Blazor app without the plainkit router navigates through its own `NavigationManager` (`PkTree.Navigate`, `PkTreeItem.Navigate`). The item's own value wins over the tree's. (#1713)
+- `PkDialogOptions.OnConfirmValues` gives a confirm, prompt or open dialog's action the trimmed field values and the pressed button (`PkDialogResult`); a returned message keeps the dialog open with the typed text, so a rejected value is corrected without retyping. In JavaScript `onConfirm(values, action)` receives the same. (#1715)
+- The date range picker offers the presets `thismonth`, `thisquarter` and `thisyear`, which run from the start of the period to its last day (cut to min and max); `month`, `quarter` and `year` still end today. This completes the issue. (#1717)
+- `pk-grid` has a tablet step: `tablet-tracks` gives the column list at 1024px and below (spans halve, so 12 tracks become 6), and `stack-below="tablet"` stacks the grid there instead of at 640px. `PkGrid` gets `TabletTracks` and `StackBelow`. (#1718)
+- `PkPageTesting.ResumeSaveAsync(page)` resumes a record-page save without running `BeforeSave` again, so a confirm-then-resume flow can be tested in bUnit (it is not a `SaveAsync(skipBeforeSave)` overload: the page's own `SaveAsync(bool)` would win that call). (#1719)
+- A combobox field spec takes `debounce` (milliseconds; `PkFieldSpec.DebounceMs` in Blazor): `pk-field-group` passes it to the combobox, so a search-as-you-type field waits for a pause before its search or `pk-combo-query` runs. (#1720)
+- `pk-grid` takes the remaining height of its parent with `fill` and shares it between rows with a `rows` track list (`minmax(0, 1fr) minmax(0, 3fr)`), so a dashboard fits the viewport without page scroll; both drop on a phone. `PkGrid` gets `Fill` and `Rows`. (#1722)
+- Any element can show or hide at a named breakpoint without a media query: `data-show-above="phone"` (or `"tablet"`) hides it at and below that width, and `data-hide-above` hides it above that width. (#1722)
+- `pk-list-page` config `toolbarInHeader` puts the breadcrumb and heading in the toolbar row with the search box, Filters and the actions (one row, wrapping on a phone), through the new `lead` slot of `pk-data-table`; the page-shell title bar is then not drawn, so there is no pk-page-header (no sticky header, no back link). Blazor: `PkListPage ToolbarInHeader`. (#1723)
+- A `barcode-search` icon (a magnifier over a barcode) for a "look up by barcode" action. (#1725)
+- A field spec of `pk-field-group` takes `suffixAction: { icon, label, key }`: an icon button inside the end of an input, which follows the field's disabled and read-only state and raises `pk-field-action` with the field key and the action key. In Blazor, `PkFieldSpec.SuffixAction` (a `PkFieldAction`) and `PkFieldGroup.OnFieldAction`. (#1725)
+- `PkComponentBase` writes a failed load to the SDK log under an overridable `LogScope`, as `PageBase` does, and has `ReloadParameters` (the parameters whose change reloads; null means any) so a component that takes a record key and display parameters does not reload on the display ones. (#1728)
+- `PkBulkEventArgs` has `ToRequest()` like `PkSelectEventArgs`: `OnBulk` alone gives the `PkListRequest` (search, sort, filters) a bulk action with scope `all` runs against. (#1730)
+- `pk-list-page` forwards `config.selectPageOnly` to its data table: with `selectable`, the header checkbox selects the loaded page only and never offers "Select all N matching", so `pk-bulk` always carries scope `page`. Blazor: the `SelectPageOnly` parameter of `PkListPage`. (#1731)
+- `pk-list-page` takes `config.searchPlaceholder`, the text of its search box (placeholder and accessible name, for example "Search by order, vendor or reference"). Blazor: the `SearchPlaceholder` parameter of `PkListPage`. (#1732)
+- `pk-page-shell` forwards `sticky-from`, `tabs-from`, `home-href`, `home-label`, `home-icon`, `actions-overflow` and `overflow-label` to its `pk-page-header` and gains a `badges` slot; the built-in page types (list, dashboard, master-detail, settings) read `badges`, `actionsOverflow`, `overflowLabel`, `homeHref`, `homeLabel` and `homeIcon` from their config, so their title bar matches `pk-page-header` (#1734). Every page type also has a `badges` slot (Blazor `BadgesContent`), and `PkPageShell` gains the matching parameters. (#1735)
+
+### Changed
+
+- The release gains `plainkit.dock-<version>.zip` (with its own manifest, and the Pages folder `packages/plainkit.dock/`): `pk-dock` and its `js/dock-*.js` files, which need core at the exact same version. A lean setup unzips it over the core folder; `plainkit-dist-<version>.zip` and `dist/` keep every old path, so nothing you load today moves, and core alone no longer has `<pk-dock>`. The core package ceilings come down (587,500 packed, 2,312,400 unpacked), freeing about 12.7 KB packed for core. (#1656)
+
+### Fixed
+
+- A full-height list page ends flush with the bottom of its shell body: the data table's idle state area takes no space, so the pager no longer sits 14px above the edge. (#1711)
+- A dashboard stat card no longer grows while its widget loads and shrinks when the value arrives: its loading skeleton now fits the reserved card height, so the cards below stop shifting on a route change under load. (#1712)
+- A `pk-loading-overlay` with `fill` keeps a wrapped list page pinned (header row, bulk bar and pager stay, only the rows scroll) when its parent is a block of definite height, such as the `<main>` the Blazor `PkApp` draws in a `pk-app-shell[contain]` body: the overlay is now capped to its parent height, where it grew to the 50 rows before. (#1716)
+- The two date fields of `pk-date-range-picker` keep room for the whole date and the picker icon on a phone: each has a minimum width and the row wraps instead of squeezing them. (#1717)
+- The pager footer of `pk-table` (and so of `pk-data-table` and `pk-list-page`) is a bar of its own: a top rule and block padding (`--pk-table-footer-padding`) separate it from the rows and centre the pager, and the page buttons have a resting surface and a boundary of at least 3:1 against the page in both themes (`--pk-pagination-button-bg`, `--pk-pagination-button-border`). The footer and the pager parts (`footer`, `pager`, `pager-summary`, `pager-numbers`, `pager-prev`, `pager-next`) are reachable with `::part()` from `pk-data-table` and `pk-list-page`. (#1724)
+- A tall `before-list` region (`BeforeListContent` in Blazor) no longer squeezes a full-height list page to zero rows: the region shrinks and scrolls inside its own box (the new `before` part, which a `display: contents` Blazor wrapper cannot defeat) while the list keeps a floor of about three rows, tunable with `--pk-list-page-table-min`. (#1726)
+- A card header with a badge and a button in its actions no longer squeezes the heading into a narrow column on a phone: the heading keeps a readable width and the actions wrap below it. (#1727)
+- The settings page keeps its Save bar for an edit made while a save is still in flight: the saved baseline is the values that were sent, not whatever the fields hold when the callback returns. (#1729)
+- `PkLink` with only `Href` navigates again: an unset `To`, `Target`, `Rel` or `Download` leaves its attribute off the host, where an empty `download` made every click download the target. (#1733)
+- `pk-page-header` titled by its crumbs (the record variant, and the title bar of `pk-list-page`) puts two or more inline actions on their own row under the crumbs on a phone, so they are no longer drawn over a squeezed breadcrumb. (#1734)
+- `pk-tool-page` draws a title bar from its config like the other page types: `heading`, `breadcrumb`, `actions` (an action without an `href` fires `pk-action`), `badges`, `actionsOverflow` and the home crumb keys, above the form; it has `badges` and `actions` slots. A tool page's `breadcrumb` used to draw nothing. Blazor: `PkToolPage` gains `BadgesContent`, `ActionsContent` and `OnAction`. (#1735)
+- `pk-cluster`, `pk-stack`, `pk-field-row`, `pk-container` and `pk-form-actions` with `align="center"` no longer centre their text: the legacy `align` attribute is neutralised and text alignment stays inherited. (#1736)
+- `pk-page-header` `actions-overflow` flattens a `pk-dropdown` or `pk-card-menu` in the actions slot: its menu items become overflow menu items one by one (headers and dividers kept, label, description, disabled and danger carried over), and choosing one selects the original item, so `pk-select` / `OnSelect` fires. (#1737)
+- `pk-page-header` titled by its crumbs keeps a record header to about two rows on a phone: the current crumb is one line with an ellipsis (the full text is its title), and a `pk-badge-popover` in the chips row is badge height, with its touch target drawn around it instead of making the row 44px. Inline actions that leave the crumbs under 11rem (two or more, measured) take their own row. (#1739)
+- A `pk-page-header` with `sticky-from` no longer keeps a stacking context once it is released below the breakpoint, so a dropdown opened from its actions is drawn over the content below it instead of under it. (#1740)
+- `PkNavItem` no longer renders an empty `href` attribute when `Href` is not set, so a branch row keeps its chevron and is no longer treated as a link. (#1742)
+
 ## [0.20.0] - 2026-10-20
 
 ### Breaking
