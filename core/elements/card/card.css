@@ -6,7 +6,7 @@
 :host([flush]) [part="content"] { padding: 0; }
 [part="header"] { display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: var(--space-3); padding-bottom: 0.6rem; margin-bottom: 0.9rem; border-bottom: 1px solid var(--color-border); }
 :host([flush]) [part="header"] { margin-bottom: 0; padding: var(--pk-card-padding, var(--space-4) 1.25rem); padding-block-end: 0.6rem; }
-/* The heading takes the row and wraps inside it, so header actions stay beside it at the inline end; its basis is a readable column, so when the actions (a badge and a button) leave less than that the actions wrap below it, not squeeze it. */
+/* The heading takes the row and wraps inside it, so header actions stay beside it; the basis is a readable column, so actions that leave less wrap below it. */
 [part="title"] { flex: 1 1 12rem; min-inline-size: 0; overflow-wrap: anywhere; font-size: var(--text-lg, 1.15rem); font-weight: 600; }
 [part="footer"] { margin-top: var(--space-4); }
 :host([orientation="horizontal"]) [part="card"] { flex-direction: row; }
