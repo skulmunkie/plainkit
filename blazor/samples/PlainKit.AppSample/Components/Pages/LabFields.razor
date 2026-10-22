@@ -9,13 +9,17 @@
 <p id="lab-answer">Answer: @_answer</p>
 <PkButton OnClick="Ask">Ask</PkButton>
 <PkButton OnClick="Toast">Toast</PkButton>
+<PkButton OnClick="Rename">Rename</PkButton>
+<p id="lab-renamed">Renamed: @_renamed</p>
 
 @code {
     private readonly Ticket _ticket = new() { Id = "x", Title = "Lab" };
     private int _changes;
-    private string _answer = "none";
+    private string _answer = "none", _renamed = "none";
 
     private void Changed() => _changes++;
     private async Task Ask() => _answer = await Dialogs.ConfirmAsync(new PkDialogOptions { Heading = "Sure?", Message = "Really?" }) ? "yes" : "no";
+    // #1715: OnConfirmValues gets the typed text; a refusal keeps the dialog open with it, the second try is accepted.
+    private async Task Rename() => _renamed = await Dialogs.PromptAsync(new PkDialogOptions { Heading = "Rename", Label = "Name", OnConfirmValues = r => Task.FromResult<string?>(r.Values["value"] == "taken" ? "That name is taken." : null) }) ?? "cancelled";
     private async Task Toast() => await Toasts.SuccessAsync("Saved from the lab");
 }

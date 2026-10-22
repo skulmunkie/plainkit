@@ -92,6 +92,22 @@
       "doc": "The 1-based page to load first. A page past the last settles on the last page. Initial only."
     },
     {
+      "name": "SearchPlaceholder",
+      "map": "param",
+      "configKey": "searchPlaceholder",
+      "type": "string?",
+      "doc": "The text of the search box: its placeholder and accessible name, for example \"Search by order, vendor or reference\". Default \"Search\"."
+    },
+    {
+      "name": "SelectPageOnly",
+      "map": "param",
+      "configKey": "selectPageOnly",
+      "type": "bool",
+      "when": "SelectPageOnly",
+      "value": "true",
+      "doc": "With Config selectable: the header checkbox selects the loaded page only and never offers \"Select all N\", so a bulk action that writes one row at a time only touches rows the reader has seen (PkBulkEventArgs scope stays page). Default false."
+    },
+    {
       "name": "ActionsContent",
       "map": "slot",
       "slot": "actions",
@@ -103,7 +119,7 @@
       "map": "slot",
       "slot": "before-list",
       "type": "RenderFragment?",
-      "doc": "Content between the title bar and the list: a status alert, a summary card. It scrolls with the page and does not shrink, so with Config stickyHeader the list still fills the height left under it and its column header and pager stay pinned."
+      "doc": "Content between the title bar and the list: a status alert, a summary card. It keeps its height while the page has room; on a short page it shrinks and scrolls inside its own box while the list keeps a floor of about three rows (--pk-list-page-table-min), so with Config stickyHeader the column header and pager stay pinned and the rows never collapse."
     },
     {
       "name": "ToolbarContent",

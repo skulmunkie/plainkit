@@ -24,6 +24,13 @@
       "description": "Selection mode."
     },
     {
+      "name": "navigate",
+      "type": "string",
+      "default": "",
+      "reflect": false,
+      "description": "The navigate mode of items with an href that set none: router (default), host (the host navigates) or none."
+    },
+    {
       "name": "value",
       "type": "string",
       "default": "",

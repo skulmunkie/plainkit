@@ -1,6 +1,6 @@
 import { safeHref } from '../../js/safe-url.js';
 
-// pk-tree-item: a node of pk-tree. With `href` the label is a real anchor (middle click, copy link, status-bar URL); a plain click is reported as a cancelable pk-navigate like pk-link, and falls back to a normal navigation.
+// pk-tree-item: a node of pk-tree. With `href` the label is a real anchor (middle click, copy link, status-bar URL); a plain click is reported as a cancelable pk-navigate like pk-link, and falls back to a normal navigation; `navigate` (on the item, or inherited from its pk-tree) is router (default), host (a non-cancelable notification, nothing navigates: the host does) or none (the browser follows the link), as on pk-link.
 export default Base => class extends Base {
     connected() {
         if (this.$c) return;
@@ -18,9 +18,11 @@ export default Base => class extends Base {
     setExpanded(value) { if (value === this.expanded || !this.expandable) return; this.expanded = value; this.emit('pk-toggle', { id: this.value || this.label, expanded: value }); }
     select(fromLink) { if (this.disabled) return; if (this.href && !fromLink) { this.part('label').click(); return; } this.emit('pk-select', { id: this.value || this.label }); }
     go(e) {
-        if (e.defaultPrevented || e.button || e.metaKey || e.ctrlKey || e.shiftKey || e.altKey || !this.$href) return;
+        const mode = this.navigate || this.closest?.('pk-tree')?.navigate;
+        if (e.defaultPrevented || e.button || e.metaKey || e.ctrlKey || e.shiftKey || e.altKey || !this.$href || mode === 'none') return;
         e.preventDefault();
-        if (this.emit('pk-navigate', { to: this.href, href: this.$href }, { cancelable: true })) this.ownerDocument.defaultView?.location?.assign(this.$href);
+        const host = mode === 'host';
+        if (this.emit('pk-navigate', { to: this.href, href: this.$href }, { cancelable: !host }) && !host) this.ownerDocument.defaultView?.location?.assign(this.$href);
     }
     // A label cut off at the pane edge gets its full text as a native tooltip (only while it is cut off, so a short label has none).
     tip() {

@@ -22,6 +22,13 @@
       "type": "EventCallback<string>"
     },
     {
+      "name": "Navigate",
+      "prop": "navigate",
+      "type": "string?",
+      "extra": true,
+      "note": "Who follows an Href on a plain click: \"router\" (default), \"host\" (OnNavigate is a notification and nothing navigates, so your handler uses NavigationManager) or \"none\" (the browser follows the address). It is the default for the items with an Href that set none."
+    },
+    {
       "name": "OnToggle",
       "event": "pk-toggle",
       "type": "EventCallback<PkToggleEventArgs>"

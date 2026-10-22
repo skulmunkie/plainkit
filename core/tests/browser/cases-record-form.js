@@ -241,6 +241,26 @@ export const recordFormCases = [
         t.ok(el.getBoundingClientRect().height > colRect.height, 'without fill the page is back to its content height (the defect the attribute fixes)');
     }],
 
+    // #1731, #1732: two config keys the page hands to its data table.
+    ['list-page: config.selectPageOnly keeps the header checkbox on the page (no "Select all N" offer) and config.searchPlaceholder is the search box text', async t => {
+        const el = await t.mount('<pk-list-page></pk-list-page>');
+        await t.load(el.shadowRoot); await t.settle();
+        el.config = { columns: [{ key: 'sku', label: 'SKU' }], selectable: true, selectPageOnly: true, pageSize: 5, searchPlaceholder: 'Search by order, vendor or reference' };
+        el.load = async () => ({ rows: Array.from({ length: 5 }, (_, i) => ({ id: i + 1, sku: 'SKU-' + (i + 1) })), total: 40 });
+        el.part('table').refresh();
+        const dt = el.part('table'), tbl = await until(() => dt.part('table'), 'the table');
+        await until(() => tbl.shadowRoot?.querySelector('[data-select-all]'), 'the rows');
+        const box = dt.part('filters').part('search');
+        t.eq(box.placeholder, 'Search by order, vendor or reference', 'the search box shows the configured placeholder');
+        t.eq(box.getAttribute('aria-label'), 'Search by order, vendor or reference', 'and it is the accessible name too (one text, as searchLabel)');
+        await until(() => tbl.$s, 'the scope module'); await t.settle();
+        await until(() => { tbl.shadowRoot.querySelector('[data-select-all]')?.click(); return dt.selected.length === 5; }, 'the page selected'); await t.settle();
+        t.eq(dt.selected.length, 5, 'the page is selected'); t.eq(dt.selectScope, 'page');
+        t.ok(tbl.shadowRoot.querySelector('[part="bulk-all"]').hidden, 'no Select all offer although the query has 40 rows');
+        el.config = { ...el.config, selectPageOnly: false }; await t.settle();
+        t.ok(!tbl.shadowRoot.querySelector('[part="bulk-all"]').hidden, 'without the key the offer shows (the default is unchanged)');
+    }],
+
     // #1364/#1401: a host that binds load after the page drew its first (empty) answer, then calls the page's own refresh(), gets its first page without a typed search.
     ['list-page: a load set after the first draw is called by refresh() on the page, no search needed (#1364)', async t => {
         const el = await t.mount(`<pk-list-page config='{"columns":[{"key":"sku","label":"SKU"}]}' row-href-template="/p/{id}"></pk-list-page>`);

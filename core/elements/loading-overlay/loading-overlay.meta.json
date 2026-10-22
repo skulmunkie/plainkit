@@ -45,7 +45,7 @@
       "type": "boolean",
       "default": false,
       "reflect": true,
-      "description": "Fill a definite-height flex column and pass that height to the covered content (a pk-list-page keeps its pinned header and pager)."
+      "description": "Fill a definite-height flex column and pass that height to the covered content (a pk-list-page keeps its pinned header and pager). The parent needs a definite height: a flex column, or a block such as the <main> of a pk-app-shell[contain] body (the overlay is capped to it). Without contain it must be the body's direct child."
     }
   ],
   "slots": [

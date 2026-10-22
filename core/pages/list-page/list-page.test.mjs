@@ -135,7 +135,7 @@ test('a config with no host slot content leaves a bare title bar bare', () => {
 test('the shadow template forwards the actions slot to the title bar and the toolbar slot to the data table actions slot', async () => {
     const { readFile } = await import('node:fs/promises');
     const html = await readFile(new URL('./list-page.html', import.meta.url), 'utf8');
-    assert.match(html, /<slot name="actions" slot="actions"><\/slot><slot name="before-list"><\/slot><pk-data-table/);
+    assert.match(html, /<slot name="actions" slot="actions"><\/slot><div part="before" hidden><slot name="before-list"><\/slot><\/div><pk-data-table/);
     assert.match(html, /<slot name="toolbar" slot="actions"><\/slot>/);
 });
 

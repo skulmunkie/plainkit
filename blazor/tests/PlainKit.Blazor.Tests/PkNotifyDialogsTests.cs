@@ -85,6 +85,22 @@ public sealed class PkNotifyDialogsTests : BunitContext, IAsyncLifetime
         Assert.Null(calls[1].Arguments[3]);
     }
 
+    // Issue 1715: OnConfirmValues rides the same callback; the bridge hands it the trimmed values and the pressed action, and its message goes back to core.
+    [Fact]
+    public async Task OnConfirmValues_receives_the_values_and_action_and_its_message_goes_back_to_the_dialog()
+    {
+        var d = Services.GetRequiredService<IPkDialogs>();
+        var answers = new List<string?>();
+        // The callback is only valid while the dialog call is in flight, so core's answer is read inside the bridge call.
+        Bridge.Setup<string?>("dialog", inv => { answers.Add(((DotNetObjectReference<PkDialogConfirm>)inv.Arguments[3]!).Value.Run(new() { ["value"] = "Fresh" }, "ok").GetAwaiter().GetResult()); return true; }).SetResult("Fresh");
+        PkDialogResult? got = null;
+        await d.PromptAsync(new() { Heading = "Rename", OnConfirmValues = r => { got = r; return Task.FromResult<string?>("Name taken."); } });
+        await d.PromptAsync(new() { OnConfirm = () => Task.FromResult<string?>("Refused") });   // the argument-less OnConfirm rides the same callback
+        Assert.Equal(["Name taken.", "Refused"], answers);
+        Assert.Equal(("ok", "Fresh"), (got!.Action, got.Values["value"]));
+        Assert.DoesNotContain("onConfirmValues", Bridge.Invocations.First(i => i.Identifier == "dialog").Arguments[2]!.ToString()!, StringComparison.OrdinalIgnoreCase);
+    }
+
     [Fact]
     public async Task Every_call_of_one_service_shares_a_scope_which_disposing_ends()
     {

@@ -1,7 +1,7 @@
 import { showTitleBar } from '../../js/page-shell.js';
 import { loadElements } from '../../js/loader.js';
 
-const TABLE_KEYS = ['columns', 'filters', 'pageSize', 'pageSizeOptions', 'sort', 'sortDir', 'search', 'filterValues', 'page', 'searchLabel', 'searchDebounce', 'pagerLabel', 'label', 'caption', 'empty', 'noResults', 'loadError', 'stickyHeader'];
+const TABLE_KEYS = ['columns', 'filters', 'pageSize', 'pageSizeOptions', 'sort', 'sortDir', 'search', 'filterValues', 'page', 'searchDebounce', 'pagerLabel', 'label', 'caption', 'empty', 'noResults', 'loadError', 'stickyHeader', 'selectPageOnly'];
 
 // The page frame (title bar, toolbar actions, the callbacks) around a pk-data-table, which owns the query, the load and the states (#801).
 export default Base => class extends Base {
@@ -13,6 +13,9 @@ export default Base => class extends Base {
         // Cell content (#1000): the host's `cell-<id>-<key>` children are re-slotted into the table, which re-slots them into its pk-table (#817).
         (this.$mo = new MutationObserver(() => { this.forwardSlots(); this.showHeaderSlot(); })).observe(this, { childList: true });
         this.forwardSlots();
+        // The before-list box is shown only while something is slotted in it, so an empty slot leaves no margin.
+        const slot = this.shadowRoot?.querySelector?.('slot[name="before-list"]'), before = this.part('before');
+        if (slot && before) { const show = () => { before.hidden = !slot.assignedNodes().length; }; slot.addEventListener('slotchange', show); show(); }
     }
     disconnected() { this.$mo?.disconnect(); this.$w = false; }
     // Loads again: the bridge calls this once a `load` callback is set after the table already drew its first (empty) answer, which a host that binds callbacks after the first render always does (#1401).
@@ -41,6 +44,8 @@ export default Base => class extends Base {
         const cfg = this.config ?? {};
         for (const k of TABLE_KEYS) table[k] = cfg[k];
         table.hideSearch = cfg.searchable === false;
+        // searchPlaceholder is the text of the search box (its placeholder and accessible name); searchLabel, when set too, wins.
+        table.searchLabel = cfg.searchLabel ?? cfg.searchPlaceholder;
         table.cards = cfg.cards ?? !cfg.selectable; // a card has no select-all
     }
 

@@ -1,0 +1,13 @@
+@* A PkComponentBase (issue 1728) whose ReloadParameters names only Key, like a card that takes a record key plus display parameters. *@
+@inherits PkComponentBase
+
+<p>@Label</p>
+
+@code {
+    [Parameter] public int Key { get; set; }
+    [Parameter] public string Label { get; set; } = "";
+    public int Loads { get; private set; }
+    protected override IReadOnlyCollection<string>? ReloadParameters => ["Key"];
+    protected override string LogScope => "Card";
+    protected override Task OnLoadAsync(CancellationToken cancel) { Loads++; if (Key < 0) throw new InvalidOperationException("store offline"); return Task.CompletedTask; }
+}

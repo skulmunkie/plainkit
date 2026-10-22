@@ -3,5 +3,7 @@
 /* Until the table upgrades it holds the height its loading state takes (toolbar, gap, a page of skeleton rows), so the table arriving moves nothing (CLS, issue 1372). */
 pk-data-table:not(:defined) { display: block; min-block-size: calc(var(--space-8) + var(--space-2) + var(--space-3) + var(--space-4) + var(--space-12) * 5); }
 pk-page-shell { flex: 1 1 auto; min-block-size: 0; }
-::slotted([slot="before-list"]) { flex: none; margin-block-end: var(--space-4); }
+/* The before-list region (1726) is a box of the page's own, so a Blazor wrapper that is display: contents rule cannot defeat it. It keeps its content height while the page has room and gives way (shrinks and scrolls inside its own box) when it does not, because the table region beside it takes the shrinking first (a large flex-shrink) down to a floor of --pk-list-page-table-min (about three rows with the toolbar and pager): a tall summary never squeezes the rows to zero. In a body with no definite height nothing shrinks and the page scrolls as a whole. Hidden until something is slotted, so an empty slot leaves no gap. */
+[part="before"] { display: flex; flex-direction: column; flex: 0 1 auto; min-block-size: 0; overflow-y: auto; overscroll-behavior: contain; margin-block-end: var(--space-4); }
+[part="before"]:not([hidden]) + pk-data-table { flex-shrink: 1000; min-block-size: var(--pk-list-page-table-min, calc(var(--space-12) * 6)); }
 pk-page-shell::part(content) { display: flex; flex-direction: column; }

@@ -109,3 +109,21 @@ test('a modified click on a link row navigates natively', () => {
     row.listeners[0]({ composedPath: () => [label], ctrlKey: true, preventDefault() { label.prevented = true; } });
     assert.equal(label.prevented, undefined); assert.deepEqual(emitted.map(e => e[0]), ['pk-select']);
 });
+
+test('navigate host raises a non-cancelable pk-navigate and does not assign the location; none leaves the click to the browser; the tree default applies (#1713)', () => {
+    const run = (props, treeNavigate) => {
+        const { el, row, label, emitted } = make({ href: '/a/b', ...props }, []);
+        let assigned = null; Object.defineProperty(el, 'ownerDocument', { get: () => ({ defaultView: { location: { assign: u => { assigned = u; } } } }) });
+        el.closest = sel => (sel === 'pk-tree' && treeNavigate ? { navigate: treeNavigate } : null);
+        el.warnOnce = () => {}; el.connected(); el.updated();
+        let cancelable = null; el.emit = (n, d, o) => { if (n === 'pk-navigate') cancelable = o.cancelable; return true; };
+        row.listeners[0]({ composedPath: () => [label], preventDefault() { label.prevented = true; } });
+        return { assigned, cancelable, prevented: label.prevented };
+    };
+    assert.deepEqual(run({}), { assigned: '/a/b', cancelable: true, prevented: true }, 'router (default) assigns when nothing cancels');
+    assert.deepEqual(run({ navigate: 'host' }), { assigned: null, cancelable: false, prevented: true });
+    assert.deepEqual(run({}, 'host'), { assigned: null, cancelable: false, prevented: true }, 'inherited from the tree');
+    assert.deepEqual(run({ navigate: 'router' }, 'host'), { assigned: '/a/b', cancelable: true, prevented: true }, 'the item wins');
+    assert.deepEqual(run({ navigate: 'none' }), { assigned: null, cancelable: null, prevented: undefined }, 'none: no event, the browser follows');
+});
+

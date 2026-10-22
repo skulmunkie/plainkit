@@ -9,7 +9,7 @@ public sealed record PkDialogField(string Name, string? Label = null, string? Va
 public sealed record PkDialogAction(string Label, string Value = "ok", string? Variant = null);
 
 /// <summary>What a dialog shows and how it closes. Only the members its kind uses matter (see <see cref="IPkDialogs"/>).</summary>
-public sealed record PkDialogOptions
+public sealed partial record PkDialogOptions
 {
     /// <summary>The title.</summary>
     public string? Heading { get; init; }

@@ -1,13 +1,13 @@
-// pk-loading-overlay[fill] around a pk-list-page in a definite-height flex column (issue 1705): the header row and pager stay pinned, only the rows scroll, the page does not grow to its content.
+// pk-loading-overlay[fill] around a pk-list-page under the <main> the Blazor PkApp draws, in a pk-app-shell[contain] body (issues 1705, 1716): the header row and pager stay pinned, only the rows scroll, the page does not grow to its content.
 const columns = [{ key: 'sku', label: 'SKU' }, { key: 'title', label: 'Title' }];
 const rows = Array.from({ length: 50 }, (_, i) => ({ id: i + 1, sku: `AC-${1000 + i}`, title: `Widget number ${i + 1}` }));
 const COL = 'pk-app-shell >>> [part=body]';
 
 export default {
     name: 'loading-overlay-fill',
-    issue: [1705],
+    issue: [1705, 1716],
     elements: ['loading-overlay', 'list-page'],
-    html: `<pk-app-shell flush><span slot="header">Orders</span><pk-loading-overlay fill label="Loading orders"><pk-list-page></pk-list-page></pk-loading-overlay><span slot="footer">Acme Inc.</span></pk-app-shell>`,
+    html: `<pk-app-shell flush contain><span slot="header">Orders</span><main><pk-loading-overlay fill label="Loading orders"><pk-list-page></pk-list-page></pk-loading-overlay></main><span slot="footer">Acme Inc.</span></pk-app-shell>`,
     setup(frame) {
         const lp = frame.querySelector('pk-list-page');
         lp.config = { heading: 'Orders', columns, pageSize: 50, stickyHeader: true };

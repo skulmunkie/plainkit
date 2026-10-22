@@ -8,6 +8,8 @@ slot[name="toolbar"]::slotted([data-end]) { margin-inline-start: auto; }
 [part="bulk"] { display: flex; flex-wrap: wrap; align-items: center; gap: var(--gap-control) var(--space-4); margin-block-end: var(--space-2); padding: var(--space-2) var(--space-3); border: 1px solid var(--color-accent); border-radius: var(--radius-md); background: color-mix(in srgb, var(--color-accent) 14%, var(--color-panel)); font-weight: 600; }
 [part="scroll"] { flex: 1 1 auto; min-block-size: 0; overflow: auto; max-block-size: var(--pk-table-max-height, none); }
 :host([flow]) [part="scroll"] { overflow: visible; }
+/* A slotted footer (a pager) is a bar of its own (1724): ruled off from the rows, with block padding on both sides so its content is centred in it. --pk-table-footer-padding tunes it; the empty wrapper stays flat. */
+[part="footer"][data-bar] { padding-block: var(--pk-table-footer-padding, var(--space-3)); border-block-start: 1px solid var(--color-border); }
 [part="scroll"]:focus-visible, tr[data-clickable]:focus-visible { outline: var(--focus-ring); outline-offset: -2px; }
 table { inline-size: 100%; border-collapse: collapse; font-size: var(--text-read); }
 caption { padding-block: var(--space-2); color: var(--color-muted); font-size: var(--text-meta); text-align: start; caption-side: bottom; }

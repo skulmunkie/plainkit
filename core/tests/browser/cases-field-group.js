@@ -298,6 +298,17 @@ export const fieldGroupCases = [
         t.eq(el.values.v, ''); t.eq(changes.at(-1)?.key, 'v');
     }],
 
+    ['field-group: a combobox spec with debounce reaches the element, which holds pk-combo-query until typing pauses (#1720)', async t => {
+        const el = await mountGroup(t, [{ key: 'v', label: 'Variant', kind: 'combobox', debounce: 250 }], {});
+        const combo = el.shadowRoot.querySelector('pk-combobox'); t.eq(combo.debounce, 250, 'the spec reaches the element');
+        const queries = []; combo.addEventListener('pk-combo-query', e => queries.push(e.detail.query));
+        const input = combo.part('control');
+        for (const text of ['a', 'ab', 'abc']) { input.value = text; input.dispatchEvent(new Event('input', { bubbles: true })); }
+        t.eq(queries.length, 0, 'nothing fires while typing');
+        await new Promise(r => setTimeout(r, 450));
+        t.eq(queries.join('|'), 'abc', 'one query with the latest text after the pause');
+    }],
+
     ['field-group: layout inline puts short fields and the end slot on one bottom-aligned row, wrapping on a narrow container, without the 16rem column minimum (#1688)', async t => {
         const fields = [{ key: 'sku', label: 'SKU' }, { key: 'qty', label: 'Quantity', kind: 'number' }, { key: 'note', label: 'Note' }];
         const host = t.stage('<div><pk-field-group label="Add line" layout="inline"><pk-button slot="end" id="add">Add</pk-button><pk-button slot="end" id="cancel" variant="ghost">Cancel</pk-button></pk-field-group></div>');

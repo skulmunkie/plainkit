@@ -133,8 +133,14 @@
         "cancellation"
       ]
     },
+    "PkBulkQuery.cs": {
+      "category": "dto"
+    },
     "PkChartData.cs": {
       "category": "dto"
+    },
+    "PkComponentBase.Load.cs": {
+      "category": "runtime"
     },
     "PkComponentBase.Tick.cs": {
       "category": "runtime"
@@ -205,6 +211,9 @@
     },
     "PkNotifications.cs": {
       "category": "runtime"
+    },
+    "PkDialogOptions.Confirm.cs": {
+      "category": "dto"
     },
     "PkDialogOptions.cs": {
       "category": "dto"
@@ -307,6 +316,9 @@
       "category": "callback-slot"
     },
     "Testing/PkRecordPageTesting.cs": {
+      "category": "callback-slot"
+    },
+    "Testing/PkPageTesting.Resume.cs": {
       "category": "callback-slot"
     },
     "Testing/PkPageTesting.cs": {
