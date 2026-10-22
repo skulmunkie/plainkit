@@ -21,7 +21,9 @@
       "description": "The current filter selections as a plain object keyed by filter key ({} with nothing selected; an empty selection is dropped). Read it inside load(key); changing a filter reloads every widget that has already loaded."
     }
   ],
-  "slots": [],
+  "slots": [
+    { "name": "badges", "description": "Status chips beside the title." }
+  ],
   "events": [
     {
       "name": "pk-action",

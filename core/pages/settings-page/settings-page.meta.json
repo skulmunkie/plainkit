@@ -21,7 +21,9 @@
       "description": "The current values, keyed by field key (what save() receives and discard() restores to). Set again once loaded values arrive (e.g. from ctx.store) to refresh the fields and take a new baseline."
     }
   ],
-  "slots": [],
+  "slots": [
+    { "name": "badges", "description": "Status chips beside the title." }
+  ],
   "events": [
     {
       "name": "pk-action",

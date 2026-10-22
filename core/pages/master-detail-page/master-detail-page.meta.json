@@ -29,6 +29,7 @@
     }
   ],
   "slots": [
+    { "name": "badges", "description": "Status chips beside the title." },
     { "name": "detail", "description": "The record (mountDetail not set), shown only while recordId is set." }
   ],
   "events": [

@@ -36,6 +36,7 @@
     }
   ],
   "slots": [
+    { "name": "badges", "description": "Status chips beside the title." },
     { "name": "actions", "description": "Title bar content." },
     { "name": "toolbar", "description": "End of the toolbar." },
     { "name": "before-list", "description": "Content between the title bar and the list (an alert, a summary card). It keeps its height while the page has room, else shrinks and scrolls in its own box, so the list keeps --pk-list-page-table-min and a tall summary never squeezes the rows to zero; with stickyHeader the column header and pager stay pinned. With no definite body height the page scrolls as a whole." }

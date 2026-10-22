@@ -73,4 +73,14 @@ export const pageShellCases = [
         t.ok(root.querySelector('[part="trail"] a[aria-label="Home"]'), 'config.homeHref draws the home crumb');
         t.ok(rect(root.querySelector('[part="overflow-button"]')).width > 0, 'config.actionsOverflow draws the overflow button');
     }],
+
+    ['page types: a badges slot puts the host\'s chips beside the title (#1735)', async t => {
+        for (const tag of ['pk-list-page', 'pk-record-page', 'pk-settings-page', 'pk-dashboard-page']) {
+            const host = t.stage(`<${tag}><pk-badge slot="badges">Draft</pk-badge></${tag}>`); host.style.width = '1000px';
+            const el = host.firstElementChild; el.config = { heading: 'Title', title: 'Title' };
+            await t.load(host); await customElements.whenDefined('pk-page-header'); await t.settle();
+            const chip = el.querySelector('pk-badge'), lead = el.shadowRoot.querySelector('pk-page-shell').part('header').shadowRoot.querySelector('[part=lead]');
+            t.ok(rect(chip).width > 0 && rect(chip).left >= rect(lead).left - 1 && rect(chip).right <= rect(el).right, `${tag}: the slotted badge is drawn in the title bar`);
+        }
+    }],
 ];
