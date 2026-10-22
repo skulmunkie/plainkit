@@ -1,4 +1,4 @@
-:host { display: flex; flex-wrap: wrap; gap: var(--pk-field-row-gap, var(--space-4)); margin-bottom: var(--pk-field-row-margin, var(--space-3)); }
+:host { text-align: inherit; display: flex; flex-wrap: wrap; gap: var(--pk-field-row-gap, var(--space-4)); margin-bottom: var(--pk-field-row-margin, var(--space-3)); }
 :host([hidden]) { display: none; }
 :host([align="end"]) { align-items: flex-end; }
 :host([align="center"]) { align-items: center; }
