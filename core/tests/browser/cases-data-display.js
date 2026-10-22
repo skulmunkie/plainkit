@@ -1027,6 +1027,17 @@ export const dataDisplayCases = [
         const d = await t.mount('<pk-card heading="H">Body</pk-card>'); t.eq(getComputedStyle(d.part('media')).display, 'none'); t.ok(d.part('link').hidden);
     }],
 
+    ['card: at phone width a heading with a badge and a button in the actions keeps a readable column; the actions wrap below it (#1727)', async t => {
+        const host = await t.mount('<div style="inline-size:340px"><pk-card heading="A reasonably long heading"><pk-badge slot="actions">Draft</pk-badge><pk-button slot="actions" size="sm">Publish now</pk-button>Body</pk-card></div>');
+        const c = host.querySelector('pk-card'); await t.load(c.shadowRoot); await t.settle();
+        const title = c.part('title').getBoundingClientRect(), head = c.part('header').getBoundingClientRect(), body = c.part('body').getBoundingClientRect();
+        t.ok(title.width >= head.width * 0.5, `the heading keeps at least half the header (${title.width.toFixed(0)} of ${head.width.toFixed(0)} px)`);
+        t.ok(title.height < 40, `the heading is one line (${title.height.toFixed(0)} px high)`);
+        const btn = c.querySelector('pk-button').getBoundingClientRect();
+        t.ok(btn.right <= head.right + 1 && btn.left >= head.left - 1, 'the button stays inside the header');
+        t.ok(body.top >= btn.bottom, 'the body is below the actions');
+    }],
+
     ['timeline: list role on the feed, listitem on each item, and a time element', async t => {
         const el = await t.mount('<pk-timeline label="Order"><pk-timeline-item heading="A" time="2026-09-18" status="done"></pk-timeline-item><pk-timeline-item heading="B"></pk-timeline-item></pk-timeline>');
         t.eq(el.internals.role, 'list'); t.eq(el.internals.ariaLabel, 'Order');
