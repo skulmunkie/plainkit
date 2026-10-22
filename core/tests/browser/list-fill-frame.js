@@ -3,7 +3,7 @@
 import { loadElements } from '../../js/loader.js';
 
 const ROWS = Array.from({ length: 50 }, (_, i) => ({ id: i + 1, sku: `AC-${1000 + i}`, title: `Widget number ${i + 1}` }));
-const overlay = new URLSearchParams(location.search).has('overlay');
+const q = new URLSearchParams(location.search), overlay = q.has('overlay'), wrap = q.get('wrap');
 const mk = (tag, attrs = {}, text) => { const e = document.createElement(tag); for (const [k, v] of Object.entries(attrs)) e.setAttribute(k, v); if (text) e.textContent = text; return e; };
 
 const shell = mk('pk-app-shell', { contain: '' });
@@ -15,7 +15,11 @@ list.config = {
     columns: [{ key: 'sku', label: 'SKU' }, { key: 'title', label: 'Title' }], bulkActions: [{ id: 'archive', label: 'Archive' }],
 };
 list.load = () => ({ rows: ROWS, total: 200 });
-if (overlay) { const o = mk('pk-loading-overlay', { fill: '', busy: '', label: 'Saving' }); o.append(list); shell.append(o); } else shell.append(list);
+let top = list;
+if (overlay) { const o = mk('pk-loading-overlay', { fill: '', busy: '', label: 'Saving' }); o.append(list); top = o; }
+// wrap=main: the <main id="pk-main"> that the Blazor PkApp draws around the page (a block, not a flex column) (#1716).
+if (wrap) { const w = mk(wrap); w.append(top); top = w; }
+shell.append(top);
 document.body.append(shell);
 shell.style.blockSize = `${innerHeight}px`;
 loadElements(document);

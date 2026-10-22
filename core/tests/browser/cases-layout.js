@@ -748,12 +748,13 @@ layoutCases.push(
 
 // Full-height list page: pk-app-shell[contain] + pk-list-page (pinned header, title bar, before-list alert, selectable table with a bulk bar, 50 rows, pager), plain and inside <pk-loading-overlay fill> (#1705).
 // Only the rows scroll; everything else keeps its rect. The fixture (list-fill-frame.html) opens in an iframe of the width under test.
-for (const overlay of [false, true]) layoutCases.push(
-    [`full-height list page${overlay ? ' inside a busy loading-overlay fill' : ''}: the document does not scroll, the table's scroll part is the only scroller, the pinned parts keep their rects while the rows scroll, the pager is flush with the shell body (1280 and 375)`, async t => {
+// Shapes: the page alone, inside a busy overlay, and inside the overlay under the <main> the Blazor PkApp draws (#1716).
+for (const shape of [{}, { overlay: 1 }, { overlay: 1, wrap: 'main' }]) layoutCases.push(
+    [`full-height list page${shape.overlay ? ' inside a busy loading-overlay fill' : ''}${shape.wrap ? ' under a <' + shape.wrap + '>' : ''}: the document does not scroll, the table's scroll part is the only scroller, the pinned parts keep their rects while the rows scroll, the pager is flush with the shell body (1280 and 375)`, async t => {
         for (const width of [1280, 375]) {
-            const host = t.stage(''), fr = document.createElement('iframe'), at = `${width}px${overlay ? ' busy' : ''}`;
+            const host = t.stage(''), fr = document.createElement('iframe'), at = `${width}px${shape.overlay ? ' busy' : ''}${shape.wrap ? ' ' + shape.wrap : ''}`, overlay = !!shape.overlay;
             fr.title = `list page at ${width}px`; fr.style.cssText = `width:${width}px;height:700px;border:0;display:block`;
-            fr.src = new URL('./list-fill-frame.html', import.meta.url).href + (overlay ? '?overlay=1' : '');
+            fr.src = new URL('./list-fill-frame.html', import.meta.url).href + '?' + new URLSearchParams(Object.fromEntries(Object.entries(shape).map(([k, v]) => [k, v === 1 ? '' : v]))).toString();
             await new Promise(resolve => { fr.addEventListener('load', resolve, { once: true }); host.append(fr); });
             const win = fr.contentWindow, d = win.document, wait = ms => new Promise(r => setTimeout(r, ms)), r = el => { const b = el.getBoundingClientRect(); return `${Math.round(b.x * 10) / 10},${Math.round(b.y * 10) / 10},${Math.round(b.width * 10) / 10},${Math.round(b.height * 10) / 10}`; };
             await Promise.all(['pk-app-shell', 'pk-list-page', 'pk-data-table', 'pk-table', 'pk-page-shell', 'pk-pagination', ...(overlay ? ['pk-loading-overlay'] : [])].map(tag => win.customElements.whenDefined(tag)));
