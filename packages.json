@@ -8,8 +8,8 @@
       "built": true,
       "requires": [],
       "blazorOption": null,
-      "maxPackedBytes": 597500,
-      "maxUnpackedBytes": 2343100
+      "maxPackedBytes": 587500,
+      "maxUnpackedBytes": 2312400
     },
     {
       "id": "plainkit.tools",
@@ -116,7 +116,7 @@
     {
       "id": "plainkit.dock",
       "title": "Dock workspace",
-      "built": false,
+      "built": true,
       "requires": [
         "plainkit"
       ],
@@ -134,8 +134,8 @@
         "dock-tree.js"
       ],
       "maxPackedBytes": null,
-      "maxUnpackedBytes": null,
-      "maxZipBytes": null
+      "maxUnpackedBytes": 39900,
+      "maxZipBytes": 16500
     },
     {
       "id": "plainkit.canvas",

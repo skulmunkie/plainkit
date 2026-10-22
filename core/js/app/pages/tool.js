@@ -5,14 +5,14 @@
 export const PAGE_TYPE = {
     id: 'tool',
     summary: 'Input fields, a Run action and an outcome panel.',
-    configKeys: ['heading', 'input', 'outcome', 'runLabel', 'run'],
+    configKeys: ['heading', 'breadcrumb', 'actions', 'badges', 'actionsOverflow', 'overflowLabel', 'homeHref', 'homeLabel', 'homeIcon', 'input', 'outcome', 'runLabel', 'run'],
     states: [],
     useWhen: 'A single-purpose utility: fill inputs, run, see a result.',
 };
-import { mountTitled } from '../../page-shell.js';
+import { mountTitled, titleBarKeys } from '../../page-shell.js';
 export default (host, config = {}, ctx) => {
     const el = host.ownerDocument.createElement('pk-tool-page');
-    el.config = { input: config.input, outcome: config.outcome };
+    el.config = { heading: config.heading, breadcrumb: config.breadcrumb, actions: config.actions, ...titleBarKeys(config), input: config.input, outcome: config.outcome };
     if (config.runLabel !== undefined) el.runLabel = config.runLabel;
     if (config.run) el.run = values => config.run(values, ctx);
     return mountTitled(host, el, config.heading);

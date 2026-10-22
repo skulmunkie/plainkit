@@ -65,6 +65,7 @@
     }
   ],
   "slots": [
+    { "name": "badges", "description": "Status chips beside the title." },
     { "name": "main-before", "description": "Content placed above the field list or form in the main column (a PkCard section, a banner). Shown in view and edit mode." },
     { "name": "main-after", "description": "Content placed below the field list or form in the main column (more PkCard sections). Shown in view and edit mode." },
     { "name": "side-after", "description": "Content placed after the sidebar cards." }

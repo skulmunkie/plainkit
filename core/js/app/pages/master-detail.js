@@ -5,15 +5,15 @@
 export const PAGE_TYPE = {
     id: 'master-detail',
     summary: 'A list pane plus a detail pane for the selected record, on one route.',
-    configKeys: ['heading', 'breadcrumb', 'actions', 'list', 'backLabel', 'none', 'label', 'param', 'fill', 'rowHref', 'listHref', 'load', 'mountDetail'],
+    configKeys: ['heading', 'breadcrumb', 'actions', 'badges', 'actionsOverflow', 'overflowLabel', 'homeHref', 'homeLabel', 'homeIcon', 'list', 'backLabel', 'none', 'label', 'param', 'fill', 'rowHref', 'listHref', 'load', 'mountDetail'],
     states: ['none'],
     useWhen: 'A record opened beside its list on one route, such as an inbox. Not the default: a list and its record are usually two routes (the list and record page types).',
 };
-import { mountTitled } from '../../page-shell.js';
+import { mountTitled, titleBarKeys } from '../../page-shell.js';
 export default (host, config = {}, ctx) => {
     const el = host.ownerDocument.createElement('pk-master-detail-page');
     const { list, backLabel, none, label, param = 'id', rowHref, listHref, load, mountDetail, fill } = config;
-    el.config = { heading: config.heading, breadcrumb: config.breadcrumb, actions: config.actions, list, backLabel, none, label };
+    el.config = { heading: config.heading, breadcrumb: config.breadcrumb, ...titleBarKeys(config), actions: config.actions, list, backLabel, none, label };
     const id = ctx.route?.params?.[param];
     if (id) el.recordId = String(id);
     if (fill) el.fill = true;

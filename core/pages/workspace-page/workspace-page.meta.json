@@ -22,6 +22,7 @@
     }
   ],
   "slots": [
+    { "name": "badges", "description": "Status chips beside the title." },
     { "name": "", "description": "The main pane (mount() not set)." },
     { "name": "nav", "description": "The nav pane (mount() not set)." },
     { "name": "aside", "description": "The aside pane (mount() not set; config.panes lists it)." }

@@ -11,7 +11,7 @@
       "type": "json",
       "default": {},
       "reflect": false,
-      "description": "{ input: [{ key, type: 'text'|'email'|'number'|'date'|'textarea'|'select', label, placeholder?, required?, options?, hint? }], outcome: 'stat'|'table'|'code'|'text' }. input builds one labelled control per field (a hint, or help, adds an info button beside the label that opens a tooltip) (a select's options are [{ value, label? }] or plain strings; styled?: true on a select draws the themed list, the combobox in select mode, as pk-field-group does; type 'combobox' takes mode?: 'select' | 'autocomplete'); outcome picks what the run() result draws as: stat (Object.assign onto pk-stat: value, label, ...), table ({ columns, rows } onto pk-table), code (a string, or { code } onto pk-code-block), text (a string, or { text })."
+      "description": "Optional title bar from the shared page shell: heading?, breadcrumb?: [{ label, href? }], actions?: [{ key, label, href?, variant?, hint? }] (an action without href fires pk-action), and the title bar keys of pk-page-header: badges [{ label, variant? }], actionsOverflow, overflowLabel, homeHref, homeLabel, homeIcon; nothing is drawn when none is set. { input: [{ key, type: 'text'|'email'|'number'|'date'|'textarea'|'select', label, placeholder?, required?, options?, hint? }], outcome: 'stat'|'table'|'code'|'text' }. input builds one labelled control per field (a hint, or help, adds an info button beside the label that opens a tooltip) (a select's options are [{ value, label? }] or plain strings; styled?: true on a select draws the themed list, the combobox in select mode, as pk-field-group does; type 'combobox' takes mode?: 'select' | 'autocomplete'); outcome picks what the run() result draws as: stat (Object.assign onto pk-stat: value, label, ...), table ({ columns, rows } onto pk-table), code (a string, or { code } onto pk-code-block), text (a string, or { text })."
     },
     {
       "name": "runLabel",
@@ -26,13 +26,15 @@
       "name": "",
       "description": "The app's own content. When present it replaces the generated input fields, Run button and outcome (config.input, config.outcome and run are then unused)."
     },
-    {
-      "name": "title",
-      "description": "The page title: a level 1 pk-heading the built-in page factory (mountTitled) appends from config.heading, so the app can focus it after navigation."
-    }
+    { "name": "title", "description": "The page title: a level 1 pk-heading the built-in page factory (mountTitled) appends from config.heading, so the app can focus it after navigation." },
+    { "name": "badges", "description": "Status chips beside the title." },
+    { "name": "actions", "description": "Title bar buttons." }
   ],
-  "events": [],
+  "events": [
+    { "name": "pk-action", "detail": "{ key }", "detailProps": { "key": "string" }, "description": "A title-bar action (config.actions entry without an href) was clicked." }
+  ],
   "parts": [
+    { "name": "header", "description": "The title bar (pk-page-shell): heading, breadcrumb, actions and badges from config; the form sits under it." },
     { "name": "custom", "description": "The default slot: the app's own content, which replaces the form and outcome when present." },
     { "name": "form", "description": "Wraps the fields and the Run button; submitting it (click or Enter) runs the action." },
     { "name": "fields", "description": "Holds one control per config.input entry." },

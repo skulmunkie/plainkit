@@ -3,4 +3,3 @@
 [part="fields"] { display: grid; gap: var(--space-3); inline-size: 100%; }
 [part="form"][hidden], [part="outcome"][hidden] { display: none; }
 [part="outcome"] { margin-block-start: var(--space-6); }
-::slotted([slot="title"]) { display: block; margin-block-end: var(--space-4); }

@@ -22,6 +22,7 @@
     }
   ],
   "slots": [
+    { "name": "badges", "description": "Status chips beside the title." },
     { "name": "step-<id>", "dynamic": true, "description": "The step with that id (no fields, no mountStep). The app owns it; its controls are not collected or validated." }
   ],
   "events": [

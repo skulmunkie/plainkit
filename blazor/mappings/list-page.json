@@ -2,6 +2,14 @@
   "component": "PkListPage",
   "params": [
     {
+      "name": "BadgesContent",
+      "map": "slot",
+      "slot": "badges",
+      "type": "RenderFragment?",
+      "extra": true,
+      "doc": "Status chips (PkBadge) beside the title, after any Config badges."
+    },
+    {
       "name": "Config",
       "type": "object",
       "jsonText": true,

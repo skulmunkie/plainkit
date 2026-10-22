@@ -51,7 +51,7 @@ export default Base => class extends Base {
     // Rebuilt only when config.actions changes: link buttons; app logic goes in the actions or toolbar slot.
     buildActions() {
         const inBar = !!this.config?.toolbarInHeader;
-        showTitleBar(this, this.part('header'), inBar ? {} : { heading: this.config?.heading, breadcrumb: this.config?.breadcrumb });
+        showTitleBar(this, this.part('header'), inBar ? {} : { ...this.config, actions: [] });
         this.buildLead(inBar);
         this.showHeaderSlot();
         this.fill('actions', this.config?.actions);
@@ -60,7 +60,7 @@ export default Base => class extends Base {
 
     // toolbarInHeader (#1723): the title goes to the table's lead slots, the host actions to its actions slot; the shell header stays bare.
     buildLead(on) {
-        const t = this.part('table'), { heading, breadcrumb } = this.config ?? {}, h = this.shadowRoot?.querySelector?.('pk-page-shell > slot:not([name="title"])');
+        const t = this.part('table'), { heading, breadcrumb } = this.config ?? {}, h = this.shadowRoot?.querySelector?.('pk-page-shell > slot[slot="actions"]');
         showTitleBar(this, t, on ? { heading, breadcrumb } : {});
         t.$bar.push(...(on ? [Object.assign(this.ownerDocument.createElement('slot'), { name: 'actions', slot: 'actions' })] : []));
         if (h) h.name = on ? 'x' : 'actions';

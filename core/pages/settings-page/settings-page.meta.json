@@ -11,7 +11,7 @@
       "type": "json",
       "default": {},
       "reflect": false,
-      "description": "{ sections: [{ heading, fields: [{ key, type: 'text'|'email'|'number'|'date'|'textarea'|'select'|'switch'|'range', label, placeholder?, required?, options?, min?, max?, step?, hint? }] }] }. A field's hint (or help) draws an info button beside its label that opens a tooltip; a field without one is unchanged. Each section draws as a pk-card (bare?: true draws none and no heading: the section's fields and slot content sit directly in the page and the app's content draws its own cards; the section still has its nav item and tab, its heading is the label, and the save bar covers it); a select's options are [{ value, label? }] or plain strings; styled?: true on a select draws the themed list, the combobox in select mode, as pk-field-group does; type 'combobox' takes mode?: 'select' | 'autocomplete'. Section nav: nav?: true | false | 'auto' (default 'auto': a list of the sections beside the cards from three sections up; false keeps the plain stack, true forces it at one or two), and each section's key? (its anchor, default a slug of its heading). The list is sticky and marks the section in view with aria-current; choosing one scrolls its card to the top and moves focus onto it; on a phone the list is replaced by pk-detail-layout's tab strip, one section at a time. Optional title bar from the shared page shell: heading?: string, breadcrumb?: [{ label, href? }], actions?: [{ key, label, href?, variant?, hint? }] (a hint shows as a tooltip on the button) (an action without href fires pk-action). Nothing is drawn when none is set."
+      "description": "{ sections: [{ heading, fields: [{ key, type: 'text'|'email'|'number'|'date'|'textarea'|'select'|'switch'|'range', label, placeholder?, required?, options?, min?, max?, step?, hint? }] }] }. pk-page-header title bar keys: badges [{ label, variant? }], actionsOverflow, overflowLabel, homeHref, homeLabel, homeIcon. A field's hint (or help) draws an info button beside its label that opens a tooltip; a field without one is unchanged. Each section draws as a pk-card (bare?: true draws none and no heading: the section's fields and slot content sit directly in the page and the app's content draws its own cards; the section still has its nav item and tab, its heading is the label, and the save bar covers it); a select's options are [{ value, label? }] or plain strings; styled?: true on a select draws the themed list, the combobox in select mode, as pk-field-group does; type 'combobox' takes mode?: 'select' | 'autocomplete'. Section nav: nav?: true | false | 'auto' (default 'auto': a list of the sections beside the cards from three sections up; false keeps the plain stack, true forces it at one or two), and each section's key? (its anchor, default a slug of its heading). The list is sticky and marks the section in view with aria-current; choosing one scrolls its card to the top and moves focus onto it; on a phone the list is replaced by pk-detail-layout's tab strip, one section at a time. Optional title bar from the shared page shell: heading?: string, breadcrumb?: [{ label, href? }], actions?: [{ key, label, href?, variant?, hint? }] (a hint shows as a tooltip on the button) (an action without href fires pk-action). Nothing is drawn when none is set."
     },
     {
       "name": "values",
@@ -21,7 +21,9 @@
       "description": "The current values, keyed by field key (what save() receives and discard() restores to). Set again once loaded values arrive (e.g. from ctx.store) to refresh the fields and take a new baseline."
     }
   ],
-  "slots": [],
+  "slots": [
+    { "name": "badges", "description": "Status chips beside the title." }
+  ],
   "events": [
     {
       "name": "pk-action",

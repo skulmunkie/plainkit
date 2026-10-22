@@ -2,11 +2,33 @@
   "component": "PkToolPage",
   "params": [
     {
+      "name": "BadgesContent",
+      "map": "slot",
+      "slot": "badges",
+      "type": "RenderFragment?",
+      "extra": true,
+      "doc": "Status chips (PkBadge) beside the title, after any Config badges."
+    },
+    {
+      "name": "ActionsContent",
+      "map": "slot",
+      "slot": "actions",
+      "type": "RenderFragment?",
+      "extra": true,
+      "doc": "Title bar buttons, beside any Config actions."
+    },
+    {
+      "name": "OnAction",
+      "event": "pk-action",
+      "extra": true,
+      "note": "A title-bar action (Config actions entry without an href) was clicked; Key is its key."
+    },
+    {
       "name": "Config",
       "type": "object",
       "jsonText": true,
       "prop": "config",
-      "note": "Sent as a JSON attribute: { input: [{ key, type, label, placeholder?, required?, options? }], outcome: 'stat'|'table'|'code'|'text' }."
+      "note": "Sent as a JSON attribute: { heading?, breadcrumb?: [{ label, href? }], actions?: [{ key, label, href?, variant?, hint? }], badges?: [{ label, variant? }], input: [{ key, type, label, placeholder?, required?, options? }], outcome: 'stat'|'table'|'code'|'text' }."
     },
     {
       "name": "RunLabel",
