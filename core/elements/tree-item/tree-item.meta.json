@@ -47,7 +47,7 @@
       "type": "string",
       "default": "",
       "reflect": false,
-      "description": "Who follows the href on a plain click: router (default, empty; the cancelable pk-navigate), host (pk-navigate is a notification and nothing navigates, so the host's own router does) or none (the browser follows the link). Empty takes the value of the pk-tree."
+      "description": "Who follows the href on a click: router (default; cancelable pk-navigate), host (pk-navigate only notifies) or none (the browser follows). Empty takes the pk-tree's."
     },
     {
       "name": "disabled",

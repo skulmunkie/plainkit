@@ -28,7 +28,7 @@
       "type": "string",
       "default": "",
       "reflect": false,
-      "description": "The navigate mode of every item with an href that sets none of its own: router (default, empty), host (pk-navigate is only a notification and the host navigates, for an app without the plainkit router) or none."
+      "description": "The navigate mode of items with an href that set none: router (default), host (the host navigates) or none."
     },
     {
       "name": "value",

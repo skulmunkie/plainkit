@@ -178,7 +178,7 @@
     },
     {
       "name": "--pk-pagination-button-border",
-      "description": "Border colour of the page buttons: 3:1 against the page in both themes by default.",
+      "description": "Border colour of the page buttons.",
       "default": "color-mix(in srgb, var(--color-muted) 85%, var(--color-border))"
     },
     {

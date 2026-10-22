@@ -503,7 +503,7 @@
   "cssProperties": [
     {
       "name": "--pk-table-footer-padding",
-      "description": "Block padding of the footer bar when something is slotted in it (a pager).",
+      "description": "Block padding of the footer bar.",
       "default": "var(--space-3)"
     },
     {
