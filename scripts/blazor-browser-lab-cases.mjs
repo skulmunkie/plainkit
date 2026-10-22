@@ -276,6 +276,21 @@ export const LAB_CASES = [
         await waitText(ctx, 'Answer: no');
         await ctx.noErrors(ctx.openMark, BENIGN);
       } },
+    // #1715: OnConfirmValues over the real dispatcher: the typed text reaches .NET, a refusal keeps the dialog open with the text, the next try closes it.
+    { name: 'dialog-prompt-confirm-values',
+      async run(ctx) {
+        await ctx.open('/lab/fields');
+        await ctx.clickDeep('pk-button', 'Rename');
+        await ctx.waitFor(`!!window.__deep.one('pk-dialog')`, 'the prompt to open');
+        await ctx.typeInto('pk-dialog pk-input >>> input', 'taken');
+        await ctx.clickDeep('pk-button', 'OK');
+        await waitText(ctx, 'That name is taken.', ALL);
+        ctx.ok(await ctx.eval(`window.__deep.one('pk-dialog') && window.__deep.one('pk-dialog').querySelector('pk-input')?.value === 'taken'`), 'the dialog closed or lost the typed text after a refusal');
+        await ctx.typeInto('pk-dialog pk-input >>> input', 'Fresh');
+        await ctx.clickDeep('pk-button', 'OK');
+        await waitText(ctx, 'Renamed: Fresh');
+        await ctx.noErrors(ctx.openMark, BENIGN);
+      } },
     { name: 'element-methods',
       async run(ctx) {
         await ctx.open('/lab/methods');

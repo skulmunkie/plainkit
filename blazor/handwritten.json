@@ -212,6 +212,9 @@
     "PkNotifications.cs": {
       "category": "runtime"
     },
+    "PkDialogOptions.Confirm.cs": {
+      "category": "dto"
+    },
     "PkDialogOptions.cs": {
       "category": "dto"
     },

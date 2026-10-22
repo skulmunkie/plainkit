@@ -65,7 +65,7 @@ internal sealed class PkDialogs(PkRuntime runtime, IPkStorage log) : IPkDialogs
 
     private async ValueTask<T?> Ask<T>(string kind, PkDialogOptions options)
     {
-        using var confirm = options.OnConfirm is { } run ? DotNetObjectReference.Create(new PkDialogConfirm(run)) : null; // the busy state and the retained error are core's (js/dialogs.js onConfirm)
+        using var confirm = (options.OnConfirmValues ?? (options.OnConfirm is { } plain ? _ => plain() : null)) is { } run ? DotNetObjectReference.Create(new PkDialogConfirm(run)) : null; // the busy state and the retained error are core's (js/dialogs.js onConfirm)
         try { return await (await runtime.BridgeAsync()).InvokeAsync<T?>("dialog", _scope, kind, JsonSerializer.SerializeToElement(options, Json), confirm); }
         catch (Exception e) when (PkStorage.Unavailable(e)) { log.Warn($"a {kind} dialog was cancelled: it could not open ({e.GetType().Name})"); return default; }
     }
@@ -77,7 +77,7 @@ internal sealed class PkDialogs(PkRuntime runtime, IPkStorage log) : IPkDialogs
     }
 }
 
-internal sealed class PkDialogConfirm(Func<Task<string?>> run)
+internal sealed class PkDialogConfirm(Func<PkDialogResult, Task<string?>> run)
 {
-    [JSInvokable] public Task<string?> Run() => run();
+    [JSInvokable] public Task<string?> Run(Dictionary<string, string>? values, string? action) => run(new PkDialogResult(action ?? "ok", values ?? []));
 }

@@ -62,6 +62,7 @@
     "PkLifecycle.cs": 119,
     "PkLogging.cs": 213,
     "PkNotifications.cs": 83,
+    "PkDialogOptions.Confirm.cs": 9,
     "PkDialogOptions.cs": 49,
     "PkOptions.cs": 26,
     "PkRecordEditor.cs": 149,
