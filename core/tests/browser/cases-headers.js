@@ -70,8 +70,21 @@ export const headerCases = [
         t.ok(rect(acts[0]).top >= rect(trail).bottom - 1, 'the first action is under the crumbs, not over them');
         t.ok(acts.every(b => rect(b).right <= rect(h).right + 1 && rect(b).left >= rect(h).left - 1), 'every action stays inside the header');
         t.ok(rect(trail).width > 200, 'the crumbs keep their width: ' + rect(trail).width);
-        host.style.width = '1000px'; await t.settle();
+        host.style.width = '1000px'; await t.settle(); await new Promise(r => setTimeout(r, 300)); await t.settle();
         t.ok(Math.abs((rect(acts[0]).top + rect(acts[0]).bottom) / 2 - (rect(trail).top + rect(trail).bottom) / 2) < 8, 'wide: the actions are on the crumbs row');
+    }],
+
+    ['page-header: a record with a long last crumb and a badge popover on a phone stays about two rows: the title clamps to one line and the chips row is badge height (#1739)', async t => {
+        const long = 'A record title long enough to wrap onto three lines on a phone screen';
+        const host = t.stage(`<pk-page-header variant="record" home-href="#home" home-label="Home" crumbs='[{"label":"Items","href":"#items"},{"label":"${long}"}]'><pk-badge>Active</pk-badge><pk-badge variant="ok">Live</pk-badge><pk-badge-popover variant="warn" heading="2 checks failing">2<div slot="details">Details</div></pk-badge-popover><pk-button slot="actions" variant="primary" icon-name="refresh" collapse="phone">Sync</pk-button><pk-dropdown slot="actions"><pk-button slot="trigger" variant="ghost" icon icon-name="more" label="More actions"></pk-button></pk-dropdown></pk-page-header>`);
+        host.style.width = '390px'; await t.load(host); await Promise.all(['pk-badge-popover', 'pk-breadcrumb'].map(n => customElements.whenDefined(n))); await t.settle(); await t.settle();
+        const h = host.firstElementChild, last = h.part('trail').lastElementChild, pop = h.querySelector('pk-badge-popover'), badge = h.querySelector('pk-badge');
+        const lines = (() => { const r = document.createRange(); r.selectNodeContents(last); return new Set([...r.getClientRects()].map(x => Math.round(x.top))).size; })();
+        t.eq(lines, 1, 'the current crumb is one line'); t.ok(rect(last).top < rect(h.part('trail').firstElementChild).bottom, 'and shares the row with the parent crumbs');
+        t.eq(last.getAttribute('title'), long, 'the full title stays available on the clamped crumb');
+        t.ok(rect(pop).height <= rect(badge).height + 4, 'the popover pill is badge height in the chips row: ' + rect(pop).height + ' vs ' + rect(badge).height);
+        t.ok(rect(h).height <= 110, 'the header is about two rows high: ' + rect(h).height);
+        t.ok(rect(last).right <= rect(h).right + 1, 'the crumb stays inside the header');
     }],
 
     ['page-header: a record with no crumbs and no heading keeps its chips and its actions on one row at every width', async t => {

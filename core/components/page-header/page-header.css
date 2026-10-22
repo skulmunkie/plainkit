@@ -10,7 +10,7 @@
 slot[name="actions"][hidden], [part="overflow"][hidden] { display: none; }
 [part="meta"] { margin: 0; font-size: var(--text-read); color: var(--color-muted); }
 ::slotted(h1), ::slotted(h2), ::slotted(h3) { margin: 0; }
-/* A slotted title (a pk-heading, variant h3 for the title size) loses the heading element's own bottom margin. */
+/* A slotted title loses the heading element's margin. */
 ::slotted(pk-heading[slot="title"]) { margin: 0; overflow-wrap: anywhere; }
 :host([variant="section"]) [part="header"] { padding: 0; gap: var(--space-2); }
 :host([variant="section"]) [part="titlebar"] { gap: var(--space-2); }
@@ -25,8 +25,7 @@ slot[name="actions"][hidden], [part="overflow"][hidden] { display: none; }
 [part="chips"][hidden] { display: none; }
 [part="tabs"] { min-inline-size: 0; }
 ::slotted(pk-badge) { align-self: center; flex: none; }
-/* No heading (any variant), not opted into spacious: the crumbs are the title, so the chips and the actions share their row. Narrow: crumbs and actions on row one,
-   only the chips drop to their own row. */
+/* No heading: the crumbs are the title; chips and actions share their row. */
 :host(:not([heading]):not([spacious])) [part="header"] { display: grid; grid-template-columns: auto minmax(0, 1fr) auto; grid-template-areas: "crumbs chips actions" "meta meta meta" "tabs tabs tabs"; align-items: center; column-gap: var(--space-3); }
 :host(:not([heading]):not([spacious])) :is([part="titlebar"], [part="lead"]) { display: contents; }
 :host(:not([heading]):not([spacious])) [part="crumbs"] { grid-area: crumbs; }
@@ -37,26 +36,26 @@ slot[name="actions"][hidden], [part="overflow"][hidden] { display: none; }
 @container (max-width: 46rem) {
     :host(:not([heading]):not([spacious])) [part="header"] { grid-template-columns: minmax(0, 1fr) auto; grid-template-areas: "crumbs actions" "chips chips" "meta meta" "tabs tabs"; }
 }
-/* Two or more inline actions do not fit beside the crumbs on a phone: they take their own row under the crumbs. */
+:host(:not([heading]):not([spacious])) [part="header"][data-wide-actions] { grid-template-columns: minmax(0, 1fr); grid-template-areas: "crumbs" "actions" "chips" "meta" "tabs"; }
+:host(:not([heading]):not([spacious])) [part="header"][data-wide-actions] [part="actions"] { inline-size: 100%; margin-inline-start: 0; }
 @container (max-width: 30rem) {
-    :host(:not([heading]):not([spacious])) [part="header"][data-wide-actions] { grid-template-columns: minmax(0, 1fr); grid-template-areas: "crumbs" "actions" "chips" "meta" "tabs"; }
-    :host(:not([heading]):not([spacious])) [part="header"][data-wide-actions] [part="actions"] { inline-size: 100%; }
+    :host(:not([heading]):not([spacious])) [part="trail"] > [aria-current="page"] { flex: 1 1 0; min-inline-size: min(100%, 8rem); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; display: block; line-height: var(--touch-target); }
 }
-/* No crumbs and no heading: the chips are the lead, so they take row one with the actions (not a row under them, which would put the actions above what they act on). */
+/* No crumbs and no heading: the chips take row one with the actions. */
 :host(:not([heading]):not([spacious])) [part="crumbs"][hidden] ~ [part="titlebar"] [part="chips"]:not([hidden]) { grid-row: 1; grid-column: 1 / 3; }
 :host(:not([heading]):not([spacious])) [part="crumbs"][hidden] ~ [part="titlebar"] [part="actions"] { grid-row: 1; grid-column: 3; }
 @container (max-width: 46rem) {
     :host(:not([heading]):not([spacious])) [part="crumbs"][hidden] ~ [part="titlebar"] [part="chips"]:not([hidden]) { grid-column: 1; }
     :host(:not([heading]):not([spacious])) [part="crumbs"][hidden] ~ [part="titlebar"] [part="actions"] { grid-column: 2; }
 }
-/* A record on a narrow container: the title and the actions stay on row one, the chips and badges drop to their own row under them. */
+/* A narrow record: title and actions on row one, chips under them. */
 @container (max-width: 46rem) {
     :host([variant="record"]) [part="lead"] { display: contents; }
     :host([variant="record"]) [part="title"] { order: 0; }
     :host([variant="record"]) [part="actions"] { order: 1; inline-size: auto; margin-inline-start: auto; }
     :host([variant="record"]) [part="chips"]:not([hidden]) { display: flex; flex-wrap: wrap; align-items: center; gap: var(--space-2); order: 2; flex: 1 0 100%; }
 }
-/* Its own stacking context, one above the in-body sticky strips (--z-sticky), so a popover opened from the header is not drawn under them. */
+/* Above the in-body sticky strips, so a popover from the header is not under them. */
 :host([sticky]) { position: sticky; inset-block-start: var(--pk-page-header-sticky-top, 0); z-index: calc(var(--z-sticky) + 1); isolation: isolate; background: var(--color-bg); }
 @media (--phone) { :host([sticky-from=phone]), :host([sticky-from=tablet]) { position: static; } }
 @media (--tablet) { :host([sticky-from=tablet]) { position: static; } }
