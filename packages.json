@@ -8,8 +8,8 @@
       "built": true,
       "requires": [],
       "blazorOption": null,
-      "maxPackedBytes": 587500,
-      "maxUnpackedBytes": 2312400
+      "maxPackedBytes": 406700,
+      "maxUnpackedBytes": 1433900
     },
     {
       "id": "plainkit.tools",
@@ -159,6 +159,25 @@
       "maxPackedBytes": null,
       "maxUnpackedBytes": 47020,
       "maxZipBytes": 21690
+    },
+    {
+      "id": "plainkit.ide",
+      "title": "Editor and IDE metadata",
+      "built": true,
+      "requires": [
+        "plainkit"
+      ],
+      "blazorOption": null,
+      "files": [
+        "custom-elements.json",
+        "elements.d.ts",
+        "elements.vue.d.ts",
+        "vscode.html-custom-data.json",
+        "web-types.json"
+      ],
+      "maxPackedBytes": null,
+      "maxUnpackedBytes": 902100,
+      "maxZipBytes": 187400
     }
   ],
   "siteOnly": [

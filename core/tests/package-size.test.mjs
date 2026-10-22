@@ -13,6 +13,7 @@
 // Then (#1656 phase 3b) pk-canvas, its viewport and logic helpers (js/viewport-logic.js, canvas-geometry/rulers/select/style.js) and the SVG toolkit (js/svg/) left the package for the plainkit.canvas artifact (packages.json), after the skills move (648,336 / 2,493,363 plus the canvas layers C2/C3 and the SVG model S3): 594,818 / 2,328,751 after both moves. The ceilings go down to the measurement plus 1 percent (600,800 / 2,352,100).
 // Then (#1656 phase 3c) pk-markdown, pk-markdown-editor and js/markdown/ left the package for the plainkit.markdown artifact (packages.json), after queue 4 had grown it to 601,835 / 2,352,3xx: 594,504 / 2,331,383 after. The ceilings go down to the measurement plus 0.5 percent (597,500 / 2,343,100).
 // Then (#1656 relocation) pk-dock and its seven js/dock-*.js left for the plainkit.dock artifact (packages.json): 597,315 / 2,338,994 before, 584,620 / 2,300,918 after (12,695 packed freed). The ceilings go down to the measurement plus 0.5 percent (587,500 / 2,312,400).
+// Then (#1656 relocation) the editor and IDE metadata (custom-elements.json, web-types.json, vscode.html-custom-data.json, elements.d.ts, elements.vue.d.ts: 893 KB, no runtime reader) left for the plainkit.ide artifact (packages.json): 586,151 / 2,312,345 before, 402,675 / 1,419,663 after (183,476 packed / 892,682 unpacked freed). The ceilings go down to the measurement plus 1 percent (406,700 / 1,433,900).
 // The previous ceilings (900,000 / 3,350,000). Owner decision 2026-10-20: headroom is raised once, by about 16 KB packed / 57 KB unpacked, because capping the package was capping new components; the long-term answer is separate packages for the larger components (#1656), after which the ceilings go back down. Until then no further raise without the owner: make the package smaller.
 import './needs-bootstrap.mjs';
 import test from 'node:test';
@@ -23,12 +24,12 @@ import { spawnSync } from 'node:child_process';
 import { fileURLToPath } from 'node:url';
 
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
-const MAX_PACKED_BYTES = 587_500;
-const MAX_UNPACKED_BYTES = 2_312_400;
+const MAX_PACKED_BYTES = 406_700;
+const MAX_UNPACKED_BYTES = 1_433_900;
 const TOP_LEVEL = new Set(['dist', 'LICENSE', 'README.md', 'package.json']);
 // dist/ is the runtime unit; these are the entries of dist/ the package may carry (dist/modules is the dev-tool unit, a separate download).
-const DIST = new Set(['breakpoints.report.json', 'custom-elements.json', 'elements', 'elements.d.ts', 'elements.vue.d.ts', 'icons.svg', 'js', 'llms-full.txt', 'llms.txt',
-    'manifest.json', 'plainkit.css', 'plainkit.js', 'plainkit.min.css', 'tools', 'vscode.html-custom-data.json', 'web-types.json']);
+const DIST = new Set(['breakpoints.report.json', 'elements', 'icons.svg', 'js', 'llms-full.txt', 'llms.txt',
+    'manifest.json', 'plainkit.css', 'plainkit.js', 'plainkit.min.css', 'tools']);
 
 const r = spawnSync('npm pack --dry-run --json', { cwd: root, encoding: 'utf8', shell: true, maxBuffer: 64 << 20 });
 const info = r.status === 0 ? JSON.parse(r.stdout)[0] : null;
