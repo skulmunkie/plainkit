@@ -10,6 +10,13 @@
     { "name": "crumbs", "type": "string", "default": "", "reflect": false, "description": "The breadcrumb trail as a JSON array of { \"label\", \"href\" }, as on pk-page-header. Use it instead of the breadcrumb slot." },
     { "name": "backLink", "type": "boolean", "default": false, "reflect": true, "description": "Draws a back link to the last crumb that has a usable href." },
     { "name": "sticky", "type": "boolean", "default": false, "reflect": true, "description": "Pins the header (with its tabs) to the top of the scrolling page body." },
+    { "name": "stickyFrom", "type": "enum", "default": "always", "values": ["always", "phone", "tablet"], "reflect": true, "description": "As on pk-page-header." },
+    { "name": "tabsFrom", "type": "enum", "default": "always", "values": ["phone", "tablet", "always"], "reflect": true, "description": "As on pk-page-header." },
+    { "name": "homeHref", "type": "string", "default": "", "reflect": false, "description": "As on pk-page-header: an icon-only home crumb first in the trail." },
+    { "name": "homeLabel", "type": "string", "default": "Home", "reflect": false, "description": "As on pk-page-header." },
+    { "name": "homeIcon", "type": "string", "default": "dashboard", "reflect": false, "description": "As on pk-page-header." },
+    { "name": "actionsOverflow", "type": "enum", "default": "never", "values": ["never", "phone", "tablet", "always"], "reflect": true, "description": "As on pk-page-header: the actions fold into one menu button." },
+    { "name": "overflowLabel", "type": "string", "default": "Actions", "reflect": false, "description": "As on pk-page-header." },
     {
       "name": "state",
       "type": "enum",
@@ -25,6 +32,7 @@
     { "name": "", "description": "The page content, one region. Hidden while a whole-page state shows." },
     { "name": "breadcrumb", "description": "A pk-breadcrumb above the title, instead of crumbs." },
     { "name": "title", "description": "A pk-heading for the title, in place of the built-in text." },
+    { "name": "badges", "description": "Status chips (pk-badge) beside the title." },
     { "name": "actions", "description": "Buttons at the right of the title bar. Give each an icon-name and collapse=\"phone\"." },
     { "name": "meta", "description": "A note line under the title bar." },
     { "name": "tabs", "description": "A pk-tabs strip (tabs only) docked at the foot of the header." }

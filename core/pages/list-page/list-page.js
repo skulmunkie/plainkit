@@ -51,7 +51,7 @@ export default Base => class extends Base {
     // Rebuilt only when config.actions changes: link buttons; app logic goes in the actions or toolbar slot.
     buildActions() {
         const inBar = !!this.config?.toolbarInHeader;
-        showTitleBar(this, this.part('header'), inBar ? {} : { heading: this.config?.heading, breadcrumb: this.config?.breadcrumb });
+        showTitleBar(this, this.part('header'), inBar ? {} : { ...this.config, actions: [] });
         this.buildLead(inBar);
         this.showHeaderSlot();
         this.fill('actions', this.config?.actions);

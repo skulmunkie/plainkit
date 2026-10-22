@@ -5,14 +5,14 @@
 export const PAGE_TYPE = {
     id: 'settings',
     summary: 'Sectioned fields with a sticky Save/Discard bar and a section nav from three sections.',
-    configKeys: ['heading', 'breadcrumb', 'actions', 'sections', 'nav', 'values', 'save'],
+    configKeys: ['heading', 'breadcrumb', 'actions', 'badges', 'actionsOverflow', 'overflowLabel', 'homeHref', 'homeLabel', 'homeIcon', 'sections', 'nav', 'values', 'save'],
     states: [],
     useWhen: 'App or account configuration organised into sections, saved as a whole.',
 };
-import { mountTitled } from '../../page-shell.js';
+import { mountTitled, titleBarKeys } from '../../page-shell.js';
 export default (host, config = {}, ctx) => {
     const el = host.ownerDocument.createElement('pk-settings-page');
-    el.config = { heading: config.heading, breadcrumb: config.breadcrumb, actions: config.actions, sections: config.sections, nav: config.nav };
+    el.config = { heading: config.heading, breadcrumb: config.breadcrumb, ...titleBarKeys(config), actions: config.actions, sections: config.sections, nav: config.nav };
     if (config.values !== undefined) el.values = config.values;
     if (config.save) el.save = values => config.save(values, ctx);
     return mountTitled(host, el, config.heading);

@@ -17,6 +17,9 @@ export function showState(box, state, opts = {}) {
     if (state !== 'ready') loadElements(box);
 }
 
+/** The title bar keys of a page factory's config that the page element forwards to its shell (showTitleBar). */
+export const titleBarKeys = c => Object.fromEntries(['badges', 'actionsOverflow', 'overflowLabel', 'homeHref', 'homeLabel', 'homeIcon'].filter(k => c[k] !== undefined).map(k => [k, c[k]]));
+
 /** The page title as the SDK's heading element: a pk-heading level 1 for the page element's light DOM (slot "title"; `plain` keeps the heading's own size; the factory that creates the page appends it, so it is findable under main and focusable with tabindex -1). */
 export function titleHeading(doc, text, { focusable = true, plain = false } = {}) {
     const h = doc.createElement('pk-heading');
@@ -46,18 +49,30 @@ export function mountTitled(host, el, text, opts) {
 }
 
 /**
- * The title bar, filled into the page's pk-page-shell `shell` (a child of the page's shadow tree) from `host.config` { heading?, breadcrumb?: [{ label, href? }], actions?: [{ key, label, href?, variant?, hint? }] }:
+ * The title bar, filled into the page's pk-page-shell `shell` (a child of the page's shadow tree) from `host.config` { heading?, breadcrumb?: [{ label, href? }], actions?: [{ key, label, href?, variant?, hint? }], badges?: [{ label, variant? }], actionsOverflow?, overflowLabel?, homeHref?, homeLabel?, homeIcon? }:
  * the shell draws the pk-page-header; the breadcrumb, actions and title are its slotted children. `cfg` overrides `host.config` for a page whose own config already uses `heading` or `actions` for something else (record, list).
  * Nothing is drawn when none is set (the shell hides an empty header). An action's `hint` shows as a tooltip on the button. A click on an action fires `pk-action` on the host with { key }; the host never owns the markup.
  */
 export function showTitleBar(host, shell, cfg = host.config) {
-    const { heading, breadcrumb = [], actions = [] } = cfg ?? {};
+    const { heading, breadcrumb = [], actions = [], badges = [] } = cfg ?? {};
     const doc = host.ownerDocument;
     for (const n of shell.$bar ?? []) n.remove();
     const kids = shell.$bar = [];
     shell.setAttribute('heading', heading ?? '');
-    shell.setAttribute('data-bare', String(!heading && !breadcrumb.length && !actions.length)); // nothing to draw: the shell drops its empty header
-    if (breadcrumb.length) {
+    for (const k of ['homeHref', 'homeLabel', 'homeIcon', 'actionsOverflow', 'overflowLabel']) { // as on pk-page-header
+        const a = k.replace(/[A-Z]/g, c => '-' + c.toLowerCase());
+        if (cfg?.[k]) shell.setAttribute(a, cfg[k]); else shell.removeAttribute?.(a);
+    }
+    shell.setAttribute('data-bare', String(!heading && !breadcrumb.length && !actions.length && !badges.length)); // nothing to draw: the shell drops its empty header
+    for (const b of badges) {
+        const chip = doc.createElement('pk-badge');
+        chip.slot = 'badges'; chip.textContent = b.label;
+        if (b.variant) chip.variant = b.variant;
+        kids.push(chip);
+    }
+    // The header draws a home crumb only for its own crumbs list, so a homeHref sends the trail there (as crumbs) instead of a slotted pk-breadcrumb.
+    if (cfg?.homeHref) shell.setAttribute('crumbs', JSON.stringify(breadcrumb)); else shell.removeAttribute?.('crumbs');
+    if (breadcrumb.length && !cfg?.homeHref) {
         const nav = doc.createElement('pk-breadcrumb');
         nav.slot = 'breadcrumb';
         for (const c of breadcrumb) { const a = doc.createElement('a'); a.textContent = c.label; if (c.href) a.href = c.href; nav.append(a); }

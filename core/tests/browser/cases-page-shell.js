@@ -50,4 +50,27 @@ export const pageShellCases = [
             t.ok(rect(body).width === 0 || body.closest('[hidden]'), `${width}: loading hides the content`);
         }
     }],
+
+    ['page-shell: badges, the home crumb and actions-overflow reach the header (#1735)', async t => {
+        const host = t.stage('<pk-page-shell heading="PO 1042" crumbs=\'[{"label":"Stock","href":"/s"},{"label":"PO 1042"}]\' actions-overflow="always" overflow-label="More"><pk-badge slot="badges" id="chip">Open</pk-badge><pk-button slot="actions" id="act">Receive</pk-button><p id="body">Content</p></pk-page-shell>');
+        host.style.width = '1000px'; host.firstElementChild.setAttribute('home-href', '/'); await t.load(host); await customElements.whenDefined('pk-page-header'); await t.settle();
+        const el = host.firstElementChild, root = header(el).shadowRoot, title = root.querySelector('[part="title"]'), chip = el.querySelector('#chip');
+        t.ok(chip.assignedSlot && rect(chip).width > 0, 'the badge is drawn');
+        t.ok(Math.abs((rect(chip).top + rect(chip).bottom) / 2 - (rect(title).top + rect(title).bottom) / 2) < 16 && rect(chip).left >= rect(title).right - 1, 'the badge shares the title row, after the title');
+        t.ok(root.querySelector('[part="trail"] a[aria-label="Home"]')?.getAttribute('href') === '/', 'the home crumb leads the trail');
+        const ob = root.querySelector('[part="overflow-button"]');
+        t.ok(ob && !ob.closest('[hidden]') && rect(ob).width > 0, 'actions-overflow always draws the overflow button');
+        t.eq(ob.getAttribute('label'), 'More', 'overflow-label names it');
+    }],
+
+    ['list page: config badges, homeHref and actionsOverflow draw in the title bar like pk-page-header (#1734, #1735)', async t => {
+        const host = t.stage('<pk-list-page><pk-button slot="actions">New order</pk-button></pk-list-page>'); host.style.width = '1000px';
+        const el = host.firstElementChild;
+        el.config = { heading: 'Orders', breadcrumb: [{ label: 'Sales', href: '/s' }, { label: 'Orders' }], homeHref: '/', actionsOverflow: 'always', overflowLabel: 'More', badges: [{ label: 'Live', variant: 'ok' }], columns: [{ key: 'a', label: 'A' }] };
+        await t.load(host); await customElements.whenDefined('pk-page-header'); await t.settle();
+        const shell = el.shadowRoot.querySelector('pk-page-shell'), root = shell.part('header').shadowRoot, chip = shell.querySelector('pk-badge[slot="badges"]');
+        t.ok(chip && chip.textContent.trim() === 'Live' && rect(chip).width > 0, 'config.badges draws a badge');
+        t.ok(root.querySelector('[part="trail"] a[aria-label="Home"]'), 'config.homeHref draws the home crumb');
+        t.ok(rect(root.querySelector('[part="overflow-button"]')).width > 0, 'config.actionsOverflow draws the overflow button');
+    }],
 ];
