@@ -29,14 +29,14 @@
         "record"
       ],
       "reflect": true,
-      "description": "page is the standard page top; section is a titled section inside a page (title, actions, note); record is the compact strip of a single-record page (chips on the left, actions right); on a narrow container the actions stay on the first row and the chips move to a row below. The row count this default (page) or record collapse to is the same: see spacious for the opt-in multi-row breakdown."
+      "description": "page is the standard page top; section is a titled section inside a page; record is the compact strip of a single-record page (chips left, actions right; on a narrow container the chips move to a row below)."
     },
     {
       "name": "spacious",
       "type": "boolean",
       "default": false,
       "reflect": true,
-      "description": "Without an explicit heading, pk-page-header collapses the crumbs, chips and actions onto a single row by default. Set spacious to opt back into the older multi-row breakdown (a breadcrumb row, then a title bar with actions, then the note line) for a title too long to share a row with the actions, or more badges than fit one row. Has no effect when heading is set: a real title always keeps its own row above the crumbs."
+      "description": "Without a heading the crumbs, chips and actions share one row. Set spacious for the multi-row breakdown (crumbs, then a title bar with actions, then the note line), for a long title or many badges. No effect when heading is set."
     },
     {
       "name": "sticky",
@@ -51,7 +51,7 @@
       "default": "always",
       "values": ["always", "phone", "tablet"],
       "reflect": true,
-      "description": "With sticky, the width above which the header stays pinned: always (every width), phone (above the phone breakpoint) or tablet (above the tablet breakpoint). At and below it the header scrolls away in normal flow, so a focused field on a phone has room above the on-screen keyboard. The opposite sense of tabs-from, which names the width at and below which something shows."
+      "description": "With sticky, the width above which the header stays pinned: always, phone (above the phone breakpoint) or tablet. At and below it the header scrolls away, leaving room above the on-screen keyboard. The opposite sense of tabs-from."
     },
     {
       "name": "crumbs",
@@ -66,7 +66,7 @@
       "default": "never",
       "values": ["never", "phone", "tablet", "always"],
       "reflect": true,
-      "description": "Collapses the actions slot into one icon button that opens a menu at the named width and below (phone, tablet) or always. Each slotted action becomes a menu item with its label, icon-name, disabled and danger state; choosing one clicks the original, so its handlers, href and events are unchanged, and the title bar stays one row high. Use plain pk-button or link actions as direct children of the slot."
+      "description": "Collapses the actions slot into one icon button that opens a menu at the named width and below (phone, tablet) or always. Each slotted action becomes a menu item with its label, icon-name, disabled and danger state; choosing one clicks the original, so its handlers, href and events are unchanged, and the title bar stays one row high. Use pk-button or link actions as direct children of the slot; a pk-dropdown or pk-card-menu among them is flattened into its own items (headers kept, selecting one selects the original)."
     },
     {
       "name": "overflowLabel",

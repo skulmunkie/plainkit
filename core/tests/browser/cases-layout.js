@@ -793,6 +793,38 @@ for (const shape of [{}, { overlay: 1 }, { overlay: 1, wrap: 'main' }]) layoutCa
     }],
 );
 
+// #1723: config.toolbarInHeader puts the breadcrumb and heading in the data table's toolbar row, so the title bar, the search box, Filters and the actions share one row on a wide window and wrap
+// (nothing clipped, nothing scrolling sideways) on a phone; the page-shell header is gone.
+layoutCases.push(
+    ['list page toolbarInHeader: the breadcrumb, heading, search box, Filters and the action share one row at 1280, wrap without clipping at 375, and the page-shell header is not drawn', async t => {
+        for (const width of [1280, 375]) {
+            const host = t.stage(''), fr = document.createElement('iframe'), at = `${width}px`;
+            fr.title = `toolbar in header at ${width}px`; fr.style.cssText = `width:${width}px;height:700px;border:0;display:block`;
+            fr.src = new URL('./list-fill-frame.html', import.meta.url).href + '?bar=1';
+            await new Promise(resolve => { fr.addEventListener('load', resolve, { once: true }); host.append(fr); });
+            const win = fr.contentWindow, d = win.document, wait = ms => new Promise(r => setTimeout(r, ms));
+            await Promise.all(['pk-list-page', 'pk-data-table', 'pk-table', 'pk-breadcrumb', 'pk-heading', 'pk-table-filters'].map(tag => win.customElements.whenDefined(tag)));
+            const list = d.querySelector('pk-list-page'), dt = list.part('table');
+            for (let i = 0; i < 150 && !dt.part('table')?.shadowRoot?.querySelector('[part=body] tr'); i++) await wait(40);
+            await wait(300);
+            const rect = el => el.getBoundingClientRect(), crumb = dt.querySelector('pk-breadcrumb'), head = dt.querySelector('slot[name=title] pk-heading, pk-heading'), filters = dt.part('filters'), search = filters.shadowRoot.querySelector('[part=search]'), act = list.part('actions').firstElementChild ?? dt.part('actions') ;
+            const header = list.part('header'), newBtn = d.querySelector('pk-list-page') && dt.part('actions').querySelector('pk-button, slot') ? dt.part('actions') : act;
+            t.ok(!!crumb && !!head && !!search, `${at}: the breadcrumb, the heading and the search box are there`);
+            t.ok(getComputedStyle(header).display === 'none' || header.getAttribute('data-bare') === 'true' || rect(header).height < 2, `${at}: the page-shell header is not drawn (${Math.round(rect(header).height)}px)`);
+            const c = rect(crumb), h = rect(head), s = rect(search), a = rect(dt.part('actions'));
+            if (width === 1280) {
+                const mid = r => r.y + r.height / 2;
+                t.ok(Math.abs(mid(c) - mid(s)) < 24 && Math.abs(mid(h) - mid(s)) < 24, `${at}: crumb (${Math.round(mid(c))}), heading (${Math.round(mid(h))}) and search (${Math.round(mid(s))}) share a row`);
+                t.ok(c.right <= s.left + 1, `${at}: the title is left of the search box`);
+                t.ok(a.right >= s.right && a.left >= s.left, `${at}: the action sits at the end of the row`);
+            } else t.ok(s.top >= Math.min(c.bottom, h.bottom) - 1, `${at}: the search box wraps under the title`);
+            for (const [k, r] of Object.entries({ crumb: c, heading: h, search: s, actions: a })) t.ok(r.left >= -1 && r.right <= width + 1 && r.width > 0, `${at}: the ${k} is inside the window (${Math.round(r.left)}-${Math.round(r.right)})`);
+            t.ok(d.documentElement.scrollWidth <= width, `${at}: the page does not scroll sideways`);
+            fr.remove();
+        }
+    }],
+);
+
 // #1726: a before-list region much taller than the window must not squeeze the rows to zero: it gives way (caps and scrolls) and the table keeps a usable height, the pager stays in view.
 layoutCases.push(
     ['full-height list page with a tall before-list region (the Blazor u-contents wrapper): the rows keep a usable height, the before region caps and scrolls, the pager stays in view and the page does not collapse the rows (1280x700 and 375x600)', async t => {
@@ -859,3 +891,16 @@ layoutCases.push(
         }
     }],
 );
+
+// #1736: Chrome maps the legacy presentational `align="center"` attribute to `text-align: center` on any element; `align` here is cross-axis alignment only, text stays inherited.
+layoutCases.push(['align="center" on cluster, stack, field-row, container and form-actions never changes text-align (it stays inherited)', async t => {
+    for (const tag of ['pk-cluster', 'pk-stack', 'pk-field-row', 'pk-container', 'pk-form-actions']) {
+        for (const [parent, want] of [['start', 'start'], ['right', 'right']]) {
+            const host = t.stage(`<${tag} align="center"><div>a label long enough to wrap</div></${tag}>`);
+            host.style.textAlign = parent;
+            await t.load(host);
+            await t.settle();
+            t.eq(getComputedStyle(host.firstElementChild).textAlign, want, `${tag} align="center" under a text-align:${parent} parent keeps ${want}`);
+        }
+    }
+}]);

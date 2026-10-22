@@ -1,4 +1,4 @@
-:host { display: block; --_w: var(--content-md); --_p: var(--space-4); }
+:host { text-align: inherit; display: block; --_w: var(--content-md); --_p: var(--space-4); }
 :host([hidden]) { display: none; }
 :host([size="sm"]) { --_w: var(--content-sm); }
 :host([size="lg"]) { --_w: var(--content-lg); }

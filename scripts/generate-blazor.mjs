@@ -638,6 +638,7 @@ export function renderComponent(m, mappingName, ns = 'PlainKit.Blazor') {
         for (const x of m.properties) L.push(...propSync(x));
         L.push('    }');
     }
+    const customHandlerLines = () => custom.map(h => `        ${listened(h) ? `if (${[...h.callbacks.map(c => `${c.name}.HasDelegate`), ...(typeof h.listened === 'string' ? [h.listened] : [])].join(' || ')}) ` : ''}handlers[${lit(h.attr)}] = EventCallback.Factory.Create<${h.args}>(this, ${handlerName(h)});`);
     if (m.fieldGroup) {
         L.push('', '    /// <inheritdoc />', '    protected override async Task OnAfterRenderAsync(bool firstRender)', '    {', '        await base.OnAfterRenderAsync(firstRender);',
             '        var bridge = await Runtime.BridgeAsync(Assets);',
@@ -648,7 +649,7 @@ export function renderComponent(m, mappingName, ns = 'PlainKit.Blazor') {
             '    private string Values() => JsonSerializer.Serialize(PkFieldSpecs.Values(Fields, Model));',
             '', '    // The commit callback of the element (busy, last wins and the field error are its): the async Set runs here; the answer is null or the exception message.',
             '    private async Task<object?> Commit(PkFieldChangeEventArgs e) { try { await (Fields.First(f => f.Key == e.Key).SetAsync?.Invoke(Model, PkFieldSpecs.Text(e.Value)) ?? Task.CompletedTask); return null; } catch (Exception ex) { return ex.Message; } }',
-            '', '    /// <inheritdoc />', '    protected override void AddEventHandlers(Dictionary<string, object> handlers) =>', '        handlers["onpk-field-change"] = EventCallback.Factory.Create<PkFieldChangeEventArgs>(this, Changed);',
+            '', '    /// <inheritdoc />', '    protected override void AddEventHandlers(Dictionary<string, object> handlers)', '    {', '        handlers["onpk-field-change"] = EventCallback.Factory.Create<PkFieldChangeEventArgs>(this, Changed);', ...customHandlerLines(), '    }',
             '', '    private async Task Changed(PkFieldChangeEventArgs e)', '    {', '        if (e.Value is null || Fields.FirstOrDefault(f => f.Key == e.Key) is not { } f) return;', '        f.Set(Model, PkFieldSpecs.Text(e.Value));', '        await ModelChanged.InvokeAsync();', '    }',
             '', '    /// <inheritdoc />', '    public void Dispose() { _search.Dispose(); _commit.Dispose(); Untrack(); }');
     }
@@ -754,7 +755,7 @@ export function renderComponent(m, mappingName, ns = 'PlainKit.Blazor') {
     for (const x of m.methods) L.push('', doc(x.doc), `    public ${x.returns ? `Task<${x.returns}>` : 'Task'} ${x.name}(${x.args.map(a => `${a.type} ${a.name}`).join(', ')}) => CallAsync${x.returns ? `<${x.returns}>` : ''}(${[lit(x.method), ...x.args.map(a => a.name)].join(', ')});`);
     if (m.field) L.push('', '    /// <inheritdoc />', `    protected override Expression<Func<${m.field.cs}>>? FieldExpression => ${m.field.expr};`);
     if (m.field?.values) L.push('', '    /// <inheritdoc />', `    protected override Expression<Func<IReadOnlyList<string>?>>? ValuesFieldExpression => ${m.field.values};`);
-    if (custom.length || m.dataTable || m.table) {
+    if ((custom.length && !m.fieldGroup) || m.dataTable || m.table) {
         // Called once by PkElementBase, not on every parameter change: the handlers do not depend on the parameters.
         L.push('', '    /// <inheritdoc />', '    protected override void AddEventHandlers(Dictionary<string, object> handlers)', '    {');
         if (m.dataTable) L.push('        handlers["onpk-select"] = EventCallback.Factory.Create<PkTableSelectEventArgs>(this, HandleSelectAsync);', '        handlers["onpk-row-click"] = EventCallback.Factory.Create<PkRowClickEventArgs>(this, HandleRowClickAsync);');

@@ -63,6 +63,30 @@ export const headerCases = [
         t.ok(h.scrollWidth <= h.clientWidth + 1, 'no horizontal overflow');
     }],
 
+    ['page-header: a record titled by its last crumb with two or more actions on a phone keeps the crumbs whole and wraps the actions to a row beneath them, never over them (#1734)', async t => {
+        const host = t.stage('<pk-page-header variant="record" home-href="#home" crumbs=\'[{"label":"Purchase orders","href":"/po"},{"label":"Order 1042"}]\'><pk-badge>Open</pk-badge><pk-button slot="actions" variant="primary">+ Record something</pk-button><pk-button slot="actions" variant="ghost">Second action</pk-button><pk-button slot="actions" variant="ghost">Third action</pk-button></pk-page-header>');
+        host.style.width = '390px'; await t.load(host); await t.settle(); await t.settle();
+        const h = host.firstElementChild, trail = h.part('trail'), acts = [...h.querySelectorAll('pk-button')];
+        t.ok(rect(acts[0]).top >= rect(trail).bottom - 1, 'the first action is under the crumbs, not over them');
+        t.ok(acts.every(b => rect(b).right <= rect(h).right + 1 && rect(b).left >= rect(h).left - 1), 'every action stays inside the header');
+        t.ok(rect(trail).width > 200, 'the crumbs keep their width: ' + rect(trail).width);
+        host.style.width = '1000px'; await t.settle(); await new Promise(r => setTimeout(r, 300)); await t.settle();
+        t.ok(Math.abs((rect(acts[0]).top + rect(acts[0]).bottom) / 2 - (rect(trail).top + rect(trail).bottom) / 2) < 8, 'wide: the actions are on the crumbs row');
+    }],
+
+    ['page-header: a record with a long last crumb and a badge popover on a phone stays about two rows: the title clamps to one line and the chips row is badge height (#1739)', async t => {
+        const long = 'A record title long enough to wrap onto three lines on a phone screen';
+        const host = t.stage(`<pk-page-header variant="record" home-href="#home" home-label="Home" crumbs='[{"label":"Items","href":"#items"},{"label":"${long}"}]'><pk-badge>Active</pk-badge><pk-badge variant="ok">Live</pk-badge><pk-badge-popover variant="warn" heading="2 checks failing">2<div slot="details">Details</div></pk-badge-popover><pk-button slot="actions" variant="primary" icon-name="refresh" collapse="phone">Sync</pk-button><pk-dropdown slot="actions"><pk-button slot="trigger" variant="ghost" icon icon-name="more" label="More actions"></pk-button></pk-dropdown></pk-page-header>`);
+        host.style.width = '390px'; await t.load(host); await Promise.all(['pk-badge-popover', 'pk-breadcrumb'].map(n => customElements.whenDefined(n))); await t.settle(); await t.settle();
+        const h = host.firstElementChild, last = h.part('trail').lastElementChild, pop = h.querySelector('pk-badge-popover'), badge = h.querySelector('pk-badge');
+        const lines = (() => { const r = document.createRange(); r.selectNodeContents(last); return new Set([...r.getClientRects()].map(x => Math.round(x.top))).size; })();
+        t.eq(lines, 1, 'the current crumb is one line'); t.ok(rect(last).top < rect(h.part('trail').firstElementChild).bottom, 'and shares the row with the parent crumbs');
+        t.eq(last.getAttribute('title'), long, 'the full title stays available on the clamped crumb');
+        t.ok(rect(pop).height <= rect(badge).height + 4, 'the popover pill is badge height in the chips row: ' + rect(pop).height + ' vs ' + rect(badge).height);
+        t.ok(rect(h).height <= 110, 'the header is about two rows high: ' + rect(h).height);
+        t.ok(rect(last).right <= rect(h).right + 1, 'the crumb stays inside the header');
+    }],
+
     ['page-header: a record with no crumbs and no heading keeps its chips and its actions on one row at every width', async t => {
         const host = t.stage('<pk-page-header variant="record"><pk-badge id="chip">Open</pk-badge>Acme Supply<button slot="actions" id="act">Print</button></pk-page-header>');
         const h = host.firstElementChild, mid = n => (rect(n).top + rect(n).bottom) / 2;
@@ -194,6 +218,18 @@ export const headerCases = [
         t.eq(clicks, 1, 'choosing an item clicks the original action'); t.ok(slot.hidden, 'the slot itself stays in the light DOM, hidden');
         h.actionsOverflow = 'never'; await t.settle();
         t.ok(h.part('overflow').hidden && buttons.every(b => rect(b).height > 0), 'never puts the actions back');
+    }],
+    ['page-header: actions-overflow flattens a dropdown in the actions slot: headers stay headers, each menu item is its own overflow item, and choosing one selects the original (#1737)', async t => {
+        const h = await t.mount('<pk-page-header heading="Record" actions-overflow="always"><pk-button slot="actions" icon-name="refresh">Sync</pk-button><pk-dropdown slot="actions"><pk-button slot="trigger" icon icon-name="more" label="More actions"></pk-button><pk-menu-item type="header">Stock</pk-menu-item><pk-menu-item value="receive" description="Adds lines">Receive stock</pk-menu-item><pk-menu-item value="restructure" disabled>Restructure</pk-menu-item><pk-menu-item value="delete" danger>Delete</pk-menu-item></pk-dropdown></pk-page-header>');
+        await Promise.all(['pk-dropdown', 'pk-menu-item'].map(n => customElements.whenDefined(n))); await t.settle();
+        const picked = []; h.addEventListener('pk-select', e => picked.push(e.detail.item.getAttribute('value')));
+        h.part('overflow-button').click(); await t.settle(); await t.settle(); await customElements.whenDefined('pk-menu-item'); await t.settle();
+        const items = [...h.part('overflow').querySelectorAll('pk-menu-item')];
+        t.eq(items.map(i => i.textContent.trim()).join('|'), 'Sync|Stock|Receive stock|Restructure|Delete', 'one item per action and per menu item, text not run together');
+        t.eq(items[1].getAttribute('type'), 'header'); t.eq(items[2].getAttribute('description'), 'Adds lines');
+        t.ok(items[3].hasAttribute('disabled') && items[4].hasAttribute('danger'), 'disabled and danger carry over');
+        items[4].click(); await t.settle();
+        t.eq(picked.join(), 'delete', 'choosing an item fires pk-select of the original item');
     }],
 ];
 
