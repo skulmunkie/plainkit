@@ -859,3 +859,16 @@ layoutCases.push(
         }
     }],
 );
+
+// #1736: Chrome maps the legacy presentational `align="center"` attribute to `text-align: center` on any element; `align` here is cross-axis alignment only, text stays inherited.
+layoutCases.push(['align="center" on cluster, stack, field-row, container and form-actions never changes text-align (it stays inherited)', async t => {
+    for (const tag of ['pk-cluster', 'pk-stack', 'pk-field-row', 'pk-container', 'pk-form-actions']) {
+        for (const [parent, want] of [['start', 'start'], ['right', 'right']]) {
+            const host = t.stage(`<${tag} align="center"><div>a label long enough to wrap</div></${tag}>`);
+            host.style.textAlign = parent;
+            await t.load(host);
+            await t.settle();
+            t.eq(getComputedStyle(host.firstElementChild).textAlign, want, `${tag} align="center" under a text-align:${parent} parent keeps ${want}`);
+        }
+    }
+}]);

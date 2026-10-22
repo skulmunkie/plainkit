@@ -1,4 +1,4 @@
-:host { display: block; }
+:host { text-align: inherit; display: block; }
 [part=bar] { display: flex; flex-wrap: wrap; align-items: center; gap: var(--gap-control); padding-block: var(--space-4) 0; border-top: 1px solid var(--color-border); }
 :host([align="end"]) [part=bar] { justify-content: flex-end; }
 :host([align="between"]) [part=bar] { justify-content: space-between; }
