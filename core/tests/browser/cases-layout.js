@@ -944,4 +944,11 @@ layoutCases.push(
             f.fr.remove();
         }
     }],
+    ['data-show-above and data-hide-above show and hide content at the named breakpoints (#1722)', async t => {
+        for (const [width, shown] of [[1280, ['above-tablet', 'above-phone']], [768, ['below-tablet', 'above-phone']], [375, ['below-tablet', 'phone-only']]]) {
+            const f = await gridFrame(t, 'show', width);
+            for (const id of ['above-tablet', 'below-tablet', 'above-phone', 'phone-only']) t.eq(f.win.getComputedStyle(f.d.getElementById(id)).display !== 'none', shown.includes(id), `${width}px: ${id}`);
+            f.fr.remove();
+        }
+    }],
 );

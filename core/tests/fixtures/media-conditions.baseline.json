@@ -264,6 +264,10 @@
  "plainkit.css": [
   "(max-width: 640px)",
   "(max-width: 640px)",
+  "(max-width: 640px)",
+  "(max-width: 1024px)",
+  "(min-width: 641px)",
+  "(min-width: 1025px)",
   "(max-width: 640px)"
  ]
 }
