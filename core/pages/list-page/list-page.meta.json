@@ -38,7 +38,7 @@
   "slots": [
     { "name": "actions", "description": "Title bar content." },
     { "name": "toolbar", "description": "End of the toolbar." },
-    { "name": "before-list", "description": "Content between the title bar and the list (an alert, a summary card). It does not shrink and scrolls with the page; with stickyHeader the table still fills the height left under it, so the column header and pager stay pinned." }
+    { "name": "before-list", "description": "Content between the title bar and the list (an alert, a summary card). Rule: it keeps its content height while the page has room, and when it does not it shrinks and scrolls inside its own box, because the list beside it keeps a floor of --pk-list-page-table-min (about three rows with the toolbar and pager), so a tall summary never squeezes the rows to zero; with stickyHeader the table fills the height left under it, so the column header and pager stay pinned. In a body with no definite height there is no cap and the page scrolls as a whole (the same rule the page templates follow: the fixed regions give way, the rows keep their room)." }
   ],
   "events": [
     {
@@ -63,10 +63,19 @@
   "parts": [
     { "name": "header", "description": "The shared title bar: a pk-page-header with the breadcrumb and actions from config. Hidden when config sets none of them." },
     { "name": "table", "description": "The pk-data-table, which owns the query, the load, the states, the search/filter panel and the pager (its own parts: table, filters, pagination, state; part('filters'), part('pagination') and part('state') on this page reach them)." },
+    { "name": "before", "description": "The box around the before-list slot: shrinks and scrolls inside when the page is short (the list keeps --pk-list-page-table-min), hidden while nothing is slotted. It is the page's own element, so a wrapper that is display: contents (the Blazor one) does not need a style of its own." },
+    { "name": "footer", "description": "The table footer bar (the pager sits in it): a top rule and block padding (--pk-table-footer-padding)." },
+    { "name": "pager", "description": "The pk-pagination bar (its nav), exported from the pager." },
+    { "name": "pager-summary", "description": "The range text of the pager, such as 1-25 of 95." },
+    { "name": "pager-numbers", "description": "The page number buttons of the pager (the buttons themselves are styled by --pk-pagination-button-bg and --pk-pagination-button-border)." },
+    { "name": "pager-prev", "description": "The previous-page button." },
+    { "name": "pager-next", "description": "The next-page button." },
     { "name": "bulk", "description": "Holds one button per config.bulkActions entry, in the data table's bulk bar (shown while rows are selected)." },
     { "name": "actions", "description": "Holds one button per config.actions entry, in the data table's actions slot at the end of the toolbar." }
   ],
-  "cssProperties": [],
+  "cssProperties": [
+    { "name": "--pk-list-page-table-min", "description": "The least height the list (toolbar, rows and pager) keeps while a before-list region is slotted; the region shrinks and scrolls before the list goes below it.", "default": "calc(var(--space-12) * 6)" }
+  ],
   "a11y": "Every filter field is a labelled real control (pk-input/pk-select, showLabel on); the table, search box and pagination keep their own roles, names and announcements; the loading and error states use pk-skeleton and pk-alert's own roles and announcements.",
   "examples": [
     {

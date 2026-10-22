@@ -103,7 +103,7 @@
       "map": "slot",
       "slot": "before-list",
       "type": "RenderFragment?",
-      "doc": "Content between the title bar and the list: a status alert, a summary card. It scrolls with the page and does not shrink, so with Config stickyHeader the list still fills the height left under it and its column header and pager stay pinned."
+      "doc": "Content between the title bar and the list: a status alert, a summary card. It keeps its height while the page has room; on a short page it shrinks and scrolls inside its own box while the list keeps a floor of about three rows (--pk-list-page-table-min), so with Config stickyHeader the column header and pager stay pinned and the rows never collapse."
     },
     {
       "name": "ToolbarContent",

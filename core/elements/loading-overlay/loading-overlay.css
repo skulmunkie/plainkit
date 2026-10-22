@@ -3,7 +3,7 @@
 
 /* [fill] joins a filling chain (issue 1705): the host and the content part become a flex column that takes the height left by a definite-height flex parent and may shrink
    below its content (min-block-size 0), and the slotted page opts in with its own --pk-fill-shrink, the protocol the app shell and the page types use. Without it both stay plain blocks. */
-:host([fill]) { --pk-fill-shrink: 1; display: flex; flex-direction: column; flex: 1 1 auto; min-block-size: 0; min-inline-size: 0; }
+:host([fill]) { --pk-fill-shrink: 1; display: flex; flex-direction: column; flex: 1 1 auto; min-block-size: 0; min-inline-size: 0; max-block-size: 100%; }
 :host([fill]) [part="content"] { display: flex; flex-direction: column; flex: 1 1 auto; min-block-size: 0; }
 :host([fill]) [part="content"] > slot::slotted(*) { flex-shrink: var(--pk-fill-shrink, 0); }
 
