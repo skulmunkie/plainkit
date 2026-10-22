@@ -56,6 +56,6 @@ slot[name="actions"][hidden], [part="overflow"][hidden] { display: none; }
     :host([variant="record"]) [part="chips"]:not([hidden]) { display: flex; flex-wrap: wrap; align-items: center; gap: var(--space-2); order: 2; flex: 1 0 100%; }
 }
 /* Above the in-body sticky strips, so a popover from the header is not under them. */
-:host([sticky]) { position: sticky; inset-block-start: var(--pk-page-header-sticky-top, 0); z-index: calc(var(--z-sticky) + 1); isolation: isolate; background: var(--color-bg); }
-@media (--phone) { :host([sticky-from=phone]), :host([sticky-from=tablet]) { position: static; } }
-@media (--tablet) { :host([sticky-from=tablet]) { position: static; } }
+:host([sticky]) { position: sticky; inset-block-start: var(--pk-page-header-sticky-top, 0); z-index: calc(var(--z-sticky) + 1); background: var(--color-bg); }
+@media (--phone) { :host([sticky-from=phone]), :host([sticky-from=tablet]) { position: static; z-index: auto; } }
+@media (--tablet) { :host([sticky-from=tablet]) { position: static; z-index: auto; } }

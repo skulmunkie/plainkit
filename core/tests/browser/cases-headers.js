@@ -29,6 +29,17 @@ export const headerCases = [
         t.eq(pos(2), tablet ? 'static' : 'sticky', 'sticky-from=tablet is pinned only above a tablet');
         t.eq(pos(3), 'static', 'sticky-from without sticky pins nothing');
     }],
+    ['page-header: a dropdown in the actions of a header released by sticky-from opens above the content below it (#1740)', async t => {
+        const host = await t.mount('<div><pk-page-header sticky sticky-from="tablet" heading="A"><pk-dropdown slot="actions" id="dd"><pk-button slot="trigger">Go</pk-button><pk-menu-item>One</pk-menu-item><pk-menu-item>Two</pk-menu-item><pk-menu-item id="last">Three</pk-menu-item></pk-dropdown></pk-page-header><pk-card id="card">Content</pk-card></div>');
+        const { mediaBelow } = await import('../../js/breakpoints.js');
+        const header = host.firstElementChild, cs = getComputedStyle(header);
+        if (!mediaBelow('tablet').matches) { t.eq(cs.position, 'sticky', 'pinned above the breakpoint'); return; }
+        t.eq(cs.position, 'static'); t.ok(cs.zIndex === 'auto' && cs.isolation === 'auto', 'a released header makes no stacking context: ' + cs.zIndex + ' ' + cs.isolation);
+        host.querySelector('#dd').open = true; await t.settle();
+        const r = host.querySelector('#last').getBoundingClientRect();
+        const hit = document.elementFromPoint(r.left + r.width / 2, r.top + r.height / 2);
+        t.ok(hit && (hit.closest('pk-menu-item') || hit.closest('pk-dropdown')), 'the lowest menu item is hit, not the card: ' + hit?.localName);
+    }],
     ['page-header: section and record variants reflect, and a pk-breadcrumb slots in above the title', async t => {
         const s = await t.mount('<pk-page-header variant="section" heading="Movements"><button slot="actions">Refresh</button><span slot="meta">Latest 50</span></pk-page-header>');
         t.eq(s.getAttribute('variant'), 'section'); t.eq(s.part('title').getAttribute('aria-level'), '2');
