@@ -219,6 +219,18 @@ export const headerCases = [
         h.actionsOverflow = 'never'; await t.settle();
         t.ok(h.part('overflow').hidden && buttons.every(b => rect(b).height > 0), 'never puts the actions back');
     }],
+    ['page-header: actions-overflow flattens a dropdown in the actions slot: headers stay headers, each menu item is its own overflow item, and choosing one selects the original (#1737)', async t => {
+        const h = await t.mount('<pk-page-header heading="Record" actions-overflow="always"><pk-button slot="actions" icon-name="refresh">Sync</pk-button><pk-dropdown slot="actions"><pk-button slot="trigger" icon icon-name="more" label="More actions"></pk-button><pk-menu-item type="header">Stock</pk-menu-item><pk-menu-item value="receive" description="Adds lines">Receive stock</pk-menu-item><pk-menu-item value="restructure" disabled>Restructure</pk-menu-item><pk-menu-item value="delete" danger>Delete</pk-menu-item></pk-dropdown></pk-page-header>');
+        await Promise.all(['pk-dropdown', 'pk-menu-item'].map(n => customElements.whenDefined(n))); await t.settle();
+        const picked = []; h.addEventListener('pk-select', e => picked.push(e.detail.item.getAttribute('value')));
+        h.part('overflow-button').click(); await t.settle(); await t.settle(); await customElements.whenDefined('pk-menu-item'); await t.settle();
+        const items = [...h.part('overflow').querySelectorAll('pk-menu-item')];
+        t.eq(items.map(i => i.textContent.trim()).join('|'), 'Sync|Stock|Receive stock|Restructure|Delete', 'one item per action and per menu item, text not run together');
+        t.eq(items[1].getAttribute('type'), 'header'); t.eq(items[2].getAttribute('description'), 'Adds lines');
+        t.ok(items[3].hasAttribute('disabled') && items[4].hasAttribute('danger'), 'disabled and danger carry over');
+        items[4].click(); await t.settle();
+        t.eq(picked.join(), 'delete', 'choosing an item fires pk-select of the original item');
+    }],
 ];
 
 // Issue 801: the crumbs prop (a JSON array) draws the breadcrumb, a home crumb and a back link in the element's own shadow tree.

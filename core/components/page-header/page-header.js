@@ -29,17 +29,20 @@ export default Base => class extends Base {
         if (on) this.items();
     }
     items() {
-        const menu = this.part('overflow'), doc = this.ownerDocument;
-        const rows = this.slotted('actions').map(a => ({ a, label: (a.label || a.getAttribute('aria-label') || a.textContent).trim() })).filter(r => r.label);
-        const key = JSON.stringify(rows.map(({ a, label }) => [label, a.getAttribute('icon-name'), a.hasAttribute('disabled'), a.getAttribute('variant')]));
+        const menu = this.part('overflow'), doc = this.ownerDocument, text = i => [...i.childNodes].filter(n => n.nodeType === 3 || (n.nodeType === 1 && !n.slot)).map(n => n.textContent).join('').trim();
+        const rows = this.slotted('actions').flatMap(a => /^pk-(dropdown|card-menu)$/.test(a.localName) // a menu in the slot is flattened: its items become overflow items, headers and dividers stay
+            ? [...a.children].filter(i => i.localName === 'pk-menu-item').map(a => ({ a, label: text(a), type: a.type, desc: a.description, off: a.disabled, bad: a.danger, icon: a.querySelector(':scope > [slot=prefix]')?.getAttribute('name') }))
+            : [{ a, label: (a.label || a.getAttribute('aria-label') || a.textContent).trim(), off: a.hasAttribute('disabled'), bad: a.getAttribute('variant') === 'danger', icon: a.getAttribute('icon-name') }]).filter(r => r.label || r.type === 'divider');
+        const key = JSON.stringify(rows.map(r => [r.label, r.icon, r.off, r.bad, r.type, r.desc]));
         if (this.$items === key) return;
         this.$items = key;
-        const items = rows.map(({ a, label }) => {
+        const items = rows.map(({ a, label, type, desc, off, bad, icon }) => {
             const item = doc.createElement('pk-menu-item');
             item.textContent = label; item.$action = a;
-            if (a.hasAttribute('disabled')) item.setAttribute('disabled', '');
-            if (a.getAttribute('variant') === 'danger') item.setAttribute('danger', '');
-            const icon = a.getAttribute('icon-name');
+            if (type === 'header' || type === 'divider') { item.setAttribute('type', type); item.$action = null; }
+            if (desc) item.setAttribute('description', desc);
+            if (off) item.setAttribute('disabled', '');
+            if (bad) item.setAttribute('danger', '');
             if (icon) { const i = doc.createElement('pk-icon'); i.slot = 'prefix'; i.setAttribute('name', icon); item.append(i); }
             return item;
         });
