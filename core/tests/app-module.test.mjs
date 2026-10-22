@@ -159,7 +159,7 @@ test("'tool' (step 5, #351) creates a pk-tool-page, splits config into the eleme
     const cleanup1 = factory(host1, {}, {});
     const el1 = host1.children[0];
     assert.equal(el1.localName, 'pk-tool-page');
-    assert.deepEqual(el1.config, { input: undefined, outcome: undefined });
+    assert.deepEqual(el1.config, { heading: undefined, breadcrumb: undefined, actions: undefined, input: undefined, outcome: undefined });
     assert.equal(el1.runLabel, undefined, 'no runLabel unless given');
     assert.equal(el1.run, undefined, 'no run callback unless given');
     cleanup1();
@@ -170,7 +170,7 @@ test("'tool' (step 5, #351) creates a pk-tool-page, splits config into the eleme
     const input = [{ key: 'text', type: 'textarea', label: 'Text' }];
     factory(host2, { input, outcome: 'stat', runLabel: 'Count', run: (values, ctx) => { seen.push([values, ctx]); return { value: 1 }; } }, { id: 'x' });
     const el2 = host2.children[0];
-    assert.deepEqual(el2.config, { input, outcome: 'stat' });
+    assert.deepEqual(el2.config, { heading: undefined, breadcrumb: undefined, actions: undefined, input, outcome: 'stat' });
     assert.equal(el2.runLabel, 'Count');
     assert.deepEqual(el2.run({ text: 'hi' }), { value: 1 });
     assert.deepEqual(seen, [[{ text: 'hi' }, { id: 'x' }]], 'run receives the values and the page ctx');

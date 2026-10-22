@@ -55,7 +55,7 @@ export function mountTitled(host, el, text, opts) {
  */
 export function showTitleBar(host, shell, cfg = host.config) {
     const { heading, breadcrumb = [], actions = [], badges = [] } = cfg ?? {};
-    const doc = host.ownerDocument;
+    const doc = host.ownerDocument, mine = [...(host.children ?? [])].some(c => c.slot === 'title'), titled = heading || (cfg === host.config && mine); // a heading in config, or (for the host's own config) the app's title in its title slot
     for (const n of shell.$bar ?? []) n.remove();
     const kids = shell.$bar = [];
     shell.setAttribute('heading', heading ?? '');
@@ -63,7 +63,7 @@ export function showTitleBar(host, shell, cfg = host.config) {
         const a = k.replace(/[A-Z]/g, c => '-' + c.toLowerCase());
         if (cfg?.[k]) shell.setAttribute(a, cfg[k]); else shell.removeAttribute?.(a);
     }
-    shell.setAttribute('data-bare', String(!heading && !breadcrumb.length && !actions.length && !badges.length)); // nothing to draw: the shell drops its empty header
+    shell.setAttribute('data-bare', String(!titled && !breadcrumb.length && !actions.length && !badges.length)); // nothing to draw: the shell drops its empty header
     for (const b of badges) {
         const chip = doc.createElement('pk-badge');
         chip.slot = 'badges'; chip.textContent = b.label;
@@ -92,10 +92,10 @@ export function showTitleBar(host, shell, cfg = host.config) {
             kids.push(tip);
         } else kids.push(btn);
     }
-    if (heading) { // the host's own pk-heading (titleHeading, appended by the page factory) fills this slot; used on its own, the fallback draws the same title
+    if (titled) { // the host's own pk-heading (titleHeading, appended by the page factory) fills this slot; used on its own, the fallback draws the same title
         const fwd = doc.createElement('slot');
         fwd.setAttribute('name', 'title'); fwd.slot = 'title';
-        fwd.append(titleHeading(doc, heading, { focusable: false }));
+        if (heading && !mine) fwd.append(titleHeading(doc, heading, { focusable: false }));
         kids.push(fwd);
     }
     shell.append(...kids);

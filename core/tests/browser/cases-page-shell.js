@@ -64,11 +64,12 @@ export const pageShellCases = [
     }],
 
     ['list page: config badges, homeHref and actionsOverflow draw in the title bar like pk-page-header (#1734, #1735)', async t => {
-        const host = t.stage('<pk-list-page><pk-button slot="actions">New order</pk-button></pk-list-page>'); host.style.width = '1000px';
+        const host = t.stage('<pk-list-page><pk-heading slot="title" level="1">Orders</pk-heading><pk-button slot="actions">New order</pk-button></pk-list-page>'); host.style.width = '1000px';
         const el = host.firstElementChild;
         el.config = { heading: 'Orders', breadcrumb: [{ label: 'Sales', href: '/s' }, { label: 'Orders' }], homeHref: '/', actionsOverflow: 'always', overflowLabel: 'More', badges: [{ label: 'Live', variant: 'ok' }], columns: [{ key: 'a', label: 'A' }] };
         await t.load(host); await customElements.whenDefined('pk-page-header'); await t.settle();
         const shell = el.shadowRoot.querySelector('pk-page-shell'), root = shell.part('header').shadowRoot, chip = shell.querySelector('pk-badge[slot="badges"]');
+        t.ok(!el.shadowRoot.querySelector('pk-data-table slot[name="title"]'), 'the table toolbar does not repeat the title');
         t.ok(chip && chip.textContent.trim() === 'Live' && rect(chip).width > 0, 'config.badges draws a badge');
         t.ok(root.querySelector('[part="trail"] a[aria-label="Home"]'), 'config.homeHref draws the home crumb');
         t.ok(rect(root.querySelector('[part="overflow-button"]')).width > 0, 'config.actionsOverflow draws the overflow button');
@@ -82,5 +83,20 @@ export const pageShellCases = [
             const chip = el.querySelector('pk-badge'), lead = el.shadowRoot.querySelector('pk-page-shell').part('header').shadowRoot.querySelector('[part=lead]');
             t.ok(rect(chip).width > 0 && rect(chip).left >= rect(lead).left - 1 && rect(chip).right <= rect(el).right, `${tag}: the slotted badge is drawn in the title bar`);
         }
+    }],
+
+    ['tool page: config heading, breadcrumb, actions and badges draw a title bar above the form, and an action fires pk-action (#1735)', async t => {
+        const host = t.stage('<pk-tool-page></pk-tool-page>'); host.style.width = '1000px';
+        const el = host.firstElementChild; let key = null; el.addEventListener('pk-action', e => { key = e.detail.key; });
+        el.config = { heading: 'Tax calculator', breadcrumb: [{ label: 'Tools', href: '/t' }, { label: 'Tax' }], actions: [{ key: 'reset', label: 'Reset' }], badges: [{ label: 'Beta', variant: 'muted' }], input: [{ key: 'amount', type: 'number', label: 'Amount' }] };
+        await t.load(host); await customElements.whenDefined('pk-page-header'); await t.settle();
+        const shell = el.shadowRoot.querySelector('pk-page-shell'), form = el.part('form');
+        const crumbs = shell.querySelector('pk-breadcrumb'), btn = shell.querySelector('pk-button[slot="actions"]'), chip = shell.querySelector('pk-badge[slot="badges"]');
+        t.ok(crumbs && rect(crumbs).width > 0, 'the breadcrumb is drawn');
+        t.ok(rect(btn).width > 0 && rect(chip).width > 0, 'the action and the badge are drawn');
+        t.ok(rect(form).top >= rect(shell.part('header')).bottom - 1, 'the form sits under the title bar');
+        btn.click(); t.eq(key, 'reset', 'the action fires pk-action');
+        el.config = { input: [] }; await t.settle();
+        t.eq(rect(shell.part('header')).height, 0, 'with no heading, breadcrumb or actions no title bar is drawn');
     }],
 ];

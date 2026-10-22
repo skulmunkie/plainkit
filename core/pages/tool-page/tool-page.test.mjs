@@ -23,7 +23,7 @@ const make = () => {
     outcome.ownerDocument = { createElement: fakeEl };
     fields.ownerDocument = { createElement: fakeEl };
     const custom = fakeEl('slot'); custom.assignedNodes = () => custom.nodes ?? [];
-    const parts = { form, fields, run, outcome, custom };
+    const parts = { form, fields, run, outcome, custom, header: fakeEl('div') };
     const loaded = [];
     const fakeRoot = { querySelectorAll: () => [], matches: () => false };
     const el = new (behaviour(class {
