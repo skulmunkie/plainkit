@@ -63,6 +63,17 @@ export const headerCases = [
         t.ok(h.scrollWidth <= h.clientWidth + 1, 'no horizontal overflow');
     }],
 
+    ['page-header: a record titled by its last crumb with two or more actions on a phone keeps the crumbs whole and wraps the actions to a row beneath them, never over them (#1734)', async t => {
+        const host = t.stage('<pk-page-header variant="record" home-href="#home" crumbs=\'[{"label":"Purchase orders","href":"/po"},{"label":"Order 1042"}]\'><pk-badge>Open</pk-badge><pk-button slot="actions" variant="primary">+ Record something</pk-button><pk-button slot="actions" variant="ghost">Second action</pk-button><pk-button slot="actions" variant="ghost">Third action</pk-button></pk-page-header>');
+        host.style.width = '390px'; await t.load(host); await t.settle(); await t.settle();
+        const h = host.firstElementChild, trail = h.part('trail'), acts = [...h.querySelectorAll('pk-button')];
+        t.ok(rect(acts[0]).top >= rect(trail).bottom - 1, 'the first action is under the crumbs, not over them');
+        t.ok(acts.every(b => rect(b).right <= rect(h).right + 1 && rect(b).left >= rect(h).left - 1), 'every action stays inside the header');
+        t.ok(rect(trail).width > 200, 'the crumbs keep their width: ' + rect(trail).width);
+        host.style.width = '1000px'; await t.settle();
+        t.ok(Math.abs((rect(acts[0]).top + rect(acts[0]).bottom) / 2 - (rect(trail).top + rect(trail).bottom) / 2) < 8, 'wide: the actions are on the crumbs row');
+    }],
+
     ['page-header: a record with no crumbs and no heading keeps its chips and its actions on one row at every width', async t => {
         const host = t.stage('<pk-page-header variant="record"><pk-badge id="chip">Open</pk-badge>Acme Supply<button slot="actions" id="act">Print</button></pk-page-header>');
         const h = host.firstElementChild, mid = n => (rect(n).top + rect(n).bottom) / 2;

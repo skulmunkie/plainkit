@@ -108,6 +108,7 @@ export default Base => class extends Base {
         this.part('crumbs').hidden = !filled(this, 'breadcrumb') && this.part('trail').hidden;
         this.part('actions').hidden = !filled(this, 'actions');
         this.overflow();
+        this.part('header').toggleAttribute('data-wide-actions', this.slotted('actions').length > 1 && !this.part('actions').hasAttribute('data-overflow')); // two or more inline actions need their own row on a phone
         this.part('meta').hidden = !filled(this, 'meta');
         this.part('tabs').hidden = !this.dock();
         this.part('chips').hidden = !filled(this, '');

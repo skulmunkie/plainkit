@@ -37,6 +37,11 @@ slot[name="actions"][hidden], [part="overflow"][hidden] { display: none; }
 @container (max-width: 46rem) {
     :host(:not([heading]):not([spacious])) [part="header"] { grid-template-columns: minmax(0, 1fr) auto; grid-template-areas: "crumbs actions" "chips chips" "meta meta" "tabs tabs"; }
 }
+/* Two or more inline actions do not fit beside the crumbs on a phone: they take their own row under the crumbs. */
+@container (max-width: 30rem) {
+    :host(:not([heading]):not([spacious])) [part="header"][data-wide-actions] { grid-template-columns: minmax(0, 1fr); grid-template-areas: "crumbs" "actions" "chips" "meta" "tabs"; }
+    :host(:not([heading]):not([spacious])) [part="header"][data-wide-actions] [part="actions"] { inline-size: 100%; }
+}
 /* No crumbs and no heading: the chips are the lead, so they take row one with the actions (not a row under them, which would put the actions above what they act on). */
 :host(:not([heading]):not([spacious])) [part="crumbs"][hidden] ~ [part="titlebar"] [part="chips"]:not([hidden]) { grid-row: 1; grid-column: 1 / 3; }
 :host(:not([heading]):not([spacious])) [part="crumbs"][hidden] ~ [part="titlebar"] [part="actions"] { grid-row: 1; grid-column: 3; }
