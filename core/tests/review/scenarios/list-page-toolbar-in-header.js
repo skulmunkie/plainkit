@@ -11,7 +11,7 @@ export default {
     setup(frame) {
         const el = frame.querySelector(LP);
         el.config = {
-            toolbarInHeader: true, heading: 'Orders', breadcrumb: [{ label: 'Sales', href: '#' }, { label: 'Orders' }], actions: [{ label: 'New order', variant: 'primary' }],
+            toolbarInHeader: true, heading: 'All orders', breadcrumb: [{ label: 'Sales', href: '#' }, { label: 'Orders' }], actions: [{ label: 'New order', variant: 'primary' }],
             columns: [{ key: 'po', label: 'PO' }, { key: 'customer', label: 'Customer' }],
             filters: [{ key: 'channel', type: 'select', label: 'Channel', options: ['ebay', 'shopify'] }],
         };
