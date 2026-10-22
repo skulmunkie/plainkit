@@ -258,3 +258,16 @@ test('a section with a key gets a section-<key> slot after its fields, one witho
     assert.equal(slotOf(parts.sections.children[0])?.name, 'section-api');
     assert.equal(slotOf(parts.sections.children[1]), undefined);
 });
+
+test('an edit made while save() is in flight stays unsaved: the baseline is what was sent (#1729)', async () => {
+    const { el, parts } = make();
+    el.config = { sections: [{ fields: [{ key: 'name', type: 'text' }] }] };
+    el.values = { name: 'Example store' };
+    el.buildSections();
+    el.$controls.name.el.value = 'Sent';
+    el.paint();
+    el.save = async () => { el.$controls.name.el.value = 'Typed meanwhile'; };
+    await el.saveNow();
+    assert.equal(parts.bar.hidden, false, 'the newer edit still shows the Save bar');
+    assert.equal(parts.status.textContent, 'Unsaved changes');
+});

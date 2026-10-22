@@ -140,10 +140,11 @@ export default Base => class extends Base {
         const btn = this.part('save');
         btn.disabled = true;
         try {
-            await this.save(this.currentValues());
-            this.$base = this.currentValues();
-            this.part('bar').hidden = true;
-            this.part('saved').hidden = false;
+            const sent = this.currentValues();
+            await this.save(sent);
+            this.$base = sent; // what was saved, not what the fields hold now: an edit made while the callback was in flight stays unsaved (#1729)
+            this.paint(); // shows the bar again for an edit made meanwhile, hides it otherwise
+            this.part('saved').hidden = !this.part('bar').hidden;
         } catch (err) {
             status.kind = 'danger';
             status.textContent = err?.message ?? String(err);
