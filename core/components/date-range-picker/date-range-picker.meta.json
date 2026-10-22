@@ -50,7 +50,7 @@
       "type": "string",
       "default": "today,7d,30d,month",
       "reflect": false,
-      "description": "The quick ranges to offer, comma separated, in order: today, 7d, 30d, 90d, month, lastmonth, quarter, lastquarter, year, lastyear. Empty for none. A range is cut to min and max. Keys of presetItems may be named here to place them; the ones not named follow."
+      "description": "The quick ranges to offer, comma separated, in order: today, 7d, 30d, 90d, month, lastmonth, quarter, lastquarter, year, lastyear, thismonth, thisquarter, thisyear (the whole period, to its last day). Empty for none. A range is cut to min and max. Keys of presetItems may be named here to place them; the ones not named follow."
     },
     {
       "name": "presetItems",

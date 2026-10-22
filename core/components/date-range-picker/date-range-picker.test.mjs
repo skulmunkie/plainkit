@@ -149,3 +149,20 @@ test('caller-supplied presets: listed after the named ones, labelled and resolve
     assert.equal(activePreset(['7d', 'fy'], '2026-04-01', '2027-03-31', '2026-08-19', '', '', custom), 'fy');
     assert.equal(activePreset(['7d', 'fy'], '2026-04-02', '2027-03-31', '2026-08-19', '', '', custom), '');
 });
+
+test('thismonth, thisquarter and thisyear run to the last day of the period, cut to min and max', () => {
+    assert.deepEqual(presetRange('thismonth', '2026-08-19'), { start: '2026-08-01', end: '2026-08-31' });
+    assert.deepEqual(presetRange('thismonth', '2026-09-30'), { start: '2026-09-01', end: '2026-09-30' });
+    assert.deepEqual(presetRange('thismonth', '2028-02-10'), { start: '2028-02-01', end: '2028-02-29' });
+    assert.deepEqual(presetRange('thismonth', '2026-02-10'), { start: '2026-02-01', end: '2026-02-28' });
+    assert.deepEqual(presetRange('thismonth', '2026-12-31'), { start: '2026-12-01', end: '2026-12-31' });
+    assert.deepEqual(presetRange('thisquarter', '2026-08-19'), { start: '2026-07-01', end: '2026-09-30' });
+    assert.deepEqual(presetRange('thisquarter', '2026-01-01'), { start: '2026-01-01', end: '2026-03-31' });
+    assert.deepEqual(presetRange('thisquarter', '2026-12-31'), { start: '2026-10-01', end: '2026-12-31' });
+    assert.deepEqual(presetRange('thisyear', '2026-08-19'), { start: '2026-01-01', end: '2026-12-31' });
+    assert.deepEqual(presetRange('month', '2026-08-19'), { start: '2026-08-01', end: '2026-08-19' });
+    assert.deepEqual(clampRange(presetRange('thismonth', '2026-08-19'), '2026-08-05', '2026-08-20'), { start: '2026-08-05', end: '2026-08-20' });
+    assert.equal(clampRange(presetRange('thisyear', '2026-08-19'), '2027-01-01', ''), null);
+    assert.deepEqual(presetList('thismonth thisquarter thisyear'), ['thismonth', 'thisquarter', 'thisyear']);
+    assert.equal(activePreset(['month', 'thismonth'], '2026-08-01', '2026-08-31', '2026-08-19', '', ''), 'thismonth');
+});

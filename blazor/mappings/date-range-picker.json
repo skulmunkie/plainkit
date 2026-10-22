@@ -49,7 +49,7 @@
       "name": "Presets",
       "prop": "presets",
       "type": "string",
-      "note": "Built-in tokens: today, 7d, 30d, 90d, month, lastmonth, quarter, lastquarter, year, lastyear."
+      "note": "Built-in tokens: today, 7d, 30d, 90d, month, lastmonth, quarter, lastquarter, year, lastyear, thismonth, thisquarter, thisyear (the whole period, to its last day)."
     },
     {
       "name": "PresetItems",
