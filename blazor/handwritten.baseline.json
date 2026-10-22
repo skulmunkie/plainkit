@@ -37,6 +37,7 @@
     "PkAssets.cs": 114,
     "PkCallbackSlot.cs": 77,
     "PkCallbackError.cs": 24,
+    "PkBulkQuery.cs": 8,
     "PkChartData.cs": 22,
     "PkComponentBase.cs": 73,
     "PkComponentBase.Tick.cs": 50,

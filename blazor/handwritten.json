@@ -133,6 +133,9 @@
         "cancellation"
       ]
     },
+    "PkBulkQuery.cs": {
+      "category": "dto"
+    },
     "PkChartData.cs": {
       "category": "dto"
     },
