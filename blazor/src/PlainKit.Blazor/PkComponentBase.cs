@@ -14,7 +14,6 @@ namespace PlainKit.Blazor;
 public abstract partial class PkComponentBase : ComponentBase, IAsyncDisposable
 {
     private readonly PkLifecycle _life;
-    private IReadOnlyDictionary<string, object?>? _parameters;
 
     /// <summary>Creates the lifecycle.</summary>
     protected PkComponentBase() => _life = new PkLifecycle(() => { if (!_life!.Disposed) StateHasChanged(); });
@@ -22,7 +21,7 @@ public abstract partial class PkComponentBase : ComponentBase, IAsyncDisposable
     /// <summary>Runs on the first render and again when a parameter changed (<see cref="ReloadOnParameters"/>); a failure is kept in <see cref="LoadError"/> and a cancelled load is silent.</summary>
     protected virtual Task OnLoadAsync(CancellationToken cancel) => Task.CompletedTask;
 
-    /// <summary>Whether a changed parameter starts a new load (default true; the previous load's token is cancelled either way).</summary>
+    /// <summary>Whether a changed parameter starts a new load (default true; the previous load's token is cancelled either way). <see cref="ReloadParameters"/> narrows which ones.</summary>
     protected virtual bool ReloadOnParameters => true;
 
     /// <summary>Cancelled when the next load starts and when the component is disposed.</summary>
@@ -51,19 +50,6 @@ public abstract partial class PkComponentBase : ComponentBase, IAsyncDisposable
 
     /// <summary>Runs when the component is disposed, after its loads are cancelled and its busy tokens released.</summary>
     protected virtual ValueTask OnDisposeAsync() => ValueTask.CompletedTask;
-
-    /// <inheritdoc />
-    public override async Task SetParametersAsync(ParameterView parameters)
-    {
-        var next = parameters.ToDictionary();
-        var reload = ReloadOnParameters && (_parameters is null || next.Count != _parameters.Count || next.Any(p => !_parameters.TryGetValue(p.Key, out var old) || !Equals(old, p.Value)));
-        _parameters = next;
-        if (reload) _life.Expect();
-        await base.SetParametersAsync(parameters);
-        if (!reload) return;
-        var load = _life.LoadAsync<object?>(async c => { await OnLoadAsync(c); return null; });
-        if (!load.IsCompleted) _ = load.ContinueWith(_ => InvokeStateChanged(), TaskScheduler.Default);
-    }
 
     async ValueTask IAsyncDisposable.DisposeAsync()
     {

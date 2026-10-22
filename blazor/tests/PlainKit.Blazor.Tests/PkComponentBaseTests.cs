@@ -41,6 +41,43 @@ public sealed class PkComponentBaseTests : BunitContext, IAsyncLifetime
         cut.WaitForAssertion(() => Assert.Contains("error:boom", cut.Markup));
     }
 
+    private sealed class FakeLog : IPkLog
+    {
+        public readonly List<(PkLogLevel Level, string Scope, string Message, string? Detail)> Entries = [];
+        public ValueTask WriteAsync(PkLogLevel level, string scope, string message, string? detail = null) { Entries.Add((level, scope, message, detail)); return ValueTask.CompletedTask; }
+        public ValueTask SetLevelAsync(PkLogLevel level) => ValueTask.CompletedTask;
+        public ValueTask ConfigureAsync(PkLoggingOptions settings) => ValueTask.CompletedTask;
+    }
+
+    // Issue 1728: a failed load is logged under LogScope like PageBase does, a cancelled one is not.
+    [Fact]
+    public void A_failed_load_is_logged_through_IPkLog_under_the_LogScope_and_a_cancelled_one_is_not()
+    {
+        Bridge(); var log = new FakeLog(); Services.AddSingleton<IPkLog>(log);
+        var cut = Render<ComponentBaseKeyHost>(p => p.Add(x => x.Key, -1));
+        cut.WaitForAssertion(() => Assert.Equal(1, cut.Instance.Loads));
+        var entry = Assert.Single(log.Entries);
+        Assert.Equal((PkLogLevel.Error, "Card", "store offline"), (entry.Level, entry.Scope, entry.Message));
+        Assert.Contains("InvalidOperationException", entry.Detail);
+
+        var gone = Card(_ => throw new OperationCanceledException());
+        gone.WaitForAssertion(() => Assert.Equal(1, gone.Instance.Loads));
+        Assert.Single(log.Entries);
+    }
+
+    // Issue 1728: ReloadParameters names the parameters whose change starts a load, as on PageBase.
+    [Fact]
+    public void ReloadParameters_limits_which_changed_parameters_start_another_load()
+    {
+        Bridge();
+        var cut = Render<ComponentBaseKeyHost>(p => p.Add(x => x.Key, 1).Add(x => x.Label, "a"));
+        cut.Render(p => p.Add(x => x.Key, 1).Add(x => x.Label, "b"));
+        Assert.Equal(1, cut.Instance.Loads);
+        Assert.Contains("b", cut.Markup);
+        cut.Render(p => p.Add(x => x.Key, 2).Add(x => x.Label, "b"));
+        cut.WaitForAssertion(() => Assert.Equal(2, cut.Instance.Loads));
+    }
+
     [Fact]
     public void A_changed_parameter_reloads_and_cancels_the_previous_token()
     {
