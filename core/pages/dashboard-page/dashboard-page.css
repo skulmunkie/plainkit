@@ -16,3 +16,5 @@ pk-tab-panel { padding-block-start: var(--space-4); }
 }
 [part="grid"] > pk-card[data-kind="stat"] { min-block-size: calc(var(--space-12) * 4); }
 [part="grid"] > pk-card[data-kind="chart"] { min-block-size: calc(var(--space-12) * 6); }
+/* The loading skeleton (10rem) plus the card chrome is taller than a stat card's reserved height: the card grew while loading and shrank when the stat arrived, shifting the cards below (CLS under load). A skeleton that fits the reserve keeps the card one size. */
+[part="grid"] > pk-card[data-kind="stat"] > pk-skeleton { block-size: calc(var(--space-12) * 2); }

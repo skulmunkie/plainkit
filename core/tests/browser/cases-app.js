@@ -217,8 +217,10 @@ export const appCases = [
         const elapsed = performance.now() - started;
         t.ok(elapsed < SLOW_MS, `the fast and bad widgets were already settled well before the slow one's ${SLOW_MS}ms load could finish (checked after ${elapsed.toFixed(0)}ms)`);
         t.eq(card('slow').dataset.state, 'loading', 'the slow widget is still loading');
+        const loadingH = card('slow').getBoundingClientRect().height;
         await until(() => card('slow').querySelector('pk-stat'), 'the slow widget to resolve');
         t.eq(card('slow').querySelector('pk-stat').value, '2');
+        t.eq(Math.round(card('slow').getBoundingClientRect().height), Math.round(loadingH), 'a stat card keeps one height from loading to ready (its skeleton fits the reserve, so nothing below shifts)');
         t.eq(card('fast').querySelector('pk-stat').value, '1', 'the fast widget was never touched by the slow one settling');
         t.eq(card('bad').dataset.state, 'error', 'the bad widget was never touched by the slow one settling');
     }],
