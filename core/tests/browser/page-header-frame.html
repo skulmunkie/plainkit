@@ -1,0 +1,14 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Sticky-from page header (browser case fixture)</title>
+<link rel="stylesheet" href="../../plainkit.css">
+</head>
+<body>
+<pk-page-header id="ph" sticky sticky-from="tablet" heading="A"><pk-dropdown slot="actions" id="dd" placement="bottom-end"><pk-button slot="trigger">Go</pk-button><pk-menu-item>One</pk-menu-item><pk-menu-item>Two</pk-menu-item><pk-menu-item id="last">Three</pk-menu-item></pk-dropdown></pk-page-header>
+<pk-card id="card"><p>Content below the header.</p><p>More content.</p></pk-card>
+<script type="module" src="page-header-frame.js"></script>
+</body>
+</html>
