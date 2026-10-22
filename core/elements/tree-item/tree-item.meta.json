@@ -43,6 +43,13 @@
       "description": "Makes the label a real link (middle click, copy link, status-bar URL). A plain click selects the row and is reported as a cancelable pk-navigate; a modified click navigates natively."
     },
     {
+      "name": "navigate",
+      "type": "string",
+      "default": "",
+      "reflect": false,
+      "description": "Who follows the href on a plain click: router (default, empty; the cancelable pk-navigate), host (pk-navigate is a notification and nothing navigates, so the host's own router does) or none (the browser follows the link). Empty takes the value of the pk-tree."
+    },
+    {
       "name": "disabled",
       "type": "boolean",
       "default": false,

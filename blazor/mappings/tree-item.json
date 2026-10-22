@@ -29,6 +29,13 @@
       "type": "string"
     },
     {
+      "name": "Navigate",
+      "prop": "navigate",
+      "type": "string?",
+      "extra": true,
+      "note": "Who follows an Href on a plain click: \"router\" (default), \"host\" (OnNavigate is a notification and nothing navigates, so your handler uses NavigationManager) or \"none\" (the browser follows the address)."
+    },
+    {
       "name": "Disabled",
       "prop": "disabled",
       "type": "bool"
