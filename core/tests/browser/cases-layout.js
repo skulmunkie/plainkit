@@ -792,3 +792,31 @@ for (const shape of [{}, { overlay: 1 }, { overlay: 1, wrap: 'main' }]) layoutCa
         }
     }],
 );
+
+// #1726: a before-list region much taller than the window must not squeeze the rows to zero: it gives way (caps and scrolls) and the table keeps a usable height, the pager stays in view.
+layoutCases.push(
+    ['full-height list page with a tall before-list region (the Blazor u-contents wrapper): the rows keep a usable height, the before region caps and scrolls, the pager stays in view and the page does not collapse the rows (1280x700 and 375x600)', async t => {
+        for (const [width, height] of [[1280, 700], [375, 600]]) {
+            const host = t.stage(''), fr = document.createElement('iframe'), at = `${width}x${height}`;
+            fr.title = `tall before-list at ${at}`; fr.style.cssText = `width:${width}px;height:${height}px;border:0;display:block`;
+            fr.src = new URL('./list-fill-frame.html', import.meta.url).href + '?tall=1';
+            await new Promise(resolve => { fr.addEventListener('load', resolve, { once: true }); host.append(fr); });
+            const win = fr.contentWindow, d = win.document, wait = ms => new Promise(r => setTimeout(r, ms));
+            await Promise.all(['pk-app-shell', 'pk-list-page', 'pk-data-table', 'pk-table', 'pk-page-shell', 'pk-pagination'].map(tag => win.customElements.whenDefined(tag)));
+            const list = d.querySelector('pk-list-page'), dt = list.part('table');
+            let tbl = null;
+            for (let i = 0; i < 150 && !(tbl = dt.part('table')); i++) await wait(40);
+            for (let i = 0; i < 150 && !tbl.shadowRoot?.querySelector('[part=body] tr'); i++) await wait(40);
+            await wait(300);
+            const scroll = tbl.part('scroll'), pager = dt.shadowRoot.querySelector('pk-pagination'), before = list.shadowRoot.querySelector('[part=before]'), tall = d.getElementById('tall');
+            t.ok(!!before, `${at}: the before-list region is a part of the page`);
+            const sh = scroll.getBoundingClientRect(), br = before.getBoundingClientRect(), pr = pager.getBoundingClientRect(), tr = tall.getBoundingClientRect();
+            t.ok(sh.height >= 120, `${at}: the rows get ${Math.round(sh.height)}px (at least three rows, not zero)`);
+            t.ok(br.height < tr.height - 50 || tall.scrollHeight <= before.clientHeight, `${at}: the before region (${Math.round(br.height)}px) gives way to its ${Math.round(tall.scrollHeight)}px of content`);
+            t.ok(before.scrollHeight > before.clientHeight, `${at}: the capped before region scrolls (${before.scrollHeight} vs ${before.clientHeight})`);
+            t.ok(pr.bottom <= height + 1 && pr.top >= 0, `${at}: the pager (${Math.round(pr.top)}-${Math.round(pr.bottom)}) is inside the ${height}px window`);
+            t.ok(br.bottom <= sh.top + 1, `${at}: the before region ends above the rows`);
+            fr.remove();
+        }
+    }],
+);

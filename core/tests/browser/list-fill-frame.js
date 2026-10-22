@@ -3,13 +3,18 @@
 import { loadElements } from '../../js/loader.js';
 
 const ROWS = Array.from({ length: 50 }, (_, i) => ({ id: i + 1, sku: `AC-${1000 + i}`, title: `Widget number ${i + 1}` }));
-const q = new URLSearchParams(location.search), overlay = q.has('overlay'), wrap = q.get('wrap');
+const q = new URLSearchParams(location.search), overlay = q.has('overlay'), wrap = q.get('wrap'), tall = q.has('tall');
 const mk = (tag, attrs = {}, text) => { const e = document.createElement(tag); for (const [k, v] of Object.entries(attrs)) e.setAttribute(k, v); if (text) e.textContent = text; return e; };
 
 const shell = mk('pk-app-shell', { contain: '' });
 shell.append(mk('span', { slot: 'header' }, 'Orders'));
 const list = mk('pk-list-page');
-list.append(mk('pk-alert', { slot: 'before-list', kind: 'info' }, 'Prices include tax.'));
+if (tall) {
+    // ?tall=1: a before-list region far taller than the window, wrapped the way the Blazor PkListPage draws it (<span slot="before-list" class="u-contents">, display: contents !important) (#1726).
+    const w = mk('span', { slot: 'before-list', class: 'u-contents' }), box = mk('div', { id: 'tall' });
+    for (let i = 0; i < 24; i++) box.append(mk('p', {}, 'Summary line ' + (i + 1) + ': totals, tax and the notes the reader should see before the list.'));
+    w.append(box); list.append(w);
+} else list.append(mk('pk-alert', { slot: 'before-list', kind: 'info' }, 'Prices include tax.'));
 list.config = {
     heading: 'Orders', breadcrumb: [{ label: 'Sales', href: '#' }, { label: 'Orders' }], stickyHeader: true, selectable: true, pageSize: 50,
     columns: [{ key: 'sku', label: 'SKU' }, { key: 'title', label: 'Title' }], bulkActions: [{ id: 'archive', label: 'Archive' }],

@@ -13,6 +13,9 @@ export default Base => class extends Base {
         // Cell content (#1000): the host's `cell-<id>-<key>` children are re-slotted into the table, which re-slots them into its pk-table (#817).
         (this.$mo = new MutationObserver(() => { this.forwardSlots(); this.showHeaderSlot(); })).observe(this, { childList: true });
         this.forwardSlots();
+        // The before-list box is shown only while something is slotted in it, so an empty slot leaves no margin.
+        const slot = this.shadowRoot?.querySelector?.('slot[name="before-list"]'), before = this.part('before');
+        if (slot && before) { const show = () => { before.hidden = !slot.assignedNodes().length; }; slot.addEventListener('slotchange', show); show(); }
     }
     disconnected() { this.$mo?.disconnect(); this.$w = false; }
     // Loads again: the bridge calls this once a `load` callback is set after the table already drew its first (empty) answer, which a host that binds callbacks after the first render always does (#1401).
