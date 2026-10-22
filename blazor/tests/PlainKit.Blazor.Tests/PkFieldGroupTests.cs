@@ -292,6 +292,14 @@ public sealed class PkFieldGroupTests : BunitContext, IAsyncLifetime
         Assert.True(Defs(Render([spec]))[0].GetProperty("clearable").GetBoolean());
     }
 
+    // Issue 1720: DebounceMs on a combobox spec reaches the element's field definition as debounce.
+    [Fact]
+    public void DebounceMs_reaches_the_field_definition_of_a_combobox_as_debounce()
+    {
+        var spec = new PkFieldSpec<Order> { Key = "sku", Label = "SKU", Kind = PkFieldKind.Combobox, DebounceMs = 300, Get = o => "", Set = (o, v) => { } };
+        Assert.Equal(300, Defs(Render([spec]))[0].GetProperty("debounce").GetInt32());
+    }
+
     // Issue 1688: Layout is the element's layout attribute and EndContent fills its end slot.
     [Fact]
     public void Layout_inline_and_EndContent_reach_the_element()

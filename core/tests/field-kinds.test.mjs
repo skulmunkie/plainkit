@@ -29,6 +29,7 @@ test('a spec becomes the attributes of its control: only the set ones, the type 
     assert.deepEqual(controlAttrs({ key: 's', kind: 'select', required: true }), { required: '' });
     assert.deepEqual(controlAttrs({ key: 'c', kind: 'combobox', free: true, placeholder: 'x' }), { placeholder: 'x', free: '' });
     assert.deepEqual(controlAttrs({ key: 'c', kind: 'combobox', mode: 'select' }), { mode: 'select' }, 'a combobox field can be a styled select');
+    assert.deepEqual(controlAttrs({ key: 'c', kind: 'combobox', debounce: 300 }), { debounce: 300 }, 'a combobox field can delay its search');
     const st = resolveSpec({ key: 's', kind: 'select', styled: true, required: true, options: [] });
     assert.deepEqual([st.kind, controlTag(st.kind), controlAttrs(st)], ['combobox', 'pk-combobox', { required: '', mode: 'select' }], 'styled turns a select into the select-mode combobox');
     const nat = { key: 's', kind: 'select' };
