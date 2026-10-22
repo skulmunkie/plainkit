@@ -28,7 +28,7 @@ Where you get the files, and which versions are pinned:
 | Way | Version |
 |---|---|
 | `plainkit-dist-<version>.zip` on the [GitHub releases](https://github.com/skulmunkie/plainkit/releases) page; unzip it anywhere (`plainkit-modules-<version>.zip` is the dev tools, its own unit: unzip it into the same folder) | pinned |
-| Lean alternative: `plainkit-<version>.zip` (core) plus the extras you use, for now `plainkit.tools-<version>.zip` (the dev tools) `plainkit.canvas-<version>.zip` (`pk-canvas` and the SVG toolkit) and `plainkit.markdown-<version>.zip` (`pk-markdown` and `pk-markdown-editor`); unzip the extra over the core folder. Full or core + modules is your choice; nothing is lost either way | pinned |
+| Lean alternative: `plainkit-<version>.zip` (core) plus the extras you use, for now `plainkit.tools-<version>.zip` (the dev tools) `plainkit.canvas-<version>.zip` (`pk-canvas` and the SVG toolkit) and `plainkit.markdown-<version>.zip` (`pk-markdown` and `pk-markdown-editor`) and `plainkit.dock-<version>.zip` (`pk-dock`); unzip the extra over the core folder. Full or core + modules is your choice; nothing is lost either way | pinned |
 | `dotnet add package PlainKit.Blazor` (the package carries `dist` as static web assets) | pinned |
 | The [Pages site](https://skulmunkie.github.io/plainkit/) (gallery, guides and tools; `dist/` sits under it, for example `.../dist/plainkit.min.css`) | latest `main`, not pinned |
 
