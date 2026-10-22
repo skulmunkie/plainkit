@@ -22,6 +22,16 @@
       "type": "string"
     },
     {
+      "name": "TabletTracks",
+      "prop": "tabletTracks",
+      "type": "string"
+    },
+    {
+      "name": "StackBelow",
+      "prop": "stackBelow",
+      "type": "GridStackBelow"
+    },
+    {
       "name": "Gap",
       "prop": "gap",
       "type": "GridGap"

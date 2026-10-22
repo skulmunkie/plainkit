@@ -34,6 +34,21 @@
       "description": "An explicit column track list as CSS writes it, for a fixed grid such as a 12-column dashboard (repeat(12, minmax(0, 1fr))) or uneven columns (minmax(0, 1.5fr) minmax(0, 1fr), 12rem 1fr). Use minmax(0, ...) so wide content does not blow a track out. Children then take columns with data-col-span (see the default slot). Overrides ratio, min and columns; a value the browser cannot parse is ignored with one warning. On a phone (640px and below) the grid falls back to auto columns so it stacks and data-col-span and data-row-span stop applying. For plain proportions, ratio (1.5:1) is shorter."
     },
     {
+      "name": "tabletTracks",
+      "type": "string",
+      "default": "",
+      "reflect": true,
+      "description": "A column track list for tablet widths (1024px and below, above a phone), for example repeat(6, minmax(0, 1fr)) to halve a 12-track grid: data-col-span values halve too (rounded up). Empty keeps the tracks."
+    },
+    {
+      "name": "stackBelow",
+      "type": "enum",
+      "default": "phone",
+      "values": ["phone", "tablet"],
+      "reflect": true,
+      "description": "The width at and below which the grid stacks to auto columns: phone (640px, the default) or tablet (1024px). Wins over tablet-tracks."
+    },
+    {
       "name": "gap",
       "type": "enum",
       "default": "md",
@@ -65,6 +80,11 @@
       "name": "--pk-grid-columns",
       "description": "The column cap; set by the columns prop.",
       "default": "unset (no cap)"
+    },
+    {
+      "name": "--pk-grid-tablet",
+      "description": "The tablet column list; set by tablet-tracks.",
+      "default": "unset"
     },
     {
       "name": "--pk-grid-ratio",

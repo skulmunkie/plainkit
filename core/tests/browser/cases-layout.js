@@ -1,4 +1,5 @@
 // Browser cases for the layout primitives (pk-cluster, pk-stack, pk-grid). Same contract as cases.js: [name, async (t) => void].
+import { mediaBelow } from '../../js/breakpoints.js';
 // Sizes are set through CSSOM (the strict CSP forbids style attributes in markup).
 const px = v => parseFloat(v);
 const size = (el, w, h = 20) => { el.style.inlineSize = `${w}px`; el.style.blockSize = `${h}px`; };
@@ -114,6 +115,18 @@ export const layoutCases = [
         t.eq(getComputedStyle(el).gridTemplateColumns.split(' ').length, 2, 'a custom track list');
         el.tracks = 'not a track list'; await t.settle();
         t.eq(el.style.getPropertyValue('--pk-grid-ratio'), '', 'an unparseable list does not reach the css');
+    }],
+    ['grid: tablet-tracks halves a 12-track grid and its spans, stack-below="tablet" stacks, at tablet width (#1718)', async t => {
+        const host = t.stage('<div><pk-grid tracks="repeat(12, minmax(0, 1fr))" tablet-tracks="repeat(6, minmax(0, 1fr))" gap="none"><div data-col-span="6">a</div><div data-col-span="6">b</div></pk-grid></div>');
+        await t.load(host); await t.settle();
+        const el = host.querySelector('pk-grid'), cols = () => getComputedStyle(el).gridTemplateColumns.split(' ').length;
+        t.eq(el.style.getPropertyValue('--pk-grid-tablet'), 'repeat(6, minmax(0, 1fr))', 'the list reaches the css');
+        const tablet = mediaBelow('tablet').matches, phone = mediaBelow('phone').matches;
+        if (phone) return;
+        t.eq(cols(), tablet ? 6 : 12, tablet ? 'six tracks at tablet width' : 'twelve tracks above tablet');
+        if (tablet) t.ok(el.firstElementChild.getBoundingClientRect().width > el.getBoundingClientRect().width * 0.4, 'span 6 halves to 3 of 6 tracks: half the width each');
+        el.stackBelow = 'tablet'; await t.settle();
+        if (tablet) t.eq(cols(), 1, 'stack-below tablet stacks'); else t.eq(cols(), 12, 'unchanged above tablet');
     }],
     ['grid: still fills its container inside a flex row (a shrink-to-fit parent must not collapse it)', async t => {
         const host = t.stage('<div><pk-grid min="6rem"><div></div><div></div></pk-grid></div>');
