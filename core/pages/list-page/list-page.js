@@ -3,22 +3,21 @@ import { loadElements } from '../../js/loader.js';
 
 const TABLE_KEYS = ['columns', 'filters', 'pageSize', 'pageSizeOptions', 'sort', 'sortDir', 'search', 'filterValues', 'page', 'searchDebounce', 'pagerLabel', 'label', 'caption', 'empty', 'noResults', 'loadError', 'stickyHeader', 'selectPageOnly'];
 
-// The page frame (title bar, toolbar actions, the callbacks) around a pk-data-table, which owns the query, the load and the states (#801).
+// The page frame around a pk-data-table, which owns the query, load and states (#801).
 export default Base => class extends Base {
     connected() {
         if (this.$w) return;
         this.$w = true;
         loadElements(this.shadowRoot);
         this.sync();
-        // Cell content (#1000): the host's `cell-<id>-<key>` children are re-slotted into the table, which re-slots them into its pk-table (#817).
+        // Host `cell-<id>-<key>` children are re-slotted into the table (#1000, #817).
         (this.$mo = new MutationObserver(() => { this.forwardSlots(); this.showHeaderSlot(); })).observe(this, { childList: true });
         this.forwardSlots();
-        // The before-list box is shown only while something is slotted in it, so an empty slot leaves no margin.
         const slot = this.shadowRoot?.querySelector?.('slot[name="before-list"]'), before = this.part('before');
         if (slot && before) { const show = () => { before.hidden = !slot.assignedNodes().length; }; slot.addEventListener('slotchange', show); show(); }
     }
     disconnected() { this.$mo?.disconnect(); this.$w = false; }
-    // Loads again: the bridge calls this once a `load` callback is set after the table already drew its first (empty) answer, which a host that binds callbacks after the first render always does (#1401).
+    // The bridge calls this when `load` is set after the first (empty) draw (#1401).
     refresh() { return this.part('table')?.refresh?.(); }
     forwardSlots() {
         const table = this.part('table'), names = [...this.children].map(c => c.slot).filter(s => s?.startsWith('cell-')), have = [...table.children].filter(c => c.name?.startsWith('cell-'));
@@ -26,41 +25,46 @@ export default Base => class extends Base {
         for (const c of have) c.remove();
         for (const name of names) { const s = this.ownerDocument.createElement('slot'); s.name = s.slot = name; table.append(s); }
     }
-    // The data table's own parts (filters, pagination, state) stay reachable here under the names this page always had.
     part(name) { const t = super.part('table'); return super.part(name) ?? (typeof t?.part === 'function' ? t.part(name) : null); }
     changed(name) { if ((name === 'config' || name === 'clickable' || name === 'rowHrefTemplate' || name === 'navigate') && this.$w) this.sync(); }
 
     sync() {
         const table = this.part('table');
-        // The callbacks are handed down as they are now; a missing load shows the configured empty state, a missing rowHref leaves rows unclickable.
         table.load = q => (typeof this.load === 'function' ? this.load(q) : { rows: [] });
         table.rowHref = typeof this.rowHref === 'function' ? row => this.rowHref(row) : null;
         table.clickable = !!this.clickable; table.rowHrefTemplate = this.rowHrefTemplate; table.navigate = this.navigate;
-        // Selection is the table's: this page only switches it on (its pk-select is composed, so the host hears it as it is) and fills the bulk bar.
         table.selectable = !!this.config?.selectable;
         if (this.config?.rowKey) table.rowKey = this.config.rowKey;
         this.buildActions();
-        // The page's config keys the table has a plain prop for are handed down as those props (an unset key is the prop's default).
         const cfg = this.config ?? {};
         for (const k of TABLE_KEYS) table[k] = cfg[k];
         table.hideSearch = cfg.searchable === false;
-        // searchPlaceholder is the text of the search box (its placeholder and accessible name); searchLabel, when set too, wins.
         table.searchLabel = cfg.searchLabel ?? cfg.searchPlaceholder;
         table.cards = cfg.cards ?? !cfg.selectable; // a card has no select-all
     }
 
-    // Slotted actions keep the title bar that showTitleBar hides when the config draws nothing.
     showHeaderSlot() {
+        if (this.config?.toolbarInHeader) return;
         if ([...this.children].some(c => c.slot === 'actions')) this.part('header').setAttribute('data-bare', 'false');
     }
 
     // Rebuilt only when config.actions changes: link buttons; app logic goes in the actions or toolbar slot.
     buildActions() {
-        // Title bar: heading and breadcrumb only; config.actions stay the table's toolbar buttons below.
-        showTitleBar(this, this.part('header'), { heading: this.config?.heading, breadcrumb: this.config?.breadcrumb });
+        const inBar = !!this.config?.toolbarInHeader;
+        showTitleBar(this, this.part('header'), inBar ? {} : { heading: this.config?.heading, breadcrumb: this.config?.breadcrumb });
+        this.buildLead(inBar);
         this.showHeaderSlot();
         this.fill('actions', this.config?.actions);
         this.fill('bulk', this.config?.selectable ? this.config?.bulkActions : null);
+    }
+
+    // toolbarInHeader (#1723): the title goes to the table's lead slots, the host actions to its actions slot; the shell header stays bare.
+    buildLead(on) {
+        const t = this.part('table'), { heading, breadcrumb } = this.config ?? {}, h = this.shadowRoot?.querySelector?.('pk-page-shell > slot:not([name="title"])');
+        showTitleBar(this, t, on ? { heading, breadcrumb } : {});
+        t.$bar.push(...(on ? [Object.assign(this.ownerDocument.createElement('slot'), { name: 'actions', slot: 'actions' })] : []));
+        if (h) h.name = on ? 'x' : 'actions';
+        t.append?.(...t.$bar);
     }
 
     // One pk-button per entry. A bulk action ({ id, label, variant? }) raises pk-bulk with its id and the table's selection, { action, selected, scope, query }.

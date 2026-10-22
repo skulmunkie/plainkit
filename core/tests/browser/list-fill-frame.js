@@ -3,7 +3,7 @@
 import { loadElements } from '../../js/loader.js';
 
 const ROWS = Array.from({ length: 50 }, (_, i) => ({ id: i + 1, sku: `AC-${1000 + i}`, title: `Widget number ${i + 1}` }));
-const q = new URLSearchParams(location.search), overlay = q.has('overlay'), wrap = q.get('wrap'), tall = q.has('tall');
+const q = new URLSearchParams(location.search), overlay = q.has('overlay'), wrap = q.get('wrap'), tall = q.has('tall'), bar = q.has('bar');
 const mk = (tag, attrs = {}, text) => { const e = document.createElement(tag); for (const [k, v] of Object.entries(attrs)) e.setAttribute(k, v); if (text) e.textContent = text; return e; };
 
 if (q.get('theme')) document.documentElement.setAttribute('data-theme', q.get('theme'));
@@ -18,6 +18,7 @@ if (tall) {
 } else list.append(mk('pk-alert', { slot: 'before-list', kind: 'info' }, 'Prices include tax.'));
 list.config = {
     heading: 'Orders', breadcrumb: [{ label: 'Sales', href: '#' }, { label: 'Orders' }], stickyHeader: true, selectable: true, pageSize: 50,
+    ...(bar ? { toolbarInHeader: true, searchable: true, actions: [{ label: 'New order' }], filters: [{ key: 'kind', type: 'select', label: 'Kind', options: ['a', 'b'] }] } : {}),
     columns: [{ key: 'sku', label: 'SKU' }, { key: 'title', label: 'Title' }], bulkActions: [{ id: 'archive', label: 'Archive' }],
 };
 list.load = () => ({ rows: ROWS, total: 200 });
