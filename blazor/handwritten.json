@@ -276,6 +276,9 @@
     "PkDatePreset.cs": {
       "category": "dto"
     },
+    "PkFieldAction.cs": {
+      "category": "dto"
+    },
     "PkSelectOption.cs": {
       "category": "dto"
     },

@@ -170,7 +170,10 @@ export const TOKENS = ${JSON.stringify(data.tokens)};
 
 export const PAGE_TYPES = ${JSON.stringify(data.pageTypes)};
 
-export const BLAZOR_COMPONENTS = ${JSON.stringify(data.blazorComponents)};
+// Stored compactly as tag -> [component, ...params] and expanded to { component, params } here (a package size ceiling, #1656).
+const BLAZOR_COMPACT = ${JSON.stringify(Object.fromEntries(Object.entries(data.blazorComponents).map(([tag, v]) => [tag, [v.component, ...v.params]])))};
+
+export const BLAZOR_COMPONENTS = Object.fromEntries(Object.entries(BLAZOR_COMPACT).map(([tag, [component, ...params]]) => [tag, { component, params }]));
 `;
 }
 

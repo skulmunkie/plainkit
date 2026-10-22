@@ -29,6 +29,11 @@
       "doc": "The bound record; each field's Get reads it, each commit calls Set then ModelChanged."
     },
     {
+      "name": "OnFieldAction",
+      "event": "pk-field-action",
+      "doc": "Raised when the user presses a field's SuffixAction button: Key is the field's key and Action the action's key."
+    },
+    {
       "name": "ModelChanged",
       "map": "fieldGroup",
       "role": "changed",
@@ -128,6 +133,11 @@
       "name": "LabelActionEnd",
       "type": "bool",
       "doc": "Pins LabelAction to the end of the label row (a figure or a small action opposite the label text) instead of directly after it."
+    },
+    {
+      "name": "SuffixAction",
+      "type": "PkFieldAction?",
+      "doc": "An icon button inside the end of an input kind's control (a barcode scan, a lookup): Icon is an icon name, Label its accessible name, Key what OnFieldAction reports. It follows the field's Disabled and ReadOnly state; other kinds ignore it."
     },
     {
       "name": "Cols",
