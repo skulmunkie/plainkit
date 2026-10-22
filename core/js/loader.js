@@ -38,7 +38,7 @@ export async function loadElements(root = document, { registry = new URL('../ele
         // Both outcomes are logged here, so the promise handed back never rejects.
         return p.then(() => { if (isLogEnabled('debug', 'loader')) log.debug(`loaded <${tag}> in ${Math.round((globalThis.performance?.now?.() ?? Date.now()) - started)} ms`, { tag, path }); }, async error => {
             loaded.delete(tag);
-            if (BY_NAME && !(await registryOf(registry).then(m => m[tag], () => 1))) return typo(tag);
+            if (BY_NAME && await (await import('./loader-missing.js')).explain(registry, tag, typo, log, reported, error)) return; // a typo, or a tag of an extra that is not in the folder: said once, from a chunk only a failure loads (js/loader-missing.js)
             log.error(`could not load <${tag}> from ${path}`, error);
         });
     }));
