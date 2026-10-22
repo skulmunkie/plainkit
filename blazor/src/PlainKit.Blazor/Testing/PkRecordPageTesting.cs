@@ -49,7 +49,7 @@ namespace PlainKit.Blazor.Pages
 
         internal void CancelForTest() { _testEdits.Clear(); _preview = default; }
 
-        internal async Task<string?> SaveForTestAsync()
+        internal async Task<string?> SaveForTestAsync(bool skipBeforeSave = false)
         {
             if (Save is null) throw new InvalidOperationException("The page has no Save, so the element draws no Save button.");
             var fields = FieldsForTest();
@@ -62,7 +62,7 @@ namespace PlainKit.Blazor.Pages
             try
             {
                 var item = await ApplySavedAsync(sent);
-                if (BeforeSave is not null && !await BeforeSave(item)) return null;   // BeforeSave said stop: the edits stay and Save does not run
+                if (!skipBeforeSave && BeforeSave is not null && !await BeforeSave(item)) return null;   // BeforeSave said stop: the edits stay and Save does not run
                 await Save(item);
             }
             catch (Exception ex) { return ex.Message; }   // the element keeps the edits and shows this in its notice
