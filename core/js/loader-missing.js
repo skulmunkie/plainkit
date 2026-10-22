@@ -6,6 +6,6 @@ export async function explain(registry, tag, typo, log, reported, error) {
     if (m && !m.default[tag]) return typo(tag), true;
     if (!id) return false;
     reported.add(tag);
-    log.error(`<${tag}> is in ${id}, which is not in this folder: unzip ${id}-${m.extrasVersion}.zip over it (release asset), then reload`, { tag, extra: id, error });
+    log.error(`<${tag}> is in ${id}, which is not in this folder: unzip ${id}-${m.extrasVersion}.zip over it (GitHub release asset; Pages: packages/${id}/), then reload`, { tag, extra: id, error });
     return true;
 }
