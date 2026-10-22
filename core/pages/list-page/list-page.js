@@ -1,7 +1,7 @@
 import { showTitleBar } from '../../js/page-shell.js';
 import { loadElements } from '../../js/loader.js';
 
-const TABLE_KEYS = ['columns', 'filters', 'pageSize', 'pageSizeOptions', 'sort', 'sortDir', 'search', 'filterValues', 'page', 'searchLabel', 'searchDebounce', 'pagerLabel', 'label', 'caption', 'empty', 'noResults', 'loadError', 'stickyHeader'];
+const TABLE_KEYS = ['columns', 'filters', 'pageSize', 'pageSizeOptions', 'sort', 'sortDir', 'search', 'filterValues', 'page', 'searchDebounce', 'pagerLabel', 'label', 'caption', 'empty', 'noResults', 'loadError', 'stickyHeader', 'selectPageOnly'];
 
 // The page frame (title bar, toolbar actions, the callbacks) around a pk-data-table, which owns the query, the load and the states (#801).
 export default Base => class extends Base {
@@ -44,6 +44,8 @@ export default Base => class extends Base {
         const cfg = this.config ?? {};
         for (const k of TABLE_KEYS) table[k] = cfg[k];
         table.hideSearch = cfg.searchable === false;
+        // searchPlaceholder is the text of the search box (its placeholder and accessible name); searchLabel, when set too, wins.
+        table.searchLabel = cfg.searchLabel ?? cfg.searchPlaceholder;
         table.cards = cfg.cards ?? !cfg.selectable; // a card has no select-all
     }
 

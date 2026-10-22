@@ -170,8 +170,8 @@ export const TOKENS = ${JSON.stringify(data.tokens)};
 
 export const PAGE_TYPES = ${JSON.stringify(data.pageTypes)};
 
-// Stored as tag -> [component, ...params] (the package ceiling is a one-way ratchet) and read back as { component, params }.
-export const BLAZOR_COMPONENTS = Object.fromEntries(Object.entries(${JSON.stringify(Object.fromEntries(Object.entries(data.blazorComponents).map(([t, v]) => [t, [v.component, ...v.params]])))}).map(([t, [component, ...params]]) => [t, { component, params }]));
+// params is one space-separated string per component (the audit package has a size ceiling; b-rules.mjs splits it).
+export const BLAZOR_COMPONENTS = ${JSON.stringify(Object.fromEntries(Object.entries(data.blazorComponents).map(([tag, v]) => [tag, { ...v, params: v.params.join(' ') }])))};
 `;
 }
 
