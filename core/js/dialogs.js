@@ -10,7 +10,7 @@
 //       fields: [{ name: 'email', label: 'Email', type: 'email', required: true }], actions: [{ label: 'Create', value: 'ok' }],
 //       validate: values => (values.email.includes('@') ? '' : 'Enter an email address.') });                                           // { action, values } | null (cancelled)
 //   await dialogs.confirm({ heading: 'Delete?', danger: true, onConfirm: async () => (await remove()) ? null : 'Refused: referenced by other records.' });
-//   // onConfirm (confirm, prompt, open) runs when the confirming button is pressed, with the values: the dialog stays open, that button busy and the rest inert; null/'' closes it
+//   // onConfirm (confirm, prompt, open) runs when the confirming button is pressed, with the values and the pressed button's value: the dialog stays open, that button busy and the rest inert; null/'' closes it
 //   // (resolved as confirmed), a message stays inside the dialog (cancel or retry); a throw is logged and shows a generic message. A field `{ type: 'checkbox' }` is a pk-checkbox: its value is 'true' | 'false'.
 //
 // One dialog is open at a time for the whole app (one manager per app): a call while one is open QUEUES and opens when it closes. Policy: Escape and the close
@@ -83,7 +83,7 @@ export function createDialogs({ container, log = createLogger('dialogs'), load }
             const ok = buttons.find(b => b.dataset.result === r), rest = [...buttons.filter(b => b !== ok), ...inputs.map(x => x.input)];
             busy = true; ok.busy = true; for (const x of rest) x.disabled = true;
             let msg = '';
-            try { msg = await c.onConfirm(values()); } catch (e) { log.error('a dialog onConfirm() threw; the dialog stays open', e); msg = 'Something went wrong. Try again.'; }
+            try { msg = await c.onConfirm(values(), r); } catch (e) { log.error('a dialog onConfirm() threw; the dialog stays open', e); msg = 'Something went wrong. Try again.'; }
             if (req.done) return;
             busy = false; ok.busy = false; for (const x of rest) x.disabled = false;
             if (!msg) { finish(r); return; }

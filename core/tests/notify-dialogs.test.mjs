@@ -125,6 +125,18 @@ test('dialogs: onConfirm keeps the dialog open busy, shows a failure in it, and 
     assert.match(dialogOf(doc).find('pk-alert')[0].textContent, /Something went wrong/); btn(doc, 'Cancel').click(); assert.equal(await q, false);
 });
 
+test('dialogs: onConfirm gets the trimmed values and the pressed action; a failure keeps what was typed (#1715)', async () => {
+    const doc = makeDom(), d = createDialogs({ container: doc.body });
+    const seen = [];
+    const p = d.prompt({ heading: 'Rename', label: 'Name', required: true, onConfirm: (values, action) => { seen.push([values, action]); return seen.length === 1 ? 'Name taken.' : null; } });
+    const input = dialogOf(doc).find('pk-input')[0]; input.value = '  Draft  ';
+    btn(doc, 'OK').click(); await flush();
+    assert.deepEqual(seen, [[{ value: 'Draft' }, 'ok']]);
+    assert.equal(dialogOf(doc).find('pk-alert')[0].textContent, 'Name taken.'); assert.equal(input.value, '  Draft  ', 'the typed text stays');
+    input.value = 'Other'; btn(doc, 'OK').click(); await flush();
+    assert.deepEqual(seen[1], [{ value: 'Other' }, 'ok']); assert.equal(await p, 'Other');
+});
+
 test('dialogs: a checkbox field comes back as true or false in an open dialog', async () => {
     const doc = makeDom(), d = createDialogs({ container: doc.body });
     const p = d.open({ heading: 'Rename', fields: [{ name: 'name', label: 'Name', value: 'A' }, { name: 'related', label: 'Also apply to related rows', type: 'checkbox' }] });

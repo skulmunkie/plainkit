@@ -853,5 +853,8 @@ public sealed class PkPageCallbackTests : BunitContext, IAsyncLifetime
         Assert.Equal("ab", selected.ToRequest()!.Search);
         Assert.Equal("archive", bulk!.Action);
         Assert.Equal(["A-1"], bulk.Selected!);
+        Assert.Equal("ab", bulk.ToRequest()!.Search);
+        Assert.Equal(2, bulk.ToRequest()!.Page);
+        Assert.Null(new PkBulkEventArgs().ToRequest());
     }
 }

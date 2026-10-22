@@ -38,7 +38,7 @@ namespace PlainKit.Blazor.Testing
     /// toolbar inside the element, so under bUnit nothing loads and a test sees only the attributes. These helpers do what the element does: load, edit, save, cancel,
     /// delete and click, and read what the element would be sent. <c>Sent()</c> is the whole config the element receives (title, breadcrumb, actions, sidebar, sections).
     /// </summary>
-    public static class PkPageTesting
+    public static partial class PkPageTesting
     {
         /// <summary>Loads one page the way the element does (default: page 1 with the config's <c>pageSize</c>, no search) and returns the result; the rows and cell templates have rendered, so read <c>cut.Find("[slot=cell-2-name]")</c> after the await.</summary>
         public static Task<PkListResult<TItem>> LoadAsync<TItem>(this Pages.PkListPage<TItem> page, PkListRequest? request = null) => (page ?? throw new ArgumentNullException(nameof(page))).LoadForTestAsync(request);

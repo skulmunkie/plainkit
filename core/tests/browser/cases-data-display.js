@@ -1111,6 +1111,13 @@ export const dataDisplayCases = [
         t.eq(b.open, true); t.eq(ev.open, true); t.eq(a.open, false, 'exclusive closed the first'); t.eq(a.part('details').open, false);
     }],
 
+    ['tree: navigate=host on the tree makes a plain click on an href item a notification and nothing navigates; none leaves it to the browser (#1713)', async t => {
+        const el = await t.mount('<pk-tree label="Nav" navigate="host"><pk-tree-item label="A" href="#/a"></pk-tree-item><pk-tree-item label="B" href="#/b" navigate="router"></pk-tree-item></pk-tree>'); await t.settle();
+        const [a, b] = el.querySelectorAll('pk-tree-item'), seen = [];
+        el.addEventListener('pk-navigate', e => seen.push([e.target.label, e.cancelable]));
+        a.part('label').click(); b.part('label').click();
+        t.eq(seen.map(s => s.join(':')).join(','), 'A:false,B:true', 'host is a notification, the item own router mode is cancelable');
+    }],
     ['tree: a tree built in a detached tree (template content moved in is not upgraded until it is connected) does not re-queue updates forever', async t => {
         const el = await t.mount('<pk-tree label="Cats"><pk-tree-item label="Books"></pk-tree-item></pk-tree>'); await t.settle();
         const loose = document.createElement('pk-tree'); const tpl = document.createElement('template'); tpl.innerHTML = '<pk-tree-item label="A"></pk-tree-item>'; loose.append(tpl.content);

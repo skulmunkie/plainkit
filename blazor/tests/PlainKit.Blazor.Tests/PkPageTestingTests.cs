@@ -138,6 +138,22 @@ public sealed class PkPageTestingTests : BunitContext, IAsyncLifetime
     }
 
     [Fact]
+    public async Task ResumeSaveAsync_saves_without_asking_BeforeSave_again_after_a_confirm()
+    {
+        var asked = 0; var saved = 0;
+        var cut = RecordPage(_ => { saved++; return Task.CompletedTask; }, _ => { asked++; return Task.FromResult(false); });
+        await cut.Instance.LoadAsync("7");
+        cut.Instance.SetField("name", "Grace");
+
+        Assert.Null(await cut.Instance.SaveAsync());
+        Assert.Equal((1, 0), (asked, saved));
+        Assert.Null(await cut.Instance.ResumeSaveAsync());
+        Assert.Equal((1, 1), (asked, saved));
+        cut.Instance.SetField("name", "");
+        Assert.Equal("Name is required.", await cut.Instance.ResumeSaveAsync());
+    }
+
+    [Fact]
     public async Task BeforeSave_returning_false_stops_the_save_and_keeps_the_edits()
     {
         var saved = false;
