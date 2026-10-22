@@ -9,6 +9,7 @@ export const cleanIso = s => (ISO.test(String(s ?? '')) ? String(s) : '');
 export const PRESETS = {
     today: 'Today', '7d': 'Last 7 days', '30d': 'Last 30 days', '90d': 'Last 90 days',
     month: 'This month', lastmonth: 'Last month', quarter: 'This quarter', lastquarter: 'Last quarter', year: 'This year', lastyear: 'Last year',
+    thismonth: 'Whole month', thisquarter: 'Whole quarter', thisyear: 'Whole year',
 };
 export const DEFAULT_PRESETS = 'today,7d,30d,month';
 
@@ -33,6 +34,9 @@ export function presetRange(key, today, custom = []) {
         case 'quarter': return { start: isoDate(y, q0, 1), end: today };
         case 'lastquarter': return { start: addMonths(isoDate(y, q0, 1), -3), end: addDays(isoDate(y, q0, 1), -1) };
         case 'year': return { start: isoDate(y, 0, 1), end: today };
+        case 'thismonth': return { start: isoDate(y, m0, 1), end: addDays(isoDate(y, m0 + 1, 1), -1) };
+        case 'thisquarter': return { start: isoDate(y, q0, 1), end: addDays(isoDate(y, q0 + 3, 1), -1) };
+        case 'thisyear': return { start: isoDate(y, 0, 1), end: isoDate(y, 11, 31) };
         case 'lastyear': return { start: isoDate(y - 1, 0, 1), end: addDays(isoDate(y, 0, 1), -1) };
         default: return null;
     }

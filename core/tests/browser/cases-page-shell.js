@@ -67,7 +67,7 @@ export const pageShellCases = [
         const host = t.stage('<pk-list-page><pk-heading slot="title" level="1">Orders</pk-heading><pk-button slot="actions">New order</pk-button></pk-list-page>'); host.style.width = '1000px';
         const el = host.firstElementChild;
         el.config = { heading: 'Orders', breadcrumb: [{ label: 'Sales', href: '/s' }, { label: 'Orders' }], homeHref: '/', actionsOverflow: 'always', overflowLabel: 'More', badges: [{ label: 'Live', variant: 'ok' }], columns: [{ key: 'a', label: 'A' }] };
-        await t.load(host); await customElements.whenDefined('pk-page-header'); await t.settle();
+        await t.load(host); await Promise.all(['pk-page-shell', 'pk-page-header'].map(n => customElements.whenDefined(n))); await t.settle();
         const shell = el.shadowRoot.querySelector('pk-page-shell'), root = shell.part('header').shadowRoot, chip = shell.querySelector('pk-badge[slot="badges"]');
         t.ok(!el.shadowRoot.querySelector('pk-data-table slot[name="title"]'), 'the table toolbar does not repeat the title');
         t.ok(chip && chip.textContent.trim() === 'Live' && rect(chip).width > 0, 'config.badges draws a badge');

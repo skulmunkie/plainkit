@@ -16,3 +16,8 @@
 .u-mw-24r { max-width: 24rem !important; }
 .u-p-1r-1p25r { padding: 1rem 1.25rem !important; }
 .u-sr-only { position: absolute !important; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
+/* Show or hide at a named breakpoint: data-show-above="phone|tablet" hides at and below it, data-hide-above hides above it (#1722). */
+@media (max-width: 640px) { [data-show-above="phone"] { display: none !important; } }
+@media (max-width: 1024px) { [data-show-above="tablet"] { display: none !important; } }
+@media (min-width: 641px) { [data-hide-above="phone"] { display: none !important; } }
+@media (min-width: 1025px) { [data-hide-above="tablet"] { display: none !important; } }
