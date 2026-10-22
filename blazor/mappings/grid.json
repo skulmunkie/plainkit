@@ -32,6 +32,16 @@
       "type": "GridStackBelow"
     },
     {
+      "name": "Fill",
+      "prop": "fill",
+      "type": "bool"
+    },
+    {
+      "name": "Rows",
+      "prop": "rows",
+      "type": "string"
+    },
+    {
       "name": "Gap",
       "prop": "gap",
       "type": "GridGap"

@@ -1,5 +1,4 @@
 // Browser cases for the layout primitives (pk-cluster, pk-stack, pk-grid). Same contract as cases.js: [name, async (t) => void].
-import { mediaBelow } from '../../js/breakpoints.js';
 // Sizes are set through CSSOM (the strict CSP forbids style attributes in markup).
 const px = v => parseFloat(v);
 const size = (el, w, h = 20) => { el.style.inlineSize = `${w}px`; el.style.blockSize = `${h}px`; };
@@ -115,18 +114,6 @@ export const layoutCases = [
         t.eq(getComputedStyle(el).gridTemplateColumns.split(' ').length, 2, 'a custom track list');
         el.tracks = 'not a track list'; await t.settle();
         t.eq(el.style.getPropertyValue('--pk-grid-ratio'), '', 'an unparseable list does not reach the css');
-    }],
-    ['grid: tablet-tracks halves a 12-track grid and its spans, stack-below="tablet" stacks, at tablet width (#1718)', async t => {
-        const host = t.stage('<div><pk-grid tracks="repeat(12, minmax(0, 1fr))" tablet-tracks="repeat(6, minmax(0, 1fr))" gap="none"><div data-col-span="6">a</div><div data-col-span="6">b</div></pk-grid></div>');
-        await t.load(host); await t.settle();
-        const el = host.querySelector('pk-grid'), cols = () => getComputedStyle(el).gridTemplateColumns.split(' ').length;
-        t.eq(el.style.getPropertyValue('--pk-grid-tablet'), 'repeat(6, minmax(0, 1fr))', 'the list reaches the css');
-        const tablet = mediaBelow('tablet').matches, phone = mediaBelow('phone').matches;
-        if (phone) return;
-        t.eq(cols(), tablet ? 6 : 12, tablet ? 'six tracks at tablet width' : 'twelve tracks above tablet');
-        if (tablet) t.ok(el.firstElementChild.getBoundingClientRect().width > el.getBoundingClientRect().width * 0.4, 'span 6 halves to 3 of 6 tracks: half the width each');
-        el.stackBelow = 'tablet'; await t.settle();
-        if (tablet) t.eq(cols(), 1, 'stack-below tablet stacks'); else t.eq(cols(), 12, 'unchanged above tablet');
     }],
     ['grid: still fills its container inside a flex row (a shrink-to-fit parent must not collapse it)', async t => {
         const host = t.stage('<div><pk-grid min="6rem"><div></div><div></div></pk-grid></div>');
@@ -917,3 +904,44 @@ layoutCases.push(['align="center" on cluster, stack, field-row, container and fo
         }
     }
 }]);
+
+// Issues 1718 and 1722: the pk-grid tablet step, fill and rows, and the data-show-above / data-hide-above helper, in an iframe of the width and height under test (the media queries answer to the frame).
+async function gridFrame(t, v, width, height = 600) {
+    const host = t.stage(''), fr = document.createElement('iframe');
+    fr.title = `grid ${v} at ${width}px`; fr.style.cssText = `width:${width}px;height:${height}px;border:0;display:block`;
+    fr.src = new URL(`./grid-frame.html?v=${v}`, import.meta.url).href;
+    await new Promise(resolve => { fr.addEventListener('load', resolve, { once: true }); host.append(fr); });
+    const win = fr.contentWindow; if (v !== 'show') await win.customElements.whenDefined('pk-grid'); await new Promise(r => setTimeout(r, 80));
+    return { fr, d: win.document, win, cols: () => win.getComputedStyle(win.document.getElementById('g')).gridTemplateColumns.split(' ').length, rect: el => el.getBoundingClientRect() };
+}
+layoutCases.push(
+    ['grid: tablet-tracks halves a 12-track grid and its spans at 1024 and 768, leaves it at 1280, and a phone stacks (#1718)', async t => {
+        for (const [width, cols] of [[1280, 12], [1024, 6], [768, 6], [375, 1]]) {
+            const f = await gridFrame(t, 'tablet', width), g = f.d.getElementById('g'), [a, b] = [...g.children], at = `${width}px`;
+            t.eq(f.cols(), cols, `${at}: ${cols} column track(s)`);
+            if (width === 1024 || width === 768) t.ok(Math.abs(f.rect(a).width - f.rect(g).width / 2) < 2 && f.rect(b).left > f.rect(a).left, `${at}: span 6 halves to span 3 of 6, so two cells share the row`);
+            if (width === 1280) t.ok(Math.abs(f.rect(a).width - f.rect(g).width / 2) < 2, `${at}: span 6 of 12 is half`);
+            if (width === 375) t.ok(f.rect(b).top >= f.rect(a).bottom - 1, `${at}: children stack`);
+            f.fr.remove();
+        }
+    }],
+    ['grid: stack-below="tablet" stacks at 1024 and 768 and not at 1280 (#1718)', async t => {
+        for (const [width, stacked] of [[1280, false], [1024, true], [768, true], [375, true]]) {
+            const f = await gridFrame(t, 'stack', width), [a, b] = [...f.d.getElementById('g').children];
+            t.eq(f.rect(b).top >= f.rect(a).bottom - 1, stacked, `${width}px: ${stacked ? 'stacked' : 'side by side'}`);
+            f.fr.remove();
+        }
+    }],
+    ['grid: fill takes the remaining height under a header and rows share it by weight; a phone drops both (#1722)', async t => {
+        for (const width of [1280, 375]) {
+            const f = await gridFrame(t, 'fill', width, 600), g = f.d.getElementById('g'), bar = f.d.getElementById('bar'), cells = [...g.children];
+            if (width === 1280) {
+                t.ok(Math.abs(f.rect(g).bottom - 600) < 2 && Math.abs(f.rect(g).top - f.rect(bar).bottom) < 2, 'the grid ends at the bottom of the frame, right under the header');
+                const h1 = f.rect(cells[0]).height, h2 = f.rect(cells[2]).height;
+                t.ok(Math.abs(h2 - 3 * h1) < 2, `rows 1fr and 3fr share the height (${Math.round(h1)}px and ${Math.round(h2)}px)`);
+                t.ok(f.d.documentElement.scrollHeight <= 600, 'no page scroll');
+            } else t.ok(f.rect(g).height < 400 && f.rect(cells[1]).top >= f.rect(cells[0]).bottom - 1, '375px: sized to content and stacked');
+            f.fr.remove();
+        }
+    }],
+);

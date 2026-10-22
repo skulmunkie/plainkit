@@ -3,6 +3,7 @@
 // The tracks prop is a column track list as CSS writes it (repeat(12, minmax(0, 1fr)), minmax(0, 1.5fr) minmax(0, 1fr)); it wins over ratio and is checked with CSS.supports.
 // Children size themselves in it with data-col-span (2 to 12) and data-row-span (2 to 4) attributes, which the css reads with ::slotted; a phone drops them with the tracks.
 // tablet-tracks is the column list from 1024px down (spans halve, rounded up, so 12 tracks become 6); stack-below="tablet" stacks there instead of at 640px.
+// fill makes the grid take the height of its parent (a flex column or a sized block); rows is a row track list (1fr 2fr) sharing that height, both dropped on a phone.
 // A min the browser cannot parse as a length is ignored and the css default applies.
 // "2:1" -> "minmax(0, 2fr) minmax(0, 1fr)" (any number of positive parts); null when the text is not a ratio.
 export const ratioColumns = text => {
@@ -21,7 +22,9 @@ export default Base => class extends Base {
         const list = tracks ?? r;
         if (list) this.style.setProperty('--pk-grid-ratio', list); else this.style.removeProperty('--pk-grid-ratio');
         const tt = (this.tabletTracks ?? "").trim();
-        if (tt && CSS.supports('grid-template-columns', tt)) this.style.setProperty('--pk-grid-tablet', tt); else { this.style.removeProperty('--pk-grid-tablet'); if (tt) this.warnOnce('tt', `tablet-tracks="${tt}" is not a column track list: ignored`); }
+        if (tt && CSS.supports('grid-template-columns', tt)) this.style.setProperty('--pk-grid-tablet', tt); else { this.style.removeProperty('--pk-grid-tablet'); if (tt) this.warnOnce('tt', `tablet-tracks "${tt}" ignored`); }
+        const rw = (this.rows ?? '').trim();
+        if (rw && CSS.supports('grid-template-rows', rw)) this.style.setProperty('--pk-grid-rows', rw); else { this.style.removeProperty('--pk-grid-rows'); if (rw) this.warnOnce('rows', `rows "${rw}" ignored`); }
         const n = Math.floor(this.columns);
         if (n > 0) this.style.setProperty('--pk-grid-columns', String(n)); else this.style.removeProperty('--pk-grid-columns');
     }

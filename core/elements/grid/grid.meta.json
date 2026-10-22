@@ -24,21 +24,21 @@
       "type": "string",
       "default": "",
       "reflect": true,
-      "description": "Unequal columns as a ratio, for example 2:1 (a wide main column and a narrow side) or 1:2:1. Empty keeps equal auto-fit columns. Overrides min and columns; on a phone (640px and below) the grid falls back to auto columns so it stacks."
+      "description": "Unequal columns as a ratio, for example 2:1 or 1:2:1. Overrides min and columns; on a phone the grid falls back to auto columns so it stacks."
     },
     {
       "name": "tracks",
       "type": "string",
       "default": "",
       "reflect": true,
-      "description": "An explicit column track list as CSS writes it, for a fixed grid such as a 12-column dashboard (repeat(12, minmax(0, 1fr))) or uneven columns (minmax(0, 1.5fr) minmax(0, 1fr), 12rem 1fr). Use minmax(0, ...) so wide content does not blow a track out. Children then take columns with data-col-span (see the default slot). Overrides ratio, min and columns; a value the browser cannot parse is ignored with one warning. On a phone (640px and below) the grid falls back to auto columns so it stacks and data-col-span and data-row-span stop applying. For plain proportions, ratio (1.5:1) is shorter."
+      "description": "A column track list as CSS writes it, for a fixed grid such as a 12-column dashboard (repeat(12, minmax(0, 1fr))) or uneven columns (12rem 1fr). Use minmax(0, ...) so wide content cannot blow a track out. Children take columns with data-col-span. Overrides ratio, min and columns; an unparseable value is ignored with one warning. On a phone the grid falls back to auto columns, so it stacks and spans stop applying."
     },
     {
       "name": "tabletTracks",
       "type": "string",
       "default": "",
       "reflect": true,
-      "description": "A column track list for tablet widths (1024px and below, above a phone), for example repeat(6, minmax(0, 1fr)) to halve a 12-track grid: data-col-span values halve too (rounded up). Empty keeps the tracks."
+      "description": "Column tracks from 641 to 1024px, for example repeat(6, minmax(0, 1fr)) to halve 12 tracks; data-col-span halves too."
     },
     {
       "name": "stackBelow",
@@ -46,7 +46,21 @@
       "default": "phone",
       "values": ["phone", "tablet"],
       "reflect": true,
-      "description": "The width at and below which the grid stacks to auto columns: phone (640px, the default) or tablet (1024px). Wins over tablet-tracks."
+      "description": "Stack at phone (640px) or tablet (1024px) width."
+    },
+    {
+      "name": "fill",
+      "type": "boolean",
+      "default": false,
+      "reflect": true,
+      "description": "Takes the remaining height of its parent (a flex column or a sized block). Off on a phone."
+    },
+    {
+      "name": "rows",
+      "type": "string",
+      "default": "",
+      "reflect": true,
+      "description": "Row tracks as CSS writes them (minmax(0, 1fr) minmax(0, 2fr)); with fill they share the height. Off on a phone."
     },
     {
       "name": "gap",
@@ -83,7 +97,12 @@
     },
     {
       "name": "--pk-grid-tablet",
-      "description": "The tablet column list; set by tablet-tracks.",
+      "description": "Set by tablet-tracks.",
+      "default": "unset"
+    },
+    {
+      "name": "--pk-grid-rows",
+      "description": "Set by rows.",
       "default": "unset"
     },
     {
