@@ -103,6 +103,23 @@ public sealed class PkListPageTests : BunitContext, IAsyncLifetime
     }
 
     [Fact]
+    public void SearchPlaceholder_and_SelectPageOnly_go_into_the_config_and_stay_out_when_unset()
+    {
+        var on = ConfigOf(Render<PkListPage<Order>>(p => p
+            .Add(x => x.Columns, [new() { Key = "orderNo", Label = "No" }])
+            .Add(x => x.SearchPlaceholder, "Search by order, vendor or reference")
+            .Add(x => x.SelectPageOnly, true)));
+
+        Assert.Equal("Search by order, vendor or reference", on.GetProperty("searchPlaceholder").GetString());
+        Assert.True(on.GetProperty("selectPageOnly").GetBoolean());
+
+        var off = ConfigOf(Render<PkListPage<Order>>(p => p.Add(x => x.Columns, [new() { Key = "orderNo", Label = "No" }])));
+
+        Assert.False(off.TryGetProperty("searchPlaceholder", out _));
+        Assert.False(off.TryGetProperty("selectPageOnly", out _));
+    }
+
+    [Fact]
     public void Without_Initial_parameters_the_config_carries_no_query_keys()
     {
         var cut = Render<PkListPage<Order>>(p => p.Add(x => x.Columns, [new() { Key = "orderNo", Label = "No" }]).Add(x => x.InitialDescending, false));

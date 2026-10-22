@@ -299,8 +299,6 @@
     { "name": "pagination", "description": "The pk-pagination, in the table's footer." },
     { "name": "footer", "description": "The table footer bar (the pager sits in it): a top rule and block padding (--pk-table-footer-padding)." },
     { "name": "pager", "description": "The pk-pagination bar (its nav), exported from the pager." },
-    { "name": "pager-summary", "description": "The range text of the pager, such as 1-25 of 95." },
-    { "name": "pager-numbers", "description": "The page number buttons of the pager (the buttons themselves are styled by --pk-pagination-button-bg and --pk-pagination-button-border)." },
     { "name": "pager-prev", "description": "The previous-page button." },
     { "name": "pager-next", "description": "The next-page button." },
     { "name": "empty", "description": "Holds the empty slot while it is shown." },
