@@ -502,6 +502,11 @@
   ],
   "cssProperties": [
     {
+      "name": "--pk-table-footer-padding",
+      "description": "Block padding of the footer bar when something is slotted in it (a pager).",
+      "default": "var(--space-3)"
+    },
+    {
       "name": "--pk-table-max-height",
       "description": "Height of the scrolling frame (set from maxHeight).",
       "default": "none"

@@ -51,7 +51,7 @@ export default Base => class extends Base {
 
     updated() {
         const own = this.slotted().some(e => e.localName === 'table'), tb = this.part('table');
-        this.part('toolbar').hidden = !this.slotted('toolbar').length;
+        this.part('toolbar').hidden = !this.slotted('toolbar').length; this.part('footer').toggleAttribute('data-bar', this.slotted('footer').length > 0);
         tb.hidden = own;
         if (own) { this.part('bulk').hidden = this.part('empty').hidden = true; return; }
         if (this.selectScope === 'all' && !this.selected.length) this.selectScope = 'page';

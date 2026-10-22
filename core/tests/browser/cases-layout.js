@@ -781,9 +781,9 @@ for (const shape of [{}, { overlay: 1 }, { overlay: 1, wrap: 'main' }]) layoutCa
             const de = d.documentElement;
             t.ok(de.scrollHeight <= de.clientHeight && d.body.scrollHeight <= d.body.clientHeight && win.scrollY === 0, `${at}: the document and body do not scroll (${de.scrollHeight}/${de.clientHeight})`);
             t.ok(body.scrollHeight <= body.clientHeight + 1, `${at}: the shell body does not scroll (${body.scrollHeight}/${body.clientHeight})`);
-            const content = body.getBoundingClientRect().bottom - parseFloat(bcs.paddingBottom), pb = pager.getBoundingClientRect().bottom;
+            const content = body.getBoundingClientRect().bottom - parseFloat(bcs.paddingBottom), pb = tbl.part('footer').getBoundingClientRect().bottom; // the footer bar (the pager plus its padding) is what ends flush (#1724)
             const gap = content - pb;
-            t.ok(gap <= 1 && gap >= -1, `${at}: the pager's bottom (${pb}) is ${gap}px from the shell body's content bottom (${content}); it must be flush`);
+            t.ok(gap <= 1 && gap >= -1, `${at}: the pager bar's bottom (${pb}) is ${gap}px from the shell body's content bottom (${content}); it must be flush`);
             const scrollers = [];
             const walk = root => { for (const el of root.querySelectorAll('*')) { if (el.shadowRoot) walk(el.shadowRoot); const cs = win.getComputedStyle(el); if (/(auto|scroll)/.test(cs.overflowY) && el.scrollHeight > el.clientHeight + 1) scrollers.push(el.localName + (el.getAttribute('part') ? `[${el.getAttribute('part')}]` : '')); } };
             walk(d);
@@ -816,6 +816,45 @@ layoutCases.push(
             t.ok(before.scrollHeight > before.clientHeight, `${at}: the capped before region scrolls (${before.scrollHeight} vs ${before.clientHeight})`);
             t.ok(pr.bottom <= height + 1 && pr.top >= 0, `${at}: the pager (${Math.round(pr.top)}-${Math.round(pr.bottom)}) is inside the ${height}px window`);
             t.ok(br.bottom <= sh.top + 1, `${at}: the before region ends above the rows`);
+            fr.remove();
+        }
+    }],
+);
+
+// #1724: the pager footer of a list page is a bar of its own: padded and ruled off from the rows, centred, its page buttons have a resting surface and a boundary of at least 3:1 against the page in both themes,
+// and the footer, the pager parts and the tokens are reachable from the page host.
+layoutCases.push(
+    ['list page pager footer: a ruled bar with block padding on both sides, page buttons with a visible resting boundary (3:1) in light and dark, footer and pager parts reachable with ::part from the page host, the tokens tune it', async t => {
+        const lum = rgb => { const [r, g, b] = rgb.match(/[\d.]+/g).slice(0, 3).map(Number).map(v => { v /= rgb.startsWith('color(') ? 1 : 255; /* a color-mix result reads color(srgb 0-1 ...) */ return v <= 0.03928 ? v / 12.92 : ((v + 0.055) / 1.055) ** 2.4; }); return 0.2126 * r + 0.7152 * g + 0.0722 * b; };
+        const ratio = (a, b) => { const [x, y] = [lum(a), lum(b)].sort((m, n) => n - m); return (x + 0.05) / (y + 0.05); };
+        for (const theme of ['light', 'dark']) {
+            const host = t.stage(''), fr = document.createElement('iframe'), at = theme;
+            fr.title = `pager footer ${theme}`; fr.style.cssText = 'width:900px;height:700px;border:0;display:block';
+            fr.src = new URL('./list-fill-frame.html', import.meta.url).href + '?theme=' + theme;
+            await new Promise(resolve => { fr.addEventListener('load', resolve, { once: true }); host.append(fr); });
+            const win = fr.contentWindow, d = win.document, wait = ms => new Promise(r => setTimeout(r, ms));
+            await Promise.all(['pk-app-shell', 'pk-list-page', 'pk-data-table', 'pk-table', 'pk-pagination'].map(tag => win.customElements.whenDefined(tag)));
+            const list = d.querySelector('pk-list-page'), dt = list.part('table');
+            let tbl = null;
+            for (let i = 0; i < 150 && !(tbl = dt.part('table')); i++) await wait(40);
+            for (let i = 0; i < 150 && !tbl.shadowRoot?.querySelector('[part=body] tr'); i++) await wait(40);
+            await wait(400);
+            const footer = tbl.part('footer'), pager = dt.shadowRoot.querySelector('pk-pagination'), cs = e => win.getComputedStyle(e);
+            const fr0 = footer.getBoundingClientRect(), pr = pager.getBoundingClientRect(), sc = tbl.part('scroll').getBoundingClientRect();
+            t.ok(parseFloat(cs(footer).borderTopWidth) >= 1, `${at}: the footer has a top rule (${cs(footer).borderTopWidth})`);
+            t.ok(pr.top - fr0.top >= 8, `${at}: the pager is ${Math.round(pr.top - fr0.top)}px below the footer's top edge`);
+            t.ok(fr0.bottom - pr.bottom >= 8, `${at}: the pager is ${Math.round(fr0.bottom - pr.bottom)}px above the footer's bottom edge`);
+            t.ok(fr0.top >= sc.bottom - 1, `${at}: the footer starts where the rows end`);
+            const btn = pager.shadowRoot.querySelector('[part=numbers] button:not([aria-current])') ?? pager.shadowRoot.querySelector('[part=next]'), bs = cs(btn);
+            const page = cs(d.body).backgroundColor === 'rgba(0, 0, 0, 0)' ? cs(d.documentElement).backgroundColor : cs(d.body).backgroundColor;
+            t.ok(bs.backgroundColor !== 'rgba(0, 0, 0, 0)', `${at}: the page buttons have a resting surface (${bs.backgroundColor})`);
+            t.ok(ratio(bs.borderTopColor, page) >= 3, `${at}: the page button boundary ${bs.borderTopColor} is ${ratio(bs.borderTopColor, page).toFixed(2)}:1 against the page ${page} (needs 3:1)`);
+            // reachable: the exported parts take a host rule, and the token tunes the padding
+            const sheet = new win.CSSStyleSheet(); sheet.replaceSync('pk-list-page::part(footer) { margin-block-start: 31px; } pk-list-page::part(pager-prev) { outline-offset: 7px; } pk-list-page { --pk-table-footer-padding: 19px; }');
+            d.adoptedStyleSheets = [sheet]; await wait(100);
+            t.eq(cs(footer).marginTop, '31px', `${at}: pk-list-page::part(footer) reaches the table footer`);
+            t.eq(cs(pager.shadowRoot.querySelector('[part=prev]')).outlineOffset, '7px', `${at}: pk-list-page::part(pager-prev) reaches the previous button`);
+            t.eq(cs(footer).paddingTop, '19px', `${at}: --pk-table-footer-padding tunes the footer`);
             fr.remove();
         }
     }],

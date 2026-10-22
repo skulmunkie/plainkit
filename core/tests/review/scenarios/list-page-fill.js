@@ -5,6 +5,7 @@ const TABLE = 'pk-list-page >>> pk-data-table >>> pk-table';
 const SCROLL = `${TABLE} >>> [part=scroll]`;
 const BODY = 'pk-app-shell >>> [part=body]';
 const PAGER = 'pk-list-page >>> pk-data-table >>> pk-pagination';
+const FOOTER = 'pk-list-page >>> pk-data-table >>> pk-table >>> [part=footer]'; // the pager bar: rule and padding around the pager (1724); it ends flush with the body
 
 export default {
     name: 'list-page-fill',
@@ -27,16 +28,16 @@ export default {
         { shot: 'scrolled' },
     ],
     expect(t) {
-        const body = t.rect(BODY), pager = t.rect(PAGER), scroll = t.rect(SCROLL), alert = t.rect('pk-list-page > pk-alert');
+        const body = t.rect(BODY), pager = t.rect(FOOTER), scroll = t.rect(SCROLL), alert = t.rect('pk-list-page > pk-alert');
         if (!body || !pager || !scroll || !alert) return t.ok(false, 'the shell body, the alert, the table scroll part and the pager all render');
         t.inViewport(PAGER);
         t.inViewport('pk-list-page > pk-alert');
         t.noOverlap('pk-list-page > pk-alert', SCROLL);
         t.noOverlap(SCROLL, PAGER);
-        t.within(PAGER, BODY);
+        t.within(FOOTER, BODY);
         t.within('pk-list-page > pk-alert', BODY);
         const gap = body.y + body.height - parseFloat(t.style(BODY, 'padding-bottom')) - (pager.y + pager.height);
-        t.ok(gap <= 1, `the pager ends ${Math.round(gap)}px above the shell body content bottom`);
+        t.ok(gap <= 1, `the pager bar ends ${Math.round(gap)}px above the shell body content bottom`);
         t.ok(scroll.height > 150, `the rows get ${Math.round(scroll.height)}px of the page`);
     },
 };

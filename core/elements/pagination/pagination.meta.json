@@ -172,6 +172,16 @@
   ],
   "cssProperties": [
     {
+      "name": "--pk-pagination-button-bg",
+      "description": "Resting background of the page buttons.",
+      "default": "var(--color-input)"
+    },
+    {
+      "name": "--pk-pagination-button-border",
+      "description": "Border colour of the page buttons: 3:1 against the page in both themes by default.",
+      "default": "color-mix(in srgb, var(--color-muted) 85%, var(--color-border))"
+    },
+    {
       "name": "--pk-pagination-size",
       "description": "Button size; the touch target on a phone.",
       "default": "var(--space-8)"

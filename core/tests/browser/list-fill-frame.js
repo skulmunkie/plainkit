@@ -6,6 +6,7 @@ const ROWS = Array.from({ length: 50 }, (_, i) => ({ id: i + 1, sku: `AC-${1000 
 const q = new URLSearchParams(location.search), overlay = q.has('overlay'), wrap = q.get('wrap'), tall = q.has('tall');
 const mk = (tag, attrs = {}, text) => { const e = document.createElement(tag); for (const [k, v] of Object.entries(attrs)) e.setAttribute(k, v); if (text) e.textContent = text; return e; };
 
+if (q.get('theme')) document.documentElement.setAttribute('data-theme', q.get('theme'));
 const shell = mk('pk-app-shell', { contain: '' });
 shell.append(mk('span', { slot: 'header' }, 'Orders'));
 const list = mk('pk-list-page');
