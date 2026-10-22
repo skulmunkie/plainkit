@@ -278,6 +278,21 @@ export const fieldGroupCases = [
         t.ok(pl.right - pa.right > 40, 'an unpinned action stays beside the label text');
     }],
 
+    ['field-group: suffixAction is an icon button inside the input that raises pk-field-action, and follows disabled and readonly (#1725)', async t => {
+        const el = await mountGroup(t, [{ key: 'sku', label: 'SKU', suffixAction: { icon: 'search', label: 'Find SKU', key: 'find' } }, { key: 'n', label: 'Note', readonly: true, suffixAction: { icon: 'search', label: 'Find note', key: 'x' } }], {});
+        await t.settle();
+        const [sku, note] = [...el.shadowRoot.querySelectorAll('pk-input')], btn = sku.querySelector('pk-button[slot="suffix"]');
+        t.ok(btn && btn.getAttribute('label') === 'Find SKU', 'the button carries the accessible name');
+        await t.load(sku.shadowRoot); await t.settle();
+        const box = sku.part('box').getBoundingClientRect(), b = btn.getBoundingClientRect(), inp = sku.part('control').getBoundingClientRect();
+        t.ok(b.width > 0 && b.left >= box.left && b.right <= box.right + 1, 'the button sits inside the control box');
+        t.ok(b.left >= inp.right - 1, 'the button is after the text input');
+        const got = []; el.addEventListener('pk-field-action', e => got.push(e.detail));
+        btn.click(); await t.settle();
+        t.eq(got.length, 1); t.eq(got[0].key, 'sku'); t.eq(got[0].action, 'find');
+        t.ok(note.querySelector('pk-button').hasAttribute('disabled'), 'a read-only field disables its action');
+    }],
+
     ['field-group: a combobox field with mode select is a styled select: a button, a themed list of the options, a pick is a field change (#1621)', async t => {
         const el = await mountGroup(t, [{ key: 'ch', label: 'Channel', kind: 'combobox', mode: 'select', placeholder: 'Choose', options: [{ value: 'web', label: 'Web' }, { value: 'live', label: 'Live' }] }], {});
         const combo = el.shadowRoot.querySelector('pk-combobox');

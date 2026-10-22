@@ -635,6 +635,19 @@ export const formCases = [
         t.eq(send(inner(rows.z), 'Tab', false).defaultPrevented, false, 'Tab is never trapped');
     }],
 
+    ['date-range-picker: at phone width the start and end date controls show their whole value and picker icon, inside the picker (#1717)', async t => {
+        const host = await t.mount('<div style="inline-size:300px"><pk-date-range-picker calendar start="2026-09-08" end="2026-09-17"></pk-date-range-picker></div>');
+        const el = host.querySelector('pk-date-range-picker'); await t.load(el.shadowRoot); await t.settle(); await t.settle();
+        const box = el.getBoundingClientRect();
+        for (const name of ['start', 'end']) {
+            const pk = el.part(name); await t.load(pk.shadowRoot); await t.settle();
+            const ctl = pk.part('control'), r = pk.getBoundingClientRect();
+            t.ok(r.width >= 9.5 * parseFloat(getComputedStyle(document.documentElement).fontSize) - 1, name + ': the control keeps room for the whole date and its picker icon (' + r.width.toFixed(0) + ' px)');
+            t.ok(ctl.scrollWidth <= ctl.clientWidth + 1, name + ': the date control is not clipped (scrollWidth ' + ctl.scrollWidth + ', clientWidth ' + ctl.clientWidth + ')');
+            t.ok(r.left >= box.left - 1 && r.right <= box.right + 1, name + ': the field sits inside the picker');
+        }
+    }],
+
     ['date-range-picker calendar: the opener opens a range calendar under the field, focus moves in, two picks set the range, commit once and close', async t => {
         const el = await t.mount('<pk-date-range-picker calendar start="2026-09-08" end="2026-09-17"></pk-date-range-picker>');
         await ready(t); const pop = el.part('popover'), cal = el.part('calendar'), opener = el.part('opener'), day = d => cal.shadowRoot.querySelector(`.day[data-date="${d}"]`);

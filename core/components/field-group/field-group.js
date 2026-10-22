@@ -6,6 +6,7 @@
 import { loadElements } from '../../js/loader.js';
 import { resolveSpec, controlTag, commitOf, readValue, writeValue, controlAttrs, messageAttrs, isVisible, isChecked, formEntries, valuesFromEntries } from '../../js/field-kinds.js';
 import { messageFor } from '../../js/validation.js';
+import { commitAsync, attachSuffix } from '../../js/field-extras.js';
 
 // The same value, as the text the controls show.
 const EXPR = ['whenExpr', 'disabledExpr', 'readonlyExpr', 'requiredExpr', 'labelWhenExpr', 'helpWhenExpr'];
@@ -137,29 +138,17 @@ export default Base => class extends Base {
             e.stopPropagation(); // the control's own commit event (pk-change of a checkbox, pk-value-change) is not this element's: only pk-field-change below leaves
             this.$vals = { ...this.$vals, [spec.key]: commit.read(e) };
             this.own(this.$vals);
-            if (typeof this.commit === 'function') return this.commitAsync(row);
+            if (typeof this.commit === 'function') return commitAsync(this, row); // the callback property hands the change to the host first (js/field-extras.js)
             this.announce(spec.key);
         });
         if (kind === 'combobox') control.addEventListener('pk-combo-query', e => this.onQuery(row, e));
         writeValue(control, kind, this.$vals[spec.key]); // before the control is upgraded this is its own property, adopted when it upgrades
         this.$rows.set(spec.key, row);
+        if (spec.suffixAction) attachSuffix(this, row);
         return row;
     }
     own(v) { this.$own = true; this.values = v; this.$own = false; } // a change the group made itself: `values` does not redraw
     announce(key) { this.emit('pk-field-change', { key, value: this.$vals[key], values: { ...this.$vals } }); this.reconcile(); }
-    // With a commit({ key, value, values }) callback property the change is handed to the host first: the field is busy until it answers, a newer edit of the same field
-    // supersedes an older pending one (last wins: a stale answer changes nothing), a rejection or a returned string is the field's error message (the typed text stays), and
-    // pk-field-change is raised only once the host accepted the value.
-    async commitAsync(row) {
-        const n = row.c = (row.c ?? 0) + 1, key = row.spec.key, { control, field } = row, value = this.$vals[key];
-        field.error = ''; control.setAttribute('aria-busy', 'true');
-        if (!field.querySelector('[data-busy]')) { field.append(this.mk('pk-spinner', { size: 'sm', label: 'Saving', slot: 'label-action', 'data-busy': '' })); loadElements(this.shadowRoot); }
-        let error = '';
-        try { const answer = await this.commit({ key, value, values: { ...this.$vals } }); if (typeof answer === 'string') error = answer; } catch (e) { error = e?.message || 'The change could not be saved.'; this.log.warn(`commit for "${key}" failed`, e); }
-        if (row.c !== n || this.$rows.get(key) !== row) return;
-        control.removeAttribute('aria-busy'); field.querySelector('[data-busy]')?.remove();
-        if (error) field.error = error; else this.announce(key);
-    }
     // A custom field has no control: its body is the host's own content in the editor-<key> slot, with no value, no validation and no part in the form.
     buildCustom(doc, spec) {
         const field = this.frame(spec, this.mk('slot', { name: `editor-${spec.key}` })), row = { spec, kind: 'custom', field, control: null };

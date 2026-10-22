@@ -261,6 +261,19 @@ public sealed class PkFieldGroupTests : BunitContext, IAsyncLifetime
         spec.Set(new Order(), ""); Assert.Null(price);
     }
 
+    // Issue 1725: SuffixAction reaches the element as data, and its click comes back as OnFieldAction.
+    [Fact]
+    public async Task SuffixAction_reaches_the_element_and_its_press_raises_OnFieldAction()
+    {
+        PkFieldActionEventArgs? got = null;
+        var spec = new PkFieldSpec<Order> { Key = "sku", Label = "SKU", Get = _ => "", Set = (_, _) => { }, SuffixAction = new("search", "Find SKU", "find") };
+        var cut = Render<PkFieldGroup<Order>>(p => p.Add(x => x.Fields, [spec]).Add(x => x.Model, new Order()).Add(x => x.OnFieldAction, EventCallback.Factory.Create<PkFieldActionEventArgs>(this, e => got = e)));
+        var a = Defs(cut)[0].GetProperty("suffixAction");
+        Assert.Equal(("search", "Find SKU", "find"), (a.GetProperty("icon").GetString(), a.GetProperty("label").GetString(), a.GetProperty("key").GetString()));
+        await cut.Find("pk-field-group").TriggerEventAsync("onpk-field-action", new PkFieldActionEventArgs { Key = "sku", Action = "find" });
+        Assert.Equal(("sku", "find"), (got?.Key, got?.Action));
+    }
+
     // Issue 1614: Cols reaches the element as the field's width in twelfths.
     [Fact]
     public void Cols_reaches_the_element()
