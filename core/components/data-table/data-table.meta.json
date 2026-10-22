@@ -3,7 +3,7 @@
   "title": "Data table",
   "group": "Data display",
   "tier": "component",
-  "summary": "A paged, searchable, sortable table that owns its data flow: a pk-table (manual), a pk-table-filters search/filter panel and a pk-pagination footer, with the query, the load and the states in one place. Set the load(query) callback as a property (business logic, never config data): it receives { page, pageSize, sort, sortDir, search, filters } and, as a second argument, { signal }, an AbortSignal that aborts when a newer request replaces it or the element leaves the page (pass it to fetch), and returns (or resolves to) { rows, total, filterOptions? } for that page (filterOptions is { filterKey: [{ value, label }] }: it replaces the options of those select and multiselect filters, for example labels with counts; the chosen values stay). A loading state shows while it is in flight, a rejection shows the built-in error state with Retry, zero rows show the configured empty state, and an older response arriving after a newer request is dropped. With selectable set, the selection survives paging and searching: selected holds the chosen ids, selectScope is 'page' (those ids) or 'all' (the reader chose Select all N rows of the query; the ids stay the loaded page, never every id). Each change raises pk-select with the ids, the scope and the current query, so for scope 'all' the host runs its bulk action against that query on the server. A search or filter change narrows scope 'all' back to 'page'. rowHref(row), also a callback property, makes rows clickable and is called with the row. pk-list-page and the lookup picker are built on this element.",
+  "summary": "A paged, searchable, sortable table that owns its data flow: a pk-table (manual), a pk-table-filters search/filter panel and a pk-pagination footer, with the query, the load and the states in one place. Set the load(query) callback as a property (business logic, never config data): it receives { page, pageSize, sort, sortDir, search, filters } and, as a second argument, { signal }, an AbortSignal that aborts when a newer request replaces it or the element leaves the page (pass it to fetch), and returns (or resolves to) { rows, total, filterOptions? } for that page (filterOptions: { filterKey: [{ value, label }] } replaces those select filters' options, e.g. labels with counts). A loading state shows while in flight, a rejection shows the error state with Retry, zero rows the empty state, and a stale response is dropped. With selectable set, the selection survives paging and searching: selected holds the chosen ids, selectScope is 'page' (those ids) or 'all' (Select all N rows: the ids stay the loaded page). Each change raises pk-select with the ids, the scope and the current query, so for scope 'all' the host runs its bulk action against that query on the server. A search or filter change narrows scope 'all' back to 'page'. rowHref(row), also a callback property, makes rows clickable and is called with the row. pk-list-page and the lookup picker are built on this element.",
   "props": [
     {
       "name": "columns",
@@ -17,7 +17,7 @@
       "type": "json",
       "default": [],
       "reflect": false,
-      "description": "The filter fields beside the search box: [{ key, label, type?, options?, anyLabel? }] (type is a pk-input type, 'select' with options, or 'multiselect': a checklist of options whose chosen values arrive as an array, empty when none). Each is a labelled control; its value goes to load(query) as query.filters[key]. The controls are rebuilt only when this array changes, so typed values survive every other change."
+      "description": "The filter fields beside the search box: [{ key, label, type?, options?, anyLabel? }] (type is a pk-input type, 'select' with options, or 'multiselect': a checklist of options whose chosen values arrive as an array, empty when none). Each is a labelled control; its value goes to load(query) as query.filters[key]. Controls are rebuilt only when this array changes, so typed values survive."
     },
     {
       "name": "pageSize",
@@ -215,7 +215,7 @@
       "type": "boolean",
       "default": false,
       "reflect": true,
-      "description": "Keep the header row visible while the rows scroll, as pk-table's stickyHeader. Put the data table in a flex column of definite height (a pk-stack[fill], an app-shell body) and it fills that height with no maxHeight: the header stays pinned, only the rows scroll, and the pager (and the bulk bar) stay in view below them, at any width. Where the container has no definite height the table is as tall as its rows."
+      "description": "Keep the header row visible while the rows scroll, as pk-table's stickyHeader. In a flex column of definite height (a pk-stack[fill], an app-shell body) it fills that height: only the rows scroll, the pager and bulk bar stay in view. Without a definite height the table is as tall as its rows."
     },
     {
       "name": "selected",
@@ -242,6 +242,8 @@
     }
   ],
   "slots": [
+    { "name": "breadcrumb", "description": "Breadcrumb at the start of the toolbar row; wraps when narrow." },
+    { "name": "title", "description": "Heading beside it." },
     { "name": "actions", "description": "Toolbar buttons at the end of the search row." },
     { "name": "empty", "description": "Content shown instead of the built-in empty state when load() returns no rows and no search or filter is active (an illustration, a call to action). With a search active the no-results slot, else the built-in state, shows." },
     { "name": "no-results", "description": "Content shown instead of the built-in no-results state when a search or filter is active and nothing matches." },
@@ -307,11 +309,11 @@
   ],
   "cssProperties": [],
   "methods": [
-    { "name": "focus(where?)", "description": "Moves focus from the host. No argument: the search box, or the first row when the search is hidden. \"search\": the search box only (nothing while it is hidden or not drawn yet). \"next\": the row after the focused one, the first when no row has focus. \"previous\", \"first\", \"last\": only while a row has focus (the call does nothing otherwise, so Home and the arrow keys stay the search box's own). Returns whether focus moved." },
+    { "name": "focus(where?)", "description": "Moves focus from the host. No argument: the search box, or the first row when the search is hidden. \"search\": the search box only (nothing while it is hidden or not drawn yet). \"next\": the row after the focused one, the first when no row has focus. \"previous\", \"first\", \"last\": only while a row has focus (the call does nothing otherwise, so Home and the arrows stay the search box's own). Returns whether focus moved." },
     { "name": "refresh()", "description": "Runs load(query) again for the current query, for example after a bulk action. Returns a promise." },
     { "name": "query", "description": "A getter: a copy of the current query { page, pageSize, sort, sortDir, search, filters }." }
   ],
-  "a11y": "Every filter field is a labelled real control (pk-input/pk-select, showLabel on); the table, search box, bulk bar and pagination keep their own roles, names and announcements ('Select all N rows' is a named button); the loading and error states use pk-skeleton and pk-alert's own roles and announcements.",
+  "a11y": "Every filter field is a labelled real control; the table, search box, bulk bar and pagination keep their own roles, names and announcements ('Select all N rows' is a named button); loading and error states use pk-skeleton and pk-alert's roles.",
   "examples": [
     {
       "title": "Orders (set load from script: an inline script cannot run under this site's CSP; with none, the empty state shows)",

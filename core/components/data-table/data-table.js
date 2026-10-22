@@ -42,6 +42,9 @@ export default Base => class extends Base {
         this.part('add').addEventListener('click', () => this.emit('pk-add', null));
         pagination.addEventListener('pk-page', e => go({ page: e.detail.page }));
         pagination.addEventListener('pk-page-size', e => go({ pageSize: e.detail.pageSize, page: 1 }));
+        const lead = this.shadowRoot?.querySelector?.('[data-lead]'), slots = lead?.querySelectorAll?.('slot') ?? [];
+        const showLead = () => { lead.hidden = ![...slots].some(x => x.assignedNodes().length); };
+        for (const x of slots) x.addEventListener('slotchange', showLead);
         this.buildFilters();
         this.refresh();
     }

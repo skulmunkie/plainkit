@@ -55,6 +55,16 @@
       "note": "Who follows a RowHrefTemplate link on a plain click: \"router\" (default), \"host\" (a notification, nothing navigates) or \"none\" (the browser follows the address)."
     },
     {
+      "name": "ToolbarInHeader",
+      "map": "param",
+      "configKey": "toolbarInHeader",
+      "type": "bool",
+      "when": "ToolbarInHeader",
+      "value": "true",
+      "extra": true,
+      "doc": "Puts the breadcrumb and heading in the toolbar row with the search box, Filters and the actions, one row that wraps on a phone. The page-shell title bar is then not drawn (no pk-page-header: no sticky header, no back link)."
+    },
+    {
       "name": "InitialSearch",
       "map": "param",
       "configKey": "search",
