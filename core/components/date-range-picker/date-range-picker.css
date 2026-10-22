@@ -1,7 +1,7 @@
 :host { display: block; --_drp-bg: var(--pk-control-bg, var(--color-input)); --_drp-bd: var(--pk-control-border, var(--color-input-border)); --_drp-r: var(--pk-control-radius, var(--radius-sm)); }
 :host([hidden]) { display: none; }
 [part="group"] { max-inline-size: 36rem; }
-[part="start"], [part="end"] { flex: 1 1 9.5rem; min-inline-size: 9.5rem; --pk-control-bg: var(--_drp-bg); --pk-control-border: var(--_drp-bd); --pk-control-radius: var(--_drp-r); }
+[part="start"], [part="end"] { flex: 1 1 7.5rem; min-inline-size: 7.5rem; --pk-control-bg: var(--_drp-bg); --pk-control-border: var(--_drp-bd); --pk-control-radius: var(--_drp-r); }
 [part="popover"] { flex: none; --pk-popover-w: max-content; }
 [part="popover"][hidden] { display: none; }
 [part="popover"] pk-calendar { display: block; padding: 0; border: 0; }
