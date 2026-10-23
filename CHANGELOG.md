@@ -5,6 +5,32 @@ The format follows [Keep a Changelog](https://keepachangelog.com/) and the proje
 
 ## [Unreleased]
 
+## [0.23.0] - 2026-10-23
+
+### Added
+
+- PlainKit.Blazor can declare which optional parts an app uses: `<PlainKitExtras>canvas;dock</PlainKitExtras>` in the project file or `AddPlainKit(o => o.Extras.Add(PkExtra.Canvas, PkExtra.Dock))` (nothing declared still means everything). The components of the canvas, dock and markdown packages carry `[PkRequiresExtra]`, the runtime hands the declared list to the browser, and a tag of an undeclared extra on the page logs one error naming the fix. Phase 1 of the Blazor option model: the build does not yet drop the undeclared extras' files. (#1656)
+- A PlainKit.Blazor app that declares `<PlainKitExtras>` now publishes only the extras it lists (`core` chooses none): the build drops the other extras' static web assets, the package ships the `PKB001` analyzer (a warning for a component of an undeclared extra, an error under `<PlainKitStrictExtras>true</PlainKitStrictExtras>`), the declared set is logged at startup and Development fails fast when a declared extra is not served. The dev-tool wrappers count as the `tools` extra. packages.json records the published payload ceilings (`blazorPayload`). (#1656)
+- `pk-tree` takes `wrap-labels` (Blazor `PkTree WrapLabels`): long item labels wrap onto several lines in a narrow navigation column instead of one line cut off with an ellipsis. (#1713)
+- Dialogs opened through the dialogs service take `tint` (`product` or `archived`) and `maxWidth` (pixels); in Blazor `PkDialogOptions.Tint` and `MaxWidthPx`. (#1715)
+- `pk-table-filters` takes `placeholder`, a hint for the empty search box that differs from its accessible name (`label`); `pk-data-table` forwards it as `searchPlaceholder` (Blazor `PkDataTable.SearchPlaceholder`), and `pk-list-page` config `searchPlaceholder` is now the placeholder while `searchLabel` stays the accessible name. (#1732)
+- `pk-page-header` with `back-link` (Blazor `BackLink`) folds the parent crumbs into the back chevron on a header of 30rem or less that has no heading: the chevron, the title and the actions share row one. (#1739)
+- `PkLink` has `OnClick` (`EventCallback<MouseEventArgs>`), raised for every click, `Href` links included, without changing the navigation (ctrl and middle clicks still open a new tab), so a flyout of links can close as one is followed. `pk-link` documents the native `click` event it already fires. (#1747)
+
+### Changed
+
+- The Blazor reconnect banner no longer covers the app bar on a desktop: it reserves its own height at the top (the app frame gives that height up and the page does not scroll), stays a layer over the content on a phone, and its buttons show icon plus text on a desktop and only the icon (with the text as the accessible name) on a phone. The Blazor browser harness can now restart the sample host, and cases cover the session-ended countdown, the automatic reload onto a fresh circuit and the loop guard. (#1714)
+
+### Fixed
+
+- A plain `pk-alert` (the settings page "Unsaved changes") now mixes its kind colour with the text colour, so its text clears 4.5:1 in both themes for every kind (the warning text was 3.19:1). The UI review now reports a contrast below WCAG AA as an error, not a warning. (#1752)
+- On a phone, a `pk-table` row link and an editable cell are 44px tall, and a narrow `pk-input` (width `xs`) keeps a 44px wide control. The UI review now measures an invisible `::before`/`::after` hit layer as part of a tap target (the `pk-badge-popover` pill), so it no longer warns for it. (#1753)
+- `pk-dialog` with `max-width` is full screen on a phone like every other dialog (it no longer sits flush left with a strip on the right), and the `product` and `archived` tints are dark washes in the dark theme instead of a near-white card. (#1756)
+- The app header no longer shifts when the module picker or the search field upgrades after the first paint: before they upgrade, the picker shows only its trigger and the search field keeps the size it will have, so the header does not reflow on a slow machine. (#1757)
+- The UI review no longer reports a tab strip that is `position: sticky` and pinned over the content scrolling under it as an overlap (settings page on a phone); a plain sibling crossing still warns. (#1758)
+- `pk-input` shows an ellipsis when its value is longer than the box instead of cutting it silently (a long mono query on a phone). (#1759)
+- `pk-page-header` (and `PkPageHeader`) `variant="record"` keeps a long title, the heading or the last crumb, to one line with an ellipsis and the full text as its tooltip, so the badges and the actions keep their width and an action no longer paints over the badges. (#1761)
+
 ## [0.22.0] - 2026-10-23
 
 ### Breaking
