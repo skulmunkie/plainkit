@@ -147,7 +147,7 @@ export const navbarCases = [
 
     // #1372: an element that upgrades after the first paint (its module arrives late) must not move what is under it. Each tag is held undefined in turn, then released.
     ['late upgrade (#1372): the navbar and the breadcrumb take the room before they upgrade that they take after, so the page under them does not move (layout shift 0), at 375 and 1280', async t => {
-        for (const w of [375, 1280]) for (const tag of ['pk-navbar', 'pk-breadcrumb']) {
+        for (const w of [375, 1280]) for (const tag of ['pk-navbar', 'pk-breadcrumb', 'pk-dropdown', 'pk-app-bar-search']) {
             const host = t.stage(''), f = document.createElement('iframe');
             f.title = `${tag} upgrading late at ${w}px`;
             f.style.cssText = `width:${w}px;height:600px;border:0;display:block`;
@@ -158,7 +158,7 @@ export const navbarCases = [
             await Promise.all(['pk-app-shell', 'pk-stack'].map(x => win.customElements.whenDefined(x)));
             await wait(250);
             t.ok(!win.customElements.get(tag), `${tag} is still undefined before the release`);
-            const h1 = d.querySelector('h1'), top = () => h1.getBoundingClientRect().top, before = top();
+            const h1 = d.querySelector('h1'), me = d.querySelector(tag), box = () => { const r = me.getBoundingClientRect(); return [r.left, r.width, r.height]; }, boxBefore = box(), top = () => h1.getBoundingClientRect().top, before = top();
             const shifts = [], po = new win.PerformanceObserver(list => shifts.push(...list.getEntries()));
             po.observe({ type: 'layout-shift', buffered: true });
             const settled = shifts.length;
@@ -169,7 +169,9 @@ export const navbarCases = [
             po.disconnect();
             const cls = shifts.slice(settled).filter(e => !e.hadRecentInput).reduce((n, e) => n + e.value, 0);
             t.ok(Math.abs(top() - before) < 0.5, `at ${w}px the page heading moved ${(top() - before).toFixed(1)}px when ${tag} upgraded (from ${before.toFixed(1)} to ${top().toFixed(1)}), expected 0. FIX: reserve the element's space with ${tag}:not(:defined) in its css`);
-            t.ok(cls < 0.0001, `at ${w}px upgrading ${tag} gave a layout shift of ${cls.toFixed(4)}, expected 0`);
+            // The search field reserves its desktop width only (the phone shows an icon button, and the reservation has no height of its own).
+            t.ok(box().every((v, i) => tag === 'pk-app-bar-search' && (w < 640 || i === 2) || Math.abs(v - boxBefore[i]) < 1.5), `at ${w}px ${tag} went from left/width/height ${boxBefore.map(Math.round)} to ${box().map(Math.round)} when it upgraded, expected the same. FIX: reserve its box with ${tag}:not(:defined) in base.css`);
+            t.ok(cls < 0.0001, `at ${w}px upgrading ${tag} gave a layout shift of ${cls.toFixed(4)}, expected 0 (${shifts.slice(settled).flatMap(e => e.sources || []).map(x => `${x.node?.nodeName} ${[x.previousRect, x.currentRect].map(r => [r.left, r.top, r.width, r.height].map(Math.round))}`).join('; ')})`);
         }
     }],
 

@@ -24,8 +24,7 @@ select) {
     border: 1px solid var(--color-input-border);
 }
 
-input::placeholder,
-textarea::placeholder {
+::placeholder {
     color: var(--color-muted);
     opacity: 1;   /* Firefox dims placeholders by default; keep them legible */
 }
@@ -53,7 +52,7 @@ a:not([class], [data-dresses-links] > a):hover {
 
 .form-error {
     color: var(--color-notice-error);
-    margin: var(--space-1) 0 var(--space-2) 0;
+    margin: var(--space-1) 0 var(--space-2);
     font-size: var(--text-md);
 }
 
@@ -134,4 +133,5 @@ pk-app-shell:not(:defined) {
     height: 100dvh;
 }
 /* A skip link takes no room before it upgrades (it is off-screen once defined), so the app under it does not move up when it does (CLS, issue 1304). */
-pk-skip-link:not(:defined) { display: none; }
+pk-skip-link:not(:defined), pk-dropdown:not(:defined) > pk-menu-item { display: none; }
+pk-app-bar-search:not(:defined) { padding-inline: 8.875rem; }

@@ -10,7 +10,7 @@ pk-table {
     & [width="lg"] { inline-size: 16rem; }
     & :is(th, td).num { text-align: end; font-variant-numeric: tabular-nums; }
     & td code { padding: 0.1rem 0.4rem; border-radius: var(--radius-xs); background: var(--color-bg); font-size: var(--text-md); }
-    & th[aria-sort] { cursor: pointer; user-select: none; }
+    & th[aria-sort], & .dg-sortable { cursor: pointer; user-select: none; }
     & th[aria-sort="ascending"]::after { content: " \2191"; }
     & th[aria-sort="descending"]::after { content: " \2193"; }
     &[striped] tbody tr:nth-child(even), &[hover] tbody tr:hover { background: var(--color-surface-alt); }
@@ -18,7 +18,7 @@ pk-table {
     &[sticky-header] thead th { position: sticky; inset-block-start: 0; z-index: var(--z-sticky); background: var(--color-panel); }
     & tr[aria-selected="true"] { background: var(--ft-selected-bg); }
     & tr.dg-clickable { cursor: pointer; &:hover { background: var(--dg-clickable-hover-bg); } }
-    & .dg-sortable { cursor: pointer; user-select: none; &:hover { color: var(--dg-sortable-hover-fg); } }
+    & .dg-sortable:hover { color: var(--dg-sortable-hover-fg); }
     & .dg-select-cell { inline-size: 2.25rem; text-align: center; padding-inline: var(--space-2); }
     & :is(tfoot th, tfoot td) { font-weight: 600; }
 }
@@ -28,7 +28,7 @@ pk-table.dg-body {
     &::part(toolbar) { display: block; margin: 0; }
     & tbody td { padding: 0.35rem var(--space-2); font-size: var(--text-read); }
     & thead th { padding: 0.4rem var(--space-2); font-size: var(--text-meta); font-weight: 600; letter-spacing: 0.02em; }
-    & .dg-filterrow th { padding: 0.15rem 0.3rem; border-block-start: 1px solid var(--color-border); background: var(--color-panel); font-weight: normal; }
+    & .dg-filterrow th { padding: 0.15rem 0.3rem; border-block-start: 1px solid var(--color-border); background: var(--color-panel); font-weight: 400; }
     & .dg-filter-input { inline-size: 100%; padding: 0.2rem 0.35rem; border: 1px solid var(--color-border); border-radius: var(--radius-xs); background: var(--color-bg); color: inherit; font-size: var(--text-meta); }
 }
 
