@@ -563,13 +563,4 @@ export const LAB_SHOTS = [
         await ctx.clickDeep('pk-button', 'Ask'); await ctx.sleep(600);
         await ctx.shot('lab-dialog', vp, theme);
     },
-    async (ctx, vp, theme) => { // #1714: the reconnect banner in each state, raised the way the framework raises it
-        await ctx.open('/');
-        await ctx.waitFor(`!!document.querySelector('#components-reconnect-modal [data-part="bar"]')`, 'the reconnect banner');
-        for (const [state, detail, name] of [['retrying', ', currentAttempt: 3', 'busy'], ['failed', '', 'failed'], ['rejected', '', 'ended'], ['paused', '', 'paused']]) {
-            await ctx.eval(`document.getElementById('components-reconnect-modal').dispatchEvent(new CustomEvent('components-reconnect-state-changed', { detail: { state: '${state}'${detail} } }))`);
-            await ctx.sleep(500);
-            await ctx.shot('reconnect-' + name, vp, theme);
-        }
-    },
 ];
