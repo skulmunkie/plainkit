@@ -626,6 +626,26 @@ export const overlaysCases = [
             t.eq(getComputedStyle(icon('collapse')).opacity, '0.41', 'the close icon takes ::part(collapse-icon)');
         } finally { document.adoptedStyleSheets = document.adoptedStyleSheets.filter(s => s !== sheet); }
     }],
+    ['dialog (375px, #1756): max-width does not leave a strip, a phone dialog is always full screen; the archived and product tints are dark in the dark theme and still read (contrast 7:1)', async t => {
+        const { sampleDoc } = await import('../../site/gallery/frame.js');
+        const host = t.stage(''), f = document.createElement('iframe');
+        f.title = 'sample'; f.style.width = '375px'; f.style.height = '600px'; f.style.border = '0';
+        const loaded = new Promise(r => f.addEventListener('load', r, { once: true })); host.append(f); f.srcdoc = sampleDoc('<pk-dialog id="d" heading="Archive?" tint="archived" max-width="420"><p>Body</p></pk-dialog>'); await loaded;
+        const until = async fn => { for (let i = 0; i < 100; i++) { const v = fn(); if (v) return v; await new Promise(r => setTimeout(r, 50)); } throw new Error('did not upgrade'); };
+        const el = await until(() => f.contentDocument.querySelector('#d')?.shadowRoot?.querySelector('[part="dialog"]') && f.contentDocument.querySelector('#d'));
+        const lum = c => { const [r, g, b] = c.match(/[\d.]+/g).slice(0, 3).map(v => { v /= 255; return v <= 0.03928 ? v / 12.92 : ((v + 0.055) / 1.055) ** 2.4; }); return 0.2126 * r + 0.7152 * g + 0.0722 * b; };
+        const ratio = (a, b) => { const [x, y] = [lum(a), lum(b)].sort((m, n) => n - m); return (x + 0.05) / (y + 0.05); };
+        const d = f.contentDocument; el.show(); await t.settle(); await new Promise(r => setTimeout(r, 250));
+        const dlg = el.part('dialog'), r = dlg.getBoundingClientRect();
+        t.ok(r.left <= 0.5 && r.width >= 374.5, `on a phone the dialog fills the width despite max-width (left ${r.left}, width ${r.width})`);
+        for (const tint of ['archived', 'product']) for (const theme of ['dark', 'light']) {
+            el.setAttribute('tint', tint); d.documentElement.setAttribute('data-theme', theme); await t.settle();
+            const cs = getComputedStyle(dlg), bg = cs.backgroundColor, fg = cs.color;
+            t.ok(ratio(fg, bg) >= 7, `${tint} tint in ${theme}: text ${fg} on ${bg} is ${ratio(fg, bg).toFixed(1)}:1`);
+            if (theme === 'dark') t.ok(lum(bg) < 0.1, `${tint} tint in dark is a dark card (${bg})`); else t.ok(lum(bg) > 0.8, `${tint} tint in light is a pale card (${bg})`);
+        }
+    }],
+
     ['app-bar-search (375px): collapses to an icon button, expands to a full-width field, and the shell drawer opening collapses it', async t => {
         const { sampleDoc } = await import('../../site/gallery/frame.js');
         const html = '<pk-app-shell><pk-side-nav slot="nav"><pk-nav-item href="#">Home</pk-nav-item></pk-side-nav><pk-app-bar-search slot="header" label="Search"></pk-app-bar-search><button slot="header" data-nav-toggle>Menu</button></pk-app-shell>';
