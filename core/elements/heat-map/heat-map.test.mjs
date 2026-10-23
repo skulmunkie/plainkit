@@ -3,7 +3,7 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import fs from 'node:fs';
 import { fileURLToPath } from 'node:url';
-import { layout, cleanItems, worstRatio, worstSeverity, OTHER_ID } from '../../js/heat-map-layout.js';
+import { layout, layoutGrouped, cleanItems, worstRatio, worstSeverity, neighbour, shownBox, OTHER_ID } from '../../js/heat-map-layout.js';
 
 const W = 400, H = 300;
 const area = b => b.w * b.h;
@@ -168,4 +168,67 @@ test('value changes animate, and not for a user who asked for reduced motion', (
     const css = fs.readFileSync(fileURLToPath(new URL('./heat-map.css', import.meta.url)), 'utf8');
     assert.match(css, /^\.item \{[^}]*transition: inset-inline-start/m);
     assert.match(css, /@media \(prefers-reduced-motion: reduce\) \{ \.item \{ transition: none; \} \}/);
+});
+
+const teams = () => [
+    { id: 'pay', label: 'Payments', children: [{ id: 'p1', label: 'Invoices', value: 30, severity: 'warning' }, { id: 'p2', label: 'Refunds', value: 10 }, { id: 'p3', label: 'Tax', value: 20, severity: 'danger' }] },
+    { id: 'acc', label: 'Accounts', children: [{ id: 'a1', label: 'Sign-in', value: 40 }, { id: 'a2', label: 'Profile', value: 20 }] },
+    { id: 'solo', label: 'Solo', value: 30 },
+];
+
+test('cleanItems gives a group the sum of its children and the worst severity, one level only', () => {
+    const said = [];
+    const got = cleanItems([{ id: 'g', label: 'G', children: [{ id: 'a', value: 3, severity: 'info' }, { id: 'b', value: 4, severity: 'danger', children: [{ id: 'deep', value: 9 }] }, { id: 'bad', value: 0 }] }, { id: 'empty', value: 5, children: [] }], m => said.push(m));
+    assert.equal(got[0].value, 7);
+    assert.equal(got[0].severity, 'danger');
+    assert.deepEqual(got[0].children.map(c => c.id), ['a', 'b']);
+    assert.equal(got[0].children[1].children, undefined);
+    assert.ok(said.some(m => /nested|one level/.test(m)) && said.some(m => /value/.test(m)));
+    assert.equal(got[1].children, undefined, 'an empty children list is a plain item');
+    assert.equal(got[1].value, 5);
+});
+
+test('layoutGrouped: groups tile the area, children sit inside their frame under the header, and areas follow the weights', () => {
+    const items = cleanItems(teams());
+    const { groups, boxes } = layoutGrouped(items, 600, 400, {}, { header: 24, pad: 4 });
+    assert.deepEqual(groups.map(g => g.id).sort(), ['acc', 'pay']);
+    assert.equal(groups.reduce((s, g) => s + area(g), 0) + boxes.filter(b => !b.parent).reduce((s, b) => s + area(b), 0), 600 * 400);
+    for (const g of groups) {
+        const kids = boxes.filter(b => b.parent === g.id);
+        assert.ok(kids.length >= 2);
+        for (const k of kids) assert.ok(k.x >= g.x + 4 && k.y >= g.y + 24 && k.x + k.w <= g.x + g.w - 4 && k.y + k.h <= g.y + g.h - 4, `${k.id} inside ${g.id} below its header`);
+        for (let i = 0; i < kids.length; i++) for (let j = i + 1; j < kids.length; j++) assert.ok(!overlap(kids[i], kids[j]));
+        const inner = kids.reduce((s, k) => s + area(k), 0);
+        kids.forEach(k => assert.ok(Math.abs(area(k) - (k.value / g.value) * inner) <= k.w + k.h));
+    }
+    assert.ok(boxes.some(b => b.id === 'solo' && !b.parent), 'an item with no children stays a plain box');
+    assert.ok(Math.abs(groups.find(g => g.id === 'pay').value - 60) < 1e-9);
+});
+
+test('layoutGrouped merges groups under minBox into one Other box and without groups equals layout', () => {
+    const items = cleanItems([...teams(), { id: 'tiny', label: 'Tiny', children: [{ id: 't1', value: 1 }, { id: 't2', value: 1 }] }, { id: 'tiny2', label: 'Tiny 2', children: [{ id: 't3', value: 1 }] }]);
+    const { boxes } = layoutGrouped(items, 400, 300, { minBox: 48 }, { header: 24, pad: 4 });
+    assert.ok(boxes.some(b => b.id === OTHER_ID && !b.parent));
+    const flat = cleanItems([{ id: 'a', value: 3 }, { id: 'b', value: 1 }]);
+    assert.deepEqual(layoutGrouped(flat, 200, 100).boxes.map(b => [b.id, b.x, b.y, b.w, b.h]), layout(flat, 200, 100).map(b => [b.id, b.x, b.y, b.w, b.h]));
+    assert.deepEqual(layoutGrouped(flat, 200, 100).groups, []);
+});
+
+test('neighbour picks the nearest box in the arrow direction, Home and End the ends, and -1 when nothing lies that way', () => {
+    const r = (left, top, width = 10, height = 10) => ({ left, top, width, height });
+    const rects = [r(0, 0), r(20, 0), r(0, 20), r(20, 20, 10, 10)];
+    assert.equal(neighbour(rects, 0, 'ArrowRight'), 1);
+    assert.equal(neighbour(rects, 0, 'ArrowDown'), 2);
+    assert.equal(neighbour(rects, 3, 'ArrowLeft'), 2);
+    assert.equal(neighbour(rects, 0, 'ArrowLeft'), -1);
+    assert.equal(neighbour(rects, 1, 'Home'), 0);
+    assert.equal(neighbour(rects, 1, 'End'), 3);
+    assert.equal(neighbour(rects, -1, 'ArrowDown'), -1);
+});
+
+test('shownBox names Other by its member count with the worst severity and the weighted intensity', () => {
+    const b = { id: OTHER_ID, value: 4, item: null, severity: 'warning', members: [{ value: 1, intensity: 1 }, { value: 3, intensity: 0 }] };
+    assert.deepEqual(shownBox(b), { label: 'Other (2)', severity: 'warning', intensity: 0.25 });
+    const item = { label: 'A' };
+    assert.equal(shownBox({ item }), item);
 });

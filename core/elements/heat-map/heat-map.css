@@ -28,3 +28,17 @@
 [part="table"] :is(th, td) { padding: var(--space-1) var(--space-2); border-block-end: 1px solid var(--color-border); text-align: start; }
 [part="table"] td:nth-child(2), [part="table"] td:nth-child(3) { font-variant-numeric: tabular-nums; }
 [part="caption"] { padding: var(--space-1) var(--space-2); font-weight: 600; text-align: start; }
+.frame { pointer-events: none; }
+.fbox { display: flex; gap: var(--space-2); align-items: baseline; block-size: 100%; padding: var(--space-1) var(--space-2); border: 1px solid var(--color-border); border-radius: var(--pk-heat-map-radius, var(--radius-sm)); color: var(--color-text); font-size: var(--text-meta); }
+.glabel { font-weight: 600; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.gvalue { margin-inline-start: auto; font-variant-numeric: tabular-nums; white-space: nowrap; }
+[part="more"] { position: absolute; inset: 0; z-index: 1; display: flex; flex-direction: column; background: var(--color-panel); border: 1px solid var(--color-border); border-radius: var(--pk-heat-map-radius, var(--radius-sm)); }
+[part="more"][hidden] { display: none; }
+[part="more-head"] { display: flex; align-items: center; justify-content: space-between; gap: var(--space-3); padding: var(--space-1) var(--space-2) var(--space-1) var(--space-3); border-block-end: 1px solid var(--color-border); font-weight: 600; }
+[part="more-close"] { min-block-size: var(--touch-target); min-inline-size: var(--touch-target); padding-inline: var(--space-3); border: 1px solid var(--color-border); border-radius: var(--radius-sm); background: var(--color-surface); color: var(--color-text); font: inherit; cursor: pointer; }
+[part="more-close"]:focus-visible { outline: var(--focus-ring); outline-offset: calc(var(--space-1) * -1); }
+[part="more-body"] { overflow: auto; }
+[part="more-table"] { inline-size: 100%; border-collapse: collapse; }
+[part="more-table"] :is(th, td) { padding: var(--space-1) var(--space-3); border-block-end: 1px solid var(--color-border); text-align: start; }
+[part="more-table"] td:nth-child(2), [part="more-table"] td:nth-child(3) { font-variant-numeric: tabular-nums; }
+:host([show-table]) [part="more"] { display: none; }

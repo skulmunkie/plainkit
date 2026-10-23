@@ -38,6 +38,11 @@
       "type": "PkHeatMapValueFormat"
     },
     {
+      "name": "GroupBy",
+      "prop": "groupBy",
+      "type": "bool"
+    },
+    {
       "name": "ShowTable",
       "prop": "showTable",
       "type": "bool"
@@ -58,5 +63,5 @@
       "type": "EventCallback<PkHeatFocusItemEventArgs>"
     }
   ],
-  "notes": "Items takes PkHeatItem records (id, label, value above 0, optional severity, intensity 0 to 1 and href), sent as the items attribute in camelCase JSON. Severity is a string: neutral, info, success, warning or danger. Scale intensity uses Intensity instead of Severity."
+  "notes": "Items takes PkHeatItem records (id, label, value above 0, optional severity, intensity 0 to 1 and href), sent as the items attribute in camelCase JSON. Severity is a string: neutral, info, success, warning or danger. Scale intensity uses Intensity instead of Severity. Children holds one level of items for GroupBy."
 }

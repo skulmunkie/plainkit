@@ -24,12 +24,15 @@ const RANK = { neutral: 0, success: 1, info: 2, warning: 3, danger: 4 };
 export const worstSeverity = list => list.reduce((w, it) => (RANK[it.severity ?? 'neutral'] > RANK[w] ? it.severity : w), 'neutral');
 
 // Usable items from whatever the host gave: { id, label, value > 0, severity, intensity? }. report(message) is told about each item that is dropped or repaired.
-export function cleanItems(raw, report = () => {}) {
+export function cleanItems(raw, report = () => {}, nested = false) {
     if (!Array.isArray(raw)) return [];
     const out = [];
     raw.forEach((r, i) => {
         if (!r || typeof r !== 'object') return report(`items[${i}] is not an object: skipped`);
-        const value = Number(r.value);
+        // A group: its children (one level only) set its area, its severity is the worst of theirs.
+        const kids = !nested && Array.isArray(r.children) ? cleanItems(r.children, m => report(`items[${i}].${m}`), true) : [];
+        if (nested && r.children !== undefined) report(`items[${i}] has nested children: only one level is drawn, the children are ignored`);
+        const value = kids.length ? kids.reduce((a, k) => a + k.value, 0) : Number(r.value);
         if (!(value > 0) || !Number.isFinite(value)) return report(`items[${i}] needs a value above 0 (got ${JSON.stringify(r.value)}): skipped`);
         let severity = r.severity ?? 'neutral';
         if (!SEVERITIES.includes(severity)) { report(`items[${i}] has an unknown severity ${JSON.stringify(r.severity)}: using neutral`); severity = 'neutral'; }
@@ -39,7 +42,7 @@ export function cleanItems(raw, report = () => {}) {
             if (Number.isFinite(n) && typeof r.intensity !== 'boolean') intensity = Math.min(1, Math.max(0, n)); else report(`items[${i}] has an intensity that is not a number (${JSON.stringify(r.intensity)}): ignored`);
         }
         const label = String(r.label ?? r.id ?? i);
-        out.push({ ...r, id: String(r.id ?? label), label, value, severity, intensity });
+        out.push({ ...r, id: String(r.id ?? label), label, value, severity: kids.length && (r.severity == null || r.severity === 'neutral') ? worstSeverity(kids) : severity, intensity, children: kids.length ? kids : undefined });
     });
     return out;
 }
@@ -108,4 +111,48 @@ export function layout(items, width, height, { minBox = 0, layout: mode = 'squar
         rects = rectsOf();
     }
     return list.map((it, k) => ({ id: it.id, ...rects[k], value: it.value, item: it.item, ...(it.members ? { members: it.members, severity: it.severity } : {}) }));
+}
+
+/**
+ * One level of grouping: items with children are laid out as groups (area = the sum of their children), then each group's children are laid out inside its frame, below a
+ * header of `header` px and inside `pad` px of padding. Returns { groups: [{ id, x, y, w, h, value, item }], boxes } where boxes are absolute and a child has `parent`.
+ * Groups under minBox merge into Other like any box. Without groups this is layout().
+ */
+export function layoutGrouped(items, width, height, opts = {}, { header = 24, pad = 4 } = {}) {
+    const groups = [], boxes = [];
+    for (const b of layout(items, width, height, opts)) {
+        if (!b.item?.children) { boxes.push(b); continue; }
+        groups.push({ id: b.id, x: b.x, y: b.y, w: b.w, h: b.h, value: b.value, item: b.item });
+        const ix = b.x + pad, iy = b.y + header, iw = b.w - 2 * pad, ih = b.h - header - pad;
+        if (iw > 0 && ih > 0) for (const c of layout(b.item.children, iw, ih, { ...opts, maxItems: 0 })) boxes.push({ ...c, x: c.x + ix, y: c.y + iy, parent: b.id });
+    }
+    return { groups, boxes };
+}
+
+// Reading helpers the element uses (kept here so the element file stays small).
+export const WORD = { info: 'Info', success: 'Success', warning: 'Warning', danger: 'Danger' };
+export const FORMATS = { number: n => n.toLocaleString(), compact: n => n.toLocaleString(undefined, { notation: 'compact' }), share: (n, total) => `${Math.round((n / total) * 1000) / 10}%` };
+export const pct = i => `${Math.round(i * 100)}%`;
+
+/** The shown form of a box: an item as it is, or Other with the most serious severity and the value-weighted intensity of its members. */
+export function shownBox(b) {
+    if (b.item) return b.item;
+    const m = b.members, w = m.reduce((a, x) => a + x.value, 0);
+    return { label: `Other (${m.length})`, severity: b.severity, intensity: m.reduce((a, x) => a + (x.intensity ?? 0) * x.value, 0) / w };
+}
+
+const DIRS = { ArrowLeft: [-1, 0], ArrowRight: [1, 0], ArrowUp: [0, -1], ArrowDown: [0, 1] };
+/** The index of the box nearest in the direction of an arrow key (or Home, End) from box `from`, among client rects; -1 when there is none. */
+export function neighbour(rects, from, key) {
+    if (key === 'Home') return 0;
+    if (key === 'End') return rects.length - 1;
+    const d = DIRS[key];
+    if (!d || from < 0) return -1;
+    const mid = r => ({ x: r.left + r.width / 2, y: r.top + r.height / 2 }), c = mid(rects[from]);
+    let best = Infinity, at = -1;
+    rects.forEach((r, i) => {
+        const p = mid(r), along = (p.x - c.x) * d[0] + (p.y - c.y) * d[1], across = Math.abs((p.x - c.x) * d[1] - (p.y - c.y) * d[0]);
+        if (i !== from && along > 0 && along + across * 2 < best) { best = along + across * 2; at = i; }
+    });
+    return at;
 }

@@ -5,6 +5,11 @@ const ITEMS = [
     { id: 'billing', label: 'Billing', value: 42, severity: 'warning' }, { id: 'auth', label: 'Sign-in', value: 31, severity: 'danger' }, { id: 'search', label: 'Search', value: 24 },
     { id: 'reports', label: 'Reports', value: 18, severity: 'info' }, { id: 'docs', label: 'Docs', value: 12, severity: 'success' }, { id: 'api', label: 'API', value: 9 },
 ];
+const TEAMS = [
+    { id: 'pay', label: 'Payments', children: [{ id: 'p1', label: 'Invoices', value: 30, severity: 'warning' }, { id: 'p2', label: 'Refunds', value: 10 }, { id: 'p3', label: 'Tax', value: 20, severity: 'danger' }] },
+    { id: 'acc', label: 'Accounts', children: [{ id: 'a1', label: 'Sign-in', value: 40 }, { id: 'a2', label: 'Profile', value: 20 }] },
+    { id: 'web', label: 'Web', children: [{ id: 'w1', label: 'Search', value: 24 }, { id: 'w2', label: 'Docs', value: 12, severity: 'success' }] },
+];
 const json = v => JSON.stringify(v).replace(/'/g, '&#39;');
 const mountMap = async (t, items = ITEMS, { width = 600, attrs = '', height = '' } = {}) => {
     const wrap = await t.mount(`<div id="w"><pk-heat-map label="Issues by area" ${attrs} items='${json(items)}'></pk-heat-map></div>`);
@@ -12,7 +17,7 @@ const mountMap = async (t, items = ITEMS, { width = 600, attrs = '', height = ''
     if (height) wrap.style.setProperty('--pk-heat-map-height', height);
     const el = wrap.querySelector('pk-heat-map');
     // Wait for the boxes to fill the map at the width the wrapper now has: the layout follows a resize observation, not the mount.
-    await until(() => { const m = el.shadowRoot.querySelector('[part="map"]').getBoundingClientRect(), tiles = [...el.shadowRoot.querySelectorAll('.item')]; return tiles.length && Math.abs(m.width - width) < 1 && Math.abs(tiles.reduce((s, li) => s + li.getBoundingClientRect().width * li.getBoundingClientRect().height, 0) - m.width * m.height) <= 1; }, 'the boxes to fill the map');
+    await until(() => { const m = el.shadowRoot.querySelector('[part="map"]').getBoundingClientRect(), tiles = [...el.shadowRoot.querySelectorAll('.item')]; return tiles.length && Math.abs(m.width - width) < 1 && (attrs.includes('group-by') ? tiles.every(li => li.getBoundingClientRect().width > 0) : Math.abs(tiles.reduce((s, li) => s + li.getBoundingClientRect().width * li.getBoundingClientRect().height, 0) - m.width * m.height) <= 1); }, 'the boxes to fill the map');
     await t.settle();
     return el;
 };
@@ -186,5 +191,50 @@ export const heatMapCases = [
     ['heat-map: boxes move with a transition when motion is allowed', async t => {
         const el = await mountMap(t);
         t.ok(parseFloat(getComputedStyle(items(el)[0]).transitionDuration) > 0, 'a value change animates by default (reduced motion switches it off in css)');
+    }],
+    ['heat-map: group-by draws framed areas; children sit inside their frame below its header, nothing overlaps, areas follow the weights', async t => {
+        const el = await mountMap(t, TEAMS, { attrs: 'group-by min-box="0"' });
+        const frames = [...el.shadowRoot.querySelectorAll('.frame')], map = r(el.shadowRoot.querySelector('[part="map"]')), em = parseFloat(getComputedStyle(el).fontSize);
+        t.eq(frames.length, 3);
+        const covered = () => frames.reduce((s, f) => s + r(f).width * r(f).height, 0);
+        await until(() => Math.abs(covered() - map.width * map.height) <= 1, `the frames to tile the map (${covered()} of ${map.width * map.height})`);
+        const groupOf = id => TEAMS.find(g => g.children.some(c => c.id === id));
+        const kids = boxes(el);
+        t.eq(kids.length, 7);
+        for (const k of kids) {
+            const g = groupOf(k.dataset.id.split('/')[1]), frame = frames[TEAMS.indexOf(g) === 0 ? 0 : frames.findIndex((_, i) => i === TEAMS.indexOf(g))], q = r(k), f = r(frame);
+            t.ok(q.left >= f.left - 0.5 && q.right <= f.right + 0.5 && q.bottom <= f.bottom + 0.5, `${k.title} is inside ${g.label}`);
+            t.ok(q.top >= f.top + 1.9 * em, `${k.title} is below the header of ${g.label} (${q.top - f.top}px)`);
+        }
+        for (let i = 0; i < kids.length; i++) for (let j = i + 1; j < kids.length; j++) t.ok(!overlap(r(kids[i]), r(kids[j])), `${kids[i].title} overlaps ${kids[j].title}`);
+        t.eq(frames[0].querySelector('.glabel').textContent, 'Payments'); t.eq(frames[0].querySelector('.gvalue').textContent, '60');
+        t.ok(kids[0].getAttribute('aria-label').startsWith('Payments: '), kids[0].getAttribute('aria-label'));
+        t.eq([...el.shadowRoot.querySelectorAll('tbody tr th')].map(x => x.textContent).filter(x => x.includes(' / ')).length, 7, 'the table reads "Group / child"');
+    }],
+    ['heat-map: without group-by a group is one plain box with the summed value and no frame', async t => {
+        const el = await mountMap(t, TEAMS, { attrs: 'min-box="0"' });
+        t.eq(el.shadowRoot.querySelectorAll('.frame').length, 0);
+        t.eq(boxes(el).length, 3);
+        t.eq(boxes(el)[0].querySelector('.value').textContent, '60');
+    }],
+    ['heat-map: Other opens its members as a table over the map; Escape and Close return focus to the Other box; a cancelled select does not open it', async t => {
+        const many = [{ id: 'big', label: 'Big', value: 500 }, { id: 'mid', label: 'Mid', value: 300 }, ...Array.from({ length: 6 }, (_, i) => ({ id: `s${i}`, label: `Small ${i}`, value: 2, severity: i === 0 ? 'warning' : 'neutral' }))];
+        const el = await mountMap(t, many, { width: 400 });
+        const other = el.shadowRoot.querySelector('.other'), more = el.shadowRoot.querySelector('[part="more"]'), host = r(el);
+        t.ok(more.hidden, 'closed at first');
+        const before = r(el).height;
+        el.addEventListener('pk-heat-select', e => e.preventDefault(), { once: true });
+        other.click(); await t.settle(); t.ok(more.hidden, 'a cancelled select does not open it');
+        other.click(); await t.settle();
+        t.ok(!more.hidden, 'opens');
+        const members = Number(other.querySelector('.label').textContent.match(/\d+/)[0]);
+        t.eq(more.querySelectorAll('tbody tr').length, members, 'one row per member');
+        t.eq(el.shadowRoot.activeElement, el.shadowRoot.querySelector('[part="more-close"]'), 'focus moves to Close');
+        const q = r(more); t.ok(q.left >= host.left - 1 && q.right <= host.right + 1 && q.top >= host.top - 1 && q.bottom <= host.bottom + 1, 'the panel stays inside the element');
+        t.eq(r(el).height, before, 'the element keeps its height');
+        el.shadowRoot.querySelector('[part="more-close"]').dispatchEvent(new KeyboardEvent('keydown', { key: 'Escape', bubbles: true, composed: true }));
+        t.ok(more.hidden, 'Escape closes'); t.eq(el.shadowRoot.activeElement, other, 'focus returns to Other');
+        other.click(); await t.settle(); el.shadowRoot.querySelector('[part="more-close"]').click();
+        t.ok(more.hidden, 'Close closes'); t.eq(el.shadowRoot.activeElement, other);
     }],
 ];
