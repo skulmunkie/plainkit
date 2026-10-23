@@ -65,19 +65,29 @@ export function publish(dir, project = SAMPLE, timeoutSec = 600) {
     if (r.status !== 0) throw new Error(`dotnet publish failed (${r.status}): ${(r.stdout + r.stderr).split('\n').filter(l => /error/i.test(l)).slice(0, 8).join('\n') || r.error}`);
 }
 
-/** Starts the published host on a free port and resolves once `/` answers 200. Rejects if it exits first or is not up in `timeout` seconds. */
+/** Starts the published host on a free port and resolves once `/` answers 200. Rejects if it exits first or is not up in `timeout` seconds.
+ *  `host.restart()` stops that process and starts the same published app again on the same port (#1714: the reconnect cases need the server to really go away and come back). */
 export async function startHost(dir, timeout) {
-    const port = await freePort();
-    const child = spawn('dotnet', [path.join(dir, 'PlainKit.AppSample.dll')], { cwd: dir, stdio: ['ignore', 'pipe', 'pipe'], env: { ...process.env, ASPNETCORE_URLS: `http://127.0.0.1:${port}`, ASPNETCORE_ENVIRONMENT: 'Production', DOTNET_NOLOGO: '1', DetailedErrors: 'true', Logging__LogLevel__Default: 'Warning' } });
+    const host = { port: await freePort(), dir, child: null, log: () => '' };
+    host.base = `http://127.0.0.1:${host.port}`;
+    await launch(host, timeout);
+    host.restart = async () => { killTree(host.child); await sleep(800); await launch(host, timeout); };
+    return host;
+}
+
+async function launch(host, timeout) {
+    const child = spawn('dotnet', [path.join(host.dir, 'PlainKit.AppSample.dll')], { cwd: host.dir, stdio: ['ignore', 'pipe', 'pipe'], env: { ...process.env, ASPNETCORE_URLS: host.base, ASPNETCORE_ENVIRONMENT: 'Production', DOTNET_NOLOGO: '1', DetailedErrors: 'true', Logging__LogLevel__Default: 'Warning' } });
     let log = '', exited = null;
     for (const s of [child.stdout, child.stderr]) s.on('data', d => { log += d; });
     child.once('exit', c => { exited = c; });
-    const host = { port, child, base: `http://127.0.0.1:${port}`, log: () => log };
+    host.child = child; host.log = () => log;
     for (const start = Date.now(); Date.now() - start < timeout * 1000; await sleep(250)) {
-        if (exited !== null) throw Object.assign(new Error(`the host exited with ${exited}:\n${log.slice(-1500)}`), { host });
-        try { if ((await fetch(host.base + '/')).status === 200) return host; } catch (e) { if (!/fetch failed/.test(e.message)) throw e; } // not listening yet
+        if (exited !== null) throw Object.assign(new Error(`the host exited with ${exited}:
+${log.slice(-1500)}`), { host });
+        try { if ((await fetch(host.base + '/')).status === 200) return; } catch (e) { if (!/fetch failed/.test(e.message)) throw e; } // not listening yet
     }
-    throw Object.assign(new Error(`the host did not answer within ${timeout} s:\n${log.slice(-1500)}`), { host });
+    throw Object.assign(new Error(`the host did not answer within ${timeout} s:
+${log.slice(-1500)}`), { host });
 }
 
 const MIME = { '.html': 'text/html', '.js': 'text/javascript', '.mjs': 'text/javascript', '.json': 'application/json', '.css': 'text/css', '.wasm': 'application/wasm', '.svg': 'image/svg+xml', '.png': 'image/png', '.ico': 'image/x-icon', '.map': 'application/json' };
