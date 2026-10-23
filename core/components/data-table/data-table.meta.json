@@ -81,7 +81,14 @@
       "type": "string",
       "default": "",
       "reflect": false,
-      "description": "The placeholder and accessible name of the search box (default \"Search\")."
+      "description": "The accessible name of the search box, and its placeholder unless searchPlaceholder is set (default \"Search\")."
+    },
+    {
+      "name": "searchPlaceholder",
+      "type": "string",
+      "default": "",
+      "reflect": false,
+      "description": "The text shown in the empty search box when it should say more than searchLabel (for example \"Order number, customer or SKU\"); empty shows the label."
     },
     {
       "name": "searchDebounce",

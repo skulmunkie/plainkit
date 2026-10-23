@@ -317,6 +317,9 @@ export const galleryAppCases = [
         const { createModuleHost, defineModule } = await import(new URL('../../js/app.js', import.meta.url).href);
         const { default: site } = await import(new URL('../../site/app.config.js', import.meta.url).href);
         const loads = [];
+        // A dashboard starts a widget when its card nears the viewport (an IntersectionObserver rooted at the window), and the stage is absolute at top:0 of the page: a runner window an earlier case
+        // left scrolled puts the stage above the viewport, no card ever starts and the wait below times out. Bring the stage on screen first.
+        window.scrollTo(0, 0);
         const el = document.createElement('div'); t.stage('').append(el);
         const home = defineModule({ id: 'overview', routes: [{ path: '/', page: 'dashboard', config: { surface: 'overview', heading: 'Overview', deny: ['theme:scheme'] } }] });
         const host = createModuleHost(el, { modules: site.modules.map(m => ({ ...m, load: m.id === 'overview' ? async () => home : () => { loads.push(m.id); return m.load(); } })) });

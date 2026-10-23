@@ -54,6 +54,10 @@ tr[data-skeleton] td::before { content: ""; display: block; block-size: 4.5em; b
     /* A row-select checkbox is itself the touch target (the cell click toggles it too, table.js). */
     [data-check] input { inline-size: var(--touch-target); block-size: var(--touch-target); }
     tr[data-clickable] { block-size: var(--touch-target); }
+    /* Issue 1753: an editable cell and a row link are tap targets too; a cell's block-size is a minimum, and a link cell gives its padding to the link. */
+    td[data-key][tabindex] { block-size: var(--touch-target); }
+    td:has(> a[data-row-link]) { padding-block: 0; }
+    a[data-row-link] { display: inline-flex; align-items: center; min-block-size: var(--touch-target); }
     tr[data-filters] input[type="search"] { min-block-size: var(--touch-target); font-size: 16px; }
     :host([cards]) thead { position: absolute; inline-size: 1px; block-size: 1px; overflow: hidden; clip-path: inset(50%); }
     :host([cards]) :is(table, tbody, tfoot, tr, td) { display: block; }

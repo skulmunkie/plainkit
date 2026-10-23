@@ -276,6 +276,20 @@ headerCases.push(
         const none = await t.mount('<pk-page-header heading="T" back-link home-href="#home"></pk-page-header>');
         t.ok(none.part('trail').hidden && none.part('back').hidden && none.part('crumbs').hidden, 'without crumbs there is no trail, home crumb or back link');
     }],
+    ['page-header: backLink on a narrow record header folds the parent crumbs into one back chevron that shares row one with the title (#1739)', async t => {
+        const html = w => '<div style="inline-size:' + w + 'rem"><pk-page-header variant="record" back-link home-href="#home" home-label="Home" crumbs="[{&quot;label&quot;:&quot;Items&quot;,&quot;href&quot;:&quot;/items&quot;},{&quot;label&quot;:&quot;Order 1042&quot;}]"><pk-button slot="actions" variant="primary">Sync</pk-button></pk-page-header></div>';
+        const narrow = (await t.mount(html(22))).firstElementChild; await t.settle();
+        const trail = narrow.part('trail'), back = narrow.part('back'), kids = [...trail.children], cur = kids.at(-1), vis = e => e.getBoundingClientRect().width > 0;
+        t.ok(!back.hidden && vis(back), 'the back chevron is shown'); t.eq(back.href, '/items');
+        t.ok(!vis(kids.at(-2)), 'the parent crumb is folded away'); t.ok(!vis(kids[0]), 'and so is the home crumb');
+        const b = rect(back), c = rect(cur);
+        t.ok(Math.abs((b.top + b.bottom) / 2 - (c.top + c.bottom) / 2) <= 4, 'the chevron and the title share a row');
+        t.ok(b.right <= c.left + 1, 'the title starts after the chevron');
+        t.ok(rect(narrow).height <= 62, 'the header is one row: ' + rect(narrow).height);
+        const wide = (await t.mount(html(50))).firstElementChild; await t.settle();
+        t.ok([...wide.part('trail').children].slice(1).every(vis), 'on a wide header the parent and the title crumbs show');
+        t.ok(rect(wide.part('back')).bottom <= rect(wide.part('header')).top + 1, 'and the back link stays above the header');
+    }],
     ['page-header: an unsafe crumb address draws no link, and a crumbs value that is not JSON draws no trail', async t => {
         const h = await t.mount('<pk-page-header heading="T" crumbs="[{&quot;label&quot;:&quot;Bad&quot;,&quot;href&quot;:&quot;javascript:alert(1)&quot;},{&quot;label&quot;:&quot;Now&quot;}]"></pk-page-header>');
         t.eq([...h.part('trail').children].map(k => k.localName).join(), 'span,span', 'a script address is not a link');

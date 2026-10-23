@@ -4,7 +4,7 @@
 :host(:focus-visible) > [part="row"] { outline: var(--focus-ring); outline-offset: -2px; }
 :host([selected]) > [part="row"] { background: color-mix(in srgb, var(--color-accent) 16%, transparent); font-weight: 600; }
 :host([disabled]) > [part="row"] { opacity: 0.55; cursor: default; }
-[part="label"] { display: block; flex: 1 1 auto; min-inline-size: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+[part="label"] { display: block; flex: 1 1 auto; min-inline-size: 0; overflow: hidden; text-overflow: ellipsis; white-space: var(--pk-tree-item-label-white-space, nowrap); overflow-wrap: var(--pk-tree-item-label-overflow-wrap, normal); }
 [part="toggle"] { flex: none; inline-size: 0.45em; block-size: 0.45em; margin-inline: 0.25em; border: solid var(--color-muted); border-width: 0 2px 2px 0; transform: rotate(-45deg); transition: transform 0.15s; }
 :host(:not([expandable])) [part="toggle"] { visibility: hidden; }
 :host([expanded]) > [part="row"] [part="toggle"] { transform: rotate(45deg); }

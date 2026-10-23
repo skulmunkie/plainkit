@@ -68,12 +68,12 @@ export function auditFacts(facts) {
         if ((b.clipX || b.clipY) && !b.hiddenVisually && !CANVAS_FRAME.test(b.path)) add('clipped-content', 'warn', b, `${b.path} hides ${b.clipX ? 'width' : 'height'} (content larger than its box, overflow clipped)`, 'let the box grow, wrap, or truncate on purpose with text-overflow: ellipsis');
         // WCAG 2.2 SC 2.5.8 (Target Size Minimum): the activation area counts. A checkbox, radio or switch inside (or `for`-linked to) a clickable label is
         // activated by the whole label, so that is the target we measure (hitRect, [w, h]). A bare input or link with no label keeps its own box (issue 1003).
-        const [tw, th] = b.hitRect && b.hitRect[0] * b.hitRect[1] > w * h ? b.hitRect : [w, h]; // the larger of the control and its label: a label is an extra way to hit the control, not a replacement (issue 1003)
+        const [tw, th] = [b.hitRect, b.hitLayer].reduce((best, c) => c && c[0] * c[1] > best[0] * best[1] ? c : best, [w, h]); // hitLayer (issue 1753): the box united with its ::before/::after layers that take pointer events
         if (phone && b.interactive && !b.inlineLink && !b.hiddenVisually && (tw < tap || th < tap)) add('tap-target', 'warn', b, `${b.path} is ${Math.round(tw)}x${Math.round(th)}px on a phone; the touch target is ${tap}px`, 'use the touch-target token as min-height and min-width in the phone layout (see the page-header actions)');
         if (b.textColor && b.bg) {
             const ratio = contrastRatio(over(b.textColor, b.bg), b.bg);
             const need = b.fontSize >= 24 || (b.bold && b.fontSize >= 18.66) ? AA_LARGE : AA_TEXT;
-            if (ratio < need) add('contrast', 'warn', b, `${b.path} text contrast ${ratio.toFixed(2)}:1 is below WCAG AA (${need}:1)`, 'use a text token with enough contrast on this surface, in both themes');
+            if (ratio < need) add('contrast', 'error', b, `${b.path} text contrast ${ratio.toFixed(2)}:1 is below WCAG AA (${need}:1)`, 'use a text token with enough contrast on this surface, in both themes');
         }
     }
     // Siblings in normal flow whose boxes cross (text over a control, a chip over an action). Nesting is not overlap; overlays are not in flow.

@@ -22,6 +22,7 @@ import os from 'node:os';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { ensureGenerated } from './generated.mjs';
+import { writeRunStamp } from './verify-guard.mjs';
 import { cpuScale } from '../core/tests/browser/cpu-scale.js';
 import { parseList } from '../core/tests/browser/case-filter.js';
 import { makeTempDir, removeTreeAsync, tempRoot } from '../core/tools/tempdir.mjs';
@@ -265,6 +266,7 @@ async function main() {
     } finally {
         killTree(browser);
         killTree(server);
+        if (code < 2 && !options.filter.length && !options.elements.length) writeRunStamp(root, 'browser', code === 0); // which tree this full run belongs to (scripts/gate-check.mjs, #1754)
         await sleep(500);
         if (!(await removeDir(profile))) console.error(`Could not delete the temporary profile ${profile}; delete it by hand.`);
         if (code === 0) { try { fs.rmSync(tracePath, { force: true }); } catch (e) { console.error(`Could not delete the trace ${tracePath}: ${e.message}`); } } else if (fs.existsSync(tracePath)) console.error(`trace of this run: ${tracePath}`);

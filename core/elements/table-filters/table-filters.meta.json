@@ -10,7 +10,14 @@
       "type": "string",
       "default": "Search",
       "reflect": true,
-      "description": "The search box's placeholder and accessible name."
+      "description": "The search box's accessible name, and its placeholder unless placeholder is set."
+    },
+    {
+      "name": "placeholder",
+      "type": "string",
+      "default": "",
+      "reflect": false,
+      "description": "The text shown in the empty search box, when it should say more than the accessible name (for example \"Order number, customer or SKU\"). Empty shows the label."
     },
     {
       "name": "value",

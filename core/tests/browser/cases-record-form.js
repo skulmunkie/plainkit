@@ -252,7 +252,9 @@ export const recordFormCases = [
         await until(() => tbl.shadowRoot?.querySelector('[data-select-all]'), 'the rows');
         const box = dt.part('filters').part('search');
         t.eq(box.placeholder, 'Search by order, vendor or reference', 'the search box shows the configured placeholder');
-        t.eq(box.getAttribute('aria-label'), 'Search by order, vendor or reference', 'and it is the accessible name too (one text, as searchLabel)');
+        t.eq(box.getAttribute('aria-label'), 'Search by order, vendor or reference', 'and it is the accessible name too when no searchLabel is set');
+        el.config = { ...el.config, searchLabel: 'Search orders' }; await t.settle();
+        t.eq(box.getAttribute('aria-label'), 'Search orders', 'a searchLabel is the accessible name'); t.eq(box.placeholder, 'Search by order, vendor or reference', 'and the placeholder stays the longer hint (#1732)');
         await until(() => tbl.$s, 'the scope module'); await t.settle();
         await until(() => { tbl.shadowRoot.querySelector('[data-select-all]')?.click(); return dt.selected.length === 5; }, 'the page selected'); await t.settle();
         t.eq(dt.selected.length, 5, 'the page is selected'); t.eq(dt.selectScope, 'page');
