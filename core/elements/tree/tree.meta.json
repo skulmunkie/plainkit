@@ -24,6 +24,13 @@
       "description": "Selection mode."
     },
     {
+      "name": "wrapLabels",
+      "type": "boolean",
+      "default": false,
+      "reflect": true,
+      "description": "Let a long item label wrap onto several lines instead of one line cut off with an ellipsis (the item hook is --pk-tree-item-label-white-space)."
+    },
+    {
       "name": "navigate",
       "type": "string",
       "default": "",

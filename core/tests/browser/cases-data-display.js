@@ -1129,6 +1129,17 @@ export const dataDisplayCases = [
         a.part('label').click(); b.part('label').click();
         t.eq(seen.map(s => s.join(':')).join(','), 'A:false,B:true', 'host is a notification, the item own router mode is cancelable');
     }],
+    ['tree: wrapLabels lets a long label take several lines inside the column; without it the label is one clipped line (#1713)', async t => {
+        const long = 'A very long category name that does not fit a narrow navigation column at all';
+        const el = await t.mount('<div style="inline-size:12rem"><pk-tree label="Nav"><pk-tree-item label="' + long + '"></pk-tree-item></pk-tree></div>'); await t.settle();
+        const tree = el.querySelector('pk-tree'), row = () => tree.querySelector('pk-tree-item').part('row'), lab = () => tree.querySelector('pk-tree-item').part('label');
+        const one = row().getBoundingClientRect().height;
+        t.ok(lab().scrollWidth > lab().clientWidth, 'by default the label is cut off');
+        tree.wrapLabels = true; await t.settle();
+        t.ok(row().getBoundingClientRect().height > one + 8, 'wrapped the row is taller: ' + row().getBoundingClientRect().height + ' vs ' + one);
+        t.ok(lab().scrollWidth <= lab().clientWidth + 1, 'the wrapped label is not cut off');
+        t.ok(row().getBoundingClientRect().right <= el.getBoundingClientRect().right + 1, 'the row stays inside the column');
+    }],
     ['tree: a tree built in a detached tree (template content moved in is not upgraded until it is connected) does not re-queue updates forever', async t => {
         const el = await t.mount('<pk-tree label="Cats"><pk-tree-item label="Books"></pk-tree-item></pk-tree>'); await t.settle();
         const loose = document.createElement('pk-tree'); const tpl = document.createElement('template'); tpl.innerHTML = '<pk-tree-item label="A"></pk-tree-item>'; loose.append(tpl.content);
