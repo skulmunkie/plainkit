@@ -159,8 +159,8 @@
         "viewport-logic.js"
       ],
       "maxPackedBytes": null,
-      "maxUnpackedBytes": 56660,
-      "maxZipBytes": 26050
+      "maxUnpackedBytes": 59150,
+      "maxZipBytes": 26930
     },
     {
       "id": "plainkit.ide",
@@ -178,8 +178,8 @@
         "web-types.json"
       ],
       "maxPackedBytes": null,
-      "maxUnpackedBytes": 902100,
-      "maxZipBytes": 187400
+      "maxUnpackedBytes": 912990,
+      "maxZipBytes": 190330
     }
   ],
   "siteOnly": [

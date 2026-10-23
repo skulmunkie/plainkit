@@ -3,7 +3,7 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import fs from 'node:fs';
 import { fileURLToPath } from 'node:url';
-import { layout, cleanItems, worstRatio, OTHER_ID } from '../../js/heat-map-layout.js';
+import { layout, cleanItems, worstRatio, worstSeverity, OTHER_ID } from '../../js/heat-map-layout.js';
 
 const W = 400, H = 300;
 const area = b => b.w * b.h;
@@ -111,5 +111,61 @@ test('the css uses tokens only: no colour or size literal outside the sr-only tr
     const css = fs.readFileSync(fileURLToPath(new URL('./heat-map.css', import.meta.url)), 'utf8');
     assert.ok(!/#[0-9a-f]{3,8}\b/i.test(css), 'no hex colour');
     assert.ok(!/\brgba?\(|\bhsla?\(/i.test(css), 'no rgb or hsl colour');
-    assert.ok(!/\d\s*(px|rem|em)\b/.test(css.replace(/\b1px\b|--pk-heat-map-height, 20rem|@container \([^)]*\)/g, '')), 'no px, rem or em size other than the 1px hairline, the default height hook and the container-query thresholds');
+    assert.ok(!/\d\s*(px|rem|em)\b/.test(css.replace(/\b1px\b|--pk-heat-map-height, 20rem|@container [^{]*/g, '')), 'no px, rem or em size other than the 1px hairline, the default height hook and the container-query thresholds');
+});
+
+test('rows layout keeps the input order, tiles exactly and weights the areas', () => {
+    const vals = [3, 40, 7, 20, 5, 25];
+    const boxes = layout(items(...vals), W, H, { layout: 'rows' });
+    assert.deepEqual(boxes.map(b => b.id), vals.map((_, i) => `i${i}`), 'input order, not value order');
+    assert.equal(boxes.reduce((s, b) => s + area(b), 0), W * H);
+    for (let i = 0; i < boxes.length; i++) for (let j = i + 1; j < boxes.length; j++) assert.ok(!overlap(boxes[i], boxes[j]));
+    const total = vals.reduce((a, b) => a + b);
+    boxes.forEach((b, i) => assert.ok(Math.abs(area(b) - (vals[i] / total) * W * H) <= b.w + b.h));
+    // a new value changes sizes but never the order
+    assert.deepEqual(layout(items(40, 40, 7, 20, 5, 25), W, H, { layout: 'rows' }).map(b => b.id), vals.map((_, i) => `i${i}`));
+});
+
+test('rows layout still merges small boxes into Other, last', () => {
+    const boxes = layout(items(1, 500, 1, 300, 1, 1, 100, 1), W, H, { layout: 'rows', minBox: 48 });
+    assert.equal(boxes.at(-1).id, OTHER_ID);
+    assert.equal(boxes.reduce((s, b) => s + area(b), 0), W * H);
+});
+
+test('maxItems keeps the top N by value and merges the rest into Other', () => {
+    const boxes = layout(items(50, 40, 30, 20, 10, 5), W, H, { maxItems: 3 });
+    assert.deepEqual(boxes.slice(0, 3).map(b => b.id), ['i0', 'i1', 'i2']);
+    const other = boxes.at(-1);
+    assert.equal(other.id, OTHER_ID);
+    assert.deepEqual(other.members.map(m => m.id), ['i3', 'i4', 'i5']);
+    assert.equal(layout(items(5, 4), W, H, { maxItems: 3 }).length, 2, 'under the cap nothing merges');
+    assert.equal(layout(items(50, 40), W, H, { maxItems: 0 }).length, 2, '0 is no cap');
+});
+
+test('a box that cannot be merged away is given enough area to reach minBox instead of staying a sliver', () => {
+    const boxes = layout(items(900, 40, 30, 20), 375, 280, { minBox: 48 });
+    assert.equal(boxes.at(-1).id, OTHER_ID);
+    for (const b of boxes) assert.ok(Math.min(b.w, b.h) >= 48, `${b.id} is ${b.w} by ${b.h}`);
+    assert.equal(boxes.reduce((s, b) => s + area(b), 0), 375 * 280);
+    assert.ok(area(boxes[0]) > 0.8 * 375 * 280, 'the dominant item still dominates');
+});
+
+test('worstSeverity of merged items is the most serious one', () => {
+    assert.equal(worstSeverity([{ severity: 'info' }, { severity: 'danger' }, { severity: 'warning' }]), 'danger');
+    assert.equal(worstSeverity([{ severity: 'neutral' }, { severity: 'success' }]), 'success');
+    assert.equal(worstSeverity([{ severity: 'neutral' }]), 'neutral');
+    assert.equal(layout([{ id: 'a', value: 100, severity: 'neutral' }, { id: 'b', value: 1, severity: 'warning' }, { id: 'c', value: 1, severity: 'neutral' }], W, H, { minBox: 48 }).at(-1).severity, 'warning');
+});
+
+test('cleanItems keeps intensity between 0 and 1 and drops a bad one with a report', () => {
+    const said = [];
+    const got = cleanItems([{ id: 'a', value: 1, intensity: 0.4 }, { id: 'b', value: 1, intensity: 7 }, { id: 'c', value: 1, intensity: 'hot' }, { id: 'd', value: 1 }], m => said.push(m));
+    assert.deepEqual(got.map(i => i.intensity), [0.4, 1, undefined, undefined]);
+    assert.ok(said.some(m => /intensity/.test(m)));
+});
+
+test('value changes animate, and not for a user who asked for reduced motion', () => {
+    const css = fs.readFileSync(fileURLToPath(new URL('./heat-map.css', import.meta.url)), 'utf8');
+    assert.match(css, /^\.item \{[^}]*transition: inset-inline-start/m);
+    assert.match(css, /@media \(prefers-reduced-motion: reduce\) \{ \.item \{ transition: none; \} \}/);
 });
