@@ -1,0 +1,17 @@
+@namespace PlainKit.Blazor
+@implements IAsyncDisposable
+@inject PkRuntime Runtime
+@inject PkOptions Options
+@* The Blazor Server reconnect banner (#1714). Place it once, directly in <body> of App.razor, or set PkOptions.Reconnect and let PkApp start it. It renders the element the framework drives
+   (#components-reconnect-modal) with its options and a module script (no inline script or style); the banner inside is built by plainkit.reconnect.js, the policy is plainkit/js/reconnect.js. *@
+@{ var o = Reconnect ?? Options.Reconnect ?? new PkReconnectOptions(); }
+<div id="components-reconnect-modal" data-pk-reconnect="@o.ToJson()"></div>
+<script type="module" src="@Assets["_content/PlainKit.Blazor/plainkit.reconnect.js"]"></script>
+
+@code {
+    /// <summary>How it behaves; null uses <see cref="PkOptions.Reconnect"/>, else the defaults.</summary>
+    [Parameter] public PkReconnectOptions? Reconnect { get; set; }
+
+    protected override async Task OnAfterRenderAsync(bool firstRender) { if (firstRender) await Runtime.StartReconnectAsync(Reconnect ?? Options.Reconnect ?? new()); }
+    public async ValueTask DisposeAsync() => await Runtime.StopReconnectAsync();
+}

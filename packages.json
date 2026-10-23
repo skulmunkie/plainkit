@@ -164,6 +164,21 @@
       "maxZipBytes": 28140
     },
     {
+      "id": "plainkit.blazor",
+      "title": "Blazor Server runtime helpers",
+      "built": true,
+      "requires": [
+        "plainkit"
+      ],
+      "blazorOption": null,
+      "js": [
+        "reconnect.js"
+      ],
+      "maxPackedBytes": null,
+      "maxUnpackedBytes": 3340,
+      "maxZipBytes": 1945
+    },
+    {
       "id": "plainkit.ide",
       "title": "Editor and IDE metadata",
       "built": true,

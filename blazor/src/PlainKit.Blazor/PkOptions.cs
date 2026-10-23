@@ -1,7 +1,7 @@
 namespace PlainKit.Blazor;
 
 /// <summary>Settings for PlainKit.Blazor, passed to <c>AddPlainKit</c>.</summary>
-public sealed class PkOptions
+public sealed partial class PkOptions
 {
     /// <summary>
     /// Whether the dev tools page (<c>/_plainkit</c>) is served and the <c>PkDevTools</c> dock renders anything. Null, the default, means only when the app

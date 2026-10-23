@@ -279,3 +279,7 @@ export function stopLogForwarding() {
     stopForwarding?.();
     stopForwarding = null;
 }
+
+// <PkReconnect />'s banner driver (plainkit.reconnect.js), loaded on demand; both calls are idempotent.
+export const startReconnect = async json => { (await import('./plainkit.reconnect.js')).startReconnect(json); };
+export const stopReconnect = async () => { (await import('./plainkit.reconnect.js')).stopReconnect(); };
