@@ -1,0 +1,25 @@
+:host { display: block; position: relative; min-inline-size: 0; block-size: var(--pk-heat-map-height, 20rem); --_gap: var(--pk-heat-map-gap, var(--space-1)); }
+:host([hidden]) { display: none; }
+[part="map"] { position: absolute; inset: 0; margin: 0; padding: 0; list-style: none; }
+.item { position: absolute; inset-inline-start: calc(var(--_x) * 1px); inset-block-start: calc(var(--_y) * 1px); inline-size: calc(var(--_w) * 1px); block-size: calc(var(--_h) * 1px); padding: calc(var(--_gap) / 2); container-type: size; }
+.box { display: flex; flex-direction: column; gap: var(--space-1); inline-size: 100%; block-size: 100%; min-inline-size: 0; margin: 0; padding: var(--space-2); overflow: hidden; border: 1px solid var(--color-border); border-radius: var(--pk-heat-map-radius, var(--radius-sm)); background: var(--_bg); color: var(--_fg); font: inherit; line-height: 1.25; text-align: start; text-decoration: none; cursor: pointer; --_bg: var(--pk-heat-map-neutral, var(--color-surface-alt)); --_fg: var(--pk-heat-map-text, var(--color-text)); }
+.box:hover { border-color: var(--_fg); }
+.box:focus-visible { outline: var(--focus-ring); outline-color: var(--_fg); outline-offset: calc(var(--space-1) * -1); }
+.box[data-severity="info"] { --_bg: var(--chip-info-bg); --_fg: var(--chip-info-fg); }
+.box[data-severity="success"] { --_bg: var(--chip-success-bg); --_fg: var(--chip-success-fg); }
+.box[data-severity="warning"] { --_bg: var(--chip-warn-bg); --_fg: var(--chip-warn-fg); }
+.box[data-severity="danger"] { --_bg: var(--chip-danger-bg); --_fg: var(--chip-danger-fg); }
+.label { font-weight: 600; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.value, .status { font-size: var(--text-meta); font-variant-numeric: tabular-nums; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+/* What does not fit is left out, not cut in half: the full name (label, value, status) stays in the box's aria-label and title. */
+@container (max-height: 5.4rem) { .status { display: none; } }
+@container (max-height: 3.9rem) { .value { display: none; } }
+[part="empty"] { display: grid; place-items: center; block-size: 100%; color: var(--color-muted); }
+[part="data"] { position: absolute; inline-size: 1px; block-size: 1px; overflow: hidden; clip-path: inset(50%); white-space: nowrap; }
+:host([show-table]) { block-size: auto; }
+:host([show-table]) [part="map"], :host([show-table]) [part="empty"] { display: none; }
+:host([show-table]) [part="data"] { position: static; inline-size: 100%; block-size: auto; overflow: visible; clip-path: none; white-space: normal; }
+[part="table"] { inline-size: 100%; border-collapse: collapse; }
+[part="table"] :is(th, td) { padding: var(--space-1) var(--space-2); border-block-end: 1px solid var(--color-border); text-align: start; }
+[part="table"] td:nth-child(2), [part="table"] td:nth-child(3) { font-variant-numeric: tabular-nums; }
+[part="caption"] { padding: var(--space-1) var(--space-2); font-weight: 600; text-align: start; }

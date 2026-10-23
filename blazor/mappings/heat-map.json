@@ -1,0 +1,37 @@
+{
+  "component": "PkHeatMap",
+  "params": [
+    {
+      "name": "Items",
+      "prop": "items",
+      "type": "IReadOnlyList<PkHeatItem>",
+      "note": "{ Id, Label, Value, Severity, Href }. It is sent as a JSON attribute (camelCase)."
+    },
+    {
+      "name": "Label",
+      "prop": "label",
+      "type": "string"
+    },
+    {
+      "name": "MinBox",
+      "prop": "minBox",
+      "type": "int"
+    },
+    {
+      "name": "ShowTable",
+      "prop": "showTable",
+      "type": "bool"
+    },
+    {
+      "name": "EmptyContent",
+      "slot": "empty",
+      "type": "RenderFragment?"
+    },
+    {
+      "name": "OnSelect",
+      "event": "pk-heat-select",
+      "type": "EventCallback<PkHeatSelectEventArgs>"
+    }
+  ],
+  "notes": "Items takes PkHeatItem records (id, label, value above 0, optional severity and href), sent as the items attribute in camelCase JSON. Severity is a string: neutral, info, success, warning or danger."
+}

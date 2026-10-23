@@ -1,6 +1,7 @@
 {
   "pk-canvas": "plainkit.canvas",
   "pk-dock": "plainkit.dock",
+  "pk-heat-map": "plainkit.canvas",
   "pk-markdown": "plainkit.markdown",
   "pk-markdown-editor": "plainkit.markdown"
 }
