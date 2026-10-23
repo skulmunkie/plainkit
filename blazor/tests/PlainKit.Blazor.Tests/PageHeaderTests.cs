@@ -48,6 +48,20 @@ public sealed class PageHeaderTests : BunitContext, IAsyncLifetime
         Assert.Empty(Render<PkPageHeader>(p => p.Add(x => x.Crumbs, Trail)).FindAll("pk-heading"));
     }
 
+    // Issue 1761: a long record title is cut to one line with an ellipsis, the full text as its tooltip; a page title is left whole.
+    [Fact]
+    public void A_record_Title_truncates_with_the_full_text_as_its_tooltip()
+    {
+        var title = new string('x', 120);
+        var record = Render<PkPageHeader>(p => p.Add(x => x.Title, title).Add(x => x.Variant, PageHeaderVariant.Record)).Find("pk-heading");
+        Assert.True(record.HasAttribute("truncate"));
+        Assert.Equal(title, record.GetAttribute("title"));
+
+        var page = Render<PkPageHeader>(p => p.Add(x => x.Title, "Orders")).Find("pk-heading");
+        Assert.False(page.HasAttribute("truncate"));
+        Assert.False(page.HasAttribute("title"));
+    }
+
     [Fact]
     public void Without_a_Title_the_heading_attribute_stays_unset_and_no_heading_is_slotted()
     {

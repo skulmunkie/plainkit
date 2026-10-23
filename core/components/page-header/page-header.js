@@ -112,7 +112,7 @@ export default Base => class extends Base {
     }
     updated() {
         const title = this.part('title');
-        if (title) title.hidden = filled(this, 'title'); // a slotted title (a pk-heading) is the heading; the built-in text steps aside
+        if (title) { title.hidden = filled(this, 'title'); title.title = (this.variant === 'record' && this.heading) || ''; } // a slotted title (a pk-heading) is the heading; the built-in text steps aside. A record title may be cut short (#1761): the tooltip holds it whole
         this.trail(!!this.heading || filled(this, 'title'));
         this.part('crumbs').hidden = !filled(this, 'breadcrumb') && this.part('trail').hidden;
         this.part('actions').hidden = !filled(this, 'actions');
