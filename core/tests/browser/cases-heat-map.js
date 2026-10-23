@@ -237,4 +237,24 @@ export const heatMapCases = [
         other.click(); await t.settle(); el.shadowRoot.querySelector('[part="more-close"]').click();
         t.ok(more.hidden, 'Close closes'); t.eq(el.shadowRoot.activeElement, other);
     }],
+    ['heat-map: a slotted table is the data source (value column by header, severity, link, data-value); the items property wins; editing the table redraws', async t => {
+        const wrap = await t.mount('<div id="w"><pk-heat-map label="From a table"><table><thead><tr><th>Area</th><th>Count</th><th>Severity</th></tr></thead><tbody>'
+            + '<tr><td><a href="#billing">Billing</a></td><td>1,200</td><td>warning</td></tr><tr><td>Search</td><td data-value="300">three hundred</td><td></td></tr><tr><td>Docs</td><td>nonsense</td><td></td></tr><tr data-id="api"><td>API</td><td>500</td><td>danger</td></tr></tbody></table></pk-heat-map></div>');
+        wrap.style.inlineSize = '600px';
+        const el = wrap.querySelector('pk-heat-map');
+        await until(() => boxes(el).length === 3, 'three usable rows become boxes (the row with no number is skipped)');
+        await t.settle();
+        const b = boxes(el);
+        t.eq(b.map(x => x.querySelector('.label').textContent).sort().join(), 'API,Billing,Search');
+        const billing = b.find(x => x.querySelector('.label').textContent === 'Billing');
+        t.eq(billing.localName, 'a'); t.eq(billing.getAttribute('href'), '#billing'); t.eq(billing.dataset.severity, 'warning');
+        t.ok(billing.getAttribute('aria-label').startsWith('Billing, 1,200'), billing.getAttribute('aria-label'));
+        t.eq(b.find(x => x.dataset.id === 'api').dataset.severity, 'danger', 'data-id on the row is the id');
+        t.eq(el.shadowRoot.querySelectorAll('[part="rows"] tr').length, 3, 'the hidden data table lists the same rows');
+        const tr = document.createElement('tr'); tr.innerHTML = '<td>Admin</td><td>400</td><td></td>';
+        el.querySelector('tbody').append(tr);
+        await until(() => boxes(el).length === 4, 'a new row redraws');
+        el.items = [{ id: 'x', label: 'Only', value: 5 }];
+        await until(() => boxes(el).length === 1, 'items win over the table');
+    }],
 ];

@@ -1,0 +1,28 @@
+@page "/lab/heat-map"
+
+@* Lab: PkHeatMap (Items with Children, GroupBy, OnSelect and OnFocusItem) over the real interop (#1721). Sample code, not package code. *@
+<h1 tabindex="-1">Lab heat map</h1>
+<p id="lab-heat-events">Selected: @_selected, focused: @_focused</p>
+<PkButton OnClick="@(() => _grouped = !_grouped)">@(_grouped ? "Flat" : "Group by team")</PkButton>
+<PkHeatMap Label="Issues by area" Items="@(_grouped ? _teams : _flat)" GroupBy="_grouped" ValueFormat="PkHeatMapValueFormat.Compact"
+           OnSelect="@(e => _selected = e.Id ?? "?")" OnFocusItem="@(e => _focused = e.Id ?? "?")" />
+
+@code {
+    private bool _grouped;
+    private string _selected = "none", _focused = "none";
+
+    private static readonly PkHeatItem[] _flat =
+    [
+        new() { Id = "billing", Label = "Billing", Value = 42, Severity = "warning" },
+        new() { Id = "auth", Label = "Sign-in", Value = 31, Severity = "danger" },
+        new() { Id = "search", Label = "Search", Value = 24 },
+        new() { Id = "reports", Label = "Reports", Value = 18, Severity = "info" },
+        new() { Id = "docs", Label = "Docs", Value = 12, Severity = "success" },
+    ];
+
+    private static readonly PkHeatItem[] _teams =
+    [
+        new() { Id = "pay", Label = "Payments", Children = [new() { Id = "invoices", Label = "Invoices", Value = 30, Severity = "warning" }, new() { Id = "refunds", Label = "Refunds", Value = 10 }] },
+        new() { Id = "acc", Label = "Accounts", Children = [new() { Id = "signin", Label = "Sign-in", Value = 40, Severity = "danger" }, new() { Id = "profile", Label = "Profile", Value = 20 }] },
+    ];
+}

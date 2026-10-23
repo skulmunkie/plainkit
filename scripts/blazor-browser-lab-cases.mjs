@@ -353,6 +353,50 @@ export const LAB_CASES = [
         ctx.ok(await ctx.eval(`${TA}.value === 'make **bold**'`), 'the textarea does not show the bolded text');
         await ctx.noErrors(ctx.openMark, BENIGN);
       } },
+    { name: 'reconnect-banner', // #1714: PkOptions.Reconnect makes PkApp start the themed banner; a real dropped socket shows it, a held reconnect request keeps it, and every state paints its buttons
+      async run(ctx) {
+        const BAR = `document.querySelector('#components-reconnect-modal [data-part="bar"]')`;
+        const fire = state => ctx.eval(`document.getElementById('components-reconnect-modal').dispatchEvent(new CustomEvent('components-reconnect-state-changed', { detail: { state: ${JSON.stringify(state)} } }))`);
+        const shown = act => ctx.eval(`!document.querySelector('#components-reconnect-modal [data-act="${act}"]').hidden`);
+        // the page keeps its sockets, so the case can close the circuit's own from the page (new document only: installed before the page's scripts)
+        const { identifier } = await ctx.cdp.send('Page.addScriptToEvaluateOnNewDocument', { source: `window.__sockets = []; const O = WebSocket; window.WebSocket = function (...a) { const s = new O(...a); window.__sockets.push(s); return s; }; window.WebSocket.prototype = O.prototype; for (const k of ['CONNECTING', 'OPEN', 'CLOSING', 'CLOSED']) window.WebSocket[k] = O[k];` });
+        const ignore = [...BENIGN, /Connection disconnected|WebSocket|negotiat|Failed to (start|complete)|fetch/i];
+        try {
+            await ctx.open('/');
+            await ctx.waitFor(`!!${BAR} && ${BAR}.hidden`, 'the banner to be built and hidden');
+            ctx.ok(await ctx.eval(`!!document.querySelector('#components-reconnect-modal pk-alert[banner]') && !document.querySelector('#components-reconnect-modal').hasAttribute('style')`), 'the banner is a pk-alert banner and the element carries no inline style');
+            // a real drop: hold the reconnect request, close the socket
+            await ctx.cdp.send('Fetch.enable', { patterns: [{ urlPattern: '*_blazor*' }] });
+            await ctx.eval(`(window.__sockets.forEach(s => s.close(4000)), true)`);
+            await ctx.waitFor(`!${BAR}.hidden && document.getElementById('components-reconnect-modal').dataset.kind === 'busy'`, 'the busy banner after the socket closed');
+            ctx.ok((await ctx.eval(`${BAR}.textContent`)).includes('Reconnecting'), 'the busy banner says it is reconnecting');
+            ctx.ok(await ctx.eval(`(() => { const r = ${BAR}.getBoundingClientRect(); return r.top >= 0 && r.width >= innerWidth - 1 && r.height > 0; })()`), 'the banner spans the top of the viewport');
+            await ctx.cdp.send('Fetch.disable');
+            await ctx.waitFor(`${BAR}.hidden`, 'the banner to hide when the circuit is back');
+            // every other state, raised the way the framework raises it
+            await ctx.eval('window.__marker = 1');
+            await fire('failed');
+            await ctx.waitFor(`document.getElementById('components-reconnect-modal').dataset.kind === 'failed'`, 'the failed banner');
+            ctx.ok(await shown('tryNow') && await shown('reload') && !await shown('cancel'), 'failed offers Retry now and Reload');
+            await fire('rejected');
+            await ctx.waitFor(`document.getElementById('components-reconnect-modal').dataset.kind === 'ended'`, 'the ended banner');
+            ctx.ok((await ctx.eval(`${BAR}.textContent`)).includes('Reloading in'), 'the ended banner counts down visibly');
+            ctx.ok(await shown('cancel') && await shown('reload'), 'the countdown has Cancel and Reload');
+            await ctx.clickDeep('#components-reconnect-modal pk-button', 'Cancel');
+            await ctx.waitFor(`!${BAR}.textContent.includes('Reloading in')`, 'Cancel to stop the countdown');
+            await ctx.sleep(1500);
+            ctx.ok(await ctx.eval('window.__marker === 1'), 'the page was not reloaded after Cancel');
+            await fire('paused');
+            await ctx.waitFor(`document.getElementById('components-reconnect-modal').dataset.kind === 'paused'`, 'the paused banner');
+            ctx.ok(await shown('resume'), 'paused offers Resume');
+            await fire('hide');
+            await ctx.waitFor(`${BAR}.hidden`, 'hide to remove the banner');
+            await ctx.noErrors(ctx.openMark, ignore);
+        } finally {
+            await ctx.cdp.send('Fetch.disable');
+            await ctx.cdp.send('Page.removeScriptToEvaluateOnNewDocument', { identifier });
+        }
+      } },
     { name: 'markdown-view',
       async run(ctx) {
         await ctx.open('/lab/markdown'); // #1673: PkMarkdown draws Markdown with DOM nodes only and hands a relative link to OnLinkClick
@@ -507,5 +551,14 @@ export const LAB_SHOTS = [
         await ctx.open('/lab/fields');
         await ctx.clickDeep('pk-button', 'Ask'); await ctx.sleep(600);
         await ctx.shot('lab-dialog', vp, theme);
+    },
+    async (ctx, vp, theme) => { // #1714: the reconnect banner in each state, raised the way the framework raises it
+        await ctx.open('/');
+        await ctx.waitFor(`!!document.querySelector('#components-reconnect-modal [data-part="bar"]')`, 'the reconnect banner');
+        for (const [state, detail, name] of [['retrying', ', currentAttempt: 3', 'busy'], ['failed', '', 'failed'], ['rejected', '', 'ended'], ['paused', '', 'paused']]) {
+            await ctx.eval(`document.getElementById('components-reconnect-modal').dispatchEvent(new CustomEvent('components-reconnect-state-changed', { detail: { state: '${state}'${detail} } }))`);
+            await ctx.sleep(500);
+            await ctx.shot('reconnect-' + name, vp, theme);
+        }
     },
 ];

@@ -1,0 +1,8 @@
+/* The reconnect banner of <PkReconnect /> (#1714). Tokens only; the colours and type come from the pk-alert inside. */
+#components-reconnect-modal [hidden] { display: none; }
+#components-reconnect-modal [data-part="bar"] { position: fixed; inset-block-start: 0; inset-inline: 0; z-index: var(--z-toast); }
+#components-reconnect-modal [data-part="detail"] { margin-inline-start: var(--space-2); opacity: 0.8; }
+#components-reconnect-modal [slot="action"] { display: inline-flex; flex-wrap: wrap; gap: var(--space-2); }
+#components-reconnect-modal[data-modal][data-kind]::before { content: ""; position: fixed; inset: 0; z-index: var(--z-modal); background: var(--flyout-backdrop-bg); }
+@media (pointer: coarse) { #components-reconnect-modal pk-button { min-block-size: var(--touch-target); } }
+#components-reconnect-modal [data-part="spinner"] { margin-inline-end: var(--space-2); vertical-align: middle; }

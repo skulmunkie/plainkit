@@ -8,8 +8,8 @@
       "built": true,
       "requires": [],
       "blazorOption": null,
-      "maxPackedBytes": 406700,
-      "maxUnpackedBytes": 1433900
+      "maxPackedBytes": 283300,
+      "maxUnpackedBytes": 957700
     },
     {
       "id": "plainkit.tools",
@@ -69,9 +69,10 @@
         "zip-store.js"
       ],
       "maxPackedBytes": null,
-      "maxUnpackedBytes": 292100,
-      "maxZipBytes": 129300,
+      "maxUnpackedBytes": 781100,
+      "maxZipBytes": 255700,
       "files": [
+        "elements/api.json",
         "modules/manifest.json"
       ]
     },
@@ -159,8 +160,23 @@
         "viewport-logic.js"
       ],
       "maxPackedBytes": null,
-      "maxUnpackedBytes": 63540,
-      "maxZipBytes": 28140
+      "maxUnpackedBytes": 64840,
+      "maxZipBytes": 28740
+    },
+    {
+      "id": "plainkit.blazor",
+      "title": "Blazor Server runtime helpers",
+      "built": true,
+      "requires": [
+        "plainkit"
+      ],
+      "blazorOption": null,
+      "js": [
+        "reconnect.js"
+      ],
+      "maxPackedBytes": null,
+      "maxUnpackedBytes": 3340,
+      "maxZipBytes": 1945
     },
     {
       "id": "plainkit.ide",

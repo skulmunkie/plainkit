@@ -2,7 +2,7 @@
 // positions each one through custom properties set with the CSSOM (CSP allows that; no style attribute is ever written), keeps a visually hidden data table beside them
 // as the accessible fallback, and moves between boxes with the arrow keys (one tab stop for the whole map). With group-by, items that have children are drawn as framed areas
 // (one level); activating the merged Other box opens its members as a table over the map.
-import { layout, layoutGrouped, cleanItems, shownBox, neighbour, WORD, FORMATS, pct, OTHER_ID } from '../../js/heat-map-layout.js';
+import { readTable, layout, layoutGrouped, cleanItems, shownBox, neighbour, WORD, FORMATS, pct, OTHER_ID } from '../../js/heat-map-layout.js';
 import { safeHref } from '../../js/safe-url.js';
 
 const keyOf = b => (b.parent ? `${b.parent}/${b.id}` : b.id);
@@ -12,6 +12,8 @@ export default Base => class extends Base {
         const map = this.part('map');
         this.$ro ??= new ResizeObserver(() => this.draw());
         this.$ro.observe(map);
+        this.$mo ??= new MutationObserver(() => this.requestUpdate());
+        this.$mo.observe(this, { childList: true, subtree: true, characterData: true, attributes: true, attributeFilter: ['data-value', 'data-id', 'href'] });
         if (this.$on) return;
         this.$on = true;
         map.addEventListener('keydown', e => this.key(e));
@@ -20,10 +22,10 @@ export default Base => class extends Base {
         this.part('more-close').addEventListener('click', () => this.closeMore());
         this.part('more').addEventListener('keydown', e => { if (e.key === 'Escape') { e.stopPropagation(); this.closeMore(); } });
     }
-    disconnected() { this.$ro?.disconnect(); }
+    disconnected() { this.$ro?.disconnect(); this.$mo?.disconnect(); }
     updated() {
         this.aria({ role: 'group', ariaLabel: this.label });
-        this.$items = cleanItems(this.items, m => this.warnOnce(`items:${m}`, m));
+        this.$items = cleanItems(this.items?.length ? this.items : this.querySelector(':scope > table') ? readTable(this.querySelector(':scope > table')) : this.items, m => this.warnOnce(`items:${m}`, m));
         this.$total = this.$items.reduce((a, it) => a + it.value, 0);
         this.part('empty').hidden = this.$items.length > 0;
         this.table();

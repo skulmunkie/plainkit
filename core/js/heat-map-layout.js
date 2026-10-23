@@ -156,3 +156,15 @@ export function neighbour(rects, from, key) {
     });
     return at;
 }
+
+// A slotted table as items: the first cell is the name (a link in it is the href); the other columns are found by header text (value, severity or status, intensity),
+// the value being column 2 when no header says. A cell's data-value beats its text, a row's data-id is the id. A row with no number is skipped by cleanItems and said once.
+export function readTable(table) {
+    const rows = [...table.rows], head = table.tHead?.rows[0] ?? (rows[0]?.querySelector('th:not([scope=row])') ? rows[0] : null), at = re => { const i = head ? [...head.cells].findIndex(c => re.test(c.textContent)) : -1; return i < 0 ? undefined : i; };
+    const [v, s, n] = [at(/value|count|total|size|amount/i) ?? 1, at(/severity|status/i), at(/intensity/i)];
+    const text = (tr, i) => { const c = i == null ? null : tr.cells[i]; return c ? c.dataset.value ?? c.textContent.trim() : undefined; };
+    return rows.filter(tr => tr !== head && !tr.closest('tfoot') && tr.cells.length).map(tr => {
+        const a = tr.cells[0].querySelector('a[href]'), num = x => (x == null || x === '' ? undefined : Number(x));
+        return { id: tr.dataset.id, label: tr.cells[0].textContent.trim(), value: num(text(tr, v)?.replace(/[^0-9.-]/g, '') ?? ''), severity: text(tr, s)?.toLowerCase() || undefined, intensity: num(text(tr, n)?.replace('%', '')) / (/%/.test(text(tr, n) ?? '') ? 100 : 1) || undefined, href: a?.getAttribute('href') };
+    });
+}

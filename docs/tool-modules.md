@@ -17,7 +17,7 @@ The build makes two units, each with its own manifest (sizes and SRI hashes) and
 
 A page that only uses `pk-*` elements needs the runtime zip and never fetches a module. The modules zip has `modules/` at its top: unzip it into the runtime folder and it lands at `dist/modules/`. The unit sits two folders below the runtime root, as `modules/<tool>/` sits two folders below `core/` in the source, so a module's imports (`../../js/log.js`) and its page stylesheet (`../../plainkit.css`) are the same text in both places. A module names the runtime by these relative paths and nothing else.
 
-**Hosting the modules apart from the runtime** (the modules on one origin or folder, the runtime on another): the scripts' own imports are remapped with an import map, and the runtime's assets (`plainkit.css`, `elements/api.json`, the release files the theme editor exports) are named once with a meta tag. Both are read by the browser, so there is nothing to rebuild:
+**Hosting the modules apart from the runtime** (the modules on one origin or folder, the runtime on another): the scripts' own imports are remapped with an import map, and the runtime's assets (`plainkit.css`, `elements/api.json` (in `plainkit.tools`, so it is there unless you take only core), the release files the theme editor exports) are named once with a meta tag. Both are read by the browser, so there is nothing to rebuild:
 
 ```html
 <meta name="plainkit-runtime" content="https://cdn.example/plainkit/dist/">

@@ -5,7 +5,7 @@ using PlainKit.Blazor;
 
 var builder = WebApplication.CreateBuilder(args);
 builder.Services.AddRazorComponents().AddInteractiveServerComponents();
-builder.Services.AddPlainKit(o => o.DevTools = true); // the dev tools page (/_plainkit) is on in the harness, which runs the sample in Production
+builder.Services.AddPlainKit(o => { o.DevTools = true; o.Reconnect = new(); }); // the reconnect banner (#1714) and the dev tools page (/_plainkit) are on in the harness, which runs the sample in Production
 builder.Services.AddPlainKitApp(app => app
     .Brand("Demo app")
     .Module<OverviewModule>().Module<OrdersModule>().Module<ReportsModule>()

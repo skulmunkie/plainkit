@@ -38,7 +38,7 @@ async function eventNames(win, given) {
     try {
         const api = await loadJsonOnce(runtimeUrl('../../dist/elements/api.json', import.meta.url), win.fetch.bind(win)); // a missing file rejects and lands in the catch below
         return [...new Set(api.flatMap(e => (e.events ?? []).map(x => x.name)).filter(n => n.startsWith('pk-')))];
-    } catch (err) { log.debug('no api.json next to this module: using the built-in event list', err); }
+    } catch (err) { log.debug('no elements/api.json next to this module (it ships in plainkit.tools): using the built-in event list', err); }
     return FALLBACK_EVENTS;
 }
 

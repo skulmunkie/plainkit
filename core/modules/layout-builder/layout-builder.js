@@ -60,7 +60,7 @@ export async function mountLayoutBuilder(container, options = {}) {
     if (!container) { log.error('mountLayoutBuilder needs a container element'); throw new TypeError('mountLayoutBuilder: container is required'); }
     const doc = container.ownerDocument;
     await ensureStyles([...styleUrls(STYLES, import.meta.url), ...styleUrls(OWN_STYLES, import.meta.url)], doc);
-    const api = await loadJsonOnce(options.registry ?? runtimeUrl(DEFAULT_API, import.meta.url));
+    const api = await loadJsonOnce(options.registry ?? runtimeUrl(DEFAULT_API, import.meta.url)).catch(err => { log.error('elements/api.json could not be read: it ships in the plainkit.tools package (unzip plainkit.tools over the plainkit folder) or pass options.registry', err); throw err; });
     if (!Array.isArray(api)) { log.error('the registry must be the element API array (dist/elements/api.json)'); throw new TypeError('mountLayoutBuilder: registry must be an array or the URL of one'); }
     const registry = M.createRegistry(api);
     if (options.blocks) log.info('reusable blocks are not part of this version of the builder yet: the option is ignored', { blocks: options.blocks.length });

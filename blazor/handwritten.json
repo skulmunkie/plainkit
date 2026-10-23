@@ -42,6 +42,10 @@
     "Components/PkQuality.razor": {
       "category": "mount"
     },
+    "Components/PkReconnect.razor": {
+      "category": "runtime",
+      "blazorOnly": "writes the reconnect banner element the Blazor client drives and its module script; core/js/reconnect.js owns the policy"
+    },
     "Components/PkScorecard.razor": {
       "category": "mount"
     },
@@ -223,6 +227,12 @@
     },
     "PkOptions.cs": {
       "category": "runtime"
+    },
+    "PkOptions.Reconnect.cs": {
+      "category": "runtime"
+    },
+    "PkReconnectOptions.cs": {
+      "category": "dto"
     },
     "PkRecordEditor.cs": {
       "category": "editcontext"

@@ -34,6 +34,7 @@ Only things that exist today are listed. A dash means there is no ready-made pie
 | Long form built from a list of fields | Pattern `forms` for the controls, or `pk-field-group` to draw them from a list of field specs | Page type `record` | `PkFieldGroup` with `PkFieldSpec` |
 | Print a document, edit a design, show tokens | `pk-print-page`, `pk-canvas`, `pk-design-surface`, `pk-specimen`; `pk-page-shell` for a headed page | Page type `print`; else `custom` | `PkPrintPage`, `PkCanvas`, `PkDesignSurface`, `PkSpecimen`, `PkPageShell` |
 | Dashboard or report | Template `dashboard`; pattern `data-display`; elements `pk-stat`, `pk-chart`; for tabbed, independently loading widgets with filters `pk-dashboard-page` | Page type `dashboard` | `PkStat`, `PkChart`, `PkDashboardPage` |
+| At-a-glance overview: area is a count, colour a status ("issues by area") | `pk-heat-map` (package `plainkit.canvas`); never hand-computed `pk-grid` spans | Page type `dashboard` | `PkHeatMap` (`Items` of `PkHeatItem`) |
 | Search | Pattern `search-results`; element `pk-app-bar-search` in the shell header; `pk-command-palette` for a keyboard launcher | `search` in the app config, or `search(query, ctx)` on a module | `PkAppBarSearch`, `PkCommandPalette` |
 | Filtered table | Pattern `filter-table` (a `pk-data-table`); element `pk-table-filters` | Page type `list` (its `filters`) | `PkTableFilters`, `PkDataTable` |
 | Wizard or guided flow | Template `wizard`; layout `wizard`; elements `pk-stepper`, `pk-step` | Page type `wizard` | `PkStepper` |
@@ -48,6 +49,14 @@ Only things that exist today are listed. A dash means there is no ready-made pie
 | Marketing or landing page | Template `landing` (hero, feature grid, pricing, FAQ); pattern `pricing-cards`; composed from `pk-container`, `pk-stack`, `pk-grid`, `pk-card`, `pk-text` and `pk-button`, tokens only, no hero background images (imagery goes in `pk-media`). | None | same |
 | Rich text input | Pattern `markdown-editor`: `pk-textarea` holding Markdown plus a `pk-tabs` Write and Preview. | None | `PkTextarea` with `PkTabs` |
 | Panes: `pk-workspace` or `pk-dock` | `pk-workspace` for a content page with a fixed nav, main and aside; `pk-dock` for a tool whose user rearranges, resizes or tabs panels and expects the layout to persist. Keep both until dock's floating and rail steps land (issues 618, 608); then compare dock footprint (a fixed preset over about 2x workspace gzip means keep both), shared phone-strip code, real consumers and Blazor wrappers | Page type `tool`; `workspace` for a multi-pane tool | `PkWorkspace`, `PkDock` |
+
+## A heat map: area for a count, colour for a status
+
+`pk-heat-map` fills a fixed-height area (`--pk-heat-map-height`, default 20rem) with boxes whose area is each item's `value` and whose colour is its `severity` (neutral, info, success, warning, danger) or, with `scale="intensity"`, one hue by `intensity` 0 to 1. Boxes are real links (with `href`) or buttons, the whole map is one tab stop with arrow-key movement, and a data table is always kept for assistive technology (`show-table` shows it instead of the map).
+
+Give it data in one of two ways. The `items` property is `[{ id, label, value, severity?, intensity?, href?, children? }]`. Or slot a plain `<table>` as the direct child: the first cell of a row is the name (a link in it is the `href`), the value is column 2 unless a header says otherwise, a header containing "severity" or "status" and one containing "intensity" pick those columns, a cell's `data-value` beats its text (so "1,204" or "$1.2k" can carry a number) and a row's `data-id` is the id. A row with no number above 0 is skipped and logged once. If `items` is set it wins over the table; edit the table and the map redraws.
+
+Useful options: `layout="rows"` keeps the input order so positions stay put while live values change, `group-by` draws items with `children` as framed areas (one level), `max-items` and `min-box` merge the small ones into one "Other (n)" box (it takes the worst severity of its members and opens its members as a table), and `value-format` is number, compact or share. Events: a select event (cancel it to stop a link navigating) and a focus-item event, both with `detail.id`. In Blazor pass `Items` (`PkHeatItem` records, `Children` for groups) and use `OnSelect` and `OnFocusItem`; the slotted table is for markup-first pages, Blazor uses `Items`.
 
 ## Which list shape
 
