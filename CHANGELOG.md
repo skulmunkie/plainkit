@@ -5,6 +5,21 @@ The format follows [Keep a Changelog](https://keepachangelog.com/) and the proje
 
 ## [Unreleased]
 
+## [0.22.0] - 2026-10-23
+
+### Breaking
+
+- The npm package is about 125 KB smaller packed (about 281 KB, from 406 KB) and 484 KB smaller unpacked: `elements/api.json`, read only by the dev tools, moves to the `plainkit.tools` package (`plainkit.tools-<version>.zip`, the Pages folder `packages/plainkit.tools/`). The full dist zip, Pages `dist/` and NuGet keep the path; the npm export `plainkit/elements/api.json` is gone with the file (npm is not published yet).
+
+### Added
+
+- Blazor Server reconnect banner, phase 2 of #1714: `PkReconnect` (place it once in `App.razor`) or `PkOptions.Reconnect` (PkApp starts it) shows a themed `pk-alert` banner while the circuit reconnects, offers Retry now and Reload when the server cannot be reached, counts down visibly and reloads when the session ended after a server restart (with Cancel and a three-reloads-per-minute guard), and offers Resume when paused; options `AutoReload`, `CountdownSeconds`, `Modal`, `ProbeUrl` and translatable `Strings`.
+- Blazor Server reconnect UI, phase 1 of #1714: `js/reconnect.js`, the pure reconnect policy (state machine over the framework's `components-reconnect-state-changed` states, a visible countdown before an automatic reload, probe with exponential backoff and a three-reloads-per-minute loop guard), with node tests, and the design spec now records the reconnect behaviour measured on .NET 8, 9 and 10. Nothing renders yet; the `PkReconnect` component follows in phase 2.
+- `pk-heat-map` (Blazor `PkHeatMap`), phase 1 of the weighted treemap: a fixed-height area filled with boxes whose area is each item's `value` and whose colour is its `severity` (neutral, info, success, warning, danger), laid out by a squarified treemap that tiles the area exactly and relays out when it resizes. Boxes are real links (with `href`) or buttons, with one tab stop and arrow-key movement; a data table is always kept for assistive technology and `show-table` (`ShowTable`) shows it in place of the map. Boxes narrower than `min-box` (`MinBox`) merge into one "Other (n)" box; `pk-heat-select` (`OnSelect`) reports the activated item. It ships in the `plainkit.canvas` package, not in core. Grouping, the intensity scale and `max-items` follow in later phases. (#1721)
+- `pk-heat-map` phase 2: `layout="rows"` (`Layout`) keeps the input order so positions stay put while live values change; `scale="intensity"` (`Scale`) shades one hue by each item's `intensity` from 0 to 1 and shows it as a percentage; `max-items` (`MaxItems`) keeps the top N and merges the rest into Other; `value-format` (`ValueFormat`: number, compact or share) changes how a value reads; `pk-heat-focus-item` (`OnFocusItem`) reports the focused box; value changes animate only when the user allows motion. The merged Other box now takes the most serious severity of what it holds. No tile is a thin strip any more: a box that cannot be merged away is given just enough area to reach `min-box` (so on a phone the touch target holds), and a tile too narrow for its text shows only its number, with the label and status kept in its name and tooltip. (#1721)
+- `pk-heat-map` phase 3: `group-by` (`GroupBy`) draws one level of grouping, where an item with `children` (`PkHeatItem.Children`) becomes a framed area with its name and total in a header, sized by the sum of its children and holding them as boxes (each child's name carries its group, and the data table reads "Group / child"). Activating the merged "Other" box now also opens its members as a table over the map, inside the element so its height never changes; Escape or Close returns focus to the box, and cancelling `pk-heat-select` stops it opening. (#1721)
+- `pk-heat-map` phase 4: a plain `<table>` as the direct child is a data source (first cell the name, a link in it the `href`; the value is column 2 unless a header says value, count, total, size or amount; severity or status and intensity headers pick those columns; `data-value` on a cell and `data-id` on a row are honoured; editing the table redraws, and `items` wins when set). Adds bUnit tests for `PkHeatMap`, the `/lab/heat-map` sample page and a heat map section in the choosing guide. (#1721)
+
 ## [0.21.0] - 2026-10-22
 
 ### Breaking
