@@ -46,7 +46,7 @@ public sealed partial class PkRuntime(IJSRuntime js, PkOptions? options = null, 
         await EnsureLoggingAsync();
         var bridge = await Bridge;
         await WarnOnVersionMismatchAsync(bridge);
-        await bridge.InvokeVoidAsync("init");
+        await bridge.InvokeVoidAsync("init", (object?)_options.Extras.Names);
     }
 
     // The package and the JavaScript it serves are one version (core/VERSION). A page that loads a different copy (a stale cache, a CDN or self-hosted copy of

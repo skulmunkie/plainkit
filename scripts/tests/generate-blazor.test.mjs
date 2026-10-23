@@ -753,3 +753,49 @@ test('table column: every column key and editor of the meta is in the generated 
     for (const key of /\{ key, label, ([^}]*)\}\[\]/.exec(description)[1].split(',').map(x => x.trim().split('?')[0])) assert.match(text, new RegExp(`public \\S+ ${pascal(key)} \\{ get; init; \\}`), key);
     for (const editor of /editor\?: ([a-z|]+)/.exec(description)[1].split('|')) assert.match(text, new RegExp(`JsonStringEnumMemberName\\("${editor}"\\)`), editor);
 });
+
+// ---- the Blazor option model, phase 1 (#1656): PkExtra, [PkRequiresExtra], plainkit.extras.json and the PlainKitExtras property
+
+const pkgs = { packages: [{ id: 'plainkit' }, { id: 'plainkit.demo', built: true, blazorOption: 'demo', elements: ['pk-demo'] }, { id: 'plainkit.later', built: false, blazorOption: 'later', elements: ['pk-later'] }, { id: 'plainkit.audit', built: true, blazorOption: null }] };
+
+test('extras: a component of an optional package carries [PkRequiresExtra], one of core does not', () => {
+    assert.match(generate(api, { demo: mapping }, new Set(), new Set(), new Map(), null, pkgs).files.get('PkDemo.razor'), /^@attribute \[PkRequiresExtra\(PkExtra\.Demo\)\]$/m);
+    assert.doesNotMatch(run().files.get('PkDemo.razor'), /PkRequiresExtra/);
+    assert.doesNotMatch(generate(api, { demo: mapping }, new Set(), new Set(), new Map(), null, { packages: [pkgs.packages[0]] }).files.get('PkDemo.razor'), /PkRequiresExtra/);
+});
+
+test('extras: the enum and plainkit.extras.json list every blazorOption of packages.json, the table only the tags of built packages', () => {
+    const r = generate(api, { demo: mapping }, new Set(), new Set(), new Map(), null, pkgs);
+    assert.match(r.files.get('PkExtra.cs'), /public enum PkExtra\s*\{[^}]*Demo,[^}]*Later,/s);
+    assert.deepEqual(JSON.parse(r.files.get('plainkit.extras.json')), { demo: { package: 'plainkit.demo', tags: ['pk-demo'] }, later: { package: 'plainkit.later', tags: [] } });
+    assert.equal(run().files.has('PkExtra.cs'), false);
+});
+
+test('extras: a hand-kept component of an optional package is refused, with the attribute to add', () => {
+    assert.throws(() => generate(api, { demo: { ...mapping, existing: true } }, new Set(['PkDemo']), new Set(), new Map([['PkDemo', { namespace: 'PlainKit.Blazor', generic: false }]]), null, pkgs), /PkRequiresExtra\(PkExtra\.Demo\)/);
+});
+
+test('extras: the targets file makes PlainKitExtras visible to the compiler and writes it into the app assembly', () => {
+    const t = generate(api, { demo: mapping }).files.get('PlainKit.Blazor.targets');
+    assert.match(t, /<CompilerVisibleProperty Include="PlainKitExtras" \/>/);
+    assert.match(t, /Condition="'\$\(PlainKitExtras\)' != ''"[\s\S]*AssemblyMetadataAttribute[\s\S]*<_Parameter1>PlainKitExtras<\/_Parameter1>[\s\S]*<_Parameter2>\$\(PlainKitExtras\)<\/_Parameter2>/);
+});
+
+test('extras: every element of every built Blazor option has a generated component with the attribute, and the table equals packages.json', () => {
+    const real = load();
+    const table = JSON.parse(real.files.get('plainkit.extras.json'));
+    const mapAll = JSON.parse(fs.readFileSync(path.join(root, 'core', 'tools', 'extras.map.json'), 'utf8'));
+    for (const [name, { package: id, tags }] of Object.entries(table)) {
+        for (const tag of tags) {
+            const razor = real.files.get(`${pkName(tag)}.razor`);
+            assert.ok(razor, `FIX: ${tag} (${id}) has no generated component; its blazor/mappings entry must not be "existing"`);
+            assert.match(razor, new RegExp(`@attribute \\[PkRequiresExtra\\(PkExtra\\.${pascal(name)}\\)\\]`), `FIX: ${pkName(tag)} must say it needs the ${name} extra`);
+            assert.equal(mapAll[tag], id, `FIX: core/tools/extras.map.json maps ${tag} to ${mapAll[tag]}, packages.json to ${id}`);
+        }
+    }
+    assert.deepEqual(Object.keys(mapAll).sort(), Object.values(table).flatMap(e => e.tags).sort(), 'FIX: extras.map.json lists elements that no Blazor option owns (or the reverse)');
+});
+
+test('extras: Generated/ on disk holds the same enum and table', () => {
+    assert.equal(fs.readFileSync(path.join(generatedDir, 'plainkit.extras.json'), 'utf8').replace(/\r\n/g, '\n'), load().files.get('plainkit.extras.json'));
+});
