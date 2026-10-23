@@ -200,5 +200,9 @@
   ],
   "siteOnly": [
     "gallery/"
-  ]
+  ],
+  "blazorPayload": {
+    "coreOnly": 737420,
+    "full": 1032592
+  }
 }

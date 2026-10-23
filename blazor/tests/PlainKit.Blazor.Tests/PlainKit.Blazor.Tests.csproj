@@ -11,6 +11,7 @@
     <PackageReference Include="xunit.runner.visualstudio" />
     <PackageReference Include="bunit" />
     <PackageReference Include="Microsoft.AspNetCore.Mvc.Testing" />
+    <PackageReference Include="Microsoft.CodeAnalysis.CSharp" />
   </ItemGroup>
 
   <!-- The generated old-name aliases (#768) are global usings of the library only; compiling the file here lets TierNamespaceTests use the old C# names. -->
@@ -30,6 +31,7 @@
     <FrameworkReference Include="Microsoft.AspNetCore.App" />
     <ProjectReference Include="..\..\src\PlainKit.Blazor\PlainKit.Blazor.csproj" />
     <ProjectReference Include="..\..\samples\PlainKit.AppSample\PlainKit.AppSample.csproj" />
+    <ProjectReference Include="..\..\src\PlainKit.Blazor.Analyzers\PlainKit.Blazor.Analyzers.csproj" />
   </ItemGroup>
 
 </Project>

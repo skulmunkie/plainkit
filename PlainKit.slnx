@@ -7,6 +7,7 @@
     <Project Path="blazor/samples/PlainKit.Playground/PlainKit.Playground.csproj" />
   </Folder>
   <Folder Name="/blazor/src/">
+    <Project Path="blazor/src/PlainKit.Blazor.Analyzers/PlainKit.Blazor.Analyzers.csproj" />
     <Project Path="blazor/src/PlainKit.Blazor/PlainKit.Blazor.csproj" />
   </Folder>
   <Folder Name="/blazor/tests/">

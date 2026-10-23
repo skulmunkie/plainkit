@@ -7,7 +7,7 @@ namespace PlainKit.Blazor;
 /// <summary>
 /// Loads the toolkit's JavaScript on demand. Register with <c>services.AddPlainKit()</c>; components call it, an app rarely does.
 /// </summary>
-public sealed partial class PkRuntime(IJSRuntime js, PkOptions? options = null, ILoggerFactory? loggerFactory = null, PkInteropLog? interop = null) : IAsyncDisposable
+public sealed partial class PkRuntime(IJSRuntime js, PkOptions? options = null, ILoggerFactory? loggerFactory = null, PkInteropLog? interop = null, IServiceProvider? services = null) : IAsyncDisposable
 {
     private Task<IJSObjectReference>? _bridge;
     private readonly PkInteropLog _interop = interop ?? new PkInteropLog();
@@ -45,8 +45,8 @@ public sealed partial class PkRuntime(IJSRuntime js, PkOptions? options = null, 
     {
         await EnsureLoggingAsync();
         var bridge = await Bridge;
-        await WarnOnVersionMismatchAsync(bridge);
-        await bridge.InvokeVoidAsync("init");
+        await WarnOnVersionMismatchAsync(bridge); PkExtraCheck.Run(_options, services, loggerFactory?.CreateLogger(PkLogMapping.Category("blazor")));
+        await bridge.InvokeVoidAsync("init", (object?)_options.Extras.Names);
     }
 
     // The package and the JavaScript it serves are one version (core/VERSION). A page that loads a different copy (a stale cache, a CDN or self-hosted copy of

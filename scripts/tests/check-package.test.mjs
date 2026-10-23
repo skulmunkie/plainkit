@@ -5,11 +5,11 @@ import fs from 'node:fs';
 import os from 'node:os';
 import path from 'node:path';
 import zlib from 'node:zlib';
-import { checkPackage, checkNpmPackage, listZip, readEntry, inspectNupkg, findNupkg } from '../check-package.mjs';
+import { extrasCoverage, checkPackage, checkNpmPackage, listZip, readEntry, inspectNupkg, findNupkg } from '../check-package.mjs';
 import { makeTempDir } from '../../core/tools/tempdir.mjs';
 
 const GOOD = ['PlainKit.Blazor.nuspec', 'README.md', 'lib/net10.0/PlainKit.Blazor.dll', 'lib/net10.0/PlainKit.Blazor.xml', 'staticwebassets/plainkit/manifest.json', 'staticwebassets/plainkit/modules/manifest.json', ...['devtools/devtools.js', 'theme-editor/theme-editor.js', 'logs/logs.js', 'layout-builder/layout-builder.js', 'scorecard/scorecard.js'].map(f => `staticwebassets/plainkit/modules/${f}`),
-    'staticwebassets/plainkit/plainkit.css', 'buildTransitive/PlainKit.Blazor.targets'];
+    'staticwebassets/plainkit/plainkit.css', 'buildTransitive/PlainKit.Blazor.targets', 'analyzers/dotnet/cs/PlainKit.Blazor.Analyzers.dll'];
 const TARGETS = '<Project><ItemGroup>' + ['Components', 'Pages', 'Shells'].map(t => `<Using Include="PlainKit.Blazor.${t}" />`).join('') + '</ItemGroup></Project>';
 const nuspec = v => `<package><metadata><id>PlainKit.Blazor</id><version>${v}</version></metadata></package>`;
 const input = (over = {}) => ({ entries: GOOD, nuspec: nuspec('1.2.3-alpha.1'), fileName: 'PlainKit.Blazor.1.2.3-alpha.1.nupkg', version: '1.2.3-alpha.1', ...over });
@@ -46,7 +46,7 @@ test('a frameworkReference in the nuspec is refused (a Blazor WebAssembly app ca
 });
 
 test('missing pieces are named', () => {
-    const p = checkPackage(input({ entries: GOOD.filter(e => !/dll|^staticwebassets\/plainkit\/manifest\.json$/.test(e) || e.endsWith('.nuspec')) }));
+    const p = checkPackage(input({ entries: GOOD.filter(e => !/^lib\/.*dll$|^staticwebassets\/plainkit\/manifest\.json$/.test(e) || e.endsWith('.nuspec')) }));
     assert.equal(p.filter(x => x.startsWith('missing')).length, 2);
     assert.ok(p.some(x => /assembly/.test(x)) && p.some(x => /static web assets/.test(x)));
 });
@@ -119,3 +119,19 @@ test('a .nupkg in a folder is inspected end to end', () => {
         assert.throws(() => findNupkg(dir), /exactly one/);
     } finally { fs.rmSync(dir, { recursive: true, force: true }); }
 });
+
+// ---- #1656 phase 2: the analyzer is in the package, and the targets file drops exactly the files each extra owns
+
+const PK = [{ id: 'plainkit.dock', built: true, blazorOption: 'dock', elements: ['pk-dock'], js: ['dock-model.js'] }, { id: 'plainkit.canvas', built: true, blazorOption: 'canvas', js: ['svg/'] }];
+const P = '$(MSBuildThisFileDirectory)..\\staticwebassets\\plainkit\\';
+const remove = (name, ...paths) => `<StaticWebAsset Remove="${paths.map(p => P + p).join(';')}" Condition="!$(_PkExtras.Contains(';${name};'))" />`;
+const dropTargets = (dock = ['elements\\dock.js', 'js\\dock-model.js']) => remove('dock', ...dock) + '\n' + remove('canvas', 'js\\svg\\**');
+const FILES = ['elements/dock.js', 'js/dock-model.js', 'js/svg/a.js', 'js/svg/b/c.js', 'elements/button.js'].map(f => 'staticwebassets/plainkit/' + f);
+
+test('extras: a targets file that drops what the packages claim has no problems', () => assert.deepEqual(extrasCoverage(FILES, dropTargets(), PK), []));
+test('extras: a file an extra owns but the targets file keeps, and a core file it drops, are each named', () => {
+    assert.match(extrasCoverage(FILES, dropTargets(['elements\\dock.js']), PK).join('\n'), /js\/dock-model\.js: owned by \[dock\] in packages\.json but dropped by \[\]/);
+    assert.match(extrasCoverage(FILES, dropTargets(['elements\\dock.js', 'js\\dock-model.js', 'elements\\button.js']), PK).join('\n'), /elements\/button\.js: owned by \[\] in packages\.json but dropped by \[dock\]/);
+});
+test('extras: an extra with no Remove at all is named', () => assert.match(extrasCoverage(FILES, '<Project />', PK).join('\n'), /no Remove for the dock extra/));
+test('the analyzer must be in the package', () => assert.match(checkPackage(input({ entries: GOOD.filter(e => !e.startsWith('analyzers/')) })).join('\n'), /PKB001 analyzer/));
