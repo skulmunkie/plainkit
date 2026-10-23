@@ -55,6 +55,17 @@ export const settingsNavCases = [
         for (const x of tab) t.ok(rect(x).height >= 43.5, `${x.textContent.trim()} tab is at least 44px tall (${rect(x).height})`);
         t.eq(cards.filter(shown).length, 1, 'one section at a time');
     }],
+    ['settings-page nav (375px, #1758): the tab strip is position: sticky, opaque, and pinned to the top while the cards scroll under it; at rest it does not touch the first card', async t => {
+        const { win, page, cards, scroller } = await frame(t, 375, 500);
+        const tabs = page.part('layout').part('tabs');
+        t.eq(getComputedStyle(tabs).position, 'sticky', 'the strip sticks');
+        t.ok(rect(tabs).bottom <= rect(cards[0]).top + 0.5, `at rest the strip (bottom ${rect(tabs).bottom}) ends above the first card (top ${rect(cards[0]).top})`);
+        t.ok(getComputedStyle(tabs).backgroundColor !== 'rgba(0, 0, 0, 0)', 'the strip has a background, so scrolled cards do not show through');
+        win.scrollTo(0, 400); await wait(250);
+        t.ok(scroller.scrollTop > 100, `the page scrolled (${scroller.scrollTop})`);
+        t.ok(Math.abs(rect(tabs).top) <= 1, `the strip is pinned to the top (${rect(tabs).top})`);
+    }],
+
     ['settings-page nav (1280px): activating an item scrolls its card into view, focuses it, and exactly one item has aria-current', async t => {
         const { doc, page, cards, items, scroller } = await frame(t, 1280, 500);
         items[3].row.click(); await wait(300);

@@ -58,6 +58,14 @@ export const formCases = [
         const el = host.querySelector('#b'); el.font = 'sans'; await t.settle(); t.ok(!ff('b', 'textarea').includes(mono), 'switching back to sans leaves mono');
     }],
 
+    ['input (#1759): a value longer than the box is cut with an ellipsis, not silently clipped (the control sets text-overflow: ellipsis)', async t => {
+        const host = t.stage('<div style="inline-size:220px"><pk-input id="q" label="Query" show-label font="mono" value="select id, total from orders where total > 100 order by total"></pk-input></div>');
+        await t.load(host); await t.settle();
+        const c = host.querySelector('#q').shadowRoot.querySelector('input');
+        t.ok(c.scrollWidth > c.clientWidth + 1, `the value is longer than the control (${c.scrollWidth} > ${c.clientWidth})`);
+        t.eq(getComputedStyle(c).textOverflow, 'ellipsis', 'the cut is shown with an ellipsis');
+    }],
+
     ['input and select width (#1539): a size token or a CSS length sets a compact width, a bad value is ignored', async t => {
         const host = t.stage('<div style="inline-size:600px"><pk-input id="a" label="Qty" width="xs"></pk-input><pk-input id="b" label="Qty" width="2xl"></pk-input><pk-select id="c" label="Unit" width="7rem"><option>kg</option></pk-select><pk-input id="d" label="Qty" width="nonsense"></pk-input><pk-input id="e" label="Qty"></pk-input></div>');
         await t.load(host); await t.settle(); await t.settle();

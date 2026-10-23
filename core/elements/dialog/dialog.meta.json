@@ -56,7 +56,7 @@
       "type": "number",
       "default": 0,
       "reflect": true,
-      "description": "Card width in pixels before the viewport clamp; 0 keeps the size preset."
+      "description": "Card width in pixels before the viewport clamp; 0 keeps the size preset. On a phone every dialog is full screen, so max-width applies from the tablet up."
     },
     {
       "name": "tint",
@@ -68,7 +68,7 @@
         "archived"
       ],
       "reflect": true,
-      "description": "A tinted card: product (green wash) or archived (red wash)."
+      "description": "A tinted card: product (green) or archived (red); a pale wash in the light theme and a dark wash in the dark theme."
     },
     {
       "name": "controlled",

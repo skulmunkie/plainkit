@@ -11,6 +11,9 @@ export default {
         t.inViewport(D);
         const d = t.rect(D), v = t.viewport;
         if (d && v.name === 'desktop') t.ok(Math.abs(d.width - 420) <= 2, `the dialog is ${Math.round(d.width)}px wide, expected its max-width 420`);
-        if (d && v.name === 'phone') t.ok(d.width <= v.width && d.width >= v.width - 40, `on a phone the dialog is ${Math.round(d.width)}px wide, expected the viewport clamp (about ${v.width - 32})`);
+        if (d && v.name === 'phone') t.ok(d.x <= 0.5 && d.width >= v.width - 0.5, `on a phone the dialog is ${Math.round(d.width)}px wide at x=${Math.round(d.x)}, expected the full screen ${v.width} at x=0 (max-width applies from the tablet up, #1756)`);
+        const lum = c => { const [r, g, b] = c.match(/[\d.]+/g).slice(0, 3).map(n => { n /= 255; return n <= 0.03928 ? n / 12.92 : ((n + 0.055) / 1.055) ** 2.4; }); return 0.2126 * r + 0.7152 * g + 0.0722 * b; };
+        const bg = t.style(D, 'background-color');
+        t.ok(t.theme === 'dark' ? lum(bg) < 0.1 : lum(bg) > 0.8, `the archived tint is ${bg} in the ${t.theme} theme: expected a ${t.theme === 'dark' ? 'dark' : 'pale'} card`);
     },
 };
