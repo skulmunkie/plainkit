@@ -17,37 +17,46 @@
       "category": "wrapper"
     },
     "Components/PkCodeExplorer.razor": {
-      "category": "mount"
+      "category": "mount",
+      "extra": "tools"
     },
     "Components/PkConsole.razor": {
-      "category": "mount"
+      "category": "mount",
+      "extra": "tools"
     },
     "Components/PkDevTools.razor": {
       "category": "mount",
-      "blazorOnly": "mounts the devtools module (core/modules/devtools); the tag pk-devtools has no dash"
+      "blazorOnly": "mounts the devtools module (core/modules/devtools); the tag pk-devtools has no dash",
+      "extra": "tools"
     },
     "Components/PkDevToolsWorkspace.razor": {
       "category": "mount",
-      "blazorOnly": "mounts the devtools workspace module (core/modules/devtools/workspace.js); the tag has no element"
+      "blazorOnly": "mounts the devtools workspace module (core/modules/devtools/workspace.js); the tag has no element",
+      "extra": "tools"
     },
     "Components/PkLogs.razor": {
-      "category": "mount"
+      "category": "mount",
+      "extra": "tools"
     },
     "Components/PkLogSettings.razor": {
-      "category": "mount"
+      "category": "mount",
+      "extra": "tools"
     },
     "Components/PkPerformance.razor": {
-      "category": "mount"
+      "category": "mount",
+      "extra": "tools"
     },
     "Components/PkQuality.razor": {
-      "category": "mount"
+      "category": "mount",
+      "extra": "tools"
     },
     "Components/PkReconnect.razor": {
       "category": "runtime",
       "blazorOnly": "writes the reconnect banner element the Blazor client drives and its module script; core/js/reconnect.js owns the policy"
     },
     "Components/PkScorecard.razor": {
-      "category": "mount"
+      "category": "mount",
+      "extra": "tools"
     },
     "Components/PkScripts.razor": {
       "category": "runtime",
@@ -61,14 +70,17 @@
       "category": "base"
     },
     "Components/PkThemeEditor.razor": {
-      "category": "mount"
+      "category": "mount",
+      "extra": "tools"
     },
     "Components/PkToolDock.razor": {
-      "category": "mount"
+      "category": "mount",
+      "extra": "tools"
     },
     "Components/PkToolDockPanel.razor": {
       "category": "mount",
-      "blazorOnly": "a tab of PkToolDock rendered by Razor; the dock mounts its host div"
+      "blazorOnly": "a tab of PkToolDock rendered by Razor; the dock mounts its host div",
+      "extra": "tools"
     },
     "DevTools/PkCircuitHandler.cs": {
       "category": "devtools"
@@ -344,6 +356,9 @@
       "category": "runtime"
     },
     "PkOptions.Extras.cs": {
+      "category": "runtime"
+    },
+    "PkExtraCheck.cs": {
       "category": "runtime"
     }
   }

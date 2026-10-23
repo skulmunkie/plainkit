@@ -767,7 +767,7 @@ test('extras: a component of an optional package carries [PkRequiresExtra], one 
 test('extras: the enum and plainkit.extras.json list every blazorOption of packages.json, the table only the tags of built packages', () => {
     const r = generate(api, { demo: mapping }, new Set(), new Set(), new Map(), null, pkgs);
     assert.match(r.files.get('PkExtra.cs'), /public enum PkExtra\s*\{[^}]*Demo,[^}]*Later,/s);
-    assert.deepEqual(JSON.parse(r.files.get('plainkit.extras.json')), { demo: { package: 'plainkit.demo', tags: ['pk-demo'] }, later: { package: 'plainkit.later', tags: [] } });
+    assert.deepEqual(JSON.parse(r.files.get('plainkit.extras.json')), { demo: { package: 'plainkit.demo', tags: ['pk-demo'], files: ['elements/demo.js'] }, later: { package: 'plainkit.later', tags: [], files: [] } });
     assert.equal(run().files.has('PkExtra.cs'), false);
 });
 
@@ -798,4 +798,41 @@ test('extras: every element of every built Blazor option has a generated compone
 
 test('extras: Generated/ on disk holds the same enum and table', () => {
     assert.equal(fs.readFileSync(path.join(generatedDir, 'plainkit.extras.json'), 'utf8').replace(/\r\n/g, '\n'), load().files.get('plainkit.extras.json'));
+});
+
+// ---- phase 2 (#1656): the targets drop undeclared extras' assets; hand-written wrappers get the attribute from handwritten.json
+
+const pkgs2 = { packages: [{ id: 'plainkit.demo', built: true, blazorOption: 'demo', elements: ['pk-demo'], js: ['demo-a.js', 'demo/'], modules: ['m'] }] };
+
+test('extras: the targets file removes the assets and endpoints of an extra the project did not list, and nothing without options', () => {
+    const t = generate(api, { demo: mapping }, new Set(), new Set(), new Map(), null, pkgs2).files.get('PlainKit.Blazor.targets');
+    assert.match(t, /<StaticWebAsset Remove="\$\(MSBuildThisFileDirectory\)\.\.\\staticwebassets\\plainkit\\elements\\demo\.js;[^"]*\\plainkit\\modules\\m\\\*\*;[^"]*\\plainkit\\js\\demo-a\.js;[^"]*\\plainkit\\js\\demo\\\*\*" Condition="!\$\(_PkExtras\.Contains\(';demo;'\)\)" \/>/);
+    assert.match(t, /<StaticWebAssetEndpoint Remove="_content\/PlainKit\.Blazor\/plainkit\/elements\/demo\.js;[^"]*plainkit\/js\/demo\/\*\*" Condition="!\$\(_PkExtras\.Contains\(';demo;'\)\)" \/>/);
+    assert.match(t, /Condition="'\$\(PlainKitExtras\)' != '' and !\$\(_PkExtras\.Contains\(';full;'\)\)"/);
+    assert.match(t, /<CompilerVisibleProperty Include="PlainKitStrictExtras" \/>/);
+    assert.doesNotMatch(generate(api, { demo: mapping }).files.get('PlainKit.Blazor.targets'), /StaticWebAsset Remove/);
+});
+
+test('extras: plainkit.extras.json lists the files each extra owns', () => {
+    const table = JSON.parse(generate(api, { demo: mapping }, new Set(), new Set(), new Map(), null, pkgs2).files.get('plainkit.extras.json'));
+    assert.deepEqual(table.demo.files, ['elements/demo.js', 'modules/m/', 'js/demo-a.js', 'js/demo/']);
+});
+
+test('extras: a hand-written component named in handwritten.json gets the attribute from a generated partial class; a wrong entry is refused', () => {
+    const hand = new Map([['PkTool', { namespace: 'PlainKit.Blazor', generic: false }], ['PkGen', { namespace: 'PlainKit.Blazor', generic: true }]]);
+    const text = generate(api, { demo: mapping }, new Set(), new Set(), hand, null, pkgs2, new Map([['PkTool', 'demo']])).files.get('PkExtraRequirements.cs');
+    assert.match(text, /namespace PlainKit\.Blazor\s*\{\s*\[PkRequiresExtra\(PkExtra\.Demo\)\]\s*public partial class PkTool \{ \}/);
+    assert.throws(() => generate(api, { demo: mapping }, new Set(), new Set(), hand, null, pkgs2, new Map([['PkTool', 'nope']])), /names the extra "nope"/);
+    assert.throws(() => generate(api, { demo: mapping }, new Set(), new Set(), hand, null, pkgs2, new Map([['PkGen', 'demo']])), /not a hand-written, non-generic component/);
+    assert.equal(generate(api, { demo: mapping }, new Set(), new Set(), hand, null, pkgs2).files.has('PkExtraRequirements.cs'), false);
+});
+
+test('extras: every hand-written wrapper that mounts a tools module says so in handwritten.json', () => {
+    const files = JSON.parse(fs.readFileSync(path.join(root, 'blazor', 'handwritten.json'), 'utf8')).files;
+    const dir = path.join(root, 'blazor', 'src', 'PlainKit.Blazor', 'Components');
+    for (const f of fs.readdirSync(dir).filter(x => x.endsWith('.razor') && !x.startsWith('_'))) {
+        if (!/plainkit\/modules\/|["(]mount[A-Z]|InvokeVoidAsync\("mount|Bridge\.[A-Za-z]*mount/i.test(fs.readFileSync(path.join(dir, f), 'utf8'))) continue;
+        assert.equal(files[`Components/${f}`]?.extra, 'tools', `FIX: Components/${f} mounts a dev-tool module: add "extra": "tools" to its entry in blazor/handwritten.json`);
+    }
+    assert.match(load().files.get('PkExtraRequirements.cs'), /public partial class PkCodeExplorer/);
 });

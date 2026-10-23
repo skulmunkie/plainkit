@@ -49,6 +49,15 @@ public sealed class PkExtraTests : BunitContext, IAsyncLifetime
     }
 
     [Fact]
+    public void core_in_the_project_file_means_no_extra()
+    {
+        var set = new PkOptions().Extras;
+        set.Reconcile("core");
+        Assert.Empty(set.Names!);
+        Assert.False(set.Has(PkExtra.Dock));
+    }
+
+    [Fact]
     public void full_in_the_project_file_means_everything()
     {
         var set = new PkOptions().Extras;
@@ -136,5 +145,52 @@ public sealed class PkExtraTests : BunitContext, IAsyncLifetime
         Services.AddPlainKit();
         await Services.GetRequiredService<PkRuntime>().EnsureInitializedAsync();
         Assert.Equal([null], bridge.Invocations["init"].Single().Arguments);
+    }
+}
+
+// #1656 phase 2: the startup check of the declared set.
+public sealed class PkExtraStartupTests
+{
+    private sealed class Env(string name) : Microsoft.AspNetCore.Hosting.IWebHostEnvironment
+    {
+        public string WebRootPath { get; set; } = "";
+        public Microsoft.Extensions.FileProviders.IFileProvider WebRootFileProvider { get; set; } = new Microsoft.Extensions.FileProviders.NullFileProvider();
+        public string ApplicationName { get; set; } = "app";
+        public Microsoft.Extensions.FileProviders.IFileProvider ContentRootFileProvider { get; set; } = new Microsoft.Extensions.FileProviders.NullFileProvider();
+        public string ContentRootPath { get; set; } = "";
+        public string EnvironmentName { get; set; } = name;
+    }
+
+    private sealed class Services(object? env) : IServiceProvider
+    {
+        public object? GetService(Type t) => t == typeof(Microsoft.AspNetCore.Hosting.IWebHostEnvironment) || t == typeof(Microsoft.Extensions.Hosting.IHostEnvironment) ? env : null;
+    }
+
+    private static PkOptions Declared() { var o = new PkOptions(); o.Extras.Add(PkExtra.Dock); return o; }
+
+    [Fact]
+    public void in_development_a_declared_extra_whose_files_are_not_served_fails_and_names_the_fix()
+    {
+        var e = Assert.Throws<InvalidOperationException>(() => PkExtraCheck.Run(Declared(), new Services(new Env("Development")), null));
+        Assert.Contains("dock", e.Message);
+        Assert.Contains("<PlainKitExtras>", e.Message);
+    }
+
+    [Fact]
+    public void a_declared_extra_whose_files_are_served_passes()
+    {
+        var provider = new Microsoft.Extensions.FileProviders.PhysicalFileProvider(Directory.CreateTempSubdirectory().FullName);
+        Directory.CreateDirectory(Path.Combine(provider.Root, "_content", "PlainKit.Blazor", "plainkit", "elements"));
+        File.WriteAllText(Path.Combine(provider.Root, "_content", "PlainKit.Blazor", "plainkit", "elements", "dock.js"), "");
+        PkExtraCheck.Run(Declared(), new Services(new Env("Development") { WebRootFileProvider = provider }), null);
+        provider.Dispose();
+    }
+
+    [Fact]
+    public void outside_development_and_with_nothing_declared_nothing_is_checked()
+    {
+        PkExtraCheck.Run(Declared(), new Services(new Env("Production")), null);
+        PkExtraCheck.Run(new PkOptions(), new Services(new Env("Development")), null);
+        PkExtraCheck.Run(Declared(), null, null);
     }
 }

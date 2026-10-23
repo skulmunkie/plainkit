@@ -103,7 +103,8 @@
     "Testing/PkPageTesting.cs": 88,
     "Testing/PkRecordPageTesting.cs": 79,
     "PkExtraSet.cs": 47,
-    "PkOptions.Extras.cs": 7
+    "PkOptions.Extras.cs": 7,
+    "PkExtraCheck.cs": 27
   },
   "debt": []
 }

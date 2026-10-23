@@ -12,7 +12,7 @@ public sealed class PkRequiresExtraAttribute(PkExtra extra) : Attribute
 
 /// <summary>
 /// The optional parts a project chose: <c>&lt;PlainKitExtras&gt;canvas;dock&lt;/PlainKitExtras&gt;</c> in the project file or <c>o.Extras.Add(...)</c>.
-/// Nothing chosen, or <c>full</c> / <see cref="AddAll"/>, means everything (the default, permanently).
+/// Nothing chosen, or <c>full</c> / <see cref="AddAll"/>, means everything (the default, permanently); <c>core</c> in the project file means no extra.
 /// </summary>
 public sealed class PkExtraSet
 {
@@ -38,7 +38,7 @@ public sealed class PkExtraSet
     internal void Reconcile(string? project)
     {
         if (string.IsNullOrWhiteSpace(project)) return;
-        var names = project.Split([';', ',', ' '], StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries);
+        var names = project.Split([';', ',', ' '], StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries).Where(n => !n.Equals("core", StringComparison.OrdinalIgnoreCase)).ToArray();
         PkExtra[] declared = names.Any(n => n.Equals("full", StringComparison.OrdinalIgnoreCase)) ? Enum.GetValues<PkExtra>() : [.. names.Select(n => Enum.TryParse<PkExtra>(n, true, out var e) ? e : throw new InvalidOperationException($"PlainKitExtras names '{n}', which is not an extra; use one of {string.Join(", ", Enum.GetNames<PkExtra>().Select(x => x.ToLowerInvariant()))} or full."))];
         if (_chosen && _set.Except(declared).Cast<PkExtra?>().FirstOrDefault() is { } extra)
             throw new InvalidOperationException($"o.Extras names '{extra.ToString().ToLowerInvariant()}' but <PlainKitExtras> in the project file does not: add it there (the project file decides which assets the app serves).");

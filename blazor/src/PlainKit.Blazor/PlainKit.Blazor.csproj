@@ -58,6 +58,12 @@
     <None Include="README.md" Pack="true" PackagePath="\" />
   </ItemGroup>
 
+  <!-- The PKB001 analyzer (#1656) ships in analyzers/dotnet/cs; the project reference only orders the build, the assembly is packed from its output folder. -->
+  <ItemGroup>
+    <ProjectReference Include="..\PlainKit.Blazor.Analyzers\PlainKit.Blazor.Analyzers.csproj" ReferenceOutputAssembly="false" PrivateAssets="all" />
+    <None Include="..\PlainKit.Blazor.Analyzers\bin\$(Configuration)\netstandard2.0\PlainKit.Blazor.Analyzers.dll" Pack="true" PackagePath="analyzers/dotnet/cs" Visible="false" />
+  </ItemGroup>
+
   <!-- The tier namespaces as <Using> items, and for one minor version the old root names of the moved components as aliases (#768), so a consumer's C# resolves them
        without edits. Generated (not in git) from the element tiers by node scripts/generate-blazor.mjs. buildTransitive only (not also build/): a direct reference gets
        it too, and both folders would import two copies, whose duplicate aliases are an error. It is a targets file (the SDK already writes buildTransitive/PlainKit.Blazor.props for the static web assets), not content, so nothing is copied into a consumer's project. -->
