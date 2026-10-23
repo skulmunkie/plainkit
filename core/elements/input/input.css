@@ -12,7 +12,7 @@ label { display: none; margin-block-end: var(--space-1); }
 :host([readonly]) .box { background: var(--color-surface-alt); }
 :host([size="sm"]) .box { min-height: calc(var(--ctl-h) * 0.8); }
 :host([size="lg"]) .box { min-height: calc(var(--ctl-h) * 1.2); padding-inline: var(--space-4); }
-input { flex: 1; align-self: stretch; min-width: 0; padding: var(--space-2) 0; border: 0; outline: 0; background: transparent; color: var(--color-text); font: inherit; font-size: var(--text-read); line-height: 1.3; }
+input { flex: 1; align-self: stretch; min-width: 0; text-overflow: ellipsis; padding: var(--space-2) 0; border: 0; outline: 0; background: transparent; color: var(--color-text); font: inherit; font-size: var(--text-read); line-height: 1.3; }
 :host([font=sans]) input { font-family: var(--font-sans); }
 :host([font=mono]) input { font-family: var(--font-mono); }
 ::placeholder { color: var(--color-muted); opacity: 1; }
