@@ -152,9 +152,17 @@ test('a standard visually-hidden element (pk-skip-link before focus, a u-sr-only
     assert.deepEqual(rules(facts([{ ...liveRegion, hiddenVisually: false }])), ['clipped-content']);
 });
 
-test('contrast below AA is a warning, large text needs 3:1', () => {
+test('an invisible hit layer (::before/::after taking pointer events) counts as part of the tap target (issue 1753)', () => {
+    const pill = box({ interactive: true, name: 'Failing', rect: [0, 0, 73, 21] });
+    assert.deepEqual(rules(facts([pill], phone)), ['tap-target']);
+    assert.deepEqual(rules(facts([{ ...pill, hitLayer: [73, 44] }], phone)), [], 'a 44px high layer around the pill is the target');
+    assert.deepEqual(rules(facts([{ ...pill, hitLayer: [73, 30] }], phone)), ['tap-target'], 'a layer that is still too small does not help');
+});
+
+test('contrast below AA is an error (issue 1752), large text needs 3:1', () => {
     const text = fontSize => box({ textColor: [140, 140, 140, 1], bg: [255, 255, 255], fontSize });
     assert.deepEqual(rules(facts([text(16)])), ['contrast']);
+    assert.equal(auditFacts(facts([text(16)]))[0].severity, 'error');
     assert.deepEqual(rules(facts([text(24)])), []);
 });
 
