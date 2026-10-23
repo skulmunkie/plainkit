@@ -66,8 +66,16 @@
       "map": "event",
       "event": "pk-navigate",
       "cancelable": true
+    },
+    {
+      "name": "OnClick",
+      "event": "click",
+      "type": "MouseEventArgs",
+      "extra": true,
+      "note": "Raised for every click, Href links included (#1747), without changing the navigation: ctrl, shift and middle clicks keep their native new-tab behaviour. Close a flyout or menu here. Attached only while bound, so an unbound link costs no round trip."
     }
   ],
+  "listenedNative": true,
   "methods": [
     { "name": "FocusAsync", "method": "focus" }
   ]

@@ -75,6 +75,11 @@
   ],
   "events": [
     {
+      "name": "click",
+      "detail": "native MouseEvent",
+      "description": "Any click on the link, href or to (bubbles from the inner anchor, #1747): a host closes a menu or flyout or records the click as the link navigates. It does not change the navigation: a modified click (ctrl, shift, cmd) still opens a new tab or window, and a middle click fires auxclick, not click. preventDefault in a script stops the navigation, as on a native link."
+    },
+    {
       "name": "pk-navigate",
       "detail": {
         "to": "string",
