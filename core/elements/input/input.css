@@ -23,7 +23,10 @@ input { flex: 1; align-self: stretch; min-width: 0; padding: var(--space-2) 0; b
 .ib:disabled { opacity: 0.4; cursor: not-allowed; }
 .ib:focus-visible { outline: var(--focus-ring); outline-offset: 1px; }
 :host([type="search"]) .ico, :host([format="money"]) .cur { display: block; }
-:host([clearable][has-value]) .clear, :host([reveal][type="password"]) .reveal, :host([copyable]) .copy, :host([stepper]) .step { display: grid; }
+:host([clearable][has-value]) .clear { display: grid; }
+:host([reveal][type="password"]) .reveal { display: grid; }
+:host([copyable]) .copy { display: grid; }
+:host([stepper]) .step { display: grid; }
 :host([stepper]) input { text-align: center; appearance: textfield; }
 :host([stepper]) input::-webkit-inner-spin-button { margin: 0; appearance: none; }
 :host([format="money"]) input { text-align: end; font-variant-numeric: tabular-nums; }
