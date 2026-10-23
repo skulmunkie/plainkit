@@ -22,6 +22,7 @@ import { chromeArgs, findChrome, killTree, launchBrowser, removeDir } from './at
 import { connect, evaluate, freePort } from './ui-review.mjs';
 import { ensureGenerated } from './generated.mjs';
 import { writeRunStamp } from './verify-guard.mjs';
+import { CASE_TIMEOUT_MS, createRunGuard, runWatchdogMs, stopChild, withTimeout } from './blazor-browser-guard.mjs';
 import { cpuScale } from '../core/tests/browser/cpu-scale.js';
 import { makeTempDir } from '../core/tools/tempdir.mjs';
 
@@ -30,6 +31,7 @@ const SAMPLE = path.join(root, 'blazor', 'samples', 'PlainKit.AppSample');
 const SAMPLE_WASM = path.join(root, 'blazor', 'samples', 'PlainKit.AppSample.Wasm');
 export const VIEWPORTS = [{ name: 'desktop', width: 1280, height: 900 }, { name: 'phone', width: 375, height: 812 }];
 export const THEMES = ['light', 'dark'];
+let guard = null; // the whole-run watchdog while main() runs: it knows the pids this run started (#1764)
 const sleep = ms => new Promise(r => setTimeout(r, ms));
 
 let scale = 1, measuredAt = -Infinity;
@@ -72,7 +74,7 @@ export async function startHost(dir, timeout) {
     const host = { port: await freePort(), dir, child: null, log: () => '' };
     host.base = `http://127.0.0.1:${host.port}`;
     await launch(host, timeout);
-    host.restart = async () => { killTree(host.child); await sleep(800); await launch(host, timeout); };
+    host.restart = async () => { await stopChild(host.child); guard?.forget(host.child?.pid); await sleep(800); await launch(host, timeout); };
     return host;
 }
 
@@ -81,6 +83,7 @@ async function launch(host, timeout) {
     let log = '', exited = null;
     for (const s of [child.stdout, child.stderr]) s.on('data', d => { log += d; });
     child.once('exit', c => { exited = c; });
+    guard?.record(child.pid);
     host.child = child; host.log = () => log;
     for (const start = Date.now(); Date.now() - start < timeout * 1000; await sleep(250)) {
         if (exited !== null) throw Object.assign(new Error(`the host exited with ${exited}:
@@ -120,6 +123,7 @@ export async function openBrowser(chrome, profile) {
     const { browser, value: debugPort } = await launchBrowser({ chrome, profile, args: [...chromeArgs({ profile, url: 'about:blank', extra: process.env.PK_CHROME_FLAGS }).slice(0, -1), '--remote-debugging-port=0', 'about:blank'], probe: () => { const f = path.join(profile, 'DevToolsActivePort'); return fs.existsSync(f) ? fs.readFileSync(f, 'utf8').split('\n')[0].trim() : null; } });
     const pages = await (await fetch(`http://127.0.0.1:${debugPort}/json/list`)).json();
     const wsUrl = pages.find(p => p.type === 'page').webSocketDebuggerUrl;
+    guard?.record(browser.pid);
     const cdp = await connect(wsUrl);
     // connect() hands out only send/close; the events the cases read come through a second socket that records them.
     const ws = new WebSocket(wsUrl), events = [];
@@ -276,13 +280,18 @@ async function main() {
 
     const pub = makeTempDir('pk-blazor-pub-'), wasmPub = makeTempDir('pk-blazor-wasm-'), profile = makeTempDir('pk-blazor-chrome-');
     let host = null, wasmHost = null, session = null, code = 2;
-    const stop = () => { session?.close(); killTree(host?.child); wasmHost?.stop(); };
-    process.once('SIGINT', () => { stop(); process.exit(2); });
+    guard = createRunGuard({ ms: runWatchdogMs(process.env) });
+    const stop = async () => {
+        guard.phase('closing the browser'); try { session?.close(); } catch (e) { console.error(`closing the browser: ${e.message}`); }
+        guard.phase('stopping the host'); await stopChild(host?.child); wasmHost?.stop();
+    };
+    process.once('SIGINT', () => { stop().finally(() => process.exit(2)); });
     try {
         const results = { cases: [], shots: [] };
         const runAll = async (ctx, cases) => {
             for (const c of cases) {
-                try { await c.run(ctx); results.cases.push({ name: c.name, ok: true }); console.log(`  ok   ${c.name}`); }
+                guard.phase('running a case'); guard.caseName(c.name);
+                try { await withTimeout(c.run(ctx), CASE_TIMEOUT_MS * loadScale(), `case ${c.name}`); results.cases.push({ name: c.name, ok: true }); console.log(`  ok   ${c.name}`); }
                 catch (e) { results.cases.push({ name: c.name, ok: false, error: e.message }); console.log(`  FAIL ${c.name}: ${e.message}`); }
             }
         };
@@ -308,14 +317,17 @@ async function main() {
         if (e.host) host = e.host;
         code = 2;
     } finally {
-        stop();
+        await stop();
         if (code < 2) writeRunStamp(root, 'blazor-browser', code === 0); // which tree this run belongs to (scripts/gate-check.mjs, #1754)
         await sleep(500);
+        guard.phase('cleaning temp folders');
         killUsing(profile);
         killUsing(pub);
         killUsing(wasmPub);
-        for (const d of o.keepPublish ? [profile] : [pub, wasmPub, profile]) if (!(await removeDir(d)) && (killUsing(d), !(await removeDir(d)))) console.error(`Could not delete ${d}; delete it by hand.`);
+        await sleep(1000); killUsing(profile); // a browser child can still be spawning or exiting after the first pass (#1764: an orphaned renderer kept the profile locked)
+        for (const d of o.keepPublish ? [profile] : [pub, wasmPub, profile]) if (!(await withTimeout(removeDir(d), 60000, `deleting ${d}`).catch(() => false)) && (killUsing(d), !(await withTimeout(removeDir(d), 60000, `deleting ${d}`).catch(() => false)))) console.error(`Could not delete ${d}; delete it by hand.`);
     }
+    guard.disarm();
     return code;
 }
 
