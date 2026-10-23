@@ -13,7 +13,7 @@ public static class ServiceCollectionExtensions
     public static IServiceCollection AddPlainKit(this IServiceCollection services, Action<PkOptions>? configure = null)
     {
         var options = new PkOptions();
-        configure?.Invoke(options);
+        configure?.Invoke(options); options.Extras.Reconcile(PkExtraSet.FromAssembly(System.Reflection.Assembly.GetEntryAssembly()));
         services.AddSingleton(options);
         services.AddSingleton<PkSourceProvider>();
         services.AddScoped<IPkLog, PkLogWriter>();

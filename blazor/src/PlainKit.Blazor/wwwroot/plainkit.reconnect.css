@@ -6,3 +6,11 @@
 #components-reconnect-modal[data-modal][data-kind]::before { content: ""; position: fixed; inset: 0; z-index: var(--z-modal); background: var(--flyout-backdrop-bg); }
 @media (pointer: coarse) { #components-reconnect-modal pk-button { min-block-size: var(--touch-target); } }
 #components-reconnect-modal [data-part="spinner"] { margin-inline-end: var(--space-2); vertical-align: middle; }
+/* A desktop banner (not modal) reserves its height at the top instead of covering the app bar: the page gets the padding and the app frame's shell, which fills the viewport, gives that height up. */
+@media (min-width: 641px) {
+    html[data-pk-reconnect-open] { padding-block-start: var(--pk-reconnect-h); }
+    html[data-pk-reconnect-open] pk-app-frame::part(shell) { height: calc(100dvh - var(--pk-reconnect-h)); }
+}
+/* A phone shows the icon alone: a touch-sized square. */
+@media (max-width: 640px) { #components-reconnect-modal pk-button[icon] { min-inline-size: var(--touch-target); } }
+#components-reconnect-modal pk-button:not([icon]) pk-icon { margin-inline-end: var(--space-1); }

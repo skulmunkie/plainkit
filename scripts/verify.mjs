@@ -115,7 +115,7 @@ export const CHECKS = [
         fix: 'run `node scripts/blazor-browser.mjs` and read the failing case and the screenshots in review-output/ (blazor-app__*.png); fix the sample or the framework, never weaken the case; file what is out of scope as an issue' },
     { id: 'pack', group: 'pack', needs: ['bootstrap'], after: ['dotnet'], fast: false, fn: packCheck,
         cause: 'the package has `content/` or `contentFiles/` entries, lacks the static web assets or skills, or has the wrong version, or a package zip (packages.json) does not match core/dist, its manifest or its ceiling',
-        fix: 'run `dotnet pack blazor/src/PlainKit.Blazor -c Release -o <dir>` then `node scripts/check-package.mjs <dir>`, and change `PlainKit.Blazor.csproj` as the message says; for a package zip run `node scripts/build-packages.mjs --zips <dir>` then `node scripts/check-package.mjs --zips <dir>` and fix packages.json or the source' },
+        fix: 'run `dotnet pack blazor/src/PlainKit.Blazor -c Release -o <dir>` then `node scripts/check-package.mjs <dir>`, and change `PlainKit.Blazor.csproj` as the message says; for a package zip run `node scripts/build-packages.mjs --zips <dir>` then `node scripts/check-package.mjs --zips <dir>` and fix packages.json or the source; for the Blazor option sets and payload run `node scripts/blazor-extras-publish.mjs --package <dir>` and fix the targets (node scripts/generate-blazor.mjs) or the source' },
 ];
 for (const c of CHECKS) c.name = c.id;
 
@@ -338,7 +338,9 @@ async function packCheck(ctx) {
         const z = await runCmd([NODE, 'scripts/build-packages.mjs', '--zips', path.join(dir, 'packages')], ctx.root);
         if (z.code !== 0) return { ok: false, output: z.out };
         const zc = await runCmd([NODE, 'scripts/check-package.mjs', '--zips', path.join(dir, 'packages')], ctx.root);
-        return { ok: zc.code === 0, output: c.out + zc.out };
+        // the Blazor option model (#1656): four published apps, one per option set, assert which static web assets land and the blazorPayload ceilings
+        const x = await runCmd([NODE, 'scripts/blazor-extras-publish.mjs', '--package', dir], ctx.root);
+        return { ok: zc.code === 0 && x.code === 0, output: c.out + zc.out + x.out };
     } finally { fs.rmSync(dir, { recursive: true, force: true }); }
 }
 

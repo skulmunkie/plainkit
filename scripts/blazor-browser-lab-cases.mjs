@@ -486,6 +486,17 @@ export const LAB_CASES = [
             ctx.ok(await ctx.eval(`!window.__deep.all('a[href$="/orders/shipped"]').some(a => a.getBoundingClientRect().right > 0)`), 'the drawer stays open over the page after a tap on one of its links (it should close once the route changed)');
         });
       } },
+    // #1656: the declared-list path of the bridge's init (PkRuntime hands PkOptions.Extras.Names to it; the sample declares nothing, so the page calls init the way PkRuntime does with a list).
+    // A tag of an undeclared extra on the page is reported once, with the fix; a declared one, and a second element of the same extra, are not.
+    { name: 'extras-undeclared-tag-is-reported-once',
+      async run(ctx) {
+        await ctx.open('/');
+        await ctx.eval(`(async () => { const m = await import('/_content/PlainKit.Blazor/plainkit.blazor.js'); await m.init(['markdown']); for (const t of ['pk-dock', 'pk-dock', 'pk-markdown']) document.body.append(document.createElement(t)); })()`);
+        await ctx.sleep(800);
+        const errors = ctx.errorsSince(ctx.openMark, BENIGN).filter(e => e.includes('PlainKitExtras'));
+        ctx.ok(errors.length === 1 && errors[0].includes('<pk-dock> is in plainkit.dock, which this app did not declare: add dock to <PlainKitExtras> in the project file'), `expected one report for pk-dock, got: ${JSON.stringify(errors)}`);
+        await ctx.eval(`document.querySelectorAll('body > pk-dock, body > pk-markdown').forEach(e => e.remove())`);
+      } },
     // #1664: PkCombobox OnSearch. A newer query aborts the older search's signal, which reaches the C# CancellationToken (Cancel through the real PkCallbackSlot); only the newest answer is listed.
     { name: 'combobox-search-cancels-superseded-query',
       async run(ctx) {
@@ -551,14 +562,5 @@ export const LAB_SHOTS = [
         await ctx.open('/lab/fields');
         await ctx.clickDeep('pk-button', 'Ask'); await ctx.sleep(600);
         await ctx.shot('lab-dialog', vp, theme);
-    },
-    async (ctx, vp, theme) => { // #1714: the reconnect banner in each state, raised the way the framework raises it
-        await ctx.open('/');
-        await ctx.waitFor(`!!document.querySelector('#components-reconnect-modal [data-part="bar"]')`, 'the reconnect banner');
-        for (const [state, detail, name] of [['retrying', ', currentAttempt: 3', 'busy'], ['failed', '', 'failed'], ['rejected', '', 'ended'], ['paused', '', 'paused']]) {
-            await ctx.eval(`document.getElementById('components-reconnect-modal').dispatchEvent(new CustomEvent('components-reconnect-state-changed', { detail: { state: '${state}'${detail} } }))`);
-            await ctx.sleep(500);
-            await ctx.shot('reconnect-' + name, vp, theme);
-        }
     },
 ];

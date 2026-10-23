@@ -35,6 +35,8 @@
   <ItemGroup>
     <Content Remove="Generated\generated.manifest.json" />
     <None Include="Generated\generated.manifest.json" Pack="false" />
+    <Content Remove="Generated\plainkit.extras.json" />
+    <None Include="Generated\plainkit.extras.json" Pack="false" />
   </ItemGroup>
 
   <!-- The element mappings and the generator's manifest travel inside the assembly (not as content or static assets): PkMappingInfo reads them to
@@ -42,6 +44,7 @@
   <ItemGroup>
     <EmbeddedResource Include="..\..\mappings\*.json" LogicalName="plainkit-mappings/%(Filename)%(Extension)" Visible="false" />
     <EmbeddedResource Include="Generated\generated.manifest.json" LogicalName="plainkit-mappings/generated.manifest.json" Visible="false" />
+    <EmbeddedResource Include="Generated\plainkit.extras.json" LogicalName="plainkit-extras.json" Visible="false" />
   </ItemGroup>
 
   <!-- The toolkit's file list with each file's SHA-384 travels inside the assembly too: PkAssets.Versioned builds a content-hash cache-busting
@@ -53,6 +56,12 @@
 
   <ItemGroup>
     <None Include="README.md" Pack="true" PackagePath="\" />
+  </ItemGroup>
+
+  <!-- The PKB001 analyzer (#1656) ships in analyzers/dotnet/cs; the project reference only orders the build, the assembly is packed from its output folder. -->
+  <ItemGroup>
+    <ProjectReference Include="..\PlainKit.Blazor.Analyzers\PlainKit.Blazor.Analyzers.csproj" ReferenceOutputAssembly="false" PrivateAssets="all" />
+    <None Include="..\PlainKit.Blazor.Analyzers\bin\$(Configuration)\netstandard2.0\PlainKit.Blazor.Analyzers.dll" Pack="true" PackagePath="analyzers/dotnet/cs" Visible="false" />
   </ItemGroup>
 
   <!-- The tier namespaces as <Using> items, and for one minor version the old root names of the moved components as aliases (#768), so a consumer's C# resolves them
