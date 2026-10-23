@@ -159,8 +159,8 @@
         "viewport-logic.js"
       ],
       "maxPackedBytes": null,
-      "maxUnpackedBytes": 63540,
-      "maxZipBytes": 28140
+      "maxUnpackedBytes": 64840,
+      "maxZipBytes": 28740
     },
     {
       "id": "plainkit.ide",
