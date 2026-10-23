@@ -11,7 +11,7 @@
 <PkButton OnClick="() => _flyout = true">Open links</PkButton>
 @if (_flyout)
 {
-    <div id="lab-flyout"><PkLink id="lab-link" Href="#lab-link-target" OnClick="LinkClicked">Docs link</PkLink></div>
+    <div id="lab-flyout"><PkLink id="lab-link" Href="/lab/methods#lab-link-target" OnClick="LinkClicked">Docs link</PkLink></div>
 }
 <p id="lab-link-target">Link clicks: @_clicks</p>
 <PkForm @ref="_form">
