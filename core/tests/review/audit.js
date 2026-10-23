@@ -82,6 +82,7 @@ export function auditFacts(facts) {
         for (let i = 0; i < flow.length; i++) for (let j = i + 1; j < flow.length; j++) {
             const [a, c] = [flow[i], flow[j]];
             if (inside(a.rect, c.rect) || inside(c.rect, a.rect)) continue;
+            if (a.sticky || c.sticky) continue; // a position: sticky strip (tabs, a header) sticks over the content scrolling under it on purpose (#1758)
             if (AVATAR_CHILD.test(a.path) && AVATAR_CHILD.test(c.path)) continue;
             const area = a.lines || c.lines ? Math.max(...(a.lines || [a.rect]).flatMap(x => (c.lines || [c.rect]).map(y => intersect(x, y)))) : intersect(a.rect, c.rect);
             if (area >= OVERLAP_MIN) add('overlap', 'warn', a, `${a.path} and ${c.path} overlap by ${Math.round(area)}px2`, 'give the siblings room (gap, wrap) or make one an overlay on purpose');

@@ -169,6 +169,12 @@ test('siblings that cross overlap; nesting and out-of-flow boxes do not', () => 
     assert.equal(summarize(auditFacts(facts([a, crossing]))).ok, true, 'a warning alone does not fail');
 });
 
+test('a sticky box is an overlay on purpose when it sticks over its siblings (#1758); a plain sibling crossing still warns', () => {
+    const a = box({ id: 1, rect: [0, 0, 375, 400] }), c = box({ id: 2, rect: [0, 380, 375, 60] });
+    assert.deepEqual(rules(facts([a, c])), ['overlap']);
+    assert.deepEqual(rules(facts([a, { ...c, sticky: true }])), []);
+});
+
 test('boxes that touch are not overlap: 0.1px of rounding across a wide row is not 96px2 (#1121), 2px is', () => {
     const row = box({ id: 1, rect: [249.5, 1689.7, 961, 19.3] });
     assert.deepEqual(rules(facts([row, box({ id: 2, rect: [249.5, 1708.9, 961, 38] })])), []);
