@@ -21,6 +21,7 @@ import { fileURLToPath } from 'node:url';
 import { chromeArgs, findChrome, killTree, launchBrowser, removeDir } from './attest-browser.mjs';
 import { connect, evaluate, freePort } from './ui-review.mjs';
 import { ensureGenerated } from './generated.mjs';
+import { writeRunStamp } from './verify-guard.mjs';
 import { cpuScale } from '../core/tests/browser/cpu-scale.js';
 import { makeTempDir } from '../core/tools/tempdir.mjs';
 
@@ -298,6 +299,7 @@ async function main() {
         code = 2;
     } finally {
         stop();
+        if (code < 2) writeRunStamp(root, 'blazor-browser', code === 0); // which tree this run belongs to (scripts/gate-check.mjs, #1754)
         await sleep(500);
         killUsing(profile);
         killUsing(pub);

@@ -31,6 +31,7 @@ import os from 'node:os';
 import path from 'node:path';
 import { fileURLToPath, pathToFileURL } from 'node:url';
 import { ensureGenerated } from './generated.mjs';
+import { writeRunStamp } from './verify-guard.mjs';
 import { elementOfPath } from '../core/tools/element-folders.mjs';
 import { createCache } from './ui-review-cache.mjs';
 import { chromeArgs, findChrome, killTree, launchBrowser, removeDir } from './attest-browser.mjs';
@@ -500,6 +501,7 @@ async function main() {
         try { cdp?.close(); } catch (e) { console.error(`closing the DevTools connection: ${e.message}`); }
         killTree(browser);
         killTree(server);
+        if (code < 2) writeRunStamp(root, 'ui-review', code === 0); // which tree this run belongs to (scripts/gate-check.mjs, #1754)
         await sleep(500);
         if (!(await removeDir(profile))) console.error(`Could not delete the temporary profile ${profile}; delete it by hand.`);
     }
