@@ -17,6 +17,9 @@ slot[name="actions"][hidden], [part="overflow"][hidden] { display: none; }
 :host([variant="record"]) [part="header"] { gap: var(--space-1); }
 :host([variant="record"]) [part="titlebar"] { gap: var(--space-2) var(--space-3); }
 :host([variant="record"]) [part="meta"] { font-size: var(--text-meta); }
+/* A record title is one line (issue 1761): it shrinks and ends in an ellipsis (the full text is its title tooltip); the chips and the actions keep their width. */
+:host([variant="record"]) [part="lead"] { flex: 1 1 0; flex-wrap: nowrap; }
+:host([variant="record"]) [part="title"], :host([variant="record"]) ::slotted([slot="title"]) { flex: 0 1 auto; min-inline-size: min(100%, 8rem); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 @container (max-width: 46rem) {
     [part="actions"] { inline-size: 100%; margin-inline-start: 0; }
     ::slotted([slot="actions"]) { min-block-size: var(--touch-target); }
@@ -26,7 +29,9 @@ slot[name="actions"][hidden], [part="overflow"][hidden] { display: none; }
 [part="tabs"] { min-inline-size: 0; }
 ::slotted(pk-badge) { align-self: center; flex: none; }
 /* No heading: the crumbs are the title; chips and actions share their row. */
-:host(:not([heading]):not([spacious])) [part="header"] { display: grid; grid-template-columns: auto minmax(0, 1fr) auto; grid-template-areas: "crumbs chips actions" "meta meta meta" "tabs tabs tabs"; align-items: center; column-gap: var(--space-3); }
+:host(:not([heading]):not([spacious])) [part="header"] { display: grid; grid-template-columns: minmax(0, max-content) minmax(max-content, 1fr) auto; grid-template-areas: "crumbs chips actions" "meta meta meta" "tabs tabs tabs"; align-items: center; column-gap: var(--space-3); }
+/* The current crumb is the title: one line, cut with an ellipsis before it pushes the chips under the actions (issue 1761). */
+:host(:not([heading]):not([spacious])) [part="trail"] > [aria-current="page"] { flex: 1 1 0; min-inline-size: min(100%, 8rem); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; display: block; line-height: 2rem; }
 :host(:not([heading]):not([spacious])) :is([part="titlebar"], [part="lead"]) { display: contents; }
 :host(:not([heading]):not([spacious])) [part="crumbs"] { grid-area: crumbs; }
 :host(:not([heading]):not([spacious])) [part="chips"]:not([hidden]) { grid-area: chips; display: flex; flex-wrap: wrap; align-items: center; gap: var(--space-2); order: 0; flex: none; }
@@ -39,7 +44,7 @@ slot[name="actions"][hidden], [part="overflow"][hidden] { display: none; }
 :host(:not([heading]):not([spacious])) [part="header"][data-wide-actions] { grid-template-columns: minmax(0, 1fr); grid-template-areas: "crumbs" "actions" "chips" "meta" "tabs"; }
 :host(:not([heading]):not([spacious])) [part="header"][data-wide-actions] [part="actions"] { inline-size: 100%; margin-inline-start: 0; }
 @container (max-width: 30rem) {
-    :host(:not([heading]):not([spacious])) [part="trail"] > [aria-current="page"] { flex: 1 1 0; min-inline-size: min(100%, 8rem); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; display: block; line-height: var(--touch-target); }
+    :host(:not([heading]):not([spacious])) [part="trail"] > [aria-current="page"] { line-height: var(--touch-target); }
 }
 /* backLink: the parent crumbs fold into the back chevron, which takes the start of row one beside the title (it keeps its place above the header on a wider one). */
 @container (max-width: 30rem) {
@@ -57,7 +62,7 @@ slot[name="actions"][hidden], [part="overflow"][hidden] { display: none; }
 /* A narrow record: title and actions on row one, chips under them. */
 @container (max-width: 46rem) {
     :host([variant="record"]) [part="lead"] { display: contents; }
-    :host([variant="record"]) [part="title"] { order: 0; }
+    :host([variant="record"]) [part="title"], :host([variant="record"]) ::slotted([slot="title"]) { order: 0; flex: 1 1 0; }
     :host([variant="record"]) [part="actions"] { order: 1; inline-size: auto; margin-inline-start: auto; }
     :host([variant="record"]) [part="chips"]:not([hidden]) { display: flex; flex-wrap: wrap; align-items: center; gap: var(--space-2); order: 2; flex: 1 0 100%; }
 }

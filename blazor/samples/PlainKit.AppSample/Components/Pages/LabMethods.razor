@@ -7,6 +7,13 @@
 <PkButton OnClick="Check">Check form</PkButton>
 <p id="lab-valid">Valid: @_valid</p>
 <PkDialog @ref="_dialog" Title="Opened from C#">Body of the lab dialog</PkDialog>
+@* #1747: a flyout of Href links closes from PkLink.OnClick while the link still navigates natively (here to a fragment of this page). *@
+<PkButton OnClick="() => _flyout = true">Open links</PkButton>
+@if (_flyout)
+{
+    <div id="lab-flyout"><PkLink id="lab-link" Href="/lab/methods#lab-link-target" OnClick="LinkClicked">Docs link</PkLink></div>
+}
+<p id="lab-link-target">Link clicks: @_clicks</p>
 <PkForm @ref="_form">
     <form>
         <PkInput @ref="_name" Name="name" AriaLabel="Name" Required="true" />
@@ -18,6 +25,10 @@
     private PkInput? _name;
     private PkForm? _form;
     private string _valid = "unknown";
+    private bool _flyout;
+    private int _clicks;
+
+    private void LinkClicked(MouseEventArgs e) { _clicks++; _flyout = false; }
 
     private Task OpenDialog() => _dialog!.ShowAsync();
     private Task FocusName() => _name!.FocusAsync();

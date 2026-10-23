@@ -304,6 +304,18 @@ export const LAB_CASES = [
         await waitText(ctx, 'Valid: False');
         await ctx.noErrors(ctx.openMark, BENIGN);
       } },
+    // #1747: PkLink.OnClick is raised for an Href link through the real event dispatch, the handler closes the flyout, and the browser still follows the address.
+    { name: 'link-onclick-href',
+      async run(ctx) {
+        await ctx.open('/lab/methods');
+        await ctx.clickDeep('pk-button', 'Open links');
+        await ctx.waitFor(`!!document.querySelector('#lab-flyout pk-link')`, 'the flyout of links to open');
+        await ctx.clickDeep('#lab-link >>> [part="link"]');
+        await waitText(ctx, 'Link clicks: 1', ALL);
+        await ctx.waitFor(`!document.querySelector('#lab-flyout')`, 'OnClick to close the flyout');
+        await ctx.waitFor(`location.hash === '#lab-link-target' && location.pathname === '/lab/methods'`, 'the Href link to navigate natively');
+        await ctx.noErrors(ctx.openMark, BENIGN);
+      } },
     // #1582: the dev tools page is the SDK's devtools workspace module mounted through the bridge (PkDevToolsWorkspace): the tabs, the callbacks into .NET (a tab click navigates)
     // and the data handed over (the gallery's Blazor sections, the score targets, the snapshot through the lazy reader).
     { name: 'devtools-workspace',

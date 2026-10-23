@@ -12,7 +12,9 @@
           "level": "@PkAttr.Num(Level)",
           "weight": "semibold",
           "variant": "h3",
-          "tabindex": "-1"
+          "tabindex": "-1",
+          "truncate": "@(Variant == PageHeaderVariant.Record)",
+          "title": "@(Variant == PageHeaderVariant.Record ? Title : null)"
         }
       }
     },
@@ -125,5 +127,5 @@
       "prop": "backLink"
     }
   ],
-  "notes": "Generated. Title maps to heading and is also drawn as a slotted pk-heading in the title slot (level from Level, tabindex -1, like the JS page shell, #773: the generator's slotted option); SuffixContent is the default slot (beside the title). The trail, home crumb and back link are the element's (crumbs, homeHref, backLink)."
+  "notes": "Generated. Title maps to heading and is also drawn as a slotted pk-heading in the title slot (level from Level, tabindex -1, like the JS page shell, #773: the generator's slotted option; on a record it truncates to one line with the full Title as its tooltip, #1761); SuffixContent is the default slot (beside the title). The trail, home crumb and back link are the element's (crumbs, homeHref, backLink)."
 }

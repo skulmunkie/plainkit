@@ -103,6 +103,35 @@ export const headerCases = [
         t.ok(rect(last).right <= rect(h).right + 1, 'the crumb stays inside the header');
     }],
 
+    ['page-header: a record with a 120-character title, three badges and a primary action at 1280 and 960px ellipsizes the title, keeps the badges and the action whole and never overlaps them (#1761)', async t => {
+        const long = 'Purchase order 1042 for the north warehouse refit, the second delivery of shelving, racking, lighting and spare fittings';
+        const hit = (a, b) => a.left < b.right - 1 && b.left < a.right - 1 && a.top < b.bottom - 1 && b.top < a.bottom - 1;
+        const kids = '<pk-badge>Open</pk-badge><pk-badge variant="ok">Paid in full</pk-badge><pk-badge variant="warn">Late</pk-badge><pk-button slot="actions" variant="primary">Receive goods</pk-button>';
+        // crumb: no heading, the last crumb is the title; heading: the built-in title; slotted: the Blazor PkPageHeader shape (heading plus a slotted, truncating pk-heading).
+        const titles = { crumb: '', heading: `heading="${long}"`, slotted: `heading="${long}"` };
+        for (const [mode, attr] of Object.entries(titles)) for (const w of [1280, 960]) {
+            const crumbs = JSON.stringify([{ label: 'Purchase orders', href: '#po' }, ...(mode === 'crumb' ? [{ label: long }] : [])]);
+            const own = mode === 'slotted' ? `<pk-heading slot="title" level="1" weight="semibold" variant="h3" truncate title="${long}">${long}</pk-heading>` : '';
+            const host = t.stage(`<pk-page-header variant="record" home-href="#home" home-label="Home" ${attr} crumbs='${crumbs}'>${own}${kids}</pk-page-header>`);
+            host.style.width = `${w}px`; await t.load(host); await Promise.all(['pk-badge', 'pk-breadcrumb', 'pk-button', ...(own ? ['pk-heading'] : [])].map(n => customElements.whenDefined(n))); await t.settle(); await t.settle();
+            const h = host.firstElementChild, badges = [...h.querySelectorAll('pk-badge')], act = h.querySelector('pk-button'), label = `${mode} at ${w}px`;
+            const title = mode === 'crumb' ? h.part('trail').lastElementChild : mode === 'heading' ? h.part('title') : h.querySelector('pk-heading');
+            const text = mode === 'slotted' ? title.shadowRoot.querySelector('[part="heading"]') : title;
+            for (const b of badges) {
+                t.ok(!hit(rect(b), rect(act)), `${label}: the action does not overlap the badge "${b.textContent}"`);
+                t.ok(!hit(rect(b), rect(title)), `${label}: the title does not run under the badge "${b.textContent}"`);
+                t.ok(b.scrollWidth <= b.clientWidth + 1 && rect(b).height < 40, `${label}: the badge "${b.textContent}" keeps its intrinsic width on one line: ${rect(b).width}x${rect(b).height}`);
+            }
+            t.ok(rect(act).height < 60 && act.scrollWidth <= act.clientWidth + 1, `${label}: the action keeps its intrinsic width on one line`);
+            t.ok(rect(act).right <= rect(h).right + 1 && h.scrollWidth <= h.clientWidth + 1, `${label}: everything stays inside the header`);
+            t.eq(getComputedStyle(text).textOverflow, 'ellipsis', `${label}: the title truncates with an ellipsis`);
+            if (w < 1000) t.ok(text.scrollWidth > text.clientWidth, `${label}: the title is cut short: ${text.scrollWidth} > ${text.clientWidth}`);
+            t.ok(rect(title).height < 50, `${label}: the title is one line: ${rect(title).height}`);
+            t.eq(title.getAttribute('title'), long, `${label}: the full text is the title tooltip`);
+            host.remove();
+        }
+    }],
+
     ['page-header: a record with no crumbs and no heading keeps its chips and its actions on one row at every width', async t => {
         const host = t.stage('<pk-page-header variant="record"><pk-badge id="chip">Open</pk-badge>Acme Supply<button slot="actions" id="act">Print</button></pk-page-header>');
         const h = host.firstElementChild, mid = n => (rect(n).top + rect(n).bottom) / 2;

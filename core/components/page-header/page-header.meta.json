@@ -29,7 +29,7 @@
         "record"
       ],
       "reflect": true,
-      "description": "page is the standard page top; section is a titled section inside a page; record is the compact strip of a single-record page (chips left, actions right; on a narrow container the chips move to a row below)."
+      "description": "page is the standard page top; section is a titled section inside a page; record is the compact strip of a single-record page (chips left, actions right; on a narrow container the chips move to a row below). Its title, the heading or the last crumb, is one line: a long one ends in an ellipsis with the full text as its tooltip, and the chips and actions keep their width."
     },
     {
       "name": "spacious",
@@ -260,6 +260,10 @@
     {
       "title": "Record: home crumb, chips, actions and docked tabs",
       "html": "<pk-page-header variant=\"record\" sticky>\n  <pk-breadcrumb slot=\"breadcrumb\">\n    <a href=\"#\" aria-label=\"Dashboard\"><pk-icon name=\"dashboard\"></pk-icon></a>\n    <a href=\"#\">Products</a>\n    <span aria-current=\"page\" role=\"heading\" aria-level=\"1\">Blue mug</span>\n  </pk-breadcrumb>\n  <pk-badge variant=\"ok\">Active</pk-badge>\n  <pk-badge variant=\"muted\">On hand 1</pk-badge>\n  <pk-button slot=\"actions\" size=\"mini\" icon-name=\"save\" collapse=\"phone\">Save</pk-button>\n  <pk-tabs slot=\"tabs\">\n    <pk-tab value=\"details\">Details</pk-tab>\n    <pk-tab value=\"history\">History</pk-tab>\n  </pk-tabs>\n</pk-page-header>"
+    },
+    {
+      "title": "Record: a long title cut to one line",
+      "html": "<pk-page-header variant=\"record\" home-href=\"#\" home-label=\"Home\" crumbs='[{\"label\":\"Purchase orders\",\"href\":\"#\"},{\"label\":\"Purchase order 1042 for the north warehouse refit, the second delivery of shelving, racking, lighting and spare fittings\"}]'>\n  <pk-badge>Open</pk-badge>\n  <pk-badge variant=\"ok\">Paid in full</pk-badge>\n  <pk-badge variant=\"warn\">Late</pk-badge>\n  <pk-button slot=\"actions\" variant=\"primary\" size=\"mini\">Receive goods</pk-button>\n</pk-page-header>"
     },
     {
       "title": "Record: status chips and actions",
