@@ -365,6 +365,7 @@ import { devtoolsWorkspaceCases } from './cases-devtools-workspace.js'; cases.pu
 import { trayCases } from './cases-tray.js'; cases.push(...trayCases);
 import { designSurfaceCases } from './cases-design-surface.js'; cases.push(...designSurfaceCases);
 import { canvasCases } from './cases-canvas.js'; cases.push(...canvasCases);
+import { heatMapCases } from './cases-heat-map.js'; cases.push(...heatMapCases);
 import { extrasCases } from './cases-extras.js'; cases.push(...extrasCases);
 import { guidesAppCases } from './cases-guides.js'; cases.push(...guidesAppCases);
 import { landingCases } from './cases-landing.js'; cases.push(...landingCases);
