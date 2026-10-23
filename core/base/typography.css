@@ -26,7 +26,6 @@
 .prose ul,
 .prose ol { padding-inline-start: var(--space-6); }
 
-.prose li + li { margin-block-start: var(--space-1); }
 
 .prose a:not([class]) { text-decoration: underline; text-underline-offset: 0.15em; }
 
