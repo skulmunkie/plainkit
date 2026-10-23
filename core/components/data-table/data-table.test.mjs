@@ -251,12 +251,12 @@ test('the props feed the pager, search, table labels and the initial sort and pa
     el.load = async q => { queries.push(q); return rowsOf(1); };
     el.connected();
     await el.refresh();
-    assert.deepEqual([parts.filters.label, parts.filters.debounce, parts.pagination.sizes, parts.pagination.label, parts.table.label, parts.table.caption], ['Search', 250, [], 'Pagination', '', '']);
+    assert.deepEqual([parts.filters.label, parts.filters.placeholder, parts.filters.debounce, parts.pagination.sizes, parts.pagination.label, parts.table.label, parts.table.caption], ['Search', '', 250, [], 'Pagination', '', '']);
     assert.equal(parts.filters.attrs['data-nosearch'], false);
-    Object.assign(el, { searchLabel: 'Find orders', searchDebounce: 400, hideSearch: true, pageSizeOptions: [10, 50], pagerLabel: 'Order pages', label: 'Orders', caption: 'All orders', sort: 'name', sortDir: 'descending', pageSize: 10 });
+    Object.assign(el, { searchLabel: 'Find orders', searchPlaceholder: 'Order number, customer or SKU', searchDebounce: 400, hideSearch: true, pageSizeOptions: [10, 50], pagerLabel: 'Order pages', label: 'Orders', caption: 'All orders', sort: 'name', sortDir: 'descending', pageSize: 10 });
     el.changed('searchLabel');
     await el.refresh();
-    assert.deepEqual([parts.filters.label, parts.filters.debounce, parts.pagination.sizes, parts.pagination.label, parts.table.label, parts.table.caption], ['Find orders', 400, [10, 50], 'Order pages', 'Orders', 'All orders']);
+    assert.deepEqual([parts.filters.label, parts.filters.placeholder, parts.filters.debounce, parts.pagination.sizes, parts.pagination.label, parts.table.label, parts.table.caption], ['Find orders', 'Order number, customer or SKU', 400, [10, 50], 'Order pages', 'Orders', 'All orders']);
     assert.equal(parts.filters.attrs['data-nosearch'], true);
     assert.deepEqual([queries.at(-1).sort, queries.at(-1).sortDir, queries.at(-1).pageSize], ['name', 'descending', 10]);
     assert.deepEqual([parts.table.sort, parts.table.sortDir], ['name', 'descending'], 'the header shows the initial sort');

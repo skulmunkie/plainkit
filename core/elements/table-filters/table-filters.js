@@ -25,6 +25,7 @@ export default Base => class extends Base {
     toggle(open) { if (this.emit('pk-toggle', { open })) this.open = open; }
     updated() {
         // `value` is two-way: the box follows when the host changes it, and typing writes it (pk-search then reports the debounced text).
+        this.part('search').placeholder = this.placeholder || this.label; // a hint that differs from the accessible name when set
         if (this.value !== this.$v) this.part('search').value = this.$v = this.value ?? '';
         const has = this.slotted().length > 0;
         this.part('trigger').hidden = !has;

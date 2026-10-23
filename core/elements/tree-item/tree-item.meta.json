@@ -130,6 +130,14 @@
   ],
   "cssProperties": [
     {
+      "name": "--pk-tree-item-label-white-space",
+      "description": "White-space of the label: nowrap (default, one line with an ellipsis) or normal; pk-tree wrap-labels sets normal."
+    },
+    {
+      "name": "--pk-tree-item-label-overflow-wrap",
+      "description": "Overflow-wrap of the label; pk-tree wrap-labels sets anywhere."
+    },
+    {
       "name": "--pk-tree-item-indent",
       "description": "Indent per level.",
       "default": "var(--space-5)"

@@ -4,7 +4,7 @@ import { filterControl, setFilterOptions } from '../../js/filter-controls.js';
 
 // The one query/load/selection machine of a paged list (#801): pk-list-page, the lookup picker and Blazor's PkDataTable all sit on this element.
 // The settings are plain props; an unset one reads its default. The defaults are the meta's (a test holds them together).
-export const DEFAULTS = { columns: [], filters: [], pageSize: 25, pageSizeOptions: null, sort: '', sortDir: 'ascending', hideSearch: false, search: '', filterValues: {}, page: 1, searchLabel: '', searchDebounce: 250, pagerLabel: '', label: '', caption: '', empty: null, noResults: null, loadError: '' };
+export const DEFAULTS = { columns: [], filters: [], pageSize: 25, pageSizeOptions: null, sort: '', sortDir: 'ascending', hideSearch: false, search: '', filterValues: {}, page: 1, searchLabel: '', searchPlaceholder: '', searchDebounce: 250, pagerLabel: '', label: '', caption: '', empty: null, noResults: null, loadError: '' };
 const SETTINGS = Object.keys(DEFAULTS);
 
 export default Base => class extends Base {
@@ -115,8 +115,8 @@ export default Base => class extends Base {
         this.part('add').hidden = !this.addLabel; this.part('add').textContent = this.addLabel;
         const table = this.part('table'), q = this.query, filters = this.part('filters'), pagination = this.part('pagination');
         this.forwardSlots();
-        // The labels and inputs of the parts (each one's own prop; searchLabel is both the placeholder and the accessible name of the search box).
-        filters.label = this.opt('searchLabel') || 'Search'; filters.debounce = this.opt('searchDebounce'); filters.toggleAttribute('data-nosearch', !!this.hideSearch);
+        // The labels and inputs of the parts (each one's own prop; searchLabel is the accessible name of the search box and its placeholder unless searchPlaceholder says more).
+        filters.label = this.opt('searchLabel') || 'Search'; filters.placeholder = this.opt('searchPlaceholder'); filters.debounce = this.opt('searchDebounce'); filters.toggleAttribute('data-nosearch', !!this.hideSearch);
         pagination.sizes = this.opt('pageSizeOptions') ?? []; pagination.label = this.opt('pagerLabel') || 'Pagination';
         if (this.opt('search') !== this.$seed) filters.value = this.$seed = this.opt('search');
         table.label = this.opt('label'); table.caption = this.opt('caption');
