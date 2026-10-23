@@ -44,6 +44,8 @@ A change is done when, on its pull request:
 - It uses only components that exist in `core`; a missing component is recorded in the standing "Tracker: components the SDK lacks" issue (#336) instead of being invented locally.
 - No internal tracker references, personal paths or real email addresses (`core/tests/privacy.test.mjs` checks).
 
+A stalled run fails instead of hanging (#1754): `verify.mjs` holds a lock per checkout (a second concurrent run refuses, or queues with `PK_VERIFY_LOCK_WAIT=<seconds>`), runs node tests with a per-test timeout and a memory-bounded worker count, and a watchdog ends a run with no output or test progress for 5 minutes (30 minutes in all) with a `WATCHDOG` line naming the files still running. The browser suite, UI review and Blazor browser run stamp the git tree they ran on; `node scripts/gate-check.mjs` says whether those results belong to the current tree, which is what an integration gate should check before merging a batch.
+
 ## Where things live
 
 - **Core is organised by composition tier.** An element's folder is its tier: `core/elements/<name>/` (base elements), `core/components/<name>/`, `core/pages/<name>/`, `core/shells/<name>/`, each with the same files (`<name>.meta.json`, `.js`, `.html`, `.css`, test). The `tier` in `meta.json` must equal the folder (rule C2, `core/tools/tiers.mjs`, enforced by the build). The shipped `dist/elements/<name>.js` does not depend on the folder. Details and the rules per tier: `core/STANDARDS.md` and `core/README.md`.

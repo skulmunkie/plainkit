@@ -123,7 +123,7 @@
       "type": "boolean",
       "default": false,
       "reflect": true,
-      "description": "Draws a back link above the header to the last crumb before the current one that has a usable href: a ghost icon-only button with a chevron, named \"Back to <label>\". Off by default because the app shell can draw its own."
+      "description": "Draws a back link above the header to the last crumb before the current one that has a usable href: a ghost icon-only button with a chevron, named \"Back to <label>\". On a header of 30rem or less with no heading (the crumbs are the title) the chevron takes the start of row one and the home and parent crumbs fold away, so the title shares the row with the actions. Off by default because the app shell can draw its own."
     }
   ],
   "slots": [

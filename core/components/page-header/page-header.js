@@ -79,6 +79,7 @@ export default Base => class extends Base {
         }
         nav.hidden = !nav.childElementCount;
         back.hidden = !(this.backLink && back.href);
+        this.part('header').toggleAttribute('data-back', !back.hidden); // narrow and untitled: the CSS folds the parent crumbs into the back chevron
     }
     /** Inline actions leaving the crumbs under 176px take their own row (data-wide-actions). */
     fit() {

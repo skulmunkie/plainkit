@@ -20,7 +20,7 @@
 //   review-output/scenario-<name>__<shot>__<desktop|phone>__<light|dark>.png   the visible viewport after the shot step
 //
 // Combinations: desktop 1280x900 and phone 375x812, each in light and dark. Audits (core/tests/review/audit.js): horizontal overflow, clipped content,
-// overlapping siblings, tap targets on the phone, text contrast (WCAG AA), focusable elements with no name, decoration drawn inside a link, images and
+// overlapping siblings, tap targets on the phone, text contrast (WCAG AA, an error), focusable elements with no name, decoration drawn inside a link, images and
 // icons with no size. Errors fail the run; warnings are for a person to look at (--strict fails on them too).
 // Exit code: 0 no errors, 1 an error finding, 2 the run itself could not finish (no browser, no element, timeout). Browser: PK_CHROME, as attest-browser.mjs.
 // The screenshots are for the pull request's reviewer (docs: CONTRIBUTING.md "Reviewing what it looks like"); the folder is git-ignored.
@@ -31,6 +31,7 @@ import os from 'node:os';
 import path from 'node:path';
 import { fileURLToPath, pathToFileURL } from 'node:url';
 import { ensureGenerated } from './generated.mjs';
+import { writeRunStamp } from './verify-guard.mjs';
 import { elementOfPath } from '../core/tools/element-folders.mjs';
 import { createCache } from './ui-review-cache.mjs';
 import { chromeArgs, findChrome, killTree, launchBrowser, removeDir } from './attest-browser.mjs';
@@ -500,6 +501,7 @@ async function main() {
         try { cdp?.close(); } catch (e) { console.error(`closing the DevTools connection: ${e.message}`); }
         killTree(browser);
         killTree(server);
+        if (code < 2) writeRunStamp(root, 'ui-review', code === 0); // which tree this run belongs to (scripts/gate-check.mjs, #1754)
         await sleep(500);
         if (!(await removeDir(profile))) console.error(`Could not delete the temporary profile ${profile}; delete it by hand.`);
     }

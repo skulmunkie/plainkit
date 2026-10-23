@@ -22,6 +22,13 @@ test('filterCount is a plain number the host sets; label is a plain string', () 
     assert.equal(prop('label').default, 'Search');
 });
 
+test('placeholder is a plain string that defaults to empty, meaning the box shows its label (#1732)', () => {
+    assert.equal(prop('placeholder').type, 'string');
+    assert.equal(prop('placeholder').default, '');
+    assert.doesNotMatch(read('html'), /placeholder=/, 'the placeholder is set by updated(), from placeholder or else label');
+    assert.match(read('js'), /placeholder = this\.placeholder \|\| this\.label/);
+});
+
 test('the default slot is documented as the filter fields, and is the only slot', () => {
     assert.deepEqual(meta.slots.map(s => s.name), ['']);
 });

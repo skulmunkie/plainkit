@@ -174,6 +174,16 @@ test('dialogs: confirm, alert, prompt and open resolve with the choice; cancel v
     d.destroy();
 });
 
+test('dialogs: tint and maxWidth reach the pk-dialog; unknown values are ignored (#1715)', async () => {
+    const doc = makeDom(), d = createDialogs({ container: doc.body });
+    const a = d.confirm({ heading: 'A', tint: 'archived', maxWidth: 720 });
+    assert.equal(dialogOf(doc).tint, 'archived'); assert.equal(dialogOf(doc).maxWidth, 720);
+    btn(doc, 'Confirm').click(); await a;
+    const b = d.confirm({ heading: 'B', tint: 'neon', maxWidth: -5 });
+    assert.notEqual(dialogOf(doc).tint, 'neon'); assert.ok(!dialogOf(doc).maxWidth);
+    btn(doc, 'Confirm').click(); await b; d.destroy();
+});
+
 test('dialogs: one at a time app-wide (the rest queue), blocking refuses Escape and the close button, backdrop only when asked', async () => {
     const doc = makeDom(), d = createDialogs({ container: doc.body });
     const a = d.confirm({ heading: 'A', blocking: true }), b = d.alert({ heading: 'B', backdrop: true });

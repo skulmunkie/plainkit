@@ -111,6 +111,7 @@ public sealed class PkDataTableTests : BunitContext, IAsyncLifetime
         Assert.Equal([10, 25, 50, 100], sizes.RootElement.EnumerateArray().Select(x => x.GetInt32()));
         Assert.Equal(("city", "descending"), (el.GetAttribute("sort"), el.GetAttribute("sort-dir")));
         Assert.Equal(("Customers", "Customer pages", "Search customers", "450"), (el.GetAttribute("label"), el.GetAttribute("pager-label"), el.GetAttribute("search-label"), el.GetAttribute("search-debounce")));
+        Assert.Equal("Search customers", el.GetAttribute("search-placeholder"));
         Assert.False(el.HasAttribute("hide-search"));
         using var empty = JsonDocument.Parse(el.GetAttribute("empty")!);
         Assert.Equal("Nothing to show.", empty.RootElement.GetProperty("heading").GetString());

@@ -29,6 +29,13 @@
       "note": "Who follows an Href on a plain click: \"router\" (default), \"host\" (OnNavigate is a notification and nothing navigates, so your handler uses NavigationManager) or \"none\" (the browser follows the address). It is the default for the items with an Href that set none."
     },
     {
+      "name": "WrapLabels",
+      "prop": "wrapLabels",
+      "type": "bool",
+      "extra": true,
+      "note": "Let long item labels wrap onto several lines instead of an ellipsis."
+    },
+    {
       "name": "OnToggle",
       "event": "pk-toggle",
       "type": "EventCallback<PkToggleEventArgs>"

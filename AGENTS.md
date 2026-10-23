@@ -45,6 +45,10 @@ Also part of done, in the same pull request (owner directive): the **agent skill
 option or workflow appears in the docs, the gallery samples and the skills' workflows in `scripts/skills/`), the SDK and Blazor change together
 (an element change updates `blazor/mappings/<name>.json`), and a **changelog fragment** is added.
 
+### Stalls, locks and which tree a result belongs to (#1754)
+
+`verify.mjs` takes a per-checkout lock (a second run refuses with the holder's pid; `PK_VERIFY_LOCK_WAIT=<seconds>` queues instead; a dead holder is replaced). Its node-test groups run with `--test-timeout`, a worker count bounded by free memory and a watchdog (no output or test progress for 5 minutes, or 30 minutes in all) that kills the run and prints a `WATCHDOG` line naming the files still running; on a memory-starved machine never run two heavy commands at once. The browser suite, UI review and Blazor browser run stamp the tree they ran on; `node scripts/gate-check.mjs` prints whether each stamp matches the current HEAD tree (exit 1 when missing, stale or failed), so an integration gate can assert that the browser result belongs to the final tree.
+
 ### Reviewing what it looks like
 
 Green CI does not say a layout looks right (the record header in #311 and a chevron inside a breadcrumb link merged green and were wrong on screen). A change to how an element **looks**
@@ -101,7 +105,7 @@ Rules:
 | `version` (job `node`) | `core/VERSION`, `core/package.json` and the stamped files disagree | run `node core/tools/versioning.mjs set <X.Y.Z>` (or restore `core/VERSION`), then `node scripts/bootstrap.mjs` |
 | `release-pr` (job `node`) | `core/VERSION` changed but the API baseline was not refreshed, or the version does not cover the API changes | run `node core/tools/versioning.mjs bump` to see the version the API changes need, then `node core/tools/api-surface.mjs --write --release <X.Y.Z>` |
 | `generated-tree` (job `node`) | a generated file is tracked by git, or the bootstrap changed a tracked file | run `git rm -r --cached <path>` for each tracked generated path (`node scripts/generated.mjs list` shows them); never commit or hand-edit generated files |
-| `node-tests` (job `node`) | a node test failed: the change broke what the test guards | run the failing file alone with `node --test <file>` (its path is in the output), fix the code, not the test; after a source change run `node scripts/bootstrap.mjs` first |
+| `node-tests` (job `node`) | a node test failed: the change broke what the test guards | run the failing file alone with `node --test <file>` (its path is in the output), fix the code, not the test; after a source change run `node scripts/bootstrap.mjs` first; a WATCHDOG line names a stalled file (run it alone, and check free memory and that no second verify run is going: #1754) |
 | `audit` (job `node`) | a conformance-audit rule or CLI test failed (core/tools/audit/, core/tools/strict/), including the plain-html/strict-clean fixture snapshots under core/tests/audit-fixtures/ | run the failing file alone with `node --test <file>` (its path is in the output); fix the rule or the CLI, not the fixture, unless the fixture itself is wrong |
 | `audit-modules` (job `node`) | a new finding from the `module` ruleset against core/site/**/core/modules/** (not already in plainkit.audit.modules.baseline.json) | run `node scripts/audit-modules.mjs` to see the finding and its FIX line; fix the source (never edit the baseline to hide a new finding - only `--update-baseline` after fixing accepted legacy debt may touch it) |
 | `dotnet` (job `dotnet`) | a build error, a failing test, or a generated file missing or stale | run `node scripts/bootstrap.mjs`, then `dotnet test PlainKit.slnx --configuration Release` and fix the first error |

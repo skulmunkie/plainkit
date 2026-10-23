@@ -5,7 +5,7 @@
 label { display: none; margin-block-end: var(--space-1); }
 :host([show-label]:not([floating])) label { display: block; }
 .box { position: relative; display: flex; align-items: center; gap: var(--space-1); min-height: var(--ctl-h); padding-inline: var(--space-3); background: var(--pk-control-bg, var(--color-input)); border: 1px solid var(--_bd); border-radius: var(--pk-control-radius, var(--radius-sm)); transition: border-color 0.15s; }
-:host(:is([invalid], [aria-invalid="true"])) .box, :host([warning]) .box, :host([valid]) .box { box-shadow: inset 0 0 0 1px var(--_bd); }
+:host(:is([invalid], [aria-invalid="true"], [warning], [valid])) .box { box-shadow: inset 0 0 0 1px var(--_bd); }
 :host(:not([disabled], [readonly])) .box:hover { border-color: var(--color-muted); }
 .box:focus-within { border-color: var(--color-accent-hover); outline: var(--focus-ring); outline-offset: 2px; }
 :host([disabled]) .box { opacity: 0.55; cursor: not-allowed; }
@@ -22,8 +22,7 @@ input { flex: 1; align-self: stretch; min-width: 0; text-overflow: ellipsis; pad
 .ib:hover:not(:disabled) { background: var(--color-surface-alt); color: var(--color-text); }
 .ib:disabled { opacity: 0.4; cursor: not-allowed; }
 .ib:focus-visible { outline: var(--focus-ring); outline-offset: 1px; }
-:host([type="search"]) .ico { display: block; }
-:host([format="money"]) .cur { display: block; }
+:host([type="search"]) .ico, :host([format="money"]) .cur { display: block; }
 :host([clearable][has-value]) .clear { display: grid; }
 :host([reveal][type="password"]) .reveal { display: grid; }
 :host([copyable]) .copy { display: grid; }
@@ -37,4 +36,4 @@ input { flex: 1; align-self: stretch; min-width: 0; text-overflow: ellipsis; pad
 :host([floating]) .box { min-height: calc(var(--ctl-h) * 1.35); }
 :host([floating]) input { padding: 1.15rem 0 0.2rem; }
 :host([floating]) .box:focus-within .fl, :host([floating][has-value]) .fl { bottom: auto; top: var(--space-1); align-items: flex-start; font-size: var(--text-meta); }
-@media (--phone) { .box, input { min-height: var(--touch-target); } input { font-size: 16px; } .ib { width: var(--touch-target); height: var(--touch-target); } }
+@media (--phone) { :host { min-width: calc(var(--touch-target) * 1.6); } .box, input { min-height: var(--touch-target); } input { font-size: 16px; } .ib { width: var(--touch-target); height: var(--touch-target); } }

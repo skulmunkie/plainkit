@@ -163,8 +163,22 @@ function measure(stage) {
         // A control wrapped by a label (or labelled by one with `for`) is activated by clicking the label, so the label is its hit area (WCAG 2.2 SC 2.5.8).
         let hitRect = null;
         if (inter && el.labels?.length) { const l = [...el.labels].map(x => x.getBoundingClientRect()).sort((a, b) => b.width * b.height - a.width * a.height)[0]; if (l.width && l.height) hitRect = [l.width, l.height].map(v => Math.round(v * 10) / 10); }
+        // An invisible hit layer (a positioned ::before/::after that takes pointer events, content set) enlarges what a finger reaches: the element box united with it is the target (issue 1753).
+        let hitLayer = null;
+        if (inter && cs.position !== 'static') {
+            let [x0, y0, x1, y1] = [r.left, r.top, r.right, r.bottom];
+            for (const which of ['before', 'after']) {
+                const p = getComputedStyle(el, `::${which}`);
+                if (p.content === 'none' || !['absolute', 'fixed'].includes(p.position) || p.pointerEvents === 'none') continue;
+                const [pw, ph, pt, pl] = [p.width, p.height, p.top, p.left].map(parseFloat);
+                if (![pw, ph, pt, pl].every(Number.isFinite) || pw <= 0 || ph <= 0) continue;
+                const px = r.left + el.clientLeft + pl, py = r.top + el.clientTop + pt;
+                [x0, y0, x1, y1] = [Math.min(x0, px), Math.min(y0, py), Math.max(x1, px + pw), Math.max(y1, py + ph)];
+            }
+            if ((x1 - x0) * (y1 - y0) > r.width * r.height) hitLayer = [x1 - x0, y1 - y0].map(v => Math.round(v * 10) / 10);
+        }
         boxes.push({
-            id, parent, hitRect, path: pathOf(el, stage), rect: [r.x + ox, r.y + oy, r.width, r.height].map(v => Math.round(v * 10) / 10),
+            id, parent, hitRect, hitLayer, path: pathOf(el, stage), rect: [r.x + ox, r.y + oy, r.width, r.height].map(v => Math.round(v * 10) / 10),
             lines: cs.display === 'inline' && el.getClientRects().length > 1 ? [...el.getClientRects()].map(q => [q.x + ox, q.y + oy, q.width, q.height].map(v => Math.round(v * 10) / 10)) : null, // a wrapped inline box is several line boxes, not its bounding rect
             inFlow: !['absolute', 'fixed'].includes(cs.position) && cs.float === 'none' && !el.hasAttribute('popover'),
             sticky: cs.position === 'sticky',

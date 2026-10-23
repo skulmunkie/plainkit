@@ -39,7 +39,7 @@ export default Base => class extends Base {
         const cfg = this.config ?? {};
         for (const k of TABLE_KEYS) table[k] = cfg[k];
         table.hideSearch = cfg.searchable === false;
-        table.searchLabel = cfg.searchLabel ?? cfg.searchPlaceholder;
+        table.searchLabel = cfg.searchLabel ?? cfg.searchPlaceholder; table.searchPlaceholder = cfg.searchPlaceholder;
         table.cards = cfg.cards ?? !cfg.selectable; // a card has no select-all
     }
 

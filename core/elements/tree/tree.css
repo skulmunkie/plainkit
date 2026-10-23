@@ -1,1 +1,2 @@
 :host { display: block; }
+:host([wrap-labels]) { --pk-tree-item-label-white-space: normal; --pk-tree-item-label-overflow-wrap: anywhere; }
