@@ -139,6 +139,9 @@
     "PkChartData.cs": {
       "category": "dto"
     },
+    "PkHeatItem.cs": {
+      "category": "dto"
+    },
     "PkComponentBase.Load.cs": {
       "category": "runtime"
     },
