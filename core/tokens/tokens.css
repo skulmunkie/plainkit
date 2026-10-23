@@ -144,11 +144,9 @@
     --chip-accent-fg: #ddd6fe;
     --flyout-backdrop-bg: rgba(0, 0, 0, 0.4);
     --modal-overlay-bg: rgba(0, 0, 0, 0.62);
-    --modal-card-t-product-fg: #1f2328;
-    --modal-card-t-archived-fg: #1f2328;
-    --modal-card-t-product-bg: #ecfdf5;
+    --modal-card-t-product-fg: var(--color-text);
+    --modal-card-t-archived-fg: var(--color-text);
     --modal-card-t-product-bd: #059669;
-    --modal-card-t-archived-bg: #fef2f2;
     --modal-card-t-archived-bd: #dc2626;
     --notice-success: #16a34a;
 }
@@ -232,6 +230,8 @@
     --delta-up: #4ade80;
     --delta-down: #f87171;
     --chart-track: var(--color-surface-alt);
+    --modal-card-t-product-bg: #064e3b;
+    --modal-card-t-archived-bg: #4b1d1d;
 }
 
 [data-theme="light"] {
@@ -244,6 +244,8 @@
     --chart-6: #0e7490;
     --delta-up: #15803d;
     --delta-down: #b91c1c;
+    --modal-card-t-product-bg: #ecfdf5;
+    --modal-card-t-archived-bg: #fef2f2;
 }
 
 /* Tokens for the controls moved into the SDK from the app stylesheet: one name per literal the rule used.
