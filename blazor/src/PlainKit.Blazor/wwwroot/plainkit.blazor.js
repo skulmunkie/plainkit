@@ -24,9 +24,24 @@ function unmount(container) {
 // Wires the pk-* elements and behaviours for the current document (idempotent). js/init.js has initPlainkit alone, so a page that only
 // renders Pk* components does not also fetch the dynamic-value, theming and colour helpers (mountThemeEditor imports theme-editor.js,
 // which brings its own).
-export async function init() {
+// `extras` (PkExtraSet.Names, #1656): the optional packages the app declared, or null for all. A pk-* tag of an undeclared one that is on the page, now or later, is said once.
+export async function init(extras) {
     const { initPlainkit } = await import('./plainkit/js/init.js');
     initPlainkit();
+    if (extras) await warnUndeclared(extras);
+}
+
+async function warnUndeclared(declared) {
+    const [{ extras: owner }, { createLogger }] = await Promise.all([import('./plainkit/elements/registry.js'), import('./plainkit/js/log.js')]);
+    const log = createLogger('blazor'), said = new Set();
+    const scan = root => {
+        for (const e of [root, ...(root.querySelectorAll?.('*') ?? [])]) {
+            const id = owner?.[e.localName], name = id?.replace('plainkit.', '');
+            if (id && !declared.includes(name) && !said.has(id)) { said.add(id); log.error(`<${e.localName}> is in ${id}, which this app did not declare: add ${name} to <PlainKitExtras> in the project file`, { tag: e.localName, extra: id }); }
+        }
+    };
+    scan(document.documentElement);
+    new MutationObserver(rs => rs.forEach(r => r.addedNodes.forEach(n => n.nodeType === 1 && scan(n)))).observe(document.documentElement, { childList: true, subtree: true });
 }
 
 // `lazy` ({ files, reader }, from PkCodeExplorer with an in-memory snapshot): the explorer's LazyProvider over a lean file list, each file's text read through the .NET reader

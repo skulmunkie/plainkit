@@ -7,6 +7,8 @@ import { createLogger } from './plainkit/js/log.js';
 
 const log = createLogger('reconnect');
 const ACTS = ['tryNow', 'reload', 'cancel', 'resume'];
+const ICONS = { tryNow: 'redo', reload: 'refresh', cancel: 'x', resume: 'arrow-right' };
+const PHONE = '(max-width: 640px)';
 let running = null;
 
 /** What to show for a view: pure, so node tests it. `s` is the merged strings. */
@@ -31,7 +33,7 @@ function build(root) {
             el('pk-alert', { banner: '', kind: 'info', 'data-part': 'alert' },
                 el('pk-spinner', { size: 'sm', label: '', 'data-part': 'spinner', hidden: '' }),
                 el('span', { 'data-part': 'text' }), ' ', el('span', { 'data-part': 'detail', 'aria-hidden': 'true' }),
-                el('span', { slot: 'action' }, ...ACTS.map(a => el('pk-button', { size: 'mini', 'data-act': a, hidden: '', ...(a === 'reload' || a === 'resume' ? { variant: 'primary' } : {}) }))))));
+                el('span', { slot: 'action' }, ...ACTS.map(a => el('pk-button', { size: 'mini', 'data-act': a, hidden: '', ...(a === 'reload' || a === 'resume' ? { variant: 'primary' } : {}) }, el('pk-icon', { name: ICONS[a] }), ''))))));
 }
 
 /** Starts the banner (idempotent). `json` is PkReconnectOptions as the C# side serialises it; the element on the page wins when it has its own. */
@@ -45,8 +47,18 @@ export function startReconnect(json) {
     const cfg = JSON.parse(root.dataset.pkReconnect), strings = { ...DEFAULTS.strings, ...cfg.strings };
     if (!root.querySelector('[data-part="bar"]')) build(root);
     const part = n => root.querySelector(`[data-part="${n}"]`), act = n => root.querySelector(`[data-act="${n}"]`);
-    for (const n of ACTS) act(n).textContent = strings[n];
+    for (const n of ACTS) act(n).lastChild.nodeValue = strings[n]; // the label is the last node, after the icon
     let inert = [], before = null;
+    // Icons by form factor: text and icon on a desktop, the icon alone (the label stays as its accessible name) on a phone.
+    const phone = matchMedia(PHONE), icons = () => { for (const n of ACTS) act(n).toggleAttribute('icon', phone.matches); };
+    // A desktop banner reserves its own height at the top (core CSS in plainkit.reconnect.css reads these), so it never covers the app bar; on a phone, or modal, it stays a layer over the page.
+    const html = document.documentElement, bar = part('bar');
+    const reserve = () => {
+        const h = bar.hidden || cfg.modal ? 0 : Math.ceil(bar.getBoundingClientRect().height);
+        if (h) { html.style.setProperty('--pk-reconnect-h', h + 'px'); html.setAttribute('data-pk-reconnect-open', ''); } else { html.style.removeProperty('--pk-reconnect-h'); html.removeAttribute('data-pk-reconnect-open'); }
+    };
+    const resize = new ResizeObserver(reserve);
+    icons(); phone.addEventListener('change', icons); resize.observe(bar);
 
     const paint = view => {
         const d = describe(view, strings);
@@ -54,6 +66,7 @@ export function startReconnect(json) {
         part('alert').setAttribute('kind', d.tone); part('text').textContent = d.text; part('detail').textContent = d.detail;
         part('spinner').hidden = !d.show.spinner;
         for (const n of ACTS) act(n).hidden = !d.show[n];
+        reserve();
         if (!cfg.modal) return;
         if (!view) { for (const c of inert) c.inert = false; inert = []; before?.focus?.(); before = null; return; }
         if (!inert.length) { before = document.activeElement; inert = [...document.body.children].filter(c => !c.contains(root) && !c.inert); for (const c of inert) c.inert = true; }
@@ -83,7 +96,7 @@ export function startReconnect(json) {
     };
     document.addEventListener('components-reconnect-state-changed', onState, true);
     root.addEventListener('click', onClick);
-    return running = { root, stop() { document.removeEventListener('components-reconnect-state-changed', onState, true); root.removeEventListener('click', onClick); api.dispose(); paint(null); root.removeAttribute('data-pk-started'); running = null; } };
+    return running = { root, stop() { document.removeEventListener('components-reconnect-state-changed', onState, true); root.removeEventListener('click', onClick); phone.removeEventListener('change', icons); resize.disconnect(); api.dispose(); paint(null); root.removeAttribute('data-pk-started'); running = null; } };
 }
 
 export const stopReconnect = () => running?.stop();

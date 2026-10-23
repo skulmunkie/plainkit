@@ -3,6 +3,7 @@
 // A failing case is a defect in the sample or the framework: file an issue (screenshot and steps), do not weaken the case.
 
 import { LAB_CASES, LAB_SHOTS } from './blazor-browser-lab-cases.mjs';
+import { RECONNECT_CASES, RECONNECT_SHOTS } from './blazor-browser-reconnect-cases.mjs';
 import { INTEROP_CASES, INTEROP_SHOTS } from './blazor-browser-interop-cases.mjs';
 import { ELEMENT_CASES, ELEMENT_SHOTS } from './blazor-browser-element-cases.mjs';
 
@@ -195,3 +196,5 @@ CASES.push(...INTEROP_CASES); // callbacks of the page types, JSON re-sync, para
 SHOT_PLAN.push(...INTEROP_SHOTS);
 CASES.push(...ELEMENT_CASES); // properties and refs, canvas events, side-nav open/close, real pointer drags (#1411)
 SHOT_PLAN.push(...ELEMENT_SHOTS);
+CASES.push(...RECONNECT_CASES); // the reconnect banner's layout and the host-restart paths: last, because they stop and restart the host (#1714)
+SHOT_PLAN.push(...RECONNECT_SHOTS);
