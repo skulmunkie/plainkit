@@ -11,7 +11,7 @@
       "type": "json",
       "default": [],
       "reflect": false,
-      "description": "The boxes: [{ id, label, value, severity?, href? }]. value above 0 sets the area; severity is neutral (default), info, success, warning or danger; href makes the box a link. An item with no usable value is skipped and said so once in the log."
+      "description": "The boxes: [{ id, label, value, severity?, intensity?, href?, children? }]. value above 0 sets the area; severity is neutral (default), info, success, warning or danger; href makes the box a link. An item with no usable value is skipped and said so once in the log. children is a list of items of the same shape (one level, used with group-by); a group takes the sum of its children as its value and the most serious of their severities."
     },
     {
       "name": "label",
@@ -25,7 +25,14 @@
       "type": "number",
       "default": 48,
       "reflect": false,
-      "description": "The smallest side of a box in pixels. Boxes below it merge into one \"Other (n)\" box (never dropped; the data table still lists every item). 0 never merges."
+      "description": "The smallest side of a box in pixels. Boxes below it merge into one \"Other (n)\" box (never dropped; the data table still lists every item); a box that cannot be merged is given extra area until it reaches the minimum, so no tile is a thin strip. Other takes the most serious severity of its members. 0 never merges."
+    },
+    {
+      "name": "groupBy",
+      "type": "boolean",
+      "default": false,
+      "reflect": false,
+      "description": "One level of grouping: an item with children is drawn as a framed area (its name and total in a header) whose area is the sum of its children and which holds them as boxes. Without group-by such an item is one plain box. A child's name carries its group (\"Payments: Invoices\")."
     },
     {
       "name": "showTable",
@@ -33,6 +40,47 @@
       "default": false,
       "reflect": true,
       "description": "Show the data table in place of the map (also the print and narrow-screen fallback you choose). The table is always in the element for assistive technology."
+    },
+    {
+      "name": "layout",
+      "type": "enum",
+      "default": "squarified",
+      "values": [
+        "squarified",
+        "rows"
+      ],
+      "reflect": false,
+      "description": "squarified sorts by value into near-square boxes; rows keeps the input order (weighted rows), so positions stay put while values change: use it for live data."
+    },
+    {
+      "name": "scale",
+      "type": "enum",
+      "default": "status",
+      "values": [
+        "status",
+        "intensity"
+      ],
+      "reflect": false,
+      "description": "status colours a box by its severity; intensity uses one hue by each item's intensity (0 to 1), shown as a percentage and carried in the box's name."
+    },
+    {
+      "name": "maxItems",
+      "type": "number",
+      "default": 0,
+      "reflect": false,
+      "description": "0 is no cap; otherwise the top N items by value are boxes and the rest merge into Other."
+    },
+    {
+      "name": "valueFormat",
+      "type": "enum",
+      "default": "number",
+      "values": [
+        "number",
+        "compact",
+        "share"
+      ],
+      "reflect": false,
+      "description": "How a value reads: number (locale grouping), compact (1.2K) or share (percent of the total)."
     }
   ],
   "slots": [
@@ -47,8 +95,16 @@
       "detail": {
         "id": "string"
       },
-      "description": "A box was activated (click, Enter or Space; a box with an href is a real link). detail.id is the item id, detail.item the item itself; for the merged box id is \"__other\" and item.members lists the merged items. Cancel it to stop a link navigating.",
+      "description": "A box was activated (click, Enter or Space; a box with an href is a real link). detail.id is the item id, detail.item the item itself; for the merged box id is \"__other\" and item.members lists the merged items. Cancel it to stop a link navigating. Activating the merged Other box also opens its members as a table over the map (Escape or Close returns focus to the box); cancel the event to stop that.",
       "cancelable": true
+    },
+    {
+      "name": "pk-heat-focus-item",
+      "detail": {
+        "id": "string"
+      },
+      "description": "Focus moved to a box (arrow keys, Tab or a click). detail.id is the item id, detail.item the item.",
+      "cancelable": false
     }
   ],
   "parts": [
@@ -75,6 +131,34 @@
     {
       "name": "rows",
       "description": "The data table body."
+    },
+    {
+      "name": "more",
+      "description": "The panel that lists the members of Other."
+    },
+    {
+      "name": "more-head",
+      "description": "Its header."
+    },
+    {
+      "name": "more-title",
+      "description": "Its title."
+    },
+    {
+      "name": "more-close",
+      "description": "Its Close button."
+    },
+    {
+      "name": "more-body",
+      "description": "Its scrolling body."
+    },
+    {
+      "name": "more-table",
+      "description": "Its table."
+    },
+    {
+      "name": "more-rows",
+      "description": "Its table body."
     }
   ],
   "cssProperties": [
@@ -105,7 +189,7 @@
     }
   ],
   "methods": [],
-  "a11y": "The element is a group named by label; each box is a link (with href) or a button named \"Label, value, Status\", in a list. The whole map is one tab stop (roving), the arrow keys move to the nearest box in that direction, Home and End to the first and last, Enter and Space activate. Colour is never the only carrier: a box that is not neutral carries its severity in its name and title, and shows the word when the box is tall enough (a small box keeps its label and drops what does not fit, never showing half a line). A data table (name, value, share, status) is always in the element for assistive technology and shows in place of the map with show-table.",
+  "a11y": "The element is a group named by label; each box is a link (with href) or a button named \"Label, value, Status\", in a list. The whole map is one tab stop (roving), the arrow keys move to the nearest box in that direction, Home and End to the first and last, Enter and Space activate. Colour is never the only carrier: a box that is not neutral carries its severity in its name and title, and shows the word when the box is tall enough (a small box keeps its label and drops what does not fit, never showing half a line). A data table (name, value, share, status) is always in the element for assistive technology and shows in place of the map with show-table. With scale=intensity the intensity shows as a percentage and is in the name. A tile too narrow for its text shows only its number; label and status stay in the name and title. Value changes animate only when the user allows motion. With group-by the frames are decoration and each child names its group. Other opens its members as a table in a labelled region over the map; focus moves to Close and returns to the Other box on Escape or Close.",
   "examples": [
     {
       "title": "Issues by area",
@@ -122,6 +206,18 @@
     {
       "title": "Data table instead of the map",
       "html": "<pk-heat-map label=\"Issues by area\" show-table items='[{\"id\":\"billing\",\"label\":\"Billing\",\"value\":42,\"severity\":\"warning\"},{\"id\":\"auth\",\"label\":\"Sign-in\",\"value\":31,\"severity\":\"danger\"},{\"id\":\"search\",\"label\":\"Search\",\"value\":24},{\"id\":\"reports\",\"label\":\"Reports\",\"value\":18,\"severity\":\"info\"}]'></pk-heat-map>"
+    },
+    {
+      "title": "Rows layout, stable order",
+      "html": "<pk-heat-map label=\"Queues\" layout=\"rows\" value-format=\"compact\" items='[{\"id\":\"a\",\"label\":\"Inbox\",\"value\":1200,\"severity\":\"warning\"},{\"id\":\"b\",\"label\":\"Review\",\"value\":800},{\"id\":\"c\",\"label\":\"Blocked\",\"value\":300,\"severity\":\"danger\"},{\"id\":\"d\",\"label\":\"Done\",\"value\":2100,\"severity\":\"success\"}]'></pk-heat-map>"
+    },
+    {
+      "title": "Intensity scale",
+      "html": "<pk-heat-map label=\"Errors per service\" scale=\"intensity\" max-items=\"5\" items='[{\"id\":0,\"label\":\"Auth\",\"value\":40,\"intensity\":0.9},{\"id\":1,\"label\":\"Billing\",\"value\":30,\"intensity\":0.55},{\"id\":2,\"label\":\"Search\",\"value\":24,\"intensity\":0.3},{\"id\":3,\"label\":\"Reports\",\"value\":18,\"intensity\":0.15},{\"id\":4,\"label\":\"Docs\",\"value\":10,\"intensity\":0.05},{\"id\":5,\"label\":\"API\",\"value\":8,\"intensity\":0.7},{\"id\":6,\"label\":\"Admin\",\"value\":4,\"intensity\":0.2}]'></pk-heat-map>"
+    },
+    {
+      "title": "Grouped by team",
+      "html": "<pk-heat-map label=\"Issues by team and area\" group-by items='[{\"id\":\"pay\",\"label\":\"Payments\",\"children\":[{\"id\":\"p1\",\"label\":\"Invoices\",\"value\":30,\"severity\":\"warning\"},{\"id\":\"p2\",\"label\":\"Refunds\",\"value\":10},{\"id\":\"p3\",\"label\":\"Tax\",\"value\":20,\"severity\":\"danger\"}]},{\"id\":\"acc\",\"label\":\"Accounts\",\"children\":[{\"id\":\"a1\",\"label\":\"Sign-in\",\"value\":40,\"severity\":\"danger\"},{\"id\":\"a2\",\"label\":\"Profile\",\"value\":20}]},{\"id\":\"web\",\"label\":\"Web\",\"children\":[{\"id\":\"w1\",\"label\":\"Search\",\"value\":24},{\"id\":\"w2\",\"label\":\"Docs\",\"value\":12,\"severity\":\"success\"}]}]'></pk-heat-map>"
     }
   ]
 }

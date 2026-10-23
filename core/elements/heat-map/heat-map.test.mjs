@@ -3,7 +3,7 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import fs from 'node:fs';
 import { fileURLToPath } from 'node:url';
-import { layout, cleanItems, worstRatio, OTHER_ID } from '../../js/heat-map-layout.js';
+import { layout, layoutGrouped, cleanItems, worstRatio, worstSeverity, neighbour, shownBox, OTHER_ID } from '../../js/heat-map-layout.js';
 
 const W = 400, H = 300;
 const area = b => b.w * b.h;
@@ -111,5 +111,124 @@ test('the css uses tokens only: no colour or size literal outside the sr-only tr
     const css = fs.readFileSync(fileURLToPath(new URL('./heat-map.css', import.meta.url)), 'utf8');
     assert.ok(!/#[0-9a-f]{3,8}\b/i.test(css), 'no hex colour');
     assert.ok(!/\brgba?\(|\bhsla?\(/i.test(css), 'no rgb or hsl colour');
-    assert.ok(!/\d\s*(px|rem|em)\b/.test(css.replace(/\b1px\b|--pk-heat-map-height, 20rem|@container \([^)]*\)/g, '')), 'no px, rem or em size other than the 1px hairline, the default height hook and the container-query thresholds');
+    assert.ok(!/\d\s*(px|rem|em)\b/.test(css.replace(/\b1px\b|--pk-heat-map-height, 20rem|@container [^{]*/g, '')), 'no px, rem or em size other than the 1px hairline, the default height hook and the container-query thresholds');
+});
+
+test('rows layout keeps the input order, tiles exactly and weights the areas', () => {
+    const vals = [3, 40, 7, 20, 5, 25];
+    const boxes = layout(items(...vals), W, H, { layout: 'rows' });
+    assert.deepEqual(boxes.map(b => b.id), vals.map((_, i) => `i${i}`), 'input order, not value order');
+    assert.equal(boxes.reduce((s, b) => s + area(b), 0), W * H);
+    for (let i = 0; i < boxes.length; i++) for (let j = i + 1; j < boxes.length; j++) assert.ok(!overlap(boxes[i], boxes[j]));
+    const total = vals.reduce((a, b) => a + b);
+    boxes.forEach((b, i) => assert.ok(Math.abs(area(b) - (vals[i] / total) * W * H) <= b.w + b.h));
+    // a new value changes sizes but never the order
+    assert.deepEqual(layout(items(40, 40, 7, 20, 5, 25), W, H, { layout: 'rows' }).map(b => b.id), vals.map((_, i) => `i${i}`));
+});
+
+test('rows layout still merges small boxes into Other, last', () => {
+    const boxes = layout(items(1, 500, 1, 300, 1, 1, 100, 1), W, H, { layout: 'rows', minBox: 48 });
+    assert.equal(boxes.at(-1).id, OTHER_ID);
+    assert.equal(boxes.reduce((s, b) => s + area(b), 0), W * H);
+});
+
+test('maxItems keeps the top N by value and merges the rest into Other', () => {
+    const boxes = layout(items(50, 40, 30, 20, 10, 5), W, H, { maxItems: 3 });
+    assert.deepEqual(boxes.slice(0, 3).map(b => b.id), ['i0', 'i1', 'i2']);
+    const other = boxes.at(-1);
+    assert.equal(other.id, OTHER_ID);
+    assert.deepEqual(other.members.map(m => m.id), ['i3', 'i4', 'i5']);
+    assert.equal(layout(items(5, 4), W, H, { maxItems: 3 }).length, 2, 'under the cap nothing merges');
+    assert.equal(layout(items(50, 40), W, H, { maxItems: 0 }).length, 2, '0 is no cap');
+});
+
+test('a box that cannot be merged away is given enough area to reach minBox instead of staying a sliver', () => {
+    const boxes = layout(items(900, 40, 30, 20), 375, 280, { minBox: 48 });
+    assert.equal(boxes.at(-1).id, OTHER_ID);
+    for (const b of boxes) assert.ok(Math.min(b.w, b.h) >= 48, `${b.id} is ${b.w} by ${b.h}`);
+    assert.equal(boxes.reduce((s, b) => s + area(b), 0), 375 * 280);
+    assert.ok(area(boxes[0]) > 0.8 * 375 * 280, 'the dominant item still dominates');
+});
+
+test('worstSeverity of merged items is the most serious one', () => {
+    assert.equal(worstSeverity([{ severity: 'info' }, { severity: 'danger' }, { severity: 'warning' }]), 'danger');
+    assert.equal(worstSeverity([{ severity: 'neutral' }, { severity: 'success' }]), 'success');
+    assert.equal(worstSeverity([{ severity: 'neutral' }]), 'neutral');
+    assert.equal(layout([{ id: 'a', value: 100, severity: 'neutral' }, { id: 'b', value: 1, severity: 'warning' }, { id: 'c', value: 1, severity: 'neutral' }], W, H, { minBox: 48 }).at(-1).severity, 'warning');
+});
+
+test('cleanItems keeps intensity between 0 and 1 and drops a bad one with a report', () => {
+    const said = [];
+    const got = cleanItems([{ id: 'a', value: 1, intensity: 0.4 }, { id: 'b', value: 1, intensity: 7 }, { id: 'c', value: 1, intensity: 'hot' }, { id: 'd', value: 1 }], m => said.push(m));
+    assert.deepEqual(got.map(i => i.intensity), [0.4, 1, undefined, undefined]);
+    assert.ok(said.some(m => /intensity/.test(m)));
+});
+
+test('value changes animate, and not for a user who asked for reduced motion', () => {
+    const css = fs.readFileSync(fileURLToPath(new URL('./heat-map.css', import.meta.url)), 'utf8');
+    assert.match(css, /^\.item \{[^}]*transition: inset-inline-start/m);
+    assert.match(css, /@media \(prefers-reduced-motion: reduce\) \{ \.item \{ transition: none; \} \}/);
+});
+
+const teams = () => [
+    { id: 'pay', label: 'Payments', children: [{ id: 'p1', label: 'Invoices', value: 30, severity: 'warning' }, { id: 'p2', label: 'Refunds', value: 10 }, { id: 'p3', label: 'Tax', value: 20, severity: 'danger' }] },
+    { id: 'acc', label: 'Accounts', children: [{ id: 'a1', label: 'Sign-in', value: 40 }, { id: 'a2', label: 'Profile', value: 20 }] },
+    { id: 'solo', label: 'Solo', value: 30 },
+];
+
+test('cleanItems gives a group the sum of its children and the worst severity, one level only', () => {
+    const said = [];
+    const got = cleanItems([{ id: 'g', label: 'G', children: [{ id: 'a', value: 3, severity: 'info' }, { id: 'b', value: 4, severity: 'danger', children: [{ id: 'deep', value: 9 }] }, { id: 'bad', value: 0 }] }, { id: 'empty', value: 5, children: [] }], m => said.push(m));
+    assert.equal(got[0].value, 7);
+    assert.equal(got[0].severity, 'danger');
+    assert.deepEqual(got[0].children.map(c => c.id), ['a', 'b']);
+    assert.equal(got[0].children[1].children, undefined);
+    assert.ok(said.some(m => /nested|one level/.test(m)) && said.some(m => /value/.test(m)));
+    assert.equal(got[1].children, undefined, 'an empty children list is a plain item');
+    assert.equal(got[1].value, 5);
+});
+
+test('layoutGrouped: groups tile the area, children sit inside their frame under the header, and areas follow the weights', () => {
+    const items = cleanItems(teams());
+    const { groups, boxes } = layoutGrouped(items, 600, 400, {}, { header: 24, pad: 4 });
+    assert.deepEqual(groups.map(g => g.id).sort(), ['acc', 'pay']);
+    assert.equal(groups.reduce((s, g) => s + area(g), 0) + boxes.filter(b => !b.parent).reduce((s, b) => s + area(b), 0), 600 * 400);
+    for (const g of groups) {
+        const kids = boxes.filter(b => b.parent === g.id);
+        assert.ok(kids.length >= 2);
+        for (const k of kids) assert.ok(k.x >= g.x + 4 && k.y >= g.y + 24 && k.x + k.w <= g.x + g.w - 4 && k.y + k.h <= g.y + g.h - 4, `${k.id} inside ${g.id} below its header`);
+        for (let i = 0; i < kids.length; i++) for (let j = i + 1; j < kids.length; j++) assert.ok(!overlap(kids[i], kids[j]));
+        const inner = kids.reduce((s, k) => s + area(k), 0);
+        kids.forEach(k => assert.ok(Math.abs(area(k) - (k.value / g.value) * inner) <= k.w + k.h));
+    }
+    assert.ok(boxes.some(b => b.id === 'solo' && !b.parent), 'an item with no children stays a plain box');
+    assert.ok(Math.abs(groups.find(g => g.id === 'pay').value - 60) < 1e-9);
+});
+
+test('layoutGrouped merges groups under minBox into one Other box and without groups equals layout', () => {
+    const items = cleanItems([...teams(), { id: 'tiny', label: 'Tiny', children: [{ id: 't1', value: 1 }, { id: 't2', value: 1 }] }, { id: 'tiny2', label: 'Tiny 2', children: [{ id: 't3', value: 1 }] }]);
+    const { boxes } = layoutGrouped(items, 400, 300, { minBox: 48 }, { header: 24, pad: 4 });
+    assert.ok(boxes.some(b => b.id === OTHER_ID && !b.parent));
+    const flat = cleanItems([{ id: 'a', value: 3 }, { id: 'b', value: 1 }]);
+    assert.deepEqual(layoutGrouped(flat, 200, 100).boxes.map(b => [b.id, b.x, b.y, b.w, b.h]), layout(flat, 200, 100).map(b => [b.id, b.x, b.y, b.w, b.h]));
+    assert.deepEqual(layoutGrouped(flat, 200, 100).groups, []);
+});
+
+test('neighbour picks the nearest box in the arrow direction, Home and End the ends, and -1 when nothing lies that way', () => {
+    const r = (left, top, width = 10, height = 10) => ({ left, top, width, height });
+    const rects = [r(0, 0), r(20, 0), r(0, 20), r(20, 20, 10, 10)];
+    assert.equal(neighbour(rects, 0, 'ArrowRight'), 1);
+    assert.equal(neighbour(rects, 0, 'ArrowDown'), 2);
+    assert.equal(neighbour(rects, 3, 'ArrowLeft'), 2);
+    assert.equal(neighbour(rects, 0, 'ArrowLeft'), -1);
+    assert.equal(neighbour(rects, 1, 'Home'), 0);
+    assert.equal(neighbour(rects, 1, 'End'), 3);
+    assert.equal(neighbour(rects, -1, 'ArrowDown'), -1);
+});
+
+test('shownBox names Other by its member count with the worst severity and the weighted intensity', () => {
+    const b = { id: OTHER_ID, value: 4, item: null, severity: 'warning', members: [{ value: 1, intensity: 1 }, { value: 3, intensity: 0 }] };
+    assert.deepEqual(shownBox(b), { label: 'Other (2)', severity: 'warning', intensity: 0.25 });
+    const item = { label: 'A' };
+    assert.equal(shownBox({ item }), item);
 });

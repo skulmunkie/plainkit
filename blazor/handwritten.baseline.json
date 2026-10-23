@@ -39,7 +39,7 @@
     "PkCallbackError.cs": 24,
     "PkBulkQuery.cs": 8,
     "PkChartData.cs": 22,
-    "PkHeatItem.cs": 21,
+    "PkHeatItem.cs": 12,
     "PkComponentBase.cs": 59,
     "PkComponentBase.Tick.cs": 50,
     "PkComponentBase.Load.cs": 32,

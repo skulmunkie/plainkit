@@ -9,7 +9,7 @@ The framework's default reconnect dialog does not match PlainKit themes and, aft
 ## 2. What exists today
 
 - `blazor/src/PlainKit.Blazor` has no reconnect handling (only devtools circuit state, `PkCircuitState`). `PkApp` renders `PkAppFrame`; the sample `App.razor` loads `_framework/blazor.web.js` with `InteractiveServer`.
-- Framework behaviour (.NET 8 to 10): the `#components-reconnect-modal` element receives the classes `components-reconnect-show|failed|rejected` (newer SDKs also `retrying`, `paused`, `resume-failed`) and the non-bubbling event `components-reconnect-state-changed` with `detail.state`. Retry tuning is `Blazor.start({ circuit: { reconnectionOptions, reconnectionHandler } })`, which needs `autostart="false"` on the script tag. State names and the template differ per .NET version; phase 1 records them on each targeted SDK.
+- Framework behaviour: the `#components-reconnect-modal` element receives the classes `components-reconnect-show|failed|rejected` (.NET 8, 9, 10; .NET 10 adds `retrying`, `paused`, `hide`). **Only .NET 10 raises the non-bubbling event `components-reconnect-state-changed` with `detail.state`** (corrected by the phase 1 spike, section 8: .NET 8 and 9 raise none). Retry tuning is `Blazor.start({ circuit: { reconnectionOptions, reconnectionHandler } })`, which needs `autostart="false"` on the script tag. `PlainKit.Blazor` targets `net10.0` only (`Directory.Build.props`), so .NET 10 is the contract; .NET 8 and 9 are recorded in section 8 for information.
 
 ## 3. Proposal
 
@@ -17,7 +17,7 @@ The framework's default reconnect dialog does not match PlainKit themes and, aft
 
 - **`PkReconnect` component** (small, hand-written, listed in `blazor/handwritten.json`): placed once in `App.razor`, or implied by `PkApp` when `PkOptions.Reconnect` is set. It renders the `id="components-reconnect-modal"` markup the framework drives, built from existing elements (`pk-alert` banner or `pk-dialog` when modal, `pk-button`, `pk-spinner`), so the theme applies automatically.
 - **`reconnect.js`** (`core/js/reconnect.js`, pure logic importable in node): state machine and policy. `PkRuntime` loads it lazily only when `PkReconnect` renders, so apps that do not opt in pay nothing. It listens with a capture listener on `document` (the event does not bubble), added when mounted and removed on dispose.
-- No inline script and no `autostart="false"` needed in v1: the listener works with the default start. Custom `reconnectionOptions` (phase 3) ship as an external same-origin file the app references, documented, never inline.
+- No inline script and no `autostart="false"` needed in v1: the listener works with the default start, **provided the `#components-reconnect-modal` element is in the page** (with none, .NET 10 builds its own default display and raises no event; section 8). Custom `reconnectionOptions` (phase 3) ship as an external same-origin file the app references, documented, never inline.
 - Not a core element: it is Blazor-only. The markup is server-rendered into the initial HTML and styled by a small `reconnect.css` in the Blazor static assets (tokens only).
 
 ### 3.2 States and copy
@@ -27,8 +27,8 @@ The framework's default reconnect dialog does not match PlainKit themes and, aft
 | `show` / `retrying` | banner: spinner, "Reconnecting...", attempt count | none |
 | `failed` | "Cannot reach the server" | Retry now (`Blazor.reconnect()`), Reload; probe-then-reload (3.3) |
 | `rejected` | "This session ended" | Reload (automatic after a visible delay if enabled) |
-| `resume-failed` | "Your session could not be restored" | Reload (automatic) |
-| `paused` | "Paused while the tab was in the background" | Resume (`Blazor.resumeCircuit()`), automatic when visible |
+| `resume-failed` | "Your session could not be restored" | Reload (automatic). Not reproduced in the spike; handled defensively, unverified |
+| `paused` | "Paused" (not tied to the tab going to the background: section 8) | Resume (`Blazor.resumeCircuit()`), automatic when visible |
 | `hide` | banner removed, focus restored | |
 
 Strings come from `PkReconnectOptions` (localisable). `rejected` and `resume-failed` mean the circuit is gone: reloading is always right. `failed` may be a transient outage, and a reload could land on the browser error page.
@@ -76,3 +76,41 @@ Component about 60 lines; `reconnect.js` about 1.2 KB gzip, lazy; CSS under 0.5 
 5. **Modal or banner:** non-modal banner default, `Modal=true` option? Recommend yes.
 6. **Custom `Blazor.start` options (retry interval, own handler):** v1 or later? Recommend later (phase 3); listener-only first.
 7. **.NET versions to cover:** 8, 9 and 10, or only what `PlainKit.Blazor` targets? Recommend the targeted versions, verified in phase 1.
+
+## 8. Phase 1 findings (spike, measured 2026-10-22, issue #1714)
+
+Method: a throwaway harness (not committed) published the app, started it on a free port, drove headless Chrome over the DevTools protocol, installed a capture listener for `components-reconnect-state-changed` on `document` plus a MutationObserver on the modal element before the page scripts ran, dropped the circuit in the ways below and logged what happened. SDK 10.0.400 built all three targets; the runtimes were 8.0.32, 9.0.19 and 10.0.11. .NET 10 was run against a minimal Blazor Server app (and the default-UI case also against the minimal app with no modal element); .NET 8 and 9 against the minimal app only (the reconnect client is the framework's, independent of PlainKit). The modal was a plain `<div id="components-reconnect-modal"></div>` in the initial HTML unless noted.
+
+### 8.1 What the SDKs do
+
+| | .NET 8.0.32 | .NET 9.0.19 | .NET 10.0.11 (the target) |
+| --- | --- | --- | --- |
+| `Blazor` members | `reconnect`, `defaultReconnectionHandler`, `disconnect` | same | adds `pauseCircuit`, `resumeCircuit` |
+| `components-reconnect-state-changed` event | **never raised** | **never raised** | raised on the modal element, `bubbles: false`, `detail.state`; a capture listener on `document` sees it |
+| Classes on the modal | `components-reconnect-show`, `-failed`, `-rejected` | same | `-show`, `-retrying` (added next to `-show` after the first attempts), `-failed`, `-rejected`, `-paused`, `-hide` (on recovery) |
+| Server gone, host stays down | `show`, then `failed` after the retry budget (tested with `maxRetries: 3`) | same | `show`, then `retrying` events with `{ currentAttempt, secondsToNextAttempt }` about once a second; no `failed` within a 30 s outage with the defaults; `failed` after the budget with `maxRetries: 3` |
+| Host back, same port | `rejected` (circuit unknown to the new process) | `rejected` | `rejected`; the page stays, clicks do nothing |
+| `failed`, host comes back later | stays `failed` | same | same |
+
+.NET 10 event states seen: `show`, `retrying` (detail adds `currentAttempt` and `secondsToNextAttempt`; repeated about every second as a countdown, so a consumer treats repeats as updates, not new states), `failed`, `rejected`, `paused` (detail `{ remote: false }` when started by `Blazor.pauseCircuit()`), `hide`. `resume-failed` was not reproduced (a pause, a host restart and `resumeCircuit()` simply gave a working circuit and returned `true`); the name stays in the machine but is unverified. .NET 8 and 9 have no `pauseCircuit`, so no pause test ran there.
+
+### 8.2 Behaviours that change the design
+
+- **Event vs classes.** .NET 8 and 9 raise no event, so only a class observer could cover them. `PlainKit.Blazor` is `net10.0` only, so v1 listens for the event and does not observe classes.
+- **The element must exist.** With no `#components-reconnect-modal` element .NET 10 appends its own `<div id="components-reconnect-modal">` on the first disconnect and raised nothing our `document` listener saw; in that run the page also reloaded by itself once the restarted host answered. So `PkReconnect` renders the element in the initial HTML, as the spec says. As the "user specified" display it never reloads by itself: `rejected` is final and the app must reload (the point of this spec).
+- **`rejected` arrives late.** It is raised when the first successful connection to the restarted host is refused, so the page sits in `retrying` while the host is down and reaches `rejected` only when the host is back (about 12 to 20 s after the restart in the spike). A host that stays down never produces `rejected`; hence the probe for `failed`.
+- **`paused` is not the background tab.** Freezing and resuming the page (`Page.setWebLifecycleState`) gave `show`, `retrying` (attempt 1) and `hide` within about a second on the same circuit, never `paused`. `paused` comes from `Blazor.pauseCircuit()` (or the server). The copy "while the tab was in the background" is dropped.
+- **`failed` does not self-heal.** After a long outage it stays on `failed`; `Blazor.reconnect()` or a reload is needed, so the probe-then-reload design of 3.3 is right.
+- **Recovery** ends with `hide` (class `components-reconnect-hide`); the same circuit continues with its state, so no reload.
+
+### 8.3 Dropping a circuit in the harness
+
+| Method | Result |
+| --- | --- |
+| Stop the host process and start it again on the same port (`taskkill /T /F`, then a fresh `dotnet App.dll`) | **Works, the reference method.** `show`, `retrying` ..., then `rejected` once the host is back. `failed` needs a page started with `autostart="false"` and `Blazor.start({ circuit: { reconnectionOptions: { maxRetries: 3, retryIntervalMilliseconds: 300 } } })`, which also confirms the options object works as documented. |
+| `Network.emulateNetworkConditions` `offline: true` | **Does not work.** The open WebSocket survives offline emulation; clicks queue and are delivered afterwards; no class or event changed. |
+| `Fetch.enable` for `*_blazor*` (never answering) plus `socket.close()` from the page | **Works for `show`/`retrying` on the same circuit.** Needs a wrapper that keeps the WebSocket objects, installed before the page scripts (`Page.addScriptToEvaluateOnNewDocument`). The client retry request stays paused so the state holds at `show`, `retrying` 1; `Fetch.disable` lets it through and the circuit resumes with `hide`, state intact. `Fetch.failRequest` (a refused negotiate, expected to reach `failed`) was not tried. |
+| `Page.setWebLifecycleState` `frozen` then `active` | Works: `show`, `retrying` (1), `hide` on the same circuit. Does not reach `paused`. |
+| `Blazor.pauseCircuit()` then `Blazor.resumeCircuit()` (.NET 10) | Works: `show`, `paused` (`remote: false`), then `hide`; also across a host restart. |
+
+For the later phases: the lab case for `rejected` and `failed` uses the host restart (and a lab page that starts Blazor with a short `maxRetries` for `failed`); `Fetch.enable` or the lifecycle freeze give a fast `show`/`retrying` without restarting the host; `paused` comes from `pauseCircuit()`. Phase 2's component must put the modal element in the server-rendered HTML.
