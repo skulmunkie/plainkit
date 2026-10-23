@@ -1129,6 +1129,15 @@ export const dataDisplayCases = [
         a.part('label').click(); b.part('label').click();
         t.eq(seen.map(s => s.join(':')).join(','), 'A:false,B:true', 'host is a notification, the item own router mode is cancelable');
     }],
+    ['table-filters: placeholder shows a hint that differs from the accessible name; without it the box shows the label (#1732)', async t => {
+        const el = await t.mount('<pk-table-filters label="Search orders"></pk-table-filters>'); await t.settle();
+        const box = el.part('search');
+        t.eq(box.placeholder, 'Search orders', 'no placeholder: the label'); t.eq(box.getAttribute('aria-label'), 'Search orders');
+        el.placeholder = 'Order number, customer or SKU'; await t.settle();
+        t.eq(box.placeholder, 'Order number, customer or SKU', 'the placeholder is the hint'); t.eq(box.getAttribute('aria-label'), 'Search orders', 'the accessible name stays the label');
+        el.placeholder = ''; await t.settle();
+        t.eq(box.placeholder, 'Search orders', 'cleared: the label again');
+    }],
     ['tree: wrapLabels lets a long label take several lines inside the column; without it the label is one clipped line (#1713)', async t => {
         const long = 'A very long category name that does not fit a narrow navigation column at all';
         const el = await t.mount('<div style="inline-size:12rem"><pk-tree label="Nav"><pk-tree-item label="' + long + '"></pk-tree-item></pk-tree></div>'); await t.settle();

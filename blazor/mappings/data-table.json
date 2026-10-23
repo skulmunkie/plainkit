@@ -81,16 +81,16 @@
     },
     {
       "name": "SearchPlaceholder",
-      "map": "param",
+      "prop": "searchPlaceholder",
       "type": "string?",
-      "doc": "The placeholder of the search box."
+      "doc": "The text shown in the empty search box. It is also the accessible name unless SearchLabel is set."
     },
     {
       "name": "SearchLabel",
       "prop": "searchLabel",
       "type": "string?",
       "attrExpr": "@(SearchLabel ?? SearchPlaceholder ?? \"Search\")",
-      "doc": "The accessible name of the search box; defaults to the placeholder, then \"Search\"."
+      "doc": "The accessible name of the search box; defaults to SearchPlaceholder, then \"Search\"."
     },
     {
       "name": "SearchDebounceMs",
