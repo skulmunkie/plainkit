@@ -11,7 +11,7 @@
       "type": "json",
       "default": [],
       "reflect": false,
-      "description": "The boxes: [{ id, label, value, severity?, intensity?, href?, children? }]. value above 0 sets the area; severity is neutral (default), info, success, warning or danger; href makes the box a link. An item with no usable value is skipped and said so once in the log. children is a list of items of the same shape (one level, used with group-by); a group takes the sum of its children as its value and the most serious of their severities."
+      "description": "The boxes: [{ id, label, value, severity?, intensity?, href?, children? }]. value above 0 sets the area; severity is neutral (default), info, success, warning or danger; href makes the box a link. An item with no usable value is skipped and said so once in the log. Instead of this property, a plain <table> as the direct child is read (first cell the name, a link in it the href, column 2 the value unless a header says value, count, total, size or amount, headers severity or status and intensity pick those columns, a cell's data-value beats its text, a row's data-id is the id; a table edit redraws); this property wins when it has items. children is a list of items of the same shape (one level, used with group-by); a group takes the sum of its children as its value and the most serious of their severities."
     },
     {
       "name": "label",
@@ -206,6 +206,10 @@
     {
       "title": "Data table instead of the map",
       "html": "<pk-heat-map label=\"Issues by area\" show-table items='[{\"id\":\"billing\",\"label\":\"Billing\",\"value\":42,\"severity\":\"warning\"},{\"id\":\"auth\",\"label\":\"Sign-in\",\"value\":31,\"severity\":\"danger\"},{\"id\":\"search\",\"label\":\"Search\",\"value\":24},{\"id\":\"reports\",\"label\":\"Reports\",\"value\":18,\"severity\":\"info\"}]'></pk-heat-map>"
+    },
+    {
+      "title": "From a table",
+      "html": "<pk-heat-map label=\"Issues by area\"><table><thead><tr><th>Area</th><th>Count</th><th>Severity</th></tr></thead><tbody><tr><td><a href=\"#billing\">Billing</a></td><td>42</td><td>warning</td></tr><tr><td>Sign-in</td><td>31</td><td>danger</td></tr><tr><td>Search</td><td>24</td><td></td></tr><tr><td>Docs</td><td>12</td><td>success</td></tr></tbody></table></pk-heat-map>"
     },
     {
       "title": "Rows layout, stable order",
