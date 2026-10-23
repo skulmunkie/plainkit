@@ -222,6 +222,9 @@
     "PkDialogOptions.Confirm.cs": {
       "category": "dto"
     },
+    "PkDialogOptions.Look.cs": {
+      "category": "dto"
+    },
     "PkDialogOptions.cs": {
       "category": "dto"
     },

@@ -17,6 +17,7 @@
 // button cancel; the backdrop does not (pk-dialog's house rule) unless config.backdrop is true; config.blocking removes all three, so only an action closes it.
 // Focus: the native modal traps it and makes the page inert; the first field (or the safe button: Cancel of a danger confirm, else the confirming one) gets it,
 // and on close it goes back to the element that had it when the dialog opened. Full screen on a phone is pk-dialog's own (below 640px).
+// config.tint ('product' | 'archived') and config.maxWidth (pixels, before the viewport clamp) are pk-dialog's own tint and max-width.
 // Text is untrusted: every string goes in with textContent and properties; a template is cloned, never parsed from a string.
 //
 // Scopes. dialogs.scope() returns { confirm, alert, prompt, open, end }. end() (the page or module unmounts) CANCELS its dialogs: the open one closes and resolves as
@@ -48,6 +49,8 @@ export function createDialogs({ container, log = createLogger('dialogs'), load }
         const { kind, config: c } = req;
         const d = el('pk-dialog', { heading: clipS(c.heading, 200), size: ['sm', 'md', 'lg'].includes(c.size) ? c.size : 'sm' });
         if (c.blocking) d.hideClose = true;
+        if (['product', 'archived'].includes(c.tint)) d.tint = c.tint;
+        if (c.maxWidth > 0) d.maxWidth = Math.min(Math.round(c.maxWidth), 2000);
         if (c.message) d.append(el('p', { textContent: clipS(c.message, 2000) }));
         if (kind === 'open' && c.template) {
             const tpl = doc.getElementById(String(c.template));

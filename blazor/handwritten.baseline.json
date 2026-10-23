@@ -64,6 +64,7 @@
     "PkLogging.cs": 213,
     "PkNotifications.cs": 83,
     "PkDialogOptions.Confirm.cs": 9,
+    "PkDialogOptions.Look.cs": 11,
     "PkDialogOptions.cs": 49,
     "Components/PkReconnect.razor": 17,
     "PkOptions.Reconnect.cs": 32,

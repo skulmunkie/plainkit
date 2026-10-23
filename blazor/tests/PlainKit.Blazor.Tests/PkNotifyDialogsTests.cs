@@ -101,6 +101,17 @@ public sealed class PkNotifyDialogsTests : BunitContext, IAsyncLifetime
         Assert.DoesNotContain("onConfirmValues", Bridge.Invocations.First(i => i.Identifier == "dialog").Arguments[2]!.ToString()!, StringComparison.OrdinalIgnoreCase);
     }
 
+    // Issue 1715: Tint and MaxWidthPx are plain options for the dialog core builds (pk-dialog's own tint and max-width).
+    [Fact]
+    public async Task Tint_and_MaxWidthPx_are_sent_as_tint_and_maxWidth()
+    {
+        var d = Services.GetRequiredService<IPkDialogs>();
+        await d.ConfirmAsync(new() { Heading = "Archive?", Tint = "archived", MaxWidthPx = 720 });
+        var json = Bridge.Invocations.First(i => i.Identifier == "dialog").Arguments[2]!.ToString()!;
+        Assert.Contains("\"tint\":\"archived\"", json);
+        Assert.Contains("\"maxWidth\":720", json);
+    }
+
     [Fact]
     public async Task Every_call_of_one_service_shares_a_scope_which_disposing_ends()
     {
