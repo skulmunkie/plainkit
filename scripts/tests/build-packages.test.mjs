@@ -91,6 +91,14 @@ test('markdown holds pk-markdown, pk-markdown-editor and js/markdown/, and core 
     assert.ok(k.has('plainkit.markdown.manifest.json') && !k.has('manifest.json'));
 });
 
+test('tools holds elements/api.json (only dev tools read it), core holds none, and core/package.json neither exports nor packs them', () => {
+    const k = new Set(names('plainkit.tools')), c = new Set(names('plainkit'));
+    for (const f of ['elements/api.json']) assert.ok(k.has(f) && !c.has(f), `${f} lives in plainkit.tools only`);
+    const pkg = JSON.parse(fs.readFileSync(path.join(REPO, 'core', 'package.json'), 'utf8'));
+    assert.ok(pkg.files.includes('!dist/elements/api.json'), 'FIX: core/package.json "files" negates !dist/elements/api.json.');
+    assert.ok(!JSON.stringify(pkg.exports).includes('api.json'), 'FIX: core/package.json "exports" may not point at files the package leaves out.');
+});
+
 test('ide holds the editor and IDE metadata, core holds none of it, and core/package.json neither exports nor packs it', () => {
     const k = new Set(names('plainkit.ide')), c = new Set(names('plainkit'));
     const ide = loadPackages().byId.get('plainkit.ide').files;
