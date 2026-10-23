@@ -1,0 +1,127 @@
+{
+  "tag": "pk-heat-map",
+  "title": "Heat map",
+  "group": "Data display",
+  "tier": "element",
+  "package": "plainkit.canvas",
+  "summary": "A weighted treemap: a fixed-height area filled with boxes whose area is each item's value and whose colour is its status (neutral, info, success, warning, danger). Boxes are real links or buttons with one tab stop and arrow-key movement, a data table is always kept beside the map as the accessible fallback, and boxes narrower than min-box merge into one \"Other\" box. Data is a property, not child elements.",
+  "props": [
+    {
+      "name": "items",
+      "type": "json",
+      "default": [],
+      "reflect": false,
+      "description": "The boxes: [{ id, label, value, severity?, href? }]. value above 0 sets the area; severity is neutral (default), info, success, warning or danger; href makes the box a link. An item with no usable value is skipped and said so once in the log."
+    },
+    {
+      "name": "label",
+      "type": "string",
+      "default": "",
+      "reflect": false,
+      "description": "The accessible name of the map (and the caption of its data table)."
+    },
+    {
+      "name": "minBox",
+      "type": "number",
+      "default": 48,
+      "reflect": false,
+      "description": "The smallest side of a box in pixels. Boxes below it merge into one \"Other (n)\" box (never dropped; the data table still lists every item). 0 never merges."
+    },
+    {
+      "name": "showTable",
+      "type": "boolean",
+      "default": false,
+      "reflect": true,
+      "description": "Show the data table in place of the map (also the print and narrow-screen fallback you choose). The table is always in the element for assistive technology."
+    }
+  ],
+  "slots": [
+    {
+      "name": "empty",
+      "description": "Shown when there is no usable item. Default text: No data."
+    }
+  ],
+  "events": [
+    {
+      "name": "pk-heat-select",
+      "detail": {
+        "id": "string"
+      },
+      "description": "A box was activated (click, Enter or Space; a box with an href is a real link). detail.id is the item id, detail.item the item itself; for the merged box id is \"__other\" and item.members lists the merged items. Cancel it to stop a link navigating.",
+      "cancelable": true
+    }
+  ],
+  "parts": [
+    {
+      "name": "map",
+      "description": "The list of boxes."
+    },
+    {
+      "name": "empty",
+      "description": "The empty state."
+    },
+    {
+      "name": "data",
+      "description": "The visually hidden box that holds the data table."
+    },
+    {
+      "name": "table",
+      "description": "The data table."
+    },
+    {
+      "name": "caption",
+      "description": "The data table caption."
+    },
+    {
+      "name": "rows",
+      "description": "The data table body."
+    }
+  ],
+  "cssProperties": [
+    {
+      "name": "--pk-heat-map-height",
+      "description": "The block size of the map. The element fills it and never scrolls.",
+      "default": "20rem"
+    },
+    {
+      "name": "--pk-heat-map-gap",
+      "description": "The gap between boxes.",
+      "default": "var(--space-1)"
+    },
+    {
+      "name": "--pk-heat-map-radius",
+      "description": "The corner radius of a box.",
+      "default": "var(--radius-sm)"
+    },
+    {
+      "name": "--pk-heat-map-neutral",
+      "description": "The background of a neutral box.",
+      "default": "var(--color-surface-alt)"
+    },
+    {
+      "name": "--pk-heat-map-text",
+      "description": "The text colour of a neutral box.",
+      "default": "var(--color-text)"
+    }
+  ],
+  "methods": [],
+  "a11y": "The element is a group named by label; each box is a link (with href) or a button named \"Label, value, Status\", in a list. The whole map is one tab stop (roving), the arrow keys move to the nearest box in that direction, Home and End to the first and last, Enter and Space activate. Colour is never the only carrier: a box that is not neutral carries its severity in its name and title, and shows the word when the box is tall enough (a small box keeps its label and drops what does not fit, never showing half a line). A data table (name, value, share, status) is always in the element for assistive technology and shows in place of the map with show-table.",
+  "examples": [
+    {
+      "title": "Issues by area",
+      "html": "<pk-heat-map label=\"Issues by area\" items='[{\"id\":\"billing\",\"label\":\"Billing\",\"value\":42,\"severity\":\"warning\"},{\"id\":\"auth\",\"label\":\"Sign-in\",\"value\":31,\"severity\":\"danger\"},{\"id\":\"search\",\"label\":\"Search\",\"value\":24},{\"id\":\"reports\",\"label\":\"Reports\",\"value\":18,\"severity\":\"info\"},{\"id\":\"docs\",\"label\":\"Docs\",\"value\":12,\"severity\":\"success\"},{\"id\":\"api\",\"label\":\"API\",\"value\":9},{\"id\":\"mobile\",\"label\":\"Mobile\",\"value\":6,\"severity\":\"warning\"},{\"id\":\"admin\",\"label\":\"Admin\",\"value\":3}]'></pk-heat-map>"
+    },
+    {
+      "title": "One dominant item",
+      "html": "<pk-heat-map label=\"One dominant item\" items='[{\"id\":\"a\",\"label\":\"Platform\",\"value\":520,\"severity\":\"danger\"},{\"id\":\"b\",\"label\":\"Web\",\"value\":160},{\"id\":\"c\",\"label\":\"Mobile\",\"value\":120,\"severity\":\"warning\"},{\"id\":\"d\",\"label\":\"Docs\",\"value\":80,\"severity\":\"success\"}]'></pk-heat-map>"
+    },
+    {
+      "title": "Boxes as links",
+      "html": "<pk-heat-map label=\"Boxes as links\" items='[{\"id\":\"a\",\"label\":\"Open\",\"value\":24,\"severity\":\"warning\",\"href\":\"#open\"},{\"id\":\"b\",\"label\":\"Blocked\",\"value\":9,\"severity\":\"danger\",\"href\":\"#blocked\"},{\"id\":\"c\",\"label\":\"Done\",\"value\":31,\"severity\":\"success\",\"href\":\"#done\"}]'></pk-heat-map>"
+    },
+    {
+      "title": "Data table instead of the map",
+      "html": "<pk-heat-map label=\"Issues by area\" show-table items='[{\"id\":\"billing\",\"label\":\"Billing\",\"value\":42,\"severity\":\"warning\"},{\"id\":\"auth\",\"label\":\"Sign-in\",\"value\":31,\"severity\":\"danger\"},{\"id\":\"search\",\"label\":\"Search\",\"value\":24},{\"id\":\"reports\",\"label\":\"Reports\",\"value\":18,\"severity\":\"info\"}]'></pk-heat-map>"
+    }
+  ]
+}

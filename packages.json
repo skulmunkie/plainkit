@@ -146,19 +146,21 @@
       ],
       "blazorOption": "canvas",
       "elements": [
-        "pk-canvas"
+        "pk-canvas",
+        "pk-heat-map"
       ],
       "js": [
         "canvas-geometry.js",
         "canvas-rulers.js",
         "canvas-select.js",
         "canvas-style.js",
+        "heat-map-layout.js",
         "svg/",
         "viewport-logic.js"
       ],
       "maxPackedBytes": null,
-      "maxUnpackedBytes": 47020,
-      "maxZipBytes": 21690
+      "maxUnpackedBytes": 56660,
+      "maxZipBytes": 26050
     },
     {
       "id": "plainkit.ide",

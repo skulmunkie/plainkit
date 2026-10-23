@@ -166,13 +166,28 @@ export const DEPRECATED_ELEMENTS = ${JSON.stringify(data.elements.deprecatedElem
 
 export const DEPRECATED_ATTRS = ${JSON.stringify(data.elements.deprecatedAttrs)};
 
-export const TOKENS = ${JSON.stringify(data.tokens)};
+// Stored as [name, value] pairs; the group is the name's first segment and the component name is Pk + the PascalCased tag
+// (the audit package has a size ceiling), both checked when this file is written.
+export const TOKENS = ${JSON.stringify(compactTokens(data.tokens))}.map(([name, value]) => ({ name, value, group: name.split('-')[2] }));
 
 export const PAGE_TYPES = ${JSON.stringify(data.pageTypes)};
 
-// params is one space-separated string per component (the audit package has a size ceiling; b-rules.mjs splits it).
-export const BLAZOR_COMPONENTS = ${JSON.stringify(Object.fromEntries(Object.entries(data.blazorComponents).map(([tag, v]) => [tag, { ...v, params: v.params.join(' ') }])))};
+// params is one space-separated string per component (b-rules.mjs splits it).
+export const BLAZOR_COMPONENTS = Object.fromEntries(Object.entries(${JSON.stringify(compactBlazor(data.blazorComponents))}).map(([tag, params]) => [tag, { component: 'Pk' + tag.slice(3).replace(/(^|-)(.)/g, (m, d, c) => c.toUpperCase()), params }]));
 `;
+}
+
+function compactTokens(tokens) {
+    for (const t of tokens) if (t.name.split('-')[2] !== t.group) throw new Error(`audit data: token ${t.name} group ${t.group} is not its first segment; store the group explicitly`);
+    return tokens.map(t => [t.name, t.value]);
+}
+
+function compactBlazor(components) {
+    const pascal = tag => 'Pk' + tag.slice(3).replace(/(^|-)(.)/g, (m, d, c) => c.toUpperCase());
+    return Object.fromEntries(Object.entries(components).map(([tag, v]) => {
+        if (v.component !== pascal(tag)) throw new Error(`audit data: ${tag} maps to ${v.component}, not ${pascal(tag)}; store the component name explicitly`);
+        return [tag, v.params.join(' ')];
+    }));
 }
 
 export async function writeAuditData(rootDir = root) {
