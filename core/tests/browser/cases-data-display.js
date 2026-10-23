@@ -1825,6 +1825,47 @@ export const dataDisplayCases = [
         }
     }],
 
+    ['contrast (#1752): a plain pk-alert (the settings page "Unsaved changes") clears 4.5:1 on the page and panel surfaces, for every kind, in light and dark', async t => {
+        const { sampleDoc } = await import('../../site/gallery/frame.js');
+        const rgb = c => { const m = /^color\(srgb ([\d.e-]+) ([\d.e-]+) ([\d.e-]+)/.exec(c); return m ? m.slice(1, 4).map(v => Number(v) * 255) : (/rgba?\(([\d.]+)[, ]+([\d.]+)[, ]+([\d.]+)/.exec(c) || []).slice(1, 4).map(Number); }; // a colour-mix() computes to color(srgb r g b)
+        const lum = ([r, g, b]) => { const k = v => { v /= 255; return v <= 0.03928 ? v / 12.92 : ((v + 0.055) / 1.055) ** 2.4; }; return 0.2126 * k(r) + 0.7152 * k(g) + 0.0722 * k(b); };
+        const ratio = (a, b) => { const [hi, lo] = [lum(a), lum(b)].sort((x, y) => y - x); return (hi + 0.05) / (lo + 0.05); };
+        const kinds = ['info', 'success', 'warning', 'danger'];
+        for (const theme of ['light', 'dark']) {
+            const host = t.stage(''), f = document.createElement('iframe');
+            f.title = 'sample'; f.style.width = '800px'; f.style.height = '160px'; f.style.border = '0';
+            const loaded = new Promise(r => f.addEventListener('load', r, { once: true }));
+            host.append(f); f.srcdoc = sampleDoc(kinds.map(k => `<pk-alert id="a-${k}" kind="${k}" plain inline compact>Unsaved changes</pk-alert>`).join('') + '<div id="p"></div>', { theme }); await loaded; await until(() => f.contentDocument.body?.firstElementChild, 'the frame');
+            const w = f.contentWindow, doc = f.contentDocument;
+            await until(() => w.customElements.get('pk-alert') && doc.getElementById('a-warning')?.shadowRoot?.querySelector('[part=message]'), 'the alerts'); await wait(200);
+            const surfaces = ['--color-bg', '--color-panel'].map(v => { const p = doc.getElementById('p'); p.style.backgroundColor = `var(${v})`; return rgb(w.getComputedStyle(p).backgroundColor); });
+            for (const k of kinds) {
+                const color = rgb(w.getComputedStyle(doc.getElementById('a-' + k)).color);
+                for (const s of surfaces) { const r = ratio(color, s); t.ok(r >= 4.5, `${theme} ${k}: the text is ${r.toFixed(2)}:1`); }
+            }
+        }
+    }],
+
+    ['tap targets (#1753, 375px): a row link, an editable cell, a badge-popover pill (with its hit layer) and a quantity-wide input each reach 44px on a phone', async t => {
+        const { sampleDoc } = await import('../../site/gallery/frame.js');
+        const host = t.stage(''), f = document.createElement('iframe');
+        f.title = 'sample'; f.style.width = '375px'; f.style.height = '600px'; f.style.border = '0';
+        const loaded = new Promise(r => f.addEventListener('load', r, { once: true }));
+        const cols = '[{"key":"po","label":"PO"},{"key":"qty","label":"Qty"}]', rows = '[{"id":"A1","po":"PO 1","qty":"3"},{"id":"A2","po":"PO 2","qty":"4"}]';
+        host.append(f); f.srcdoc = sampleDoc(`<pk-table id="links" label="Orders" row-href-template="#o-{id}" columns='${cols}' rows='${rows}'></pk-table><pk-table id="ed" label="Edit" editable columns='${cols}' rows='${rows}'></pk-table><pk-badge-popover id="bp" label="5 failing">Details</pk-badge-popover><pk-cluster><pk-input id="q" label="Qty" show-label width="xs" value="12"></pk-input></pk-cluster>`); await loaded; await until(() => f.contentDocument.body?.firstElementChild, 'the frame');
+        const w = f.contentWindow, doc = f.contentDocument, id = x => doc.getElementById(x);
+        await until(() => id('links')?.shadowRoot?.querySelector('a[data-row-link]') && id('ed')?.shadowRoot?.querySelector('td[data-key][tabindex]') && id('bp')?.shadowRoot?.querySelector('[part=trigger]') && id('q')?.shadowRoot?.querySelector('input'), 'the elements'); await wait(300);
+        const link = id('links').shadowRoot.querySelector('a[data-row-link]').getBoundingClientRect();
+        t.ok(link.height >= 44, `a row link is ${link.height}px high`);
+        const cell = id('ed').shadowRoot.querySelector('td[data-key][tabindex]').getBoundingClientRect();
+        t.ok(cell.height >= 44, `an editable cell is ${cell.height}px high`);
+        const trig = id('bp').shadowRoot.querySelector('[part=trigger]'), tr = trig.getBoundingClientRect(), pb = w.getComputedStyle(trig, '::before');
+        const hitW = Math.max(tr.width, parseFloat(pb.width)), hitH = Math.max(tr.height, parseFloat(pb.height));
+        t.ok(pb.content !== 'none' && pb.position === 'absolute' && hitW >= 44 && hitH >= 44, `the pill (${tr.width} x ${tr.height}) has a ${hitW} x ${hitH} hit layer`);
+        const inp = id('q').shadowRoot.querySelector('input').getBoundingClientRect();
+        t.ok(inp.width >= 44 && inp.height >= 44, `a quantity-wide input is ${inp.width} x ${inp.height}`);
+    }],
+
     ['code-block (#1135, 375px): the focusable body of a one-line block keeps the touch target on a phone', async t => {
         const { sampleDoc } = await import('../../site/gallery/frame.js');
         const host = t.stage(''), f = document.createElement('iframe');
