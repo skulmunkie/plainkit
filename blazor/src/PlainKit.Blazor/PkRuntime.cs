@@ -7,7 +7,7 @@ namespace PlainKit.Blazor;
 /// <summary>
 /// Loads the toolkit's JavaScript on demand. Register with <c>services.AddPlainKit()</c>; components call it, an app rarely does.
 /// </summary>
-public sealed class PkRuntime(IJSRuntime js, PkOptions? options = null, ILoggerFactory? loggerFactory = null, PkInteropLog? interop = null) : IAsyncDisposable
+public sealed partial class PkRuntime(IJSRuntime js, PkOptions? options = null, ILoggerFactory? loggerFactory = null, PkInteropLog? interop = null) : IAsyncDisposable
 {
     private Task<IJSObjectReference>? _bridge;
     private readonly PkInteropLog _interop = interop ?? new PkInteropLog();

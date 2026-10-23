@@ -14,7 +14,10 @@ export const DEFAULTS = Object.freeze({
     steps: Object.freeze([1, 2, 4, 8, 15, 30]), jitter: 0.2, window: 300000, // probe delays (s), +/- fraction, how long to keep probing (ms)
     maxReloads: 3, reloadWindow: 60000,      // loop guard
     storageKey: 'pk-reconnect-reloads',
-    strings: Object.freeze({ busy: 'Reconnecting...', failed: 'Cannot reach the server', ended: 'This session ended', paused: 'Paused', blocked: 'Reloading automatically did not help. Reload the page yourself.', stillTrying: 'Still trying' }),
+    strings: Object.freeze({ // the English defaults; {0} is the number. A Blazor app overrides any of them (PkReconnectStrings).
+        busy: 'Reconnecting...', attemptLabel: 'Attempt {0}', failed: 'Cannot reach the server', stillTrying: 'Still trying', ended: 'This session ended', reloadIn: 'Reloading in {0} s', paused: 'Paused',
+        blocked: 'Reloading automatically did not help. Reload the page yourself.', tryNow: 'Retry now', reload: 'Reload', cancel: 'Cancel', resume: 'Resume',
+    }),
 });
 
 /** The probe delay in ms before attempt `i` (0-based): the steps, then the last one, spread by +/- jitter. `rand` is in [0, 1). */

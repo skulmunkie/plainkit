@@ -27,7 +27,7 @@
     /// <summary>The page: the router's body.</summary>
     [Parameter] public RenderFragment? ChildContent { get; set; }
     protected override void OnInitialized() { Where(); Nav.LocationChanged += OnLocationChanged; Busy.Changed += Repaint; }
-    protected override async Task OnAfterRenderAsync(bool firstRender) { if (firstRender) await Theme.InitializeAsync(); else if (_moved) await RouteChangedAsync(); }
+    protected override async Task OnAfterRenderAsync(bool firstRender) { if (firstRender) { await Theme.InitializeAsync(); await Runtime.StartReconnectAsync(); } else if (_moved) await RouteChangedAsync(); }
 
     // Once the new page has rendered: title, focus and announcement, which are core's (js/app/route-focus.js), not re-written here. Title is the same text, so a deep link has it on the first render (#1332).
     private async Task RouteChangedAsync() { _moved = false; await (await Runtime.BridgeAsync()).InvokeVoidAsync("routeChanged", _loc?.Crumbs.LastOrDefault()?.Label ?? Catalog.Brand, Catalog.Brand); }
