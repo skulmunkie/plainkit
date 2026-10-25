@@ -6,8 +6,8 @@ import { mediaBelow } from '../../js/breakpoints.js';
 const filled = (el, name) => el.slotted(name).length > 0 || [...el.shadowRoot.querySelector(name ? `slot[name="${name}"]` : 'slot:not([name])').assignedNodes({ flatten: true })].some(n => n.textContent.trim() !== '');
 
 export default Base => class extends Base {
-    connected() { this.$ro = new ResizeObserver(() => { if (this.$w !== this.clientWidth) this.requestUpdate(); }); this.$ro.observe(this); for (const s of ['title', 'breadcrumb', '', 'actions', 'meta', 'tabs']) this.watchSlot(s, () => this.requestUpdate()); loadElements(this.shadowRoot); }
-    disconnected() { this.$ro?.disconnect(); this.$ro = null; this.$mq?.removeEventListener('change', this.$sync); this.$mq = null; this.$from = null; this.$omq?.removeEventListener('change', this.$sync); this.$omq = null; this.$ofrom = null; }
+    connected() { this.$ro = new ResizeObserver(() => { if (this.$w !== this.clientWidth) this.requestUpdate(); }); this.$ro.observe(this); for (const s of ['title', 'breadcrumb', '', 'actions', 'meta', 'tabs']) this.watchSlot(s, () => this.requestUpdate()); loadElements(this.shadowRoot); this.$mo = new MutationObserver(() => this.requestUpdate()); this.$mo.observe(this, { childList: true, subtree: true }); }
+    disconnected() { this.$mo?.disconnect(); this.$mo = null; this.$ro?.disconnect(); this.$ro = null; this.$mq?.removeEventListener('change', this.$sync); this.$mq = null; this.$from = null; this.$omq?.removeEventListener('change', this.$sync); this.$omq = null; this.$ofrom = null; }
     /** actionsOverflow: at the named width and below, the slotted actions stay in the light DOM but are hidden, and one trigger opens a menu with one item per action; choosing an item clicks that action. */
     overflow() {
         this.$sync ??= () => this.requestUpdate();
