@@ -4,7 +4,8 @@
 // drives the browser over the DevTools protocol (the plumbing is attest-browser.mjs's and ui-review.mjs's), and ALWAYS stops the host, the browser and deletes both temporary
 // folders on the way out (success, failure, Ctrl+C).
 //
-//   node scripts/blazor-browser.mjs [--out review-output] [--no-shots] [--cases a,b] [--timeout 120] [--publish-timeout 600] [--keep-publish]
+//   node scripts/blazor-browser.mjs [--out review-output] [--no-shots] [--cases a,b] [--timeout 120] [--publish-timeout 600] [--keep-publish] [--changed [--base <ref>]]
+//   --changed: only the cases the files changed versus --base (default origin/main) can affect (scripts/blazor-browser-select.mjs); a shared or unknown file runs everything; no run stamp.
 //   verify: node scripts/verify.mjs --only blazor-browser   (opt-in; not part of the pull request gate; see AGENTS.md)
 //
 //   review-output/blazor-app__<shot>__<desktop|phone>__<light|dark>.png   and   review-output/blazor-app.json (the case results)
@@ -21,6 +22,7 @@ import { fileURLToPath } from 'node:url';
 import { chromeArgs, findChrome, killTree, launchBrowser, removeDir } from './attest-browser.mjs';
 import { connect, evaluate, freePort } from './ui-review.mjs';
 import { ensureGenerated } from './generated.mjs';
+import { changedSince, defaultBase } from './verify-changed.mjs';
 import { writeRunStamp } from './verify-guard.mjs';
 import { CASE_TIMEOUT_MS, createRunGuard, runWatchdogMs, stopChild, withTimeout } from './blazor-browser-guard.mjs';
 import { cpuScale } from '../core/tests/browser/cpu-scale.js';
@@ -39,7 +41,7 @@ let scale = 1, measuredAt = -Infinity;
 export const loadScale = () => { if (Date.now() - measuredAt > 5000) { scale = cpuScale(); measuredAt = Date.now(); } return scale; };
 
 export function parseArgs(argv) {
-    const o = { out: path.join(root, 'review-output'), shots: true, cases: [], timeout: 120, publishTimeout: 600, keepPublish: false, wasm: true };
+    const o = { out: path.join(root, 'review-output'), shots: true, cases: [], timeout: 120, publishTimeout: 600, keepPublish: false, wasm: true, changed: false, base: null };
     for (let i = 0; i < argv.length; i++) {
         const a = argv[i], v = () => { const x = argv[++i]; if (x === undefined || x.startsWith('--')) throw new Error(`${a} needs a value`); return x; };
         if (a === '--out') o.out = path.resolve(v());
@@ -49,8 +51,11 @@ export function parseArgs(argv) {
         else if (a === '--publish-timeout') { o.publishTimeout = Number(v()); if (!Number.isInteger(o.publishTimeout) || o.publishTimeout <= 0) throw new Error('--publish-timeout needs a positive whole number of seconds'); }
         else if (a === '--keep-publish') o.keepPublish = true;
         else if (a === '--no-wasm') o.wasm = false;
+        else if (a === '--changed') o.changed = true;
+        else if (a === '--base') o.base = v();
         else throw new Error(`unknown argument ${a}`);
     }
+    if (o.changed && o.cases.length) throw new Error('use either --cases or --changed');
     return o;
 }
 
@@ -276,7 +281,18 @@ async function main() {
     const known = [...CASES, ...WASM_CASES].map(c => c.name), unknown = o.cases.filter(n => !known.includes(n));
     if (unknown.length) { console.error(`unknown case ${unknown.join(', ')}; known: ${known.join(', ')}`); return 2; }
     const picked = list => list.filter(c => !o.cases.length || o.cases.includes(c.name));
-    const serverCases = picked(CASES), wasmCases = o.wasm ? picked(WASM_CASES) : [];
+    let serverCases = picked(CASES), wasmCases = o.wasm ? picked(WASM_CASES) : [], shotPlan = SHOT_PLAN, sel = null;
+    if (o.changed) {
+        const { selectCases, describeSelection } = await import('./blazor-browser-select.mjs');
+        const base = defaultBase(o.base, root);
+        if (!base) { console.error('No base to compare with (no origin/main). Pass --base <ref>.'); return 2; }
+        sel = selectCases(changedSince(base, root), { root, cases: CASES, wasmCases: WASM_CASES, shots: SHOT_PLAN });
+        console.log(describeSelection(sel, { cases: CASES.length + WASM_CASES.length, shots: SHOT_PLAN.length }));
+        if (!sel.full) {
+            serverCases = serverCases.filter(c => sel.cases.has(c.name)); wasmCases = wasmCases.filter(c => sel.cases.has(c.name)); shotPlan = SHOT_PLAN.filter((_, i) => sel.shots.has(i));
+            if (!serverCases.length && !wasmCases.length && !(o.shots && shotPlan.length)) { console.log('blazor browser --changed: nothing the changed files can affect; nothing to run'); return 0; }
+        }
+    }
 
     const pub = makeTempDir('pk-blazor-pub-'), wasmPub = makeTempDir('pk-blazor-wasm-'), profile = makeTempDir('pk-blazor-chrome-');
     let host = null, wasmHost = null, session = null, code = 2;
@@ -295,7 +311,7 @@ async function main() {
                 catch (e) { results.cases.push({ name: c.name, ok: false, error: e.message }); console.log(`  FAIL ${c.name}: ${e.message}`); }
             }
         };
-        if (serverCases.length || o.shots) { console.log('publishing the sample ...'); publish(pub, SAMPLE, o.publishTimeout); host = await startHost(pub, o.timeout); }
+        if (serverCases.length || (o.shots && shotPlan.length)) { console.log('publishing the sample ...'); publish(pub, SAMPLE, o.publishTimeout); host = await startHost(pub, o.timeout); }
         if (wasmCases.length) { console.log('publishing the WebAssembly sample ...'); publish(wasmPub, SAMPLE_WASM, o.publishTimeout); wasmHost = await startStaticHost(wasmPub); }
         console.log(`host on ${host?.base}${wasmHost ? `, WebAssembly host on ${wasmHost.base}` : ''}; browser ${chrome}`);
         session = await openBrowser(chrome, profile);
@@ -303,9 +319,9 @@ async function main() {
         await ctx.viewport(VIEWPORTS[0], 'light');
         await runAll(ctx, serverCases);
         await runAll(makeContext({ host: wasmHost, session, out: o.out, shots: o.shots, results }), wasmCases);
-        if (o.shots) for (const vp of VIEWPORTS) for (const theme of THEMES) {
+        if (o.shots && shotPlan.length) for (const vp of VIEWPORTS) for (const theme of THEMES) {
             await ctx.viewport(vp, theme);
-            for (const s of SHOT_PLAN) { try { await s(ctx, vp, theme); } catch (e) { results.cases.push({ name: `shot ${vp.name} ${theme}`, ok: false, error: e.message }); console.log(`  FAIL screenshots ${vp.name}/${theme}: ${e.message}`); } }
+            for (const s of shotPlan) { try { await s(ctx, vp, theme); } catch (e) { results.cases.push({ name: `shot ${vp.name} ${theme}`, ok: false, error: e.message }); console.log(`  FAIL screenshots ${vp.name}/${theme}: ${e.message}`); } }
         }
         fs.mkdirSync(o.out, { recursive: true });
         fs.writeFileSync(path.join(o.out, 'blazor-app.json'), JSON.stringify(results, null, 2));
@@ -318,7 +334,7 @@ async function main() {
         code = 2;
     } finally {
         await stop();
-        if (code < 2) writeRunStamp(root, 'blazor-browser', code === 0); // which tree this run belongs to (scripts/gate-check.mjs, #1754)
+        if (code < 2 && !o.cases.length && !(sel && !sel.full)) writeRunStamp(root, 'blazor-browser', code === 0); // which tree this run belongs to (scripts/gate-check.mjs, #1754)
         await sleep(500);
         guard.phase('cleaning temp folders');
         killUsing(profile);
