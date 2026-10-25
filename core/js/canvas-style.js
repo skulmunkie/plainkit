@@ -32,7 +32,14 @@ const select = () => `
 [part="selection"] { position: absolute; inset: 0; pointer-events: none; }
 [part="selection"] > [data-sel] { position: absolute; box-sizing: border-box; outline: 2px solid var(--color-accent); outline-offset: 1px; }
 [part="marquee"] { position: absolute; box-sizing: border-box; border: 1px dashed var(--color-accent); background: color-mix(in srgb, var(--color-accent) 14%, transparent); }
-@media (forced-colors: active) { [part="selection"] > [data-sel] { outline-color: Highlight; } [part="marquee"] { border-color: Highlight; } }`;
+[part="selection"] > [part="handle"] { position: absolute; box-sizing: border-box; translate: -50% -50%; background: var(--color-bg); border: 2px solid var(--color-accent); pointer-events: auto; touch-action: none; }
+[part="selection"] > [part="handle"]::before { content: ""; position: absolute; left: 50%; top: 50%; inline-size: var(--touch-target); block-size: var(--touch-target); translate: -50% -50%; }
+[data-handle="nw"], [data-handle="se"] { cursor: nwse-resize; } [data-handle="ne"], [data-handle="sw"] { cursor: nesw-resize; } [data-handle="n"], [data-handle="s"] { cursor: ns-resize; } [data-handle="e"], [data-handle="w"] { cursor: ew-resize; }
+[part="guide"], [part="snap-line"] { position: absolute; pointer-events: none; border-width: 0; border-style: solid; }
+[part="guide"][data-axis="x"], [part="snap-line"][data-axis="x"] { top: 0; bottom: 0; inline-size: 0; border-left-width: 1px; }
+[part="guide"][data-axis="y"], [part="snap-line"][data-axis="y"] { left: 0; right: 0; block-size: 0; border-top-width: 1px; }
+[part="guide"] { border-style: dashed; }
+@media (forced-colors: active) { [part="selection"] > [data-sel] { outline-color: Highlight; } [part="marquee"] { border-color: Highlight; } [part="handle"] { border-color: Highlight; } [part="guide"], [part="snap-line"] { border-color: Highlight; } }`;
 
 const LAYERS = { grid, rulers, select };
 const sheets = new Map();

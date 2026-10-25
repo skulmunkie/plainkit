@@ -65,4 +65,31 @@ public sealed class PkCanvasEventTests : BunitContext, IAsyncLifetime
         Assert.True(moved!.Done);
         Assert.True(el.HasAttribute("readonly"));
     }
+
+    [Fact]
+    public async Task pk_canvas_resize_raises_OnResize()
+    {
+        PkCanvasResizeEventArgs? resized = null;
+        var cut = Render<PkCanvas>(p => p.Add(c => c.OnResize, e => resized = e));
+
+        await cut.InvokeAsync(() => cut.Find("pk-canvas").TriggerEventAsync("onpk-canvas-resize", new PkCanvasResizeEventArgs { Id = "a", W = 120, H = 72, Done = true }));
+
+        Assert.Equal("a", resized!.Id);
+        Assert.Equal(120, resized.W);
+        Assert.True(resized.Done);
+    }
+
+    [Fact]
+    public void Snap_SnapThreshold_and_Guides_render_as_attributes()
+    {
+        var cut = Render<PkCanvas>(p => p
+            .Add(c => c.Snap, "grid edges")
+            .Add(c => c.SnapThreshold, 8)
+            .Add(c => c.Guides, new[] { new { axis = "y", at = 50 } }));
+        var el = cut.Find("pk-canvas");
+
+        Assert.Equal("grid edges", el.GetAttribute("snap"));
+        Assert.Equal("8", el.GetAttribute("snap-threshold"));
+        Assert.Contains("\"axis\":\"y\"", el.GetAttribute("guides"));
+    }
 }

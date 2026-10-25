@@ -31,6 +31,10 @@
 
 [part="toolbar"] { position: absolute; inset-block-end: var(--space-2); inset-inline-end: var(--space-2); display: flex; align-items: center; gap: var(--space-1); padding: var(--space-1); background: var(--color-bg); border: 1px solid var(--color-border); border-radius: var(--radius-md); box-shadow: var(--shadow-flyout); }
 
+[part="handle"] { inline-size: var(--pk-canvas-handle-size, var(--space-2)); block-size: var(--pk-canvas-handle-size, var(--space-2)); }
+
+[part="guide"], [part="snap-line"] { border-color: var(--pk-canvas-guide, var(--color-accent)); }
+
 [part="level"] { min-inline-size: 4ch; text-align: center; font-size: var(--text-sm); color: var(--color-muted); font-variant-numeric: tabular-nums; }
 
 @media (--phone) {

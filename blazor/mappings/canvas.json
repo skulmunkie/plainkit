@@ -13,6 +13,9 @@
     { "name": "Mode", "type": "string", "default": "select", "map": "prop", "prop": "mode" },
     { "name": "Selection", "type": "IReadOnlyList<string>?", "json": true, "prop": "selection", "note": "The ids of the selected items, as JSON text; items declare their world rect with data-id, data-x, data-y, data-w, data-h (the geometry callback is JS only)." },
     { "name": "ReadOnly", "type": "bool", "default": false, "map": "prop", "prop": "readonly" },
+    { "name": "Snap", "type": "string", "default": "", "map": "prop", "prop": "snap" },
+    { "name": "SnapThreshold", "type": "double", "default": 6, "map": "prop", "prop": "snapThreshold" },
+    { "name": "Guides", "type": "object", "jsonText": true, "default": "[]", "map": "prop", "prop": "guides", "note": "Sent as a JSON attribute: [{ axis: 'x' | 'y', at }] in world units. The targets property (extra snap rects) is JavaScript only." },
     { "name": "MinZoom", "type": "double", "default": 0.25, "map": "prop", "prop": "minZoom" },
     { "name": "MaxZoom", "type": "double", "default": 4, "map": "prop", "prop": "maxZoom" },
     { "name": "Wheel", "type": "string", "default": "auto", "map": "prop", "prop": "wheel" },
@@ -22,7 +25,8 @@
     { "name": "OnPick", "event": "pk-canvas-pick" },
     { "name": "OnKey", "event": "pk-canvas-key" },
     { "name": "OnSelect", "event": "pk-canvas-select" },
-    { "name": "OnMove", "event": "pk-canvas-move" }
+    { "name": "OnMove", "event": "pk-canvas-move" },
+    { "name": "OnResize", "event": "pk-canvas-resize" }
   ],
   "methods": [
     { "name": "ZoomToFitAsync", "method": "zoomToFit" },

@@ -50,7 +50,7 @@ export function readPanels(children) {
 export const readingOrder = doc => groups(doc).flatMap(g => g.panels);
 
 
-const forward = (ns, names) => Object.fromEntries(names.split(' ').map(n => [n, function (...a) { return ns[n](this, ...a); }]));
+const forward = ns => Object.fromEntries(ns.methods.split(' ').map(n => [n, function (...a) { return ns[n](this, ...a); }]));
 
 export default Base => {
     const Dock = class extends Base {
@@ -192,5 +192,5 @@ export default Base => {
     onDragMove(e) { drag.onDragMove(this, e, dropZone); }
     onToggle(e) { flyout.onToggle(this, e, collapsePanel, expandPanel); }
     };
-    return Object.assign(Dock.prototype, forward(drag, 'settle applyMove floatCmd focusFloater applyDockFloat onFloatKeys onFloatFocus paint onDragStart grab clearDropZone onDragEnd paintFloat'), forward(flyout, 'closePanel openPanel focusPanel toggleFlyout closeFlyout onFlyoutBlur')), Dock;
+    return Object.assign(Dock.prototype, forward(drag), forward(flyout)), Dock;
 };
