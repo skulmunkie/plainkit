@@ -20,6 +20,9 @@
     { "name": "mode", "type": "string", "default": "select", "reflect": true, "values": ["select", "pan"], "description": "What a primary drag on bare ground does in a selectable canvas: select draws a marquee (touch, the middle button and the toolbar still pan), pan drags the view." },
     { "name": "selection", "type": "json", "default": [], "reflect": false, "commit": "pk-canvas-select", "description": "The ids of the selected items (an array, or a JSON attribute). The canvas sets it from a gesture and emits pk-canvas-select; set it to select from code." },
     { "name": "readonly", "type": "boolean", "default": false, "reflect": true, "description": "View only: pan, zoom and selection still work, but the selection cannot be moved or resized (no pk-canvas-move or pk-canvas-resize, no handles)." },
+    { "name": "snap", "type": "string", "default": "", "reflect": true, "description": "What a dragged selection snaps to, a space list: grid, guides, edges, centres (edges and centres of the other items and of the targets property, a JS-only array of extra { x, y, w, h } world rects). Empty: no snapping. The lines that hold it are drawn while dragging." },
+    { "name": "snapThreshold", "type": "number", "default": 6, "reflect": true, "description": "How near, in screen pixels, a snap line pulls." },
+    { "name": "guides", "type": "json", "default": [], "reflect": false, "description": "Guide lines [{ axis: 'x' | 'y', at }] in world units, drawn across a selectable surface and snapped to with snap=\"guides\"." },
     { "name": "minZoom", "type": "number", "default": 0.25, "reflect": true, "description": "The smallest scale." },
     { "name": "maxZoom", "type": "number", "default": 4, "reflect": true, "description": "The largest scale." },
     { "name": "wheel", "type": "string", "default": "auto", "reflect": true, "values": ["auto", "zoom", "pan", "page"], "description": "The plain wheel: auto pans only with focus (else the page scrolls), pan, zoom, or page (never taken). Ctrl or Cmd with the wheel, and pinch, always zoom." },
@@ -50,6 +53,8 @@
     { "name": "selection", "description": "The layer of selection frames (selectable)" },
     { "name": "marquee", "description": "The rubber band while a drag selects" },
     { "name": "handle", "description": "A resize handle (eight on a single selected item, not readonly), data-handle nw, ne, se, sw, n, e, s or w" },
+    { "name": "guide", "description": "A guide line, data-axis x (vertical) or y (horizontal)" },
+    { "name": "snap-line", "description": "A line a dragged selection is snapped to, shown while dragging" },
     { "name": "rulers", "description": "The rulers layer (rulers on)" },
     { "name": "ruler", "description": "One ruler strip, data-axis x or y" },
     { "name": "ruler-corner", "description": "The corner with the unit" },
@@ -60,7 +65,8 @@
     { "name": "--pk-canvas-grid", "description": "The grid line colour", "default": "a faint text mix" },
     { "name": "--pk-canvas-width", "description": "The world width at zoom 1", "default": "24rem" },
     { "name": "--pk-canvas-height", "description": "The height of the surface", "default": "24rem" },
-    { "name": "--pk-canvas-handle-size", "description": "The drawn size of a resize handle; its hit area stays --touch-target", "default": "var(--space-2)" }
+    { "name": "--pk-canvas-handle-size", "description": "The drawn size of a resize handle; its hit area stays --touch-target", "default": "var(--space-2)" },
+    { "name": "--pk-canvas-guide", "description": "The colour of guides and snap lines", "default": "var(--color-accent)" }
   ],
   "methods": [
     { "name": "pointToWorld(clientX, clientY)", "description": "Returns { x, y } world units for a client point, grid-snapped" },
