@@ -6,15 +6,18 @@
 //   - draws a marquee while a primary-button drag runs over bare ground in mode="select" and selects what it touches,
 //   - moves the selection with the arrow keys (one grid step, Shift ten, Alt one screen pixel) through a cancelable pk-canvas-move the page answers by writing the item back (not when readonly),
 //   - moves the selection when an already selected item is dragged (pk-canvas-move with done false while it runs, done true at the end; Escape puts it back),
+//   - draws eight resize handles on a single selected item; dragging one asks for a new rect through a cancelable pk-canvas-resize (Shift keeps the ratio, Alt the centre, Escape puts it back),
+//   - snaps a dragged selection to what `snap` lists (grid, guides, edges, centres of the other items and the `targets` property), drawing the lines that hold it, and draws the `guides`,
 // and says what changed in the canvas's live region. The host owns the `selection` property (an array of ids); this layer sets it and emits pk-canvas-select.
-import { declaredRect, between, marquee, combine, toFrame, fromFrame, moved, nudge } from './canvas-geometry.js';
+import { declaredRect, between, marquee, combine, toFrame, fromFrame, moved, nudge, handles, resizeRect } from './canvas-geometry.js';
+import { snapRect } from './canvas-snap.js';
 import { adopt } from './canvas-style.js';
 
 export function mount(host) {
     adopt(host, 'select');
     const frame = host.part('frame'), layer = host.part('selection'), box = host.part('marquee'), status = host.part('status');
     layer.hidden = false;
-    let drag = null, grab = null;     // drag: the marquee; grab: a selected item being moved
+    let drag = null, grab = null, size = null;     // drag: the marquee; grab: a selected item being moved; size: a handle being dragged
     // The items that declare geometry: [{ id, el, x, y, w, h }].
     const items = () => [...host.querySelectorAll('[data-id]')].flatMap(el => { const r = typeof host.geometry === 'function' ? host.geometry(el) : declaredRect(el); return r ? [{ id: el.dataset.id, el, ...r }] : []; });
     const view = () => ({ x: host.panX, y: host.panY, zoom: host.zoom });
@@ -48,18 +51,51 @@ export function mount(host) {
         else if (!e.detail.additive) set([]);
     };
     const onDown = e => {
+        const handle = e.target.dataset?.handle;
+        if (handle) {
+            const it = e.isPrimary && !host.readonly && host.selection.length === 1 && items().find(i => i.id === host.selection[0]);
+            if (it) { size = { id: e.pointerId, name: handle, from: local(e), base: { x: it.x, y: it.y, w: it.w, h: it.h }, item: it.id, on: false }; frame.setPointerCapture?.(e.pointerId); }
+            return;
+        }
         if (host.$mq && e.isPrimary) drag = { id: e.pointerId, from: local(e), on: false };
         const id = idOf(e.target);
         if (e.isPrimary && e.button === 0 && !host.readonly && id !== undefined && host.selection.includes(id)) grab = { id: e.pointerId, from: local(e), on: false, base: items() };
     };
     // The pointer distance since the press, in world units.
     const by = (g, p) => [(p.x - g.from.x) / host.zoom, (p.y - g.from.y) / host.zoom];
+    // Ask the page to resize the one selected item: a cancelable pk-canvas-resize with its new world rect (the page writes it back). No pointer: the original rect.
+    const resize = (s, p, done, e) => {
+        const [dx, dy] = p ? by(s, p) : [0, 0];
+        const r = resizeRect(s.base, s.name, dx, dy, { min: 1, ratio: !!e?.shiftKey, centre: !!e?.altKey });
+        if (host.emit('pk-canvas-resize', { id: s.item, ...r, done }) && done) status.textContent = `Resized to ${round(r.w)} by ${round(r.h)}`;
+    };
+    // Snap lines shown while a drag is held by them ([{ axis, at }] in world units); drawn by draw().
+    let held = [];
+    const lines = h => { held = h; api.draw(); };
+    // The pointer delta (world units) after snapping the box around the moving selection to what `snap` lists; the threshold is in screen pixels.
+    const snapped = (g, d) => {
+        const on = new Set(String(host.snap || '').split(/\s+/).filter(Boolean)), mine = g.base.filter(i => host.selection.includes(i.id));
+        if (!on.size || !mine.length) return d;
+        const x = Math.min(...mine.map(i => i.x)), y = Math.min(...mine.map(i => i.y));
+        const rect = { x: x + d[0], y: y + d[1], w: Math.max(...mine.map(i => i.x + i.w)) - x, h: Math.max(...mine.map(i => i.y + i.h)) - y };
+        const others = [...g.base.filter(i => !host.selection.includes(i.id)), ...(Array.isArray(host.targets) ? host.targets : [])];
+        const r = snapRect(rect, { grid: on.has('grid') ? host.steps().minor : 0, guides: on.has('guides') && Array.isArray(host.guides) ? host.guides : [], targets: others, threshold: (host.snapThreshold ?? 6) / host.zoom, edges: on.has('edges'), centres: on.has('centres') });
+        lines(r.hits);
+        return [d[0] + r.rect.x - rect.x, d[1] + r.rect.y - rect.y];
+    };
     const onMove = e => {
+        if (size && e.pointerId === size.id) {
+            const p = local(e);
+            if (!size.on && Math.hypot(p.x - size.from.x, p.y - size.from.y) < 2) return;
+            size.on = true;
+            resize(size, p, false, e);
+            return;
+        }
         if (grab && e.pointerId === grab.id) {
             const p = local(e);
             if (!grab.on && Math.hypot(p.x - grab.from.x, p.y - grab.from.y) < 4) return;
             grab.on = true;
-            move(...by(grab, p), false, grab.base);
+            move(...snapped(grab, by(grab, p)), false, grab.base);
             return;
         }
         if (!drag || e.pointerId !== drag.id) return;
@@ -69,10 +105,11 @@ export function mount(host) {
         put(box, between(drag.from.x, drag.from.y, p.x, p.y));
     };
     const onUp = e => {
+        if (size && e.pointerId === size.id) { const s = size; size = null; if (s.on) resize(s, e.type === 'pointerup' ? local(e) : null, true, e); return; }
         if (grab && e.pointerId === grab.id) {
             const g = grab;
             grab = null;
-            if (g.on) move(...(e.type === 'pointerup' ? by(g, local(e)) : [0, 0]), true, g.base);      // a cancelled pointer puts it back
+            if (g.on) { move(...(e.type === 'pointerup' ? snapped(g, by(g, local(e))) : [0, 0]), true, g.base); lines([]); }      // a cancelled pointer puts it back
             return;
         }
         if (!drag || e.pointerId !== drag.id) return;
@@ -83,7 +120,8 @@ export function mount(host) {
     // Captured so a handled key does not also reach the canvas's own handler (Escape clears first and is only reported when nothing is selected).
     const onKey = e => {
         if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'a' && !e.target.matches?.('input, textarea, select, [contenteditable]')) set(items().map(i => i.id));
-        else if (e.key === 'Escape' && grab?.on) { const g = grab; grab = null; move(0, 0, true, g.base); }
+        else if (e.key === 'Escape' && size?.on) { const s = size; size = null; resize(s, null, true); }
+        else if (e.key === 'Escape' && grab?.on) { const g = grab; grab = null; move(0, 0, true, g.base); lines([]); }
         else if (e.key === 'Escape' && host.selection.length) set([]);
         else if (ARROWS[e.key] && !host.readonly && !e.ctrlKey && !e.metaKey && host.selection.length && !e.target.matches?.('input, textarea, select, [contenteditable]')) {
             const d = nudge(host.steps().minor, host.zoom, e), [ux, uy] = ARROWS[e.key];
@@ -102,11 +140,22 @@ export function mount(host) {
     frame.addEventListener('pointermove', onMove);
     frame.addEventListener('pointerup', onUp);
     frame.addEventListener('pointercancel', onUp);
-    return {
+    const api = {
         // One frame per selected item that still exists and declares geometry.
         draw() {
-            const sel = new Set(host.selection), v = view();
-            layer.replaceChildren(box, ...items().filter(i => sel.has(i.id)).map(i => { const d = document.createElement('div'); d.dataset.sel = ''; put(d, toFrame(v, i)); return d; }));
+            const sel = new Set(host.selection), v = view(), shown = items().filter(i => sel.has(i.id));
+            const marks = shown.map(i => { const d = document.createElement('div'); d.dataset.sel = ''; put(d, toFrame(v, i)); return d; });
+            // One selected item that may change gets eight handles, centred on its corners and edges (the CSS gives each a 44px hit area).
+            const grips = shown.length === 1 && !host.readonly ? handles(toFrame(v, shown[0])).map(h => {
+                const d = document.createElement('div');
+                d.setAttribute('part', 'handle'); d.dataset.handle = h.name;
+                d.style.setProperty('left', `${h.x}px`); d.style.setProperty('top', `${h.y}px`);
+                return d;
+            }) : [];
+            // Guides across the whole surface and the snap lines of a held drag: one positioned div each (the world never mirrors: physical left/top).
+            const line = (part, axis, at) => { const d = document.createElement('div'); d.setAttribute('part', part); d.dataset.axis = axis; d.style.setProperty(axis === 'x' ? 'left' : 'top', `${(axis === 'x' ? v.x : v.y) + at * v.zoom}px`); return d; };
+            const guides = (Array.isArray(host.guides) ? host.guides : []).filter(g => (g?.axis === 'x' || g?.axis === 'y') && Number.isFinite(g.at)).map(g => line('guide', g.axis, g.at));
+            layer.replaceChildren(box, ...guides, ...marks, ...grips, ...held.map(h => line('snap-line', h.axis, h.at)));
         },
         stop() {
             host.removeEventListener('pk-canvas-pick', onPick);
@@ -116,4 +165,5 @@ export function mount(host) {
             layer.replaceChildren(box); layer.hidden = true; box.hidden = true;
         },
     };
+    return api;
 }
