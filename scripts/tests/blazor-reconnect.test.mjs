@@ -9,8 +9,8 @@ const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..', '.
 const { describe } = await import(pathToFileURL(path.join(root, 'blazor', 'src', 'PlainKit.Blazor', 'wwwroot', 'plainkit.reconnect.js')).href); // no document here: importing must not start anything
 const s = DEFAULTS.strings;
 
-test('a busy view shows the spinner and the attempt after the first', () => {
-    assert.deepEqual(describe({ kind: 'busy', text: s.busy, attempt: 1 }, s).show, { spinner: true, tryNow: false, reload: false, cancel: false, resume: false });
+test('a busy view shows the spinner, Reload, and the attempt after the first', () => {
+    assert.deepEqual(describe({ kind: 'busy', text: s.busy, attempt: 1 }, s).show, { spinner: true, tryNow: false, reload: true, cancel: false, resume: false }); // #1771: Reload while retrying
     assert.equal(describe({ kind: 'busy', text: s.busy, attempt: 3 }, s).detail, 'Attempt 3');
     assert.equal(describe({ kind: 'busy', text: s.busy, attempt: 1 }, s).detail, '');
     assert.equal(describe({ kind: 'busy', text: s.busy }, s).tone, 'info');
