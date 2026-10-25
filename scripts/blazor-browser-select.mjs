@@ -60,7 +60,7 @@ const ROWS = [
     [['side-nav-open-close'], ['LabNav'], []],
     [['lookup-picker-extra-events-and-debounce', 'data-table-query-binds'], ['LabExtras'], []],
     [['image-gallery-pointer-reorder', 'kanban-pointer-move'], ['LabDrag'], []],
-    [['reconnect-banner-desktop-layout', 'reconnect-banner-phone-icons', 'reconnect-host-restart-rejected', 'reconnect-host-restart-auto-reload', 'reconnect-host-restart-loop-guard'], ['Overview'], ['reconnect']],
+    [['reconnect-banner-desktop-layout', 'reconnect-banner-desktop-overlay', 'reconnect-banner-phone-icons', 'reconnect-host-restart-rejected', 'reconnect-host-restart-auto-reload', 'reconnect-host-restart-loop-guard'], ['Overview'], ['reconnect']],
 ];
 export const CASE_MAP = Object.fromEntries(ROWS.flatMap(([names, pages, areas]) => names.map(n => [n, { pages, areas }])));
 
