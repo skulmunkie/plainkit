@@ -148,6 +148,7 @@ export const removeDir = dir => removeTreeAsync(dir); // clears read-only, retri
 
 // A failed run keeps its trace for reading and a killed run (tool timeout, Ctrl+C) never reaches its own clean-up, so pk-attest- traces and profile
 // folders would pile up in the temp folder. Each run deletes the ones older than STALE_MS first (never `keep`, its own). Returns the names it removed.
+const removeFile = p => { try { fs.rmSync(p, { force: true }); return true; } catch (e) { console.error(`Could not delete ${p}: ${e.message}`); return false; } };
 export const STALE_MS = 3 * 24 * 3600 * 1000;
 export function pruneStale(dir, { now = Date.now(), maxAgeMs = STALE_MS, keep = [] } = {}) {
     let names;
@@ -158,7 +159,7 @@ export function pruneStale(dir, { now = Date.now(), maxAgeMs = STALE_MS, keep = 
         if (keep.includes(p)) continue;
         const st = fs.lstatSync(p, { throwIfNoEntry: false });
         if (!st || now - st.mtimeMs <= maxAgeMs) continue;
-        if (removeTree(p, { attempts: 2 })) removed.push(name); else console.error(`Could not delete the old ${p}; delete it by hand.`);
+        if (st.isDirectory() ? removeTree(p, { attempts: 2 }) : removeFile(p)) removed.push(name); else console.error(`Could not delete the old ${p}; delete it by hand.`);
     }
     return removed;
 }
