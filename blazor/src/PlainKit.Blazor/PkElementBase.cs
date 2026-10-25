@@ -40,7 +40,7 @@ public abstract partial class PkElementBase : ComponentBase
     {
         if (_handlers is null)
         {
-            _handlers = new Dictionary<string, object>();
+            CheckExtra(); _handlers = new Dictionary<string, object>();
             AddEventHandlers(_handlers);
         }
         // No caller attributes: the cached dictionary is used as it is, nothing is allocated for a parameter change.
