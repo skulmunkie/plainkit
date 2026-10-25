@@ -158,11 +158,6 @@ export default Base => {
         this.layout = json;
         return r.problems;
     }
-    // Public (#432 D2): the menus' own commands from code, with their reasons, announcements and refusals. dockPanel's target is a group id of the layout.
-    floatPanel(id, rect) { if (render.canFloat(this, id)) this.floatCmd(id, rect); }
-    dockPanel(id, { target, zone = 'center' } = {}) { this.applyMove(zone === 'center' ? 'tab' : 'dock', id, target, zone); }
-    collapsePanel(id) { if (render.canCollapse(this, id)) drag.collapseCmd(this, id); }
-    raisePanel(id) { drag.raiseCmd(this, id); }
     onResize(e) {
         e.stopPropagation();
         const id = e.target.closest?.('pk-splitter')?.getAttribute('data-node');
@@ -197,5 +192,5 @@ export default Base => {
     onDragMove(e) { drag.onDragMove(this, e, dropZone); }
     onToggle(e) { flyout.onToggle(this, e, collapsePanel, expandPanel); }
     };
-    return Object.assign(Dock.prototype, forward(drag, 'settle applyMove floatCmd focusFloater applyDockFloat onFloatKeys onFloatFocus paint onDragStart grab clearDropZone onDragEnd paintFloat'), forward(flyout, 'closePanel openPanel focusPanel toggleFlyout closeFlyout onFlyoutBlur')), Dock;
+    return Object.assign(Dock.prototype, forward(drag, 'settle applyMove floatCmd focusFloater applyDockFloat onFloatKeys onFloatFocus paint onDragStart grab clearDropZone onDragEnd paintFloat floatPanel dockPanel collapsePanel raisePanel'), forward(flyout, 'closePanel openPanel focusPanel toggleFlyout closeFlyout onFlyoutBlur')), Dock;
 };
