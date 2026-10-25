@@ -33,7 +33,7 @@
     { "name": "pk-canvas-pick", "detail": { "target": "Element | null", "additive": "boolean" }, "description": "A press without movement: the deepest node under it, or null on bare ground; additive with Shift, Ctrl or Cmd." },
     { "name": "pk-canvas-select", "detail": { "ids": "string[]" }, "description": "The selection changed by a gesture (click, marquee, Ctrl+A, Escape, Tab focus): the new ids." },
     { "name": "pk-canvas-key", "detail": { "key": "string", "shiftKey": "boolean", "altKey": "boolean", "ctrlKey": "boolean" }, "description": "Delete, Escape, or Shift with an arrow (when there is no selection to move), on the focused surface, for the page to act on." },
-    { "name": "pk-canvas-move", "detail": { "moves": "{ id: string, x: number, y: number }[]", "done": "boolean" }, "description": "Cancelable: the selection is asked to move to these world positions (arrow keys: done true). The page writes them back to the items' data-x and data-y (or an SVG item's x and y); the canvas never moves items itself." }
+    { "name": "pk-canvas-move", "detail": { "moves": "{ id: string, x: number, y: number }[]", "done": "boolean" }, "description": "Cancelable: the selection is asked to move to these world positions. Arrow keys send done true; dragging an already selected item sends done false while it runs and done true at the end (Escape puts it back with done true). The page writes them back to the items' data-x and data-y (or an SVG item's x and y); the canvas never moves items itself." }
   ],
   "parts": [
     { "name": "frame", "description": "The focusable ground" },
@@ -68,7 +68,7 @@
     { "name": "reset()", "description": "Back to zoom 1 at the origin" }
   ],
   "a11y": "A labelled group and one tab stop. Arrows pan (mirrored in right-to-left), + and - zoom, 0 resets, 1 or Home fits; with a selection (selectable, not readonly) the arrows move it instead: one grid step, Shift ten, Alt one screen pixel, announced as \"Moved to x, y\". Delete, Escape and Shift+arrow reach the page. Zoom changes are announced; the plain wheel is the page's until focus.",
-  "mobile": "One finger pans, two pinch, a tap picks; the toolbar folds to icons with 44px targets.",
+  "mobile": "One finger pans, or drags a selected item; two pinch; a tap picks; the toolbar folds to icons with 44px targets.",
   "examples": [
     {
       "title": "Selectable items on a canvas",
