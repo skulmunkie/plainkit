@@ -50,7 +50,11 @@
     }
   ],
   "methods": [
-    { "name": "ResetLayoutAsync", "method": "resetLayout" }
+    { "name": "ResetLayoutAsync", "method": "resetLayout" },
+    { "name": "GetLayoutAsync", "method": "getLayout", "returns": "string?" },
+    { "name": "SetLayoutAsync", "method": "setLayout", "args": [{ "name": "json", "type": "string" }] },
+    { "name": "OpenPanelAsync", "method": "openPanel", "args": [{ "name": "id", "type": "string" }] },
+    { "name": "ClosePanelAsync", "method": "closePanel", "args": [{ "name": "id", "type": "string" }] }
   ],
   "notes": "confirmLayout(arg) is a callback property, set from script: the generated component hands the element a .NET reference (PkCallbackSlot) that calls the ConfirmLayout parameter. Not set, the element is free-running (a resize or tab change applies right away and then fires pk-layout-change); set, every change holds until it resolves with the confirmed layout json (or null to keep the previous one); a rejection also keeps the previous layout."
 }

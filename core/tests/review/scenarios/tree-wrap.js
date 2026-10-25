@@ -3,7 +3,7 @@ const COL = '#col', WRAPPED = '#wrapped pk-tree-item:nth-of-type(1)', CLIPPED = 
 const LONG = 'Quarterly purchase orders waiting for approval by the regional finance team';
 export default {
     name: 'tree-wrap',
-    issue: [1713],
+    issue: [1713, 1775],
     elements: ['tree', 'tree-item'],
     html: `<div id="col" class="u-p-1r-1p25r"><pk-tree id="clipped" label="Clipped"><pk-tree-item label="${LONG}"></pk-tree-item><pk-tree-item label="Short"></pk-tree-item></pk-tree><pk-tree id="wrapped" label="Wrapped" wrap-labels><pk-tree-item label="${LONG}"></pk-tree-item><pk-tree-item label="Short"></pk-tree-item></pk-tree></div>`,
     setup(frame) { frame.querySelector('#col').style.inlineSize = '12rem'; }, // a narrow nav column (CSSOM, not a style attribute)

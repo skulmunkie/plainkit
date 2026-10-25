@@ -172,6 +172,18 @@ export const formCases = [
         t.eq(el.slotted('prefix').length, 1);
         const f = await t.mount('<pk-input floating label="Title"></pk-input>'); t.eq(f.part('floating-label').textContent, 'Title'); t.eq(f.part('control').placeholder, ' ');
     }],
+    ['input: search-on="enter" fires pk-search only on Enter and clear, never while typing, and change stays the default (#1769)', async t => {
+        const el = await t.mount('<pk-input type="search" clearable search-on="enter" label="Code"></pk-input>');
+        const got = []; el.addEventListener('pk-search', e => got.push(e.detail.value));
+        await type(t, el.part('control'), '40'); await type(t, el.part('control'), '4012');
+        await new Promise(r => setTimeout(r, 60)); t.eq(got.length, 0, 'typing does not search');
+        press(el.part('control'), 'Enter'); await t.settle(); t.eq(got.join('|'), '4012', 'Enter searches with the text');
+        el.part('clear').click(); await t.settle(); t.eq(got.join('|'), '4012|', 'the clear button searches with an empty text');
+        await type(t, el.part('control'), 'x'); press(el.part('control'), 'Escape'); await t.settle(); t.eq(got.at(-1), '', 'Escape clears and searches');
+        t.eq(got.length, 3, 'nothing else fired');
+        const d = await t.mount('<pk-input type="search" label="Find"></pk-input>'); const seen = []; d.addEventListener('pk-search', e => seen.push(e.detail.value));
+        await type(t, d.part('control'), 'a'); t.eq(seen.join('|'), 'a', 'the default still searches while typing');
+    }],
 
     ['textarea: value, form entry and reset; autogrow reflects', async t => {
         const host = t.stage('<form><pk-textarea name="n" label="Notes" autogrow max-height="120" value="hi"></pk-textarea></form>'); await t.load(host);

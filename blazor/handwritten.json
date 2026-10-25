@@ -121,6 +121,9 @@
     "PageBase.cs": {
       "category": "runtime"
     },
+    "PageBase.Status.cs": {
+      "category": "runtime"
+    },
     "PageBase.Toasts.cs": {
       "category": "runtime"
     },
@@ -250,6 +253,9 @@
       "category": "runtime"
     },
     "PkReconnectOptions.cs": {
+      "category": "dto"
+    },
+    "PkReconnectOptions.Overlay.cs": {
       "category": "dto"
     },
     "PkRecordEditor.cs": {
