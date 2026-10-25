@@ -154,6 +154,7 @@
         "canvas-geometry.js",
         "canvas-rulers.js",
         "canvas-select.js",
+        "canvas-snap.js",
         "canvas-style.js",
         "heat-map-layout.js",
         "svg/",

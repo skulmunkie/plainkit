@@ -71,7 +71,7 @@ export default Base => class extends Base {
     pointToWorld(clientX, clientY) { const r = this.part('frame').getBoundingClientRect(), w = toWorld(fromOrigin(this.view()), { x: clientX - r.left, y: clientY - r.top }); return { x: snap(w.x, this.steps().minor), y: snap(w.y, this.steps().minor) }; }
     worldToPoint(wx, wy) { const r = this.part('frame').getBoundingClientRect(), s = toScreen(fromOrigin(this.view()), { x: wx, y: wy }); return { x: s.x + r.left, y: s.y + r.top }; }
     down(e) {
-        if (e.target.closest?.('pk-button')) return;
+        if (e.target.closest?.('pk-button, [data-handle]')) return;
         const frame = this.part('frame');
         this.$pts.set(e.pointerId, { x: e.clientX, y: e.clientY, sx: e.clientX, sy: e.clientY, t: e.target });
         if (this.$pts.size === 1) { // a press on bare ground drags the view, or in a selectable canvas (mode select) a marquee, except for touch

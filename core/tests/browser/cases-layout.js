@@ -944,6 +944,23 @@ layoutCases.push(
             f.fr.remove();
         }
     }],
+    ['fill-column: the fixed region is the fixed height, the rest ends at the column bottom and scrolls on its own, the fixed region does not move; with nothing fixed the rest takes it all (#1675)', async t => {
+        const host = t.stage('<pk-fill-column fixed="120px" gap="none"><div slot="fixed" id="fc-preview">Preview</div><div id="fc-list">List</div></pk-fill-column>');
+        host.style.blockSize = '400px'; host.style.inlineSize = '300px';
+        await t.load(host);
+        const el = host.querySelector('pk-fill-column'), preview = host.querySelector('#fc-preview');
+        host.querySelector('#fc-list').style.blockSize = '2000px';
+        await t.settle();
+        const fixed = el.shadowRoot.querySelector('[part="fixed"]'), rest = el.shadowRoot.querySelector('[part="rest"]'), r = x => x.getBoundingClientRect();
+        t.ok(Math.abs(r(el).height - 400) <= 1, `the column takes its parent's height (${Math.round(r(el).height)}px)`);
+        t.ok(Math.abs(r(fixed).height - 120) <= 1, `the fixed region is 120px (${Math.round(r(fixed).height)}px)`);
+        t.ok(Math.abs(r(rest).top - r(fixed).bottom) <= 1 && Math.abs(r(rest).bottom - r(el).bottom) <= 1, 'the rest starts under the fixed region and ends at the column bottom');
+        const top = r(preview).top; rest.scrollTop = 500; await t.settle();
+        t.ok(rest.scrollTop > 0, 'the rest scrolls on its own');
+        t.ok(Math.abs(r(preview).top - top) <= 1, 'the fixed region does not move');
+        preview.remove(); await t.settle();
+        t.ok(fixed.hidden && Math.abs(r(rest).height - 400) <= 1, 'with nothing in the fixed slot the region is hidden and the rest takes the whole height');
+    }],
     ['data-show-above and data-hide-above show and hide content at the named breakpoints (#1722)', async t => {
         for (const [width, shown] of [[1280, ['above-tablet', 'above-phone']], [768, ['below-tablet', 'above-phone']], [375, ['below-tablet', 'phone-only']]]) {
             const f = await gridFrame(t, 'show', width);
