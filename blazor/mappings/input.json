@@ -137,6 +137,11 @@
       "type": "int"
     },
     {
+      "name": "SearchOn",
+      "prop": "searchOn",
+      "type": "InputSearchOn"
+    },
+    {
       "name": "Description",
       "prop": "description",
       "type": "string"
@@ -190,7 +195,8 @@
     {
       "name": "OnSearch",
       "event": "pk-search",
-      "type": "{ value: string }"
+      "type": "{ value: string }",
+      "note": "Raised with the search text in Value (Query stays null: it is pk-table-filters' field). With SearchOn Enter only on Enter and clear."
     },
     {
       "name": "OnInput",

@@ -21,7 +21,7 @@ public abstract partial class PkComponentBase : ComponentBase, IAsyncDisposable
     /// <summary>Runs on the first render and again when a parameter changed (<see cref="ReloadOnParameters"/>); a failure is kept in <see cref="LoadError"/> and a cancelled load is silent.</summary>
     protected virtual Task OnLoadAsync(CancellationToken cancel) => Task.CompletedTask;
 
-    /// <summary>Whether a changed parameter starts a new load (default true; the previous load's token is cancelled either way). <see cref="ReloadParameters"/> narrows which ones.</summary>
+    /// <summary>Whether a changed parameter starts a new load (default true; the previous load's token is cancelled either way). The first load always runs. <see cref="ReloadParameters"/> narrows which ones.</summary>
     protected virtual bool ReloadOnParameters => true;
 
     /// <summary>Cancelled when the next load starts and when the component is disposed.</summary>

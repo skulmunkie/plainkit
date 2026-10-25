@@ -76,3 +76,11 @@ test('col-span 2 to 12 and row-span 2 to 4 have a css rule each, and a phone dro
     assert.match(css, /@media \(--phone\) \{[^}]*\} ::slotted\(\[data-col-span\]\) \{ grid-column: auto; \} ::slotted\(\[data-row-span\]\) \{ grid-row: auto; \}/);
     assert.match(prop('tracks').description, /col-span/);
 });
+
+test('sticky-first (#1675): the first slotted child is sticky at the hook and start-aligned; the prop, hook and Blazor mapping exist', () => {
+    assert.ok(css.includes(':host([sticky-first]) ::slotted(:first-child) { position: sticky; inset-block-start: var(--pk-grid-sticky-top, var(--space-4)); align-self: start; }'));
+    assert.equal(prop('stickyFirst').type, 'boolean'); assert.equal(prop('stickyFirst').reflect, true);
+    assert.ok(meta.cssProperties.some(c => c.name === '--pk-grid-sticky-top'));
+    const map = JSON.parse(fs.readFileSync(fileURLToPath(new URL('../../../blazor/mappings/grid.json', import.meta.url)), 'utf8'));
+    assert.ok(map.params.some(p => p.name === 'StickyFirst' && p.prop === 'stickyFirst' && p.type === 'bool'));
+});

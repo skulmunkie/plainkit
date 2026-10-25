@@ -483,4 +483,18 @@ headerCases.push(
         t.eq(cancelled, 1, 'Cancel raises pk-record-cancel'); t.eq(page.mode, 'view', 'and returns to view mode');
         page.remove();
     }],
+    ['page-shell: the last crumb is the title; at 1280 and 960px two badges sit on its line right after it, not between the crumb rows, and the trail stays one line (#1780)', async t => {
+        for (const w of [1280, 960]) {
+            const crumbs = JSON.stringify([{ label: 'Purchase orders', href: '#po' }, { label: 'PO-1042 North warehouse refit' }]);
+            const host = t.stage(`<pk-page-shell home-href="#home" home-label="Home" crumbs='${crumbs}'><pk-badge slot="badges">Open</pk-badge><pk-badge slot="badges" variant="ok">Paid</pk-badge><pk-button slot="actions">Edit</pk-button><pk-button slot="actions" variant="primary">Receive goods</pk-button><p>Body</p></pk-page-shell>`);
+            host.style.width = `${w}px`; await t.load(host); await Promise.all(['pk-page-header', 'pk-badge', 'pk-breadcrumb', 'pk-button'].map(n => customElements.whenDefined(n))); await t.settle(); await t.settle();
+            const shell = host.firstElementChild, header = shell.shadowRoot.querySelector('[part="header"]'), trail = header.part('trail');
+            const first = rect(trail.firstElementChild), title = rect(trail.lastElementChild), [b1, b2] = [...shell.querySelectorAll('pk-badge')].map(rect), mid = b => (b.top + b.bottom) / 2;
+            t.ok(Math.abs(title.top - first.top) <= 2, `${w}px: the title crumb is on the same line as the first crumb (${title.top} vs ${first.top})`);
+            t.ok(mid(b1) >= title.top && mid(b1) <= title.bottom, `${w}px: the first badge is on the title's line (badge centre ${mid(b1)}, title ${title.top}-${title.bottom})`);
+            t.ok(b1.left - title.right >= 0 && b1.left - title.right <= 24, `${w}px: the badge follows the title directly (gap ${b1.left - title.right}px)`);
+            t.ok(Math.abs(mid(b2) - mid(b1)) <= 2, `${w}px: both badges share the row`);
+            host.remove();
+        }
+    }],
 );

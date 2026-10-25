@@ -186,6 +186,14 @@ public sealed class GeneratedComponentTests : BunitContext, IAsyncLifetime
         Assert.Equal("plainkit", got?.Value);
     }
 
+    // Issue 1769: SearchOn reaches the element as search-on.
+    [Fact]
+    public void SearchOn_Enter_is_sent_as_the_search_on_attribute()
+    {
+        var cut = Render<PkInput>(p => p.Add(x => x.Type, InputType.Search).Add(x => x.SearchOn, InputSearchOn.Enter));
+        Assert.Equal("enter", cut.Find("pk-input").GetAttribute("search-on"));
+    }
+
     [Fact]
     public async Task A_native_click_passes_the_mouse_event()
     {

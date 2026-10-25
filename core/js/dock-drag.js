@@ -202,3 +202,6 @@ export function raisePanel(el, panel) {
 // Public floatPanel(id, rect?) and dockPanel(id, { target, zone }) (#432 D2): the menus' own commands from code, with their reasons, announcements and refusals; target is a group id.
 export function floatPanel(el, id, rect) { if (canFloat(el, id)) floatCmd(el, id, rect); }
 export function dockPanel(el, id, { target, zone = 'center' } = {}) { applyMove(el, zone === 'center' ? 'tab' : 'dock', id, target, zone); }
+
+// The names dock.js forwards to this module as thin methods (kept here so dock.js carries no list of them, #432 D2b budget).
+export const methods = 'settle applyMove floatCmd focusFloater applyDockFloat onFloatKeys onFloatFocus paint onDragStart grab clearDropZone onDragEnd paintFloat floatPanel dockPanel collapsePanel raisePanel';

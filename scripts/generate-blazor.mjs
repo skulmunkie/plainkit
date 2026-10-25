@@ -155,7 +155,7 @@ export function noteEventInto(reg, ev, owner) {
  */
 export function modelElement(el, mapping, reg) {
     const comp = mapping.component;
-    const out = { component: comp, tag: el.tag, summary: el.summary, params: [], attrs: [], children: [], handlers: new Map(), callbacks: [], properties: [], methods: [], configKeys: [], typeparam: mapping.typeparam, inherits: mapping.inherits, location: mapping.location ?? null, listenedNative: mapping.listenedNative === true, todo: [], notGenerated: [], usesClass: false, usesAttributes: false };
+    const out = { component: comp, tag: el.tag, summary: el.summary, params: [], attrs: [], children: [], handlers: new Map(), callbacks: [], properties: [], methods: [], modifiers: [], configKeys: [], typeparam: mapping.typeparam, inherits: mapping.inherits, location: mapping.location ?? null, listenedNative: mapping.listenedNative === true, todo: [], notGenerated: [], usesClass: false, usesAttributes: false };
     const names = new Set(mapping.params.map(p => p.name));
     const declared = new Set();
     const propParam = {}; // C# name -> resolved prop param (for Changed pairing)
@@ -302,6 +302,8 @@ export function modelElement(el, mapping, reg) {
             // A plain parameter the generated code reads (type, doc, optional init and required): no attribute of its own.
             if (!p.type || !p.doc) { skip(p.name, 'a param needs type and doc in the mapping'); continue; }
             declare({ name: p.name, kind: 'param', cs: p.type, init: p.csDefault, required: p.required === true, doc: p.doc, note: p.note });
+            // `modifier` (#1770): a bool parameter bound to Blazor's @on<event>:stopPropagation or :preventDefault directive on the element (`modifier` names it, `of` the event).
+            if (p.modifier) { if (!['stopPropagation', 'preventDefault'].includes(p.modifier) || !p.of) throw new Error(`${comp}.${p.name}: modifier must be stopPropagation or preventDefault, with "of" naming the event`); out.modifiers.push({ name: p.name, event: p.of, modifier: p.modifier }); }
             // `configKey`: the parameter is also written into the config JSON under that key (an initial search, filter or page of a list page; needs a cells mapping with columns, which writes the config); `when` and `value` are C# expressions, by default 'is set' and the parameter itself.
             if (p.configKey) {
                 if (!mapping.cells?.columns) throw new Error(`${comp}.${p.name}: configKey needs a cells mapping with columns`);
@@ -638,6 +640,7 @@ export function renderComponent(m, mappingName, ns = 'PlainKit.Blazor') {
     for (const h of live.filter(x => x.native && !listened(x))) attrs.push(`@${h.attr}="${handlerName(h)}"`);
     // stopPropagation: Blazor's own bubbling (it walks the ancestors for onpk-* handlers), so an event the element owns does not reach an enclosing component's handler of the same name.
     for (const h of live.filter(x => x.stop)) attrs.push(`@${h.attr}:stopPropagation="true"`);
+    for (const d of m.modifiers ?? []) attrs.push(`@on${d.event}:${d.modifier}="@${d.name}"`);
     // Every component takes the attributes it has no parameter for (PkElementBase.AdditionalAttributes): `class` is merged with ExtraClass, the rest
     // is splatted after the generated attributes together with the pk-* event handlers (built once per component, see PkElementBase).
     attrs.push(`class="@Css(${m.usesClass ? 'ExtraClass' : ''})"`);

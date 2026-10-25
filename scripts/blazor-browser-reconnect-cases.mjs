@@ -39,11 +39,23 @@ export const RECONNECT_CASES = [
             ctx.ok(m.barTop <= 1 && m.barBottom > 10 && m.barWidth >= m.vw - 1, `${state}: the banner spans the top (${JSON.stringify(m)})`);
             ctx.ok(m.navTop >= m.barBottom - 1, `${state}: the app bar starts at ${m.navTop}, under the banner's bottom ${m.barBottom}: it is covered`);
             ctx.ok(m.scroll <= 1, `${state}: the page scrolls by ${m.scroll} px because the banner took height the app did not give up`);
+            if (state === 'retrying') ctx.ok(await ctx.eval(`!${MODAL}.querySelector('[data-act="reload"]').hidden && ${MODAL}.querySelector('[data-act="tryNow"]').hidden`), 'retrying: Reload is offered, Retry now is not (#1771)');
             await fire(ctx, 'hide'); await ctx.waitFor(`${BAR}.hidden`, 'the banner to hide');
         }
         await ctx.waitFor(`Math.abs(${NAVBAR}.getBoundingClientRect().top - ${top0}) <= 1`, 'the app bar to go back to the top when the banner hides');
         ctx.ok(await ctx.eval(`!document.documentElement.hasAttribute('data-pk-reconnect-open')`), 'the page is not left reserving the banner height');
         await ctx.noErrors(ctx.openMark, BENIGN);
+      } },
+    { name: 'reconnect-banner-desktop-overlay', // #1774: with overlay set, the desktop banner floats over the page and nothing moves
+      async run(ctx) {
+        await barUp(ctx);
+        const started = await ctx.eval(`(async () => { const m = ${MODAL}, el = document.querySelector('script[src*="plainkit.reconnect"]'), url = el ? el.src : performance.getEntriesByType('resource').map(e => e.name).find(n => /plainkit\.reconnect(\.[\w-]+)?\.js/.test(n)), mod = await import(url); mod.stopReconnect(); const c = JSON.parse(m.dataset.pkReconnect); c.overlay = true; m.dataset.pkReconnect = JSON.stringify(c); return mod.startReconnect() !== null; })()`);
+        ctx.ok(started === true, 'the overlay driver restarted (a null controller means a second module copy was loaded)');
+        const top0 = await ctx.eval(`${NAVBAR}.getBoundingClientRect().top`);
+        await fire(ctx, 'retrying'); await ctx.waitFor(`${KIND} !== ''`, 'the retrying banner'); await ctx.sleep(200);
+        const m = await ctx.eval(`(() => ({ nav: ${NAVBAR}.getBoundingClientRect().top, open: document.documentElement.hasAttribute('data-pk-reconnect-open') }))()`);
+        ctx.ok(Math.abs(m.nav - top0) <= 1 && !m.open, `overlay: the app bar stays at ${top0} (now ${m.nav}) and no height is reserved`);
+        await fire(ctx, 'hide'); await ctx.noErrors(ctx.openMark, BENIGN);
       } },
     { name: 'reconnect-banner-phone-icons', // icons only on a phone (the buttons keep their names), text on a desktop; on the phone the banner is the top layer
       async run(ctx) {
@@ -61,6 +73,13 @@ export const RECONNECT_CASES = [
                 ctx.ok(m[n].w >= 40 && m[n].h >= 43 && m[n].w <= 64, `phone ${n}: a touch-sized square (${m[n].w} x ${m[n].h})`);
             }
             ctx.ok(m.bar.top <= 1 && m.bar.w >= m.vw - 1 && m.scrollX <= 1, `phone: the banner is the top layer and the page does not scroll sideways (${JSON.stringify(m.bar)})`);
+            // #1771: Reload is a touch target while reconnecting, and Cancel in the session-ended countdown.
+            for (const [state, extra, act] of [['retrying', ', currentAttempt: 3', 'reload'], ['rejected', '', 'cancel']]) {
+                await fire(ctx, state, extra); await ctx.waitFor(`${KIND} !== ''`, `the ${state} banner on the phone`); await ctx.sleep(200);
+                const r = await ctx.eval(`(() => { const b = ${MODAL}.querySelector('[data-act="${act}"]'), q = b.getBoundingClientRect(); return { hidden: b.hidden, w: q.width, h: q.height }; })()`);
+                ctx.ok(!r.hidden && r.w >= 40 && r.h >= 43, `phone ${state}: ${act} is shown and touch-sized (${JSON.stringify(r)})`);
+                await fire(ctx, 'hide'); await ctx.waitFor(`${BAR}.hidden`, 'the banner to hide');
+            }
             await ctx.noErrors(ctx.openMark, BENIGN);
         });
       } },

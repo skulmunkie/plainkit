@@ -19,6 +19,7 @@
     { "name": "selectable", "type": "boolean", "default": false, "reflect": true, "description": "Items that declare a world rect (data-id with data-x, data-y, data-w, data-h, or an SVG child's own x, y, width, height, or a geometry(el) callback property) can be selected: click, Shift or Ctrl click to toggle, a marquee drag on bare ground, Ctrl+A, Escape, and Tab focus. The layer loads on first use. The canvas never writes to the items." },
     { "name": "mode", "type": "string", "default": "select", "reflect": true, "values": ["select", "pan"], "description": "What a primary drag on bare ground does in a selectable canvas: select draws a marquee (touch, the middle button and the toolbar still pan), pan drags the view." },
     { "name": "selection", "type": "json", "default": [], "reflect": false, "commit": "pk-canvas-select", "description": "The ids of the selected items (an array, or a JSON attribute). The canvas sets it from a gesture and emits pk-canvas-select; set it to select from code." },
+    { "name": "readonly", "type": "boolean", "default": false, "reflect": true, "description": "View only: pan, zoom and selection still work, but the selection cannot be moved (no pk-canvas-move)." },
     { "name": "minZoom", "type": "number", "default": 0.25, "reflect": true, "description": "The smallest scale." },
     { "name": "maxZoom", "type": "number", "default": 4, "reflect": true, "description": "The largest scale." },
     { "name": "wheel", "type": "string", "default": "auto", "reflect": true, "values": ["auto", "zoom", "pan", "page"], "description": "The plain wheel: auto pans only with focus (else the page scrolls), pan, zoom, or page (never taken). Ctrl or Cmd with the wheel, and pinch, always zoom." },
@@ -31,7 +32,8 @@
     { "name": "pk-view-change", "detail": { "x": "number", "y": "number", "zoom": "number" }, "description": "Panned or zoomed." },
     { "name": "pk-canvas-pick", "detail": { "target": "Element | null", "additive": "boolean" }, "description": "A press without movement: the deepest node under it, or null on bare ground; additive with Shift, Ctrl or Cmd." },
     { "name": "pk-canvas-select", "detail": { "ids": "string[]" }, "description": "The selection changed by a gesture (click, marquee, Ctrl+A, Escape, Tab focus): the new ids." },
-    { "name": "pk-canvas-key", "detail": { "key": "string", "shiftKey": "boolean", "altKey": "boolean", "ctrlKey": "boolean" }, "description": "Delete, Escape or Shift with an arrow on the focused surface, for the page to act on." }
+    { "name": "pk-canvas-key", "detail": { "key": "string", "shiftKey": "boolean", "altKey": "boolean", "ctrlKey": "boolean" }, "description": "Delete, Escape, or Shift with an arrow (when there is no selection to move), on the focused surface, for the page to act on." },
+    { "name": "pk-canvas-move", "detail": { "moves": "{ id: string, x: number, y: number }[]", "done": "boolean" }, "description": "Cancelable: the selection is asked to move to these world positions. Arrow keys send done true; dragging an already selected item sends done false while it runs and done true at the end (Escape puts it back with done true). The page writes them back to the items' data-x and data-y (or an SVG item's x and y); the canvas never moves items itself." }
   ],
   "parts": [
     { "name": "frame", "description": "The focusable ground" },
@@ -65,8 +67,8 @@
     { "name": "centerOn(x, y)", "description": "Centres a world point" },
     { "name": "reset()", "description": "Back to zoom 1 at the origin" }
   ],
-  "a11y": "A labelled group and one tab stop. Arrows pan (mirrored in right-to-left), + and - zoom, 0 resets, 1 or Home fits; Delete, Escape and Shift+arrow reach the page. Zoom changes are announced; the plain wheel is the page's until focus.",
-  "mobile": "One finger pans, two pinch, a tap picks; the toolbar folds to icons with 44px targets.",
+  "a11y": "A labelled group and one tab stop. Arrows pan (mirrored in right-to-left), + and - zoom, 0 resets, 1 or Home fits; with a selection (selectable, not readonly) the arrows move it instead: one grid step, Shift ten, Alt one screen pixel, announced as \"Moved to x, y\". Delete, Escape and Shift+arrow reach the page. Zoom changes are announced; the plain wheel is the page's until focus.",
+  "mobile": "One finger pans, or drags a selected item; two pinch; a tap picks; the toolbar folds to icons with 44px targets.",
   "examples": [
     {
       "title": "Selectable items on a canvas",

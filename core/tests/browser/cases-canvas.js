@@ -253,6 +253,52 @@ export const canvasCases = [
         t.ok(box && near(rect(box).left, f.left + 20 + 40, 1.5), `the frame is 60px from the left edge (${box && rect(box).left - f.left})`);
     }],
 
+    ['canvas: with a selection the arrows move it through a cancelable pk-canvas-move (a grid step, Shift ten, Alt one screen pixel), the frame follows the written-back item; readonly or nothing selected pans (#430 C4)', async t => {
+        const s = await selectable(t, 'grid="10" zoom="2"'), fr = s.part('frame'), got = [];
+        const key = (k, mods = {}) => fr.dispatchEvent(new KeyboardEvent('keydown', { key: k, bubbles: true, cancelable: true, ...mods }));
+        s.addEventListener('pk-canvas-move', e => { got.push({ ...e.detail, cancelable: e.cancelable }); for (const m of e.detail.moves) { const el = s.querySelector(`[data-id="${m.id}"]`); el.setAttribute('x', m.x); el.setAttribute('y', m.y); } });
+        s.selection = ['a']; await t.settle();
+        key('ArrowRight'); await t.settle();
+        t.eq(JSON.stringify(got.at(-1)), JSON.stringify({ moves: [{ id: 'a', x: 50, y: 40 }], done: true, cancelable: true }), 'one grid step right, cancelable');
+        t.eq(s.panX, 0, 'the view did not pan');
+        key('ArrowDown', { shiftKey: true }); await t.settle();
+        t.eq(JSON.stringify(got.at(-1).moves), JSON.stringify([{ id: 'a', x: 50, y: 140 }]), 'Shift: ten steps');
+        key('ArrowLeft', { altKey: true }); await t.settle();
+        t.eq(got.at(-1).moves[0].x, 49.5, 'Alt: one screen pixel at zoom 2');
+        t.ok(/Moved to 49\.5, 140/.test(s.part('status').textContent), `announced (${s.part('status').textContent})`);
+        const f = rect(fr), box = s.part('selection').querySelector('[data-sel]');
+        t.ok(box && near(rect(box).left, f.left + 49.5 * 2, 2) && near(rect(box).top, f.top + 140 * 2, 2), 'the frame follows the written-back position');
+        s.readonly = true; await t.settle(); const n = got.length;
+        key('ArrowRight'); await t.settle();
+        t.eq(got.length, n, 'readonly: no move'); t.eq(s.panX, -40, 'readonly: the arrow pans');
+        s.readonly = false; s.selection = []; await t.settle();
+        key('ArrowRight'); await t.settle();
+        t.eq(got.length, n, 'nothing selected: no move'); t.eq(s.panX, -80, 'nothing selected: the arrow pans');
+    }],
+
+    ['canvas: dragging a selected item streams pk-canvas-move in world units (done false) and ends with done true, without panning; an unselected item does not drag; Escape puts it back; readonly does not drag (#430 C4 drag)', async t => {
+        const s = await selectable(t, 'zoom="2"'), fr = s.part('frame'), a = s.querySelector('[data-id=a]'), got = [];
+        s.addEventListener('pk-canvas-move', e => got.push(e.detail));
+        s.selection = ['a']; await t.settle();
+        const r = rect(a), x0 = r.left + 10, y0 = r.top + 10;
+        ptr(a, 'pointerdown', 4, x0, y0); ptr(fr, 'pointermove', 4, x0 + 20, y0 + 10); ptr(fr, 'pointermove', 4, x0 + 40, y0 + 20); ptr(fr, 'pointerup', 4, x0 + 40, y0 + 20); await t.settle();
+        t.eq(JSON.stringify(got), JSON.stringify([{ moves: [{ id: 'a', x: 50, y: 45 }], done: false }, { moves: [{ id: 'a', x: 60, y: 50 }], done: false }, { moves: [{ id: 'a', x: 60, y: 50 }], done: true }]), 'pointer pixels / zoom, measured from the start each time');
+        t.eq(s.panX, 0, 'the view did not pan'); t.eq(s.selection.join(','), 'a', 'the selection stays');
+        t.ok(/Moved to 60, 50/.test(s.part('status').textContent), `the end is announced (${s.part('status').textContent})`);
+        got.length = 0;
+        const b = s.querySelector('[data-id=b]'), rb = rect(b);
+        ptr(b, 'pointerdown', 5, rb.left + 5, rb.top + 5); ptr(fr, 'pointermove', 5, rb.left + 45, rb.top + 5); ptr(fr, 'pointerup', 5, rb.left + 45, rb.top + 5); await t.settle();
+        t.eq(got.length, 0, 'an unselected item is not dragged'); t.eq(s.panX, 0);
+        ptr(a, 'pointerdown', 6, x0, y0); ptr(fr, 'pointermove', 6, x0 + 40, y0);
+        fr.dispatchEvent(new KeyboardEvent('keydown', { key: 'Escape', bubbles: true, cancelable: true }));
+        ptr(fr, 'pointerup', 6, x0 + 40, y0); await t.settle();
+        t.eq(JSON.stringify(got.map(g => [g.moves[0].x, g.done])), JSON.stringify([[60, false], [40, true]]), 'Escape puts it back where it started and ends the drag');
+        t.eq(s.selection.join(','), 'a', 'that Escape did not clear the selection');
+        got.length = 0; s.readonly = true; await t.settle();
+        ptr(a, 'pointerdown', 7, x0, y0); ptr(fr, 'pointermove', 7, x0 + 40, y0); ptr(fr, 'pointerup', 7, x0 + 40, y0); await t.settle();
+        t.eq(got.length, 0, 'readonly: no drag');
+    }],
+
     ['canvas: 2000 declared items stay selectable (Ctrl+A) and a pan step stays cheap (timings reported)', async t => {
         const rects = Array.from({ length: 2000 }, (_, i) => `<rect data-id="i${i}" x="${(i % 50) * 30}" y="${Math.floor(i / 50) * 30}" width="24" height="24"></rect>`).join('');
         const s = await t.mount(`<pk-canvas label="Many" selectable min-zoom="0.05"><svg width="1500" height="1200">${rects}</svg></pk-canvas>`);

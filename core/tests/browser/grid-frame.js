@@ -1,4 +1,4 @@
-// The page the pk-grid browser cases open in an iframe of a chosen width and height (media queries answer to the frame). ?v=tablet|stack|fill|show picks the content.
+// The page the pk-grid browser cases open in an iframe of a chosen width and height (media queries answer to the frame). ?v=tablet|stack|fill|show|sticky picks the content.
 import { loadElements } from '../../js/loader.js';
 
 const v = new URLSearchParams(location.search).get('v');
@@ -18,5 +18,9 @@ if (v === 'tablet' || v === 'stack') {
 } else if (v === 'show') {
     b.append(mk('div', { id: 'above-tablet', 'data-show-above': 'tablet' }, 'desktop only'), mk('div', { id: 'below-tablet', 'data-hide-above': 'tablet' }, 'tablet and below'),
         mk('div', { id: 'above-phone', 'data-show-above': 'phone' }, 'not on a phone'), mk('div', { id: 'phone-only', 'data-hide-above': 'phone' }, 'phone only'));
+} else if (v === 'sticky') {
+    const g = mk('pk-grid', { id: 'g', ratio: '1:3', 'sticky-first': '', gap: 'none' }), nav = mk('nav', { id: 'nav' }, 'Nav'), art = mk('article', { id: 'art' }, 'Article');
+    nav.style.blockSize = '120px'; art.style.blockSize = '3000px';
+    g.append(nav, art); b.append(g);
 }
 loadElements(document);

@@ -5,8 +5,11 @@ using PlainKit.Blazor;
 namespace PlainKit.Blazor.Tests;
 
 // Issue 204: the page-level state (status/error, busy, title, breadcrumbs) a concrete page otherwise repeats by hand.
-public sealed class PageBaseTests : BunitContext
+public sealed class PageBaseTests : BunitContext, IAsyncLifetime
 {
+    Task IAsyncLifetime.InitializeAsync() => Task.CompletedTask;
+    async Task IAsyncLifetime.DisposeAsync() => await DisposeAsync();
+
     private sealed class FakeLog : IPkLog
     {
         public readonly List<(PkLogLevel Level, string Scope, string Message, string? Detail)> Entries = [];
@@ -225,5 +228,30 @@ public sealed class PageBaseTests : BunitContext
         Assert.Equal("the cause", Log.Entries[0].Message);
 
         await Assert.ThrowsAsync<Exception>(() => cut.InvokeAsync(() => cut.Instance.CallBusyAsync(() => throw failure)));
+    }
+
+    // Issue 1776: ReloadOnParameters false stops reloads on a changed parameter, never the first load.
+    [Fact]
+    public void ReloadOnParameters_false_still_runs_the_first_load_of_a_page()
+    {
+        var cut = Render<NoReloadPage>(p => p.Add(x => x.Key, 1));
+        cut.WaitForAssertion(() => Assert.Equal(1, cut.Instance.Loads));
+        cut.Render(p => p.Add(x => x.Key, 2));
+        Assert.Equal(1, cut.Instance.Loads);
+    }
+
+    // Issue 1772: StatusContent draws the status as one PkAlert; a failed load shows there as danger, no status draws nothing.
+    [Fact]
+    public void StatusContent_shows_a_failed_load_as_a_danger_alert_and_nothing_without_a_status()
+    {
+        var ok = Render<StatusContentHost>();
+        Assert.Empty(ok.FindAll("pk-alert"));
+        ok.InvokeAsync(() => ok.Instance.Show("Saved.", "success", "Done"));
+        ok.WaitForAssertion(() => Assert.Equal("success", ok.Find("pk-alert").GetAttribute("kind")));
+        Assert.Contains("Saved.", ok.Find("pk-alert").TextContent);
+
+        var failed = Render<StatusContentHost>(p => p.Add(x => x.Fail, true));
+        failed.WaitForAssertion(() => Assert.Equal("danger", failed.Find("pk-alert").GetAttribute("kind")));
+        Assert.Contains("store offline", failed.Find("pk-alert").TextContent);
     }
 }

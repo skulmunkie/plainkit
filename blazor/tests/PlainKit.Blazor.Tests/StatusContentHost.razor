@@ -1,0 +1,10 @@
+@* A page that shows its status through PageBase.StatusContent (issue 1772). *@
+@inherits PageBase
+
+@StatusContent
+
+@code {
+    [Parameter] public bool Fail { get; set; }
+    public void Show(string message, string kind, string? heading = null) => SetStatus(message, kind, heading);
+    protected override Task OnLoadAsync(CancellationToken cancel) => Fail ? throw new InvalidOperationException("store offline") : Task.CompletedTask;
+}
