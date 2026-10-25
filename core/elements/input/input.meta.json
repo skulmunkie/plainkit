@@ -291,6 +291,14 @@
       "default": 0,
       "reflect": false,
       "description": "Search only: milliseconds to wait after typing before pk-search fires; 0 fires on every change."
+    },
+    {
+      "name": "searchOn",
+      "type": "enum",
+      "default": "change",
+      "values": ["change", "enter"],
+      "reflect": true,
+      "description": "Search only: when pk-search fires. change: while typing (after debounce) and at once on Enter and clear. enter: only on Enter and clear (the clear button or Escape), never while typing, for a lookup or barcode box."
     }
   ],
   "slots": [
@@ -328,7 +336,7 @@
       "detailProps": {
         "value": "string"
       },
-      "description": "Search type: the debounced search text, or immediately on Enter and clear."
+      "description": "Search type: the search text in detail.value (Blazor PkSearchEventArgs.Value; Query is pk-table-filters' field), debounced while typing, at once on Enter and clear; with search-on=\"enter\" only on Enter and clear."
     }
   ],
   "parts": [

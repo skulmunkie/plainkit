@@ -107,6 +107,7 @@ export default Base => class extends Base {
     search(now) {
         if (this.type !== 'search') return;
         clearTimeout(this.$t);
+        if (!now && this.searchOn === 'enter') return; // #1769: typing never searches; Enter and clear do
         const send = () => this.emit('pk-search', { value: this.value });
         if (!now && this.debounce > 0) this.$t = setTimeout(send, this.debounce); else send();
     }
