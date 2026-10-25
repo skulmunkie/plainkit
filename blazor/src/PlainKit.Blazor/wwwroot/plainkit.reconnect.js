@@ -19,7 +19,7 @@ export function describe(view, s) {
         kind, text: view?.text ?? '',
         detail: !view ? '' : view.countdown != null ? fill(s.reloadIn, view.countdown) : view.gaveUp ? s.stillTrying : kind === 'busy' && view.attempt > 1 ? fill(s.attemptLabel, view.attempt) : '',
         tone: kind === 'busy' || kind === 'paused' ? 'info' : 'warning',
-        show: { spinner: kind === 'busy', tryNow: kind === 'failed', reload: kind === 'failed' || kind === 'ended', cancel: view?.countdown != null, resume: kind === 'paused' },
+        show: { spinner: kind === 'busy', tryNow: kind === 'failed', reload: kind === 'busy' || kind === 'failed' || kind === 'ended', cancel: view?.countdown != null, resume: kind === 'paused' }, // Reload stays reachable while the framework retries (#1771)
     };
 }
 
