@@ -31,7 +31,11 @@ slot[name="actions"][hidden], [part="overflow"][hidden] { display: none; }
 /* No heading: the crumbs are the title; chips and actions share their row. */
 :host(:not([heading]):not([spacious])) [part="header"] { display: grid; grid-template-columns: minmax(0, max-content) minmax(max-content, 1fr) auto; grid-template-areas: "crumbs chips actions" "meta meta meta" "tabs tabs tabs"; align-items: center; column-gap: var(--space-3); }
 /* The current crumb is the title: one line, cut with an ellipsis before it pushes the chips under the actions (issue 1761). */
-:host(:not([heading]):not([spacious])) [part="trail"] > [aria-current="page"] { flex: 1 1 0; min-inline-size: min(100%, 8rem); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; display: block; line-height: 2rem; }
+:host(:not([heading]):not([spacious])) [part="trail"] > [aria-current="page"] { flex: 0 1 auto; min-inline-size: min(100%, 8rem); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; display: block; line-height: 2rem; }
+/* Issue 1780: on a wide header the trail is one line beside the chips: the current crumb shrinks with its ellipsis instead of dropping under the parent crumbs. */
+@container (min-width: 46rem) {
+    :host(:not([heading]):not([spacious])) [part="trail"]::part(list) { flex-wrap: nowrap; }
+}
 :host(:not([heading]):not([spacious])) :is([part="titlebar"], [part="lead"]) { display: contents; }
 :host(:not([heading]):not([spacious])) [part="crumbs"] { grid-area: crumbs; }
 :host(:not([heading]):not([spacious])) [part="chips"]:not([hidden]) { grid-area: chips; display: flex; flex-wrap: wrap; align-items: center; gap: var(--space-2); order: 0; flex: none; }
