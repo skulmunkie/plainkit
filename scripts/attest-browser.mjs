@@ -12,7 +12,7 @@
 // Viewport: keep it at desktop size. A small window (about 486x425) made the suite flaky, so the default is 1280x900 and a smaller one is refused.
 // Time: the full suite takes about 10 minutes (575 s for 658 cases on a developer machine); the default timeout is 1800 s.
 // Trace: every run writes a trace (pk-attest-trace-<time>.log in the temp folder, one line per server and page event, flushed as it happens, so it survives a hang). It is deleted when the
-//   run passes and its path printed when the run fails or trips. The page beats every 3 s and reports each case start and end; a case whose beat stops for 30 s froze the page (a loop no
+//   run passes and its path printed when the run fails or trips. Traces and profile folders older than 3 days (a failed or killed run) are deleted at the start of the next run. The page beats every 3 s and reports each case start and end; a case whose beat stops for 30 s froze the page (a loop no
 //   timer can interrupt): it is recorded as a failed case by name, the browser is restarted at the next case (?from=n) and the run goes on, so a run always completes or names the case.
 // Exit code: 0 when every case passed, 1 when a case failed, 2 when the run
 // itself could not finish (no browser, port in use, timeout).
@@ -25,7 +25,7 @@ import { ensureGenerated } from './generated.mjs';
 import { writeRunStamp } from './verify-guard.mjs';
 import { cpuScale } from '../core/tests/browser/cpu-scale.js';
 import { parseList } from '../core/tests/browser/case-filter.js';
-import { makeTempDir, removeTreeAsync, tempRoot } from '../core/tools/tempdir.mjs';
+import { makeTempDir, removeTree, removeTreeAsync, tempRoot } from '../core/tools/tempdir.mjs';
 
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 const reportFile = path.join(root, 'core', 'tests', 'browser', 'report.json');
@@ -146,6 +146,23 @@ export function killTree(child) {
 
 export const removeDir = dir => removeTreeAsync(dir); // clears read-only, retries EBUSY/EPERM/ENOTEMPTY with backoff (core/tools/tempdir.mjs)
 
+// A failed run keeps its trace for reading and a killed run (tool timeout, Ctrl+C) never reaches its own clean-up, so pk-attest- traces and profile
+// folders would pile up in the temp folder. Each run deletes the ones older than STALE_MS first (never `keep`, its own). Returns the names it removed.
+export const STALE_MS = 3 * 24 * 3600 * 1000;
+export function pruneStale(dir, { now = Date.now(), maxAgeMs = STALE_MS, keep = [] } = {}) {
+    let names;
+    try { names = fs.readdirSync(dir); } catch (e) { console.error(`Could not list ${dir} to prune old pk-attest files: ${e.message}`); return []; }
+    const removed = [];
+    for (const name of names.filter(n => n.startsWith('pk-attest-'))) {
+        const p = path.join(dir, name);
+        if (keep.includes(p)) continue;
+        const st = fs.lstatSync(p, { throwIfNoEntry: false });
+        if (!st || now - st.mtimeMs <= maxAgeMs) continue;
+        if (removeTree(p, { attempts: 2 })) removed.push(name); else console.error(`Could not delete the old ${p}; delete it by hand.`);
+    }
+    return removed;
+}
+
 // Starts a browser and waits until `probe()` returns a value (a DevTools port file, a listening port). A runner starved of CPU sometimes never gets there within the
 // wait (#1457), so the launch alone is retried: up to `attempts`, the previous child killed and the profile folder emptied first. Nothing after the launch retries.
 // Resolves { browser, value, attempts }; rejects naming the attempts, the browser path and the last stderr line.
@@ -182,6 +199,8 @@ async function main() {
     const before = readReport();
     const profile = makeTempDir('pk-attest-');
     const tracePath = path.join(tempRoot(), `pk-attest-trace-${new Date().toISOString().replace(/[:.]/g, '-')}.log`);
+    const pruned = pruneStale(tempRoot(), { keep: [profile, tracePath] });
+    if (pruned.length) console.log(`removed ${pruned.length} pk-attest file(s) older than ${STALE_MS / 86400000} days from ${tempRoot()}`);
     const t0 = Date.now();
     const trace = text => { try { fs.appendFileSync(tracePath, `${new Date().toISOString()} +${((Date.now() - t0) / 1000).toFixed(1)}s ${text}\n`); } catch (e) { console.error(`trace write failed: ${e.message}`); } };
     const query = new URLSearchParams();
