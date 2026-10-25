@@ -42,6 +42,11 @@
       "type": "string"
     },
     {
+      "name": "StickyFirst",
+      "prop": "stickyFirst",
+      "type": "bool"
+    },
+    {
       "name": "Gap",
       "prop": "gap",
       "type": "GridGap"

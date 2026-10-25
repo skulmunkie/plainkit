@@ -121,6 +121,9 @@
     "PageBase.cs": {
       "category": "runtime"
     },
+    "PageBase.Status.cs": {
+      "category": "runtime"
+    },
     "PageBase.Toasts.cs": {
       "category": "runtime"
     },
