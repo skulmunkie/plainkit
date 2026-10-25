@@ -35,3 +35,9 @@ export function combine(current, ids, additive) {
 // A world rect as frame pixels for a view { x, y, zoom } (x and y are where the world origin sits), and a frame rect back as a world rect.
 export const toFrame = (v, r) => ({ x: v.x + r.x * v.zoom, y: v.y + r.y * v.zoom, w: r.w * v.zoom, h: r.h * v.zoom });
 export const fromFrame = (v, r) => ({ x: (r.x - v.x) / v.zoom, y: (r.y - v.y) / v.zoom, w: r.w / v.zoom, h: r.h / v.zoom });
+
+// The new world positions of the selected items when they move by (dx, dy): [{ id, x, y }] in item order, the detail of pk-canvas-move (#430 phase C4).
+export const moved = (items, ids, dx, dy) => items.filter(i => ids.includes(i.id)).map(i => ({ id: i.id, x: i.x + dx, y: i.y + dy }));
+
+// How far one arrow key nudges, in world units: one grid step (1 without a grid), ten with Shift, one screen pixel with Alt.
+export const nudge = (step, zoom, { shiftKey = false, altKey = false } = {}) => (altKey ? 1 / zoom : (step > 0 ? step : 1) * (shiftKey ? 10 : 1));

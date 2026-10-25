@@ -2,7 +2,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import fs from 'node:fs';
-import { readRect, declaredRect, between, overlaps, contains, marquee, combine, toFrame, fromFrame } from '../js/canvas-geometry.js';
+import { readRect, declaredRect, between, overlaps, contains, marquee, combine, toFrame, fromFrame, moved, nudge } from '../js/canvas-geometry.js';
 
 test('readRect needs four finite numbers', () => {
     assert.deepEqual(readRect({ x: '10', y: '20', w: '30', h: '40' }), { x: 10, y: 20, w: 30, h: 40 });
@@ -49,6 +49,19 @@ test('toFrame and fromFrame are inverses for a view', () => {
     assert.deepEqual(toFrame(v, r), { x: 60, y: -2.5, w: 100, h: 22.5 });
     const back = fromFrame(v, toFrame(v, r));
     for (const k of ['x', 'y', 'w', 'h']) assert.ok(Math.abs(back[k] - r[k]) < 1e-9);
+});
+
+test('moved: the selected items at their new positions, in item order (#430 C4)', () => {
+    const items = [{ id: 'a', x: 1, y: 2, w: 5, h: 5 }, { id: 'b', x: 10, y: 20, w: 5, h: 5 }];
+    assert.deepEqual(moved(items, ['b', 'a'], 3, -2), [{ id: 'a', x: 4, y: 0 }, { id: 'b', x: 13, y: 18 }]);
+    assert.deepEqual(moved(items, ['nope'], 1, 1), []);
+});
+
+test('nudge: a grid step, ten with Shift, one screen pixel with Alt, 1 without a grid', () => {
+    assert.equal(nudge(10, 2), 10);
+    assert.equal(nudge(10, 2, { shiftKey: true }), 100);
+    assert.equal(nudge(10, 2, { altKey: true }), 0.5);
+    assert.equal(nudge(0, 1), 1);
 });
 
 test('pk-canvas loads its layers on first use: no static import of any canvas-* module, and none reaches into the element layer', () => {

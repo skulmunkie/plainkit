@@ -33,7 +33,7 @@ export default Base => class extends Base {
             this.$pts = new Map();
         }
         this.$mo ??= new MutationObserver(() => { this.marks(); this.$L?.select?.then(l => l?.draw()); });
-        this.$mo.observe(this, { subtree: true, attributes: true, attributeFilter: ['data-surface-selected', 'data-id', 'data-x', 'data-y', 'data-w', 'data-h'], childList: true });
+        this.$mo.observe(this, { subtree: true, attributes: true, attributeFilter: ['data-surface-selected', 'data-id', 'data-x', 'data-y', 'data-w', 'data-h', 'x', 'y', 'width', 'height'], childList: true });
         if (typeof ResizeObserver === 'function') { this.$ro ??= new ResizeObserver(() => this.marks()); this.$ro.observe(this.part('world')); }
         loadElements(this.shadowRoot);
     }
