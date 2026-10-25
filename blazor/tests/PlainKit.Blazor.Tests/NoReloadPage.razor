@@ -1,0 +1,11 @@
+@* A PageBase that turns parameter reloads off (issue 1776): it must still load once. *@
+@inherits PageBase
+
+<p>@(Loads > 0 ? "loaded" : "empty")</p>
+
+@code {
+    [Parameter] public int Key { get; set; }
+    public int Loads { get; private set; }
+    protected override bool ReloadOnParameters => false;
+    protected override Task OnLoadAsync(CancellationToken cancel) { Loads++; return Task.CompletedTask; }
+}

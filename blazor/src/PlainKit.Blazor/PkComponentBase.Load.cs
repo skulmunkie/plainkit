@@ -18,7 +18,7 @@ public abstract partial class PkComponentBase
     {
         var keys = ReloadParameters;
         var next = parameters.ToDictionary().Where(p => keys is null || keys.Contains(p.Key)).ToDictionary(p => p.Key, p => p.Value);
-        var reload = ReloadOnParameters && (_parameters is null || next.Count != _parameters.Count || next.Any(p => !_parameters.TryGetValue(p.Key, out var old) || !Equals(old, p.Value)));
+        var reload = _parameters is null || (ReloadOnParameters && (next.Count != _parameters.Count || next.Any(p => !_parameters.TryGetValue(p.Key, out var old) || !Equals(old, p.Value))));
         _parameters = next;
         if (reload) _life.Expect();
         await base.SetParametersAsync(parameters);
