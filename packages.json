@@ -69,8 +69,8 @@
         "zip-store.js"
       ],
       "maxPackedBytes": null,
-      "maxUnpackedBytes": 781100,
-      "maxZipBytes": 255700,
+      "maxUnpackedBytes": 789651,
+      "maxZipBytes": 258265,
       "files": [
         "elements/api.json",
         "modules/manifest.json"
@@ -154,14 +154,15 @@
         "canvas-geometry.js",
         "canvas-rulers.js",
         "canvas-select.js",
+        "canvas-snap.js",
         "canvas-style.js",
         "heat-map-layout.js",
         "svg/",
         "viewport-logic.js"
       ],
       "maxPackedBytes": null,
-      "maxUnpackedBytes": 66746,
-      "maxZipBytes": 29522
+      "maxUnpackedBytes": 79216,
+      "maxZipBytes": 35477
     },
     {
       "id": "plainkit.blazor",

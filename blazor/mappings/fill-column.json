@@ -1,0 +1,9 @@
+{
+  "component": "PkFillColumn",
+  "params": [
+    { "name": "Fixed", "prop": "fixed", "type": "string" },
+    { "name": "Gap", "prop": "gap", "type": "FillColumnGap" },
+    { "name": "FixedContent", "slot": "fixed", "type": "RenderFragment?" },
+    { "name": "ChildContent", "slot": "", "type": "RenderFragment" }
+  ]
+}
