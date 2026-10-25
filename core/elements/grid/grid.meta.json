@@ -63,6 +63,13 @@
       "description": "Row tracks as CSS writes them (minmax(0, 1fr) minmax(0, 2fr)); with fill they share the height. Off on a phone."
     },
     {
+      "name": "stickyFirst",
+      "type": "boolean",
+      "default": false,
+      "reflect": true,
+      "description": "The first child stays in view while the page scrolls past the other columns (a section nav beside a long article): sticky at --pk-grid-sticky-top (default --space-4) from the top of the scrolling area, sized to its content. Use with ratio or tracks; on a phone the grid stacks and nothing sticks."
+    },
+    {
       "name": "gap",
       "type": "enum",
       "default": "md",
@@ -106,6 +113,11 @@
       "default": "unset"
     },
     {
+      "name": "--pk-grid-sticky-top",
+      "description": "With sticky-first: the distance of the first child from the top of the scrolling area (under a sticky header, set it to the header's height).",
+      "default": "var(--space-4)"
+    },
+    {
       "name": "--pk-grid-ratio",
       "description": "The explicit column list; set by the ratio prop.",
       "default": "unset (auto-fit columns)"
@@ -132,6 +144,10 @@
     {
       "title": "At most three columns",
       "html": "<pk-grid columns=\"3\" min=\"8rem\" gap=\"lg\"><pk-card heading=\"A\">1</pk-card><pk-card heading=\"B\">2</pk-card><pk-card heading=\"C\">3</pk-card><pk-card heading=\"D\">4</pk-card></pk-grid>"
+    },
+    {
+      "title": "A sticky section nav beside a long article",
+      "html": "<pk-grid ratio=\"1:3\" sticky-first><pk-card heading=\"On this page\"><pk-text>Overview</pk-text><pk-text>Details</pk-text></pk-card><pk-card heading=\"Article\"><pk-text>A long article scrolls past the nav, which stays in view.</pk-text></pk-card></pk-grid>"
     }
   ],
   "events": [],

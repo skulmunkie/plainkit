@@ -13,7 +13,7 @@ namespace PlainKit.Blazor;
 ///   @page "/orders"
 ///   @inherits PageBase
 ///   &lt;PkPageHeader Title="@Title" Crumbs="@Crumbs" /&gt;
-///   @if (StatusMessage is not null) { &lt;PkAlert Kind="@StatusKind" Heading="@StatusHeading"&gt;@StatusMessage&lt;/PkAlert&gt; }
+///   @StatusContent    (the status as a PkAlert; a failed OnLoadAsync shows here)
 ///   &lt;PkLoadingOverlay Busy="@IsBusy" Delay="150" MinTime="300" Label="@BusyLabel"&gt;...&lt;/PkLoadingOverlay&gt;
 ///   @code {
 ///       protected override void OnInitialized() { Title = "Orders"; Crumbs = [new("Home", "/"), new("Orders")]; }
@@ -76,7 +76,7 @@ public abstract partial class PageBase : ComponentBase, IAsyncDisposable
     /// <summary>Runs on the first render and again when a parameter changed (<see cref="ReloadOnParameters"/>). <see cref="IsLoading"/> is true from before the first render until it ends; a failure is logged, shown as a danger status and kept in <see cref="LoadError"/>; a cancelled load is silent.</summary>
     protected virtual Task OnLoadAsync(CancellationToken cancel) => Task.CompletedTask;
 
-    /// <summary>Whether a changed parameter starts a new load (default true; the previous load's token is cancelled either way).</summary>
+    /// <summary>Whether a changed parameter starts a new load (default true; the previous load's token is cancelled either way). The first load always runs.</summary>
     protected virtual bool ReloadOnParameters => true;
     /// <summary>The parameters whose change means another record and starts a load; null (default) means any parameter, empty means load once. A <c>?tab=</c> parameter left out no longer reloads.</summary>
     protected virtual IReadOnlyCollection<string>? ReloadParameters => null;
@@ -101,7 +101,7 @@ public abstract partial class PageBase : ComponentBase, IAsyncDisposable
     {
         ResolveBusy(); var keys = ReloadParameters;
         var next = parameters.ToDictionary().Where(p => keys is null || keys.Contains(p.Key)).ToDictionary(p => p.Key, p => p.Value);
-        var reload = ReloadOnParameters && (_parameters is null || next.Count != _parameters.Count || next.Any(p => !_parameters.TryGetValue(p.Key, out var old) || !Equals(old, p.Value)));
+        var reload = _parameters is null || (ReloadOnParameters && (next.Count != _parameters.Count || next.Any(p => !_parameters.TryGetValue(p.Key, out var old) || !Equals(old, p.Value))));
         _parameters = next; if (reload) _life.Expect();
         await base.SetParametersAsync(parameters); if (!reload) return;
         var load = _life.LoadAsync<object?>(async c => { await OnLoadAsync(c); return null; }, null, e => SetErrorAsync(e));

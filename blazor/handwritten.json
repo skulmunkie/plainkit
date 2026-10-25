@@ -121,6 +121,9 @@
     "PageBase.cs": {
       "category": "runtime"
     },
+    "PageBase.Status.cs": {
+      "category": "runtime"
+    },
     "PageBase.Toasts.cs": {
       "category": "runtime"
     },
@@ -180,6 +183,9 @@
       "category": "base"
     },
     "PkElementBase.Methods.cs": {
+      "category": "base"
+    },
+    "PkElementBase.Extra.cs": {
       "category": "base"
     },
     "PkEnums.cs": {
@@ -356,6 +362,9 @@
       "category": "callback-slot"
     },
     "Testing/PkPageTesting.cs": {
+      "category": "callback-slot"
+    },
+    "Testing/PkListPageTesting.cs": {
       "category": "callback-slot"
     },
     "PkExtraSet.cs": {

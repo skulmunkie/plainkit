@@ -49,7 +49,8 @@ export const RECONNECT_CASES = [
     { name: 'reconnect-banner-desktop-overlay', // #1774: with overlay set, the desktop banner floats over the page and nothing moves
       async run(ctx) {
         await barUp(ctx);
-        await ctx.eval(`(async () => { const m = ${MODAL}, url = document.querySelector('script[src*="plainkit.reconnect"]').src, mod = await import(url); mod.stopReconnect(); const c = JSON.parse(m.dataset.pkReconnect); c.overlay = true; m.dataset.pkReconnect = JSON.stringify(c); mod.startReconnect(); return true; })()`);
+        const started = await ctx.eval(`(async () => { const m = ${MODAL}, el = document.querySelector('script[src*="plainkit.reconnect"]'), url = el ? el.src : performance.getEntriesByType('resource').map(e => e.name).find(n => /plainkit\.reconnect(\.[\w-]+)?\.js/.test(n)), mod = await import(url); mod.stopReconnect(); const c = JSON.parse(m.dataset.pkReconnect); c.overlay = true; m.dataset.pkReconnect = JSON.stringify(c); return mod.startReconnect() !== null; })()`);
+        ctx.ok(started === true, 'the overlay driver restarted (a null controller means a second module copy was loaded)');
         const top0 = await ctx.eval(`${NAVBAR}.getBoundingClientRect().top`);
         await fire(ctx, 'retrying'); await ctx.waitFor(`${KIND} !== ''`, 'the retrying banner'); await ctx.sleep(200);
         const m = await ctx.eval(`(() => ({ nav: ${NAVBAR}.getBoundingClientRect().top, open: document.documentElement.hasAttribute('data-pk-reconnect-open') }))()`);

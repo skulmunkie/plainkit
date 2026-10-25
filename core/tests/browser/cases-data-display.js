@@ -737,6 +737,20 @@ export const dataDisplayCases = [
         el.querySelector('span').click(); t.eq(got.join(), '1,1', 'a slotted span');
         el.querySelector('button').click(); t.eq(got.join(), '1,1', 'a slotted button keeps its click');
     }],
+    ['table: a click inside a slotted pk-link or pk-button keeps its click and raises no pk-row-click; plain slotted text still does (#1781)', async t => {
+        const el = await t.mount(`<pk-table clickable columns='[{"key":"a","label":"A"},{"key":"b","label":"B"},{"key":"c","label":"C"}]' rows='[{"id":1,"a":"plain","b":"","c":""}]'><span slot="cell-1-b"><pk-link href="#issue-1781" navigate="none">Open</pk-link></span><span slot="cell-1-c"><pk-button>Act</pk-button></span></pk-table>`);
+        await Promise.all(['pk-link', 'pk-button'].map(n => customElements.whenDefined(n)));
+        await until(() => [...el.shadowRoot.querySelectorAll('tbody tr')].filter(x => x.tabIndex === 0).length === 1, 'a focusable row');
+        const got = []; el.addEventListener('pk-row-click', e => got.push(e.detail.id));
+        const link = el.querySelector('pk-link'), btn = el.querySelector('pk-button');
+        let pressed = 0; btn.addEventListener('click', () => pressed++);
+        link.addEventListener('click', e => e.preventDefault());
+        link.click(); t.eq(got.join(), '', 'a click on the pk-link host (its text) is not a row click');
+        link.shadowRoot.querySelector('a').click(); t.eq(got.join(), '', 'a click on the anchor inside pk-link is not a row click');
+        btn.click(); t.eq(got.join(), '', 'a click on the pk-button host (its label) is not a row click');
+        t.eq(pressed, 1, 'the pk-button still received its click');
+        el.querySelector('span[slot="cell-1-b"]').click(); t.eq(got.join(), '1', 'a click on the cell content around the link is still a row click');
+    }],
 
     ['table (375px): a hidePhone column is hidden in the table and in the cards layout; at 1200px it shows', async t => {
         const { sampleDoc } = await import('../../site/gallery/frame.js');
@@ -1148,6 +1162,16 @@ export const dataDisplayCases = [
         t.ok(row().getBoundingClientRect().height > one + 8, 'wrapped the row is taller: ' + row().getBoundingClientRect().height + ' vs ' + one);
         t.ok(lab().scrollWidth <= lab().clientWidth + 1, 'the wrapped label is not cut off');
         t.ok(row().getBoundingClientRect().right <= el.getBoundingClientRect().right + 1, 'the row stays inside the column');
+    }],
+    ['tree: a wrapped label has padding above and below inside its row, and a one-line row keeps its height (#1775)', async t => {
+        const long = 'A very long category name that does not fit a narrow navigation column at all';
+        const el = await t.mount('<div style="inline-size:12rem"><pk-tree label="Nav"><pk-tree-item label="' + long + '"></pk-tree-item><pk-tree-item label="Short"></pk-tree-item></pk-tree></div>'); await t.settle();
+        const tree = el.querySelector('pk-tree'), [a, b] = tree.querySelectorAll('pk-tree-item');
+        const shortBefore = b.part('row').getBoundingClientRect().height;
+        tree.wrapLabels = true; await t.settle();
+        const row = a.part('row').getBoundingClientRect(), lab = a.part('label').getBoundingClientRect();
+        t.ok(lab.top - row.top >= 3 && row.bottom - lab.bottom >= 3, `the wrapped label has room above (${lab.top - row.top}px) and below (${row.bottom - lab.bottom}px)`);
+        t.ok(Math.abs(b.part('row').getBoundingClientRect().height - shortBefore) <= 1, 'a one-line row keeps its height');
     }],
     ['tree: a tree built in a detached tree (template content moved in is not upgraded until it is connected) does not re-queue updates forever', async t => {
         const el = await t.mount('<pk-tree label="Cats"><pk-tree-item label="Books"></pk-tree-item></pk-tree>'); await t.settle();

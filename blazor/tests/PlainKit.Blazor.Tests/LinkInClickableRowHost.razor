@@ -1,0 +1,10 @@
+@* A clickable row with a PkLink in it (issue 1770): StopPropagation keeps the row's own click from running. *@
+<div class="row" @onclick="() => RowClicks++">
+    <PkLink Href="/orders/1" StopPropagation="@Stop" OnClick="() => LinkClicks++">Order 1</PkLink>
+</div>
+
+@code {
+    [Parameter] public bool Stop { get; set; }
+    public int RowClicks { get; private set; }
+    public int LinkClicks { get; private set; }
+}
