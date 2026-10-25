@@ -4,8 +4,9 @@
 //   - selects on a click (the canvas's pk-canvas-pick), toggles with Shift, Ctrl or Cmd, selects every item with Ctrl+A, clears with Escape,
 //   - selects an item that takes keyboard focus (Tab walks the items in DOM order; the items bring their own tab stops),
 //   - draws a marquee while a primary-button drag runs over bare ground in mode="select" and selects what it touches,
+//   - moves the selection with the arrow keys (one grid step, Shift ten, Alt one screen pixel) through a cancelable pk-canvas-move the page answers by writing the item back (not when readonly),
 // and says what changed in the canvas's live region. The host owns the `selection` property (an array of ids); this layer sets it and emits pk-canvas-select.
-import { declaredRect, between, marquee, combine, toFrame, fromFrame } from './canvas-geometry.js';
+import { declaredRect, between, marquee, combine, toFrame, fromFrame, moved, nudge } from './canvas-geometry.js';
 import { adopt } from './canvas-style.js';
 
 export function mount(host) {
@@ -29,6 +30,16 @@ export function mount(host) {
     const local = e => { const r = frame.getBoundingClientRect(); return { x: e.clientX - r.left, y: e.clientY - r.top }; };
     const marqueeIds = (a, b) => marquee(items(), fromFrame(view(), between(a.x, a.y, b.x, b.y)));
     const idOf = el => el?.closest?.('[data-id]')?.dataset.id;
+    const ARROWS = { ArrowLeft: [-1, 0], ArrowRight: [1, 0], ArrowUp: [0, -1], ArrowDown: [0, 1] };
+    const round = v => Math.round(v * 100) / 100;
+    // Ask the page to move the selection by (dx, dy) world units: a cancelable pk-canvas-move with the new positions (the page writes them back; the
+    // canvas never writes to items). `done` is false while a drag runs and true when the move is complete; only a complete, uncancelled move is announced.
+    const move = (dx, dy, done) => {
+        const moves = moved(items(), host.selection, dx, dy);
+        if (!moves.length) return false;
+        if (host.emit('pk-canvas-move', { moves, done }) && done) status.textContent = moves.length === 1 ? `Moved to ${round(moves[0].x)}, ${round(moves[0].y)}` : `Moved ${moves.length} items`;
+        return true;
+    };
 
     const onPick = e => {
         const id = idOf(e.detail.target);
@@ -53,6 +64,10 @@ export function mount(host) {
     const onKey = e => {
         if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'a' && !e.target.matches?.('input, textarea, select, [contenteditable]')) set(items().map(i => i.id));
         else if (e.key === 'Escape' && host.selection.length) set([]);
+        else if (ARROWS[e.key] && !host.readonly && !e.ctrlKey && !e.metaKey && host.selection.length && !e.target.matches?.('input, textarea, select, [contenteditable]')) {
+            const d = nudge(host.steps().minor, host.zoom, e), [ux, uy] = ARROWS[e.key];
+            if (!move(ux * d, uy * d, true)) return;
+        }
         else return;
         e.preventDefault(); e.stopImmediatePropagation();
     };
