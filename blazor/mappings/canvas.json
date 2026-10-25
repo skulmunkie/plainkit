@@ -22,7 +22,8 @@
     { "name": "OnPick", "event": "pk-canvas-pick" },
     { "name": "OnKey", "event": "pk-canvas-key" },
     { "name": "OnSelect", "event": "pk-canvas-select" },
-    { "name": "OnMove", "event": "pk-canvas-move" }
+    { "name": "OnMove", "event": "pk-canvas-move" },
+    { "name": "OnResize", "event": "pk-canvas-resize" }
   ],
   "methods": [
     { "name": "ZoomToFitAsync", "method": "zoomToFit" },

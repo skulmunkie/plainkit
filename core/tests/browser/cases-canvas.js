@@ -299,6 +299,30 @@ export const canvasCases = [
         t.eq(got.length, 0, 'readonly: no drag');
     }],
 
+    ['canvas: one selected item gets eight handles with a 44px hit area; dragging the se handle streams pk-canvas-resize in world units with the nw corner fixed, Shift keeps the ratio; readonly or two selected show none (#430 C4 resize)', async t => {
+        const s = await selectable(t, 'zoom="2"'), fr = s.part('frame'), got = [];
+        const same = (d, e) => Object.keys(e).every(k => (typeof e[k] === 'number' ? near(d[k], e[k], 0.001) : d[k] === e[k]));
+        s.addEventListener('pk-canvas-resize', e => got.push(e.detail));
+        s.selection = ['a']; await t.settle();
+        const hs = () => [...s.part('selection').querySelectorAll('[data-handle]')], se = () => hs().find(h => h.dataset.handle === 'se');
+        t.eq(hs().map(h => h.dataset.handle).join(), 'nw,ne,se,sw,n,e,s,w', 'eight handles');
+        const f = rect(fr), c = rect(se());
+        t.ok(near(c.left + c.width / 2, f.left + (40 + 100) * 2, 2) && near(c.top + c.height / 2, f.top + (40 + 60) * 2, 2), 'the se handle is centred on the item\'s corner');
+        const hit = getComputedStyle(se(), '::before');
+        t.ok(parseFloat(hit.width) >= 44 && parseFloat(hit.height) >= 44, `a 44px hit area (${hit.width} x ${hit.height})`);
+        const x0 = c.left + c.width / 2, y0 = c.top + c.height / 2;
+        ptr(se(), 'pointerdown', 8, x0, y0); ptr(fr, 'pointermove', 8, x0 + 20, y0 + 10); ptr(fr, 'pointerup', 8, x0 + 20, y0 + 10); await t.settle();
+        t.eq(got.length, 2, 'one while dragging, one at the end');
+        t.ok(same(got[0], { id: 'a', x: 40, y: 40, w: 110, h: 65, done: false }) && same(got[1], { id: 'a', x: 40, y: 40, w: 110, h: 65, done: true }), `world units, nw corner fixed (${JSON.stringify(got)})`);
+        t.eq(s.panX, 0, 'no pan'); t.ok(s.part('marquee').hidden, 'no marquee'); t.eq(s.selection.join(), 'a', 'the selection stays');
+        t.ok(/Resized to 110 by 65/.test(s.part('status').textContent), `announced (${s.part('status').textContent})`);
+        got.length = 0;
+        ptr(se(), 'pointerdown', 9, x0, y0); ptr(fr, 'pointermove', 9, x0 + 40, y0, { shiftKey: true }); ptr(fr, 'pointerup', 9, x0 + 40, y0, { shiftKey: true }); await t.settle();
+        t.ok(same(got.at(-1), { id: 'a', x: 40, y: 40, w: 120, h: 72, done: true }), `Shift keeps the 100:60 ratio (${JSON.stringify(got.at(-1))})`);
+        s.readonly = true; await t.settle(); t.eq(hs().length, 0, 'readonly: no handles');
+        s.readonly = false; s.selection = ['a', 'b']; await t.settle(); t.eq(hs().length, 0, 'two selected: no handles');
+    }],
+
     ['canvas: 2000 declared items stay selectable (Ctrl+A) and a pan step stays cheap (timings reported)', async t => {
         const rects = Array.from({ length: 2000 }, (_, i) => `<rect data-id="i${i}" x="${(i % 50) * 30}" y="${Math.floor(i / 50) * 30}" width="24" height="24"></rect>`).join('');
         const s = await t.mount(`<pk-canvas label="Many" selectable min-zoom="0.05"><svg width="1500" height="1200">${rects}</svg></pk-canvas>`);
