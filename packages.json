@@ -69,8 +69,8 @@
         "zip-store.js"
       ],
       "maxPackedBytes": null,
-      "maxUnpackedBytes": 781100,
-      "maxZipBytes": 255700,
+      "maxUnpackedBytes": 789651,
+      "maxZipBytes": 258265,
       "files": [
         "elements/api.json",
         "modules/manifest.json"
@@ -161,8 +161,8 @@
         "viewport-logic.js"
       ],
       "maxPackedBytes": null,
-      "maxUnpackedBytes": 74169,
-      "maxZipBytes": 33592
+      "maxUnpackedBytes": 79216,
+      "maxZipBytes": 35477
     },
     {
       "id": "plainkit.blazor",
@@ -195,7 +195,7 @@
         "web-types.json"
       ],
       "maxPackedBytes": null,
-      "maxUnpackedBytes": 912990,
+      "maxUnpackedBytes": 927179,
       "maxZipBytes": 192289
     }
   ],
