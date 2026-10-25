@@ -50,4 +50,19 @@ public sealed class PkCanvasEventTests : BunitContext, IAsyncLifetime
         Assert.True(pick!.Additive);
         Assert.Equal("Delete", key!.Key);
     }
+
+    [Fact]
+    public async Task pk_canvas_move_raises_OnMove_and_ReadOnly_renders_the_attribute()
+    {
+        PkCanvasMoveEventArgs? moved = null;
+        var cut = Render<PkCanvas>(p => p
+            .Add(c => c.ReadOnly, true)
+            .Add(c => c.OnMove, e => moved = e));
+        var el = cut.Find("pk-canvas");
+
+        await cut.InvokeAsync(() => el.TriggerEventAsync("onpk-canvas-move", new PkCanvasMoveEventArgs { Done = true }));
+
+        Assert.True(moved!.Done);
+        Assert.True(el.HasAttribute("readonly"));
+    }
 }
