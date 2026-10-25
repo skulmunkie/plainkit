@@ -323,6 +323,36 @@ export const canvasCases = [
         s.readonly = false; s.selection = ['a', 'b']; await t.settle(); t.eq(hs().length, 0, 'two selected: no handles');
     }],
 
+    ['canvas: snap pulls a dragged selection within snap-threshold screen px onto the grid, another item\'s edge or a guide and shows the snap line only while dragging; guides are drawn; without snap it moves freely (#430 C5)', async t => {
+        // Drags item `id` by (dx, dy) screen px; returns the pk-canvas-move details and the snap-line axes seen while the pointer was down.
+        const pull = async (s, id, dx, dy, pid) => {
+            const fr = s.part('frame'), el = s.querySelector(`[data-id="${id}"]`), r = rect(el), x0 = r.left + 10, y0 = r.top + 10, got = [], on = e => got.push(e.detail);
+            s.addEventListener('pk-canvas-move', on);
+            ptr(el, 'pointerdown', pid, x0, y0); ptr(fr, 'pointermove', pid, x0 + dx, y0 + dy); await t.settle();
+            const held = [...s.part('selection').querySelectorAll('[part="snap-line"]')].map(l => l.dataset.axis).join();
+            ptr(fr, 'pointerup', pid, x0 + dx, y0 + dy); await t.settle();
+            s.removeEventListener('pk-canvas-move', on);
+            return { at: got.map(d => [d.moves[0].x, d.moves[0].y, d.done]), held, after: s.part('selection').querySelectorAll('[part="snap-line"]').length };
+        };
+        // a is world 40,40 100x60, b is 200,30 80x40; zoom 2, so the 6px threshold is 3 world units.
+        const g = await selectable(t, 'zoom="2" grid="10" snap="grid"'); g.selection = ['a']; await t.settle();
+        let r = await pull(g, 'a', 4, 2, 11);
+        t.eq(JSON.stringify(r.at), JSON.stringify([[40, 40, false], [40, 40, true]]), 'a 2 by 1 world-unit drag is held on the grid');
+        t.eq(r.held, 'x,y', 'two snap lines while held'); t.eq(r.after, 0, 'no snap line after the drop');
+        const e = await selectable(t, 'zoom="2" snap="edges"'); e.selection = ['a']; await t.settle();
+        r = await pull(e, 'a', 118, 0, 12);
+        t.eq(JSON.stringify(r.at.at(-1)), JSON.stringify([100, 40, true]), 'the right edge (199) meets b\'s left edge (200)');
+        t.eq(r.held, 'x', 'one vertical snap line');
+        const s = await selectable(t, 'zoom="2" snap="guides"'); s.guides = [{ axis: 'y', at: 50 }]; s.selection = ['a']; await t.settle();
+        const gl = s.part('selection').querySelector('[part="guide"]');
+        t.ok(gl && gl.dataset.axis === 'y' && near(rect(gl).top, rect(s.part('frame')).top + 100, 2), 'the guide is drawn at world y 50 (100 px at zoom 2)');
+        r = await pull(s, 'a', 0, 16, 13);
+        t.eq(JSON.stringify(r.at.at(-1)), JSON.stringify([40, 50, true]), 'the top (48) meets the guide (50)');
+        s.snap = ''; await t.settle();
+        r = await pull(s, 'a', 4, 2, 14);
+        t.eq(JSON.stringify(r.at.at(-1)), JSON.stringify([42, 41, true]), 'without snap the drag is free'); t.eq(r.held, '', 'and no snap line');
+    }],
+
     ['canvas: 2000 declared items stay selectable (Ctrl+A) and a pan step stays cheap (timings reported)', async t => {
         const rects = Array.from({ length: 2000 }, (_, i) => `<rect data-id="i${i}" x="${(i % 50) * 30}" y="${Math.floor(i / 50) * 30}" width="24" height="24"></rect>`).join('');
         const s = await t.mount(`<pk-canvas label="Many" selectable min-zoom="0.05"><svg width="1500" height="1200">${rects}</svg></pk-canvas>`);
