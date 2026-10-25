@@ -35,6 +35,7 @@ public sealed class PkReconnectTests : BunitContext, IAsyncLifetime
     [Fact]
     public void Overlay_is_sent_to_the_banner()
     {
+        Services.AddPlainKit();
         var cut = Render<PkReconnect>(p => p.Add(x => x.Reconnect, new PkReconnectOptions { Overlay = true }));
         Assert.True(Config(cut).GetProperty("overlay").GetBoolean());
     }
