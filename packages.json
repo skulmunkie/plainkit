@@ -69,8 +69,8 @@
         "zip-store.js"
       ],
       "maxPackedBytes": null,
-      "maxUnpackedBytes": 789651,
-      "maxZipBytes": 258265,
+      "maxUnpackedBytes": 791175,
+      "maxZipBytes": 258710,
       "files": [
         "elements/api.json",
         "modules/manifest.json"
@@ -195,8 +195,8 @@
         "web-types.json"
       ],
       "maxPackedBytes": null,
-      "maxUnpackedBytes": 922823,
-      "maxZipBytes": 192289
+      "maxUnpackedBytes": 929944,
+      "maxZipBytes": 194875
     }
   ],
   "siteOnly": [
@@ -204,6 +204,6 @@
   ],
   "blazorPayload": {
     "coreOnly": 737420,
-    "full": 1032592
+    "full": 1048205
   }
 }
