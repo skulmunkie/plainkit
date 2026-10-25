@@ -153,3 +153,6 @@ export function confirm(el, reason, panels) {
             el.draw(phone);
         });
 }
+
+// The names dock.js forwards to this module as thin methods (kept here so dock.js carries no list of them, #432 D2b budget).
+export const methods = 'closePanel openPanel focusPanel toggleFlyout closeFlyout onFlyoutBlur';
