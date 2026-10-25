@@ -103,6 +103,7 @@
     "Testing/PkFieldTesting.cs": 53,
     "Testing/PkPageTesting.Resume.cs": 7,
     "Testing/PkPageTesting.cs": 88,
+    "Testing/PkListPageTesting.cs": 21,
     "Testing/PkRecordPageTesting.cs": 79,
     "PkExtraSet.cs": 47,
     "PkOptions.Extras.cs": 7,

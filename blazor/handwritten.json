@@ -358,6 +358,9 @@
     "Testing/PkPageTesting.cs": {
       "category": "callback-slot"
     },
+    "Testing/PkListPageTesting.cs": {
+      "category": "callback-slot"
+    },
     "PkExtraSet.cs": {
       "category": "runtime"
     },

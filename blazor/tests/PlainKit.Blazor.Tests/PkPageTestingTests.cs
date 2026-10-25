@@ -183,4 +183,21 @@ public sealed class PkPageTestingTests : BunitContext, IAsyncLifetime
         cut.Instance.SetField("active", false);
         Assert.DoesNotContain(cut.Instance.Fields(), f => f.Key == "nick");
     }
+
+    // Issue 1779: Filters() reads the filter definitions the element is sent; RowHref(item) is the row link the element would draw.
+    [Fact]
+    public void Filters_and_RowHref_read_what_the_element_draws()
+    {
+        var cut = Render<PkListPage<Person>>(p => p
+            .Add(x => x.Config, "{\"columns\":[{\"key\":\"name\",\"label\":\"Name\"}],\"filters\":[{\"key\":\"type\",\"type\":\"select\",\"label\":\"Type\",\"options\":[\"A\",\"B\"]}]}")
+            .Add(x => x.IdOf, c => c.Id.ToString())
+            .Add(x => x.RowHrefTemplate, "/people/{id}?n={name}"));
+        var f = Assert.Single(cut.Instance.Filters());
+        Assert.Equal("type", f!["key"]!.GetValue<string>());
+        Assert.Equal(2, f["options"]!.AsArray().Count);
+        Assert.Equal("/people/7?n=Ada%20L", cut.Instance.RowHref(new Person { Id = 7, Name = "Ada L" }));
+        var none = Render<PkListPage<Person>>(p => p.Add(x => x.Config, "{\"columns\":[{\"key\":\"name\"}]}"));
+        Assert.Empty(none.Instance.Filters());
+        Assert.Null(none.Instance.RowHref(new Person { Id = 7, Name = "Ada" }));
+    }
 }
