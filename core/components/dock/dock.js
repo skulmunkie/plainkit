@@ -158,6 +158,11 @@ export default Base => {
         this.layout = json;
         return r.problems;
     }
+    // Public (#432 D2): the menus' own commands from code, with their reasons, announcements and refusals. dockPanel's target is a group id of the layout.
+    floatPanel(id, rect) { if (render.canFloat(this, id)) this.floatCmd(id, rect); }
+    dockPanel(id, { target, zone = 'center' } = {}) { this.applyMove(zone === 'center' ? 'tab' : 'dock', id, target, zone); }
+    collapsePanel(id) { if (render.canCollapse(this, id)) drag.collapseCmd(this, id); }
+    raisePanel(id) { drag.raiseCmd(this, id); }
     onResize(e) {
         e.stopPropagation();
         const id = e.target.closest?.('pk-splitter')?.getAttribute('data-node');

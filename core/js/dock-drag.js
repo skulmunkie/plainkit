@@ -3,7 +3,7 @@
 // less often than opening/closing/resizing a dock, so it is the first thing to move out once dock.js itself needed to shrink. Every export takes
 // the pk-dock element instance (`el`) as its first argument and reads/writes the same private fields dock.js always did ($doc, $drag, $flyout is
 // untouched here); nothing here is a public API of its own; it exists to be called from dock.js's own event listeners.
-import { findFloater, floatDrag, dragFloater, tabDrag, raiseFloater, resizeFloater, moveFloater, groups, moveTab, dockPanel, floaters, floatPanel, dockFloating, describeMove } from './dock-model.js';
+import { findFloater, floatDrag, dragFloater, tabDrag, raiseFloater, resizeFloater, moveFloater, groups, moveTab, dockPanel, floaters, floatPanel, collapsePanel, dockFloating, describeMove } from './dock-model.js';
 
 const gid = (doc, id) => groups(doc).find(g => g.id === id);
 const rectStyle = (el, f) => Object.assign(el.style, { left: `${f.x}px`, top: `${f.y}px`, width: `${f.w}px`, height: `${f.h}px`, zIndex: f.z });
@@ -31,10 +31,10 @@ export function applyMove(el, kind, panel, group, zone) {
     settle(el, r.doc, 'move', describeMove(kind, title(panel), title(targetGroup?.active), zone), () => el.focusPanel(panel));
 }
 
-// Panel menu's Float: floatPanel plus a small cascade so several in a row do not stack exactly, then focus follows to the new frame.
-export function floatCmd(el, panel) {
+// Panel menu's Float (and the public floatPanel(id, rect?)): floatPanel at rect, or a small cascade so several in a row do not stack exactly, then focus follows to the new frame.
+export function floatCmd(el, panel, rect) {
     const title = el.$titles.get(panel) ?? panel, box = el.part('root').getBoundingClientRect(), n = floaters(el.$doc).length;
-    const r = floatPanel(el.$doc, { panel, rect: { x: 24 + (n % 6) * 16, y: 24 + (n % 6) * 16, w: 320, h: 240 }, bounds: { w: box.width, h: box.height } });
+    const r = floatPanel(el.$doc, { panel, rect: rect ?? { x: 24 + (n % 6) * 16, y: 24 + (n % 6) * 16, w: 320, h: 240 }, bounds: { w: box.width, h: box.height } });
     for (const p of r.problems) el.warnOnce(`float:${p.code}:${p.path}`, p.message, { code: p.code });
     if (r.doc === el.$doc) return;
     settle(el, r.doc, 'float', `${title} floating`, () => focusFloater(el, panel));
@@ -183,4 +183,17 @@ export function onFloatFocus(el, e) {
     if (!id) return;
     const r = raiseFloater(el.$doc, { floater: id });
     if (r.doc !== el.$doc) paint(el, r.doc, id, 'raise');
+}
+
+// Public collapsePanel(id) (#432 D2): the header toggle's model call, reason and redraw, for a panel alone in its group (a tab group has no collapse).
+export function collapseCmd(el, panel) {
+    if (groups(el.$doc).find(g => g.panels.includes(panel))?.panels.length !== 1) return;
+    const r = collapsePanel(el.$doc, { panel });
+    if (r.doc !== el.$doc) settle(el, r.doc, 'collapse', `${el.$titles.get(panel) ?? panel} collapsed`, () => {});
+}
+
+// Public raisePanel(id) (#432 D2): the floater holding the panel comes to the front (reason raise, as a pointer grab or focus); nothing for a docked panel.
+export function raiseCmd(el, panel) {
+    const f = floaters(el.$doc).find(x => x.group.panels.includes(panel)), r = f && raiseFloater(el.$doc, { floater: f.id });
+    if (r && r.doc !== el.$doc) paint(el, r.doc, f.id, 'raise');
 }
