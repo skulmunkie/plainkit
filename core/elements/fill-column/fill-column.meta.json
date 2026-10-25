@@ -1,0 +1,32 @@
+{
+  "tag": "pk-fill-column",
+  "title": "Fill column",
+  "group": "Layout",
+  "tier": "element",
+  "summary": "A column that fills a parent of definite height (the app shell body with contain, a workspace pane): the fixed slot keeps its height and the rest fills what is left and scrolls on its own.",
+  "props": [
+    { "name": "fixed", "type": "string", "default": "", "reflect": true, "description": "Height of the fixed region as a CSS length (12rem, 40vh); empty keeps its natural height. Not a length: ignored with one warning." },
+    { "name": "gap", "type": "enum", "default": "md", "values": ["none", "xs", "sm", "md", "lg", "xl"], "reflect": true, "description": "Space between the regions and between fixed children, on the spacing scale (as pk-stack)." }
+  ],
+  "slots": [
+    { "name": "fixed", "description": "Content that keeps its height above the rest (a camera preview, a summary). Empty: the region is hidden." },
+    { "name": "", "description": "Content that fills the remaining height and scrolls on its own (a list)." }
+  ],
+  "events": [],
+  "parts": [
+    { "name": "fixed", "description": "The fixed region." },
+    { "name": "rest", "description": "The region that fills the rest and scrolls." }
+  ],
+  "cssProperties": [
+    { "name": "--pk-fill-column-fixed", "description": "Overrides the fixed prop.", "default": "fixed" },
+    { "name": "--pk-fill-column-gap", "description": "Overrides the gap prop with any length.", "default": "gap" }
+  ],
+  "methods": [],
+  "a11y": "A plain layout box with no role; the reading order is the fixed region, then the rest. The scrolling region is reachable by keyboard through its focusable content.",
+  "examples": [
+    {
+      "title": "A preview above a scrolling list",
+      "html": "<pk-fill-column fixed=\"8rem\"><pk-card slot=\"fixed\" heading=\"Camera preview\">Live preview</pk-card><pk-stack><pk-text>Scanned item 1</pk-text><pk-text>Scanned item 2</pk-text><pk-text>Scanned item 3</pk-text></pk-stack></pk-fill-column>"
+    }
+  ]
+}

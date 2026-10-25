@@ -1,0 +1,10 @@
+:host { --_g: var(--space-4); display: flex; flex-direction: column; gap: var(--pk-fill-column-gap, var(--_g)); block-size: 100%; min-block-size: 0; min-inline-size: 0; }
+:host([hidden]) { display: none; }
+:host([gap="none"]) { --_g: 0px; }
+:host([gap="xs"]) { --_g: var(--space-1); }
+:host([gap="sm"]) { --_g: var(--space-2); }
+:host([gap="lg"]) { --_g: var(--space-6); }
+:host([gap="xl"]) { --_g: var(--space-8); }
+[part="fixed"] { flex: none; display: flex; flex-direction: column; gap: var(--pk-fill-column-gap, var(--_g)); block-size: var(--pk-fill-column-fixed, var(--_fh, auto)); min-block-size: 0; overflow: clip; }
+[part="fixed"][hidden] { display: none; }
+[part="rest"] { flex: 1 1 0; min-block-size: 0; overflow-y: auto; overscroll-behavior: contain; }
