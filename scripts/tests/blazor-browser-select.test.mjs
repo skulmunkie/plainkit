@@ -80,7 +80,9 @@ test('docs, tests and the testing helpers select nothing', () => {
 test('the reconnect files select the reconnect cases', () => {
     const sel = select(['blazor/src/PlainKit.Blazor/Components/PkReconnect.razor']);
     assert.equal(sel.full, false);
-    assert.equal(sel.cases.size, 6);
+    const reconnect = ALL.filter(c => CASE_MAP[c.name].areas.includes('reconnect')).length;
+    assert.ok(reconnect > 0);
+    assert.equal(sel.cases.size, reconnect);
     assert.ok(names(sel).every(n => CASE_MAP[n].areas.includes('reconnect')));
 });
 
