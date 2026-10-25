@@ -28,6 +28,16 @@ public sealed class PkReconnectTests : BunitContext, IAsyncLifetime
         Assert.Equal("/", cfg.GetProperty("probeUrl").GetString());
         Assert.Empty(cfg.GetProperty("strings").EnumerateObject());
         Assert.False(cfg.GetProperty("modal").GetBoolean());
+        Assert.False(cfg.GetProperty("overlay").GetBoolean());
+    }
+
+    // Issue 1774: Overlay reaches the banner's options.
+    [Fact]
+    public void Overlay_is_sent_to_the_banner()
+    {
+        Services.AddPlainKit();
+        var cut = Render<PkReconnect>(p => p.Add(x => x.Reconnect, new PkReconnectOptions { Overlay = true }));
+        Assert.True(Config(cut).GetProperty("overlay").GetBoolean());
     }
 
     [Fact]
