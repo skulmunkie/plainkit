@@ -752,6 +752,19 @@ export const dataDisplayCases = [
         el.querySelector('span[slot="cell-1-b"]').click(); t.eq(got.join(), '1', 'a click on the cell content around the link is still a row click');
     }],
 
+    ['table (375px): a text-only empty cell hides its label in a card, a filled cell keeps it (#1777)', async t => {
+        const { sampleDoc } = await import('../../site/gallery/frame.js');
+        const html = `<pk-table cards label="P" columns='[{"key":"sku","label":"SKU"},{"key":"status","label":"Status"}]' rows='[{"id":1,"sku":"A","status":"Late"},{"id":2,"sku":"B","status":""}]'></pk-table>`;
+        const host = t.stage(''), f = document.createElement('iframe');
+        f.title = 'sample'; f.style.width = '375px'; f.style.height = '400px'; f.style.border = '0';
+        const loaded = new Promise(r => f.addEventListener('load', r, { once: true })); host.append(f); f.srcdoc = sampleDoc(html); await loaded;
+        await until(() => f.contentWindow.customElements.get('pk-table') && f.contentDocument.querySelector('pk-table')?.shadowRoot?.querySelector('tbody td'), 'the table');
+        const tb = f.contentDocument.querySelector('pk-table'), w = f.contentWindow;
+        const shown = (row, key) => { const c = tb.shadowRoot.querySelector(`tbody tr[data-pk-context="${row}"] td[data-key="${key}"]`); return !!c && w.getComputedStyle(c).display !== 'none'; };
+        t.ok(shown(1, 'status') && shown(2, 'sku'), 'filled cells keep their label');
+        t.ok(!shown(2, 'status'), 'the empty Status cell draws no label');
+    }],
+
     ['table (375px): a hidePhone column is hidden in the table and in the cards layout; at 1200px it shows', async t => {
         const { sampleDoc } = await import('../../site/gallery/frame.js');
         const html = `<pk-table cards label="P" columns='[{"key":"sku","label":"SKU"},{"key":"note","label":"Note","hidePhone":true}]' rows='[{"id":1,"sku":"A","note":"n1"}]'></pk-table>`;
