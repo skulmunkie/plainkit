@@ -33,6 +33,8 @@
 
 [part="handle"] { inline-size: var(--pk-canvas-handle-size, var(--space-2)); block-size: var(--pk-canvas-handle-size, var(--space-2)); }
 
+[part="guide"], [part="snap-line"] { border-color: var(--pk-canvas-guide, var(--color-accent)); }
+
 [part="level"] { min-inline-size: 4ch; text-align: center; font-size: var(--text-sm); color: var(--color-muted); font-variant-numeric: tabular-nums; }
 
 @media (--phone) {
