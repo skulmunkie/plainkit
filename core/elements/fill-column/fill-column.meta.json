@@ -3,14 +3,14 @@
   "title": "Fill column",
   "group": "Layout",
   "tier": "element",
-  "summary": "A column that fills a parent of definite height (the app shell body with contain, a workspace pane): the fixed slot keeps its height and the rest fills what is left and scrolls on its own.",
+  "summary": "A column in a parent of fixed height: the fixed slot keeps its height, the rest fills and scrolls.",
   "props": [
-    { "name": "fixed", "type": "string", "default": "", "reflect": true, "description": "Height of the fixed region as a CSS length (12rem, 40vh); empty keeps its natural height. Not a length: ignored with one warning." },
-    { "name": "gap", "type": "enum", "default": "md", "values": ["none", "xs", "sm", "md", "lg", "xl"], "reflect": true, "description": "Space between the regions and between fixed children, on the spacing scale (as pk-stack)." }
+    { "name": "fixed", "type": "string", "default": "", "reflect": true, "description": "Fixed region height, a CSS length (12rem). Empty: natural height." },
+    { "name": "gap", "type": "enum", "default": "md", "values": ["none", "xs", "sm", "md", "lg", "xl"], "reflect": true, "description": "Space between regions." }
   ],
   "slots": [
-    { "name": "fixed", "description": "Content that keeps its height above the rest (a camera preview, a summary). Empty: the region is hidden." },
-    { "name": "", "description": "Content that fills the remaining height and scrolls on its own (a list)." }
+    { "name": "fixed", "description": "Keeps its height above the rest. Empty: hidden." },
+    { "name": "", "description": "Fills the rest and scrolls." }
   ],
   "events": [],
   "parts": [
@@ -19,10 +19,10 @@
   ],
   "cssProperties": [
     { "name": "--pk-fill-column-fixed", "description": "Overrides the fixed prop.", "default": "fixed" },
-    { "name": "--pk-fill-column-gap", "description": "Overrides the gap prop with any length.", "default": "gap" }
+    { "name": "--pk-fill-column-gap", "description": "Overrides gap.", "default": "gap" }
   ],
   "methods": [],
-  "a11y": "A plain layout box with no role; the reading order is the fixed region, then the rest. The scrolling region is reachable by keyboard through its focusable content.",
+  "a11y": "A layout box with no role; reading order is fixed region, then rest.",
   "examples": [
     {
       "title": "A preview above a scrolling list",
