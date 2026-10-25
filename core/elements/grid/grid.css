@@ -12,6 +12,7 @@
 }
 :host([hidden]) { display: none; }
 :host([fill]) { flex: 1 1 0; block-size: 100%; min-block-size: 0; }
+:host([sticky-first]) ::slotted(:first-child) { position: sticky; inset-block-start: var(--pk-grid-sticky-top, var(--space-4)); align-self: start; }
 :host([gap="none"]) { --_g: 0px; }
 :host([gap="xs"]) { --_g: var(--space-1); }
 :host([gap="sm"]) { --_g: var(--space-2); }
