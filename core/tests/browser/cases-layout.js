@@ -951,4 +951,17 @@ layoutCases.push(
             f.fr.remove();
         }
     }],
+    ['grid: sticky-first keeps the first child in view 1rem from the top after an 800px scroll, mirrors in RTL, and a phone stacks it so it scrolls away (#1675)', async t => {
+        for (const [width, dir] of [[1280, 'ltr'], [1280, 'rtl'], [375, 'ltr']]) {
+            const f = await gridFrame(t, 'sticky', width, 600), g = f.d.getElementById('g'), nav = f.d.getElementById('nav'), art = f.d.getElementById('art'), at = `${width}px ${dir}`;
+            g.setAttribute('dir', dir); f.win.scrollTo(0, 800); await new Promise(r => f.win.requestAnimationFrame(() => f.win.requestAnimationFrame(r)));
+            const top = parseFloat(f.win.getComputedStyle(f.d.documentElement).fontSize);
+            if (width === 1280) {
+                t.ok(Math.abs(f.rect(nav).top - top) <= 1, `${at}: the nav top is ${Math.round(f.rect(nav).top)}px, expected ${top}px (the sticky offset)`);
+                t.ok(Math.abs(f.rect(nav).height - 120) <= 1, `${at}: the nav keeps its own height (align-self start), not the row height`);
+                t.ok(dir === 'rtl' ? f.rect(nav).left >= f.rect(art).right - 1 : f.rect(nav).right <= f.rect(art).left + 1, `${at}: the nav is on the start side of the article`);
+            } else t.ok(f.rect(nav).bottom < 0, `${at}: stacked, the nav scrolled away with the page (bottom ${Math.round(f.rect(nav).bottom)}px)`);
+            f.fr.remove();
+        }
+    }],
 );
