@@ -297,7 +297,7 @@
       "type": "enum",
       "default": "change",
       "values": ["change", "enter"],
-      "reflect": true,
+      "reflect": false,
       "description": "Search only: when pk-search fires. change: while typing (after debounce) and at once on Enter and clear. enter: only on Enter and clear (the clear button or Escape), never while typing, for a lookup or barcode box."
     }
   ],
