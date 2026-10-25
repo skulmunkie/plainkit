@@ -73,6 +73,22 @@
       "type": "MouseEventArgs",
       "extra": true,
       "note": "Raised for every click, Href links included (#1747), without changing the navigation: ctrl, shift and middle clicks keep their native new-tab behaviour. Close a flyout or menu here. Attached only while bound, so an unbound link costs no round trip."
+    },
+    {
+      "name": "StopPropagation",
+      "map": "param",
+      "type": "bool",
+      "modifier": "stopPropagation",
+      "of": "click",
+      "doc": "Stops the click here, so an enclosing element's @onclick (a clickable row or card) does not also run. Navigation and OnClick are unchanged."
+    },
+    {
+      "name": "PreventDefault",
+      "map": "param",
+      "type": "bool",
+      "modifier": "preventDefault",
+      "of": "click",
+      "doc": "Cancels the browser's own action for the click, so an in-page action link (Href=\"#\" with OnClick) does not follow the address. The link still raises OnClick."
     }
   ],
   "listenedNative": true,

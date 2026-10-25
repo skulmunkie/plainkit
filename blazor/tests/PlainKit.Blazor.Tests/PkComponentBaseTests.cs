@@ -78,6 +78,18 @@ public sealed class PkComponentBaseTests : BunitContext, IAsyncLifetime
         cut.WaitForAssertion(() => Assert.Equal(2, cut.Instance.Loads));
     }
 
+    // Issue 1776: ReloadOnParameters false stops reloads on a changed parameter, never the first load.
+    [Fact]
+    public void ReloadOnParameters_false_still_runs_the_first_load_and_then_never_reloads()
+    {
+        Bridge();
+        var cut = Render<NoReloadHost>(p => p.Add(x => x.Key, 1));
+        cut.WaitForAssertion(() => Assert.Equal(1, cut.Instance.Loads));
+        Assert.Contains("loaded", cut.Markup);
+        cut.Render(p => p.Add(x => x.Key, 2));
+        Assert.Equal(1, cut.Instance.Loads);
+    }
+
     [Fact]
     public void A_changed_parameter_reloads_and_cancels_the_previous_token()
     {
