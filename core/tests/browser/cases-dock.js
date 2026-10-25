@@ -399,6 +399,27 @@ export const dockDeclCases = [
         t.ok(dock.shadowRoot.querySelector('[data-floater]'), 'Notes floats again');
     }],
 
+    ['dock: getLayout() returns the drawn layout as JSON, setLayout() applies one without an event and returns the repairs, and closePanel/openPanel take a panel out and back (#432 D2)', async t => {
+        const { doc } = await frame(t, DOCK, 1200);
+        const dock = doc.querySelector('pk-dock'), root = dock.shadowRoot.querySelector('[part=root]');
+        let raised = 0; dock.addEventListener('pk-layout-change', () => raised++);
+        const before = JSON.parse(dock.getLayout());
+        t.eq(before.version, 1); t.ok(before.root && root.querySelectorAll('pk-splitter').length > 0, 'the default tree, drawn');
+        const problems = dock.setLayout(JSON.stringify({ version: 1, seq: 3, root: { id: 'd1', type: 'tabs', active: 'canvas', panels: ['canvas', 'nope', 'props'] } }));
+        await t.settle(); await wait(60);
+        t.eq(raised, 0, 'no event, as when the layout property is set');
+        t.ok(Array.isArray(problems) && problems.length >= 1, `the repairs are returned (${JSON.stringify(problems)})`);
+        t.eq(root.querySelectorAll('pk-splitter').length, 0, 'one group is drawn');
+        const now = JSON.parse(dock.getLayout());
+        t.eq(now.root.type, 'tabs', 'getLayout reads the applied layout back');
+        t.ok(!now.root.panels.includes('nope') && now.root.panels.includes('assets'), 'repaired: the unknown id dropped, the missing panels added');
+        t.eq(JSON.stringify(dock.setLayout(dock.getLayout())), '[]', 'a clean layout has no repairs');
+        dock.closePanel('assets'); await t.settle();
+        t.ok(!JSON.parse(dock.getLayout()).root.panels.includes('assets'), 'closePanel takes it out of the layout');
+        dock.openPanel('assets'); await t.settle(); await wait(60);
+        t.ok(JSON.parse(dock.getLayout()).root.panels.includes('assets'), 'openPanel puts it back');
+    }],
+
     ['dock: on a phone the strip starts on the centre panel and shows one panel with no horizontal overflow', async t => {
         const { doc } = await frame(t, DECL.replace('data-open="false"', ''), 375);
         const dock = doc.querySelector('pk-dock'), root = dock.shadowRoot.querySelector('[part=root]');
