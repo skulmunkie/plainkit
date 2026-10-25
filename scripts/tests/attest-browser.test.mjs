@@ -2,7 +2,10 @@
 // takes minutes, so it is not tested here.
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { chromeCandidates, findChrome, chromeArgs, summarizeReport, isNewRun, parseArgs, MIN_WIDTH } from '../attest-browser.mjs';
+import { chromeCandidates, findChrome, chromeArgs, summarizeReport, isNewRun, parseArgs, MIN_WIDTH, pruneStale, STALE_MS } from '../attest-browser.mjs';
+import fs from 'node:fs';
+import path from 'node:path';
+import { makeTempDir, removeTree } from '../../core/tools/tempdir.mjs';
 
 test('PK_CHROME comes first, then the platform install paths', () => {
     const win = chromeCandidates({ env: { PK_CHROME: 'X:\\chrome.exe', PROGRAMFILES: 'C:\\Program Files', LOCALAPPDATA: 'C:\\Users\\u\\AppData\\Local' }, platform: 'win32' });
@@ -107,4 +110,21 @@ test('progress lines: parsed, recorded, and a case whose heartbeat stopped is na
     assert.deepEqual(summarizeProgress(run), { passed: 1, failed: 1, total: 2, ok: false });
     const idle = newProgress(0);
     assert.equal(frozenCase(idle, 10 * FREEZE_MS), null, 'no case open: nothing is frozen');
+});
+
+test('pruneStale deletes pk-attest traces and profile folders older than 3 days, never a fresh one, its own, or another prefix', () => {
+    const dir = makeTempDir('pk-prune-test-');
+    try {
+        const now = Date.now(), old = (now - STALE_MS - 60000) / 1000, fresh = (now - 60000) / 1000;
+        const mk = (name, isDir, t) => { const p = path.join(dir, name); if (isDir) { fs.mkdirSync(p); fs.writeFileSync(path.join(p, 'Local State'), 'x'); } else fs.writeFileSync(p, 'x'); fs.utimesSync(p, t, t); return p; };
+        mk('pk-attest-trace-old.log', false, old);
+        mk('pk-attest-oldprofile', true, old);
+        mk('pk-attest-trace-new.log', false, fresh);
+        const mine = mk('pk-attest-mine', true, old);
+        mk('pk-bench-old', true, old);
+        const removed = pruneStale(dir, { now, keep: [mine] }).sort();
+        assert.deepEqual(removed, ['pk-attest-oldprofile', 'pk-attest-trace-old.log']);
+        assert.deepEqual(fs.readdirSync(dir).sort(), ['pk-attest-mine', 'pk-attest-trace-new.log', 'pk-bench-old']);
+        assert.deepEqual(pruneStale(path.join(dir, 'missing')), [], 'a folder that cannot be listed removes nothing and does not throw');
+    } finally { removeTree(dir); }
 });

@@ -13,7 +13,7 @@ namespace PlainKit.Blazor;
 ///   @page "/orders"
 ///   @inherits PageBase
 ///   &lt;PkPageHeader Title="@Title" Crumbs="@Crumbs" /&gt;
-///   @if (StatusMessage is not null) { &lt;PkAlert Kind="@StatusKind" Heading="@StatusHeading"&gt;@StatusMessage&lt;/PkAlert&gt; }
+///   @StatusContent    (the status as a PkAlert; a failed OnLoadAsync shows here)
 ///   &lt;PkLoadingOverlay Busy="@IsBusy" Delay="150" MinTime="300" Label="@BusyLabel"&gt;...&lt;/PkLoadingOverlay&gt;
 ///   @code {
 ///       protected override void OnInitialized() { Title = "Orders"; Crumbs = [new("Home", "/"), new("Orders")]; }
