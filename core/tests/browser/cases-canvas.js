@@ -299,6 +299,60 @@ export const canvasCases = [
         t.eq(got.length, 0, 'readonly: no drag');
     }],
 
+    ['canvas: one selected item gets eight handles with a 44px hit area; dragging the se handle streams pk-canvas-resize in world units with the nw corner fixed, Shift keeps the ratio; readonly or two selected show none (#430 C4 resize)', async t => {
+        const s = await selectable(t, 'zoom="2"'), fr = s.part('frame'), got = [];
+        const same = (d, e) => Object.keys(e).every(k => (typeof e[k] === 'number' ? near(d[k], e[k], 0.001) : d[k] === e[k]));
+        s.addEventListener('pk-canvas-resize', e => got.push(e.detail));
+        s.selection = ['a']; await t.settle();
+        const hs = () => [...s.part('selection').querySelectorAll('[data-handle]')], se = () => hs().find(h => h.dataset.handle === 'se');
+        t.eq(hs().map(h => h.dataset.handle).join(), 'nw,ne,se,sw,n,e,s,w', 'eight handles');
+        const f = rect(fr), c = rect(se());
+        t.ok(near(c.left + c.width / 2, f.left + (40 + 100) * 2, 2) && near(c.top + c.height / 2, f.top + (40 + 60) * 2, 2), 'the se handle is centred on the item\'s corner');
+        const hit = getComputedStyle(se(), '::before');
+        t.ok(parseFloat(hit.width) >= 44 && parseFloat(hit.height) >= 44, `a 44px hit area (${hit.width} x ${hit.height})`);
+        const x0 = c.left + c.width / 2, y0 = c.top + c.height / 2;
+        ptr(se(), 'pointerdown', 8, x0, y0); ptr(fr, 'pointermove', 8, x0 + 20, y0 + 10); ptr(fr, 'pointerup', 8, x0 + 20, y0 + 10); await t.settle();
+        t.eq(got.length, 2, 'one while dragging, one at the end');
+        t.ok(same(got[0], { id: 'a', x: 40, y: 40, w: 110, h: 65, done: false }) && same(got[1], { id: 'a', x: 40, y: 40, w: 110, h: 65, done: true }), `world units, nw corner fixed (${JSON.stringify(got)})`);
+        t.eq(s.panX, 0, 'no pan'); t.ok(s.part('marquee').hidden, 'no marquee'); t.eq(s.selection.join(), 'a', 'the selection stays');
+        t.ok(/Resized to 110 by 65/.test(s.part('status').textContent), `announced (${s.part('status').textContent})`);
+        got.length = 0;
+        ptr(se(), 'pointerdown', 9, x0, y0); ptr(fr, 'pointermove', 9, x0 + 40, y0, { shiftKey: true }); ptr(fr, 'pointerup', 9, x0 + 40, y0, { shiftKey: true }); await t.settle();
+        t.ok(same(got.at(-1), { id: 'a', x: 40, y: 40, w: 120, h: 72, done: true }), `Shift keeps the 100:60 ratio (${JSON.stringify(got.at(-1))})`);
+        s.readonly = true; await t.settle(); t.eq(hs().length, 0, 'readonly: no handles');
+        s.readonly = false; s.selection = ['a', 'b']; await t.settle(); t.eq(hs().length, 0, 'two selected: no handles');
+    }],
+
+    ['canvas: snap pulls a dragged selection within snap-threshold screen px onto the grid, another item\'s edge or a guide and shows the snap line only while dragging; guides are drawn; without snap it moves freely (#430 C5)', async t => {
+        // Drags item `id` by (dx, dy) screen px; returns the pk-canvas-move details and the snap-line axes seen while the pointer was down.
+        const pull = async (s, id, dx, dy, pid) => {
+            const fr = s.part('frame'), el = s.querySelector(`[data-id="${id}"]`), r = rect(el), x0 = r.left + 10, y0 = r.top + 10, got = [], on = e => got.push(e.detail);
+            s.addEventListener('pk-canvas-move', on);
+            ptr(el, 'pointerdown', pid, x0, y0); ptr(fr, 'pointermove', pid, x0 + dx, y0 + dy); await t.settle();
+            const held = [...s.part('selection').querySelectorAll('[part="snap-line"]')].map(l => l.dataset.axis).join();
+            ptr(fr, 'pointerup', pid, x0 + dx, y0 + dy); await t.settle();
+            s.removeEventListener('pk-canvas-move', on);
+            return { at: got.map(d => [d.moves[0].x, d.moves[0].y, d.done]), held, after: s.part('selection').querySelectorAll('[part="snap-line"]').length };
+        };
+        // a is world 40,40 100x60, b is 200,30 80x40; zoom 2, so the 6px threshold is 3 world units.
+        const g = await selectable(t, 'zoom="2" grid="10" snap="grid"'); g.selection = ['a']; await t.settle();
+        let r = await pull(g, 'a', 4, 2, 11);
+        t.eq(JSON.stringify(r.at), JSON.stringify([[40, 40, false], [40, 40, true]]), 'a 2 by 1 world-unit drag is held on the grid');
+        t.eq(r.held, 'x,y', 'two snap lines while held'); t.eq(r.after, 0, 'no snap line after the drop');
+        const e = await selectable(t, 'zoom="2" snap="edges"'); e.selection = ['a']; await t.settle();
+        r = await pull(e, 'a', 118, 0, 12);
+        t.eq(JSON.stringify(r.at.at(-1)), JSON.stringify([100, 40, true]), 'the right edge (199) meets b\'s left edge (200)');
+        t.eq(r.held, 'x', 'one vertical snap line');
+        const s = await selectable(t, 'zoom="2" snap="guides"'); s.guides = [{ axis: 'y', at: 50 }]; s.selection = ['a']; await t.settle();
+        const gl = s.part('selection').querySelector('[part="guide"]');
+        t.ok(gl && gl.dataset.axis === 'y' && near(rect(gl).top, rect(s.part('frame')).top + 100, 2), 'the guide is drawn at world y 50 (100 px at zoom 2)');
+        r = await pull(s, 'a', 0, 16, 13);
+        t.eq(JSON.stringify(r.at.at(-1)), JSON.stringify([40, 50, true]), 'the top (48) meets the guide (50)');
+        s.snap = ''; await t.settle();
+        r = await pull(s, 'a', 4, 2, 14);
+        t.eq(JSON.stringify(r.at.at(-1)), JSON.stringify([42, 41, true]), 'without snap the drag is free'); t.eq(r.held, '', 'and no snap line');
+    }],
+
     ['canvas: 2000 declared items stay selectable (Ctrl+A) and a pan step stays cheap (timings reported)', async t => {
         const rects = Array.from({ length: 2000 }, (_, i) => `<rect data-id="i${i}" x="${(i % 50) * 30}" y="${Math.floor(i / 50) * 30}" width="24" height="24"></rect>`).join('');
         const s = await t.mount(`<pk-canvas label="Many" selectable min-zoom="0.05"><svg width="1500" height="1200">${rects}</svg></pk-canvas>`);

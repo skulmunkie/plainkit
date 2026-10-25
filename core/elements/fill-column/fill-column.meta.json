@@ -1,0 +1,32 @@
+{
+  "tag": "pk-fill-column",
+  "title": "Fill column",
+  "group": "Layout",
+  "tier": "element",
+  "summary": "A column in a parent of fixed height: the fixed slot keeps its height, the rest fills and scrolls.",
+  "props": [
+    { "name": "fixed", "type": "string", "default": "", "reflect": true, "description": "Fixed region height, a CSS length (12rem). Empty: natural height." },
+    { "name": "gap", "type": "enum", "default": "md", "values": ["none", "xs", "sm", "md", "lg", "xl"], "reflect": true, "description": "Space between regions." }
+  ],
+  "slots": [
+    { "name": "fixed", "description": "Keeps its height above the rest. Empty: hidden." },
+    { "name": "", "description": "Fills the rest and scrolls." }
+  ],
+  "events": [],
+  "parts": [
+    { "name": "fixed", "description": "The fixed region." },
+    { "name": "rest", "description": "The region that fills the rest and scrolls." }
+  ],
+  "cssProperties": [
+    { "name": "--pk-fill-column-fixed", "description": "Overrides the fixed prop.", "default": "fixed" },
+    { "name": "--pk-fill-column-gap", "description": "Overrides gap.", "default": "gap" }
+  ],
+  "methods": [],
+  "a11y": "A layout box with no role; reading order is fixed region, then rest.",
+  "examples": [
+    {
+      "title": "A preview above a scrolling list",
+      "html": "<pk-fill-column fixed=\"8rem\"><pk-card slot=\"fixed\" heading=\"Camera preview\">Live preview</pk-card><pk-stack><pk-text>Scanned item 1</pk-text><pk-text>Scanned item 2</pk-text><pk-text>Scanned item 3</pk-text></pk-stack></pk-fill-column>"
+    }
+  ]
+}
