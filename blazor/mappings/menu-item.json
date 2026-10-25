@@ -41,6 +41,13 @@
       "prop": "danger"
     },
     {
+      "name": "Warning",
+      "type": "bool",
+      "default": false,
+      "map": "prop",
+      "prop": "warning"
+    },
+    {
       "name": "Value",
       "type": "string",
       "default": "",

@@ -88,6 +88,15 @@ export const overlaysCases = [
         t.ok(el.open, 'vetoed');
     }],
 
+    ['dropdown hide-empty: no choosable item, no trigger; adding an item draws it, removing it hides it again; without hide-empty an empty menu keeps its trigger (#1773)', async t => {
+        const host = t.stage('<pk-dropdown id="a" hide-empty><pk-button slot="trigger">More actions</pk-button><pk-menu-item type="header">Stock</pk-menu-item></pk-dropdown><pk-dropdown id="b"><pk-button slot="trigger">Plain</pk-button></pk-dropdown>'); await t.load(host); await t.settle();
+        const a = host.querySelector('#a'), b = host.querySelector('#b'), w = el => el.querySelector('[slot=trigger]').getBoundingClientRect().width;
+        t.eq(w(a), 0, 'a header alone is nothing to choose: no trigger');
+        t.ok(w(b) > 0, 'without hide-empty the trigger stays');
+        const item = document.createElement('pk-menu-item'); item.textContent = 'Receive'; a.append(item); await t.settle();
+        t.ok(w(a) > 0, 'an item draws the trigger');
+        item.remove(); await t.settle(); t.eq(w(a), 0, 'the last item gone hides it again');
+    }],
     ['dropdown and popover: a display: contents trigger wrapper still anchors the menu next to the trigger', async t => {
         const host = await t.mount('<div><pk-dropdown><span slot="trigger" style="display: contents"><button>Actions</button></span><pk-menu-item>Edit</pk-menu-item></pk-dropdown><pk-popover><span slot="trigger" style="display: contents"><button>Info</button></span><p>Body</p></pk-popover></div>');
         for (const b of host.querySelectorAll('button')) b.style.marginTop = '200px';

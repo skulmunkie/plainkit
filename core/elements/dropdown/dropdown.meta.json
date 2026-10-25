@@ -29,6 +29,13 @@
       "description": "Stay open after an item is chosen (multi-select filters)."
     },
     {
+      "name": "hideEmpty",
+      "type": "boolean",
+      "default": false,
+      "reflect": true,
+      "description": "Draws no trigger while the menu has no item to choose (only headers and dividers, or nothing): a menu of state-dependent actions disappears instead of opening empty."
+    },
+    {
       "name": "mega",
       "type": "boolean",
       "default": false,
