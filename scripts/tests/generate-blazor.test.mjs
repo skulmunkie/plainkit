@@ -563,6 +563,17 @@ test('stopPropagation: an event parameter marked so stops Blazor bubbling to an 
     assert.doesNotMatch(run(structuredClone(mapping)).files.get('PkDemo.razor'), /stopPropagation/);
 });
 
+test('modifier: a bool parameter is bound to @onclick:stopPropagation or :preventDefault on the element; anything else is refused (#1770)', () => {
+    const m = structuredClone(mapping);
+    m.params.push({ name: 'StopPropagation', map: 'param', type: 'bool', modifier: 'stopPropagation', of: 'click', doc: 'Stops it.' }, { name: 'PreventDefault', map: 'param', type: 'bool', modifier: 'preventDefault', of: 'click', doc: 'Cancels it.' });
+    const razor = run(m).files.get('PkDemo.razor');
+    assert.match(razor, /@onclick:stopPropagation="@StopPropagation"/);
+    assert.match(razor, /@onclick:preventDefault="@PreventDefault"/);
+    assert.match(razor, /bool StopPropagation \{ get; set; \}/);
+    const bad = structuredClone(mapping); bad.params.push({ name: 'Nope', map: 'param', type: 'bool', modifier: 'capture', of: 'click', doc: 'x' });
+    assert.throws(() => run(bad), /modifier must be/);
+});
+
 test('methods: typed arguments and a return value are forwarded to CallAsync (#1375)', () => {
     const m = structuredClone(mapping);
     m.methods = [{ name: 'FocusFieldAsync', method: 'focusField', args: [{ name: 'key', type: 'string' }] }, { name: 'ValidateAllAsync', method: 'validateAll', returns: 'bool' }];
