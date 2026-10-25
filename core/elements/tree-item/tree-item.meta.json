@@ -130,6 +130,10 @@
   ],
   "cssProperties": [
     {
+      "name": "--pk-tree-item-row-padding-block",
+      "description": "Block padding of an item row (pk-tree wrap-labels sets it to --space-1)."
+    },
+    {
       "name": "--pk-tree-item-label-white-space",
       "description": "White-space of the label: nowrap (default, one line with an ellipsis) or normal; pk-tree wrap-labels sets normal."
     },

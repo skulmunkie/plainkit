@@ -28,7 +28,7 @@
       "type": "boolean",
       "default": false,
       "reflect": true,
-      "description": "Let a long item label wrap onto several lines instead of one line cut off with an ellipsis (the item hook is --pk-tree-item-label-white-space)."
+      "description": "Let a long item label wrap onto several lines instead of one line cut off with an ellipsis (the item hook is --pk-tree-item-label-white-space). A wrapped row keeps a small padding above and below its label (--pk-tree-item-row-padding-block)."
     },
     {
       "name": "navigate",

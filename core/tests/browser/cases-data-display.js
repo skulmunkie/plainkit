@@ -1163,6 +1163,16 @@ export const dataDisplayCases = [
         t.ok(lab().scrollWidth <= lab().clientWidth + 1, 'the wrapped label is not cut off');
         t.ok(row().getBoundingClientRect().right <= el.getBoundingClientRect().right + 1, 'the row stays inside the column');
     }],
+    ['tree: a wrapped label has padding above and below inside its row, and a one-line row keeps its height (#1775)', async t => {
+        const long = 'A very long category name that does not fit a narrow navigation column at all';
+        const el = await t.mount('<div style="inline-size:12rem"><pk-tree label="Nav"><pk-tree-item label="' + long + '"></pk-tree-item><pk-tree-item label="Short"></pk-tree-item></pk-tree></div>'); await t.settle();
+        const tree = el.querySelector('pk-tree'), [a, b] = tree.querySelectorAll('pk-tree-item');
+        const shortBefore = b.part('row').getBoundingClientRect().height;
+        tree.wrapLabels = true; await t.settle();
+        const row = a.part('row').getBoundingClientRect(), lab = a.part('label').getBoundingClientRect();
+        t.ok(lab.top - row.top >= 3 && row.bottom - lab.bottom >= 3, `the wrapped label has room above (${lab.top - row.top}px) and below (${row.bottom - lab.bottom}px)`);
+        t.ok(Math.abs(b.part('row').getBoundingClientRect().height - shortBefore) <= 1, 'a one-line row keeps its height');
+    }],
     ['tree: a tree built in a detached tree (template content moved in is not upgraded until it is connected) does not re-queue updates forever', async t => {
         const el = await t.mount('<pk-tree label="Cats"><pk-tree-item label="Books"></pk-tree-item></pk-tree>'); await t.settle();
         const loose = document.createElement('pk-tree'); const tpl = document.createElement('template'); tpl.innerHTML = '<pk-tree-item label="A"></pk-tree-item>'; loose.append(tpl.content);
