@@ -226,4 +226,14 @@ public sealed class PageBaseTests : BunitContext
 
         await Assert.ThrowsAsync<Exception>(() => cut.InvokeAsync(() => cut.Instance.CallBusyAsync(() => throw failure)));
     }
+
+    // Issue 1776: ReloadOnParameters false stops reloads on a changed parameter, never the first load.
+    [Fact]
+    public void ReloadOnParameters_false_still_runs_the_first_load_of_a_page()
+    {
+        var cut = Render<NoReloadPage>(p => p.Add(x => x.Key, 1));
+        cut.WaitForAssertion(() => Assert.Equal(1, cut.Instance.Loads));
+        cut.Render(p => p.Add(x => x.Key, 2));
+        Assert.Equal(1, cut.Instance.Loads);
+    }
 }
