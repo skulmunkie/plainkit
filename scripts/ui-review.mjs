@@ -10,6 +10,7 @@
 //   node scripts/ui-review.mjs --elements page-header,breadcrumb   (names or pk- tags)      node scripts/ui-review.mjs --all
 //   [--base <ref>] [--out <dir>] [--shard i/n] [--jobs N] [--skip-base] [--strict] [--port N] [--timeout <s>]
 //   --cache reuses the screenshots and findings of a unit (element or scenario x viewport x theme) whose inputs hash the same (scripts/ui-review-cache.mjs, folder review-cache/, git-ignored); --no-cache wins. Also used in CI (actions/cache, #749)
+//   --cache-dir <dir> keeps that cache in <dir> instead of review-cache/ (implies --cache): several worktrees can share one; entries unused for 14 days are deleted at the start of a run
 //   --jobs N runs N disjoint shards of the run in N processes (own server and browser each) and merges them into one manifest: the same shots and audits, about N times faster on N cores
 //
 // Scenarios (core/tests/review/scenarios/*.js; format in core/tests/review/scenario.js): named, scripted states of a page or element (a menu open, a
@@ -33,7 +34,7 @@ import { fileURLToPath, pathToFileURL } from 'node:url';
 import { ensureGenerated } from './generated.mjs';
 import { writeRunStamp } from './verify-guard.mjs';
 import { elementOfPath } from '../core/tools/element-folders.mjs';
-import { createCache } from './ui-review-cache.mjs';
+import { CACHE_MAX_AGE_DAYS, createCache, pruneCache } from './ui-review-cache.mjs';
 import { chromeArgs, findChrome, killTree, launchBrowser, removeDir } from './attest-browser.mjs';
 import { auditFacts, summarize } from '../core/tests/review/audit.js';
 import { combinations, expectationFinding, keyEvents, mediaParams, mouseEvents, scenarioShotName, selectScenarios, stepsFor, validateScenario } from '../core/tests/review/scenario.js';
@@ -134,7 +135,7 @@ export function sumPhases(phases) {
 
 /** Command line to options; an unknown flag is an error message, not a silent default. */
 export function parseArgs(argv) {
-    const o = { elements: [], all: false, base: 'origin/main', out: 'review-output', strict: false, port: 0, timeout: 60, scenarios: null, scenariosOnly: false, shard: null, skipBase: false, jobs: 1, cache: false };
+    const o = { elements: [], all: false, base: 'origin/main', out: 'review-output', strict: false, port: 0, timeout: 60, scenarios: null, scenariosOnly: false, shard: null, skipBase: false, jobs: 1, cache: false, cacheDir: null };
     for (let i = 0; i < argv.length; i++) {
         const a = argv[i];
         const value = () => { const v = argv[++i]; if (v === undefined || v.startsWith('--')) throw new Error(`${a} needs a value`); return v; };
@@ -143,6 +144,7 @@ export function parseArgs(argv) {
         else if (a === '--skip-base') o.skipBase = true;
         else if (a === '--cache') { if (o.cache !== 'off') o.cache = 'on'; }
         else if (a === '--no-cache') o.cache = 'off';
+        else if (a === '--cache-dir') { o.cacheDir = path.resolve(value()); if (o.cache !== 'off') o.cache = 'on'; }
         else if (a === '--scenarios' || a === '--scenarios-only') {
             // The names are optional: `--scenarios` alone means every scenario, `--scenarios-only` alone the ones for the changed elements.
             const next = argv[i + 1];
@@ -453,7 +455,9 @@ async function main() {
         if (examples.length) console.log(`reviewing ${examples.length} element(s) (${why}): ${examples.map(n => `pk-${n}`).join(', ')}`);
         if (scenarios.length) console.log(`scenarios (${scenarios.length}): ${scenarios.map(s => s.name).join(', ')}`);
 
-        const cache = o.cache ? createCache({ root, dir: path.join(root, 'review-cache'), chrome: (await cdp.send('Browser.getVersion')).product, known }) : null;
+        const cacheDir = o.cacheDir ?? path.join(root, 'review-cache');
+        if (o.cache) { const pruned = pruneCache(cacheDir); if (pruned) console.log(`cache: removed ${pruned} entr${pruned === 1 ? 'y' : 'ies'} unused for ${CACHE_MAX_AGE_DAYS} days`); }
+        const cache = o.cache ? createCache({ root, dir: cacheDir, chrome: (await cdp.send('Browser.getVersion')).product, known }) : null;
         const unit = (u, render) => cache ? cache.unit(u, { manifest, out }, render) : render();
         let t0 = Date.now();
         for (const name of examples) for (const vp of VIEWPORTS) for (const theme of THEMES) await unit({ kind: 'example', name, vp, theme }, async () => {
