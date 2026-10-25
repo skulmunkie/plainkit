@@ -161,8 +161,8 @@
         "viewport-logic.js"
       ],
       "maxPackedBytes": null,
-      "maxUnpackedBytes": 66746,
-      "maxZipBytes": 29522
+      "maxUnpackedBytes": 71793,
+      "maxZipBytes": 31409
     },
     {
       "id": "plainkit.blazor",
@@ -196,7 +196,7 @@
       ],
       "maxPackedBytes": null,
       "maxUnpackedBytes": 912990,
-      "maxZipBytes": 190330
+      "maxZipBytes": 192615
     }
   ],
   "siteOnly": [
