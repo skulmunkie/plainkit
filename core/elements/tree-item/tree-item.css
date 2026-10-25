@@ -1,5 +1,5 @@
 :host { display: block; outline: none; }
-[part="row"] { display: flex; align-items: center; gap: var(--space-2); min-block-size: var(--touch-target); padding-inline: var(--space-2); padding-inline-start: calc(var(--space-2) + (var(--pk-tree-item-level, 1) - 1) * var(--pk-tree-item-indent, var(--space-5))); border-radius: var(--radius-sm); cursor: pointer; }
+[part="row"] { display: flex; align-items: center; gap: var(--space-2); min-block-size: var(--touch-target); padding-inline: var(--space-2); padding-inline-start: calc(var(--space-2) + (var(--pk-tree-item-level, 1) - 1) * var(--pk-tree-item-indent, var(--space-5))); padding-block: var(--pk-tree-item-row-padding-block, 0); border-radius: var(--radius-sm); cursor: pointer; }
 [part="row"]:hover { background: var(--color-surface-alt); }
 :host(:focus-visible) > [part="row"] { outline: var(--focus-ring); outline-offset: -2px; }
 :host([selected]) > [part="row"] { background: color-mix(in srgb, var(--color-accent) 16%, transparent); font-weight: 600; }

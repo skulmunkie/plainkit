@@ -87,7 +87,7 @@
       "type": "boolean",
       "default": false,
       "reflect": true,
-      "description": "Rows are activatable: they show a pointer, take the keyboard (each row is a tab stop; Enter or Space on the row) and fire pk-row-click."
+      "description": "Rows are activatable: they show a pointer, take the keyboard (each row is a tab stop; Enter or Space on the row) and fire pk-row-click. A click inside a control in a cell (a native input, button, link, select or label, or a pk-link or pk-button) stays with that control and is not a row click."
     },
     {
       "name": "rowHrefTemplate",
