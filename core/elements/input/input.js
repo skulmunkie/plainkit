@@ -5,8 +5,8 @@ export function parseMoney(text) {
     if (!t) return null;
     const negative = /^\(.*\)$/.test(t) || t.includes('-');
     const digits = t.replace(/[^0-9.]/g, '');
-    if (!/\d/.test(digits) || digits.split('.').length > 2) return null;
-    const n = Number(digits);
+    const n = Number(digits);      // only digits and dots are left: no digit at all is '', a second dot is NaN
+    if (!digits || isNaN(n)) return null;
     return negative ? -n : n;
 }
 export const formatMoney = (n, { decimals = 2, group = true, locale = 'en-US' } = {}) => n.toLocaleString(locale, { minimumFractionDigits: decimals, maximumFractionDigits: decimals, useGrouping: group });
@@ -25,9 +25,8 @@ export function stepValue(current, step, direction, min = -Infinity, max = Infin
 }
 const num = (s, d = null) => (s === '' || isNaN(s) ? d : Number(s));
 
-// True once on the clipboard; false when unavailable or refused. Never throws.
+// True once on the clipboard; false when unavailable (a missing clipboard throws inside the try) or refused. Never throws.
 export async function copyValue(text, clip = globalThis.navigator?.clipboard) {
-    if (!clip?.writeText) return false;
     try { await clip.writeText(text); return true; } catch { return false; }
 }
 
@@ -46,7 +45,7 @@ export default Base => class extends Base {
     }
     money() { return this.format === 'money'; }
     n() { return Number(this.value || NaN); }
-    show() { if (this.$badMoney) return this.part('control').value; if (this.money() && !this.$editing && this.value) return formatMoney(Number(this.value), { decimals: this.decimals, locale: this.locale }); return this.value; }
+    show() { if (this.$badMoney) return this.part('control').value; if (this.money() && !this.$editing && this.value) return formatMoney(this.n(), { decimals: this.decimals, locale: this.locale }); return this.value; }
     updated() {
         // width: xs to 2xl (4 to 24rem) or a CSS length, set as the host's inline-size; an unknown word is ignored by the browser.
         const w = this.width, r = { xs: 4, sm: 6, md: 8, lg: 12, xl: 16, '2xl': 24 }[w]; this.style.inlineSize = r ? r + 'rem' : w;
@@ -108,7 +107,8 @@ export default Base => class extends Base {
         if (this.type !== 'search') return;
         clearTimeout(this.$t);
         const send = () => this.emit('pk-search', { value: this.value });
-        if (!now && this.debounce > 0) this.$t = setTimeout(send, this.debounce); else send();
+        // #1769: with search-on="enter" typing never searches; Enter and clear (now) do.
+        if (now) send(); else if (this.searchOn !== 'enter') { if (this.debounce > 0) this.$t = setTimeout(send, this.debounce); else send(); }
     }
     keys(e) {
         if (this.type !== 'search') return;
