@@ -66,12 +66,14 @@ const TONES = new Set(['warning', 'positive', 'accent', 'critical']);
 const mark = row => ({ 'data-tone': TONES.has(row.tone) ? row.tone : null, 'data-indent': row.indent >= 1 ? (row.indent >= 2 ? 2 : 1) : null });
 // One data row, shared by the plain render (table.js) and the windowed one above: a select box, then a td per column (a slotted cell where the host gave one).
 const al = c => c.align ?? (c.type === 'number' ? 'end' : null);
+// A cell with nothing to show (#1777): no text, or a slotted cell whose content is only empty spans (a Blazor Cell template that rendered nothing). The phone cards drop it with its label.
+const blank = s => (s.localName === 'slot' ? s.assignedNodes({ flatten: true }) : [s]).every(x => x.nodeType === 3 ? !x.data.trim() : x.localName === 'span' && !x.textContent.trim() && !x.childElementCount);
 function tr(el, row, id, sel, h) {
     const pick = h('input', { type: 'checkbox', 'data-select': id, 'aria-label': `Select row ${id}` });
     pick.checked = sel.has(id);
     return h('tr', { 'data-pk-context': id, 'data-selected': sel.has(id), 'data-clickable': el.clickable, ...mark(row), 'aria-current': el.currentRow && el.currentRow === id ? 'true' : null },
         ...(el.selectable ? [h('td', { 'data-check': true }, pick)] : []),
-        ...el.list('columns').map(c => { const name = `cell-${id}-${c.key}`; return h('td', { 'data-key': c.key, 'data-label': c.title ? null : c.label ?? c.key, 'data-title': c.title, 'data-align': al(c), 'data-hide-phone': c.hidePhone, 'data-shed': c.shed }, el.querySelector(`:scope > [slot="${CSS.escape(name)}"]`) ? h('slot', { name }) : String(row[c.key] ?? '')); }));
+        ...el.list('columns').map(c => { const name = `cell-${id}-${c.key}`, s = el.querySelector(`:scope > [slot="${CSS.escape(name)}"]`), v = String(row[c.key] ?? ''); return h('td', { 'data-key': c.key, 'data-label': c.title ? null : c.label ?? c.key, 'data-title': c.title, 'data-align': al(c), 'data-hide-phone': c.hidePhone, 'data-shed': c.shed, 'data-empty': s ? blank(s) : !v.trim() }, s ? h('slot', { name }) : v); }));
 }
 
 // The header rows (the titles, and the filter row when filterable) for table.js, which has no room for them in its gzip budget.

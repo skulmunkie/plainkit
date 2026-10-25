@@ -69,6 +69,8 @@ tr[data-skeleton] td::before { content: ""; display: block; block-size: 4.5em; b
     /* A slotted block (a pk-card has no intrinsic width) wraps under the label instead of being squeezed to nothing beside it, issue 1146. */
     :host([cards]) td:has(> slot) { flex-wrap: wrap; }
     :host([cards]) td[data-label]::before { content: attr(data-label); flex: none; color: var(--color-muted); font-size: var(--text-meta); text-align: start; }
+    /* Issue 1777: an empty cell is left out of its card, label and all (a column that has a value for only some rows). */
+    :host([cards]) td[data-empty] { display: none; }
     /* Issue 1445: a title column is the card heading: no label, start-aligned, heavier. */
     :host([cards]) [data-title] { text-align: start; font-weight: bold; }
     /* A toned or indented row's card carries the rule on the card itself and steps the whole card in. */

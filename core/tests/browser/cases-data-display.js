@@ -753,6 +753,25 @@ export const dataDisplayCases = [
         const phone = await at(375); t.eq(phone.w, 375); t.ok(phone.other, 'the SKU shows'); t.ok(!phone.td, 'the hidePhone cell is hidden in a card');
         const wide = await at(1200); t.ok(wide.td, 'shown on a wide screen');
     }],
+    ['table (375px): an empty cell is left out of its card with its label, a cell with a value keeps both, a slotted cell that rendered nothing is empty too; at 1200px every cell is drawn (#1777)', async t => {
+        const { sampleDoc } = await import('../../site/gallery/frame.js');
+        const html = `<pk-table cards label="P" columns='[{"key":"sku","label":"SKU"},{"key":"status","label":"Status"},{"key":"tag","label":"Tag"}]' rows='[{"id":1,"sku":"A","status":"Late"},{"id":2,"sku":"B","status":""}]'><span slot="cell-1-tag"><b>hot</b></span><span slot="cell-2-tag"></span></pk-table>`;
+        const at = async width => {
+            const host = t.stage(''), f = document.createElement('iframe');
+            f.title = 'sample'; f.style.width = `${width}px`; f.style.height = '400px'; f.style.border = '0';
+            const loaded = new Promise(r => f.addEventListener('load', r, { once: true })); host.append(f); f.srcdoc = sampleDoc(html); await loaded;
+            await until(() => f.contentWindow.customElements.get('pk-table') && f.contentDocument.querySelector('pk-table')?.shadowRoot?.querySelector('tbody td'), 'the table');
+            const tb = f.contentDocument.querySelector('pk-table'), w = f.contentWindow;
+            const shown = (row, key) => { const c = tb.shadowRoot.querySelector(`tbody tr[data-pk-context="${row}"] td[data-key="${key}"]`); return !!c && w.getComputedStyle(c).display !== 'none' && c.getBoundingClientRect().height > 0; };
+            return { s1: shown(1, 'status'), s2: shown(2, 'status'), t1: shown(1, 'tag'), t2: shown(2, 'tag'), sku2: shown(2, 'sku') };
+        };
+        const phone = await at(375);
+        t.ok(phone.s1 && phone.t1 && phone.sku2, 'cells with a value keep their label and value: ' + JSON.stringify(phone));
+        t.ok(!phone.s2, 'the empty Status cell of row 2 is not drawn in its card');
+        t.ok(!phone.t2, 'the slotted Tag cell of row 2 rendered nothing and is not drawn');
+        const wide = await at(1200);
+        t.ok(wide.s2 && wide.t2, 'the wide table still draws every cell (columns stay aligned): ' + JSON.stringify(wide));
+    }],
     ['table: a column with shed drops out by its own width (24, 36, 48rem), highest number first, at any viewport; windowed rows align (the phone cards layout is the table-shed UI scenario) (#1218)', async t => {
         const cols = '[{"key":"a","label":"A"},{"key":"b","label":"B","shed":1},{"key":"c","label":"C","shed":2},{"key":"d","label":"D","shed":3}]';
         const shown = el => ['a', 'b', 'c', 'd'].filter(k => { const c = el.shadowRoot.querySelector(`tbody td[data-key="${k}"]`); return c && getComputedStyle(c).display !== 'none'; }).join('');
