@@ -46,6 +46,16 @@ export const RECONNECT_CASES = [
         ctx.ok(await ctx.eval(`!document.documentElement.hasAttribute('data-pk-reconnect-open')`), 'the page is not left reserving the banner height');
         await ctx.noErrors(ctx.openMark, BENIGN);
       } },
+    { name: 'reconnect-banner-desktop-overlay', // #1774: with overlay set, the desktop banner floats over the page and nothing moves
+      async run(ctx) {
+        await barUp(ctx);
+        await ctx.eval(`(async () => { const m = ${MODAL}, url = document.querySelector('script[src*="plainkit.reconnect"]').src, mod = await import(url); mod.stopReconnect(); const c = JSON.parse(m.dataset.pkReconnect); c.overlay = true; m.dataset.pkReconnect = JSON.stringify(c); mod.startReconnect(); return true; })()`);
+        const top0 = await ctx.eval(`${NAVBAR}.getBoundingClientRect().top`);
+        await fire(ctx, 'retrying'); await ctx.waitFor(`${KIND} !== ''`, 'the retrying banner'); await ctx.sleep(200);
+        const m = await ctx.eval(`(() => ({ nav: ${NAVBAR}.getBoundingClientRect().top, open: document.documentElement.hasAttribute('data-pk-reconnect-open') }))()`);
+        ctx.ok(Math.abs(m.nav - top0) <= 1 && !m.open, `overlay: the app bar stays at ${top0} (now ${m.nav}) and no height is reserved`);
+        await fire(ctx, 'hide'); await ctx.noErrors(ctx.openMark, BENIGN);
+      } },
     { name: 'reconnect-banner-phone-icons', // icons only on a phone (the buttons keep their names), text on a desktop; on the phone the banner is the top layer
       async run(ctx) {
         await barUp(ctx);
