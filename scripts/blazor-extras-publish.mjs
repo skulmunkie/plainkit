@@ -4,14 +4,17 @@
 //   node scripts/blazor-extras-publish.mjs                      pack, publish four apps, check the files and the payload ceilings
 //   node scripts/blazor-extras-publish.mjs --package <dir>      use the PlainKit.Blazor nupkg already in <dir> (verify.mjs's pack check does)
 //   node scripts/blazor-extras-publish.mjs --write              also record the measured payload in packages.json (blazorPayload; it only ever goes down)
+//   PK_EXTRAS_JOBS=<n>                                          how many option sets publish at once (default by free memory; 1 = one after another)
 //
 // Option sets: none declared and `full` (everything), `core` (no extra), `dock` (one extra). The ceilings are packages.json "blazorPayload" { coreOnly, full }:
 // the measured gzip bytes plus 1 percent when first recorded, then a one-way ratchet like the npm ceilings. Exit 0 ok, 1 a problem (each says what to change), 2 could not run.
 import fs from 'node:fs';
 import path from 'node:path';
+import os from 'node:os';
 import zlib from 'node:zlib';
+import { createHash } from 'node:crypto';
 import { fileURLToPath } from 'node:url';
-import { spawnSync } from 'node:child_process';
+import { spawn, spawnSync } from 'node:child_process';
 import { claims, loadPackages } from './packages.mjs';
 import { makeTempDir } from '../core/tools/tempdir.mjs';
 
@@ -24,6 +27,23 @@ export const SETS = [
     { id: 'core', extras: 'core', declared: [] },
     { id: 'dock', extras: 'dock', declared: ['dock'] },
 ];
+
+/** How many option sets publish at once (#speed): each `dotnet publish` of the tiny app is one MSBuild process, ~700 MB at worst; never more than the sets, never under 1. PK_EXTRAS_JOBS overrides (1 = one after another, as before). */
+export const publishJobs = ({ freeBytes = os.freemem(), env = process.env } = {}) => {
+    const forced = Number(env.PK_EXTRAS_JOBS);
+    if (Number.isInteger(forced) && forced > 0) return Math.min(forced, SETS.length);
+    return Math.max(1, Math.min(SETS.length, Math.floor(freeBytes / 2 ** 20 / 700)));
+};
+
+/** Runs `worker(item, index)` over `items` with at most `limit` at once; resolves the results in the order of `items`. A rejection rejects the whole run after the running ones settle. */
+export async function pool(items, limit, worker) {
+    const out = new Array(items.length);
+    let next = 0, failed = null;
+    const lane = async () => { while (next < items.length && !failed) { const i = next++; try { out[i] = await worker(items[i], i); } catch (e) { failed ??= e; } } };
+    await Promise.all(Array.from({ length: Math.max(1, Math.min(limit, items.length)) }, lane));
+    if (failed) throw failed;
+    return out;
+}
 
 const claimed = (claim, file) => (claim.endsWith('/') ? file.startsWith(claim) : file === claim);
 
@@ -70,9 +90,17 @@ const run = (cmd, args, cwd) => {
     return r.stdout;
 };
 
+const runAsync = (cmd, args, cwd) => new Promise((resolve, reject) => {
+    const p = spawn(cmd, args, { cwd, shell: process.platform === 'win32' && cmd === 'dotnet', windowsHide: true });
+    let out = '';
+    p.stdout.on('data', d => { out += d; }); p.stderr.on('data', d => { out += d; });
+    p.on('error', e => reject(new Error(`${cmd} ${args.join(' ')} failed:\n${e.message}`)));
+    p.on('close', code => (code === 0 ? resolve(out) : reject(new Error(`${cmd} ${args.join(' ')} failed:\n${out}`.slice(-4000)))));
+});
+
 const walk = (dir, rel = '') => fs.existsSync(dir) ? fs.readdirSync(dir, { withFileTypes: true }).flatMap(e => e.isDirectory() ? walk(path.join(dir, e.name), rel + e.name + '/') : [rel + e.name]) : [];
 
-function publishSet(set, tmp, feed, version) {
+async function publishSet(set, tmp, feed, version, gzipOf) {
     const app = path.join(tmp, set.id);
     fs.mkdirSync(app, { recursive: true });
     fs.writeFileSync(path.join(app, 'app.csproj'), `<Project Sdk="Microsoft.NET.Sdk.Web">
@@ -81,20 +109,20 @@ function publishSet(set, tmp, feed, version) {
     <ImplicitUsings>enable</ImplicitUsings>
     ${set.extras ? `<PlainKitExtras>${set.extras}</PlainKitExtras>` : ''}
     <RestoreSources>${feed}</RestoreSources>
-    <RestorePackagesPath>${path.join(tmp, 'packages')}</RestorePackagesPath>
+    <RestorePackagesPath>${path.join(tmp, set.id, 'packages')}</RestorePackagesPath>
   </PropertyGroup>
   <ItemGroup><PackageReference Include="PlainKit.Blazor" Version="${version}" /></ItemGroup>
 </Project>
 `);
     fs.writeFileSync(path.join(app, 'Program.cs'), 'var app = WebApplication.CreateBuilder(args).Build();\napp.Run();\n');
-    run('dotnet', ['publish', '-c', 'Release', '-o', 'out', '--nologo', '-v', 'q'], app);
+    await runAsync('dotnet', ['publish', '-c', 'Release', '-o', 'out', '--nologo', '-v', 'q'], app);
     const served = path.join(app, 'out', 'wwwroot', '_content', 'PlainKit.Blazor');
     const files = walk(served).filter(f => !/\.(br|gz)$/.test(f));
-    const gzip = files.reduce((n, f) => n + zlib.gzipSync(fs.readFileSync(path.join(served, f)), { level: 9 }).length, 0);
+    const gzip = files.reduce((n, f) => n + gzipOf(fs.readFileSync(path.join(served, f))), 0);
     return { published: files.filter(f => f.startsWith('plainkit/')).map(f => f.slice('plainkit/'.length)), gzip };
 }
 
-export function main(argv) {
+export async function main(argv) {
     const write = argv.includes('--write');
     const pi = argv.indexOf('--package');
     const { data, packages } = loadPackages(root);
@@ -105,12 +133,17 @@ export function main(argv) {
         let feed = pi >= 0 ? path.resolve(argv[pi + 1]) : path.join(tmp, 'feed');
         if (pi < 0) run('dotnet', ['pack', 'blazor/src/PlainKit.Blazor', '-c', 'Release', '-o', feed, '--nologo'], root);
         const problems = [], sizes = {};
-        for (const set of SETS) {
-            const r = publishSet(set, tmp, feed, version);
+        const sizesByHash = new Map(); // the sets publish mostly identical files: the same bytes give the same gzip length
+        const gzipOf = bytes => { const h = createHash('sha256').update(bytes).digest('hex'); if (!sizesByHash.has(h)) sizesByHash.set(h, zlib.gzipSync(bytes, { level: 9 }).length); return sizesByHash.get(h); };
+        const jobs = publishJobs();
+        if (jobs > 1) console.log(`publishing ${SETS.length} option sets, ${jobs} at a time`);
+        const results = await pool(SETS, jobs, set => publishSet(set, tmp, feed, version, gzipOf));
+        SETS.forEach((set, i) => {
+            const r = results[i];
             sizes[set.id] = r.gzip;
             problems.push(...checkSet(set, r.published, universe, packages));
             console.log(`${set.id.padEnd(8)} ${String(r.published.length).padStart(4)} files under plainkit/, ${r.gzip} gzip bytes`);
-        }
+        });
         const measured = { coreOnly: sizes.core, full: sizes.full };
         if (sizes.default !== sizes.full) problems.push(`no declaration (${sizes.default} bytes) is not the same as full (${sizes.full}): nothing declared must mean everything`);
         if (write) {
@@ -134,4 +167,4 @@ export function main(argv) {
     } catch (e) { console.error(e.message); return 2; } finally { fs.rmSync(tmp, { recursive: true, force: true }); }
 }
 
-if (process.argv[1] && path.resolve(process.argv[1]) === fileURLToPath(import.meta.url)) process.exit(main(process.argv.slice(2)));
+if (process.argv[1] && path.resolve(process.argv[1]) === fileURLToPath(import.meta.url)) process.exit(await main(process.argv.slice(2)));

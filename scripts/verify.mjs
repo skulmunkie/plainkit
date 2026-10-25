@@ -334,13 +334,17 @@ async function packCheck(ctx) {
         if (p.code !== 0) return { ok: false, output: p.out };
         const c = await runCmd([NODE, 'scripts/check-package.mjs', dir], ctx.root);
         if (c.code !== 0) return { ok: false, output: c.out };
-        // the per-package zips (packages.json, #1656): assembled into the same temp folder and checked against core/dist
-        const z = await runCmd([NODE, 'scripts/build-packages.mjs', '--zips', path.join(dir, 'packages')], ctx.root);
-        if (z.code !== 0) return { ok: false, output: z.out };
-        const zc = await runCmd([NODE, 'scripts/check-package.mjs', '--zips', path.join(dir, 'packages')], ctx.root);
-        // the Blazor option model (#1656): four published apps, one per option set, assert which static web assets land and the blazorPayload ceilings
-        const x = await runCmd([NODE, 'scripts/blazor-extras-publish.mjs', '--package', dir], ctx.root);
-        return { ok: zc.code === 0 && x.code === 0, output: c.out + zc.out + x.out };
+        // the per-package zips (packages.json, #1656) and the Blazor option model (#1656, four published apps) are independent: one reads core/dist, the other the nupkg in `dir`; they run side by side,
+        // the zips in their own temp folder so nothing is written into the folder `dotnet restore` reads as a feed
+        const zips = makeTempDir('pk-zips-');
+        try {
+            const [z, x] = await Promise.all([
+                runCmd([NODE, 'scripts/build-packages.mjs', '--zips', zips], ctx.root).then(async built => (built.code !== 0 ? { ...built, failedBuild: true } : runCmd([NODE, 'scripts/check-package.mjs', '--zips', zips], ctx.root))),
+                runCmd([NODE, 'scripts/blazor-extras-publish.mjs', '--package', dir], ctx.root),
+            ]);
+            if (z.failedBuild) return { ok: false, output: z.out }; // the zips could not be built
+            return { ok: z.code === 0 && x.code === 0, output: c.out + z.out + x.out };
+        } finally { fs.rmSync(zips, { recursive: true, force: true }); }
     } finally { fs.rmSync(dir, { recursive: true, force: true }); }
 }
 
