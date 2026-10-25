@@ -65,4 +65,17 @@ public sealed class PkCanvasEventTests : BunitContext, IAsyncLifetime
         Assert.True(moved!.Done);
         Assert.True(el.HasAttribute("readonly"));
     }
+
+    [Fact]
+    public async Task pk_canvas_resize_raises_OnResize()
+    {
+        PkCanvasResizeEventArgs? resized = null;
+        var cut = Render<PkCanvas>(p => p.Add(c => c.OnResize, e => resized = e));
+
+        await cut.InvokeAsync(() => cut.Find("pk-canvas").TriggerEventAsync("onpk-canvas-resize", new PkCanvasResizeEventArgs { Id = "a", W = 120, H = 72, Done = true }));
+
+        Assert.Equal("a", resized!.Id);
+        Assert.Equal(120, resized.W);
+        Assert.True(resized.Done);
+    }
 }
