@@ -32,7 +32,7 @@ public sealed class PkReconnectStrings
 }
 
 /// <summary>How <see cref="PkReconnect"/> behaves. Set <see cref="PkOptions.Reconnect"/> to turn the reconnect banner on for <c>PkApp</c>; the policy itself is plainkit/js/reconnect.js.</summary>
-public sealed class PkReconnectOptions
+public sealed partial class PkReconnectOptions
 {
     /// <summary>When to reload by itself. Default <see cref="PkReconnectAutoReload.Gone"/>.</summary>
     public PkReconnectAutoReload AutoReload { get; set; } = PkReconnectAutoReload.Gone;
@@ -49,6 +49,6 @@ public sealed class PkReconnectOptions
     /// <summary>The words shown; set the ones you translate.</summary>
     public PkReconnectStrings Strings { get; set; } = new();
 
-    internal string ToJson() => JsonSerializer.Serialize(new { autoReload = AutoReload.ToString().ToLowerInvariant(), modal = Modal, countdown = CountdownSeconds, probeUrl = ProbeUrl, strings = Strings },
+    internal string ToJson() => JsonSerializer.Serialize(new { autoReload = AutoReload.ToString().ToLowerInvariant(), modal = Modal, overlay = Overlay, countdown = CountdownSeconds, probeUrl = ProbeUrl, strings = Strings },
         new JsonSerializerOptions(JsonSerializerDefaults.Web) { DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull });
 }

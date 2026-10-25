@@ -22,14 +22,17 @@ permissions:
   contents: read
 
 jobs:
-  # The full verify and the whole in-browser suite on the tagged commit, before anything is built for release or published: ordinary pull requests only run the
-  # targeted checks, so the tag is where everything runs once more. `build` and `publish` both need this job; a failure here publishes nothing.
+  # The full verify and the whole in-browser suite on the tagged commit, before anything is built for release or published, UNLESS the release pull request (head
+  # release/*) that produced this commit already passed the full CI (ci.yml runs it in full on a release head, browser suite included) on a head with exactly this
+  # tree (scripts/release-prior-ci.mjs): then a release runs the suite once. Any doubt runs everything. `build` and `publish` both need this job; a failure here publishes nothing.
   verify:
     name: Full verify (tag)
     runs-on: ubuntu-latest
     timeout-minutes: 30
     permissions:
       contents: read
+      pull-requests: read
+      checks: read
     env:
       PK_CHROME: /usr/bin/google-chrome
       PK_CHROME_FLAGS: --no-sandbox
@@ -42,14 +45,23 @@ jobs:
         with:
           node-version: '22'
 
+      - name: Did the release pull request pass the full CI on this exact tree?
+        id: prior
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: node scripts/release-prior-ci.mjs "$GITHUB_REPOSITORY" "$GITHUB_SHA" >> "$GITHUB_OUTPUT"
+
       - uses: actions/setup-dotnet@a98b56852c35b8e3190ac28c8c2271da59106c68 # v6.0.0
+        if: steps.prior.outputs.skip != 'true'
         with:
           global-json-file: global.json
 
       - name: Install build dependencies (esbuild)
+        if: steps.prior.outputs.skip != 'true'
         run: npm ci
 
       - name: Everything (node scripts/verify.mjs --pack --browser)
+        if: steps.prior.outputs.skip != 'true'
         run: node scripts/verify.mjs --pack --browser
 
   build:

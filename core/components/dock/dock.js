@@ -150,6 +150,14 @@ export default Base => {
     reflyout() { flyout.reflyout(this); }
     // Public: back to the default arrangement (js/dock-decl.js); fires pk-layout-change with reason 'reset'.
     resetLayout() { render.reset(this, readPanels(this.children)); }
+    // Public (#432 D2): the drawn layout as a JSON string (null before the first draw), and a layout to apply. setLayout validates it like the layout
+    // property (and draws it without a pk-layout-change, as setting that does) and returns the repairs the validation made ([] when it was clean).
+    getLayout() { return this.$doc ? toJson(this.$doc) : null; }
+    setLayout(json) {
+        const r = fromJson(json, { panels: readPanels(this.children).filter(p => !this.$closed?.has(p.id)) });
+        this.layout = json;
+        return r.problems;
+    }
     onResize(e) {
         e.stopPropagation();
         const id = e.target.closest?.('pk-splitter')?.getAttribute('data-node');

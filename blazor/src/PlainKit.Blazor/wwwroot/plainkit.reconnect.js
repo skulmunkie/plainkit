@@ -51,10 +51,10 @@ export function startReconnect(json) {
     let inert = [], before = null;
     // Icons by form factor: text and icon on a desktop, the icon alone (the label stays as its accessible name) on a phone.
     const phone = matchMedia(PHONE), icons = () => { for (const n of ACTS) act(n).toggleAttribute('icon', phone.matches); };
-    // A desktop banner reserves its own height at the top (core CSS in plainkit.reconnect.css reads these), so it never covers the app bar; on a phone, or modal, it stays a layer over the page.
+    // A desktop banner reserves its own height at the top (core CSS in plainkit.reconnect.css reads these), so it never covers the app bar; on a phone, modal, or with overlay set, it stays a layer over the page.
     const html = document.documentElement, bar = part('bar');
     const reserve = () => {
-        const h = bar.hidden || cfg.modal ? 0 : Math.ceil(bar.getBoundingClientRect().height);
+        const h = bar.hidden || cfg.modal || cfg.overlay ? 0 : Math.ceil(bar.getBoundingClientRect().height);
         if (h) { html.style.setProperty('--pk-reconnect-h', h + 'px'); html.setAttribute('data-pk-reconnect-open', ''); } else { html.style.removeProperty('--pk-reconnect-h'); html.removeAttribute('data-pk-reconnect-open'); }
     };
     const resize = new ResizeObserver(reserve);

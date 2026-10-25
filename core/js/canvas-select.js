@@ -4,15 +4,17 @@
 //   - selects on a click (the canvas's pk-canvas-pick), toggles with Shift, Ctrl or Cmd, selects every item with Ctrl+A, clears with Escape,
 //   - selects an item that takes keyboard focus (Tab walks the items in DOM order; the items bring their own tab stops),
 //   - draws a marquee while a primary-button drag runs over bare ground in mode="select" and selects what it touches,
+//   - moves the selection with the arrow keys (one grid step, Shift ten, Alt one screen pixel) through a cancelable pk-canvas-move the page answers by writing the item back (not when readonly),
+//   - moves the selection when an already selected item is dragged (pk-canvas-move with done false while it runs, done true at the end; Escape puts it back),
 // and says what changed in the canvas's live region. The host owns the `selection` property (an array of ids); this layer sets it and emits pk-canvas-select.
-import { declaredRect, between, marquee, combine, toFrame, fromFrame } from './canvas-geometry.js';
+import { declaredRect, between, marquee, combine, toFrame, fromFrame, moved, nudge } from './canvas-geometry.js';
 import { adopt } from './canvas-style.js';
 
 export function mount(host) {
     adopt(host, 'select');
     const frame = host.part('frame'), layer = host.part('selection'), box = host.part('marquee'), status = host.part('status');
     layer.hidden = false;
-    let drag = null;
+    let drag = null, grab = null;     // drag: the marquee; grab: a selected item being moved
     // The items that declare geometry: [{ id, el, x, y, w, h }].
     const items = () => [...host.querySelectorAll('[data-id]')].flatMap(el => { const r = typeof host.geometry === 'function' ? host.geometry(el) : declaredRect(el); return r ? [{ id: el.dataset.id, el, ...r }] : []; });
     const view = () => ({ x: host.panX, y: host.panY, zoom: host.zoom });
@@ -29,14 +31,37 @@ export function mount(host) {
     const local = e => { const r = frame.getBoundingClientRect(); return { x: e.clientX - r.left, y: e.clientY - r.top }; };
     const marqueeIds = (a, b) => marquee(items(), fromFrame(view(), between(a.x, a.y, b.x, b.y)));
     const idOf = el => el?.closest?.('[data-id]')?.dataset.id;
+    const ARROWS = { ArrowLeft: [-1, 0], ArrowRight: [1, 0], ArrowUp: [0, -1], ArrowDown: [0, 1] };
+    const round = v => Math.round(v * 100) / 100;
+    // Ask the page to move the selection by (dx, dy) world units: a cancelable pk-canvas-move with the new positions (the page writes them back; the
+    // canvas never writes to items). `done` is false while a drag runs and true when the move is complete; only a complete, uncancelled move is announced.
+    const move = (dx, dy, done, base = items()) => {
+        const moves = moved(base, host.selection, dx, dy);
+        if (!moves.length) return false;
+        if (host.emit('pk-canvas-move', { moves, done }) && done) status.textContent = moves.length === 1 ? `Moved to ${round(moves[0].x)}, ${round(moves[0].y)}` : `Moved ${moves.length} items`;
+        return true;
+    };
 
     const onPick = e => {
         const id = idOf(e.detail.target);
         if (id !== undefined) set(combine(host.selection, [id], e.detail.additive));
         else if (!e.detail.additive) set([]);
     };
-    const onDown = e => { if (host.$mq && e.isPrimary) drag = { id: e.pointerId, from: local(e), on: false }; };
+    const onDown = e => {
+        if (host.$mq && e.isPrimary) drag = { id: e.pointerId, from: local(e), on: false };
+        const id = idOf(e.target);
+        if (e.isPrimary && e.button === 0 && !host.readonly && id !== undefined && host.selection.includes(id)) grab = { id: e.pointerId, from: local(e), on: false, base: items() };
+    };
+    // The pointer distance since the press, in world units.
+    const by = (g, p) => [(p.x - g.from.x) / host.zoom, (p.y - g.from.y) / host.zoom];
     const onMove = e => {
+        if (grab && e.pointerId === grab.id) {
+            const p = local(e);
+            if (!grab.on && Math.hypot(p.x - grab.from.x, p.y - grab.from.y) < 4) return;
+            grab.on = true;
+            move(...by(grab, p), false, grab.base);
+            return;
+        }
         if (!drag || e.pointerId !== drag.id) return;
         const p = local(e);
         if (!drag.on && Math.hypot(p.x - drag.from.x, p.y - drag.from.y) < 4) return;
@@ -44,6 +69,12 @@ export function mount(host) {
         put(box, between(drag.from.x, drag.from.y, p.x, p.y));
     };
     const onUp = e => {
+        if (grab && e.pointerId === grab.id) {
+            const g = grab;
+            grab = null;
+            if (g.on) move(...(e.type === 'pointerup' ? by(g, local(e)) : [0, 0]), true, g.base);      // a cancelled pointer puts it back
+            return;
+        }
         if (!drag || e.pointerId !== drag.id) return;
         const { on, from } = drag;
         drag = null; box.hidden = true;
@@ -52,7 +83,12 @@ export function mount(host) {
     // Captured so a handled key does not also reach the canvas's own handler (Escape clears first and is only reported when nothing is selected).
     const onKey = e => {
         if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'a' && !e.target.matches?.('input, textarea, select, [contenteditable]')) set(items().map(i => i.id));
+        else if (e.key === 'Escape' && grab?.on) { const g = grab; grab = null; move(0, 0, true, g.base); }
         else if (e.key === 'Escape' && host.selection.length) set([]);
+        else if (ARROWS[e.key] && !host.readonly && !e.ctrlKey && !e.metaKey && host.selection.length && !e.target.matches?.('input, textarea, select, [contenteditable]')) {
+            const d = nudge(host.steps().minor, host.zoom, e), [ux, uy] = ARROWS[e.key];
+            if (!move(ux * d, uy * d, true)) return;
+        }
         else return;
         e.preventDefault(); e.stopImmediatePropagation();
     };
