@@ -286,6 +286,14 @@ export const headerCases = [
         const item = document.createElement('pk-menu-item'); item.textContent = 'Archive'; o.querySelector('pk-dropdown').append(item); await t.settle(); await t.settle();
         t.ok(ow() > 0, 'an item that appears later draws the overflow button');
     }],
+    ['menu-item warning: coloured with --field-warn, danger wins over it, and the header overflow keeps it when it flattens a menu (#1773)', async t => {
+        const h = await t.mount('<pk-page-header heading="Record" actions-overflow="always"><pk-dropdown slot="actions"><pk-button slot="trigger" label="More actions"></pk-button><pk-menu-item value="close" warning>Close period</pk-menu-item><pk-menu-item value="both" warning danger>Both</pk-menu-item></pk-dropdown></pk-page-header>'); await t.settle(); await t.settle();
+        const [w, d] = h.querySelectorAll('pk-menu-item'), probe = document.createElement('span'); probe.style.color = 'var(--field-warn)'; document.body.append(probe);
+        t.eq(getComputedStyle(w).color, getComputedStyle(probe).color, 'warning uses the warning token'); probe.remove();
+        t.ok(getComputedStyle(d).color !== getComputedStyle(w).color, 'danger wins when both are set');
+        const items = [...h.shadowRoot.querySelectorAll('[part="overflow"] pk-menu-item')];
+        t.ok(items[0]?.hasAttribute('warning'), 'the overflow item keeps the warning state');
+    }],
 ];
 
 // Issue 801: the crumbs prop (a JSON array) draws the breadcrumb, a home crumb and a back link in the element's own shadow tree.

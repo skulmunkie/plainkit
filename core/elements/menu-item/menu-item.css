@@ -19,6 +19,7 @@
 
 :host([disabled]) { opacity: 0.5; cursor: default; pointer-events: none; }
 
+:host([warning]) { color: var(--field-warn); }
 :host([danger]) { color: var(--color-notice-error); }
 
 [part="mark"] { flex: none; width: 1rem; text-align: center; }
