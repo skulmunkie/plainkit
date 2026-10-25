@@ -31,6 +31,7 @@
     "PageBase.Busy.cs": 26,
     "PageBase.cs": 121,
     "PageBase.Overlay.cs": 16,
+    "PageBase.Status.cs": 17,
     "PageBase.Toasts.cs": 32,
     "PkAppBarSearchTypes.cs": 19,
     "PkBusyState.cs": 37,

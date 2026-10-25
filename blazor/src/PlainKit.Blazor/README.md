@@ -431,10 +431,7 @@ A concrete page (a list-detail page, a form page, a `PkWorkspace` pane) tends to
 @inherits PageBase
 
 <PkPageHeader Title="@Title" Crumbs="@Crumbs" />
-@if (StatusMessage is not null)
-{
-    <PkAlert Kind="@StatusKind" Heading="@StatusHeading">@StatusMessage</PkAlert>
-}
+@StatusContent
 <PkLoadingOverlay Busy="@IsBusy" Delay="150" MinTime="300" Label="@BusyLabel">
     @* orders list *@
 </PkLoadingOverlay>
@@ -449,6 +446,8 @@ A concrete page (a list-detail page, a form page, a `PkWorkspace` pane) tends to
     private Task LoadAsync() => BusyAsync(async () => Orders = await Client.GetOrdersAsync(), "Loading orders…");
 }
 ```
+
+`@StatusContent` draws the page's status (`StatusMessage`, `StatusKind`, `StatusHeading`) as one `PkAlert`; a failed `OnLoadAsync` lands there as a danger status.
 
 **The busy overlay needs no markup.** While a page holds a busy token (`BusyAsync`, `TryBusyAsync`, `BeginBusy`) the page body is blocked by the overlay `PkApp` draws around it (`pk-app-frame` `busy`): content inert, `aria-busy`, a 150 ms delay so a fast action never flashes, a 300 ms minimum once shown, the label announced; the nav and footer stay usable. A `PkRecordEditor` save or delete joins the same state when you pass `PageBusy = busyState` (inject `PkBusyState`). Without `PkApp`, subscribe to the scoped `PkBusyState` (`IsBusy`, `Label`, `Changed`) and bind a `PkLoadingOverlay`. A page that draws its own `PkLoadingOverlay` overrides `protected override bool BusyBlocksPage => false;`. Loading (`IsLoading`) is not busy.
 

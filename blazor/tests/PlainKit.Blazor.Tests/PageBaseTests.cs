@@ -226,4 +226,19 @@ public sealed class PageBaseTests : BunitContext
 
         await Assert.ThrowsAsync<Exception>(() => cut.InvokeAsync(() => cut.Instance.CallBusyAsync(() => throw failure)));
     }
+
+    // Issue 1772: StatusContent draws the status as one PkAlert; a failed load shows there as danger, no status draws nothing.
+    [Fact]
+    public void StatusContent_shows_a_failed_load_as_a_danger_alert_and_nothing_without_a_status()
+    {
+        var ok = Render<StatusContentHost>();
+        Assert.Empty(ok.FindAll("pk-alert"));
+        ok.InvokeAsync(() => ok.Instance.Show("Saved.", "success", "Done"));
+        ok.WaitForAssertion(() => Assert.Equal("success", ok.Find("pk-alert").GetAttribute("kind")));
+        Assert.Contains("Saved.", ok.Find("pk-alert").TextContent);
+
+        var failed = Render<StatusContentHost>(p => p.Add(x => x.Fail, true));
+        failed.WaitForAssertion(() => Assert.Equal("danger", failed.Find("pk-alert").GetAttribute("kind")));
+        Assert.Contains("store offline", failed.Find("pk-alert").TextContent);
+    }
 }
