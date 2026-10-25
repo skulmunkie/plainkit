@@ -195,6 +195,11 @@ test('release.yml runs the full verify first; build and publish both need it, so
     const rel = wf('release.yml');
     const v = jobOf(rel, 'verify');
     assert.ok(v.includes('node scripts/verify.mjs --pack --browser'));
+    // One run per release: the full verify is skipped only when scripts/release-prior-ci.mjs found the release pull request's full CI green on the same tree.
+    assert.match(v, /id: prior\n\s+env:\n\s+GH_TOKEN: \$\{\{ github\.token \}\}\n\s+run: node scripts\/release-prior-ci\.mjs "\$GITHUB_REPOSITORY" "\$GITHUB_SHA" >> "\$GITHUB_OUTPUT"/);
+    assert.match(v, /if: steps\.prior\.outputs\.skip != 'true'\n\s+run: node scripts\/verify\.mjs --pack --browser/);
+    assert.ok(v.indexOf('id: prior') < v.indexOf('node scripts/verify.mjs --pack --browser'), 'the question comes before the verify');
+    assert.doesNotMatch(v, /: write$/m, 'the verify job only reads');
     assert.ok(!/continue-on-error/.test(v), 'a verify failure must fail the run');
     assert.match(jobOf(rel, 'build'), /^    needs: verify$/m);
     assert.match(jobOf(rel, 'publish'), /^    needs: \[verify, build\]$/m);

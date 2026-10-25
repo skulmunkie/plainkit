@@ -12,6 +12,7 @@
     { "name": "Selectable", "type": "bool", "default": false, "map": "prop", "prop": "selectable" },
     { "name": "Mode", "type": "string", "default": "select", "map": "prop", "prop": "mode" },
     { "name": "Selection", "type": "IReadOnlyList<string>?", "json": true, "prop": "selection", "note": "The ids of the selected items, as JSON text; items declare their world rect with data-id, data-x, data-y, data-w, data-h (the geometry callback is JS only)." },
+    { "name": "ReadOnly", "type": "bool", "default": false, "map": "prop", "prop": "readonly" },
     { "name": "MinZoom", "type": "double", "default": 0.25, "map": "prop", "prop": "minZoom" },
     { "name": "MaxZoom", "type": "double", "default": 4, "map": "prop", "prop": "maxZoom" },
     { "name": "Wheel", "type": "string", "default": "auto", "map": "prop", "prop": "wheel" },
@@ -20,7 +21,8 @@
     { "name": "OnViewChange", "event": "pk-view-change" },
     { "name": "OnPick", "event": "pk-canvas-pick" },
     { "name": "OnKey", "event": "pk-canvas-key" },
-    { "name": "OnSelect", "event": "pk-canvas-select" }
+    { "name": "OnSelect", "event": "pk-canvas-select" },
+    { "name": "OnMove", "event": "pk-canvas-move" }
   ],
   "methods": [
     { "name": "ZoomToFitAsync", "method": "zoomToFit" },

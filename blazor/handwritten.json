@@ -255,6 +255,9 @@
     "PkReconnectOptions.cs": {
       "category": "dto"
     },
+    "PkReconnectOptions.Overlay.cs": {
+      "category": "dto"
+    },
     "PkRecordEditor.cs": {
       "category": "editcontext"
     },

@@ -66,7 +66,7 @@
       "default": "never",
       "values": ["never", "phone", "tablet", "always"],
       "reflect": true,
-      "description": "Collapses the actions slot into one icon button that opens a menu at the named width and below (phone, tablet) or always. Each slotted action becomes a menu item with its label, icon-name, disabled and danger state; choosing one clicks the original, so its handlers, href and events are unchanged, and the title bar stays one row high. Use pk-button or link actions as direct children of the slot; a pk-dropdown or pk-card-menu among them is flattened into its own items (headers kept, selecting one selects the original)."
+      "description": "Collapses the actions slot into one icon button that opens a menu at the named width and below (phone, tablet) or always. Each slotted action becomes a menu item with its label, icon-name, disabled and danger state; choosing one clicks the original, so its handlers, href and events are unchanged, and the title bar stays one row high. Use pk-button or link actions as direct children of the slot; a pk-dropdown or pk-card-menu among them is flattened into its own items (headers kept, selecting one selects the original). A slotted menu with no items adds nothing, and with nothing to choose the overflow button is not drawn."
     },
     {
       "name": "overflowLabel",

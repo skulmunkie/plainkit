@@ -27,6 +27,13 @@
       "prop": "keepOpen"
     },
     {
+      "name": "HideEmpty",
+      "type": "bool",
+      "default": false,
+      "map": "prop",
+      "prop": "hideEmpty"
+    },
+    {
       "name": "Mega",
       "type": "bool",
       "default": false,

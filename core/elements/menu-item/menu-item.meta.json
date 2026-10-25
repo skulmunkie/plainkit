@@ -42,6 +42,13 @@
       "description": "Destructive styling."
     },
     {
+      "name": "warning",
+      "type": "boolean",
+      "default": false,
+      "reflect": true,
+      "description": "Warning styling: a consequential action that is not destructive (danger wins when both are set)."
+    },
+    {
       "name": "value",
       "type": "string",
       "default": "",
@@ -148,7 +155,7 @@
   "examples": [
     {
       "title": "Item types",
-      "html": "<div class=\"stack\"><pk-menu-item type=\"header\">Header</pk-menu-item><pk-menu-item>Plain item</pk-menu-item><pk-menu-item type=\"checkbox\" checked>Checkbox</pk-menu-item><pk-menu-item type=\"radio\" checked>Radio</pk-menu-item><pk-menu-item disabled>Disabled</pk-menu-item></div>"
+      "html": "<div class=\"stack\"><pk-menu-item type=\"header\">Header</pk-menu-item><pk-menu-item>Plain item</pk-menu-item><pk-menu-item type=\"checkbox\" checked>Checkbox</pk-menu-item><pk-menu-item type=\"radio\" checked>Radio</pk-menu-item><pk-menu-item disabled>Disabled</pk-menu-item><pk-menu-item warning>Close period</pk-menu-item><pk-menu-item danger>Delete</pk-menu-item></div>"
     },
     {
       "title": "With a description",
