@@ -276,6 +276,16 @@ export const headerCases = [
         items[4].click(); await t.settle();
         t.eq(picked.join(), 'delete', 'choosing an item fires pk-select of the original item');
     }],
+    ['page-header: an empty card-menu in the actions draws nothing, and with actions-overflow a menu with no items gives no overflow button until an item appears (#1773)', async t => {
+        const h = await t.mount('<pk-page-header heading="Record"><pk-card-menu slot="actions" label="More actions"></pk-card-menu></pk-page-header>'); await t.settle(); await t.settle();
+        const cm = h.querySelector('pk-card-menu');
+        t.eq(Math.round(cm.getBoundingClientRect().width), 0, 'no item: the card menu has no button');
+        const o = await t.mount('<pk-page-header heading="Record" actions-overflow="always"><pk-dropdown slot="actions"><pk-button slot="trigger" icon icon-name="more" label="More actions"></pk-button></pk-dropdown></pk-page-header>'); await t.settle(); await t.settle();
+        const ow = () => o.shadowRoot.querySelector('[part="overflow-button"]').getBoundingClientRect().width;
+        t.eq(ow(), 0, 'nothing to choose: no overflow button');
+        const item = document.createElement('pk-menu-item'); item.textContent = 'Archive'; o.querySelector('pk-dropdown').append(item); await t.settle(); await t.settle();
+        t.ok(ow() > 0, 'an item that appears later draws the overflow button');
+    }],
 ];
 
 // Issue 801: the crumbs prop (a JSON array) draws the breadcrumb, a home crumb and a back link in the element's own shadow tree.

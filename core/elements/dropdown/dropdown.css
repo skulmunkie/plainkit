@@ -1,5 +1,6 @@
 /* pk-dropdown: the trigger stays in flow; the menu is a fixed layer placed by the positioning helper. */
 :host { display: inline-block; }
+slot[name="trigger"][hidden] { display: none; }
 
 [part="menu"] {
     display: none;
