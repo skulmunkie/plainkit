@@ -5,8 +5,11 @@ using PlainKit.Blazor;
 namespace PlainKit.Blazor.Tests;
 
 // Issue 204: the page-level state (status/error, busy, title, breadcrumbs) a concrete page otherwise repeats by hand.
-public sealed class PageBaseTests : BunitContext
+public sealed class PageBaseTests : BunitContext, IAsyncLifetime
 {
+    Task IAsyncLifetime.InitializeAsync() => Task.CompletedTask;
+    async Task IAsyncLifetime.DisposeAsync() => await DisposeAsync();
+
     private sealed class FakeLog : IPkLog
     {
         public readonly List<(PkLogLevel Level, string Scope, string Message, string? Detail)> Entries = [];
