@@ -867,8 +867,8 @@ overlaysCases.push(
         const host = t.stage('');
         const f = document.createElement('iframe'); f.title = 'no script'; f.style.width = '800px'; f.style.height = '600px'; f.style.border = '0';
         const loaded = new Promise(r => f.addEventListener('load', r, { once: true }));
-        host.append(f);
         f.srcdoc = `<!DOCTYPE html><html lang="en"><head><link rel="stylesheet" href="${new URL('../../plainkit.css', import.meta.url).href}"></head><body><pk-drawer id="d" heading="Cart"><p>Item one</p><p>Item two</p></pk-drawer><pk-dialog id="g" heading="Hi"><p>Body</p></pk-dialog><pk-popover id="p"><button slot="trigger" id="trig">Open</button><p id="pb">Pop body</p></pk-popover><pk-drawer id="k" docked heading="Inspector"><p>Docked body</p></pk-drawer></body></html>`;
+        host.append(f);
         await loaded;
         const d = f.contentDocument, h = id => d.getElementById(id).getBoundingClientRect().height;
         t.ok(!f.contentWindow.customElements.get('pk-drawer'), 'nothing upgrades in the frame');
