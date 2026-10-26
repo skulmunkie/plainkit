@@ -41,15 +41,6 @@ public sealed class PrerenderLoadTests : BunitContext, IAsyncLifetime
         Assert.Equal(1, loads);
     }
 
-    [Fact]
-    public void A_component_prerendered_for_an_interactive_mode_does_not_load()
-    {
-        SetRendererInfo(new RendererInfo("Static", false));
-        var loads = 0;
-        Render<ComponentBaseHost>(p => p.Add(x => x.Key, 1).Add(x => x.Load, _ => { loads++; return Task.CompletedTask; }).SetAssignedRenderMode(RenderMode.InteractiveServer));
-        Assert.Equal(0, loads);
-    }
-
     private sealed class NoStorage : IPkStorage
     {
         public ValueTask<string?> GetAsync(string key) => ValueTask.FromResult<string?>(null);

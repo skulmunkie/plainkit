@@ -22,7 +22,7 @@ public abstract partial class PkComponentBase
         _parameters = next;
         if (reload) _life.Expect();
         await base.SetParametersAsync(parameters);
-        if (!reload || (AssignedRenderMode is not null && !RendererInfo.IsInteractive)) return; // not while prerendering (#1812)
+        if (!reload) return;
         var load = _life.LoadAsync<object?>(async c => { await OnLoadAsync(c); return null; }, null, LogLoadFailureAsync);
         if (!load.IsCompleted) _ = load.ContinueWith(_ => InvokeStateChanged(), TaskScheduler.Default);
     }
