@@ -102,6 +102,13 @@
       "default": [],
       "reflect": false,
       "description": "Search results, pk-app-bar-search items; the host sets them on pk-query."
+    },
+    {
+      "name": "searchError",
+      "type": "string",
+      "default": "",
+      "reflect": false,
+      "description": "A failed search: while set, the header search's results panel shows this message instead of \"No results\" (pk-app-bar-search error). Set it when the search behind pk-query throws; clear it with the next result."
     }
   ],
   "slots": [

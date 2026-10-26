@@ -284,6 +284,24 @@ export const overlaysCases = [
         t.eq(await q, false);
     }],
 
+    ['drawer and dialog: open set before heading and content in the same turn does not warn "empty"; really opened empty still warns once (#1807)', async t => {
+        const log = await import('../../js/log.js');
+        const box = await t.mount('<div><pk-drawer heading="Warm"></pk-drawer><pk-dialog heading="Warm"></pk-dialog></div>'); await t.settle();
+        const empties = () => log.getLogBuffer().filter(e => e.level === 'warn' && /no heading and no content/.test(e.message)).map(e => e.scope);
+        log.clearLogBuffer();
+        for (const tag of ['pk-drawer', 'pk-dialog']) {
+            const el = document.createElement(tag); box.append(el);
+            el.open = true; el.heading = 'Cart'; el.append('Two items'); // the order a framework batch may use
+        }
+        await t.settle();
+        t.eq(empties().join(), '', 'heading and content set in the same turn: no warning');
+        box.querySelectorAll('pk-drawer[heading="Cart"],pk-dialog[heading="Cart"]').forEach(el => { el.open = false; });
+        await t.settle();
+        const bare = document.createElement('pk-drawer'); box.append(bare); bare.open = true; await t.settle();
+        t.eq(empties().join(), 'pk-drawer', 'a drawer opened with nothing still warns, once');
+        bare.open = false; await t.settle();
+    }],
+
     ['dialog, drawer and popover: data-open, data-toggle and data-close work from the elements alone (the openers install when one connects)', async t => {
         const box = await t.mount('<div><pk-button data-open="#pk-inv-d">Open</pk-button><pk-button data-open="#pk-inv-w">Drawer</pk-button><pk-button data-toggle="#pk-inv-p">Toggle</pk-button><pk-dialog id="pk-inv-d" heading="Hi" size="sm">Text<pk-button data-close>Cancel</pk-button></pk-dialog><pk-drawer id="pk-inv-w" heading="Side">Body</pk-drawer><pk-popover id="pk-inv-p" heading="Pop">Body</pk-popover></div>');
         const [openD, openW, toggleP] = box.querySelectorAll('pk-button');

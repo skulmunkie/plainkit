@@ -959,6 +959,18 @@ export const dataDisplayCases = [
         t.eq(getComputedStyle(box).borderTopLeftRadius, '7px', 'the hook value');
     }],
 
+    ['app-bar-search: error shows a distinct failed-search message instead of "No results"; clearing it shows the empty state again (#1799)', async t => {
+        const el = await t.mount('<pk-app-bar-search debounce="0" label="Search"></pk-app-bar-search>'); await customElements.whenDefined('pk-app-bar-search');
+        const input = el.part('control'); input.value = 'inv'; input.dispatchEvent(new Event('input')); await t.settle();
+        const shown = p => !el.part(p).hidden && el.part(p).getBoundingClientRect().height > 0;
+        el.items = []; el.error = 'Search is unavailable. Try again.'; await t.settle();
+        t.ok(shown('error'), 'the error part shows'); t.eq(el.part('error').textContent, 'Search is unavailable. Try again.');
+        t.ok(!shown('empty'), 'no "No results" while failed');
+        t.ok(getComputedStyle(el.part('error')).color !== getComputedStyle(el.part('empty')).color, 'it does not look like the empty state');
+        el.error = ''; await t.settle();
+        t.ok(!shown('error') && shown('empty'), 'cleared: the empty state again');
+    }],
+
     ['table-filters: typing debounces pk-search; the trigger only shows once the default slot has content, opens/closes the panel and reports pk-toggle; Clear filters raises pk-clear-filters; the badge reflects filterCount', async t => {
         const bare = await t.mount('<pk-table-filters debounce="10" label="Search products"></pk-table-filters>');
         t.ok(bare.part('trigger').hidden, 'no filter fields slotted: no trigger');
