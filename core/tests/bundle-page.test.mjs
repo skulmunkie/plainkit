@@ -75,6 +75,10 @@ test('--flat writes every file into one folder and points the sprite at its copy
         for (const m of js.matchAll(/(?:\bfrom\s*|\bimport\s*\(?\s*)["']([^"']+)["']/g)) assert.match(m[1], /^\.\/plainkit-[\w.-]+\.js$/, `import ${m[1]} must be a file beside the bundle`);
         assert.match(js, /["']\.\/plainkit-icons\.svg["']/, 'the sprite address points beside the bundle');
         assert.doesNotMatch(js, /["']\.\.\/icons\.svg["']/, 'no sprite address one folder up is left');
+        assert.ok(names.includes('plainkit-registry.js'), 'the registry is written beside the bundle');
+        assert.match(js, /["']\.\/plainkit-registry\.js["']/, 'the loader reads the registry beside the bundle');
+        assert.doesNotMatch(js, /["']\.\.\/elements\/registry\.js["']/, 'no registry address one folder up is left');
+        assert.doesNotMatch(fs.readFileSync(path.join(tmp, 'plainkit-registry.js'), 'utf8'), /\bimport\b/, 'the registry copy imports nothing');
         assert.ok(r.files.includes('plainkit-icons.svg'));
     } finally { fs.rmSync(tmp, { recursive: true, force: true }); }
 });
