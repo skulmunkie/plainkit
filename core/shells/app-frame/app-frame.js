@@ -51,7 +51,7 @@ export default Base => class extends Base {
         const search = this.part('search');
         search.hidden = !this.search;
         search.setAttribute('label', this.searchPlaceholder); search.setAttribute('placeholder', this.searchPlaceholder);
-        search.items = Array.isArray(this.searchItems) ? this.searchItems : [];
+        search.items = Array.isArray(this.searchItems) ? this.searchItems : []; search.error = this.searchError || ''; // a failed search shows as one (#1799)
         const crumbs = Array.isArray(this.crumbs) ? this.crumbs : [], trail = this.part('crumbs'), last = crumbs.length - 1;
         trail.hidden = crumbs.length === 0;
         trail.replaceChildren(...crumbs.map((c, i) => h('a', { href: i < last ? safeHref(c.href) || null : null, 'aria-current': i === last ? 'page' : null }, c.label)));
