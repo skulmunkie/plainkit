@@ -860,3 +860,24 @@ overlaysCases.push(
         el.open = false; await t.settle(); t.ok(!dd.open, 'open=false closes the dropdown');
     }],
 );
+
+// Issue 1810: not-yet-upgraded overlays take no room (an iframe with no script never upgrades them); a defined closed drawer takes none either.
+overlaysCases.push(
+    ['drawer, dialog and popover before upgrade: their content takes no room, a docked drawer keeps its place, a popover keeps its trigger; a defined closed drawer takes none (#1810)', async t => {
+        const host = t.stage('');
+        const f = document.createElement('iframe'); f.title = 'no script'; f.style.width = '800px'; f.style.height = '600px'; f.style.border = '0';
+        const loaded = new Promise(r => f.addEventListener('load', r, { once: true }));
+        host.append(f);
+        f.srcdoc = `<!DOCTYPE html><html lang="en"><head><link rel="stylesheet" href="${new URL('../../plainkit.css', import.meta.url).href}"></head><body><pk-drawer id="d" heading="Cart"><p>Item one</p><p>Item two</p></pk-drawer><pk-dialog id="g" heading="Hi"><p>Body</p></pk-dialog><pk-popover id="p"><button slot="trigger" id="trig">Open</button><p id="pb">Pop body</p></pk-popover><pk-drawer id="k" docked heading="Inspector"><p>Docked body</p></pk-drawer></body></html>`;
+        await loaded;
+        const d = f.contentDocument, h = id => d.getElementById(id).getBoundingClientRect().height;
+        t.ok(!f.contentWindow.customElements.get('pk-drawer'), 'nothing upgrades in the frame');
+        t.eq(h('d'), 0, 'an unupgraded drawer takes no room');
+        t.eq(h('g'), 0, 'an unupgraded dialog takes no room');
+        t.eq(h('pb'), 0, 'the popover body takes no room');
+        t.ok(h('trig') > 0, 'the popover trigger keeps its place');
+        t.ok(h('k') > 0, 'a docked drawer keeps its place');
+        const el = await t.mount('<pk-drawer heading="Cart"><p>Item one</p><p>Item two</p></pk-drawer>'); await t.settle();
+        t.eq(Math.round(el.getBoundingClientRect().height), 0, 'once defined, a closed drawer still takes no room');
+    }],
+);
