@@ -104,7 +104,7 @@ The files find each other by relative address, worked out in the browser, so ser
 
 - The loader (`js/loader.js`) imports `<pk-name>` as `elements/<name>.js`, from the `elements` folder next to `js`.
 - Every module imports what it needs relative to itself (`elements/*.js` import `../js/...`), and some features load later the same way (from `js/`, `js/app/` and `modules/`).
-- The icons are one file, `icons.svg`, at the top of `dist`, found relative to the module that draws an icon.
+- The icons are one file, `icons.svg`, at the top of `dist`, found relative to the module that draws an icon. To serve it from somewhere else on the same site, name it in the page head: `<meta name="pk-icons" content="/assets/plainkit-icons.svg">`.
 - The per-page bundle below needs its `chunks/` folder next to `plainkit.bundle.js`.
 
 A host that only serves one flat folder of files (Shopify theme assets, for example) cannot run `dist` unchanged: build a page bundle with `--flat` instead (next section), which puts every file it needs in one folder. Do not patch or rename the built files: the minified output changes in every release.
