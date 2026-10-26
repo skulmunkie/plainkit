@@ -18,7 +18,7 @@ public abstract partial class PkComponentBase : ComponentBase, IAsyncDisposable
     /// <summary>Creates the lifecycle.</summary>
     protected PkComponentBase() => _life = new PkLifecycle(() => { if (!_life!.Disposed) StateHasChanged(); });
 
-    /// <summary>Runs on the first render and again when a parameter changed (<see cref="ReloadOnParameters"/>); a failure is kept in <see cref="LoadError"/> and a cancelled load is silent.</summary>
+    /// <summary>Runs on the first render and again when a parameter changed (<see cref="ReloadOnParameters"/>); not during the static prerender of an interactive component; a failure is kept in <see cref="LoadError"/> and a cancelled load is silent.</summary>
     protected virtual Task OnLoadAsync(CancellationToken cancel) => Task.CompletedTask;
 
     /// <summary>Whether a changed parameter starts a new load (default true; the previous load's token is cancelled either way). The first load always runs. <see cref="ReloadParameters"/> narrows which ones.</summary>
