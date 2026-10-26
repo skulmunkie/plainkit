@@ -263,6 +263,19 @@ export const recordFormCases = [
         t.ok(!tbl.shadowRoot.querySelector('[part="bulk-all"]').hidden, 'without the key the offer shows (the default is unchanged)');
     }],
 
+    ['list-page: a config action with icon draws an icon button that folds to the icon on a phone by default; collapse overrides; no icon, no change (#1785)', async t => {
+        const el = await t.mount('<pk-list-page></pk-list-page>');
+        await t.load(el.shadowRoot); await t.settle();
+        el.config = { columns: [{ key: 'sku', label: 'SKU' }], actions: [{ label: 'Add', icon: 'plus', href: '#pk-1785', variant: 'primary' }, { label: 'Find', icon: 'search', collapse: 'none' }, { label: 'Plain' }] };
+        await t.settle();
+        await customElements.whenDefined('pk-button');
+        const [add, find, plain] = el.part('actions').querySelectorAll('pk-button');
+        t.eq(add.iconName, 'plus', 'the icon is the button icon'); t.eq(add.collapse, 'phone', 'phone is the default fold');
+        t.eq(add.textContent, 'Add', 'the label stays the text and the accessible name');
+        t.eq(find.collapse, 'none', 'collapse overrides the default');
+        t.eq(plain.iconName, '', 'no icon: no icon'); t.eq(plain.collapse, 'none', 'and no fold');
+    }],
+
     // #1364/#1401: a host that binds load after the page drew its first (empty) answer, then calls the page's own refresh(), gets its first page without a typed search.
     ['list-page: a load set after the first draw is called by refresh() on the page, no search needed (#1364)', async t => {
         const el = await t.mount(`<pk-list-page config='{"columns":[{"key":"sku","label":"SKU"}]}' row-href-template="/p/{id}"></pk-list-page>`);

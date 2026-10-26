@@ -78,6 +78,7 @@ export default Base => class extends Base {
             const btn = this.ownerDocument.createElement('pk-button');
             if (a.variant) btn.variant = a.variant;
             if (a.href) btn.href = a.href;
+            if (a.icon) { btn.iconName = a.icon; btn.collapse = a.collapse ?? 'phone'; } // an icon, folded to the icon alone on a phone; the label stays the name (#1785)
             btn.textContent = a.label ?? '';
             if (name === 'bulk') {
                 const table = this.part('table');
