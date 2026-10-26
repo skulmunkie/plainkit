@@ -107,7 +107,7 @@ The files find each other by relative address, worked out in the browser, so ser
 - The icons are one file, `icons.svg`, at the top of `dist`, found relative to the module that draws an icon.
 - The per-page bundle below needs its `chunks/` folder next to `plainkit.bundle.js`.
 
-A host that only serves one flat folder of files (Shopify theme assets, for example) cannot run `dist` unchanged: build a page bundle with `--flat` instead (next section), which puts every file it needs in one folder. Do not patch or rename the built files: the minified output changes in every release.
+A host that only serves one flat folder of files (Shopify theme assets, for example) cannot run `dist` unchanged: build a page bundle with `bundle-page.mjs --flat` instead (next section), which puts every file it needs in one folder. Do not patch or rename the built files: the minified output changes in every release.
 
 ## Ship one small request
 
@@ -122,7 +122,7 @@ node core/tools/bundle-page.mjs --html index.html --out public/plainkit
 
 The page then makes about ten requests instead of 20 to 27 and sends about a fifth fewer bytes, because fewer, larger files compress better than many small ones. Publish the whole output folder (the `chunks/` folder must sit next to the script), link the stylesheet, load the script as a module and call the exported `initPlainkit()` from your own script file, as above. The tool needs esbuild (`npm i -D esbuild`); it is not a dependency of the package.
 
-With `--flat` there is no `chunks/` folder: the output is `plainkit.bundle.js`, `plainkit.bundle.css`, `plainkit-*.js` chunks, `plainkit-icons.svg` and `plainkit-registry.js`, all in the one folder, and the bundle finds the icons and the registry beside itself, wherever that folder is served (on Shopify, upload them as theme assets and link the stylesheet and your page script with the `asset_url` filter). Upload every `plainkit-*` file of a build together and remove the previous build's chunks: their names change when the code does. A `pk-*` tag that is not in the bundle cannot load from a flat folder; the console says `could not load <pk-name>`: build again with that tag.
+With `bundle-page.mjs --flat` there is no `chunks/` folder: the output is `plainkit.bundle.js`, `plainkit.bundle.css`, `plainkit-*.js` chunks, `plainkit-icons.svg` and `plainkit-registry.js`, all in the one folder, and the bundle finds the icons and the registry beside itself, wherever that folder is served (on Shopify, upload them as theme assets and link the stylesheet and your page script with the `asset_url` filter). Upload every `plainkit-*` file of a build together and remove the previous build's chunks: their names change when the code does. A `pk-*` tag that is not in the bundle cannot load from a flat folder; the console says `could not load <pk-name>`: build again with that tag.
 
 ## Themes and density
 
