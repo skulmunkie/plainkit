@@ -116,7 +116,7 @@
       "description": "{ id, label, group?, hint?, keywords?, href?, shortcut? }[] (property only)."
     }
   ],
-  "a11y": "A native modal dialog; the input is a combobox controlling a listbox with aria-activedescendant; a polite status announces the result count; groups are labelled.",
+  "a11y": "A native modal dialog; the input is a combobox controlling a listbox with aria-activedescendant; a polite status announces the result count; groups are labelled. With reduced transparency asked for (prefers-reduced-transparency), the backdrop is not blurred.",
   "mobile": "Full width at the top of the screen; rows are 44px; the list is the only scroller.",
   "examples": [
     {
