@@ -76,6 +76,14 @@
       "prop": "maxWidth"
     },
     {
+      "name": "Scrollable",
+      "type": "bool",
+      "default": false,
+      "map": "prop",
+      "prop": "scrollable",
+      "note": "The body scrolls between the header and the footer when its content is taller than the dialog (a long table); below 640px it always does."
+    },
+    {
       "name": "OverFlyout",
       "type": "bool",
       "map": "wrapper",
