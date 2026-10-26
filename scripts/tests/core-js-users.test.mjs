@@ -2,16 +2,15 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import fs from 'node:fs';
-import os from 'node:os';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
+import { makeTempDir } from '../../core/tools/tempdir.mjs';
 import { REVIEWED_COMPUTED_IMPORTS, coreJsUsers } from '../core-js-users.mjs';
 
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..', '..');
 
 const fixture = (t, files) => {
-    const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'pk-cju-'));
-    t.after(() => fs.rmSync(dir, { recursive: true, force: true }));
+    const dir = makeTempDir('pk-cju-');
     for (const [f, text] of Object.entries(files)) {
         fs.mkdirSync(path.dirname(path.join(dir, f)), { recursive: true });
         fs.writeFileSync(path.join(dir, f), text);
