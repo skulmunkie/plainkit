@@ -75,3 +75,13 @@ test('no element sets an href from a property without going through js/safe-url.
     }
     assert.deepEqual(offenders, [], 'route the address through safeHref (anchors) or safeLink (navigation) from js/safe-url.js');
 });
+
+test('the only way past safeHref is pk-button\'s reviewed bookmarklet prop (#1805)', () => {
+    const optIns = [];
+    for (const { name, dir } of listElementFolders(root)) {
+        const meta = path.join(dir, `${name}.meta.json`);
+        if (fs.existsSync(meta) && JSON.parse(fs.readFileSync(meta, 'utf8')).props?.some(p => p.name === 'bookmarklet')) optIns.push(name);
+    }
+    assert.deepEqual(optIns, ['button'], 'FIX: a script-href opt-in is reviewed once, on pk-button; do not add another');
+    assert.match(fs.readFileSync(path.join(root, 'elements', 'button', 'button.js'), 'utf8'), /href: off \? null : p\.bookmarklet \? p\.href : safeHref\(p\.href\)/, 'pk-button keeps safeHref for every href without the opt-in');
+});

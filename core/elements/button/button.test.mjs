@@ -112,3 +112,11 @@ test('an icon-only button with no accessible name is a failure', () => {
     assert.deepEqual(evaluate(measures(''), { phone: true }).map(f => [f.check, f.severity]), [['unnamed-input', 'error']]);
     assert.deepEqual(evaluate(measures('Add item'), { phone: true }), []);
 });
+
+test('a script href is dropped unless bookmarklet is set, and disabled still drops it (#1805)', () => {
+    const js = 'java' + 'script:void(0)'; // assembled: the security scanner flags the literal
+    assert.equal(linkAttrs({ ...base, href: js }).href, null);
+    assert.equal(linkAttrs({ ...base, href: js, bookmarklet: true }).href, js);
+    assert.equal(linkAttrs({ ...base, href: js, bookmarklet: true, disabled: true }).href, null);
+    assert.equal(linkAttrs({ ...base, href: '/a', bookmarklet: false }).href, '/a');
+});

@@ -55,6 +55,13 @@
       "description": "Makes the button a link: the control is an <a> that navigates natively (middle and ctrl-click, the status-bar URL). Every variant, size, icon and busy style still applies. A link ignores type, toggle and pressed."
     },
     {
+      "name": "bookmarklet",
+      "type": "boolean",
+      "default": false,
+      "reflect": false,
+      "description": "Keeps a script address (a javascript URL) as the href, for a bookmarklet a reader drags to the bookmarks bar. Without it such an href is dropped. The href is then used exactly as written: only for an address you wrote in the page, never one bound to data (a database row, a query string, a parameter)."
+    },
+    {
       "name": "target",
       "type": "string",
       "default": "",
@@ -292,7 +299,7 @@
       "description": "Focuses the inner button or link."
     }
   ],
-  "a11y": "A native button (with href a native link) lives in the shadow root, so it is focusable and exposes the button (link) role. A button activates on Enter and Space, a link on Enter only, as any link does; its name comes from the slot. An icon button (icon) hides that text visually (a zero-size font, not display:none, so it stays in the accessibility tree) and it remains the name; label overrides it. Every icon-only button needs a name: from its text, label or aria-label (the scorecard flags one without). The name is also the native title tooltip on hover (skipped inside a pk-tooltip, which gives hover and keyboard focus, or when the host has its own title); the title is never the name. A toggle reports aria-pressed; a disclosure reports aria-expanded instead (never both) and draws a caret that rotates with pressed, for a button that itself expands or collapses another part of the page (name the expanded region with aria-controls if it is not adjacent). A busy button reports aria-busy and ignores clicks without dropping focus, and a busy icon button swaps its icon for the spinner and keeps its name; a disabled or busy link drops its href and reports aria-disabled. Focus ring and the 44px phone target are built in. haspopup sets aria-haspopup on the control; controls (property only) sets aria-controls through ariaControlsElements (Chrome 135, Safari 16.4, Firefox 136; a no-op in older browsers, where aria-expanded still announces the state).",
+  "a11y": "A native button (with href a native link) lives in the shadow root, so it is focusable and exposes the button (link) role. A button activates on Enter and Space, a link on Enter only, as any link does; its name comes from the slot. An icon button (icon) hides that text visually (a zero-size font, not display:none, so it stays in the accessibility tree) and it remains the name; label overrides it. Every icon-only button needs a name: from its text, label or aria-label (the scorecard flags one without). The name is also the native title tooltip on hover (skipped inside a pk-tooltip, which gives hover and keyboard focus, or when the host has its own title); the title is never the name. A toggle reports aria-pressed; a disclosure reports aria-expanded instead (never both) and draws a caret that rotates with pressed, for a button that itself expands or collapses another part of the page (name the expanded region with aria-controls if it is not adjacent). A busy button reports aria-busy and ignores clicks without dropping focus, and a busy icon button swaps its icon for the spinner and keeps its name; a disabled or busy link drops its href and reports aria-disabled. Focus ring and the 44px phone target are built in. haspopup sets aria-haspopup on the control; controls (property only) sets aria-controls through ariaControlsElements (Chrome 135, Safari 16.4, Firefox 136; a no-op in older browsers, where aria-expanded still announces the state). A bookmarklet link (bookmarklet) is still a native link; say in its text what dragging it to the bookmarks bar does.",
   "examples": [
     {
       "title": "Variants",
