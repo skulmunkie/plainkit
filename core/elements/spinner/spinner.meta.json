@@ -42,6 +42,13 @@
       "default": false,
       "reflect": true,
       "description": "Dim and cover a position: relative parent."
+    },
+    {
+      "name": "showLabel",
+      "type": "boolean",
+      "default": false,
+      "reflect": true,
+      "description": "Shows the label as visible text beside the spinner (under it with overlay), for a loading state that should say what it waits for; without it the label is for screen readers only."
     }
   ],
   "slots": [],
@@ -91,6 +98,10 @@
     {
       "title": "Dots and bar",
       "html": "<pk-spinner variant=\"dots\" label=\"Working\"></pk-spinner>\n<pk-spinner variant=\"bar\" label=\"Uploading\"></pk-spinner>"
+    },
+    {
+      "title": "Visible label",
+      "html": "<pk-spinner show-label label=\"Loading orders\"></pk-spinner>\n<pk-spinner show-label variant=\"dots\" size=\"sm\" label=\"Saving\"></pk-spinner>"
     }
   ]
 }
