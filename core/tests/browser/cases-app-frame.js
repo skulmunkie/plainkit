@@ -103,4 +103,12 @@ export const appFrameCases = [
         t.ok(!nav.open, 'a link closes the drawer');
         t.ok(!shell.navOpen, 'and the shell mirrors it');
     }],
+    ['app-frame: searchError reaches the header search as its error, and clearing it clears it (#1799)', async t => {
+        const { frame, q } = await open(t, 1280);
+        const search = q('pk-app-bar-search');
+        frame.search = true; frame.searchError = 'Search is unavailable.'; await wait(50);
+        t.eq(search.error, 'Search is unavailable.', 'passed to the inner search');
+        frame.searchError = ''; await wait(50);
+        t.eq(search.error, '', 'cleared');
+    }],
 ];
