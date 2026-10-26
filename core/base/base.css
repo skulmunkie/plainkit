@@ -91,7 +91,8 @@ a:not([class], [data-dresses-links] > a):hover {
     padding-inline-start: var(--space-6);
 }
 
-:where(li + li) {
+/* Prose list items get a little air; a list marked role="list" (a nav row, chips, pagination, a card grid) is laid out by its host, so its items get none (#1813). */
+:where(ul:not([role="list"]) > li + li, ol:not([role="list"]) > li + li) {
     margin-block-start: var(--space-1);
 }
 
