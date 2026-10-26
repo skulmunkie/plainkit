@@ -42,3 +42,4 @@
     [part="prev"] { inset-inline-start: var(--space-3); }
     [part="next"] { inset-inline-end: var(--space-3); }
 }
+@media (prefers-reduced-transparency: reduce) { [part="dialog"]::backdrop { backdrop-filter: none; } }
