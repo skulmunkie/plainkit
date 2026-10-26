@@ -98,6 +98,17 @@ Three things to notice:
 
 Each element is its own module in `plainkit/elements/<name>.js`, found by name (`pk-card` is `plainkit/elements/card.js`; `registry.js` lists them for tools and error messages, and the page never fetches it). `initPlainkit()` imports only the modules of the tags your page uses, so a page with a button and a card downloads two small files. Until an element has loaded, its tag is hidden by the stylesheet, so a page does not flash unstyled markup.
 
+### What has to stay where
+
+The files find each other by relative address, worked out in the browser, so serve `dist` with its folders as they are, under one base URL:
+
+- The loader (`js/loader.js`) imports `<pk-name>` as `elements/<name>.js`, from the `elements` folder next to `js`.
+- Every module imports what it needs relative to itself (`elements/*.js` import `../js/...`), and some features load later the same way (from `js/`, `js/app/` and `modules/`).
+- The icons are one file, `icons.svg`, at the top of `dist`, found relative to the module that draws an icon.
+- The per-page bundle below needs its `chunks/` folder next to `plainkit.bundle.js`.
+
+A host that only serves one flat folder of files, or renames them, cannot run `dist` unchanged today; a supported way to do that is tracked in issue #1808. Patching the built files is not supported: the minified output changes in every release.
+
 ## Ship one small request
 
 For production you can replace the lazy loading with a per-page bundle. The tool reads the `pk-*` tags in a page and writes `plainkit.bundle.js` (the init entry plus exactly those elements), `plainkit.bundle.css` and a `chunks/` folder (the code the entry shares with the features an element loads on demand, such as a table's editing, which stays lazy):
