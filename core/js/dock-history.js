@@ -1,24 +1,26 @@
-// Undo and redo for a dock layout (#432, phase D3): a pure adapter over js/history.js. The history holds layout documents (the `doc` of js/dock-model.js);
-// nothing here touches the DOM or a timer, and the caller passes the time (`at`). A drag or resize passes a `key` (resize:<splitId>, float:<id>) so one
-// gesture is one undo step; a discrete operation (move, close, activate) passes none. Data coming back out goes through fromJson, the one door.
-import { createHistory, record, undo, redo } from './history.js';
+// Undo and redo for a dock layout (#432, D3): pure, no DOM or timer; the caller passes the time (`at`). A drag or resize passes a `key` so one gesture is one step.
 import { fromJson, panelIds, toJson } from './dock-model.js';
 
-export const createDockHistory = doc => createHistory(doc);
+const COALESCE_MS = 800;
+const MAX_STEPS = 100;
+const base = { key: null, at: 0 };
 
-/** Records the `{ doc, problems }` of a dock-model operation. An operation with problems, or one that changed nothing, leaves the history as it was. */
+export const createDockHistory = present => ({ past: [], present, future: [], ...base });
+
+/** Records the `{ doc, problems }` of a dock-model operation; one with problems, or no change, leaves the history as it was. */
 export function recordLayout(h, result, { key = null, at = 0 } = {}) {
     if (!result || result.problems?.length || !result.doc || toJson(result.doc) === toJson(h.present)) return h;
-    return record(h, result.doc, { key, at });
+    const merge = key !== null && key === h.key && at - h.at < COALESCE_MS && h.past.length > 0;
+    return { past: merge ? h.past : [...h.past, h.present].slice(-MAX_STEPS), present: result.doc, future: [], key, at };
 }
 
-// Steps once with `step` and re-validates the new present; if the stored layout does not survive fromJson cleanly the history stays unchanged.
-function stepLayout(h, step) {
-    const next = step(h);
-    if (next === h) return { h, doc: h.present };
-    const { doc, problems } = fromJson(next.present, { panels: [...panelIds(next.present), ...(next.present.floating ?? []).flatMap(x => x.group?.panels ?? [])].map(id => ({ id })) });
+// Steps once, then re-validates through fromJson; a layout that does not survive leaves the history unchanged.
+function step(h, next) {
+    if (!next) return { h, doc: h.present };
+    const p = next.present;
+    const { doc, problems } = fromJson(p, { panels: [...panelIds(p), ...(p.floating ?? []).flatMap(x => x.group?.panels ?? [])].map(id => ({ id })) });
     return problems.length ? { h, doc: h.present } : { h: next, doc };
 }
 
-export const undoLayout = h => stepLayout(h, undo);
-export const redoLayout = h => stepLayout(h, redo);
+export const undoLayout = h => step(h, h.past.length && { past: h.past.slice(0, -1), present: h.past.at(-1), future: [h.present, ...h.future], ...base });
+export const redoLayout = h => step(h, h.future.length && { past: [...h.past, h.present], present: h.future[0], future: h.future.slice(1), ...base });

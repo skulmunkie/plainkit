@@ -124,8 +124,7 @@
       "title": "Dock workspace",
       "built": true,
       "requires": [
-        "plainkit",
-        "plainkit.tools"
+        "plainkit"
       ],
       "blazorOption": "dock",
       "elements": [
