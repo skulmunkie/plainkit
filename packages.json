@@ -135,6 +135,7 @@
         "dock-drag.js",
         "dock-float.js",
         "dock-flyout.js",
+        "dock-history.js",
         "dock-json.js",
         "dock-model.js",
         "dock-render.js",
@@ -144,8 +145,8 @@
         "gallery/elements/dock.data.js"
       ],
       "maxPackedBytes": null,
-      "maxUnpackedBytes": 59035,
-      "maxZipBytes": 22409
+      "maxUnpackedBytes": 60053,
+      "maxZipBytes": 23038
     },
     {
       "id": "plainkit.canvas",

@@ -1,7 +1,5 @@
 namespace PlainKit.Blazor;
-
-/// <summary>A result of a <see cref="PkAppBarSearch"/>, as <see cref="PkAppBarSearch.Items"/> sends it. <c>OnSelect</c> carries the chosen one back
-/// as JSON (<c>PkSelectEventArgs.Item</c>); deserialize it as this type to read it back.</summary>
+/// <summary>A result of a <see cref="PkAppBarSearch"/>; <c>OnSelect</c> carries the chosen one back as JSON (<c>PkSelectEventArgs.Item</c>).</summary>
 public sealed record PkAppBarSearchItem
 {
     /// <summary>Identifies the result; not shown. Leave it empty for a note (a group's "+12 more"): the row shows its <see cref="Label"/> and cannot be chosen.</summary>
@@ -16,4 +14,6 @@ public sealed record PkAppBarSearchItem
     public string? Thumbnail { get; init; }
     /// <summary>Short text shown at the end of the row (a status, a count).</summary>
     public string? Badge { get; init; }
+    /// <summary>A page address that makes the row a real link (open in a new tab works). A plain click still raises <c>OnSelect</c>; cancelling it keeps client routing.</summary>
+    public string? Href { get; init; }
 }

@@ -25,6 +25,7 @@
 [part="status"] { position: absolute; inline-size: 1px; block-size: 1px; overflow: hidden; clip-path: inset(50%); white-space: nowrap; }
 [part="error"] { padding: var(--space-3); color: var(--color-notice-error); }
 [part="option"] { display: flex; align-items: center; gap: var(--space-2); padding: var(--space-2) var(--space-3); cursor: pointer; }
+a[part="option"] { color: inherit; text-decoration: none; }
 [part="option"]:hover, [part="option"][aria-selected="true"] { background: color-mix(in srgb, var(--color-accent) 22%, var(--color-flyout)); }
 [part="thumb"] { flex: none; width: 2rem; height: 2rem; border-radius: var(--radius-sm); background-color: var(--color-surface-alt); background-size: cover; background-position: center; }
 [part="row"] { flex: 1; min-width: 0; display: flex; flex-direction: column; }

@@ -88,8 +88,7 @@ import { initPlainkit } from './plainkit/js/init.js'; initPlainkit();
 ```js
 document.getElementById('settings').addEventListener('submit', event => {
     event.preventDefault();
-    const values = Object.fromEntries(new FormData(event.target));
-    console.log(values);
+    console.log(Object.fromEntries(new FormData(event.target)));
 });
 ```
 
@@ -156,7 +155,7 @@ Pages built by your users (or by your team) from the SDK's own elements, kept as
 
 Call `mountLayoutBuilder(element, { html | model, onchange, onsave })` from `./plainkit/modules/layout-builder/layout-builder.js` (it returns a promise of the builder handle); the full example is in `references/tools.md`.
 
-The palette lists every element in `elements/api.json`, so a new element appears without a change. The chrome is a `pk-dock` (Palette, Structure and HTML tabs | canvas | Properties: resize, drag or use the Move menu to move a panel between groups, close and reopen panels) with File (Save, only when `onsave` is given) and Edit menus in its toolbar, each item showing its shortcut. Selection, moving (Alt+arrows or Edit > Move), duplicate, wrap, delete, undo and redo work by keyboard, menu and touch; right click (or Shift+F10, or a long press) on a canvas element opens its element menu, and on a palette button offers Add; a pointer or touch drag on a row's handle reorders the top-level page, and a palette button drags onto the canvas to insert (slot-aware when it lands on a container); each element also gets an Edit/Delete chip on hover or selection. At phone width the dock becomes one tab strip and the File and Edit menus stay in its toolbar, so Save is reachable by touch. The inspector edits the selected element's props from its API metadata. `builder.getModel()` and `builder.toHtml()` are the outputs; the model is `js/layout-model.js` (`createRegistry`, `validateDoc`, `toHtml`, `fromHtml`), which refuses unknown tags, props, slots and enum values and never lets a script, style or event handler in. The full option list and handle are in `references/tools.md`.
+The palette lists every element in `elements/api.json`, so a new element appears without a change. The chrome is a `pk-dock` (Palette, Structure and HTML tabs | canvas | Properties: resize, drag or use the Move menu to move a panel between groups, close and reopen panels) with File (Save, only when `onsave` is given) and Edit menus in its toolbar, each item showing its shortcut. Selection, moving (Alt+arrows or Edit > Move), duplicate, wrap, delete, undo and redo work by keyboard, menu and touch; right click (or Shift+F10, or a long press) on a canvas element opens its element menu, and on a palette button offers Add; a pointer or touch drag on a row's handle reorders the top-level page, and a palette button drags onto the canvas to insert (slot-aware when it lands on a container); each element also gets an Edit/Delete chip on hover or selection. At phone width the dock becomes one tab strip and the File and Edit menus stay in its toolbar, so Save is reachable by touch. The inspector edits the selected element's props from its API metadata. `builder.getModel()` and `builder.toHtml()` are the outputs; the model is `js/layout-model.js` (`createRegistry`, `validateDoc`, `toHtml`, `fromHtml`), which refuses unknown tags, props, slots and enum values and never lets a script, style or event handler in. The full option list and handle are in `references/tools.md`. An editor that puts a pk-canvas in a pk-dock: `references/canvas-editor.md`.
 
 ### Enable logging
 
