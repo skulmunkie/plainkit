@@ -298,7 +298,7 @@
       "default": "change",
       "values": ["change", "enter"],
       "reflect": false,
-      "description": "Search only: when pk-search fires. change: while typing (after debounce) and at once on Enter and clear. enter: only on Enter and clear (the clear button or Escape), never while typing, for a lookup or barcode box."
+      "description": "Search only: when pk-search fires. change: while typing (after debounce) and at once on Enter, clear and when the box becomes empty. enter: only on Enter and clear (the clear button, the browser's own clear button, Escape, or deleting every character), never while typing, for a lookup or barcode box."
     }
   ],
   "slots": [

@@ -43,7 +43,7 @@ export default Base => class extends Base {
         clearTimeout(this.$t);
     }
     changed(name) {
-        if (name === 'items') this.paint();
+        if (name === 'items' || name === 'error') this.paint();
         // A host-driven collapse (Blazor setting Expanded=false on navigation, since NavigationManager sees pushState routes popstate never
         // fires for): the same cleanup as collapse(), without re-emitting pk-toggle for a change the host made itself.
         else if (name === 'expanded' && !this.expanded) { this.setOpen(false); this.part('control').value = ''; }
@@ -73,7 +73,8 @@ export default Base => class extends Base {
             foot.before(row);
         }
         foot.hidden = !this.slotted('footer').length;
-        this.part('empty').hidden = this.$rows.length > 0;
+        const err = this.part('error'); err.textContent = this.error || ''; err.hidden = !this.error; // a failed search is not "No results" (#1799)
+        this.part('empty').hidden = this.$rows.length > 0 || !!this.error;
         if (this.$open) { const b = this.part('box').getBoundingClientRect(); const h = pop.getBoundingClientRect().height; pop.dataset.placement = innerHeight - b.bottom < h && b.top > innerHeight - b.bottom ? 'top' : 'bottom'; pop.dataset.align = b.left + pop.getBoundingClientRect().width > innerWidth ? 'end' : 'start'; }
     }
     highlight(i) {
