@@ -128,7 +128,7 @@ a:not([class], [data-dresses-links] > a):hover {
     color: var(--color-muted);
 }
 
-/* The app shell fills the screen before it upgrades, so the page does not jump when its module arrives (#1076). */
+/* The app shell fills the screen before it upgrades, so the page does not jump (#1076). */
 pk-app-shell:not(:defined) {
     display: block;
     height: 100dvh;
@@ -136,4 +136,4 @@ pk-app-shell:not(:defined) {
 /* A skip link takes no room before it upgrades (it is off-screen once defined), so the app under it does not move up when it does (CLS, issue 1304). */
 /* Overlays draw nothing until opened, so before they upgrade (or with JavaScript blocked) their content takes no room (#1810); a docked drawer is part of the layout and keeps its place, a popover keeps its trigger. */
 pk-skip-link:not(:defined), pk-dropdown:not(:defined) > pk-menu-item, pk-drawer:not(:defined):not([docked]), pk-dialog:not(:defined), pk-popover:not(:defined) > :not([slot="trigger"]) { display: none; }
-pk-app-bar-search:not(:defined) { padding-inline: 8.875rem; }
+pk-app-bar-search:not(:defined) { padding-inline: min(8.875rem, 25%); }
