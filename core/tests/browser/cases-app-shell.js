@@ -218,7 +218,7 @@ export const appShellCases = [
 
     ['mountApp: the first page needs at most 3 sequential module requests, a loaded module none, chunks stay inside the CPU-scaled 300 ms / 100 ms ceilings, and nothing shifts on first load or across a module switch (CLS 0)', async t => retryCase(async () => {
         // The request depth above is the deterministic protection; the 300 ms and 100 ms budgets are a sanity ceiling that an idle machine must meet and a loaded one gets them stretched by how much slower a fixed workload runs right now (cpu-scale.js, #1247).
-        const scale = cpuScale(), first = 300 * scale, warmMs = 100 * scale;
+        const scale0 = cpuScale();
         const s = await demo(t, 1280, { hash: '#/orders' });
         const firstLoad = await requestDepth(s.win, s.drawnAt);
         // Measured at #1247: 5 levels with the 8 hints the sample had, 3 with the entry's static graph hinted. With the first page's elements hinted too it is 1 (#1372); what they show before they upgrade is reserved in their CSS (breadcrumb row, data table), so the earlier upgrade shifts nothing.
@@ -245,6 +245,8 @@ export const appShellCases = [
         // After the CLS reading, so these extra route changes cannot add to it: a module that is already loaded must not be requested again.
         for (const to of ['#/reports', '#/overview', '#/orders']) await s.go(to);
         t.eq(jsCount(), loaded, 'a module that is already loaded needs 0 new module requests');
+        // The load was timed over several seconds: take the slower of the machine speed before and after it, so a runner that got busy mid-case is not held to the idle budget (#1247).
+        const scale = Math.max(scale0, cpuScale()), first = 300 * scale, warmMs = 100 * scale;
         const ms = id => s.win.performance.getEntriesByName(`pk-route:${id}`).map(e => e.duration);
         t.ok(ms('orders')[0] <= first, `the first load of the orders chunk took ${ms('orders')[0]?.toFixed(0)} ms, budget ${first.toFixed(0)}`);
         t.ok(ms('reports')[0] <= first, `the first load of the reports chunk took ${ms('reports')[0]?.toFixed(0)} ms, budget ${first.toFixed(0)}`);

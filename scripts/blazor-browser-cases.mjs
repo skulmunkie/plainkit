@@ -126,7 +126,8 @@ export const CASES = [
         const bad = [];
         for (const route of ['/overview', '/orders', '/orders/8', '/reports', '/secure/audit', '/nope']) {
                 await ctx.open(route);
-            await ctx.sleep(3000); // the circuit connects and the page's load callbacks answer or fail
+            await ctx.waitFor(`${MAIN_TEXT}.trim().length > 0`, `${route} to draw inside the frame`); // the circuit connects and the page's load callbacks answer or fail
+            await ctx.sleep(500);
             await ctx.flushEvents();
             const errors = ctx.errorsSince(ctx.openMark, [...BENIGN, /status of (401|404)/]);
             if (errors.length) bad.push(`${route}: ${errors[0].split('\n')[0].slice(0, 200)}`);

@@ -4,7 +4,7 @@ import assert from 'node:assert/strict';
 import fs from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
-import { attestPlan, caseNames, formatStep, issueFilter, parseArgs } from '../gate-batch.mjs';
+import { attestPlan, caseNames, formatStep, issueFilter, mergedBranches, parseArgs, upsertStep } from '../gate-batch.mjs';
 
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..', '..');
 
@@ -18,6 +18,9 @@ test('parseArgs reads every option and rejects bad ones', () => {
     assert.throws(() => parseArgs(['--result', 'r.json', '--jobs', '0']));
     assert.throws(() => parseArgs(['--result', 'r.json', '--jobs', 'x']));
     assert.throws(() => parseArgs(['--result', 'r.json', '--queue', 'q']), /--queue needs --branches/);
+    assert.equal(parseArgs(['--result', 'r.json', '--from-step', 'attest']).fromStep, 'attest');
+    assert.equal(parseArgs(['--result', 'r.json']).fromStep, null);
+    assert.throws(() => parseArgs(['--result', 'r.json', '--from-step', 'nope']), /--from-step must be one of/);
     assert.throws(() => parseArgs(['--result', 'r.json', '--nope']));
     assert.throws(() => parseArgs(['--result', 'r.json', '--branches']), /needs a value/);
 });
@@ -47,4 +50,17 @@ test('formatStep shows name, status and seconds', () => {
     assert.match(formatStep({ name: 'verify', ok: true, seconds: 61, log: 'v.log' }), /verify\s+ok\s+61 s/);
     assert.match(formatStep({ name: 'attest', ok: false, seconds: 5, log: 'a.log' }), /attest\s+FAIL\s+5 s/);
     assert.match(formatStep({ name: 'attest', skipped: 'nothing', seconds: 0 }), /attest\s+skip\s+0 s\s+nothing/);
+});
+
+test('mergedBranches reads the branches already merged from merge commit subjects (a resumed run)', () => {
+    const subjects = ["Merge branch 'agent/1800-dialog-scrollable'", "Merge remote-tracking branch 'origin/agent/1811-invoker-link-prevent'", 'Fix a thing', ''];
+    assert.deepEqual(mergedBranches(subjects), ['agent/1800-dialog-scrollable', 'agent/1811-invoker-link-prevent']);
+    assert.deepEqual(issueFilter(mergedBranches(subjects)), ['#1800', '#1811']);
+});
+
+test('upsertStep keeps every step record and replaces a step that ran again', () => {
+    const a = { name: 'merge', ok: true }, b = { name: 'verify', ok: false };
+    assert.deepEqual(upsertStep([a], b), [a, b]);
+    const again = { name: 'verify', ok: true };
+    assert.deepEqual(upsertStep([a, b], again), [a, again]);
 });

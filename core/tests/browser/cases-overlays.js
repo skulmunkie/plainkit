@@ -245,6 +245,17 @@ export const overlaysCases = [
         d.closeLabel = 'Fermer'; await t.settle(); t.eq(d.part('close').getAttribute('aria-label'), 'Fermer', 'it follows a change');
     }],
 
+    ['drawer and dialog: opening one adds no banner or contentinfo landmark (#1815)', async t => {
+        const box = await t.mount('<div><pk-drawer heading="Cart" open><button slot="footer">Pay</button>x</pk-drawer><pk-dialog heading="Hello" open><button slot="footer">OK</button>y</pk-dialog></div>');
+        await t.settle();
+        for (const el of box.querySelectorAll('pk-drawer,pk-dialog')) {
+            const root = el.shadowRoot;
+            t.eq(root.querySelector('[part=header]').tagName, 'DIV', el.localName + ' header is a plain div');
+            t.eq(root.querySelector('[part=footer]').tagName, 'DIV', el.localName + ' footer is a plain div');
+            t.eq(root.querySelectorAll('header, footer').length, 0, el.localName + ' has no header or footer element in its shadow tree');
+        }
+    }],
+
     ['dialog: once open (after its entry animation) it is centred in the viewport, full screen on a phone, and never taller than the viewport', async t => {
         const el = await t.mount('<pk-dialog heading="Where am I?" size="sm">Text</pk-dialog>');
         const dlg = el.part('dialog'); el.open = true; await arrived(dlg, t);
