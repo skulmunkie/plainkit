@@ -819,6 +819,21 @@ export const overlaysCases = [
             t.eq(host.querySelectorAll('*').length, 1, 'only the stage div is left');
         } finally { window.setTimeout = st; window.clearTimeout = ct; }
     }],
+    ['glass surfaces (#1814): solid by default, frosted and tinted when a theme sets the surface tokens, solid again without them', async t => {
+        const glass = [['<pk-dialog heading="G">x</pk-dialog>', 'dialog', '::before'], ['<pk-command-palette></pk-command-palette>', 'dialog', '::before'], ['<pk-drawer heading="G">x</pk-drawer>', 'panel', '::before'],
+            ['<pk-popover heading="G"><button slot="trigger">Open</button>x</pk-popover>', 'panel', null], ['<pk-dropdown><button slot="trigger">Open</button></pk-dropdown>', 'menu', null], ['<pk-navbar sticky></pk-navbar>', null, '::before']];
+        for (const [html, part, pseudo] of glass) {
+            const el = await t.mount(html), box = part ? el.part(part) : el, name = el.localName;
+            const filter = () => getComputedStyle(box, pseudo).backdropFilter, bg = () => getComputedStyle(box).backgroundColor;
+            const solid = bg();
+            t.eq(filter(), 'none', `${name}: no blur by default`);
+            el.style.setProperty('--surface-blur', '8px'); el.style.setProperty('--surface-tint', 'rgba(0, 0, 0, 0.5)'); await t.settle();
+            t.ok(filter().includes('blur(8px)'), `${name}: the theme's blur reaches the surface (${filter()})`);
+            t.eq(bg(), 'rgba(0, 0, 0, 0.5)', `${name}: the tint replaces the solid colour`);
+            el.style.removeProperty('--surface-blur'); el.style.removeProperty('--surface-tint'); await t.settle();
+            t.eq(bg(), solid, `${name}: solid again`); t.eq(filter(), 'none', `${name}: no blur again`);
+        }
+    }],
 ];
 
 // Issue 837: the card-menu pattern (PkCardMenu) is a pk-dropdown whose trigger is an icon pk-button inside the display: contents span the Blazor wrapper adds (a span cannot take focus). The button's real <button> is in its shadow root, so the
