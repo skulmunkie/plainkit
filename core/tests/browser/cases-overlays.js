@@ -236,6 +236,15 @@ export const overlaysCases = [
         t.eq(el.side, 'left'); t.ok(el.wide); t.eq(el.slotted('actions').length, 1);
     }],
 
+    ['drawer and dialog: close-label names the close button, "Close" by default (#1809)', async t => {
+        const box = await t.mount('<div><pk-drawer heading="Warenkorb" close-label="Schliessen">x</pk-drawer><pk-dialog heading="Hallo" close-label="Schliessen">y</pk-dialog><pk-drawer heading="Cart">z</pk-drawer></div>'); await t.settle();
+        const [d, g, plain] = box.querySelectorAll('pk-drawer,pk-dialog');
+        t.eq(d.part('close').getAttribute('aria-label'), 'Schliessen', 'the drawer close button takes close-label');
+        t.eq(g.part('close').getAttribute('aria-label'), 'Schliessen', 'the dialog close button takes close-label');
+        t.eq(plain.part('close').getAttribute('aria-label'), 'Close', 'the default stays Close');
+        d.closeLabel = 'Fermer'; await t.settle(); t.eq(d.part('close').getAttribute('aria-label'), 'Fermer', 'it follows a change');
+    }],
+
     ['dialog: once open (after its entry animation) it is centred in the viewport, full screen on a phone, and never taller than the viewport', async t => {
         const el = await t.mount('<pk-dialog heading="Where am I?" size="sm">Text</pk-dialog>');
         const dlg = el.part('dialog'); el.open = true; await arrived(dlg, t);

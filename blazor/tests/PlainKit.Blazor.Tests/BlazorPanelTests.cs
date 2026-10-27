@@ -271,7 +271,8 @@ public sealed class BlazorPanelTests : BunitContext, IAsyncLifetime
     {
         var dialog = PkMappingInfo.Describe("pk-dialog")!;
 
-        Assert.Contains("wrapper behaviour", dialog.Parameters.Single(p => p.Name == "CloseButtonLabel").NotGenerated);
+        Assert.Contains("wrapper behaviour", dialog.Parameters.Single(p => p.Name == "FooterAlignEnd").NotGenerated);
+        Assert.Null(dialog.Parameters.Single(p => p.Name == "CloseButtonLabel").NotGenerated); // generated since #1809
         Assert.Null(dialog.Parameters.Single(p => p.Name == "ShowCloseButton").NotGenerated); // implemented as an attribute (inverted)
         Assert.Equal("PkChartData", PkMappingInfo.Describe("pk-chart")!.Parameters.Single(p => p.Name == "Data").Type); // a JSON parameter shows its record (issue #77)
         Assert.Equal("IReadOnlyList<PkGalleryImage>", PkMappingInfo.Describe("pk-image-gallery")!.Parameters.Single(p => p.Name == "Images").Type);
