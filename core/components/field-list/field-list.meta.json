@@ -3,7 +3,8 @@
   "title": "Field list",
   "group": "Data display",
   "tier": "component",
-  "summary": "A titled description list: term and value pairs as slotted dt and dd, or a data-driven items property, beside each other, stacked or run in; with dividers and a dense mode.",
+  "preUpgrade": "visible",
+  "summary": "A titled description list: term and value pairs as slotted dt and dd, or a data-driven items property, beside each other, stacked or run in; with dividers and a dense mode. Before it upgrades (or with JavaScript off) its slotted content shows as plain markup, not hidden.",
   "props": [
     {
       "name": "items",

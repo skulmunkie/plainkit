@@ -1,0 +1,2 @@
+/* Optional theme: headings use the body font family. Link it after plainkit.css; it only sets a token. */
+:root{--font-heading:var(--font-sans)}
