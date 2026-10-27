@@ -3,7 +3,7 @@ import { moveFocus } from '../../js/menu-logic.js';
 import { triggerControl, focusTrigger } from '../../js/overlay.js';
 
 // pk-dropdown: a menu opened from a slotted trigger. Items are pk-menu-item children. The menu layer is fixed and placed beside the trigger.
-const rows = el => el.slotted().filter(i => i.localName === 'pk-menu-item' && !['header', 'divider'].includes(i.type) && !i.disabled);
+const rows = el => el.slotted().filter(i => i.localName === 'pk-menu-item' && !['header', 'divider'].includes(i.getAttribute('type')) && !i.disabled);
 export default Base => class extends Base {
     connected() {
         if (!this.$w) {
@@ -23,7 +23,7 @@ export default Base => class extends Base {
     get trigger() { return this.slotted('trigger')[0]; }
     aria2() { const t = triggerControl(this.trigger); if (t) { t.setAttribute('aria-haspopup', 'menu'); t.setAttribute('aria-expanded', String(this.open)); } }
     // hideEmpty (#1773): no choosable item, no trigger (the slot is ours; the host's trigger element is untouched).
-    empty() { const s = this.shadowRoot?.querySelector('slot[name="trigger"]'); if (s) s.hidden = this.hideEmpty && !this.slotted().some(i => i.localName === 'pk-menu-item' && !['header', 'divider'].includes(i.type)); }
+    empty() { const s = this.shadowRoot?.querySelector('slot[name="trigger"]'); if (s) s.hidden = this.hideEmpty && !this.slotted().some(i => i.localName === 'pk-menu-item' && !['header', 'divider'].includes(i.getAttribute('type'))); }
     changed(name) { if (name === 'open') this.apply(); if (name === 'hideEmpty') this.empty(); }
     show() { this.open = true; }
     hide() { this.open = false; }

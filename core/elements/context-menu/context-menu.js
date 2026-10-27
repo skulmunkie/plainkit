@@ -3,7 +3,7 @@ import { moveFocus } from '../../js/menu-logic.js';
 import { isShortcut } from '../../js/shortcuts.js';
 
 // pk-context-menu: a menu opened at the pointer (right click), at the focused element (Shift+F10 or the Menu key), or by a 500ms touch press.
-const rows = el => el.slotted('menu').filter(i => i.localName === 'pk-menu-item' && !i.disabled && !['header', 'divider'].includes(i.type));
+const rows = el => el.slotted('menu').filter(i => i.localName === 'pk-menu-item' && !i.disabled && !['header', 'divider'].includes(i.getAttribute('type')));
 // The data-pk-context value of the nearest ancestor carrying it, if any: lets a row be marked once (pk-table does this per <tr>) without
 // exposing internal DOM structure to the host, and is the only form of "what was targeted" that crosses the JS-interop boundary to Blazor.
 // composedPath(), not e.target.closest: a marked row can live inside another element's shadow tree (pk-table's rows do), where a
