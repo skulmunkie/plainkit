@@ -51,7 +51,9 @@ export default Base => class extends Base {
 
     expand() { if (this.expanded) return; this.emit('pk-toggle', { expanded: this.expanded = true }, { cancelable: false }); requestAnimationFrame(() => this.part('control').focus()); }
     collapse() { this.setOpen(false); this.part('control').value = ''; if (!this.expanded) return; this.emit('pk-toggle', { expanded: this.expanded = false }, { cancelable: false }); }
-    setOpen(open) { if (this.$open === open) return; this.$open = open; this.part('popup').hidden = !open; this.highlight(-1); }
+    setOpen(open) { if (this.$open === open) return; this.$open = open; this.part('popup').hidden = !open; this.highlight(-1); this.announce(); }
+    // The polite live region (outside the listbox): the count, the failed-search text or the no-results text, only while the results are open.
+    announce() { this.part('status').textContent = this.$open ? this.error || (this.$rows.length ? `${this.$rows.length} ${this.resultsLabel}` : this.slotted('empty')[0]?.textContent || 'No results') : ''; }
 
     paint() {
         const foot = this.part('footer');
@@ -75,6 +77,7 @@ export default Base => class extends Base {
         foot.hidden = !this.slotted('footer').length;
         const err = this.part('error'); err.textContent = this.error || ''; err.hidden = !this.error; // a failed search is not "No results" (#1799)
         this.part('empty').hidden = this.$rows.length > 0 || !!this.error;
+        this.announce();
         if (this.$open) { const b = this.part('box').getBoundingClientRect(); const h = pop.getBoundingClientRect().height; pop.dataset.placement = innerHeight - b.bottom < h && b.top > innerHeight - b.bottom ? 'top' : 'bottom'; pop.dataset.align = b.left + pop.getBoundingClientRect().width > innerWidth ? 'end' : 'start'; }
     }
     highlight(i) {
@@ -92,6 +95,7 @@ export default Base => class extends Base {
     }
     keys(e) {
         if (e.key === 'Escape') { e.preventDefault(); e.stopPropagation(); if (this.$open) this.setOpen(false); else this.collapse(); return; }
+        if (e.key === 'Enter' && !(this.$open && this.$a >= 0)) { const query = this.part('control').value; if (query !== '') { e.preventDefault(); this.emit('pk-submit', { query }); this.setOpen(false); } return; }
         if (!this.$open) return;
         if (e.key === 'ArrowDown' || e.key === 'ArrowUp' || e.key === 'Home' || e.key === 'End') { e.preventDefault(); this.highlight(nextIndex(this.$a, this.$rows.length, e.key)); }
         else if (e.key === 'Enter' && this.$a >= 0) { e.preventDefault(); this.select(this.$rows[this.$a]); }

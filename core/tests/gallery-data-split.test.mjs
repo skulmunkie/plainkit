@@ -36,3 +36,11 @@ test('the index carries no bulky fields, and every generated data file is under 
     for (const [f, text] of files) assert.ok(Buffer.byteLength(text) <= CAP, `${f} is over the ${CAP} byte snapshot cap`);
     for (const e of data.ELEMENTS) assert.ok(out.has(`dist/gallery/elements/${e.name}.data.js`), `${e.name} chunk is in dist/gallery`);
 });
+
+test('an element whose data module is missing (its package is not installed) gets a one-line note and nothing throws', async () => {
+    const { unavailableNote } = await import('../site/gallery/pages.js');
+    const note = unavailableNote('pk-dock', new Error('Failed to fetch dynamically imported module'));
+    assert.match(note, /^pk-dock: its gallery page needs the optional package/);
+    assert.ok(note.includes('Failed to fetch'));
+    assert.ok(unavailableNote('pk-dock', undefined).endsWith('(not installed here).'));
+});
