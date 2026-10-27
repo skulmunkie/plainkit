@@ -370,6 +370,16 @@ export const appShellCases = [
         t.eq(picks.length, 1, 'a highlighted result is selected'); t.eq(submits.length, 1, 'and raises no pk-submit');
     }],
 
+    ['app-bar-search: an item with href renders a real anchor option; an unsafe href stays a div; a click raises a cancelable pk-select and preventDefault keeps the URL (#1821)', async t => {
+        const el = await t.mount('<pk-app-bar-search label="Search"></pk-app-bar-search>'); await customElements.whenDefined('pk-app-bar-search'); await t.settle();
+        const input = el.shadowRoot.querySelector('[part="control"]'), picks = [];
+        el.addEventListener('pk-select', e => { picks.push(e.cancelable); e.preventDefault(); });
+        el.items = [{ id: 'a', label: 'A', href: '#/orders/8' }, { id: 'b', label: 'B', href: 'javascript:alert(1)' }]; input.value = 'x'; input.dispatchEvent(new Event('input', { bubbles: true })); await t.settle();
+        const opts = el.shadowRoot.querySelectorAll('[role="option"]'), before = location.href;
+        t.eq(opts[0].localName, 'a', 'a safe href renders an anchor'); t.eq(opts[0].getAttribute('href'), '#/orders/8', 'with that href'); t.eq(opts[1].localName, 'div', 'a javascript: href renders a div');
+        opts[0].click(); t.eq(picks.join(), 'true', 'a click raises a cancelable pk-select'); t.eq(location.href, before, 'preventDefault kept the URL');
+    }],
+
     ['app-bar-search: a visually hidden polite status part announces "N results", the no-results text or the error while the panel is open (#1822)', async t => {
         const el = await t.mount('<pk-app-bar-search label="Search"></pk-app-bar-search>'); await customElements.whenDefined('pk-app-bar-search'); await t.settle();
         const input = el.shadowRoot.querySelector('[part="control"]'), status = el.shadowRoot.querySelector('[part="status"]');

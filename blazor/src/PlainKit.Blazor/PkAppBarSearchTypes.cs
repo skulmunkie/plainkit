@@ -16,4 +16,6 @@ public sealed record PkAppBarSearchItem
     public string? Thumbnail { get; init; }
     /// <summary>Short text shown at the end of the row (a status, a count).</summary>
     public string? Badge { get; init; }
+    /// <summary>A page address that makes the row a real link (open in a new tab works). A plain click still raises <c>OnSelect</c>; cancelling it keeps client routing.</summary>
+    public string? Href { get; init; }
 }
