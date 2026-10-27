@@ -185,6 +185,18 @@ export const formCases = [
         await type(t, d.part('control'), 'a'); t.eq(seen.join('|'), 'a', 'the default still searches while typing');
     }],
 
+    ['input: search-on="enter": the browser\'s own clear button (the box emptied by a native input event) raises pk-search with an empty value; typing still does not (#1798)', async t => {
+        const el = await t.mount('<pk-input type="search" search-on="enter" label="Code"></pk-input>');
+        const got = []; el.addEventListener('pk-search', e => got.push(e.detail.value));
+        const c = el.part('control');
+        await type(t, c, '4012'); press(c, 'Enter'); await t.settle();
+        t.eq(got.join('|'), '4012', 'Enter searched');
+        c.value = ''; c.dispatchEvent(new Event('input', { bubbles: true })); await t.settle(); // what the native cancel button does
+        t.eq(got.join('|'), '4012|', 'the emptied box searched with an empty value');
+        await type(t, c, '9'); await new Promise(r => setTimeout(r, 60));
+        t.eq(got.length, 2, 'typing a character still does not search');
+    }],
+
     ['textarea: value, form entry and reset; autogrow reflects', async t => {
         const host = t.stage('<form><pk-textarea name="n" label="Notes" autogrow max-height="120" value="hi"></pk-textarea></form>'); await t.load(host);
         const el = host.querySelector('pk-textarea'); const inner = el.part('control');

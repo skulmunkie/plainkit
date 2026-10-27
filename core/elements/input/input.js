@@ -78,7 +78,7 @@ export default Base => class extends Base {
         let v = raw;
         if (this.money()) { const n = parseMoney(raw); this.$badMoney = raw.trim() !== '' && n === null; v = n === null ? '' : String(n); }
         this.value = v;
-        this.search(false);
+        this.search(!v); // an emptied box (the browser's own clear button, or deleting every character) searches at once, in enter mode too (#1798)
     }
     edit(on) {
         this.$editing = on;

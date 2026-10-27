@@ -73,7 +73,7 @@ public abstract partial class PageBase : ComponentBase, IAsyncDisposable
     /// </summary>
     protected IDisposable BeginBusy(string? label = null) => _life.Begin(label);
 
-    /// <summary>Runs on the first render and again when a parameter changed (<see cref="ReloadOnParameters"/>). <see cref="IsLoading"/> is true from before the first render until it ends; a failure is logged, shown as a danger status and kept in <see cref="LoadError"/>; a cancelled load is silent.</summary>
+    /// <summary>Runs on the first render and again when a parameter changed (<see cref="ReloadOnParameters"/>). It does not run during the static prerender of an interactive page (the prerendered HTML shows the loading state; the interactive render loads once). <see cref="IsLoading"/> is true from before the first render until it ends; a failure is logged, shown as a danger status and kept in <see cref="LoadError"/>; a cancelled load is silent.</summary>
     protected virtual Task OnLoadAsync(CancellationToken cancel) => Task.CompletedTask;
 
     /// <summary>Whether a changed parameter starts a new load (default true; the previous load's token is cancelled either way). The first load always runs.</summary>
@@ -103,7 +103,7 @@ public abstract partial class PageBase : ComponentBase, IAsyncDisposable
         var next = parameters.ToDictionary().Where(p => keys is null || keys.Contains(p.Key)).ToDictionary(p => p.Key, p => p.Value);
         var reload = _parameters is null || (ReloadOnParameters && (next.Count != _parameters.Count || next.Any(p => !_parameters.TryGetValue(p.Key, out var old) || !Equals(old, p.Value))));
         _parameters = next; if (reload) _life.Expect();
-        await base.SetParametersAsync(parameters); if (!reload) return;
+        await base.SetParametersAsync(parameters); if (!reload || (AssignedRenderMode is not null && !RendererInfo.IsInteractive)) return; // not while prerendering: the interactive render loads (#1812)
         var load = _life.LoadAsync<object?>(async c => { await OnLoadAsync(c); return null; }, null, e => SetErrorAsync(e));
         if (load.IsCompleted) await InvokeStateChanged(); else _ = load.ContinueWith(_ => InvokeStateChanged(), TaskScheduler.Default);
     }
