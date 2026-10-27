@@ -49,6 +49,7 @@ export async function fetchDist(base, { fetchImpl = globalThis.fetch.bind(global
     }
     await Promise.all(Array.from({ length: concurrency }, worker));
     log.debug('fetched the dist', { version: runtime.version, files: files.size, units: units.length });
+    if (!files.has('breakpoints.report.json')) log.warn('breakpoints.report.json is not there (it ships with the plainkit.tools package): the export skips the breakpoints step');
     return { version: runtime.version, files, report: files.has('breakpoints.report.json') ? JSON.parse(dec.decode(files.get('breakpoints.report.json'))) : null };
 }
 

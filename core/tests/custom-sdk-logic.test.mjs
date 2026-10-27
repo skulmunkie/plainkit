@@ -228,6 +228,18 @@ test('the delta table: what moves at each breakpoint, and the widths whose state
     assert.equal(deltaRows(report, { phone: 600, tablet: 1024, wide: 1280 })[0].flips.join(), '601,640');
 });
 
+test('fetchDist without the extras manifest (a core-only folder has no breakpoints.report.json) returns a null report instead of throwing', async () => {
+    const files = load();
+    const fetchImpl = async url => {
+        const p = new URL(url).pathname.replace(/^\/dist\//, '');
+        const body = files.get(p);
+        return body === undefined || p === 'manifest.extras.json' || p === 'breakpoints.report.json' ? { ok: false, status: 404 } : { ok: true, status: 200, arrayBuffer: async () => body.buffer.slice(body.byteOffset, body.byteOffset + body.byteLength) };
+    };
+    const got = await fetchDist('http://localhost/dist/', { fetchImpl, concurrency: 4 });
+    assert.equal(got.report, null);
+    assert.ok(!got.files.has('breakpoints.report.json'));
+});
+
 test('fetchDist reads the manifest and every file, verifies each hash, and refuses a substituted file, an error status and an unsafe path', async () => {
     const files = load();
     const serve = (over = {}) => async url => {

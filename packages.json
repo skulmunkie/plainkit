@@ -72,6 +72,7 @@
       "maxUnpackedBytes": 791175,
       "maxZipBytes": 258710,
       "files": [
+        "breakpoints.report.json",
         "elements/api.json",
         "modules/manifest.json"
       ]
