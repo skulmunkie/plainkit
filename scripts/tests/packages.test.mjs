@@ -63,7 +63,7 @@ test('an element meta says its package exactly when packages.json says so', () =
 // A package may declare `optionalImports`: packages it reaches only through a dynamic import() that handles their absence (the gallery and the tools modules, whose absence it shows as a notice).
 // A static import of one is still a violation.
 const optionalOf = id => new Set(byId.get(id)?.optionalImports ?? []);
-const staticImportsOf = f => new Set([...fs.readFileSync(path.join(dist, f), 'utf8').matchAll(/^s*(?:import|export)[^'"(;]*?(?:froms*)?["']([^"']+.js)["']/gm)].map(m => path.posix.normalize(path.posix.join(path.posix.dirname(f), m[1]))));
+const staticImportsOf = f => new Set([...fs.readFileSync(path.join(dist, f), 'utf8').matchAll(/^\s*(?:import|export)\b[^'"(;]*?(?:\bfrom\s*)?["']([^"']+\.js)["']/gm)].map(m => path.posix.normalize(path.posix.join(path.posix.dirname(f), m[1]))));
 
 test('P1: a package imports only itself and its requirements (no computed or literal import reaches an extra from core)', () => {
     const owner = f => ownersOf(f, packages)[0];
