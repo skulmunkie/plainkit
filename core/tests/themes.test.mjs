@@ -1,4 +1,4 @@
-// Optional theme stylesheets (themes/<name>.css): built to dist/themes/, listed in the manifest, and never part of the page layer.
+// Optional theme stylesheets (tokens/themes/<name>.css): built to dist/themes/, listed in the manifest, and never part of the page layer.
 import './needs-bootstrap.mjs';
 import test from 'node:test';
 import assert from 'node:assert/strict';

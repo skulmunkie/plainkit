@@ -157,4 +157,4 @@ The [Scorecard](../../app.html#/scorecard) audits pages and elements at both the
 
 ## Optional themes
 
-An optional theme is one small stylesheet, `dist/themes/<name>.css` (source: `core/themes/<name>.css`). It is built and listed in the manifest like any other file, but `plainkit.css` never imports it and page weight does not count it: link it after `plainkit.css` only on pages that want it. The first one, `heading-font.css`, sets `--font-heading` to the body font.
+An optional theme is one small stylesheet, `dist/themes/<name>.css` (source: `core/tokens/themes/<name>.css`). It is built and listed in the manifest like any other file, but `plainkit.css` never imports it and page weight does not count it: link it after `plainkit.css` only on pages that want it. The first one, `heading-font.css`, sets the heading font to the body font.
