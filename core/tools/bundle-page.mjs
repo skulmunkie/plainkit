@@ -5,6 +5,7 @@
 // the entry and those chunks share, to chunks/ next to the bundle, and only the entry's static imports load with the page. A page then makes about
 // 9 requests instead of 20 to 27, and none of the lazy code is downloaded until it is used. Dev/build tool: it needs esbuild (a devDependency of this repository, not of the published
 // package), so run it from a checkout, or `npm i -D esbuild` next to your project and point --dist at node_modules/plainkit/dist.
+// --flat (#1808): every file in ONE folder with a plainkit prefix (plainkit-<chunk>-<hash>.js, plainkit-icons.svg; no chunks/ folder) and the sprite address rewritten to sit beside the bundle, for a host that serves a flat folder (Shopify theme assets).
 import fs from 'node:fs';
 import path from 'node:path';
 import zlib from 'node:zlib';
@@ -26,7 +27,19 @@ export function entrySource(modules, { app = false, full = false } = {}) {
 
 const registryOf = async dist => (await import(pathToFileURL(path.join(dist, 'elements', 'registry.js')).href)).default;
 
-export async function bundlePage({ tags, dist, out, app = false, full = false }) {
+// --flat: the dist literals that address a file one folder up, and what they become beside the bundle. A literal that is gone fails the build with a FIX line, so a source change cannot silently break a flat bundle.
+export const FLAT_REWRITES = { 'icon-sprite.js': [/(["'])\.\.\/icons\.svg\1/, '"./plainkit-icons.svg"'], 'loader.js': [/(["'])\.\.\/elements\/registry\.js\1/, '"./plainkit-registry.js"'], 'log-outputs.js': [/(["'])\.\.\/elements\/registry\.js\1/, '"./plainkit-registry.js"'] };
+const flatPlugin = () => ({ name: 'plainkit-flat', setup(b) {
+    b.onLoad({ filter: /[\\/]js[\\/][\w-]+\.js$/ }, args => {
+        const rule = FLAT_REWRITES[path.basename(args.path)];
+        if (!rule) return undefined;
+        const code = fs.readFileSync(args.path, 'utf8');
+        if (!rule[0].test(code)) throw new Error(`--flat: ${args.path} no longer holds ${rule[0]}. FIX: update FLAT_REWRITES in core/tools/bundle-page.mjs to the new address.`);
+        return { contents: code.replace(rule[0], rule[1]), loader: 'js' };
+    });
+} });
+
+export async function bundlePage({ tags, dist, out, app = false, full = false, flat = false }) {
     let esbuild;
     try { esbuild = await import('esbuild'); } catch (error) { throw new Error(`esbuild is not installed (${error.message}). FIX: run npm ci in the repository, or npm i -D esbuild in your project.`); }
     const registry = await registryOf(dist);
@@ -36,7 +49,7 @@ export async function bundlePage({ tags, dist, out, app = false, full = false })
     const res = await esbuild.build({
         stdin: { contents: entrySource(modules, { app, full }), resolveDir: dist, sourcefile: 'plainkit-page.js' },
         bundle: true, format: 'esm', minify: true, write: false, legalComments: 'none', target: 'es2022', treeShaking: true,
-        splitting: true, outdir: out, entryNames: 'plainkit.bundle', chunkNames: 'chunks/[name]-[hash]', metafile: true,
+        splitting: true, outdir: out, entryNames: 'plainkit.bundle', chunkNames: flat ? 'plainkit-[name]-[hash]' : 'chunks/[name]-[hash]', metafile: true, plugins: flat ? [flatPlugin()] : [],
     });
     const css = fs.readFileSync(path.join(dist, 'plainkit.min.css'), 'utf8');
     // The files that load with the page: the entry and, transitively, the chunks it imports statically. The rest are lazy.
@@ -48,8 +61,9 @@ export async function bundlePage({ tags, dist, out, app = false, full = false })
     const sum = names => names.reduce((t, n) => { const s = sizes(Buffer.from(byRel.get(n).contents)); return { raw: t.raw + s.raw, gzip: t.gzip + s.gzip, brotli: t.brotli + s.brotli }; }, { raw: 0, gzip: 0, brotli: 0 });
     for (const f of res.outputFiles) { fs.mkdirSync(path.dirname(f.path), { recursive: true }); fs.writeFileSync(f.path, f.contents); }
     fs.writeFileSync(path.join(out, 'plainkit.bundle.css'), css);
+    if (flat) { fs.copyFileSync(path.join(dist, 'icons.svg'), path.join(out, 'plainkit-icons.svg')); fs.copyFileSync(path.join(dist, 'elements', 'registry.js'), path.join(out, 'plainkit-registry.js')); }
     const lazy = [...byRel.keys()].filter(n => !initial.has(n)).sort();
-    return { tags, modules, js: sum([...initial]), lazy: sum(lazy), css: sizes(css), initial: [...initial].sort(), lazyFiles: lazy, files: ['plainkit.bundle.css', ...initial, ...lazy] };
+    return { tags, modules, js: sum([...initial]), lazy: sum(lazy), css: sizes(css), initial: [...initial].sort(), lazyFiles: lazy, files: ['plainkit.bundle.css', ...(flat ? ['plainkit-icons.svg', 'plainkit-registry.js'] : []), ...initial, ...lazy] };
 }
 
 // The unbundled cost: the static import graph of the same entry (files, summed per-file sizes), plus the registry the loader fetches.
@@ -71,16 +85,17 @@ export async function unbundledGraph({ tags, dist, app = false, full = false }) 
 }
 
 function parse(argv) {
-    const o = { elements: [], html: [], app: false, full: false, dist: path.join(here, '..', 'dist'), out: null };
+    const o = { elements: [], html: [], app: false, full: false, flat: false, dist: path.join(here, '..', 'dist'), out: null };
     for (let i = 0; i < argv.length; i++) {
         const a = argv[i], v = () => argv[++i];
         if (a === '--elements') o.elements.push(...v().split(',').map(s => s.trim()).filter(Boolean));
         else if (a === '--html') o.html.push(v());
         else if (a === '--app') o.app = true;
         else if (a === '--full') o.full = true;
+        else if (a === '--flat') o.flat = true;
         else if (a === '--dist') o.dist = path.resolve(v());
         else if (a === '--out') o.out = path.resolve(v());
-        else throw new Error(`unknown argument ${a}. Usage: bundle-page.mjs (--elements pk-a,pk-b | --html page.html) [--app] [--full] [--dist dir] --out dir`);
+        else throw new Error(`unknown argument ${a}. Usage: bundle-page.mjs (--elements pk-a,pk-b | --html page.html) [--app] [--full] [--flat] [--dist dir] --out dir`);
     }
     return o;
 }
@@ -91,11 +106,11 @@ if (process.argv[1] && path.resolve(process.argv[1]) === fileURLToPath(import.me
         const o = parse(process.argv.slice(2));
         const tags = [...new Set([...o.elements, ...o.html.flatMap(f => tagsInHtml(fs.readFileSync(f, 'utf8')))])].sort();
         if (!o.out || !tags.length) throw new Error('give --out and at least one element (--elements pk-button, or --html page.html with pk-* tags).');
-        const r = await bundlePage({ tags, dist: o.dist, out: o.out, app: o.app, full: o.full });
+        const r = await bundlePage({ tags, dist: o.dist, out: o.out, app: o.app, full: o.full, flat: o.flat });
         const u = await unbundledGraph({ tags, dist: o.dist, app: o.app, full: o.full });
-        console.log(`bundled ${tags.join(', ')} -> ${path.join(o.out, 'plainkit.bundle.js')} + .css (+ ./chunks/*: ${r.initial.length} js files load with the page, ${r.lazyFiles.length} on demand; unbundled js is ${u.files} files)`);
+        console.log(`bundled ${tags.join(', ')} -> ${path.join(o.out, 'plainkit.bundle.js')} + .css (+ ${o.flat ? 'plainkit-*.js, plainkit-icons.svg and plainkit-registry.js beside it' : './chunks/*'}: ${r.initial.length} js files load with the page, ${r.lazyFiles.length} on demand; unbundled js is ${u.files} files)`);
         console.log(`js   raw ${kb(r.js.raw)}  gzip ${kb(r.js.gzip)}  brotli ${kb(r.js.brotli)}   (unbundled: raw ${kb(u.raw)}, gzip ${kb(u.gzip)}, brotli ${kb(u.brotli)}); lazy, not loaded with the page: gzip ${kb(r.lazy.gzip)}`);
         console.log(`css  raw ${kb(r.css.raw)}  gzip ${kb(r.css.gzip)}  brotli ${kb(r.css.brotli)}`);
-        console.log('Load it with <link rel="stylesheet" href="plainkit.bundle.css"> and <script type="module" src="plainkit.bundle.js"></script>; publish chunks/ next to it.');
+        console.log(`Load it with <link rel="stylesheet" href="plainkit.bundle.css"> and <script type="module" src="plainkit.bundle.js"></script>; ${o.flat ? 'publish every plainkit-* file in the same folder.' : 'publish chunks/ next to it.'}`);
     } catch (error) { console.error(error.message); process.exit(1); }
 }

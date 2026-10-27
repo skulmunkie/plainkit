@@ -206,7 +206,7 @@ Several always-visible per-row or per-card icon buttons competing for space is t
 
 ### Use the npm package with a bundler, or ship a lean production page
 
-Import by the package's `exports` map, not by filesystem path: `import "plainkit"` (init, loader), `import "plainkit/elements/button"` (registers `pk-button`; bundlers keep it because `sideEffects` names the element modules), `import "plainkit/css"` (`plainkit.min.css`), `plainkit/app`. `plainkit/dist/*` still works for one release; move off it. No bundler? `node core/tools/bundle-page.mjs --html index.html --out public/plainkit` (or `--elements pk-button,pk-input`; `--app`, `--full`, `--dist node_modules/plainkit/dist`; needs `npm i -D esbuild`) writes `plainkit.bundle.js`, `.css` and `chunks/`: about ten requests, not 20 to 27. Call `initPlainkit()`; re-run when the page gains an element.
+Import by the package's `exports` map, not by filesystem path: `import "plainkit"` (init, loader), `import "plainkit/elements/button"` (registers `pk-button`; bundlers keep it because `sideEffects` names the element modules), `import "plainkit/css"` (`plainkit.min.css`), `plainkit/app`. `plainkit/dist/*` still works for one release; move off it. No bundler? `node core/tools/bundle-page.mjs --html index.html --out public/plainkit` (or `--elements pk-button,pk-input`; `--app`, `--full`, `--dist node_modules/plainkit/dist`; needs `npm i -D esbuild`) writes `plainkit.bundle.js`, `.css` and `chunks/` (with `--flat`: one folder of `plainkit-*` files, sprite and registry included, for a host without sub-folders such as Shopify theme assets): about ten requests, not 20 to 27. Call `initPlainkit()`; re-run when the page gains an element.
 
 ### Check your work
 
