@@ -335,7 +335,7 @@ export const overlaysCases = [
 
     ['data-open on a link: with the drawer defined it opens and the link does not navigate; with the target not upgraded the link navigates (#1811)', async t => {
         const before = location.href;
-        const box = await t.mount('<div><a id="pk-1811-a" href="#pk-1811-cart" data-open="#pk-1811-d">Cart</a><pk-drawer id="pk-1811-d" heading="Cart">Items</pk-drawer><a id="pk-1811-b" href="#pk-1811-fallback" data-open="#pk-1811-u">Later</a><pk-not-a-real-1811 id="pk-1811-u"></pk-not-a-real-1811></div>');
+        const box = await t.mount('<div><a id="pk-1811-a" href="#pk-1811-cart" data-open="#pk-1811-d">Cart</a><pk-drawer id="pk-1811-d" heading="Cart">Items</pk-drawer><a id="pk-1811-b" href="#pk-1811-fallback" data-open="#pk-1811-u">Later</a><x-pk-1811-later id="pk-1811-u"></x-pk-1811-later></div>');
         const drawer = box.querySelector('pk-drawer'); await customElements.whenDefined('pk-drawer'); await t.settle();
         try {
             box.querySelector('#pk-1811-a').click(); await t.settle();
