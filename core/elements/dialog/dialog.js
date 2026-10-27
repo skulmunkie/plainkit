@@ -72,11 +72,13 @@ export default Base => class extends Base {
         const dlg = this.part('dialog');
         if (!this.$w) { this.$w = true; wireDialog(this, dlg); this.watchSlot('footer', () => { this.part('footer').hidden = !this.slotted('footer').length; }); globalThis.PkDialog ??= this.constructor; }
         syncDialog(this, dlg);
-        if (this.open && !this.heading && !this.childElementCount && !this.textContent.trim()) this.warnOnce('empty', 'was opened with no heading and no content: it will show an empty panel');
+        this.empty();
     }
     disconnected() { const d = this.part('dialog'); if (d.open) d.close(); }
+    // Checked a microtask later (#1807): a framework may set open before heading and the children in the same batch.
+    empty() { queueMicrotask(() => { if (this.open && !this.heading && !this.childElementCount && !this.textContent.trim()) this.warnOnce('empty', 'was opened with no heading and no content: it will show an empty panel'); }); }
     changed(name) {
-        if (name === 'open') { syncDialog(this, this.part('dialog')); if (this.open && !this.heading && !this.childElementCount && !this.textContent.trim()) this.warnOnce('empty', 'was opened with no heading and no content: it will show an empty panel'); }
+        if (name === 'open') { syncDialog(this, this.part('dialog')); this.empty(); }
         else if (name === 'maxWidth') { if (this.maxWidth > 0) this.style.setProperty('--pk-dialog-w', `min(${this.maxWidth}px, calc(100vw - 2rem))`); else this.style.removeProperty('--pk-dialog-w'); }
     }
     show() { this.open = true; }

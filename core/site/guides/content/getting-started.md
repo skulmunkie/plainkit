@@ -98,6 +98,17 @@ Three things to notice:
 
 Each element is its own module in `plainkit/elements/<name>.js`, found by name (`pk-card` is `plainkit/elements/card.js`; `registry.js` lists them for tools and error messages, and the page never fetches it). `initPlainkit()` imports only the modules of the tags your page uses, so a page with a button and a card downloads two small files. Until an element has loaded, its tag is hidden by the stylesheet, so a page does not flash unstyled markup.
 
+### What has to stay where
+
+The files find each other by relative address, worked out in the browser, so serve `dist` with its folders as they are, under one base URL:
+
+- The loader (`js/loader.js`) imports `<pk-name>` as `elements/<name>.js`, from the `elements` folder next to `js`.
+- Every module imports what it needs relative to itself (`elements/*.js` import `../js/...`), and some features load later the same way (from `js/`, `js/app/` and `modules/`).
+- The icons are one file, `icons.svg`, at the top of `dist`, found relative to the module that draws an icon.
+- The per-page bundle below needs its `chunks/` folder next to `plainkit.bundle.js`.
+
+A host that only serves one flat folder of files (Shopify theme assets, for example) cannot run `dist` unchanged: build a page bundle with `bundle-page.mjs --flat` instead (next section), which puts every file it needs in one folder. Do not patch or rename the built files: the minified output changes in every release.
+
 ## Ship one small request
 
 For production you can replace the lazy loading with a per-page bundle. The tool reads the `pk-*` tags in a page and writes `plainkit.bundle.js` (the init entry plus exactly those elements), `plainkit.bundle.css` and a `chunks/` folder (the code the entry shares with the features an element loads on demand, such as a table's editing, which stays lazy):
@@ -106,9 +117,12 @@ For production you can replace the lazy loading with a per-page bundle. The tool
 node core/tools/bundle-page.mjs --html index.html --out public/plainkit
 # instead of --html: --elements pk-button,pk-input
 # also: --app (app framework), --full (theme and colour helpers), --dist node_modules/plainkit/dist (an installed package)
+# a flat host (one folder, no sub-folders): add --flat, e.g. --flat --out theme/assets
 ```
 
 The page then makes about ten requests instead of 20 to 27 and sends about a fifth fewer bytes, because fewer, larger files compress better than many small ones. Publish the whole output folder (the `chunks/` folder must sit next to the script), link the stylesheet, load the script as a module and call the exported `initPlainkit()` from your own script file, as above. The tool needs esbuild (`npm i -D esbuild`); it is not a dependency of the package.
+
+With `bundle-page.mjs --flat` there is no `chunks/` folder: the output is `plainkit.bundle.js`, `plainkit.bundle.css`, `plainkit-*.js` chunks, `plainkit-icons.svg` and `plainkit-registry.js`, all in the one folder, and the bundle finds the icons and the registry beside itself, wherever that folder is served (on Shopify, upload them as theme assets and link the stylesheet and your page script with the `asset_url` filter). Upload every `plainkit-*` file of a build together and remove the previous build's chunks: their names change when the code does. A `pk-*` tag that is not in the bundle cannot load from a flat folder; the console says `could not load <pk-name>`: build again with that tag.
 
 ## Themes and density
 
