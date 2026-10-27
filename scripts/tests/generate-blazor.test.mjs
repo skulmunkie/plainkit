@@ -792,6 +792,18 @@ test('extras: the targets file makes PlainKitExtras visible to the compiler and 
     assert.match(t, /Condition="'\$\(PlainKitExtras\)' != ''"[\s\S]*AssemblyMetadataAttribute[\s\S]*<_Parameter1>PlainKitExtras<\/_Parameter1>[\s\S]*<_Parameter2>\$\(PlainKitExtras\)<\/_Parameter2>/);
 });
 
+test('extras: the gallery option has files and no tags: PkExtra.Gallery, a table entry, and Remove lines under the same condition as the element options', () => {
+    const g = { packages: [{ id: 'plainkit' }, { id: 'plainkit.dock', built: true, blazorOption: 'dock', elements: ['pk-dock'] }, { id: 'plainkit.gallery', built: true, blazorOption: 'gallery', files: ['gallery/'] }] };
+    const r = generate(api, { demo: mapping }, new Set(), new Set(), new Map(), null, g);
+    const members = r.files.get('PkExtra.cs').match(/^ {4}([A-Za-z]+),$/gm).map(m => m.trim());
+    assert.deepEqual(members, ['Dock,', 'Gallery,']);
+    assert.deepEqual(JSON.parse(r.files.get('plainkit.extras.json')).gallery, { package: 'plainkit.gallery', tags: [], files: ['gallery/'] });
+    const t = r.files.get('PlainKit.Blazor.targets');
+    const cond = `Condition=${String.fromCharCode(34)}!$(_PkExtras.Contains(';gallery;'))${String.fromCharCode(34)} />`;
+    assert.ok(t.includes(`plainkit${String.fromCharCode(92)}gallery${String.fromCharCode(92)}**${String.fromCharCode(34)} ${cond}`), 'the StaticWebAsset Remove line for gallery/');
+    assert.ok(t.includes(`plainkit/gallery/**${String.fromCharCode(34)} ${cond}`), 'the StaticWebAssetEndpoint Remove line for gallery/');
+});
+
 test('extras: every element of every built Blazor option has a generated component with the attribute, and the table equals packages.json', () => {
     const real = load();
     const table = JSON.parse(real.files.get('plainkit.extras.json'));
