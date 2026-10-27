@@ -286,7 +286,9 @@ async function main() {
         const { selectCases, describeSelection } = await import('./blazor-browser-select.mjs');
         const base = defaultBase(o.base, root);
         if (!base) { console.error('No base to compare with (no origin/main). Pass --base <ref>.'); return 2; }
-        sel = selectCases(changedSince(base, root), { root, cases: CASES, wasmCases: WASM_CASES, shots: SHOT_PLAN });
+        const mb = spawnSync('git', ['merge-base', base, 'HEAD'], { cwd: root, encoding: 'utf8' }).stdout.trim();
+        const readBase = f => { if (!mb) return null; const r = spawnSync('git', ['show', `${mb}:${f}`], { cwd: root, encoding: 'utf8', maxBuffer: 1 << 26 }); return r.status === 0 ? r.stdout : null; };
+        sel = selectCases(changedSince(base, root), { root, cases: CASES, wasmCases: WASM_CASES, shots: SHOT_PLAN, readBase });
         console.log(describeSelection(sel, { cases: CASES.length + WASM_CASES.length, shots: SHOT_PLAN.length }));
         if (!sel.full) {
             serverCases = serverCases.filter(c => sel.cases.has(c.name)); wasmCases = wasmCases.filter(c => sel.cases.has(c.name)); shotPlan = SHOT_PLAN.filter((_, i) => sel.shots.has(i));
