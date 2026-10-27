@@ -110,6 +110,10 @@
         "markdown/parse.js",
         "markdown/render.js"
       ],
+      "files": [
+        "gallery/elements/markdown.data.js",
+        "gallery/elements/markdown-editor.data.js"
+      ],
       "maxPackedBytes": null,
       "maxUnpackedBytes": 21690,
       "maxZipBytes": 9400
@@ -133,6 +137,9 @@
         "dock-model.js",
         "dock-render.js",
         "dock-tree.js"
+      ],
+      "files": [
+        "gallery/elements/dock.data.js"
       ],
       "maxPackedBytes": null,
       "maxUnpackedBytes": 40838,
@@ -159,6 +166,10 @@
         "heat-map-layout.js",
         "svg/",
         "viewport-logic.js"
+      ],
+      "files": [
+        "gallery/elements/canvas.data.js",
+        "gallery/elements/heat-map.data.js"
       ],
       "maxPackedBytes": null,
       "maxUnpackedBytes": 79216,
