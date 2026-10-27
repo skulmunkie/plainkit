@@ -47,6 +47,13 @@
       "default": [],
       "reflect": false,
       "description": "Results: { id, label, group?, sub?, thumbnail?, badge? }[]. Adjacent items with the same group share a heading; the host sets the order. An item with no id is a note (a group's \"+12 more\"): shown, never selectable. The host clears items while the query is too short."
+    },
+    {
+      "name": "error",
+      "type": "string",
+      "default": "",
+      "reflect": false,
+      "description": "A failed search: while set, the open results panel shows this message instead of the no-results message, so a failure never reads as nothing found. Set it when your search throws (for example \"Search is unavailable. Try again.\") and clear it with the next result."
     }
   ],
   "slots": [
@@ -106,6 +113,10 @@
     {
       "name": "empty",
       "description": "The no-results message."
+    },
+    {
+      "name": "error",
+      "description": "The failed-search message (the error prop)."
     },
     {
       "name": "footer",
