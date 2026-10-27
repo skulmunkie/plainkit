@@ -2,11 +2,12 @@
 // positioning as pk-combobox's popup). Phone (--phone): the pill collapses to an icon button; tapping it covers the header row with a
 // full-width field and a close button, the pattern the SDK site's own header search (the app shell) uses.
 //
-// items is a JSON attribute or property (like pk-table's rows/columns), data-driven: { id, label, group?, sub?, thumbnail?, badge? }[].
+// items is a JSON attribute or property (like pk-table's rows/columns), data-driven: { id, label, group?, sub?, thumbnail?, badge?, href? }[]. A result with a safe href is a real link (open in a new tab works); a plain click still raises pk-select, and the host's preventDefault keeps its own routing.
 // The host computes results (locally or on the server) in response to the debounced pk-query event; this element never filters or fetches
 // itself. Choosing a result raises pk-select with the item; the host decides what happens (navigate, open a record) — never this element.
 import { loadElements } from '../../js/loader.js';
 import { nextIndex } from '../../js/menu-logic.js';
+import { safeHref } from '../../js/safe-url.js';
 
 const el = (tag, part, text) => { const e = document.createElement(tag); if (part) e.setAttribute('part', part); if (text) e.textContent = text; return e; };
 
@@ -29,7 +30,7 @@ export default Base => class extends Base {
         });
         pop.addEventListener('slotchange', () => this.part('footer').hidden = !this.slotted('footer').length);
         pop.addEventListener('mousedown', e => e.preventDefault());
-        pop.addEventListener('click', e => { const o = e.target.closest('[part="option"]'); if (o) this.select(this.$rows[Number(o.dataset.i)]); });
+        pop.addEventListener('click', e => { const o = e.target.closest('[part="option"]'); if (!o) return; const item = this.$rows[Number(o.dataset.i)]; if (o.href && (e.button || e.metaKey || e.ctrlKey || e.shiftKey || e.altKey)) return; if (!this.select(item) && o.href) e.preventDefault(); });
         this.addEventListener('keydown', e => this.keys(e), true); // capture: Escape closes the results before pk-input's own Escape clears the text
         this.addEventListener('focusout', e => { if (!this.contains(e.relatedTarget)) this.setOpen(false); });
         box.addEventListener('focusout', e => { if (!this.expanded && !box.contains(e.relatedTarget)) this.collapse(); });
@@ -66,7 +67,9 @@ export default Base => class extends Base {
             if (item.group && item.group !== group) { group = item.group; const g = el('div', 'group', group); g.setAttribute('role', 'presentation'); foot.before(g); }
             if (item.id == null || item.id === '') { const n = el('div', 'note', item.label ?? ''); n.setAttribute('role', 'presentation'); foot.before(n); continue; }
             const i = this.$rows.push(item) - 1;
-            const row = tpl.content.firstElementChild.cloneNode(true);
+            let row = tpl.content.firstElementChild.cloneNode(true);
+            const href = safeHref(item.href);
+            if (href) { const a = el('a', 'option'); a.setAttribute('role', 'option'); a.href = href; a.append(...row.childNodes); row = a; }
             row.id = `pk-abs-${i}`; row.dataset.i = String(i);
             row.querySelector('[part="row-label"]').textContent = item.label ?? '';
             const sub = row.querySelector('[part="row-sub"]'); if (item.sub) { sub.textContent = item.sub; sub.hidden = false; }
@@ -89,15 +92,16 @@ export default Base => class extends Base {
         cur?.scrollIntoView({ block: 'nearest' });
     }
     select(item) {
-        if (!item) return;
-        this.emit('pk-select', { item });
+        if (!item) return true;
+        const go = this.emit('pk-select', { item });
         this.setOpen(false);
+        return go;
     }
     keys(e) {
         if (e.key === 'Escape') { e.preventDefault(); e.stopPropagation(); if (this.$open) this.setOpen(false); else this.collapse(); return; }
         if (e.key === 'Enter' && !(this.$open && this.$a >= 0)) { const query = this.part('control').value; if (query !== '') { e.preventDefault(); this.emit('pk-submit', { query }); this.setOpen(false); } return; }
         if (!this.$open) return;
         if (e.key === 'ArrowDown' || e.key === 'ArrowUp' || e.key === 'Home' || e.key === 'End') { e.preventDefault(); this.highlight(nextIndex(this.$a, this.$rows.length, e.key)); }
-        else if (e.key === 'Enter' && this.$a >= 0) { e.preventDefault(); this.select(this.$rows[this.$a]); }
+        else if (e.key === 'Enter' && this.$a >= 0) { e.preventDefault(); this.part('popup').querySelector(`#pk-abs-${this.$a}`).click(); }
     }
 };
