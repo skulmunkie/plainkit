@@ -9,8 +9,7 @@ const log = createLogger('icon-sprite');
 // elements/icon/icon.element.js -> icons.svg at the package root.
 // It must be an absolute URL: a relative href inside a shadow root resolves against the page, not the module.
 // A page that serves the sprite somewhere else names it once: <meta name="pk-icons" content="/assets/plainkit-icons.svg"> (#1808). Same origin only (an SVG <use> cannot reach another origin).
-const given = globalThis.document?.querySelector('meta[name="pk-icons"]')?.content;
-export const spriteUrl = (moduleUrl = import.meta.url) => given || new URL(/\/elements\/icon\/[^/]*$/.test(moduleUrl) ? '../../icons.svg' : '../icons.svg', moduleUrl).href;
+export const spriteUrl = (moduleUrl = import.meta.url) => globalThis.document?.querySelector?.('meta[name="pk-icons"]')?.content || new URL(/\/elements\/icon\/[^/]*$/.test(moduleUrl) ? '../../icons.svg' : '../icons.svg', moduleUrl).href;
 
 // "search" -> ".../icons.svg#search"; an empty name gives no reference (nothing is drawn).
 export const iconHref = (name, sprite = spriteUrl()) => (String(name ?? '').trim() ? `${sprite}#${String(name).trim()}` : '');
