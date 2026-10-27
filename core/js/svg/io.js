@@ -62,7 +62,7 @@ const empty = (code, message) => ({ doc: createSvgDoc(), problems: [problem(code
 /**
  * Reads SVG text into a document. Never throws and always returns a valid document plus a list of problems { code, severity, message, path }. Only the node
  * types and attributes of the allow-list survive; scripts, handlers, links, styles, <use>, <image>, <foreignObject>, DTDs and foreign namespaces are dropped
- * (each one listed). `parse(text)` replaces the browser's DOMParser (node tests); it returns a document with a documentElement.
+ * (each one listed). `parse(text)` is required (this module names no DOM): the caller passes text => new DOMParser().parseFromString(text, 'image/svg+xml') in a browser; it returns a document with a documentElement.
  */
 export function fromSvg(text, { limits = {}, parse } = {}) {
     const L = Object.fromEntries(Object.entries(LIMITS).map(([k, v]) => [k, Math.min(v, Number.isFinite(limits?.[k]) ? limits[k] : v)]));
@@ -70,7 +70,8 @@ export function fromSvg(text, { limits = {}, parse } = {}) {
     if (text.length > L.input) return empty('input-size', 'The input is larger than the limit.');
     if (/<!\s*(?:DOCTYPE|ENTITY)/i.test(text)) return empty('dtd', 'A DOCTYPE or ENTITY declaration is not allowed.');
     let dom = null;
-    try { dom = parse ? parse(text) : typeof DOMParser === 'function' ? new DOMParser().parseFromString(text, 'image/svg+xml') : null; } catch (e) { return empty('malformed', 'The input could not be parsed.'); }
+    if (typeof parse !== 'function') return empty('input-parser', 'No parser was given.');
+    try { dom = parse(text); } catch (e) { return empty('malformed', 'The input could not be parsed.'); }
     const root = dom?.documentElement;
     if (!root || root.localName !== 'svg' || root.namespaceURI !== SVG_NS || dom.getElementsByTagName?.('parsererror')?.length) return empty('malformed', 'The input is not well-formed SVG.');
 

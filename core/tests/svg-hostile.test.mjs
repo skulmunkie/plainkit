@@ -103,6 +103,8 @@ test('malformed input and a root that is not svg in the SVG namespace', () => {
     const flagged = fromSvg(wrapSvg(''), { parse: () => ({ documentElement: parse(wrapSvg('')).documentElement, getElementsByTagName: () => [{}] }) });
     assert.deepEqual(codes(flagged), ['malformed']);
     assert.deepEqual(codes(fromSvg(wrapSvg(''), { parse: () => { throw new Error('boom'); } })), ['malformed']);
+    assert.deepEqual(codes(fromSvg(wrapSvg(''))), ['input-parser']);
+    assert.deepEqual(codes(fromSvg(wrapSvg(''), { parse: 'no' })), ['input-parser']);
 });
 
 test('10000 levels of nesting stop at the depth limit with one limit problem', () => {
