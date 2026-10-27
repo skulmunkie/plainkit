@@ -54,8 +54,9 @@
     {
       "name": "CloseButtonLabel",
       "type": "string",
-      "map": "wrapper",
-      "note": "Re-decided (#1386): stays out. The element has no prop for the close button text; it draws a cross with a fixed accessible name (hideClose, mapped as ShowCloseButton, removes it)."
+      "default": "Close",
+      "map": "prop",
+      "prop": "closeLabel"
     },
     {
       "name": "FooterAlignEnd",

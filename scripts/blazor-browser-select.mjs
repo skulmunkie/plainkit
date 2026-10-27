@@ -1,8 +1,9 @@
 // The `--changed` selection of scripts/blazor-browser.mjs: which harness cases (and screenshot functions) the files changed versus a base can affect.
-// The rule is "an unknown or shared file selects everything": a file this module cannot place runs the whole harness, never a part of it. The nightly workflow,
+// The rule is "an unknown or shared file selects everything": a file this module cannot place runs the whole harness, never a part of it. A core/js module selects the cases of the elements that import it (scripts/core-js-users.mjs) and a packages.json change of size ceilings only selects nothing. The nightly workflow,
 // `verify --only blazor-browser` and a plain local run never call this module: they run every case and every shot.
 // Pure apart from reading the repository (the sample's pages, the mappings, the usage index); the tests are scripts/tests/blazor-browser-select.test.mjs.
 import fs from 'node:fs';
+import { coreJsUsers } from './core-js-users.mjs';
 import path from 'node:path';
 import { elementOfPath } from '../core/tools/element-folders.mjs';
 import { usageIndex } from '../core/tools/usage-index.mjs';
@@ -68,7 +69,7 @@ export const CASE_MAP = Object.fromEntries(ROWS.flatMap(([names, pages, areas]) 
 export const FULL_FILES = [
     [/^scripts\/(blazor-browser|blazor-browser-cases|blazor-browser-guard|blazor-browser-select|attest-browser|ui-review|verify-guard|generated|bootstrap|bootstrap-stamp|generate-blazor|publish-dist)\.mjs$/, 'the harness or what produces what it serves'],
     [/^core\/tests\/browser\/cpu-scale\.js$/, 'imported by the harness'],
-    [/^core\/(js|base|tokens|layouts|icons|modules|tools)\//, 'shared core'],
+    [/^core\/(base|tokens|layouts|icons|modules|tools)\//, 'shared core'],
     [/^core\/(package\.json|VERSION)$/, 'core package'],
     [/^(package\.json|package-lock\.json|global\.json|Directory\.[^/]+\.props|NuGet\.config|PlainKit\.slnx)$/, 'build configuration'],
     [/^blazor\/samples\/PlainKit\.AppSample\/(PlainKit\.AppSample\.csproj|Components\/_Imports\.razor)$/, 'the sample project'],
@@ -92,6 +93,17 @@ export const NONE_FILES = [
     /^blazor\/(handwritten|handwritten\.baseline)\.json$/, /^blazor\/src\/PlainKit\.Blazor\/Testing\//, /^blazor\/samples\/PlainKit\.(Playground|WasmPlayground)\//,
     /\.test\.mjs$/, /^scripts\/[^/]+\.mjs$/,
 ];
+
+/** The size-ceiling keys of packages.json: read only by scripts/check-package.mjs and scripts/blazor-extras-publish.mjs (verify --pack), never by a generator, the build or the sample. */
+export const CEILING_KEYS = ['maxPackedBytes', 'maxUnpackedBytes', 'maxZipBytes'];
+/** True when two texts of packages.json differ only in size ceilings (and blazorPayload). A missing or unparsable side is false. Pure. */
+export function ceilingsOnly(baseText, headText) {
+    let a, b;
+    try { a = JSON.parse(baseText); b = JSON.parse(headText); } catch { return false; }
+    if (!a || !b) return false;
+    const strip = d => JSON.stringify({ ...d, blazorPayload: null, packages: (d.packages ?? []).map(p => Object.fromEntries(Object.entries(p).filter(([k]) => !CEILING_KEYS.includes(k)))) });
+    return strip(a) === strip(b);
+}
 
 const CASE_FILES = {
     lab: [LAB_CASES, LAB_SHOTS], interop: [INTEROP_CASES, INTEROP_SHOTS], element: [ELEMENT_CASES, ELEMENT_SHOTS], reconnect: [RECONNECT_CASES, RECONNECT_SHOTS],
@@ -144,18 +156,33 @@ function tagsOf(text, comps) {
  * What the files changed versus the base can affect. `files === null` (git could not say) selects everything, as does any file this module cannot place.
  * -> { full, reasons, cases: Set(name), shots: Set(index into shots), because: [[file, [case names]]] }
  */
-export function selectCases(files, { root, cases, wasmCases, shots }) {
+export function selectCases(files, { root, cases, wasmCases, shots, readBase = () => null }) {
     const all = [...cases, ...wasmCases], names = all.map(c => c.name);
     const everything = reasons => ({ full: true, reasons, cases: new Set(names), shots: new Set(shots.map((_, i) => i)), because: [] });
     if (files === null) return everything(['git could not say what changed']);
     const pages = samplePages(root), comps = componentMap(root), appText = fs.readFileSync(path.join(root, APP_RAZOR), 'utf8'), appTags = tagsOf(appText, comps);
     const { index } = usageIndex(root), known = new Set(Object.keys(index));
+    let users = null;
     const fullReasons = [], contribs = [];
     for (const raw of files) {
         const f = norm(raw), c = { file: f, pages: new Set(), areas: new Set(), elements: new Set(), fns: new Set() };
         const full = FULL_FILES.find(([r]) => r.test(f));
         if (full) { fullReasons.push(`${f} (${full[1]})`); continue; }
         if (/\.test\.mjs$/.test(f)) continue;
+        if (f === 'packages.json') {
+            const head = fs.existsSync(path.join(root, f)) ? fs.readFileSync(path.join(root, f), 'utf8') : null;
+            if (ceilingsOnly(readBase(f), head)) continue;
+            fullReasons.push(`${f} (more than the size ceilings changed)`); continue;
+        }
+        if (/^core\/js\/.+\.js$/.test(f)) {
+            const u = (users ??= coreJsUsers(root))(f);
+            if (u.full) { fullReasons.push(`${f} (${u.full})`); continue; }
+            const unknown = u.elements.filter(n => !known.has(n));
+            if (unknown.length) { fullReasons.push(`${f} (imported by ${unknown.join(', ')}, which the usage index does not know)`); continue; }
+            u.elements.forEach(n => c.elements.add(n));
+            c.areas.add('devtools'); // the DevTools Files and Code views show every source file
+            contribs.push(c); continue;
+        }
         const cf = /^scripts\/blazor-browser-(lab|interop|element|reconnect)-cases\.mjs$/.exec(f);
         const area = AREA_FILES.filter(([r]) => r.test(f));
         const page = new RegExp(`^${PAGES_DIR.replace(/[.]/g, '\\.')}/(\\w+)\\.razor$`).exec(f);

@@ -6,7 +6,7 @@ import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { CASES, WASM_CASES, SHOT_PLAN } from '../blazor-browser-cases.mjs';
 import { parseArgs } from '../blazor-browser.mjs';
-import { AREAS, CASE_MAP, PAGES_DIR, describeSelection, pageOfRoute, routesOf, samplePages, selectCases } from '../blazor-browser-select.mjs';
+import { AREAS, CASE_MAP, PAGES_DIR, ceilingsOnly, describeSelection, pageOfRoute, routesOf, samplePages, selectCases } from '../blazor-browser-select.mjs';
 
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..', '..');
 const ALL = [...CASES, ...WASM_CASES];
@@ -120,4 +120,38 @@ test('parseArgs: --changed and --base', () => {
     assert.equal(o.changed, true);
     assert.equal(o.base, 'origin/x');
     assert.equal(parseArgs([]).changed, false);
+});
+
+test('a core/js module selects the cases of the elements that import it, plus devtools', () => {
+    const sel = select(['core/js/dock-model.js']);
+    assert.equal(sel.full, false);
+    assert.ok(sel.cases.has('dock-layout-events-and-confirm'));
+    assert.ok(sel.cases.has('devtools-workspace'));
+    assert.ok(!sel.cases.has('design-surface-selected-ref'));
+    assert.ok(!sel.cases.has('deep-link-record'));
+    assert.ok(sel.cases.size < ALL.length);
+    const none = select(['core/js/svg/align.js']);
+    assert.equal(none.full, false);
+    for (const n of none.cases) assert.ok(CASE_MAP[n].areas.includes('devtools'), n);
+    assert.equal(select(['core/js/log.js']).full, true);
+    assert.equal(select(['core/js/element.js']).full, true);
+});
+
+test('a packages.json change of size ceilings only selects nothing', () => {
+    const headText = fs.readFileSync(path.join(root, 'packages.json'), 'utf8');
+    const mutate = fn => { const d = JSON.parse(headText); fn(d); return JSON.stringify(d, null, 2); };
+    const sel = (readBase) => selectCases(['packages.json'], { root, cases: CASES, wasmCases: WASM_CASES, shots: SHOT_PLAN, readBase });
+    const ceiling = sel(() => mutate(d => { const p = d.packages.find(x => 'maxZipBytes' in x); p.maxZipBytes += 1; }));
+    assert.equal(ceiling.full, false);
+    assert.equal(ceiling.cases.size, 0);
+    assert.equal(sel(() => mutate(d => { d.packages[0].title += "x"; })).full, true);
+    assert.equal(select(['packages.json']).full, true);
+});
+
+test('ceilingsOnly compares everything but the size ceilings', () => {
+    const base = JSON.stringify({ $comment: 'a', blazorPayload: { full: 1 }, packages: [{ name: 'x', maxZipBytes: 1 }] });
+    assert.equal(ceilingsOnly(base, JSON.stringify({ $comment: 'a', blazorPayload: { full: 2 }, packages: [{ name: 'x', maxZipBytes: 1 }] })), true);
+    assert.equal(ceilingsOnly(base, JSON.stringify({ $comment: 'b', blazorPayload: { full: 1 }, packages: [{ name: 'x', maxZipBytes: 1 }] })), false);
+    assert.equal(ceilingsOnly(base, 'not json'), false);
+    assert.equal(ceilingsOnly(null, base), false);
 });

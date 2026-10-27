@@ -71,8 +71,28 @@ Order matters in a stylesheet cascade: link Plainkit first and your file after i
 | Shape and depth | `--radius-sm` to `--radius-xl`, `--shadow-card`, `--shadow-modal` | corners and elevation |
 | Motion | `--duration-fast`, `--duration-base`, `--duration-slow`, `--ease` | quick UI feedback: hover/focus state changes, expand/collapse, drawer/flyout slide |
 | Layers | `--z-sticky`, `--z-modal`, `--z-toast` | stacking order, so a toast is always above a dialog |
+| Surface effects | `--surface-blur`, `--surface-saturate`, `--surface-tint`, `--surface-border-highlight` | glass: off by default; see [Glass surfaces](#glass-surfaces) |
 
 Use them in your own CSS too, so your parts follow the theme: `padding: var(--space-4); background: var(--color-panel);` is dark in a dark page and light in a light one, with no extra rules.
+
+## Glass surfaces
+
+The dialogs (`pk-dialog`, `pk-command-palette`, `pk-drawer`), the floating panels (`pk-popover`, `pk-dropdown`) and `pk-navbar` can be frosted glass. It is off by default: every surface is solid. A theme turns it on with four tokens:
+
+```css
+:root {
+    --surface-blur: 12px;                 /* how much the page behind is blurred */
+    --surface-saturate: 140%;             /* colour boost of what shows through */
+    --surface-tint: color-mix(in srgb, var(--color-panel) 72%, transparent);
+    --surface-border-highlight: color-mix(in srgb, var(--color-text) 12%, transparent);
+}
+```
+
+- `--surface-tint` replaces each element's solid colour (`--color-panel`, or `--color-flyout` for the drawer); leave it unset and the element keeps its solid colour. A navbar is tinted, and frosted only when it is `sticky`.
+- When the reader asks for reduced transparency or more contrast, or the browser has no `backdrop-filter`, every element draws its solid colour again, whatever the theme sets. The solid colours meet AA with the text tokens in both themes.
+- Text on glass is only as readable as what shows through. Keep the tint at least about 70% opaque, check the contrast of `--color-text` and `--color-muted` over the busiest content that can scroll behind the surface, in both themes, and raise the tint before you lower the blur.
+
+> [!note] While glass is on, a frosted `pk-popover` or `pk-dropdown` is the positioning box of a popup opened from inside it (a select or a submenu in the panel is placed relative to the panel). The dialogs, the drawer and the navbar blur a layer behind their content, so popups inside them are not affected.
 
 ## Change one element
 
