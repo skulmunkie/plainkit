@@ -13,6 +13,9 @@
 //   --cache-dir <dir> keeps that cache in <dir> instead of review-cache/ (implies --cache): several worktrees can share one; entries unused for 14 days are deleted at the start of a run
 //   --jobs N runs N disjoint shards of the run in N processes (own server and browser each) and merges them into one manifest: the same shots and audits, about N times faster on N cores
 //
+//   review-output/baseline-part.txt   one line per shot, <name><TAB><16 hex of the sha256 of the PNG bytes>, sorted, CRLF (scripts/ui-review-baseline.mjs; --jobs joins the parts into baseline.txt)
+//   review-output/baseline.units.txt  with --cache: the render cache's unit key of each shot (--jobs: merged), for skipping unchanged units
+//
 // Scenarios (core/tests/review/scenarios/*.js; format in core/tests/review/scenario.js): named, scripted states of a page or element (a menu open, a
 // page scrolled, a collapsed rail with a flyout), each rendered to screenshots after its named `shot` steps in the same four combinations (or the subset
 // the scenario names) with its own measured expectations checked as code. A failed expectation is an error with a FIX line, like the audits.
@@ -35,6 +38,7 @@ import { ensureGenerated } from './generated.mjs';
 import { writeRunStamp } from './verify-guard.mjs';
 import { elementOfPath } from '../core/tools/element-folders.mjs';
 import { CACHE_MAX_AGE_DAYS, createCache, pruneCache } from './ui-review-cache.mjs';
+import { chromeMajor, formatPart, formatUnits, mergeParts, shotHash, shotNameOf } from './ui-review-baseline.mjs';
 import { chromeArgs, findChrome, killTree, launchBrowser, removeDir } from './attest-browser.mjs';
 import { auditFacts, summarize } from '../core/tests/review/audit.js';
 import { combinations, expectationFinding, keyEvents, mediaParams, mouseEvents, scenarioShotName, selectScenarios, stepsFor, validateScenario } from '../core/tests/review/scenario.js';
@@ -369,16 +373,21 @@ async function runJobs(o, argv) {
         child.on('close', code => { flush(true); resolve(code ?? 2); });
     })));
     if (weightsFile) fs.rmSync(weightsFile, { force: true });
-    const parts = [];
+    const parts = [], hashParts = [], unitParts = [];
     for (const dir of dirs) {
         const file = path.join(dir, 'manifest.json');
         if (!fs.existsSync(file)) continue;
         parts.push(JSON.parse(fs.readFileSync(file, 'utf8')));
-        for (const f of fs.readdirSync(dir)) if (f !== 'manifest.json') fs.renameSync(path.join(dir, f), path.join(out, f));
+        for (const [name, list] of [['baseline-part.txt', hashParts], ['baseline.units.txt', unitParts]]) if (fs.existsSync(path.join(dir, name))) list.push(fs.readFileSync(path.join(dir, name), 'utf8'));
+        for (const f of fs.readdirSync(dir)) if (f !== 'manifest.json' && f !== 'baseline-part.txt' && f !== 'baseline.units.txt') fs.renameSync(path.join(dir, f), path.join(out, f));
         fs.rmSync(dir, { recursive: true, force: true });
     }
     if (parts.length !== o.jobs) { console.error(`only ${parts.length} of ${o.jobs} jobs wrote a manifest`); return 2; }
     const manifest = mergeManifests(parts, { strict: o.strict });
+    try {
+        if (hashParts.length) fs.writeFileSync(path.join(out, 'baseline.txt'), mergeParts(hashParts));
+        if (unitParts.length) fs.writeFileSync(path.join(out, 'baseline.units.txt'), mergeParts(unitParts, { kind: 'ui-baseline-units' }));
+    } catch (e) { console.error(e.message); return 2; }
     manifest.timings.wall = Math.round((Date.now() - t0) / 100) / 10;
     fs.writeFileSync(path.join(out, 'manifest.json'), JSON.stringify(manifest, null, 2));
     console.log(`${o.jobs} jobs: ${manifest.shots.filter(s => s.file).length} screenshots in ${path.relative(root, out) || out}; ${manifest.summary.errors} error(s), ${manifest.summary.warnings} warning(s); wall time ${manifest.timings.wall} s`);
@@ -458,7 +467,13 @@ async function main() {
         const cacheDir = o.cacheDir ?? path.join(root, 'review-cache');
         if (o.cache) { const pruned = pruneCache(cacheDir); if (pruned) console.log(`cache: removed ${pruned} entr${pruned === 1 ? 'y' : 'ies'} unused for ${CACHE_MAX_AGE_DAYS} days`); }
         const cache = o.cache ? createCache({ root, dir: cacheDir, chrome: (await cdp.send('Browser.getVersion')).product, known }) : null;
-        const unit = (u, render) => cache ? cache.unit(u, { manifest, out }, render) : render();
+        const chromeVersion = chromeMajor((await cdp.send('Browser.getVersion')).product), unitKeys = [];
+        const unit = async (u, render) => {
+            if (!cache) return render();
+            const s0 = manifest.shots.length;
+            await cache.unit(u, { manifest, out }, render);
+            for (const s of manifest.shots.slice(s0)) if (s.file) unitKeys.push([shotNameOf(s.file), cache.keyFor(u)]);
+        };
         let t0 = Date.now();
         for (const name of examples) for (const vp of VIEWPORTS) for (const theme of THEMES) await unit({ kind: 'example', name, vp, theme }, async () => {
             const tag = `pk-${name}`;
@@ -489,6 +504,10 @@ async function main() {
         if (cache) { manifest.cache = cache.stats; console.log(`cache: ${cache.stats.hits} hit(s), ${cache.stats.misses} miss(es), ${cache.stats.corrupt} corrupt`); }
         manifest.findings = grouped;
         manifest.summary = summarize(grouped, { strict: o.strict });
+        // The content hashes of the PNGs as they are in the folder now (a shot restored from the cache is hashed from its restored bytes).
+        const hashes = [...new Set(manifest.shots.map(s => s.file).filter(Boolean))].map(file => [shotNameOf(file), shotHash(fs.readFileSync(path.join(out, file)))]);
+        fs.writeFileSync(path.join(out, 'baseline-part.txt'), formatPart(hashes, { chrome: chromeVersion }));
+        if (cache) fs.writeFileSync(path.join(out, 'baseline.units.txt'), formatUnits(unitKeys, chromeVersion));
         fs.writeFileSync(path.join(out, 'manifest.json'), JSON.stringify(manifest, null, 2));
         fs.rmSync(incomplete, { force: true });
         for (const f of grouped) { console.log(`${f.severity.toUpperCase()} ${f.tag} #${f.example} ${f.rule}: ${f.message} [${f.seen.join(', ')}]`); console.log(`  FIX: ${f.fix}`); }
