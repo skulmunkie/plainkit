@@ -3,7 +3,7 @@
   <PropertyGroup>
     <RootNamespace>PlainKit.Blazor</RootNamespace>
     <PackageId>PlainKit.Blazor</PackageId>
-    <Description>Blazor components over Plainkit, the dependency-free HTML/CSS/JS toolkit. Ships the toolkit and its gallery, code explorer and scorecard as static web assets.</Description>
+    <Description>Blazor components over Plainkit, the dependency-free HTML/CSS/JS toolkit. Ships the toolkit as static web assets, with the gallery, code explorer and scorecard as optional parts.</Description>
     <PackageTags>blazor;razor-components;design-system;web-components;plainkit</PackageTags>
     <GenerateDocumentationFile>true</GenerateDocumentationFile>
     <IsPackable>true</IsPackable>

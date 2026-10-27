@@ -1,0 +1,5 @@
+---
+type: breaking
+issue: 1656
+---
+The gallery is now its own optional package, `plainkit.gallery`, and a new Blazor option, `gallery` (`PkExtra.Gallery`). An app that declares no option list is unaffected (nothing declared still means everything). An app with an explicit list that uses `PkGallery`, the dev tools Gallery tab or the templates must add it: `<PlainKitExtras>canvas;dock</PlainKitExtras>` becomes `<PlainKitExtras>canvas;dock;gallery</PlainKitExtras>`, or `o.Extras.Add(PkExtra.Canvas, PkExtra.Dock)` becomes `o.Extras.Add(PkExtra.Canvas, PkExtra.Dock, PkExtra.Gallery)`; `tools` does not imply `gallery`. A core-only Blazor app now publishes about 326 KB gzip less. Without the option the dev tools Gallery tab shows a notice naming `PkExtra.Gallery` and the page opens on Files, and `PkAssets.GalleryEmbed` points at a file that is not served. Outside Blazor the gallery leaves the core zip for its own `plainkit.gallery` zip and still ships in the full dist and on the Pages site; it needs only core and shows a notice where it would use the tools package (the inspector, the logging settings, the code explorer).
