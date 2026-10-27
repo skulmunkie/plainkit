@@ -45,5 +45,6 @@
 @keyframes palette-in { from { opacity: 0; transform: translateY(-0.5rem); } }
 
 @media (prefers-reduced-motion: reduce) { [part="dialog"][open] { animation: none; } }
+@media (prefers-reduced-transparency: reduce) { [part="dialog"]::backdrop { backdrop-filter: none; } }
 
 @media (--phone) { [part="dialog"] { margin-top: var(--space-4); } [part="hint"] { display: none; } }
