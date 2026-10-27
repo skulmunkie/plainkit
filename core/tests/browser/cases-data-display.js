@@ -795,6 +795,23 @@ export const dataDisplayCases = [
         const phone = await at(375); t.eq(phone.w, 375); t.ok(phone.other, 'the SKU shows'); t.ok(!phone.td, 'the hidePhone cell is hidden in a card');
         const wide = await at(1200); t.ok(wide.td, 'shown on a wide screen');
     }],
+    ['table (375px): a slotted cell that rendered nothing is left out of its card; at 1200px it is drawn (#1794)', async t => {
+        const { sampleDoc } = await import('../../site/gallery/frame.js');
+        const html = `<pk-table cards label="P" columns='[{"key":"sku","label":"SKU"},{"key":"tag","label":"Tag"}]' rows='[{"id":1,"sku":"A"},{"id":2,"sku":"B"}]'><span slot="cell-1-tag"><b>hot</b></span><span slot="cell-2-tag"></span></pk-table>`;
+        const at = async width => {
+            const host = t.stage(''), f = document.createElement('iframe');
+            f.title = 'sample'; f.style.width = `${width}px`; f.style.height = '420px'; f.style.border = '0';
+            const loaded = new Promise(r => f.addEventListener('load', r, { once: true })); host.append(f); f.srcdoc = sampleDoc(html); await loaded;
+            await until(() => f.contentWindow.customElements.get('pk-table') && f.contentDocument.querySelector('pk-table')?.shadowRoot?.querySelectorAll('tbody tr').length === 2, 'the table');
+            const w = f.contentWindow, rows = f.contentDocument.querySelector('pk-table').shadowRoot.querySelectorAll('tbody tr');
+            const tag = r => { const c = r.querySelector('td[data-key="tag"]'), cs = w.getComputedStyle(c); return { shown: cs.display !== 'none', h: c.getBoundingClientRect().height }; };
+            return { one: tag(rows[0]), two: tag(rows[1]), w: w.innerWidth };
+        };
+        const phone = await at(375); t.eq(phone.w, 375);
+        t.ok(phone.one.shown && phone.one.h > 0, 'the filled slotted cell is drawn in its card');
+        t.ok(!phone.two.shown, 'the empty slotted cell is left out of its card');
+        const wide = await at(1200); t.ok(wide.one.shown && wide.two.shown, 'both cells are drawn on a wide screen');
+    }],
     ['table: a column with shed drops out by its own width (24, 36, 48rem), highest number first, at any viewport; windowed rows align (the phone cards layout is the table-shed UI scenario) (#1218)', async t => {
         const cols = '[{"key":"a","label":"A"},{"key":"b","label":"B","shed":1},{"key":"c","label":"C","shed":2},{"key":"d","label":"D","shed":3}]';
         const shown = el => ['a', 'b', 'c', 'd'].filter(k => { const c = el.shadowRoot.querySelector(`tbody td[data-key="${k}"]`); return c && getComputedStyle(c).display !== 'none'; }).join('');
