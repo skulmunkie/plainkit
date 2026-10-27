@@ -6,13 +6,14 @@ import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { CASES, WASM_CASES, SHOT_PLAN } from '../blazor-browser-cases.mjs';
 import { parseArgs } from '../blazor-browser.mjs';
-import { AREAS, CASE_MAP, PAGES_DIR, ceilingsOnly, describeSelection, pageOfRoute, routesOf, samplePages, selectCases } from '../blazor-browser-select.mjs';
+import { AREAS, CASE_MAP, SMOKE, PAGES_DIR, ceilingsOnly, describeSelection, pageOfRoute, routesOf, samplePages, selectCases } from '../blazor-browser-select.mjs';
 
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..', '..');
 const ALL = [...CASES, ...WASM_CASES];
 const pages = samplePages(root);
 const select = files => selectCases(files, { root, cases: CASES, wasmCases: WASM_CASES, shots: SHOT_PLAN });
 const names = sel => [...sel.cases].sort();
+const withSmoke = list => [...new Set([...list, ...SMOKE])].sort();
 const PAGE = n => `${PAGES_DIR}/${n}.razor`;
 
 test('every case is mapped, nothing is stale, every page exists and every area is known', () => {
@@ -55,19 +56,45 @@ test('a literal route wins over a parameter route', () => {
 test('one lab page selects its cases and its screenshot only', () => {
     const sel = select([PAGE('LabCanvas')]);
     assert.equal(sel.full, false);
-    assert.deepEqual(names(sel), ['canvas-view-pick-key', 'design-surface-selected-ref']);
+    assert.deepEqual(names(sel), withSmoke(['canvas-view-pick-key', 'design-surface-selected-ref']));
     assert.equal(sel.shots.size, 1);
     assert.ok(routesOf(SHOT_PLAN[[...sel.shots][0]]).includes('/lab/canvas'));
 });
 
 test('a shared or unknown file selects everything', () => {
-    for (const f of ['blazor/src/PlainKit.Blazor/PkElementBase.cs', 'core/js/bridge.js', 'scripts/blazor-browser.mjs', 'blazor/src/PlainKit.Blazor/SomethingNew.cs', 'foo/unknown.txt']) {
+    for (const f of ['core/js/element.js', 'blazor/src/PlainKit.Blazor/PkRuntime.cs', 'blazor/src/PlainKit.Blazor/Generated/PkAll.Registry.cs', 'scripts/blazor-browser.mjs', 'foo/unknown.txt']) {
         const sel = select([f]);
         assert.equal(sel.full, true, f);
         assert.equal(sel.cases.size, ALL.length, f);
         assert.equal(sel.shots.size, SHOT_PLAN.length, f);
     }
     assert.equal(select(null).full, true);
+});
+
+test('shared Blazor source selects only the smoke set', () => {
+    const sel = select(['blazor/src/PlainKit.Blazor/SomethingNew.cs']);
+    assert.equal(sel.full, false);
+    assert.deepEqual(names(sel), [...SMOKE].sort());
+    assert.deepEqual(names(select(['core/VERSION'])), [...SMOKE].sort());
+});
+
+test('shared core areas select their areas and the smoke set, core/tools selects nothing', () => {
+    for (const f of ['core/tokens/tokens.css', 'core/base/base.css', 'core/layouts/x.css', 'core/icons/x.svg']) {
+        const sel = select([f]);
+        assert.equal(sel.full, false, f);
+        for (const c of ALL) if (CASE_MAP[c.name].areas.some(a => a === 'shell' || a === 'reconnect')) assert.ok(sel.cases.has(c.name), `${f}: ${c.name}`);
+        assert.ok(!sel.cases.has('design-surface-selected-ref'), f);
+    }
+    const mod = select(['core/modules/x/x.js']);
+    assert.equal(mod.full, false);
+    assert.ok(mod.cases.has('wasm-lazy-module-assembly') && mod.cases.has('deep-link-record'));
+    assert.equal(select(['core/tools/build.mjs']).cases.size, 0);
+});
+
+test('a generated component file selects that component cases plus the smoke set', () => {
+    const sel = select(['blazor/src/PlainKit.Blazor/Generated/PkDesignSurface.cs']);
+    assert.equal(sel.full, false);
+    assert.deepEqual(names(sel), withSmoke(['canvas-view-pick-key', 'design-surface-selected-ref']));
 });
 
 test('docs, tests and the testing helpers select nothing', () => {
@@ -82,8 +109,8 @@ test('the reconnect files select the reconnect cases', () => {
     assert.equal(sel.full, false);
     const reconnect = ALL.filter(c => CASE_MAP[c.name].areas.includes('reconnect')).length;
     assert.ok(reconnect > 0);
-    assert.equal(sel.cases.size, reconnect);
-    assert.ok(names(sel).every(n => CASE_MAP[n].areas.includes('reconnect')));
+    assert.equal(sel.cases.size, new Set([...ALL.filter(c => CASE_MAP[c.name].areas.includes('reconnect')).map(c => c.name), ...SMOKE]).size);
+    assert.ok(names(sel).every(n => CASE_MAP[n].areas.includes('reconnect') || SMOKE.includes(n)));
 });
 
 test('the sample startup selects the shell and the WebAssembly cases, not a lab page', () => {
@@ -94,12 +121,15 @@ test('the sample startup selects the shell and the WebAssembly cases, not a lab 
 });
 
 test('a mapping selects the cases of the pages that use the component', () => {
-    assert.deepEqual(names(select(['blazor/mappings/design-surface.json'])), ['canvas-view-pick-key', 'design-surface-selected-ref']);
+    assert.deepEqual(names(select(['blazor/mappings/design-surface.json'])), withSmoke(['canvas-view-pick-key', 'design-surface-selected-ref']));
 });
 
-test('an element the app frame draws selects every case', () => {
+test('an element the app frame draws selects the shell cases and the smoke set, not every case', () => {
     const sel = select(['core/shells/app-frame/app-frame.css']);
-    assert.deepEqual(names(sel), ALL.map(c => c.name).sort());
+    assert.equal(sel.full, false);
+    for (const c of ALL) if (CASE_MAP[c.name].areas.includes('shell')) assert.ok(sel.cases.has(c.name), c.name);
+    assert.ok(sel.cases.size < ALL.length);
+    assert.ok(!sel.cases.has('design-surface-selected-ref'));
 });
 
 test('the selected cases keep the table order, so the host-restart cases stay last', () => {
@@ -111,7 +141,7 @@ test('the selected cases keep the table order, so the host-restart cases stay la
 
 test('describeSelection names the reason', () => {
     assert.match(describeSelection(select(['foo/unknown.txt']), { cases: ALL.length, shots: SHOT_PLAN.length }), /full: foo\/unknown\.txt/);
-    assert.match(describeSelection(select([PAGE('LabCanvas')]), { cases: ALL.length, shots: SHOT_PLAN.length }), /2 of \d+ cases.*LabCanvas\.razor -> /);
+    assert.match(describeSelection(select([PAGE('LabCanvas')]), { cases: ALL.length, shots: SHOT_PLAN.length }), /\d+ of \d+ cases.*LabCanvas\.razor -> /);
 });
 
 test('parseArgs: --changed and --base', () => {
@@ -128,12 +158,12 @@ test('a core/js module selects the cases of the elements that import it, plus de
     assert.ok(sel.cases.has('dock-layout-events-and-confirm'));
     assert.ok(sel.cases.has('devtools-workspace'));
     assert.ok(!sel.cases.has('design-surface-selected-ref'));
-    assert.ok(!sel.cases.has('deep-link-record'));
     assert.ok(sel.cases.size < ALL.length);
     const none = select(['core/js/svg/align.js']);
     assert.equal(none.full, false);
-    for (const n of none.cases) assert.ok(CASE_MAP[n].areas.includes('devtools'), n);
-    assert.equal(select(['core/js/log.js']).full, true);
+    for (const n of none.cases) assert.ok(CASE_MAP[n].areas.includes('devtools') || SMOKE.includes(n), n);
+    assert.equal(select(['core/js/log.js']).full, false);
+    assert.ok(select(['core/js/log.js']).cases.has('deep-link-record'));
     assert.equal(select(['core/js/element.js']).full, true);
 });
 

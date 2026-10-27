@@ -69,8 +69,6 @@ export const CASE_MAP = Object.fromEntries(ROWS.flatMap(([names, pages, areas]) 
 export const FULL_FILES = [
     [/^scripts\/(blazor-browser|blazor-browser-cases|blazor-browser-guard|blazor-browser-select|attest-browser|ui-review|verify-guard|generated|bootstrap|bootstrap-stamp|generate-blazor|publish-dist)\.mjs$/, 'the harness or what produces what it serves'],
     [/^core\/tests\/browser\/cpu-scale\.js$/, 'imported by the harness'],
-    [/^core\/(base|tokens|layouts|icons|modules|tools)\//, 'shared core'],
-    [/^core\/(package\.json|VERSION)$/, 'core package'],
     [/^(package\.json|package-lock\.json|global\.json|Directory\.[^/]+\.props|NuGet\.config|PlainKit\.slnx)$/, 'build configuration'],
     [/^blazor\/samples\/PlainKit\.AppSample\/(PlainKit\.AppSample\.csproj|Components\/_Imports\.razor)$/, 'the sample project'],
 ];
@@ -84,6 +82,8 @@ export const AREA_FILES = [
     [/^blazor\/src\/PlainKit\.Blazor\/(Components\/PkReconnect\.razor|PkReconnectOptions\.cs|PkOptions\.Reconnect\.cs|wwwroot\/plainkit\.reconnect\.(js|css))$/, ['reconnect']],
     [/^blazor\/src\/PlainKit\.Blazor\/(DevTools\/.*|Components\/Pk(DevTools|DevToolsWorkspace|CodeExplorer|Console|LogSettings|Logs|ModuleDashboard|Performance|Quality|Scorecard|Scripts|Styles|ThemeEditor)\.razor|wwwroot\/blazor-devtools\.js)$/, ['devtools']],
     [/^core\/(site|samples)\//, ['devtools']],
+    [/^core\/(base|tokens|layouts|icons)\//, ['shell', 'reconnect']], // visual only: the app frame and the reconnect banner draw them
+    [/^core\/modules\//, ['shell', 'wasm']],
     // 'extras' has no file of its own: PkExtraCheck, PkExtraSet and PkOptions.Extras are used by PkRuntime, the service registration and PkOptions, so they are shared source (everything).
 ];
 
@@ -91,8 +91,19 @@ export const AREA_FILES = [
 export const NONE_FILES = [
     /\.md$/, /^changelog\//, /^docs\//, /^\.github\//, /^blazor\/tests\//, /^scripts\/tests\//, /^core\/tests\//, /^scripts\/skills\//,
     /^blazor\/(handwritten|handwritten\.baseline)\.json$/, /^blazor\/src\/PlainKit\.Blazor\/Testing\//, /^blazor\/samples\/PlainKit\.(Playground|WasmPlayground)\//,
-    /\.test\.mjs$/, /^scripts\/[^/]+\.mjs$/,
+    /\.test\.mjs$/, /^scripts\/[^/]+\.mjs$/, /^core\/tools\//,
 ];
+
+/** The cases always added when a Blazor or core file selects anything: one per area of the bridge and the shell. */
+export const SMOKE = ['deep-link-record', 'nav-link-is-a-client-navigation', 'no-console-errors', 'list-load-search-refresh', 'record-save-success', 'two-way-bind', 'reconnect-banner'];
+/** Files that select only the smoke set. */
+const SMOKE_ONLY = /^core\/(package\.json|VERSION)$/;
+/** core/js modules whose change can reach every area (the element base, the app layer): everything. Any other shared helper selects the smoke set. */
+const CORE_JS_FULL = /^core\/js\/(element|element-core|app|init|loader|loader-missing|dynamic|page-shell|page-lifecycle|app\/.+)\.js$/;
+/** Blazor source that stays full: the runtime, the bridge and interop, the extras and the generated files that are not one component's. */
+const BLAZOR_FULL = /^blazor\/src\/PlainKit\.Blazor\/(wwwroot\/|Generated\/(?!Pk[A-Za-z]+(?:\.[A-Za-z]+)?\.cs$)|[^/]*(PkRuntime|CallbackSlot|Bridge|Interop|Extra))/;
+/** A generated component file: Generated/PkButton.cs, Generated/PkButton.Extra.cs -> PkButton. */
+const GENERATED_COMPONENT = /^blazor\/src\/PlainKit\.Blazor\/Generated\/(Pk[A-Za-z]+)(?:\.[A-Za-z]+)?\.cs$/;
 
 /** The size-ceiling keys of packages.json: read only by scripts/check-package.mjs and scripts/blazor-extras-publish.mjs (verify --pack), never by a generator, the build or the sample. */
 export const CEILING_KEYS = ['maxPackedBytes', 'maxUnpackedBytes', 'maxZipBytes'];
@@ -169,6 +180,7 @@ export function selectCases(files, { root, cases, wasmCases, shots, readBase = (
         const full = FULL_FILES.find(([r]) => r.test(f));
         if (full) { fullReasons.push(`${f} (${full[1]})`); continue; }
         if (/\.test\.mjs$/.test(f)) continue;
+        if (SMOKE_ONLY.test(f)) { c.smoke = true; contribs.push(c); continue; }
         if (f === 'packages.json') {
             const head = fs.existsSync(path.join(root, f)) ? fs.readFileSync(path.join(root, f), 'utf8') : null;
             if (ceilingsOnly(readBase(f), head)) continue;
@@ -176,7 +188,7 @@ export function selectCases(files, { root, cases, wasmCases, shots, readBase = (
         }
         if (/^core\/js\/.+\.js$/.test(f)) {
             const u = (users ??= coreJsUsers(root))(f);
-            if (u.full) { fullReasons.push(`${f} (${u.full})`); continue; }
+            if (u.full) { if (CORE_JS_FULL.test(f)) { fullReasons.push(`${f} (${u.full})`); continue; } c.smoke = true; c.areas.add('devtools'); contribs.push(c); continue; }
             const unknown = u.elements.filter(n => !known.has(n));
             if (unknown.length) { fullReasons.push(`${f} (imported by ${unknown.join(', ')}, which the usage index does not know)`); continue; }
             u.elements.forEach(n => c.elements.add(n));
@@ -186,20 +198,23 @@ export function selectCases(files, { root, cases, wasmCases, shots, readBase = (
         const cf = /^scripts\/blazor-browser-(lab|interop|element|reconnect)-cases\.mjs$/.exec(f);
         const area = AREA_FILES.filter(([r]) => r.test(f));
         const page = new RegExp(`^${PAGES_DIR.replace(/[.]/g, '\\.')}/(\\w+)\\.razor$`).exec(f);
-        const mapping = /^blazor\/mappings\/([^/]+)\.json$/.exec(f), folder = elementOfPath(f);
+        const mapping = /^blazor\/mappings\/([^/]+)\.json$/.exec(f), folder = elementOfPath(f), gen = GENERATED_COMPONENT.exec(f);
         if (cf) for (const x of CASE_FILES[cf[1]][0]) c.fns.add(x.name);
         else if (area.length) for (const [, a] of area) a.forEach(x => c.areas.add(x));
         else if (page) { if (pages[page[1]]) c.pages.add(page[1]); else { fullReasons.push(`${f} (a page this module does not know)`); continue; } }
+        else if (gen) { const tag = comps[gen[1]]; if (tag && known.has(tag)) c.elements.add(tag); else { fullReasons.push(`${f} (a generated component of no known element)`); continue; } }
+        else if (BLAZOR_FULL.test(f)) { fullReasons.push(`${f} (the runtime, the bridge or generated output)`); continue; }
         else if (mapping) { if (known.has(mapping[1])) c.elements.add(mapping[1]); else { fullReasons.push(`${f} (a mapping of no known element)`); continue; } }
         else if (folder) { if (known.has(folder.name)) c.elements.add(folder.name); else { fullReasons.push(`${f} (a folder of no known element)`); continue; } }
         else if (NONE_FILES.some(r => r.test(f))) continue;
-        else { fullReasons.push(`${f} (${/^blazor\/src\/PlainKit\.Blazor\//.test(f) ? 'shared Blazor source' : 'unknown file'})`); continue; }
+        else if (/^blazor\/src\/PlainKit\.Blazor\//.test(f)) c.smoke = true; // shared Blazor source: the smoke set
+        else { fullReasons.push(`${f} (unknown file)`); continue; }
         contribs.push(c);
     }
     if (fullReasons.length) return everything(fullReasons.slice(0, 5));
 
     const dependents = contribs.some(c => c.elements.size) ? dependentsFromIndex(index) : {};
-    const caseTags = c => { const t = new Set(appTags); for (const p of CASE_MAP[c.name]?.pages ?? []) tagsOf(pages[p]?.text ?? '', comps).forEach(x => t.add(x)); return t; };
+    const caseTags = c => { const t = new Set(CASE_MAP[c.name]?.areas.includes('shell') ? appTags : []); for (const p of CASE_MAP[c.name]?.pages ?? []) tagsOf(pages[p]?.text ?? '', comps).forEach(x => t.add(x)); return t; };
     const caseSet = new Set(), because = [];
     const caseFile = c => c.fns.size ? c.fns : null;
     for (const c of contribs) {
@@ -228,6 +243,8 @@ export function selectCases(files, { root, cases, wasmCases, shots, readBase = (
         const byTag = contribs.some(c => c.hit?.size && [...tags].some(t => c.hit.has(t)));
         if (byFile || byPage || byArea || byTag) shotSet.add(i);
     });
+    const smoke = SMOKE.filter(n => names.includes(n) && !caseSet.has(n));
+    if (smoke.length && (caseSet.size || contribs.some(c => c.smoke)) && contribs.some(c => /^(core|blazor)\//.test(c.file))) { smoke.forEach(n => caseSet.add(n)); because.push(['(smoke set)', smoke]); }
     return { full: false, reasons: [], cases: caseSet, shots: shotSet, because };
 }
 
