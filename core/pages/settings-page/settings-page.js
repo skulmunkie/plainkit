@@ -13,7 +13,7 @@ export default Base => class extends Base {
         // does the same for its own strip and Next button, and pk-tool-page for its Run button).
         loadElements(this.shadowRoot);
         this.part('form').addEventListener('submit', e => { e.preventDefault(); this.saveNow(); });
-        for (const type of ['pk-value-change', 'pk-change', 'pk-range', 'change']) this.part('form').addEventListener(type, () => this.paint());
+        for (const type of ['pk-value-change', 'pk-change', 'pk-range', 'change', 'pk-field-change']) this.part('form').addEventListener(type, e => { if (e.target.getRootNode() !== this.shadowRoot) this.$own = true; this.paint(); }); // an edit in the host's own section content marks the page changed (#1803)
         this.part('discard').addEventListener('click', () => this.discard());
         this.part('nav').addEventListener('click', e => { const item = e.target.closest?.('pk-nav-item'); if (item) { e.preventDefault(); this.go(item.dataset.key); } });
         this.buildTitleBar();
@@ -71,7 +71,7 @@ export default Base => class extends Base {
                 stack.append(row);
                 this.$controls[f.key] = { el, type: f.type };
             }
-            // The app's own content for this section (#1604): a light-DOM child with slot="section-<key>" shows in the card after the fields; its pk-value-change and pk-change reach the form, so the save bar and Discard cover it.
+            // The app's own content for this section (#1604): a light-DOM child with slot="section-<key>" shows in the card after the fields; an edit in it (pk-value-change, pk-change, change or a field group's pk-field-change) shows the save bar (#1803).
             if (section.key != null) { const slot = doc.createElement('slot'); slot.name = 'section-' + section.key; stack.append(slot); }
             if (!section.bare) card.append(stack);
             box.append(card);
@@ -119,16 +119,17 @@ export default Base => class extends Base {
     // host sets a new values object (e.g. once ctx.store's own settings finish loading).
     applyValues() {
         for (const [key, { el, type }] of Object.entries(this.$controls ?? {})) if (Object.hasOwn(this.values ?? {}, key)) write(el, type, this.values[key]);
-        this.$base = this.currentValues();
+        this.$own = false; this.$base = this.currentValues();
         this.paint();
     }
     discard() {
         for (const [key, { el, type }] of Object.entries(this.$controls ?? {})) write(el, type, this.$base?.[key]);
+        this.$own = false; // the host's own content keeps what it holds: the host resets its own state
         this.paint();
     }
     paint() {
         this.part('saved').hidden = true;
-        const dirty = JSON.stringify(this.currentValues()) !== JSON.stringify(this.$base ?? {});
+        const dirty = !!this.$own || JSON.stringify(this.currentValues()) !== JSON.stringify(this.$base ?? {});
         this.part('bar').hidden = !dirty;
         if (dirty) { const status = this.part('status'); status.kind = 'warning'; status.textContent = 'Unsaved changes'; }
     }
@@ -142,7 +143,7 @@ export default Base => class extends Base {
         try {
             const sent = this.currentValues();
             await this.save(sent);
-            this.$base = sent; // what was saved, not what the fields hold now: an edit made while the callback was in flight stays unsaved (#1729)
+            this.$base = sent; this.$own = false; // what was saved, not what the fields hold now: an edit made while the callback was in flight stays unsaved (#1729)
             this.paint(); // shows the bar again for an edit made meanwhile, hides it otherwise
             this.part('saved').hidden = !this.part('bar').hidden;
         } catch (err) {

@@ -46,6 +46,17 @@ export const layoutCases = [
         t.eq(getComputedStyle(el).display, 'none');
     }],
 
+    ['base CSS: items of a role="list" list laid out as a flex row share one top edge; a plain list keeps its item spacing (#1813)', async t => {
+        const box = await t.mount('<div><ul role="list" id="row"><li>One</li><li>Two</li><li>Three</li></ul><ul id="prose"><li>A</li><li>B</li></ul></div>');
+        const row = box.querySelector('#row'); Object.assign(row.style, { display: 'flex', gap: '1rem', listStyle: 'none', padding: '0' });
+        await t.settle();
+        const tops = [...row.children].map(li => Math.round(li.getBoundingClientRect().top));
+        t.eq(new Set(tops).size, 1, `all items share one top (got ${tops.join(',')})`);
+        t.eq(getComputedStyle(row.children[1]).marginBlockStart, '0px', 'no item margin in a role=list list');
+        const p = box.querySelector('#prose').children[1];
+        t.ok(parseFloat(getComputedStyle(p).marginBlockStart) > 0, 'a plain list keeps the --space-1 item spacing');
+    }],
+
     ['stack: children stack vertically with the gap token, stretch by default, and align changes the cross axis', async t => {
         const el = await layout(t, 'pk-stack', '', 3, 300);
         t.eq(getComputedStyle(el).flexDirection, 'column'); t.eq(el.gap, 'md');
@@ -293,6 +304,15 @@ export const layoutCases = [
         el.querySelector('input').dispatchEvent(new Event('invalid')); await settle();
         t.ok(shown(b), 'an invalid control in a hidden section reveals it');
         size(el, rem(60)); await settle(); t.ok(shown(a) && shown(b) && shown(c) && !b.hasAttribute('data-pk-section-hidden'), 'widening shows everything again');
+    }],
+
+    ['detail-layout: a pk-card inside a [data-pk-section] wrapper is in that section and gets no "no data-pk-section" warning; a bare card still does (#1806)', async t => {
+        const log = await import('../../js/log.js'); log.clearLogBuffer();
+        const nosection = () => log.getLogBuffer().filter(e => e.level === 'warn' && /has no data-pk-section/.test(e.message)).length;
+        await t.mount('<pk-detail-layout><div data-pk-section="details"><pk-card heading="A">a</pk-card></div><pk-card heading="B" data-pk-section="pricing">b</pk-card></pk-detail-layout>'); await t.settle(); await t.settle();
+        t.eq(nosection(), 0, 'a card inside a section wrapper does not warn');
+        await t.mount('<pk-detail-layout><pk-card heading="A" data-pk-section="details">a</pk-card><pk-card heading="B" data-pk-section="pricing">b</pk-card><pk-card heading="Loose">c</pk-card></pk-detail-layout>'); await t.settle(); await t.settle();
+        t.eq(nosection(), 1, 'a card with no section around it still warns');
     }],
 
     ['detail-layout: the collapsed strip tabs are defined and styled (tap height), and choosing the second tab swaps the main and sidebar cards (#316)', async t => {
