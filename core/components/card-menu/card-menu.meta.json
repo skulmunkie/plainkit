@@ -5,7 +5,7 @@
   "title": "Card menu",
   "group": "Overlays",
   "tier": "component",
-  "summary": "The \"...\" (or settings) button of a card header that opens a menu of secondary actions. A pk-dropdown opened by an icon-only button, so the keyboard, the focus return and the placement are the dropdown's; put it in the actions slot of a pk-card with pk-menu-item children.",
+  "summary": "The \"...\" (or settings) button of a card header that opens a menu of secondary actions. A pk-dropdown opened by an icon-only button, so the keyboard, the focus return and the placement are the dropdown's; put it in the actions slot of a pk-card with pk-menu-item children. With no pk-menu-item it draws nothing (its actions depend on state and none applies).",
   "props": [
     {
       "name": "label",

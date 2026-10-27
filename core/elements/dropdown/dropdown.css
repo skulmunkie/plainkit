@@ -1,5 +1,6 @@
 /* pk-dropdown: the trigger stays in flow; the menu is a fixed layer placed by the positioning helper. */
 :host { display: inline-block; }
+slot[name="trigger"][hidden] { display: none; }
 
 [part="menu"] {
     display: none;
@@ -14,11 +15,12 @@
     overflow-y: auto;
     overscroll-behavior: contain;
     padding: var(--space-1);
-    background: var(--color-panel);
+    background: var(--surface-tint, var(--color-panel));
     color: var(--color-text);
     border: 1px solid var(--color-border);
     border-radius: var(--radius-md);
-    box-shadow: var(--shadow-pop);
+    box-shadow: inset 0 1px var(--surface-border-highlight), var(--shadow-pop);
+    backdrop-filter: blur(var(--surface-blur)) saturate(var(--surface-saturate));
     animation: menu-in 0.12s ease-out;
 }
 
@@ -32,3 +34,6 @@
 @keyframes menu-in { from { opacity: 0; transform: translateY(-2px); } }
 
 @media (prefers-reduced-motion: reduce) { [part="menu"] { animation: none; } }
+@media (prefers-reduced-transparency: reduce) { [part="menu"] { backdrop-filter: none; background: var(--color-panel); } }
+@media (prefers-contrast: more) { [part="menu"] { backdrop-filter: none; background: var(--color-panel); } }
+@supports not (backdrop-filter: blur(1px)) { [part="menu"] { background: var(--color-panel); } }

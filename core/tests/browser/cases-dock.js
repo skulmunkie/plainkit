@@ -420,6 +420,33 @@ export const dockDeclCases = [
         t.ok(JSON.parse(dock.getLayout()).root.panels.includes('assets'), 'openPanel puts it back');
     }],
 
+    ['dock: floatPanel, dockPanel, collapsePanel and raisePanel drive the dock from code with the menus\' reasons and refusals (#432 D2 commands)', async t => {
+        const { doc } = await frame(t, DOCK, 1200);
+        const dock = doc.querySelector('pk-dock'), seen = [];
+        dock.addEventListener('pk-layout-change', e => seen.push(e.detail.reason));
+        const L = () => JSON.parse(dock.getLayout());
+        const groupOf = id => { let g = null; const walk = n => { if (!n) return; if (n.type === 'split') { walk(n.a); walk(n.b); } else if (n.panels.includes(id)) g = n; }; walk(L().root); return g; };
+        const zOf = id => L().floating.find(f => f.group.panels.includes(id))?.z;
+        dock.collapsePanel('props'); await t.settle(); await wait(60);
+        t.ok(L().collapsed.includes('props'), 'props (alone in its group) collapses'); t.eq(seen.at(-1), 'collapse');
+        dock.collapsePanel('tools'); await t.settle();
+        t.ok(!L().collapsed.includes('tools'), 'a panel in a tab group does not');
+        dock.dockPanel('assets', { target: groupOf('canvas').id, zone: 'center' }); await t.settle(); await wait(60);
+        t.eq(groupOf('assets')?.id, groupOf('canvas')?.id, 'assets joins the canvas group as a tab'); t.eq(seen.at(-1), 'move');
+        dock.floatPanel('assets', { x: 40, y: 40, w: 300, h: 200 }); await t.settle(); await wait(60);
+        const f = L().floating.find(x => x.group.panels.includes('assets'));
+        t.ok(f && f.x === 40 && f.y === 40, `assets floats at the given rect (${JSON.stringify(f)})`); t.eq(seen.at(-1), 'float');
+        dock.floatPanel('tools'); await t.settle(); await wait(60);
+        t.ok(zOf('tools') > zOf('assets'), 'the newer floater is on top');
+        dock.raisePanel('assets'); await t.settle();
+        t.ok(zOf('assets') > zOf('tools'), 'raisePanel brings assets to the front'); t.eq(seen.at(-1), 'raise');
+        const n = seen.length; dock.raisePanel('canvas'); await t.settle();
+        t.eq(seen.length, n, 'raising a docked panel does nothing');
+        const d2 = (await frame(t, DECL, 1200)).doc.querySelector('pk-dock');
+        d2.floatPanel('canvas'); await t.settle(); await wait(60);
+        t.ok(!JSON.parse(d2.getLayout()).floating.some(x => x.group.panels.includes('canvas')), 'the centre panel cannot float');
+    }],
+
     ['dock: on a phone the strip starts on the centre panel and shows one panel with no horizontal overflow', async t => {
         const { doc } = await frame(t, DECL.replace('data-open="false"', ''), 375);
         const dock = doc.querySelector('pk-dock'), root = dock.shadowRoot.querySelector('[part=root]');

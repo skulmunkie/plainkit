@@ -52,6 +52,13 @@
       "prop": "persistent"
     },
     {
+      "name": "CloseButtonLabel",
+      "type": "string",
+      "default": "Close",
+      "map": "prop",
+      "prop": "closeLabel"
+    },
+    {
       "name": "Wide",
       "type": "bool",
       "map": "prop",

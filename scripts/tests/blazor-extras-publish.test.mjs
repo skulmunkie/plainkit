@@ -6,7 +6,7 @@ import assert from 'node:assert/strict';
 import path from 'node:path';
 import fs from 'node:fs';
 import { fileURLToPath } from 'node:url';
-import { SETS, checkSet, checkPayload, filesOfExtra } from '../blazor-extras-publish.mjs';
+import { SETS, checkSet, checkPayload, filesOfExtra, publishJobs, pool } from '../blazor-extras-publish.mjs';
 import { loadPackages } from '../packages.mjs';
 
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..', '..');
@@ -50,4 +50,34 @@ test('packages.json records both payload ceilings as numbers once measured', () 
     if (!data.blazorPayload) return; // recorded by node scripts/blazor-extras-publish.mjs --write
     for (const k of ['coreOnly', 'full']) assert.ok(Number.isInteger(data.blazorPayload[k]) && data.blazorPayload[k] > 0, `FIX: blazorPayload.${k}`);
     assert.ok(data.blazorPayload.coreOnly < data.blazorPayload.full);
+});
+
+test('publishJobs: by free memory, never more than the sets or under one, PK_EXTRAS_JOBS overrides', () => {
+    assert.equal(publishJobs({ freeBytes: 16 * 2 ** 30, env: {} }), 4);
+    assert.equal(publishJobs({ freeBytes: 1000 * 2 ** 20, env: {} }), 1);
+    assert.equal(publishJobs({ freeBytes: 0, env: {} }), 1);
+    assert.equal(publishJobs({ freeBytes: 16 * 2 ** 30, env: { PK_EXTRAS_JOBS: '1' } }), 1);
+    assert.equal(publishJobs({ freeBytes: 0, env: { PK_EXTRAS_JOBS: '9' } }), 4);
+    assert.equal(publishJobs({ freeBytes: 16 * 2 ** 30, env: { PK_EXTRAS_JOBS: 'x' } }), 4);
+});
+
+test('pool: results in input order, at most `limit` at once', async () => {
+    let running = 0, max = 0;
+    const out = await pool([0, 1, 2, 3, 4], 2, async (item, i) => {
+        running++; max = Math.max(max, running);
+        await new Promise(r => setTimeout(r, (5 - i) * 10));
+        running--;
+        return item * 2;
+    });
+    assert.deepEqual(out, [0, 2, 4, 6, 8]);
+    assert.ok(max <= 2, `ran ${max} at once`);
+});
+
+test('pool: a failing worker rejects the run only after every started worker settled', async () => {
+    let siblingDone = false;
+    await assert.rejects(pool([0, 1], 2, async i => {
+        if (i === 0) throw new Error('boom');
+        try { await new Promise(r => setTimeout(r, 30)); } finally { siblingDone = true; }
+    }), /boom/);
+    assert.equal(siblingDone, true);
 });

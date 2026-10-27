@@ -69,8 +69,8 @@
         "zip-store.js"
       ],
       "maxPackedBytes": null,
-      "maxUnpackedBytes": 781100,
-      "maxZipBytes": 255700,
+      "maxUnpackedBytes": 791175,
+      "maxZipBytes": 258710,
       "files": [
         "elements/api.json",
         "modules/manifest.json"
@@ -135,8 +135,8 @@
         "dock-tree.js"
       ],
       "maxPackedBytes": null,
-      "maxUnpackedBytes": 39900,
-      "maxZipBytes": 16500
+      "maxUnpackedBytes": 40838,
+      "maxZipBytes": 16724
     },
     {
       "id": "plainkit.canvas",
@@ -154,14 +154,15 @@
         "canvas-geometry.js",
         "canvas-rulers.js",
         "canvas-select.js",
+        "canvas-snap.js",
         "canvas-style.js",
         "heat-map-layout.js",
         "svg/",
         "viewport-logic.js"
       ],
       "maxPackedBytes": null,
-      "maxUnpackedBytes": 64840,
-      "maxZipBytes": 28740
+      "maxUnpackedBytes": 79216,
+      "maxZipBytes": 35477
     },
     {
       "id": "plainkit.blazor",
@@ -194,15 +195,15 @@
         "web-types.json"
       ],
       "maxPackedBytes": null,
-      "maxUnpackedBytes": 912990,
-      "maxZipBytes": 192289
+      "maxUnpackedBytes": 929944,
+      "maxZipBytes": 194875
     }
   ],
   "siteOnly": [
     "gallery/"
   ],
   "blazorPayload": {
-    "coreOnly": 737420,
-    "full": 1032592
+    "coreOnly": 745062,
+    "full": 1048205
   }
 }

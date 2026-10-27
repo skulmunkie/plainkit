@@ -15,13 +15,16 @@ export default Base => class extends Base {
             this.addEventListener('pk-select', () => { if (!this.keepOpen && this.open) this.request('select'); });
             this.addEventListener('keydown', e => this.key(e));
             this.watchSlot('trigger', () => this.aria2());
+            this.watchSlot('', () => this.empty());
         }
-        this.aria2(); this.apply();
+        this.aria2(); this.apply(); this.empty();
     }
     disconnected() { this.stop(); }
     get trigger() { return this.slotted('trigger')[0]; }
     aria2() { const t = triggerControl(this.trigger); if (t) { t.setAttribute('aria-haspopup', 'menu'); t.setAttribute('aria-expanded', String(this.open)); } }
-    changed(name) { if (name === 'open') this.apply(); }
+    // hideEmpty (#1773): no choosable item, no trigger (the slot is ours; the host's trigger element is untouched).
+    empty() { const s = this.shadowRoot?.querySelector('slot[name="trigger"]'); if (s) s.hidden = this.hideEmpty && !this.slotted().some(i => i.localName === 'pk-menu-item' && !['header', 'divider'].includes(i.type)); }
+    changed(name) { if (name === 'open') this.apply(); if (name === 'hideEmpty') this.empty(); }
     show() { this.open = true; }
     hide() { this.open = false; }
     request(reason) {

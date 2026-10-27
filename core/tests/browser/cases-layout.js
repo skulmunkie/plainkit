@@ -46,6 +46,17 @@ export const layoutCases = [
         t.eq(getComputedStyle(el).display, 'none');
     }],
 
+    ['base CSS: items of a role="list" list laid out as a flex row share one top edge; a plain list keeps its item spacing (#1813)', async t => {
+        const box = await t.mount('<div><ul role="list" id="row"><li>One</li><li>Two</li><li>Three</li></ul><ul id="prose"><li>A</li><li>B</li></ul></div>');
+        const row = box.querySelector('#row'); Object.assign(row.style, { display: 'flex', gap: '1rem', listStyle: 'none', padding: '0' });
+        await t.settle();
+        const tops = [...row.children].map(li => Math.round(li.getBoundingClientRect().top));
+        t.eq(new Set(tops).size, 1, `all items share one top (got ${tops.join(',')})`);
+        t.eq(getComputedStyle(row.children[1]).marginBlockStart, '0px', 'no item margin in a role=list list');
+        const p = box.querySelector('#prose').children[1];
+        t.ok(parseFloat(getComputedStyle(p).marginBlockStart) > 0, 'a plain list keeps the --space-1 item spacing');
+    }],
+
     ['stack: children stack vertically with the gap token, stretch by default, and align changes the cross axis', async t => {
         const el = await layout(t, 'pk-stack', '', 3, 300);
         t.eq(getComputedStyle(el).flexDirection, 'column'); t.eq(el.gap, 'md');
@@ -293,6 +304,15 @@ export const layoutCases = [
         el.querySelector('input').dispatchEvent(new Event('invalid')); await settle();
         t.ok(shown(b), 'an invalid control in a hidden section reveals it');
         size(el, rem(60)); await settle(); t.ok(shown(a) && shown(b) && shown(c) && !b.hasAttribute('data-pk-section-hidden'), 'widening shows everything again');
+    }],
+
+    ['detail-layout: a pk-card inside a [data-pk-section] wrapper is in that section and gets no "no data-pk-section" warning; a bare card still does (#1806)', async t => {
+        const log = await import('../../js/log.js'); log.clearLogBuffer();
+        const nosection = () => log.getLogBuffer().filter(e => e.level === 'warn' && /has no data-pk-section/.test(e.message)).length;
+        await t.mount('<pk-detail-layout><div data-pk-section="details"><pk-card heading="A">a</pk-card></div><pk-card heading="B" data-pk-section="pricing">b</pk-card></pk-detail-layout>'); await t.settle(); await t.settle();
+        t.eq(nosection(), 0, 'a card inside a section wrapper does not warn');
+        await t.mount('<pk-detail-layout><pk-card heading="A" data-pk-section="details">a</pk-card><pk-card heading="B" data-pk-section="pricing">b</pk-card><pk-card heading="Loose">c</pk-card></pk-detail-layout>'); await t.settle(); await t.settle();
+        t.eq(nosection(), 1, 'a card with no section around it still warns');
     }],
 
     ['detail-layout: the collapsed strip tabs are defined and styled (tap height), and choosing the second tab swaps the main and sidebar cards (#316)', async t => {
@@ -943,6 +963,23 @@ layoutCases.push(
             } else t.ok(f.rect(g).height < 400 && f.rect(cells[1]).top >= f.rect(cells[0]).bottom - 1, '375px: sized to content and stacked');
             f.fr.remove();
         }
+    }],
+    ['fill-column: the fixed region is the fixed height, the rest ends at the column bottom and scrolls on its own, the fixed region does not move; with nothing fixed the rest takes it all (#1675)', async t => {
+        const host = t.stage('<pk-fill-column fixed="120px" gap="none"><div slot="fixed" id="fc-preview">Preview</div><div id="fc-list">List</div></pk-fill-column>');
+        host.style.blockSize = '400px'; host.style.inlineSize = '300px';
+        await t.load(host);
+        const el = host.querySelector('pk-fill-column'), preview = host.querySelector('#fc-preview');
+        host.querySelector('#fc-list').style.blockSize = '2000px';
+        await t.settle();
+        const fixed = el.shadowRoot.querySelector('[part="fixed"]'), rest = el.shadowRoot.querySelector('[part="rest"]'), r = x => x.getBoundingClientRect();
+        t.ok(Math.abs(r(el).height - 400) <= 1, `the column takes its parent's height (${Math.round(r(el).height)}px)`);
+        t.ok(Math.abs(r(fixed).height - 120) <= 1, `the fixed region is 120px (${Math.round(r(fixed).height)}px)`);
+        t.ok(Math.abs(r(rest).top - r(fixed).bottom) <= 1 && Math.abs(r(rest).bottom - r(el).bottom) <= 1, 'the rest starts under the fixed region and ends at the column bottom');
+        const top = r(preview).top; rest.scrollTop = 500; await t.settle();
+        t.ok(rest.scrollTop > 0, 'the rest scrolls on its own');
+        t.ok(Math.abs(r(preview).top - top) <= 1, 'the fixed region does not move');
+        preview.remove(); await t.settle();
+        t.ok(fixed.hidden && Math.abs(r(rest).height - 400) <= 1, 'with nothing in the fixed slot the region is hidden and the rest takes the whole height');
     }],
     ['data-show-above and data-hide-above show and hide content at the named breakpoints (#1722)', async t => {
         for (const [width, shown] of [[1280, ['above-tablet', 'above-phone']], [768, ['below-tablet', 'above-phone']], [375, ['below-tablet', 'phone-only']]]) {

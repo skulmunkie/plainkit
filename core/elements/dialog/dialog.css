@@ -10,9 +10,9 @@
     padding: 0;
     border: 1.5px solid var(--color-border);
     border-radius: var(--radius-xl);
-    background: var(--color-panel);
+    background: var(--surface-tint, var(--color-panel));
     color: var(--color-text);
-    box-shadow: var(--shadow-modal);
+    box-shadow: inset 0 1px var(--surface-border-highlight), var(--shadow-modal);
     overflow: hidden;
     font-size: var(--text-read);
 }
@@ -20,6 +20,8 @@
 [part="dialog"][open] { display: flex; flex-direction: column; animation: dialog-in 0.15s ease-out; }
 
 [part="dialog"]::backdrop { background: var(--modal-overlay-bg); backdrop-filter: blur(3px); }
+
+[part="dialog"]::before { content: ""; position: absolute; inset: 0; z-index: -1; border-radius: inherit; pointer-events: none; backdrop-filter: blur(var(--surface-blur)) saturate(var(--surface-saturate)); }
 
 :host([size="sm"]) { --pk-dialog-w: min(26rem, calc(100vw - 2 * var(--space-4))); }
 :host([size="lg"]) { --pk-dialog-w: min(50rem, calc(100vw - 2 * var(--space-4))); }
@@ -49,6 +51,9 @@
 @keyframes dialog-in { from { opacity: 0; transform: translateY(0.5rem); } }
 
 @media (prefers-reduced-motion: reduce) { [part="dialog"][open] { animation: none; } }
+@media (prefers-reduced-transparency: reduce) { [part="dialog"]::backdrop, [part="dialog"]::before { backdrop-filter: none; } [part="dialog"] { background: var(--color-panel); } }
+@media (prefers-contrast: more) { [part="dialog"]::before { backdrop-filter: none; } [part="dialog"] { background: var(--color-panel); } }
+@supports not (backdrop-filter: blur(1px)) { [part="dialog"] { background: var(--color-panel); } }
 
 @media (--phone) {
     [part="dialog"] { width: 100vw; height: 100dvh; max-height: none; border-radius: 0; margin: 0; }

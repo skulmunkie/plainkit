@@ -8,6 +8,23 @@ import fs from 'node:fs';
 import path from 'node:path';
 import { listElementFolders } from '../core/tools/element-folders.mjs';
 
+export const CACHE_MAX_AGE_DAYS = 14;
+/** Deletes the entries of `dir` whose entry.json was neither written nor restored for `maxAgeMs`, and stale `<key>.tmp-<pid>` folders of a killed run. Returns how many it removed. A folder that cannot be listed removes nothing. */
+export function pruneCache(dir, { now = Date.now(), maxAgeMs = CACHE_MAX_AGE_DAYS * 86400000 } = {}) {
+    let names;
+    try { names = fs.readdirSync(dir); } catch (e) { if (e.code !== 'ENOENT') console.error(`cache: could not list ${dir} (${e.message})`); return 0; }
+    let removed = 0;
+    for (const name of names) {
+        if (!/^[0-9a-f]{64}(\.tmp-\d+)?$/.test(name)) continue; // only what the cache itself writes
+        const d = path.join(dir, name), meta = path.join(d, 'entry.json');
+        const st = fs.statSync(fs.existsSync(meta) ? meta : d, { throwIfNoEntry: false });
+        if (!st || now - st.mtimeMs <= maxAgeMs) continue;
+        fs.rmSync(d, { recursive: true, force: true });
+        removed++;
+    }
+    return removed;
+}
+
 const sha = data => createHash('sha256').update(data).digest('hex');
 const SKIP_FILE = /\.test\.mjs$/;
 const TAG = /\bpk-[a-z][a-z0-9-]*/g;
@@ -102,6 +119,7 @@ export function createCache({ root, dir, chrome, known }) {
             const entry = JSON.parse(fs.readFileSync(meta, 'utf8'));
             for (const [f, h] of Object.entries(entry.files)) if (sha(fs.readFileSync(path.join(d, f))) !== h) throw new Error(`${f} does not match its recorded hash`);
             for (const f of Object.keys(entry.files)) fs.copyFileSync(path.join(d, f), path.join(out, f));
+            try { const now = new Date(); fs.utimesSync(meta, now, now); } catch (e) { console.error(`cache: could not mark ${key.slice(0, 12)} as used (${e.message})`); } // a used entry stays young
             return entry.shots;
         } catch (e) {
             console.error(`cache entry ${key.slice(0, 12)} is corrupt (${e.message}): rendering it again`);

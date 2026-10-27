@@ -61,3 +61,29 @@ test('a table keeps its on-demand features out of the files that load with the p
 test('an unknown tag is refused with a FIX line', { skip }, async () => {
     await assert.rejects(bundlePage({ tags: ['pk-buton'], dist, out: path.join(os.tmpdir(), 'pk-bundle-none') }), /pk-buton[\s\S]*FIX/);
 });
+
+test('--flat writes every file into one folder and points the sprite at its copy beside the bundle (#1808)', { skip }, async () => {
+    const tmp = makeTempDir('pk-bundle-flat-');
+    try {
+        const r = await bundlePage({ tags: ['pk-button', 'pk-table'], dist, out: tmp, flat: true });
+        const names = fs.readdirSync(tmp);
+        assert.ok(names.every(n => fs.statSync(path.join(tmp, n)).isFile()), `no sub-folder: ${names.join(', ')}`);
+        for (const n of ['plainkit.bundle.js', 'plainkit.bundle.css', 'plainkit-icons.svg']) assert.ok(names.includes(n), `${n} is written`);
+        const scripts = names.filter(n => n.endsWith('.js'));
+        assert.ok(scripts.length > 2 && scripts.every(n => n === 'plainkit.bundle.js' || /^plainkit-[\w-]+\.js$/.test(n)), scripts.join(', '));
+        const js = scripts.map(n => fs.readFileSync(path.join(tmp, n), 'utf8')).join('\n');
+        for (const m of js.matchAll(/(?:\bfrom\s*|\bimport\s*\(?\s*)["']([^"']+)["']/g)) assert.match(m[1], /^\.\/plainkit-[\w.-]+\.js$/, `import ${m[1]} must be a file beside the bundle`);
+        assert.match(js, /["']\.\/plainkit-icons\.svg["']/, 'the sprite address points beside the bundle');
+        assert.doesNotMatch(js, /["']\.\.\/icons\.svg["']/, 'no sprite address one folder up is left');
+        assert.ok(names.includes('plainkit-registry.js'), 'the registry is written beside the bundle');
+        assert.match(js, /["']\.\/plainkit-registry\.js["']/, 'the loader reads the registry beside the bundle');
+        assert.doesNotMatch(js, /["']\.\.\/elements\/registry\.js["']/, 'no registry address one folder up is left');
+        assert.doesNotMatch(fs.readFileSync(path.join(tmp, 'plainkit-registry.js'), 'utf8'), /\bimport\b/, 'the registry copy imports nothing');
+        assert.ok(r.files.includes('plainkit-icons.svg'));
+    } finally { fs.rmSync(tmp, { recursive: true, force: true }); }
+});
+
+test('a --flat rewrite whose address is gone from the source is refused with a FIX line (#1808)', async () => {
+    const { FLAT_REWRITES } = await import('../tools/bundle-page.mjs');
+    for (const [file, [re]] of Object.entries(FLAT_REWRITES)) assert.ok(re.test(fs.readFileSync(path.join(path.dirname(fileURLToPath(import.meta.url)), '..', 'js', file), 'utf8')), `core/js/${file} still holds the address --flat rewrites`);
+});

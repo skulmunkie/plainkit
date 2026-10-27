@@ -19,6 +19,10 @@
     { "name": "selectable", "type": "boolean", "default": false, "reflect": true, "description": "Items that declare a world rect (data-id with data-x, data-y, data-w, data-h, or an SVG child's own x, y, width, height, or a geometry(el) callback property) can be selected: click, Shift or Ctrl click to toggle, a marquee drag on bare ground, Ctrl+A, Escape, and Tab focus. The layer loads on first use. The canvas never writes to the items." },
     { "name": "mode", "type": "string", "default": "select", "reflect": true, "values": ["select", "pan"], "description": "What a primary drag on bare ground does in a selectable canvas: select draws a marquee (touch, the middle button and the toolbar still pan), pan drags the view." },
     { "name": "selection", "type": "json", "default": [], "reflect": false, "commit": "pk-canvas-select", "description": "The ids of the selected items (an array, or a JSON attribute). The canvas sets it from a gesture and emits pk-canvas-select; set it to select from code." },
+    { "name": "readonly", "type": "boolean", "default": false, "reflect": true, "description": "View only: pan, zoom and selection still work, but the selection cannot be moved or resized (no pk-canvas-move or pk-canvas-resize, no handles)." },
+    { "name": "snap", "type": "string", "default": "", "reflect": true, "description": "What a dragged selection snaps to, a space list: grid, guides, edges, centres (edges and centres of the other items and of the targets property, a JS-only array of extra { x, y, w, h } world rects). Empty: no snapping. The lines that hold it are drawn while dragging." },
+    { "name": "snapThreshold", "type": "number", "default": 6, "reflect": true, "description": "How near, in screen pixels, a snap line pulls." },
+    { "name": "guides", "type": "json", "default": [], "reflect": false, "description": "Guide lines [{ axis: 'x' | 'y', at }] in world units, drawn across a selectable surface and snapped to with snap=\"guides\"." },
     { "name": "minZoom", "type": "number", "default": 0.25, "reflect": true, "description": "The smallest scale." },
     { "name": "maxZoom", "type": "number", "default": 4, "reflect": true, "description": "The largest scale." },
     { "name": "wheel", "type": "string", "default": "auto", "reflect": true, "values": ["auto", "zoom", "pan", "page"], "description": "The plain wheel: auto pans only with focus (else the page scrolls), pan, zoom, or page (never taken). Ctrl or Cmd with the wheel, and pinch, always zoom." },
@@ -31,7 +35,9 @@
     { "name": "pk-view-change", "detail": { "x": "number", "y": "number", "zoom": "number" }, "description": "Panned or zoomed." },
     { "name": "pk-canvas-pick", "detail": { "target": "Element | null", "additive": "boolean" }, "description": "A press without movement: the deepest node under it, or null on bare ground; additive with Shift, Ctrl or Cmd." },
     { "name": "pk-canvas-select", "detail": { "ids": "string[]" }, "description": "The selection changed by a gesture (click, marquee, Ctrl+A, Escape, Tab focus): the new ids." },
-    { "name": "pk-canvas-key", "detail": { "key": "string", "shiftKey": "boolean", "altKey": "boolean", "ctrlKey": "boolean" }, "description": "Delete, Escape or Shift with an arrow on the focused surface, for the page to act on." }
+    { "name": "pk-canvas-key", "detail": { "key": "string", "shiftKey": "boolean", "altKey": "boolean", "ctrlKey": "boolean" }, "description": "Delete, Escape, or Shift with an arrow (when there is no selection to move), on the focused surface, for the page to act on." },
+    { "name": "pk-canvas-move", "detail": { "moves": "{ id: string, x: number, y: number }[]", "done": "boolean" }, "description": "Cancelable: the selection is asked to move to these world positions. Arrow keys send done true; dragging an already selected item sends done false while it runs and done true at the end (Escape puts it back with done true). The page writes them back to the items' data-x and data-y (or an SVG item's x and y); the canvas never moves items itself." },
+    { "name": "pk-canvas-resize", "detail": { "id": "string", "x": "number", "y": "number", "w": "number", "h": "number", "done": "boolean" }, "description": "Cancelable: the one selected item is asked to take this world rect, from a drag of one of its eight handles (done false while it runs, done true at the end; Shift keeps the ratio, Alt the centre, Escape puts it back). The page writes it back; the canvas never resizes items itself." }
   ],
   "parts": [
     { "name": "frame", "description": "The focusable ground" },
@@ -46,6 +52,9 @@
     { "name": "status", "description": "The live region that announces the zoom" },
     { "name": "selection", "description": "The layer of selection frames (selectable)" },
     { "name": "marquee", "description": "The rubber band while a drag selects" },
+    { "name": "handle", "description": "A resize handle (eight on a single selected item, not readonly), data-handle nw, ne, se, sw, n, e, s or w" },
+    { "name": "guide", "description": "A guide line, data-axis x (vertical) or y (horizontal)" },
+    { "name": "snap-line", "description": "A line a dragged selection is snapped to, shown while dragging" },
     { "name": "rulers", "description": "The rulers layer (rulers on)" },
     { "name": "ruler", "description": "One ruler strip, data-axis x or y" },
     { "name": "ruler-corner", "description": "The corner with the unit" },
@@ -55,7 +64,9 @@
     { "name": "--pk-canvas-bg", "description": "The ground behind the content", "default": "a page and text mix" },
     { "name": "--pk-canvas-grid", "description": "The grid line colour", "default": "a faint text mix" },
     { "name": "--pk-canvas-width", "description": "The world width at zoom 1", "default": "24rem" },
-    { "name": "--pk-canvas-height", "description": "The height of the surface", "default": "24rem" }
+    { "name": "--pk-canvas-height", "description": "The height of the surface", "default": "24rem" },
+    { "name": "--pk-canvas-handle-size", "description": "The drawn size of a resize handle; its hit area stays --touch-target", "default": "var(--space-2)" },
+    { "name": "--pk-canvas-guide", "description": "The colour of guides and snap lines", "default": "var(--color-accent)" }
   ],
   "methods": [
     { "name": "pointToWorld(clientX, clientY)", "description": "Returns { x, y } world units for a client point, grid-snapped" },
@@ -65,8 +76,8 @@
     { "name": "centerOn(x, y)", "description": "Centres a world point" },
     { "name": "reset()", "description": "Back to zoom 1 at the origin" }
   ],
-  "a11y": "A labelled group and one tab stop. Arrows pan (mirrored in right-to-left), + and - zoom, 0 resets, 1 or Home fits; Delete, Escape and Shift+arrow reach the page. Zoom changes are announced; the plain wheel is the page's until focus.",
-  "mobile": "One finger pans, two pinch, a tap picks; the toolbar folds to icons with 44px targets.",
+  "a11y": "A labelled group and one tab stop. Arrows pan (mirrored in right-to-left), + and - zoom, 0 resets, 1 or Home fits; with a selection (selectable, not readonly) the arrows move it instead: one grid step, Shift ten, Alt one screen pixel, announced as \"Moved to x, y\". Delete, Escape and Shift+arrow reach the page. Zoom changes are announced; the plain wheel is the page's until focus.",
+  "mobile": "One finger pans, or drags a selected item; two pinch; a tap picks; the toolbar folds to icons with 44px targets.",
   "examples": [
     {
       "title": "Selectable items on a canvas",

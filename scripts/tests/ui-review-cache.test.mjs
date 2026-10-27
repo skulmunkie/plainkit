@@ -3,8 +3,8 @@ import assert from 'node:assert/strict';
 import fs from 'node:fs';
 import os from 'node:os';
 import path from 'node:path';
-import { closureOf, createCache, importsOf, tagsIn, unitKey } from '../ui-review-cache.mjs';
-import { parseArgs } from '../ui-review.mjs';
+import { closureOf, createCache, importsOf, pruneCache, tagsIn, unitKey } from '../ui-review-cache.mjs';
+import { jobArgs, parseArgs } from '../ui-review.mjs';
 import { makeTempDir } from '../../core/tools/tempdir.mjs';
 
 test('tagsIn lists the known elements a text mentions', () => {
@@ -106,4 +106,62 @@ test('a hit restores the shots and files, a corrupt entry is rendered again', as
     try { await run(c3, 'two'); } finally { console.error = quiet; }
     assert.deepEqual(c3.stats, { hits: 0, misses: 1, corrupt: 1 });
     assert.equal(fs.readFileSync(path.join(out, 'c.png'), 'utf8'), 'two');
+});
+
+test('--cache-dir implies --cache, --no-cache still wins, and shards get it too', () => {
+    assert.equal(parseArgs([]).cacheDir, null);
+    const o = parseArgs(['--cache-dir', 'x']);
+    assert.equal(o.cache, true);
+    assert.equal(o.cacheDir, path.resolve('x'));
+    assert.equal(parseArgs(['--cache-dir', 'x', '--no-cache']).cache, false);
+    assert.equal(parseArgs(['--no-cache', '--cache-dir', 'x']).cache, false);
+    assert.throws(() => parseArgs(['--cache-dir']), /needs a value/);
+    const args = jobArgs(['--all', '--cache-dir', 'C', '--jobs', '2'], 1, 2, 'o');
+    assert.ok(args.join(' ').includes('--cache-dir C'), args.join(' '));
+});
+
+test('two worktrees with the same files share one cache folder: a unit stored through one hits through the other', async () => {
+    const shared = makeTempDir('pk-cache-shared-');
+    const a = fixture(), b = fixture();
+    const mk = f => createCache({ root: f.root, dir: shared, chrome: 'Chrome/1', known: new Set(['a', 'b', 'c']) });
+    const u = { kind: 'example', name: 'c', vp, theme: 'light' };
+    const outA = path.join(a.root, 'out'), outB = path.join(b.root, 'out');
+    fs.mkdirSync(outA); fs.mkdirSync(outB);
+    const ca = mk(a), cb = mk(b);
+    const ma = { shots: [], notSeen: [] };
+    await ca.unit(u, { manifest: ma, out: outA }, async () => { fs.writeFileSync(path.join(outA, 'c.png'), 'pixels'); ma.shots.push({ file: 'c.png', findings: [] }); });
+    const manifest = { shots: [], notSeen: [] };
+    await cb.unit(u, { manifest, out: outB }, async () => { throw new Error('rendered again'); });
+    assert.equal(cb.stats.hits, 1);
+    assert.equal(fs.readFileSync(path.join(outB, 'c.png'), 'utf8'), 'pixels');
+});
+
+const HEX = n => String(n).padStart(64, '0');
+const age = (p, days) => { const t = new Date(Date.now() - days * 86400000); fs.utimesSync(p, t, t); };
+
+test('pruneCache removes old entries and stale temp folders, keeps young entries and foreign folders', () => {
+    const dir = makeTempDir('pk-cache-prune-');
+    const entry = (name, days) => { const d = path.join(dir, name); fs.mkdirSync(d); fs.writeFileSync(path.join(d, 'entry.json'), '{}'); age(path.join(d, 'entry.json'), days); return d; };
+    const old = entry(HEX(1), 15), young = entry(HEX(2), 1), keep = entry('keep-me', 15);
+    const tmp = path.join(dir, `${HEX(3)}.tmp-123`); fs.mkdirSync(tmp); age(tmp, 15);
+    assert.equal(pruneCache(dir), 2);
+    assert.equal(fs.existsSync(old), false);
+    assert.equal(fs.existsSync(tmp), false);
+    assert.equal(fs.existsSync(young), true);
+    assert.equal(fs.existsSync(keep), true);
+    assert.equal(pruneCache(path.join(dir, 'missing')), 0);
+});
+
+test('a restore makes its entry young again', async () => {
+    const f = fixture();
+    const out = path.join(f.root, 'out'); fs.mkdirSync(out);
+    const u = { kind: 'example', name: 'c', vp, theme: 'light' };
+    const run = cache => { const manifest = { shots: [], notSeen: [] }; return cache.unit(u, { manifest, out }, async () => { fs.writeFileSync(path.join(out, 'c.png'), 'one'); manifest.shots.push({ file: 'c.png', findings: [] }); }); };
+    await run(f.cache());
+    const dir = path.join(f.root, 'review-cache'), name = fs.readdirSync(dir)[0];
+    age(path.join(dir, name, 'entry.json'), 15);
+    const c = f.cache(); await run(c);
+    assert.equal(c.stats.hits, 1);
+    assert.equal(pruneCache(dir), 0);
+    assert.equal(fs.existsSync(path.join(dir, name)), true);
 });

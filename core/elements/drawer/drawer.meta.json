@@ -42,6 +42,13 @@
       "description": "The backdrop does not close it."
     },
     {
+      "name": "closeLabel",
+      "type": "string",
+      "default": "Close",
+      "reflect": true,
+      "description": "The accessible name of the close (x) button; set it for another language or wording."
+    },
+    {
       "name": "wide",
       "type": "boolean",
       "default": false,
@@ -151,7 +158,7 @@
       "description": "Closes it"
     }
   ],
-  "a11y": "A native modal dialog with an accessible name; focus returns to the opener on close; Escape and the backdrop close it (set persistent to keep the backdrop inert).",
+  "a11y": "A native modal dialog with an accessible name; focus returns to the opener on close; Escape and the backdrop close it (set persistent to keep the backdrop inert). A theme's glass surface tokens (--surface-blur, --surface-tint) give the panel a frosted look; with reduced transparency or more contrast asked for, or without backdrop-filter support, the panel is solid --color-flyout. The close button is named by close-label (default \"Close\").",
   "mobile": "Left and right drawers are at most 90vw wide; the bottom sheet takes at most 85% of the height; swipe toward the edge it came from to close.",
   "examples": [
     {

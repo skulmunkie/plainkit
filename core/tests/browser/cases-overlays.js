@@ -88,6 +88,15 @@ export const overlaysCases = [
         t.ok(el.open, 'vetoed');
     }],
 
+    ['dropdown hide-empty: no choosable item, no trigger; adding an item draws it, removing it hides it again; without hide-empty an empty menu keeps its trigger (#1773)', async t => {
+        const host = t.stage('<pk-dropdown id="a" hide-empty><pk-button slot="trigger">More actions</pk-button><pk-menu-item type="header">Stock</pk-menu-item></pk-dropdown><pk-dropdown id="b"><pk-button slot="trigger">Plain</pk-button></pk-dropdown>'); await t.load(host); await t.settle();
+        const a = host.querySelector('#a'), b = host.querySelector('#b'), w = el => el.querySelector('[slot=trigger]').getBoundingClientRect().width;
+        t.eq(w(a), 0, 'a header alone is nothing to choose: no trigger');
+        t.ok(w(b) > 0, 'without hide-empty the trigger stays');
+        const item = document.createElement('pk-menu-item'); item.textContent = 'Receive'; a.append(item); await t.settle();
+        t.ok(w(a) > 0, 'an item draws the trigger');
+        item.remove(); await t.settle(); t.eq(w(a), 0, 'the last item gone hides it again');
+    }],
     ['dropdown and popover: a display: contents trigger wrapper still anchors the menu next to the trigger', async t => {
         const host = await t.mount('<div><pk-dropdown><span slot="trigger" style="display: contents"><button>Actions</button></span><pk-menu-item>Edit</pk-menu-item></pk-dropdown><pk-popover><span slot="trigger" style="display: contents"><button>Info</button></span><p>Body</p></pk-popover></div>');
         for (const b of host.querySelectorAll('button')) b.style.marginTop = '200px';
@@ -227,6 +236,15 @@ export const overlaysCases = [
         t.eq(el.side, 'left'); t.ok(el.wide); t.eq(el.slotted('actions').length, 1);
     }],
 
+    ['drawer and dialog: close-label names the close button, "Close" by default (#1809)', async t => {
+        const box = await t.mount('<div><pk-drawer heading="Warenkorb" close-label="Schliessen">x</pk-drawer><pk-dialog heading="Hallo" close-label="Schliessen">y</pk-dialog><pk-drawer heading="Cart">z</pk-drawer></div>'); await t.settle();
+        const [d, g, plain] = box.querySelectorAll('pk-drawer,pk-dialog');
+        t.eq(d.part('close').getAttribute('aria-label'), 'Schliessen', 'the drawer close button takes close-label');
+        t.eq(g.part('close').getAttribute('aria-label'), 'Schliessen', 'the dialog close button takes close-label');
+        t.eq(plain.part('close').getAttribute('aria-label'), 'Close', 'the default stays Close');
+        d.closeLabel = 'Fermer'; await t.settle(); t.eq(d.part('close').getAttribute('aria-label'), 'Fermer', 'it follows a change');
+    }],
+
     ['dialog: once open (after its entry animation) it is centred in the viewport, full screen on a phone, and never taller than the viewport', async t => {
         const el = await t.mount('<pk-dialog heading="Where am I?" size="sm">Text</pk-dialog>');
         const dlg = el.part('dialog'); el.open = true; await arrived(dlg, t);
@@ -273,6 +291,24 @@ export const overlaysCases = [
         const q = cls.confirm({ heading: 'x' }); await wait(30);
         document.body.querySelector(':scope > pk-dialog:last-of-type').querySelector('[data-result="cancel"]').click();
         t.eq(await q, false);
+    }],
+
+    ['drawer and dialog: open set before heading and content in the same turn does not warn "empty"; really opened empty still warns once (#1807)', async t => {
+        const log = await import('../../js/log.js');
+        const box = await t.mount('<div><pk-drawer heading="Warm"></pk-drawer><pk-dialog heading="Warm"></pk-dialog></div>'); await t.settle();
+        const empties = () => log.getLogBuffer().filter(e => e.level === 'warn' && /no heading and no content/.test(e.message)).map(e => e.scope);
+        log.clearLogBuffer();
+        for (const tag of ['pk-drawer', 'pk-dialog']) {
+            const el = document.createElement(tag); box.append(el);
+            el.open = true; el.heading = 'Cart'; el.append('Two items'); // the order a framework batch may use
+        }
+        await t.settle();
+        t.eq(empties().join(), '', 'heading and content set in the same turn: no warning');
+        box.querySelectorAll('pk-drawer[heading="Cart"],pk-dialog[heading="Cart"]').forEach(el => { el.open = false; });
+        await t.settle();
+        const bare = document.createElement('pk-drawer'); box.append(bare); bare.open = true; await t.settle();
+        t.eq(empties().join(), 'pk-drawer', 'a drawer opened with nothing still warns, once');
+        bare.open = false; await t.settle();
     }],
 
     ['dialog, drawer and popover: data-open, data-toggle and data-close work from the elements alone (the openers install when one connects)', async t => {
@@ -783,6 +819,21 @@ export const overlaysCases = [
             t.eq(host.querySelectorAll('*').length, 1, 'only the stage div is left');
         } finally { window.setTimeout = st; window.clearTimeout = ct; }
     }],
+    ['glass surfaces (#1814): solid by default, frosted and tinted when a theme sets the surface tokens, solid again without them', async t => {
+        const glass = [['<pk-dialog heading="G">x</pk-dialog>', 'dialog', '::before'], ['<pk-command-palette></pk-command-palette>', 'dialog', '::before'], ['<pk-drawer heading="G">x</pk-drawer>', 'panel', '::before'],
+            ['<pk-popover heading="G"><button slot="trigger">Open</button>x</pk-popover>', 'panel', null], ['<pk-dropdown><button slot="trigger">Open</button></pk-dropdown>', 'menu', null], ['<pk-navbar sticky></pk-navbar>', null, '::before']];
+        for (const [html, part, pseudo] of glass) {
+            const el = await t.mount(html), box = part ? el.part(part) : el, name = el.localName;
+            const filter = () => getComputedStyle(box, pseudo).backdropFilter, bg = () => getComputedStyle(box).backgroundColor;
+            const solid = bg();
+            t.eq(filter(), 'none', `${name}: no blur by default`);
+            el.style.setProperty('--surface-blur', '8px'); el.style.setProperty('--surface-tint', 'rgba(0, 0, 0, 0.5)'); await t.settle();
+            t.ok(filter().includes('blur(8px)'), `${name}: the theme's blur reaches the surface (${filter()})`);
+            t.eq(bg(), 'rgba(0, 0, 0, 0.5)', `${name}: the tint replaces the solid colour`);
+            el.style.removeProperty('--surface-blur'); el.style.removeProperty('--surface-tint'); await t.settle();
+            t.eq(bg(), solid, `${name}: solid again`); t.eq(filter(), 'none', `${name}: no blur again`);
+        }
+    }],
 ];
 
 // Issue 837: the card-menu pattern (PkCardMenu) is a pk-dropdown whose trigger is an icon pk-button inside the display: contents span the Blazor wrapper adds (a span cannot take focus). The button's real <button> is in its shadow root, so the
@@ -849,5 +900,26 @@ overlaysCases.push(
         el.part('button').click(); await t.settle(); t.ok(!dd.open && !el.open, 'a click on the button closes it and open follows');
         el.part('button').click(); await t.settle(); t.ok(dd.open && el.open, 'a click opens it and open follows');
         el.open = false; await t.settle(); t.ok(!dd.open, 'open=false closes the dropdown');
+    }],
+);
+
+// Issue 1810: not-yet-upgraded overlays take no room (an iframe with no script never upgrades them); a defined closed drawer takes none either.
+overlaysCases.push(
+    ['drawer, dialog and popover before upgrade: their content takes no room, a docked drawer keeps its place, a popover keeps its trigger; a defined closed drawer takes none (#1810)', async t => {
+        const host = t.stage('');
+        const f = document.createElement('iframe'); f.title = 'no script'; f.style.width = '800px'; f.style.height = '600px'; f.style.border = '0';
+        const loaded = new Promise(r => f.addEventListener('load', r, { once: true }));
+        f.srcdoc = `<!DOCTYPE html><html lang="en"><head><link rel="stylesheet" href="${new URL('../../plainkit.css', import.meta.url).href}"></head><body><pk-drawer id="d" heading="Cart"><p>Item one</p><p>Item two</p></pk-drawer><pk-dialog id="g" heading="Hi"><p>Body</p></pk-dialog><pk-popover id="p"><button slot="trigger" id="trig">Open</button><p id="pb">Pop body</p></pk-popover><pk-drawer id="k" docked heading="Inspector"><p>Docked body</p></pk-drawer></body></html>`;
+        host.append(f);
+        await loaded;
+        const d = f.contentDocument, h = id => d.getElementById(id).getBoundingClientRect().height;
+        t.ok(!f.contentWindow.customElements.get('pk-drawer'), 'nothing upgrades in the frame');
+        t.eq(h('d'), 0, 'an unupgraded drawer takes no room');
+        t.eq(h('g'), 0, 'an unupgraded dialog takes no room');
+        t.eq(h('pb'), 0, 'the popover body takes no room');
+        t.ok(h('trig') > 0, 'the popover trigger keeps its place');
+        t.ok(h('k') > 0, 'a docked drawer keeps its place');
+        const el = await t.mount('<pk-drawer heading="Cart"><p>Item one</p><p>Item two</p></pk-drawer>'); await t.settle();
+        t.eq(Math.round(el.getBoundingClientRect().height), 0, 'once defined, a closed drawer still takes no room');
     }],
 );

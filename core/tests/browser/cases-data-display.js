@@ -146,6 +146,21 @@ export const dataDisplayCases = [
         s.variant = 'ring'; await t.settle(); t.eq(getComputedStyle(s.part('dots')).display, 'none');
     }],
 
+    ['spinner: show-label makes the label visible beside the ring, under it with overlay; without it the label stays screen-reader only (#1804)', async t => {
+        const plain = await t.mount('<pk-spinner label="Loading orders"></pk-spinner>');
+        t.ok(plain.part('label').getBoundingClientRect().width <= 1, 'default: the label is visually hidden');
+        const s = await t.mount('<pk-spinner show-label label="Loading orders"></pk-spinner>'); await t.settle();
+        const ring = s.part('ring').getBoundingClientRect(), label = s.part('label').getBoundingClientRect();
+        t.ok(label.width > 20 && label.height > 8, 'the label is visible');
+        t.ok(label.left >= ring.right, 'beside the ring');
+        t.ok(Math.abs((label.top + label.height / 2) - (ring.top + ring.height / 2)) <= 2, 'centred on the ring');
+        t.eq(s.internals.role, 'status', 'still a status region');
+        const box = await t.mount('<div><pk-spinner overlay show-label label="Loading"></pk-spinner></div>');
+        box.style.position = 'relative'; box.style.height = '200px'; await t.settle();
+        const o = box.firstElementChild, r2 = o.part('ring').getBoundingClientRect(), l2 = o.part('label').getBoundingClientRect();
+        t.ok(l2.top >= r2.bottom, 'with overlay the label sits under the ring');
+    }],
+
     ['progress: native bar carries value and max, shows the percentage, goes indeterminate and colours by threshold', async t => {
         const p = await t.mount('<pk-progress label="Import" value="60" show-value level-thresholds="70,90"></pk-progress>');
         const bar = p.part('bar');
@@ -752,6 +767,19 @@ export const dataDisplayCases = [
         el.querySelector('span[slot="cell-1-b"]').click(); t.eq(got.join(), '1', 'a click on the cell content around the link is still a row click');
     }],
 
+    ['table (375px): a text-only empty cell hides its label in a card, a filled cell keeps it (#1777)', async t => {
+        const { sampleDoc } = await import('../../site/gallery/frame.js');
+        const html = `<pk-table cards label="P" columns='[{"key":"sku","label":"SKU"},{"key":"status","label":"Status"}]' rows='[{"id":1,"sku":"A","status":"Late"},{"id":2,"sku":"B","status":""}]'></pk-table>`;
+        const host = t.stage(''), f = document.createElement('iframe');
+        f.title = 'sample'; f.style.width = '375px'; f.style.height = '400px'; f.style.border = '0';
+        const loaded = new Promise(r => f.addEventListener('load', r, { once: true })); host.append(f); f.srcdoc = sampleDoc(html); await loaded;
+        await until(() => f.contentWindow.customElements.get('pk-table') && f.contentDocument.querySelector('pk-table')?.shadowRoot?.querySelector('tbody td'), 'the table');
+        const tb = f.contentDocument.querySelector('pk-table'), w = f.contentWindow;
+        const shown = (row, key) => { const c = tb.shadowRoot.querySelector(`tbody tr[data-pk-context="${row}"] td[data-key="${key}"]`); return !!c && w.getComputedStyle(c).display !== 'none'; };
+        t.ok(shown(1, 'status') && shown(2, 'sku'), 'filled cells keep their label');
+        t.ok(!shown(2, 'status'), 'the empty Status cell draws no label');
+    }],
+
     ['table (375px): a hidePhone column is hidden in the table and in the cards layout; at 1200px it shows', async t => {
         const { sampleDoc } = await import('../../site/gallery/frame.js');
         const html = `<pk-table cards label="P" columns='[{"key":"sku","label":"SKU"},{"key":"note","label":"Note","hidePhone":true}]' rows='[{"id":1,"sku":"A","note":"n1"}]'></pk-table>`;
@@ -944,6 +972,18 @@ export const dataDisplayCases = [
         t.eq(getComputedStyle(box).borderTopLeftRadius, ref, 'the input radius by default');
         el.style.setProperty('--pk-app-bar-search-radius', '7px'); await t.settle();
         t.eq(getComputedStyle(box).borderTopLeftRadius, '7px', 'the hook value');
+    }],
+
+    ['app-bar-search: error shows a distinct failed-search message instead of "No results"; clearing it shows the empty state again (#1799)', async t => {
+        const el = await t.mount('<pk-app-bar-search debounce="0" label="Search"></pk-app-bar-search>'); await customElements.whenDefined('pk-app-bar-search');
+        const input = el.part('control'); input.value = 'inv'; input.dispatchEvent(new Event('input')); await t.settle();
+        const shown = p => !el.part(p).hidden && el.part(p).getBoundingClientRect().height > 0;
+        el.items = []; el.error = 'Search is unavailable. Try again.'; await t.settle();
+        t.ok(shown('error'), 'the error part shows'); t.eq(el.part('error').textContent, 'Search is unavailable. Try again.');
+        t.ok(!shown('empty'), 'no "No results" while failed');
+        t.ok(getComputedStyle(el.part('error')).color !== getComputedStyle(el.part('empty')).color, 'it does not look like the empty state');
+        el.error = ''; await t.settle();
+        t.ok(!shown('error') && shown('empty'), 'cleared: the empty state again');
     }],
 
     ['table-filters: typing debounces pk-search; the trigger only shows once the default slot has content, opens/closes the panel and reports pk-toggle; Clear filters raises pk-clear-filters; the badge reflects filterCount', async t => {

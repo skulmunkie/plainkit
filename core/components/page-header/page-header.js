@@ -6,8 +6,8 @@ import { mediaBelow } from '../../js/breakpoints.js';
 const filled = (el, name) => el.slotted(name).length > 0 || [...el.shadowRoot.querySelector(name ? `slot[name="${name}"]` : 'slot:not([name])').assignedNodes({ flatten: true })].some(n => n.textContent.trim() !== '');
 
 export default Base => class extends Base {
-    connected() { this.$ro = new ResizeObserver(() => { if (this.$w !== this.clientWidth) this.requestUpdate(); }); this.$ro.observe(this); for (const s of ['title', 'breadcrumb', '', 'actions', 'meta', 'tabs']) this.watchSlot(s, () => this.requestUpdate()); loadElements(this.shadowRoot); }
-    disconnected() { this.$ro?.disconnect(); this.$ro = null; this.$mq?.removeEventListener('change', this.$sync); this.$mq = null; this.$from = null; this.$omq?.removeEventListener('change', this.$sync); this.$omq = null; this.$ofrom = null; }
+    connected() { this.$ro = new ResizeObserver(() => { if (this.$w !== this.clientWidth) this.requestUpdate(); }); this.$ro.observe(this); for (const s of ['title', 'breadcrumb', '', 'actions', 'meta', 'tabs']) this.watchSlot(s, () => this.requestUpdate()); loadElements(this.shadowRoot); this.$mo = new MutationObserver(() => this.requestUpdate()); this.$mo.observe(this, { childList: true, subtree: true }); }
+    disconnected() { this.$mo?.disconnect(); this.$mo = null; this.$ro?.disconnect(); this.$ro = null; this.$mq?.removeEventListener('change', this.$sync); this.$mq = null; this.$from = null; this.$omq?.removeEventListener('change', this.$sync); this.$omq = null; this.$ofrom = null; }
     /** actionsOverflow: at the named width and below, the slotted actions stay in the light DOM but are hidden, and one trigger opens a menu with one item per action; choosing an item clicks that action. */
     overflow() {
         this.$sync ??= () => this.requestUpdate();
@@ -31,18 +31,19 @@ export default Base => class extends Base {
     items() {
         const menu = this.part('overflow'), doc = this.ownerDocument, text = i => [...i.childNodes].filter(n => n.nodeType === 3 || (n.nodeType === 1 && !n.slot)).map(n => n.textContent).join('').trim();
         const rows = this.slotted('actions').flatMap(a => /^pk-(dropdown|card-menu)$/.test(a.localName) // a menu in the slot is flattened: its items become overflow items, headers and dividers stay
-            ? [...a.children].filter(i => i.localName === 'pk-menu-item').map(a => ({ a, label: text(a), type: a.type, desc: a.description, off: a.disabled, bad: a.danger, icon: a.querySelector(':scope > [slot=prefix]')?.getAttribute('name') }))
-            : [{ a, label: (a.label || a.getAttribute('aria-label') || a.textContent).trim(), off: a.hasAttribute('disabled'), bad: a.getAttribute('variant') === 'danger', icon: a.getAttribute('icon-name') }]).filter(r => r.label || r.type === 'divider');
-        const key = JSON.stringify(rows.map(r => [r.label, r.icon, r.off, r.bad, r.type, r.desc]));
+            ? [...a.children].filter(i => i.localName === 'pk-menu-item').map(a => ({ a, label: text(a), type: a.type, desc: a.description, off: a.disabled, bad: a.danger, warn: a.warning, icon: a.querySelector(':scope > [slot=prefix]')?.getAttribute('name') }))
+            : [{ a, label: (a.label || a.getAttribute('aria-label') || a.textContent).trim(), off: a.hasAttribute('disabled'), bad: a.getAttribute('variant') === 'danger', warn: a.getAttribute('variant') === 'warn', icon: a.getAttribute('icon-name') }]).filter(r => r.label || r.type === 'divider');
+        const key = JSON.stringify(rows.map(r => [r.label, r.icon, r.off, r.bad, r.warn, r.type, r.desc]));
         if (this.$items === key) return;
         this.$items = key;
-        const items = rows.map(({ a, label, type, desc, off, bad, icon }) => {
+        const items = rows.map(({ a, label, type, desc, off, bad, warn, icon }) => {
             const item = doc.createElement('pk-menu-item');
             item.textContent = label; item.$action = a;
             if (type === 'header' || type === 'divider') { item.setAttribute('type', type); item.$action = null; }
             if (desc) item.setAttribute('description', desc);
             if (off) item.setAttribute('disabled', '');
             if (bad) item.setAttribute('danger', '');
+            if (warn) item.setAttribute('warning', '');
             if (icon) { const i = doc.createElement('pk-icon'); i.slot = 'prefix'; i.setAttribute('name', icon); item.append(i); }
             return item;
         });
