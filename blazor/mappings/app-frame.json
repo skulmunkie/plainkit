@@ -15,6 +15,7 @@
     { "name": "Busy", "type": "bool", "default": false, "map": "prop", "prop": "busy" },
     { "name": "BusyLabel", "type": "string?", "map": "prop", "prop": "busyLabel" },
     { "name": "SearchItems", "type": "string?", "map": "prop", "prop": "searchItems", "note": "JSON text, pk-app-bar-search items." },
+    { "name": "SearchError", "type": "string?", "map": "prop", "prop": "searchError", "note": "The failed-search message; empty or null for none." },
     { "name": "ChildContent", "type": "RenderFragment?", "map": "slot", "slot": "" },
     { "name": "FooterContent", "type": "RenderFragment?", "map": "slot", "slot": "footer" },
     { "name": "OnQuery", "type": "EventCallback<PkQueryEventArgs>", "map": "event", "event": "pk-query" },

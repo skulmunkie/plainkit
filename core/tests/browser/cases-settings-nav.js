@@ -123,4 +123,20 @@ export const settingsNavCases = [
         t.eq(page.currentValues().styledSel, 'live', 'the pick is read as the field value');
         t.ok(!page.part('discard').hidden && getComputedStyle(page.part('discard')).display !== 'none', 'the pick marks the page changed (the save bar shows)');
     }],
+
+    ['settings-page: an edit in own section content (a slotted pk-field-group raising pk-field-change, or a slotted pk-input) shows the save bar; Discard and a save hide it (#1803)', async t => {
+        const page = await t.mount('<pk-settings-page><pk-field-group slot="section-own"></pk-field-group><pk-input slot="section-own" label="Extra"></pk-input></pk-settings-page>');
+        page.config = { nav: false, sections: [{ key: 'own', heading: 'Own', fields: [{ key: 'name', type: 'text', label: 'Name' }] }] };
+        await until(() => page.shadowRoot.querySelector('slot[name="section-own"]'), 'the section slot'); await t.settle();
+        const bar = () => !page.part('bar').hidden;
+        t.ok(!bar(), 'no edit: no bar');
+        page.querySelector('pk-field-group').emit('pk-field-change', { key: 'x', value: 'y', values: { x: 'y' } }); await t.settle();
+        t.ok(bar(), 'a field-group change in own content shows the bar');
+        page.part('discard').click(); await t.settle();
+        t.ok(!bar(), 'Discard hides it');
+        page.querySelector('pk-input').emit('pk-value-change', { value: 'z' }); await t.settle();
+        t.ok(bar(), 'a slotted pk-input change shows the bar too');
+        page.save = async () => {}; await page.saveNow(); await t.settle();
+        t.ok(!bar(), 'a successful save hides it');
+    }],
 ];
