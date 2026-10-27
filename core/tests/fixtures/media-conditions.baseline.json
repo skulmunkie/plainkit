@@ -156,6 +156,8 @@
  ],
  "popover": [
   "(prefers-reduced-motion: reduce)",
+  "(prefers-reduced-transparency: reduce)",
+  "(prefers-contrast: more)",
   "(max-width: 640px)"
  ],
  "progress": [
