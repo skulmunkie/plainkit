@@ -8,8 +8,8 @@
     --color-surface: #3a3a3a;         /* input/control surface app-wide (dark grey) */
     --color-surface-alt: #333333;     /* subtle alt surface (hover rows, chips) */
     --color-text: #e8e8e8;
-    --color-muted: #9a9a9a;
-    --color-muted-strong: #a8a8a8;    /* secondary text on a flyout/popover surface: --color-muted reads 4.3:1 there */
+    --color-muted: #a0a0a0;
+    --color-muted-strong: #a8a8a8;    /* text that wants more contrast than muted */
     --color-accent: #4e93e3;
     --color-accent-hover: #5ca0f2;
     --color-accent-fill: #2276d7;      /* accent as a fill behind text: white on it is 4.5:1 or better, hover included */

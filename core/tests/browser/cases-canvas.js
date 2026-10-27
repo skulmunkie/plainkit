@@ -323,6 +323,23 @@ export const canvasCases = [
         s.readonly = false; s.selection = ['a', 'b']; await t.settle(); t.eq(hs().length, 0, 'two selected: no handles');
     }],
 
+    ['canvas: Ctrl or Cmd with an arrow resizes the one selected item from its bottom-right corner by a grid step (Shift ten) through a cancelable pk-canvas-resize with done true, never below one step, and announces it (#430 C4 keys)', async t => {
+        const s = await selectable(t, 'grid="10" zoom="2"'), fr = s.part('frame'), got = [];
+        const key = (k, mods = {}) => fr.dispatchEvent(new KeyboardEvent('keydown', { key: k, bubbles: true, cancelable: true, ...mods }));
+        s.addEventListener('pk-canvas-resize', e => got.push({ ...e.detail, cancelable: e.cancelable }));
+        s.selection = ['a']; await t.settle();
+        key('ArrowRight', { ctrlKey: true }); await t.settle();
+        t.eq(JSON.stringify(got.at(-1)), JSON.stringify({ id: 'a', x: 40, y: 40, w: 110, h: 60, done: true, cancelable: true }), 'Ctrl+Right grows the width by one step, the corner stays');
+        key('ArrowDown', { metaKey: true, shiftKey: true }); await t.settle();
+        t.eq(JSON.stringify(got.at(-1)), JSON.stringify({ id: 'a', x: 40, y: 40, w: 100, h: 160, done: true, cancelable: true }), 'Cmd+Shift+Down grows the height by ten steps');
+        t.ok(/Resized to 100 by 160/.test(s.part('status').textContent), `announced (${s.part('status').textContent})`);
+        key('ArrowLeft', { ctrlKey: true, shiftKey: true }); await t.settle();
+        t.eq(got.at(-1).w, 10, 'shrinking stops at one grid step');
+        t.eq(s.panX, 0, 'the view did not pan');
+        got.length = 0; s.readonly = true; await t.settle(); key('ArrowRight', { ctrlKey: true }); s.readonly = false; s.selection = ['a', 'b']; await t.settle(); key('ArrowRight', { ctrlKey: true }); await t.settle();
+        t.eq(got.length, 0, 'readonly or two selected: no resize');
+    }],
+
     ['canvas: snap pulls a dragged selection within snap-threshold screen px onto the grid, another item\'s edge or a guide and shows the snap line only while dragging; guides are drawn; without snap it moves freely (#430 C5)', async t => {
         // Drags item `id` by (dx, dy) screen px; returns the pk-canvas-move details and the snap-line axes seen while the pointer was down.
         const pull = async (s, id, dx, dy, pid) => {
