@@ -34,11 +34,12 @@ test('the template has the expand button, the field with its own popup nested in
     for (const part of ['row-label', 'row-sub', 'thumb', 'badge']) assert.ok(meta.parts.some(p => p.name === part), `${part} is documented`);
 });
 
-test('the events pk-query, pk-select and pk-toggle are documented with the shapes the generated Blazor EventArgs already carry', () => {
+test('the events pk-query, pk-select, pk-submit and pk-toggle are documented with the shapes the generated Blazor EventArgs already carry', () => {
     const names = meta.events.map(e => e.name);
-    assert.deepEqual(names.sort(), ['pk-query', 'pk-select', 'pk-toggle']);
+    assert.deepEqual(names.sort(), ['pk-query', 'pk-select', 'pk-submit', 'pk-toggle']);
     assert.deepEqual(meta.events.find(e => e.name === 'pk-query').detail, { query: 'string' });
     assert.deepEqual(meta.events.find(e => e.name === 'pk-select').detail, { item: 'object' });
+    assert.deepEqual(meta.events.find(e => e.name === 'pk-submit').detail, { query: 'string' });
     assert.deepEqual(meta.events.find(e => e.name === 'pk-toggle').detail, { expanded: 'bool' });
 });
 
