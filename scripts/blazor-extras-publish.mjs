@@ -6,7 +6,7 @@
 //   node scripts/blazor-extras-publish.mjs --write              also record the measured payload in packages.json (blazorPayload; it only ever goes down)
 //   PK_EXTRAS_JOBS=<n>                                          how many option sets publish at once (default by free memory; 1 = one after another)
 //
-// Option sets: none declared and `full` (everything), `core` (no extra), `dock` (one extra). The ceilings are packages.json "blazorPayload" { coreOnly, full }:
+// Option sets: none declared and `full` (everything), `core` (no extra), `dock` (one extra, so no gallery: the Gallery option is its own). The ceilings are packages.json "blazorPayload" { coreOnly, full }:
 // the measured gzip bytes plus 1 percent when first recorded, then a one-way ratchet like the npm ceilings. Exit 0 ok, 1 a problem (each says what to change), 2 could not run.
 import fs from 'node:fs';
 import path from 'node:path';
@@ -47,7 +47,7 @@ export async function pool(items, limit, worker) {
 
 const claimed = (claim, file) => (claim.endsWith('/') ? file.startsWith(claim) : file === claim);
 
-/** The files of `universe` (paths relative to plainkit/) that belong to the Blazor option `name`. */
+/** The files of `universe` (paths relative to plainkit/) that the Blazor option `name` covers. A file can be covered by two options (the gallery option covers gallery/, and dock names its own gallery/elements/dock.data.js): it is served only when both are declared, as the Remove lines of the targets file drop it when either is not. */
 export function filesOfExtra(name, packages, universe) {
     const pkg = packages.find(p => p.blazorOption === name);
     const cs = pkg ? claims(pkg) : [];
@@ -60,11 +60,13 @@ export function checkSet(set, published, universe, packages) {
     const have = new Set(published);
     const options = packages.filter(p => p.blazorOption).map(p => p.blazorOption);
     const owned = new Set();
+    const covers = f => options.filter(n => filesOfExtra(n, packages, [f]).length);
+    const wanted = f => covers(f).every(n => set.declared === 'all' || set.declared.includes(n));
     for (const name of options) {
         const files = filesOfExtra(name, packages, universe);
         files.forEach(f => owned.add(f));
         const declared = set.declared === 'all' || set.declared.includes(name);
-        const missing = files.filter(f => !have.has(f)), present = files.filter(f => have.has(f));
+        const missing = files.filter(f => wanted(f) && !have.has(f)), present = files.filter(f => have.has(f));
         if (declared && missing.length) problems.push(`${set.id}: the ${name} extra is declared but ${missing.length} of its files were not published (first: ${missing[0]})`);
         if (!declared && present.length) problems.push(`${set.id}: the ${name} extra is not declared but ${present.length} of its files were published (first: ${present[0]}); check the Remove lines of Generated/PlainKit.Blazor.targets (node scripts/generate-blazor.mjs)`);
     }

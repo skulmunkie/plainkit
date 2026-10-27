@@ -7,7 +7,7 @@ import path from 'node:path';
 import fs from 'node:fs';
 import { fileURLToPath } from 'node:url';
 import { SETS, checkSet, checkPayload, filesOfExtra, publishJobs, pool } from '../blazor-extras-publish.mjs';
-import { loadPackages } from '../packages.mjs';
+import { loadPackages, ownersOf } from '../packages.mjs';
 
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..', '..');
 const { data, packages } = loadPackages(root);
@@ -19,13 +19,14 @@ test('each extra owns files of the served tree, and no two extras own the same f
     for (const name of packages.filter(p => p.blazorOption).map(p => p.blazorOption)) {
         const files = filesOfExtra(name, packages, universe);
         assert.ok(files.length > 0, `FIX: the ${name} extra owns no served file`);
-        for (const f of files) { assert.equal(seen.get(f), undefined, `FIX: ${f} is owned by ${seen.get(f)} and ${name}`); seen.set(f, name); }
+        for (const f of files.filter(x => ownersOf(x, packages)[0] === packages.find(p => p.blazorOption === name).id)) { assert.equal(seen.get(f), undefined, `FIX: ${f} is owned by ${seen.get(f)} and ${name}`); seen.set(f, name); }
     }
 });
 
 test('a published set that matches its declaration has no problems', () => {
     for (const set of SETS) {
-        const published = universe.filter(f => set.declared === 'all' || packages.filter(p => p.blazorOption).every(p => !filesOfExtra(p.blazorOption, packages, [f]).length) || set.declared.some(n => filesOfExtra(n, packages, [f]).length));
+        // What the targets file leaves: a file goes when ANY option that covers it is not declared.
+        const published = universe.filter(f => packages.filter(p => p.blazorOption && filesOfExtra(p.blazorOption, packages, [f]).length).every(p => set.declared === 'all' || set.declared.includes(p.blazorOption)));
         assert.deepEqual(checkSet(set, published, universe, packages), [], set.id);
     }
 });
@@ -46,6 +47,22 @@ test('manifest.extras.json is not served to a core-only app: it is a tools file'
     assert.deepEqual(checkSet(coreOnly, ['elements/button.js'], uni, pk), []);
     assert.ok(checkSet(coreOnly, uni, uni, pk).join(' ').includes('tools extra is not declared but 1 of its files were published (first: manifest.extras.json)'));
     assert.ok(checkSet(withTools, ['elements/button.js'], uni, pk).join(' ').includes('tools extra is declared but 1 of its files were not published (first: manifest.extras.json)'));
+});
+
+test('the gallery option: core publishes none of gallery/, full and the default all, dock none of it; a dock data chunk inside gallery/ needs both options', () => {
+    const pk = [{ id: 'plainkit', blazorOption: null }, { id: 'plainkit.dock', blazorOption: 'dock', elements: ['pk-dock'], files: ['gallery/elements/dock.data.js'] }, { id: 'plainkit.gallery', blazorOption: 'gallery', files: ['gallery/'] }];
+    const uni = ['elements/button.js', 'elements/dock.js', 'gallery/embed.html', 'gallery/gallery.js', 'gallery/elements/dock.data.js'];
+    const set = id => SETS.find(s => s.id === id);
+    const coreFiles = ['elements/button.js'];
+    assert.deepEqual(checkSet(set('core'), coreFiles, uni, pk), []);
+    assert.ok(checkSet(set('core'), [...coreFiles, 'gallery/gallery.js'], uni, pk).join(' ').includes('gallery extra is not declared but 1 of its files were published (first: gallery/gallery.js)'));
+    assert.ok(checkSet(set('core'), uni, uni, pk).join(' ').includes('gallery extra is not declared but 3 of its files were published'));
+    assert.deepEqual(checkSet(set('full'), uni, uni, pk), []);
+    assert.deepEqual(checkSet(set('default'), uni, uni, pk), []);
+    // dock declared, gallery not: the dock element is served, nothing of gallery/ (the dock data chunk goes with the gallery).
+    assert.deepEqual(checkSet(set('dock'), ['elements/button.js', 'elements/dock.js'], uni, pk), []);
+    assert.ok(checkSet(set('dock'), ['elements/button.js', 'elements/dock.js', 'gallery/embed.html'], uni, pk).join(' ').includes('gallery extra is not declared but 1 of its files were published (first: gallery/embed.html)'));
+    assert.ok(checkSet(set('full'), uni.filter(f => f !== 'gallery/gallery.js'), uni, pk).join(' ').includes('gallery extra is declared but 1 of its files were not published (first: gallery/gallery.js)'));
 });
 
 test('payload: over a ceiling, a missing ceiling and a core-only payload that is not smaller each fail; the recorded figures pass', () => {
