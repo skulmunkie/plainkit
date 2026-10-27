@@ -4,7 +4,7 @@ order: 5
 summary: How themes and density work, how to change a colour or a size without touching an element, and how to keep text readable when you do.
 ---
 
-Plainkit has no theme files. Every colour, space, size, radius and shadow is a CSS custom property (a token), and the two themes and two densities are just different values for the same names. An element reads tokens; it never hard-codes a colour. So theming is overriding a token, in your own stylesheet, and nothing else. The complete list of tokens with their values is in the agent skill's [theming reference](https://skulmunkie.github.io/plainkit/skills/plainkit-sdk/references/theming.md); this guide is about how to use them.
+Plainkit has no theme files in the page layer (see "Optional themes" below for the exception). Every colour, space, size, radius and shadow is a CSS custom property (a token), and the two themes and two densities are just different values for the same names. An element reads tokens; it never hard-codes a colour. So theming is overriding a token, in your own stylesheet, and nothing else. The complete list of tokens with their values is in the agent skill's [theming reference](https://skulmunkie.github.io/plainkit/skills/plainkit-sdk/references/theming.md); this guide is about how to use them.
 
 ## Two themes, on any element
 
@@ -154,3 +154,7 @@ The editor's **Custom SDK** tab makes a download from your theme and your breakp
 Everything happens in the page. The only requests are same-origin reads of the shipped files, and each is checked against its hash in the release manifest before it is used. The zip has the release layout (`dist/`, so it drops in where `dist` is used), the settings and a README naming the version and the settings; paste `plainkit.custom.json` into the tab's Import box to change and export again. Turn the tab off in your own page with `mountThemeEditor(el, { sdk: false })`, or point it at another copy of the files with `dist: '/assets/plainkit/'` (a folder on the same origin).
 
 The [Scorecard](../../app.html#/scorecard) audits pages and elements at both themes and at a phone width and a wider one, which is a good check after a large change.
+
+## Optional themes
+
+An optional theme is one small stylesheet, `dist/themes/<name>.css` (source: `core/themes/<name>.css`). It is built and listed in the manifest like any other file, but `plainkit.css` never imports it and page weight does not count it: link it after `plainkit.css` only on pages that want it. The first one, `heading-font.css`, sets `--font-heading` to the body font.

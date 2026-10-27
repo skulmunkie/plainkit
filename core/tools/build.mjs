@@ -218,6 +218,9 @@ export const PK_VERSION = '${version}';
         if (fs.statSync(src).isFile() && f.endsWith('.js') && !/^code-explorer[\\/]/.test(f) && f !== 'version.js') w(`dist/js/${f.replace(/\\/g, '/')}`, minifyJs(distSource(f, read(src)).replace("'../site/gallery/embed.html'", "'../gallery/embed.html'"))); // in dist the gallery sits next to js/, not under site/
     }
     w('dist/icons.svg', read(path.join(root, 'icons.svg')));
+    // Optional themes (themes/<name>.css): each ships as its own dist/themes/<name>.css, in the manifest, linked by the app on purpose; never imported by plainkit.css and not part of page weight.
+    const themesDir = path.join(root, 'themes');
+    if (fs.existsSync(themesDir)) for (const f of fs.readdirSync(themesDir).filter(n => n.endsWith('.css')).sort()) w(`dist/themes/${f}`, read(path.join(themesDir, f)));
     // The conformance-audit CLI (core/package.json's `bin`, issue #629) and the pure strict-module engine it is
     // built on (#605) ship as plain .mjs source, copied verbatim so the folder layout (and therefore every
     // relative import between them) is identical in dist/: a consumer's `npx plainkit audit` runs the same code
