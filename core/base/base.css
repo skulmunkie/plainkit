@@ -136,4 +136,4 @@ pk-app-shell:not(:defined) {
 /* A skip link takes no room before it upgrades (it is off-screen once defined), so the app under it does not move up when it does (CLS, issue 1304). */
 /* Overlays draw nothing until opened, so before they upgrade (or with JavaScript blocked) their content takes no room (#1810); a docked drawer is part of the layout and keeps its place, a popover keeps its trigger. */
 pk-skip-link:not(:defined), pk-dropdown:not(:defined) > pk-menu-item, pk-drawer:not(:defined):not([docked]), pk-dialog:not(:defined), pk-popover:not(:defined) > :not([slot="trigger"]) { display: none; }
-pk-app-bar-search:not(:defined) { padding-inline: min(8.875rem, 25%); }
+pk-app-bar-search:not(:defined) { padding-inline: 8.875rem; }
