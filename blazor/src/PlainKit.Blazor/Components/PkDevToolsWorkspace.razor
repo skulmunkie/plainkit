@@ -66,7 +66,7 @@ else
             _panels = DotNetObjectReference.Create(new PkDevToolsHost(Runtime, Options, Services.GetService(typeof(PkCircuitState)) as PkCircuitState));
             await _bridge.InvokeVoidAsync("mountDevToolsWorkspace", _host, new
             {
-                workspace = _workspace,
+                workspace = Workspaces.Contains(Tab) ? Tab : null, // none: the module opens the Gallery, or Files when the gallery option is not installed
                 tool = _tool,
                 theme = Theme.Attr(),
                 gallery = new { sections = PkGallerySection.ForBlazor() },

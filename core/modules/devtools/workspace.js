@@ -14,10 +14,11 @@
 //   page.select('scorecard'); page.update({ files: { snapshot: newer } }); page.destroy();
 //
 // Options (all optional):
-//   workspace      the first workspace, one of `workspaces`; an unknown name falls back to the first one.
+//   workspace      the first workspace, one of `workspaces`; an unknown or missing name falls back to the first one (Files when the gallery is not installed: see gallery.available).
 //   workspaces     which tabs to offer and their order, a subset of ['gallery', 'files', 'scorecard'] (default all three).
 //   gallery        { sections, src, chrome, height, ...attributes } for <pk-gallery>. sections is a list of { tag?, title, open?, lines?, columns?, rows?, code? } for the Details drawer
 //                  (js/gallery-sections.js); chrome defaults to 'full' and height to 760. src is the address of the gallery's embed.html when it is not next to the SDK.
+//                  available: false (or a missing embed.html) leaves the gallery out: the tab shows a notice and the workspace opens on Files; the host may state it to skip the check.
 //   files          { snapshot | provider | load, height, file, line, count }. snapshot is a URL or the parsed object, provider a ready code explorer provider (modules/code-explorer/
 //                  providers.js), load an async function returning a provider. With none of them the Files tab says there is no source to browse. count shows "N files" above
 //                  the explorer. height defaults to 42rem.
@@ -37,6 +38,7 @@ import { mountDevTools } from './devtools.js';
 import { ensureStyles, styleUrls, h, on } from '../../js/mount-support.js';
 import { loadElements } from '../../js/loader.js';
 import { createLogger } from '../../js/log.js';
+import { galleryAvailable, firstWorkspace, GALLERY_NOTICE } from './workspace-logic.js';
 
 const log = createLogger('devtools-workspace');
 const STYLES = ['../../plainkit.css'];
@@ -54,7 +56,9 @@ export async function mountDevToolsWorkspace(container, options = {}) {
     let config = { ...options };
     const keys = (options.workspaces ?? WORKSPACES.map(([k]) => k)).filter(k => known.has(k));
     if (!keys.length) throw new TypeError('mountDevToolsWorkspace: workspaces names no known workspace (gallery, files, scorecard)');
-    let current = keys.includes(options.workspace) ? options.workspace : keys[0];
+    const galleryUrl = options.gallery?.src ?? new URL('../../gallery/embed.html', import.meta.url).href;
+    const hasGallery = keys.includes('gallery') ? await galleryAvailable(galleryUrl, options.gallery?.available) : true;
+    let current = firstWorkspace(keys, options.workspace, hasGallery);
     let child = null;       // the mounted workspace's handle, if it has a destroy
     let turn = 0;           // a newer choice makes an older, slower load stop and clean up
     let gone = false;
@@ -70,7 +74,8 @@ export async function mountDevToolsWorkspace(container, options = {}) {
 
     const builders = {
         async gallery() {
-            const { sections, chrome = 'full', height = 760, ...attrs } = config.gallery ?? {};
+            if (!hasGallery) return { node: empty(...GALLERY_NOTICE) };
+            const { sections, chrome = 'full', height = 760, available, ...attrs } = config.gallery ?? {};
             return { node: h(doc, 'pk-gallery', { chrome, height, theme: config.theme, ...attrs, sections: sections?.length ? JSON.stringify(sections) : null }) };
         },
         async files(mine) {

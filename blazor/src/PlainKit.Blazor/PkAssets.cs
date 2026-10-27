@@ -14,7 +14,7 @@ public static class PkAssets
     /// <summary>The minified page stylesheet (the same rules as <see cref="Css"/>).</summary>
     public const string CssMin = Root + "plainkit.min.css";
 
-    /// <summary>The page <c>&lt;pk-gallery&gt;</c> frames.</summary>
+    /// <summary>The page <c>&lt;pk-gallery&gt;</c> frames. Needs the gallery option (<c>PkExtra.Gallery</c>); with an explicit option list that leaves it out the file is not served.</summary>
     public const string GalleryEmbed = Root + "gallery/embed.html";
 
     /// <summary>
