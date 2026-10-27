@@ -4,7 +4,7 @@
 //   <pk-dialog id="confirm" heading="Delete this item?"> ... <pk-button data-close>Cancel</pk-button> </pk-dialog>
 //
 // data-open="<selector>" calls show() on the first element the selector matches (pk-dialog, pk-drawer, pk-popover); data-toggle="<selector>"
-// calls toggle() (pk-popover) and data-close hides the dialog, drawer or popover the control sits in. A link opener (<a href="/cart" data-open="#cart">) opens the overlay instead of navigating once the overlay is defined, and stays a plain link until then (progressive enhancement). One delegated listener per root,
+// calls toggle() (pk-popover) and data-close hides the dialog, drawer or popover the control sits in. One delegated listener per root,
 // installed by initPlainkit() and, on demand, the first time a pk-dialog, pk-drawer or pk-popover connects (so a page that only
 // uses the elements gets the openers too); initInvokers is idempotent per root. The pure resolution is exported for tests.
 
@@ -52,9 +52,5 @@ const installed = new WeakSet();
 export function initInvokers(root = document) {
     if (installed.has(root)) return;
     installed.add(root);
-    root.addEventListener('click', event => {
-        const action = resolveInvoker(event.target, root);
-        // A link opener (#1811): with its overlay defined it opens instead of navigating; an undefined overlay leaves the link as the fallback.
-        if (runInvoker(action) && action.type !== 'close' && typeof action.element.show === 'function' && event.target?.closest?.('[href]')) event.preventDefault();
-    });
+    root.addEventListener('click', e => { const a = resolveInvoker(e.target, root); if (runInvoker(a) && a.type !== 'close' && a.element.show && e.target?.closest?.('[href]')) e.preventDefault(); });
 }
