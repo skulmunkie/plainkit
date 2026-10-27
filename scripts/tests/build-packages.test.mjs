@@ -44,14 +44,15 @@ test('tools holds the dev-tool modules and the helper files, and core holds none
     for (const m of tools.modules) assert.ok(t.has(`modules/${m}/${m}.js`) || [...t].some(n => n.startsWith(`modules/${m}/`)), `tools lacks module ${m}`);
     assert.ok(![...c].some(n => n.startsWith('modules/')), 'core holds no module');
     assert.ok(t.has('modules/manifest.json') && t.has('plainkit.tools.manifest.json'));
-    assert.ok(c.has('manifest.json') && c.has('manifest.extras.json') && c.has('plainkit.manifest.json'));
+    assert.ok(c.has('manifest.json') && c.has('plainkit.manifest.json'));
+    assert.ok(!c.has('manifest.extras.json') && t.has('manifest.extras.json'), 'manifest.extras.json is a tools file (the core-only Blazor payload does not serve it)');
 });
 
-test("core's manifest.extras.json lists only files that core's zip holds; the full dist/manifest.extras.json still lists the helpers", () => {
-    const buf = fs.readFileSync(path.join(zips, zipName('plainkit', version)));
+test("the tools zip's manifest.extras.json lists only files that zip holds; the full dist/manifest.extras.json still lists the helpers", () => {
+    const buf = fs.readFileSync(path.join(zips, zipName('plainkit.tools', version)));
     const e = listZip(buf).find(x => x.name === 'manifest.extras.json');
     const listed = JSON.parse(readEntry(buf, e).toString('utf8')).files.map(f => f.path);
-    const c = new Set(names('plainkit'));
+    const c = new Set(names('plainkit.tools'));
     assert.deepEqual(listed.filter(p => !c.has(p)), []);
     const full = JSON.parse(fs.readFileSync(path.join(REPO, 'core', 'dist', 'manifest.extras.json'), 'utf8')).files.map(f => f.path);
     assert.ok(full.includes('js/custom-sdk.js'), 'the full dist keeps every old path (FULL is first class)');

@@ -73,6 +73,7 @@
       "maxZipBytes": 258710,
       "files": [
         "elements/api.json",
+        "manifest.extras.json",
         "modules/manifest.json"
       ]
     },

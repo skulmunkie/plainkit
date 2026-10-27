@@ -39,6 +39,15 @@ test('an undeclared extra that was published, a declared one that was not, and a
     assert.match(checkSet(SETS.find(s => s.id === 'full'), universe.filter(f => f !== 'elements/button.js'), universe, packages).join('\n'), /core file\(s\) were not published \(first: elements\/button\.js\)/);
 });
 
+test('manifest.extras.json is not served to a core-only app: it is a tools file', () => {
+    const pk = [{ id: 'plainkit', blazorOption: null }, { id: 'plainkit.tools', blazorOption: 'tools', files: ['manifest.extras.json'] }];
+    const uni = ['elements/button.js', 'manifest.extras.json'];
+    const coreOnly = { id: 'core', declared: [] }, withTools = { id: 'tools', declared: ['tools'] };
+    assert.deepEqual(checkSet(coreOnly, ['elements/button.js'], uni, pk), []);
+    assert.ok(checkSet(coreOnly, uni, uni, pk).join(' ').includes('tools extra is not declared but 1 of its files were published (first: manifest.extras.json)'));
+    assert.ok(checkSet(withTools, ['elements/button.js'], uni, pk).join(' ').includes('tools extra is declared but 1 of its files were not published (first: manifest.extras.json)'));
+});
+
 test('payload: over a ceiling, a missing ceiling and a core-only payload that is not smaller each fail; the recorded figures pass', () => {
     assert.deepEqual(checkPayload({ coreOnly: 10, full: 20 }, { coreOnly: 10, full: 20 }), []);
     assert.match(checkPayload({ coreOnly: 11, full: 20 }, { coreOnly: 10, full: 20 }).join(), /core-only|coreOnly payload is 11/);
