@@ -3,17 +3,16 @@
 //   <pk-button data-open="#confirm">Delete</pk-button>
 //   <pk-dialog id="confirm" heading="Delete this item?"> ... <pk-button data-close>Cancel</pk-button> </pk-dialog>
 //
-// data-open="<selector>" calls show() on the first element the selector matches (pk-dialog, pk-drawer, pk-popover); data-toggle="<selector>"
-// calls toggle() (pk-popover) and data-close hides the dialog, drawer or popover the control sits in. One delegated listener per root,
-// installed by initPlainkit() and, on demand, the first time a pk-dialog, pk-drawer or pk-popover connects (so a page that only
-// uses the elements gets the openers too); initInvokers is idempotent per root. The pure resolution is exported for tests.
+// data-open="<selector>" calls show() on the first match (pk-dialog, pk-drawer, pk-popover); data-toggle="<selector>" calls toggle() (pk-popover);
+// data-close hides the overlay the control sits in. One delegated listener per root, installed by initPlainkit() and on demand when an overlay
+// connects; initInvokers is idempotent per root. The pure resolution is exported for tests.
 
 import { createLogger } from './log.js';
 
 const log = createLogger('invokers');
 const OVERLAYS = 'pk-dialog, pk-drawer, pk-popover';
 
-// What a click on `target` asks for: { type: 'open' | 'toggle' | 'close', element } or null. `root` resolves selectors (a Document or Element).
+// What a click on `target` asks for: { type: 'open' | 'toggle' | 'close', element } or null; `root` resolves selectors.
 export function resolveInvoker(target, root) {
     const opener = target?.closest?.('[data-open]');
     if (opener) { const element = safeQuery(root, opener.getAttribute('data-open'), 'data-open'); return element ? { type: 'open', element } : null; }
@@ -28,7 +27,7 @@ export function resolveInvoker(target, root) {
     return null;
 }
 
-// A selector from markup can be invalid or match nothing; that is a page mistake, so it is logged (warn) and the click does nothing.
+// An invalid or unmatched selector is a page mistake: logged (warn), the click does nothing.
 function safeQuery(root, selector, attribute) {
     if (!selector) { log.warn(`${attribute} is empty: it needs a selector such as "#dialog-id"`); return null; }
     let element = null;
