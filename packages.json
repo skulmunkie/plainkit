@@ -134,6 +134,7 @@
         "dock-drag.js",
         "dock-float.js",
         "dock-flyout.js",
+        "dock-history.js",
         "dock-json.js",
         "dock-model.js",
         "dock-render.js",
