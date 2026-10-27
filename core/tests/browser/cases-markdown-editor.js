@@ -209,4 +209,13 @@ export const markdownEditorCases = [
         el.interceptLinks = true; await t.settle(); click(0);
         t.eq(prevented.at(-1), true, 'interceptLinks cancels the navigation');
     }],
+    ['markdown (#1700): under rtl at 375 px a wide table, an image and a long code line stay inside the viewport on both sides and the page does not scroll sideways', async t => {
+        const host = t.stage('<div dir="rtl"><pk-markdown></pk-markdown></div>'); host.firstElementChild.style.inlineSize = '375px';
+        const md = host.querySelector('pk-markdown');
+        md.markdown = ['| a | b | c | d | e | f | g | h |','|---|---|---|---|---|---|---|---|','| aaaaaaaaaaaaaaaa | aaaaaaaaaaaaaaaa | aaaaaaaaaaaaaaaa | aaaaaaaaaaaaaaaa | aaaaaaaaaaaaaaaa | aaaaaaaaaaaaaaaa | aaaaaaaaaaaaaaaa | aaaaaaaaaaaaaaaa |','','```','x'.repeat(200),'```','','Averyveryverylongwordwithoutanybreaks'+'y'.repeat(120)].join('\n');
+        await t.load(md); await t.load(md.shadowRoot); await t.settle();
+        const de = document.documentElement, W = de.clientWidth;
+        t.ok(de.scrollWidth <= W + 1, `the page scrolls sideways (scrollWidth ${de.scrollWidth}, clientWidth ${W})`);
+        for (const n of md.shadowRoot.querySelectorAll('[part=content] *')) { const r = n.getBoundingClientRect(); if (!r.width) continue; const box = md.getBoundingClientRect(); t.ok(r.left >= box.left - 1 && r.right <= box.right + 1 && r.left >= -1 && r.right <= W + 1, `<${n.localName}> spans ${Math.round(r.left)}..${Math.round(r.right)}, outside the host ${Math.round(box.left)}..${Math.round(box.right)} or the viewport ${W}`); }
+    }],
 ];

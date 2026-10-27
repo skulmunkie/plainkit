@@ -9,6 +9,9 @@
 [part="content"] blockquote { padding-inline-start: var(--space-3); border-inline-start: 3px solid var(--color-border); color: var(--color-muted); }
 [part="content"] code { font-size: 0.9em; background: var(--color-surface-alt); border-radius: var(--radius-sm); padding-inline: var(--space-1); }
 [part="content"] pre { overflow: auto; padding: var(--space-2) var(--space-3); background: var(--color-surface-alt); border-radius: var(--radius-sm); }
+[part="content"] :is(pre, table, img) { max-inline-size: 100%; box-sizing: border-box; }
+[part="content"] table { display: block; overflow-x: auto; }
+[part="content"] img { block-size: auto; }
 [part="content"] pre code { padding: 0; background: none; }
 [part="content"] a { color: var(--color-link); } [part="content"] a:hover { color: var(--color-link-hover); }
 [part="content"] a:focus-visible { outline: var(--focus-ring); outline-offset: 2px; }

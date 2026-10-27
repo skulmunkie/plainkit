@@ -17,6 +17,7 @@ export default {
         t.visible('#md >>> [part=content] h1', 'the heading'); t.visible('#md >>> [part=content] strong', 'the bold text');
         t.hidden('#md >>> [part=content] script', 'a script in the rendered text');
         t.within('#md >>> [part=content] pre', '#md'); t.within('#md', '#stage'); t.within('#md >>> [part=content] p', '#md');
+        if (t.shot === 'rtl') for (const sel of ['#md', '#md >>> [part=content] pre', '#md >>> [part=content] p']) t.inViewport(sel);
         if (t.shot === 'link-focus') t.ringUnclipped('#md >>> [part=content] a');
     },
 };
