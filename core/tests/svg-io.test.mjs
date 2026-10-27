@@ -38,7 +38,7 @@ test('precision rounds numbers and trims zeros; the identity transform is omitte
 
 test('compact output has no line breaks', () => assert.ok(!toSvg(sample(), { compact: true }).includes('\n')));
 
-test('an empty document is a valid empty svg', () => assert.match(toSvg(createSvgDoc()), /<g id="s1"\/>\n<\/svg>$/));
+test('an empty document is a valid empty svg', () => assert.match(toSvg(createSvgDoc()), /role="img">\n<\/svg>$/));
 
 test('hostile text and labels are escaped and never become markup or handlers', () => {
     const evil = `"><script>alert(1)</script> onload=x ${JS}alert(1) style=x`;
