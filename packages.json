@@ -69,10 +69,11 @@
         "zip-store.js"
       ],
       "maxPackedBytes": null,
-      "maxUnpackedBytes": 791175,
-      "maxZipBytes": 258710,
+      "maxUnpackedBytes": 811400,
+      "maxZipBytes": 265200,
       "files": [
         "elements/api.json",
+        "manifest.extras.json",
         "modules/manifest.json"
       ]
     },
@@ -91,7 +92,7 @@
       ],
       "maxPackedBytes": null,
       "maxUnpackedBytes": 137500,
-      "maxZipBytes": 52500
+      "maxZipBytes": 53500
     },
     {
       "id": "plainkit.markdown",
@@ -110,9 +111,13 @@
         "markdown/parse.js",
         "markdown/render.js"
       ],
+      "files": [
+        "gallery/elements/markdown.data.js",
+        "gallery/elements/markdown-editor.data.js"
+      ],
       "maxPackedBytes": null,
-      "maxUnpackedBytes": 21690,
-      "maxZipBytes": 9400
+      "maxUnpackedBytes": 33619,
+      "maxZipBytes": 13174
     },
     {
       "id": "plainkit.dock",
@@ -134,9 +139,12 @@
         "dock-render.js",
         "dock-tree.js"
       ],
+      "files": [
+        "gallery/elements/dock.data.js"
+      ],
       "maxPackedBytes": null,
-      "maxUnpackedBytes": 40838,
-      "maxZipBytes": 16724
+      "maxUnpackedBytes": 59035,
+      "maxZipBytes": 22409
     },
     {
       "id": "plainkit.canvas",
@@ -160,9 +168,13 @@
         "svg/",
         "viewport-logic.js"
       ],
+      "files": [
+        "gallery/elements/canvas.data.js",
+        "gallery/elements/heat-map.data.js"
+      ],
       "maxPackedBytes": null,
-      "maxUnpackedBytes": 79216,
-      "maxZipBytes": 35477
+      "maxUnpackedBytes": 109698,
+      "maxZipBytes": 43483
     },
     {
       "id": "plainkit.blazor",
@@ -176,8 +188,8 @@
         "reconnect.js"
       ],
       "maxPackedBytes": null,
-      "maxUnpackedBytes": 3340,
-      "maxZipBytes": 1945
+      "maxUnpackedBytes": 3640,
+      "maxZipBytes": 2120
     },
     {
       "id": "plainkit.ide",
@@ -195,8 +207,8 @@
         "web-types.json"
       ],
       "maxPackedBytes": null,
-      "maxUnpackedBytes": 929944,
-      "maxZipBytes": 194875
+      "maxUnpackedBytes": 952800,
+      "maxZipBytes": 199700
     }
   ],
   "siteOnly": [
@@ -204,6 +216,6 @@
   ],
   "blazorPayload": {
     "coreOnly": 745062,
-    "full": 1048205
+    "full": 1073700
   }
 }
