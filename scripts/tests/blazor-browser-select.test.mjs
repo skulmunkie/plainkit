@@ -62,7 +62,7 @@ test('one lab page selects its cases and its screenshot only', () => {
 });
 
 test('a shared or unknown file selects everything', () => {
-    for (const f of ['core/js/element.js', 'blazor/src/PlainKit.Blazor/PkRuntime.cs', 'blazor/src/PlainKit.Blazor/Generated/PkAll.Registry.cs', 'scripts/blazor-browser.mjs', 'foo/unknown.txt']) {
+    for (const f of ['core/js/element.js', 'blazor/src/PlainKit.Blazor/PkRuntime.cs', 'blazor/src/PlainKit.Blazor/Generated/PkGeneratedEnums.cs', 'blazor/src/PlainKit.Blazor/Generated/PkExtras.cs', 'scripts/blazor-browser.mjs', 'foo/unknown.txt']) {
         const sel = select([f]);
         assert.equal(sel.full, true, f);
         assert.equal(sel.cases.size, ALL.length, f);
@@ -92,9 +92,11 @@ test('shared core areas select their areas and the smoke set, core/tools selects
 });
 
 test('a generated component file selects that component cases plus the smoke set', () => {
-    const sel = select(['blazor/src/PlainKit.Blazor/Generated/PkDesignSurface.cs']);
-    assert.equal(sel.full, false);
-    assert.deepEqual(names(sel), withSmoke(['canvas-view-pick-key', 'design-surface-selected-ref']));
+    for (const f of ['PkDesignSurface.razor', 'PkDesignSurface.Extra.cs']) {
+        const sel = select([`blazor/src/PlainKit.Blazor/Generated/${f}`]);
+        assert.equal(sel.full, false, f);
+        assert.deepEqual(names(sel), withSmoke(['canvas-view-pick-key', 'design-surface-selected-ref']), f);
+    }
 });
 
 test('docs, tests and the testing helpers select nothing', () => {
