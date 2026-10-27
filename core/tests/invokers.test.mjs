@@ -111,3 +111,15 @@ test('the dialog, drawer and popover sources each call initInvokers from connect
         assert.match(src, /initInvokers\(this\.ownerDocument\)/, `pk-${name} installs the openers`);
     }
 });
+
+test('a link opener prevents navigation only when its overlay is defined; a button opener never does (#1811)', () => {
+    const drawer = el('pk-drawer', { id: 'd' });
+    const undefinedOverlay = { tag: 'pk-drawer', attrs: { id: 'u' }, getAttribute: () => null, closest: () => null }; // no show(): not upgraded
+    const r = root({ '#d': drawer, '#u': undefinedOverlay });
+    initInvokers(r);
+    const click = target => { let prevented = false; r.handler({ target, preventDefault() { prevented = true; } }); return prevented; };
+    assert.equal(click(el('a', { href: '/cart', 'data-open': '#d' })), true, 'a defined overlay: the link does not navigate');
+    assert.deepEqual(drawer.calls, ['show']);
+    assert.equal(click(el('a', { href: '/cart', 'data-open': '#u' })), false, 'an undefined overlay: the link navigates (fallback)');
+    assert.equal(click(el('pk-button', { 'data-open': '#d' })), false, 'a button opener has nothing to prevent');
+});
