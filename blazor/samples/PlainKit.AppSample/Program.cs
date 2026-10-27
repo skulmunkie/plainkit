@@ -5,6 +5,7 @@ using PlainKit.Blazor;
 
 var builder = WebApplication.CreateBuilder(args);
 builder.Services.AddRazorComponents().AddInteractiveServerComponents();
+// No option list is declared, so every optional package is served, the gallery (PkExtra.Gallery) included: the /_plainkit Gallery tab (harness case devtools-workspace) needs it. An app that declares an explicit list adds PkExtra.Gallery to keep it.
 builder.Services.AddPlainKit(o => { o.DevTools = true; o.Reconnect = new(); }); // the reconnect banner (#1714) and the dev tools page (/_plainkit) are on in the harness, which runs the sample in Production
 builder.Services.AddPlainKitApp(app => app
     .Brand("Demo app")

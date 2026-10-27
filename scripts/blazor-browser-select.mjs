@@ -82,6 +82,7 @@ export const AREA_FILES = [
     [/^blazor\/src\/PlainKit\.Blazor\/(Components\/PkReconnect\.razor|PkReconnectOptions\.cs|PkOptions\.Reconnect\.cs|wwwroot\/plainkit\.reconnect\.(js|css))$/, ['reconnect']],
     [/^blazor\/src\/PlainKit\.Blazor\/(DevTools\/.*|Components\/Pk(DevTools|DevToolsWorkspace|CodeExplorer|Console|LogSettings|Logs|ModuleDashboard|Performance|Quality|Scorecard|Scripts|Styles|ThemeEditor)\.razor|wwwroot\/blazor-devtools\.js)$/, ['devtools']],
     [/^core\/(site|samples)\//, ['devtools']],
+    [/^core\/modules\/devtools\//, ['devtools']], // the dev tools workspace: its Gallery tab notice and default tab when the gallery option is absent
     [/^core\/(base|tokens|layouts|icons)\//, ['shell', 'reconnect']], // visual only: the app frame and the reconnect banner draw them
     [/^core\/modules\//, ['shell', 'wasm']],
     // 'extras' has no file of its own: PkExtraCheck, PkExtraSet and PkOptions.Extras are used by PkRuntime, the service registration and PkOptions, so they are shared source (everything).
