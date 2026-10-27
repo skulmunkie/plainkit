@@ -44,6 +44,12 @@
       "map": "prop"
     },
     {
+      "name": "Error",
+      "prop": "error",
+      "type": "string?",
+      "map": "prop"
+    },
+    {
       "name": "EmptyContent",
       "slot": "empty",
       "type": "RenderFragment?",
