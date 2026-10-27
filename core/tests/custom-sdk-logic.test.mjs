@@ -16,6 +16,7 @@ const dist = fileURLToPath(new URL('../dist/', import.meta.url));
 const dec = new TextDecoder(); const enc = new TextEncoder();
 const shippedManifest = JSON.parse(fs.readFileSync(dist + 'manifest.json', 'utf8'));
 const load = () => new Map([['manifest.json', new Uint8Array(fs.readFileSync(dist + 'manifest.json'))], ...shippedManifest.files.map(f => [f.path, new Uint8Array(fs.readFileSync(dist + f.path))])]);
+const loadFull = () => { const extras = JSON.parse(fs.readFileSync(dist + 'manifest.extras.json', 'utf8')); return new Map([...load(), ['manifest.extras.json', new Uint8Array(fs.readFileSync(dist + 'manifest.extras.json'))], ...extras.files.map(f => [f.path, new Uint8Array(fs.readFileSync(dist + f.path))])]); };
 const text = (files, p) => dec.decode(files.get(p));
 const NAMES = ['phone', 'tablet', 'wide'];
 const DEFAULTS = { phone: 640, tablet: 1024, wide: 1280 };
@@ -59,7 +60,7 @@ test('defaults: an export with the shipped widths is the shipped dist byte for b
 });
 
 test('changing one breakpoint changes exactly the conditions that name it', async () => {
-    const files = load();
+    const files = loadFull();
     const before = { phone: total(files, 640), tablet: total(files, 1024), wide: total(files, 1280) };
     assert.ok(before.phone > 50 && before.tablet >= 6 && before.wide >= 1, JSON.stringify(before));
     const { files: out, summary } = await customizeDist(files, { include: { breakpoints: true }, breakpoints: { ...DEFAULTS, phone: 720 } });
@@ -70,7 +71,7 @@ test('changing one breakpoint changes exactly the conditions that name it', asyn
     assert.equal(total(out, 1024), before.tablet); assert.equal(total(out, 1280), before.wide);
     // Only the files that carry a phone condition (and the widths block, the report and the manifest) differ.
     const carriers = [...files].filter(([p, b]) => /\.css$|^elements\/[^/]+\.js$/.test(p) && conditionsWith(dec.decode(b), 640) > 0).map(([p]) => p);
-    assert.deepEqual(changedPaths(files, out), [...new Set([...carriers, 'breakpoints.report.json', 'manifest.json', 'plainkit.css', 'plainkit.min.css'])].sort());
+    assert.deepEqual(changedPaths(files, out), [...new Set([...carriers, 'breakpoints.report.json', 'manifest.extras.json', 'manifest.json', 'plainkit.css', 'plainkit.min.css'])].sort());
     assert.match(text(out, 'plainkit.css'), /--pk-bp-phone:720px;--pk-bp-tablet:1024px;--pk-bp-wide:1280px/);
     assert.match(text(out, 'plainkit.min.css'), /--pk-bp-phone:720px/);
     // a rewritten element differs from the shipped one only in the digits of its conditions
@@ -113,18 +114,21 @@ test('theme and breakpoints are independent: each alone, and together', async ()
 });
 
 test('the manifest is recomputed: every hash matches the bundle, the manifest lists everything but itself', async () => {
-    const files = load();
+    const files = loadFull();
     const { files: out } = await customizeDist(files, { include: { theme: true, breakpoints: true }, breakpoints: { ...DEFAULTS, tablet: 1100 }, theme });
     const manifest = JSON.parse(text(out, 'manifest.json'));
     assert.equal(manifest.version, shippedManifest.version);
-    assert.deepEqual(manifest.files.map(f => f.path), [...out.keys()].filter(p => p !== 'manifest.json').sort());
+    const extrasOut = JSON.parse(text(out, 'manifest.extras.json')); const extraPaths = new Set(['manifest.extras.json', ...extrasOut.files.map(f => f.path)]);
+    assert.deepEqual(manifest.files.map(f => f.path), [...out.keys()].filter(p => p !== 'manifest.json' && !extraPaths.has(p)).sort());
     for (const f of manifest.files) {
         const bytes = Buffer.from(out.get(f.path));
         assert.equal(f.bytes, bytes.length, f.path);
         assert.equal(f.integrity, 'sha256-' + crypto.createHash('sha256').update(bytes).digest('base64'), f.path);
     }
     const changed = manifest.files.filter(f => shippedManifest.files.find(s => s.path === f.path)?.integrity !== f.integrity).map(f => f.path);
-    assert.ok(changed.includes('plainkit.css') && changed.includes('breakpoints.report.json') && !changed.includes('icons.svg'));
+    const extrasShipped = JSON.parse(fs.readFileSync(dist + 'manifest.extras.json', 'utf8'));
+    const extrasChanged = extrasOut.files.filter(f => extrasShipped.files.find(s => s.path === f.path)?.integrity !== f.integrity).map(f => f.path);
+    assert.ok(changed.includes('plainkit.css') && !changed.includes('icons.svg') && extrasChanged.includes('breakpoints.report.json'));
     assert.match(manifest.provenance, /Customised export of Plainkit/);
     assert.equal(await integrityOf(enc.encode('abc')), 'sha256-' + crypto.createHash('sha256').update('abc').digest('base64'));
     // the build uses the same function: the shipped manifest text is what manifestText makes of the shipped files
@@ -241,7 +245,7 @@ test('fetchDist without the extras manifest (a core-only folder has no breakpoin
 });
 
 test('fetchDist reads the manifest and every file, verifies each hash, and refuses a substituted file, an error status and an unsafe path', async () => {
-    const files = load();
+    const files = loadFull();
     const serve = (over = {}) => async url => {
         const p = new URL(url).pathname.replace(/^\/dist\//, '');
         const body = over[p] ?? files.get(p);
