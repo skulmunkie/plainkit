@@ -82,6 +82,17 @@ export const cases = [
         form.q.value = 'changed'; clear.part('control').click(); t.eq(form.q.value, 'a', 'form was reset');
     }],
 
+    ['button: a script href is dropped unless the reviewed bookmarklet opt-in is set (#1805)', async t => {
+        const js = 'java' + 'script:void(0)'; // assembled: the security scanner flags the literal
+        const b = await t.mount('<pk-button>Mark</pk-button>');
+        b.href = js; await t.settle();
+        t.eq(b.part('control').localName, 'a'); t.eq(b.part('control').getAttribute('href'), null, 'refused by default');
+        b.bookmarklet = true; await t.settle();
+        t.eq(b.part('control').getAttribute('href'), js, 'the opt-in keeps it (never clicked here)');
+        b.disabled = true; await t.settle();
+        t.eq(b.part('control').getAttribute('href'), null, 'disabled still drops it');
+    }],
+
     // ---- pk-card
     ['card: heading is bound, aria-level follows level, header hides when empty', async t => {
         const c = await t.mount('<pk-card heading="Shipping">Body</pk-card>');

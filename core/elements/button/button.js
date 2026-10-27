@@ -1,11 +1,11 @@
 // The attributes of the link form of pk-button. A disabled or busy link drops its href and download (nothing to open, no status-bar URL, no
-// middle click) and says aria-disabled; a busy one stays a tab stop, as a busy button does. rel defaults to noopener for a new tab.
+// middle click) and says aria-disabled; a busy one stays a tab stop, as a busy button does. rel defaults to noopener for a new tab. bookmarklet (#1805) is the one reviewed way past safeHref: the href is used as written, so it is only for an address the page author wrote, never one from data.
 import { safeHref } from '../../js/safe-url.js';
 
 export function linkAttrs(p) {
     const off = p.disabled || p.busy;
     return {
-        href: off ? null : safeHref(p.href), download: off ? null : p.download, target: p.target || null, rel: p.rel || (p.target === '_blank' ? 'noopener' : null),
+        href: off ? null : p.bookmarklet ? p.href : safeHref(p.href), download: off ? null : p.download, target: p.target || null, rel: p.rel || (p.target === '_blank' ? 'noopener' : null),
         role: 'link', 'aria-disabled': off ? 'true' : null, 'aria-label': p.label || null, 'aria-busy': String(p.busy), tabindex: p.busy && !p.disabled ? '0' : null,
     };
 }
@@ -48,7 +48,7 @@ export default Base => class extends Base {
     updated() {
         const c = this.control();
         if (this.href) {
-            if (!safeHref(this.href)) this.warnOnce('href', `href=${JSON.stringify(this.href)} is not a same-site path, http(s), mailto, tel or sms address: the link has no destination`, { href: this.href });
+            if (!this.bookmarklet && !safeHref(this.href)) this.warnOnce('href', `href=${JSON.stringify(this.href)} is not a same-site path, http(s), mailto, tel or sms address: the link has no destination`, { href: this.href });
             const download = this.download || (this.hasAttribute('download') ? '' : null);
             for (const [k, v] of Object.entries(linkAttrs({ ...this.$, download }))) if (v == null) c.removeAttribute(k); else c.setAttribute(k, v);
         } else if (this.disclosure) { c.setAttribute('aria-expanded', String(this.pressed)); c.removeAttribute('aria-pressed'); }
