@@ -5,6 +5,62 @@ The format follows [Keep a Changelog](https://keepachangelog.com/) and the proje
 
 ## [Unreleased]
 
+## [0.25.0] - 2026-10-27
+
+### Added
+
+- A pk-list-page config action (and bulk action) takes `icon` and `collapse` (also through `PkListPage` `Config`): the button draws that SDK icon before its label and folds to the icon alone on a phone by default, keeping the label as its accessible name, so an Add action needs no "+" in its text. (#1785)
+- pk-app-frame has `searchError` (`SearchError` on `PkAppFrame`): the header search shows that message instead of "No results" while your search is failing. (#1799)
+- pk-app-bar-search has `error` (`Error` on `PkAppBarSearch`): set it when your search fails and the results panel shows that message, in the danger colour, instead of "No results", so a failure no longer looks like nothing was found. (#1799)
+- `PkDialog` has `Scrollable` (the element's `scrollable`): a long body scrolls between the header and the footer instead of running under the footer on a wide screen. (#1800)
+- pk-spinner has `show-label` (`ShowLabel` on `PkSpinner`): the label shows as visible text beside the spinner, or under it with `overlay`, so a loading state in a dialog can say what it waits for. (#1804)
+- PkButton `Bookmarklet`: keeps a javascript URL in `Href` for a bookmarklet link; never set it on an address from data. (#1805)
+- pk-button `bookmarklet`: keeps a `javascript:` href for a bookmarklet link (drag to the bookmarks bar). Without it such an href is still dropped; set it only on an address you wrote, never one from data. (#1805)
+- A `--flat` page bundle also carries `plainkit-registry.js` and the loader looks for it beside the bundle, so a tag that is not in the bundle is reported clearly instead of requesting an `elements/` folder that a flat host does not have. (#1808)
+- `core/tools/bundle-page.mjs --flat` writes a page bundle as one flat folder (`plainkit.bundle.js`, `plainkit.bundle.css`, `plainkit-*.js` chunks and `plainkit-icons.svg`, no sub-folder), for hosts such as Shopify theme assets. (#1808)
+- A page can name where the icon sprite is served with `<meta name="pk-icons" content="...">` (same origin), for hosts that cannot keep `icons.svg` next to the modules. (#1808)
+- pk-drawer and pk-dialog have `close-label` (`CloseButtonLabel` on `PkDrawer` and `PkDialog`) for the accessible name of the close button, so it can be localised; the default stays "Close". (#1809)
+- pk-command-palette reads the surface tokens (`--surface-blur`, `--surface-tint`) for a frosted panel, solid under reduced transparency, more contrast or without backdrop-filter support. (#1814)
+- pk-dialog reads the surface tokens: a theme that sets `--surface-blur` and `--surface-tint` gets a frosted panel; it stays solid under reduced transparency, more contrast or without backdrop-filter support. (#1814)
+- pk-drawer reads the surface tokens (`--surface-blur`, `--surface-tint`) for a frosted panel, solid under reduced transparency, more contrast or without backdrop-filter support. (#1814)
+- pk-dropdown reads the surface tokens (`--surface-blur`, `--surface-tint`) for a frosted menu, solid under reduced transparency, more contrast or without backdrop-filter support. (#1814)
+- The theming guide has a "Glass surfaces" section: how a theme turns on the surface tokens, what reduced transparency and more contrast do, and how to keep text readable on glass. (#1814)
+- pk-navbar reads the surface tokens: `--surface-tint` tints the bar and `--surface-blur` frosts a sticky one; it stays solid under reduced transparency, more contrast or without backdrop-filter support. (#1814)
+- pk-popover reads the surface tokens (`--surface-blur`, `--surface-tint`) for a frosted panel, solid under reduced transparency, more contrast or without backdrop-filter support. (#1814)
+- Surface-effect tokens for glass themes: `--surface-blur`, `--surface-saturate`, `--surface-tint` and `--surface-border-highlight`. They are off by default, so nothing changes until a theme sets them. (#1814)
+- An optional theme is a small stylesheet in `dist/themes/<name>.css`, built from `core/tokens/themes/` and listed in the manifest; the page layer never imports it and page weight does not count it. The first one, `heading-font.css`, sets `--font-heading` to the body font. (#1817)
+- `pk-app-bar-search` raises `pk-submit` `{ query }` when Enter is pressed with a non-empty query and no result highlighted (`OnSubmit` on `PkAppBarSearch`), so a host can show a full results page; the element still never navigates. (#1820)
+- A `pk-app-bar-search` result with an `href` is a real link: middle-click, Ctrl-click and open in a new tab work, and a plain click still raises a cancelable `pk-select` (preventDefault keeps the host's client routing). `PkAppBarSearchItem` gains `Href`. (#1821)
+- `pk-app-bar-search` (`PkAppBarSearch`) announces the result count to assistive technology: while the results panel is open, a visually hidden polite live region (part `status`) reads "N results", the no-results text or the error text after each update. The new `resultsLabel` property (`ResultsLabel`, default "results") is the word after the count, so it can be localised. (#1822)
+- `pk-canvas` resizes the one selected item from the keyboard: Ctrl (Cmd on a Mac) with an arrow moves its bottom-right corner by one grid step, Shift by ten, never below one step, through the same cancelable `pk-canvas-resize` event and announced as "Resized to W by H". (#430)
+- The SVG toolkit can read SVG text (`fromSvg(text, { parse })` in `js/svg/io.js`; the caller passes the parser, `text => new DOMParser().parseFromString(text, 'image/svg+xml')`): it never throws, keeps only the allow-listed shapes and attributes, drops scripts, handlers, links, styles, DTDs and foreign namespaces (each one listed as a problem) and honours the size, depth and coordinate limits. (#431)
+- The SVG toolkit can write a document as SVG text (`toSvg` in `js/svg/io.js`): escaped, deterministic, with a chosen number precision. (#431)
+- A dock layout has undo and redo helpers (`js/dock-history.js`): a drag or resize is one step, a failed or unchanged operation records nothing, and every undone layout passes the dock model's own validation. (#432)
+
+### Changed
+
+- `breakpoints.report.json` ships with the `plainkit.tools` package instead of the npm core package (about 23 KB unpacked less); the Custom SDK export and the theme editor read it when the tools are installed and skip the breakpoints step without it. (#1656)
+- `manifest.extras.json` is served only with the tools option (a core-only Blazor app no longer receives it, about 14 KB gzip less); the Custom SDK export still reads it when the tools package is installed. (#1656)
+- The gallery data of dock, canvas, heat-map, markdown and markdown-editor ships with the package that owns the element (a core-only Blazor app serves about 16 KB gzip less); without the package the element page shows a one-line note instead of failing. (#1656)
+- pk-dialog, pk-command-palette and pk-lightbox no longer blur the page behind their backdrop when the reader's system asks for reduced transparency (`prefers-reduced-transparency: reduce`). (#1814)
+- Plain light-DOM content elements (`pk-field-list`, `pk-detail-layout`) are no longer hidden until upgrade: their slotted content shows as plain markup before the module loads or with JavaScript blocked. A meta key `"preUpgrade": "visible"` opts an element out. (#1836)
+
+### Fixed
+
+- pk-table phone cards: a slotted cell that renders nothing no longer draws its label. (#1794)
+- A search pk-input (`PkInput` with `SearchOn=Enter`) now raises pk-search with an empty value when the browser's own clear (x) button, or deleting every character, empties the box; before, only the element's clear button and Escape did, so a lookup matched on Enter could not react to that clear. (#1798)
+- pk-settings-page (and `PkSettingsPage`) shows the unsaved-changes bar for an edit in your own section content (`slot="section-<key>"`, `SectionContent`), including a `pk-field-group` there; before, only the generated fields could mark the page changed. Discard and a successful save hide the bar; the values of your own content stay yours. (#1803)
+- pk-detail-layout no longer warns that a pk-card has no `data-pk-section` when the card sits inside a wrapper element that carries `data-pk-section`; that card is shown with its section. (#1806)
+- pk-drawer and pk-dialog no longer warn "was opened with no heading and no content" when a framework (such as Blazor) sets `open` before the heading and the content in the same render; the check now runs once the render is applied. A panel really opened empty still warns. (#1807)
+- A pk-drawer, pk-dialog or pk-popover that has not upgraded yet (or never will, with JavaScript blocked) no longer leaves an empty gap: its content takes no room until the element is defined. A docked drawer keeps its place and a popover keeps its trigger. (#1810)
+- A `data-open` or `data-toggle` link (`<a href="/cart" data-open="#cart">`) now opens its pk-drawer, pk-dialog or pk-popover without also following the link once the overlay element is defined; with JavaScript blocked or the element not loaded it stays a plain link, so progressive enhancement needs no click handler. (#1811)
+- `PageBase` no longer starts `OnLoadAsync` during the static prerender of an interactive page (`PkComponentBase`, which the framework's own route guard uses, still loads while prerendering). The prerender did not wait for it, so the load kept running after the request scope was disposed (a disposed DbContext) and ran again when the circuit connected; now the prerendered HTML shows the loading state and the interactive render loads once. Pages with no render mode (static SSR) load as before. (#1812)
+- The base stylesheet no longer adds the small top margin to the items of a list marked `role="list"`, so a `ul`/`ol` laid out as a row or grid (a nav bar, chips, pagination, a card grid) keeps its items on one line. Prose lists without the role keep their item spacing. (#1813)
+- pk-drawer and pk-dialog no longer expose their header and footer as duplicate banner and contentinfo landmarks while open (the parts are unchanged). (#1815)
+- In the dark theme `--color-muted` is slightly lighter (#a0a0a0), so secondary text on a menu, popover or other flyout surface reaches 4.5:1 contrast. (#1816)
+- A pk-dropdown with `hide-empty` no longer shows its trigger for a menu holding only a header or divider when it connects before pk-menu-item is defined: the item type is read from the attribute, so the menu reads the same before and after the upgrade. (#1830)
+- The space `pk-app-bar-search` reserves before it upgrades now shrinks to at most a quarter of the row on each side, so a narrow header no longer overflows. (#1836)
+
 ## [0.24.0] - 2026-10-25
 
 ### Added
