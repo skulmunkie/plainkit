@@ -47,7 +47,7 @@ test('hostile text and labels are escaped and never become markup or handlers', 
     const out = toSvg(d, { title: evil });
     for (const bad of ['<script', '"><', '<foreignObject']) assert.ok(!out.includes(bad), bad);
     assert.ok(out.includes('&lt;script&gt;') && out.includes('&quot;&gt;'));
-    assert.ok(!/<[^>]*sonw+=/.test(out), 'no handler attribute');
+    assert.ok(!/<[^>]*\son\w+=/.test(out), 'no handler attribute');
     assert.ok(!/<[^>]*\sstyle=/.test(out), 'no style attribute');
 });
 
