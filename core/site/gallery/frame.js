@@ -6,7 +6,7 @@
 import { PAGE_CSS } from './paths.js';
 import { SCRIPT_NAME, DESTROY_EVENT } from './pattern-mount.js';
 import { applyDynamic } from '../../js/dynamic.js';
-import { on, h } from '../../js/mount-support.js';
+import { on, h } from './mount-support.js';
 
 export const GALLERY_BASE = new URL('./', import.meta.url).href;
 export const PHONE_WIDTH = 375;

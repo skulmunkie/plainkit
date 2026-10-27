@@ -3,7 +3,7 @@
 // once by mount and moved to the page on show), the viewport, text size and drawer in the module's store (state.js). The app owns the bar, the theme, the title and the side nav.
 import { registerLayout, registerPageType } from '../../js/app.js';
 import { loadElements, observeElements } from '../../js/loader.js';
-import { later } from '../../js/mount-support.js';
+import { later } from './mount-support.js';
 import { mapAlias } from '../../js/route-tree.js';
 import { normalizeOptions } from '../../js/gallery-options.js';
 import { PAGE_TYPES } from './pages.js';

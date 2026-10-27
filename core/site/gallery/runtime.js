@@ -5,7 +5,7 @@ import { restrictTree, filterTree } from '../../js/gallery-options.js';
 import { LAYOUTS, PATTERNS, ELEMENTS } from './gallery.data.js';
 import { makeFrame, applyToFrame, applyToPage, destroyFrame } from './frame.js';
 import { applyDynamic } from '../../js/dynamic.js';
-import { loadText, later, h } from '../../js/mount-support.js';
+import { loadText, later, h } from './mount-support.js';
 import { FOUNDATIONS, LAYOUT_ITEMS, TEMPLATE_PAGES, createViews } from './gallery-views.js';
 
 const slug = s => s.replace(/\W+/g, '-').replace(/^-|-$/g, '').toLowerCase();

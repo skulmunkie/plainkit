@@ -3,7 +3,7 @@
 // realm that owns the markup, so `document` inside it is the frame's own document and a frame's listeners go away with the frame.
 // Framework-free; ES module.
 import { createLogger } from '../../js/log.js';
-import { on } from '../../js/mount-support.js';
+import { on } from './mount-support.js';
 
 const log = createLogger('gallery-pattern');
 

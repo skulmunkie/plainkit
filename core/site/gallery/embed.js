@@ -3,7 +3,7 @@
 import { mountGallery, setGallerySections } from './gallery.js';
 import { parseQuery } from '../../js/gallery-options.js';
 import { READY_MESSAGE, acceptedSections } from '../../js/gallery-sections.js';
-import { on, h, addressOf } from '../../js/mount-support.js';
+import { on, h, addressOf } from './mount-support.js';
 
 const doc = document, win = doc.defaultView, parent = win.parent;
 const options = { chrome: 'full', ...parseQuery(new URL(addressOf(win).href).search) };

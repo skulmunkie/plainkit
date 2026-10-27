@@ -4,9 +4,8 @@
 // tabs, cards, accordions, fields, code blocks). The API reference (Properties, Slots, Events, Parts, Custom properties, Methods,
 // Accessibility) is drawn once, by the Details flyout (js/element-inspector.js) - this page does not repeat it.
 
-import { cleanMarkup } from '../../js/element-inspector-logic.js';
 import { applyDynamic } from '../../js/dynamic.js';
-import { on, later, h as build } from '../../js/mount-support.js';
+import { on, later, h as build } from './mount-support.js';
 
 // options.onLive(element) hands the playground's live element to the caller (the gallery's inspector shows it); options.onChange() runs after
 // every change of its markup; options.doc is the document the page is built in (the gallery's own by default). The page's timers and frame
@@ -19,6 +18,8 @@ export function renderElement(meta, options = {}) {
     // Parsed with an element of the main document, so an pk-* tag is created against its registry and can be upgraded before it is attached.
     const fromHtml = html => { const d = h('div'); d.innerHTML = html; const f = doc.createDocumentFragment(); f.append(...d.childNodes); return f; };
     const markup = node => node.outerHTML;
+    // The markup as an author would write it: the data-* attributes the SDK adds and an empty hidden are left out (the gallery's own copy: js/element-inspector-logic.js belongs to the tools package).
+    const cleanMarkup = html => String(html ?? '').replace(/\s(data-[\w-]+="[^"]*")/g, '').replace(/\shidden(="")?(?=[\s>])/g, '');
     const contentMarkup = node => markup(h('div', {}, ...[...node.childNodes].map(c => c.cloneNode(true)))).slice('<div>'.length, -'</div>'.length);
     // A code viewer: the code is the element's text content, so a change of text is a change of code.
     const codeBlock = (label, text = '') => h('pk-code-block', { label, wrap: true }, text);

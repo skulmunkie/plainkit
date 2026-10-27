@@ -7,7 +7,7 @@ import { setTheme } from '../../js/theme.js';
 import { applyDynamic } from '../../js/dynamic.js';
 import { TEMPLATES_DIR, PATTERNS_DIR } from './paths.js';
 import { mountPattern } from './pattern-mount.js';
-import { on, h, addressOf, replaceAddress } from '../../js/mount-support.js';
+import { on, h, addressOf, replaceAddress } from './mount-support.js';
 import { fillSanitizedHtml } from '../../js/sanitized-html.js';
 
 const doc = document, win = doc.defaultView;

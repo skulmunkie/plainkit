@@ -60,15 +60,20 @@ test('an element meta says its package exactly when packages.json says so', () =
     for (const t of tagOwner.keys()) assert.ok(tags.has(t), `packages.json names ${t}, which is no element.`);
 });
 
+// A package may declare `optionalImports`: packages it reaches only through a dynamic import() that handles their absence (the gallery and the tools modules, whose absence it shows as a notice).
+// A static import of one is still a violation.
+const optionalOf = id => new Set(byId.get(id)?.optionalImports ?? []);
+const staticImportsOf = f => new Set([...fs.readFileSync(path.join(dist, f), 'utf8').matchAll(/^s*(?:import|export)[^'"(;]*?(?:froms*)?["']([^"']+.js)["']/gm)].map(m => path.posix.normalize(path.posix.join(path.posix.dirname(f), m[1]))));
+
 test('P1: a package imports only itself and its requirements (no computed or literal import reaches an extra from core)', () => {
     const owner = f => ownersOf(f, packages)[0];
     const bad = [];
     for (const f of files.filter(x => x.endsWith('.js'))) {
         if (isSiteOnly(f, data)) continue;
-        const ok = allowedOwners(owner(f), byId);
+        const ok = allowedOwners(owner(f), byId), optional = optionalOf(owner(f)), fixed = staticImportsOf(f);
         for (const i of importsOf(dist, f)) {
             if (!fs.existsSync(path.join(dist, i))) continue;
-            if (!ok.has(owner(i))) bad.push(`${f} (${owner(f)}) imports ${i} (${owner(i)})`);
+            if (!ok.has(owner(i)) && !(optional.has(owner(i)) && !fixed.has(i))) bad.push(`${f} (${owner(f)}) imports ${i} (${owner(i)})${optional.has(owner(i)) ? ' statically; an optional package is reached only through import()' : ''}`);
         }
     }
     assert.deepEqual(bad, [], `imports across package boundaries:\n${bad.join('\n')}\nFIX: move the file to the package that needs it, or the import out of the file; never widen requires to hide one.`);
@@ -80,7 +85,7 @@ test('P1: no file of another package names an extra-owned file as a string eithe
     const bad = [];
     for (const p of packages.filter(x => x.id !== CORE_ID)) {
         const names = claims(p).filter(c => c.endsWith('.js')).map(c => c.replace(/^(js|elements)\//, ''));
-        for (const f of files.filter(x => x.endsWith('.js') && !isSiteOnly(x, data) && x !== CATALOGUE && !ownersOf(x, packages).includes(p.id) && !allowedOwners(ownersOf(x, packages)[0], byId).has(p.id))) {
+        for (const f of files.filter(x => x.endsWith('.js') && !isSiteOnly(x, data) && x !== CATALOGUE && !ownersOf(x, packages).includes(p.id) && !allowedOwners(ownersOf(x, packages)[0], byId).has(p.id) && !optionalOf(ownersOf(x, packages)[0]).has(p.id))) {
             const text = fs.readFileSync(path.join(dist, f), 'utf8');
             for (const n of names) if (new RegExp(`["'\`](?:[^"'\`\\n]*/)?${n.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}["'\`]`).test(text)) bad.push(`${f} names ${n} (${p.id})`);
         }

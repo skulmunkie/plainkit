@@ -7,7 +7,7 @@ import { BREAKPOINTS, TEXT_PAIRS, LAYOUTS, RESPONSIVE_RULES, PATTERNS, TEMPLATES
 import { PHONE_WIDTH } from './frame.js';
 import { parseTokenBlocks, tokenKind } from '../../js/theme.js';
 import { contrast, grade } from '../../js/colour.js';
-import { h } from '../../js/mount-support.js';
+import { h } from './mount-support.js';
 
 const PAGE_SIZE = 40;
 

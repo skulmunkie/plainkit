@@ -2,13 +2,18 @@
 // Details), the slim bar of a full-page sample, the view and the docked Details drawer with its resize handle. chrome.shell goes into the page; show(full) says which page is on show (a full-page
 // sample or null), paint() the theme, width or text size changed, inspect { live, change, shown } is what an element page tells the drawer. settings { get, set } keeps 'inspector' ('1' | '0') and
 // 'inspector-w' (pixels); act { theme, width, scale, go } is what the controls do; on(target, type, fn) adds a listener the owner removes.
-import { createElementInspector, sectionFromData } from '../../js/element-inspector.js';
+import { createLogger } from '../../js/log.js';
 import { sectionsFor } from '../../js/gallery-sections.js';
 import { mediaBelow } from '../../js/breakpoints.js';
 import { applyDynamic } from '../../js/dynamic.js';
 import { clampSize, keySize, pointerSize } from '../../js/size.js';
-import { h } from '../../js/mount-support.js';
+import { h } from './mount-support.js';
 import { KIND_LABEL } from './gallery-views.js';
+
+const log = createLogger('gallery-chrome');
+// js/element-inspector.js belongs to the tools package: imported when the drawer first needs it, so a gallery without tools shows a notice instead of failing.
+let inspectorModule = null;
+const loadInspector = () => inspectorModule ??= import('../../js/element-inspector.js').catch(err => { log.warn('The element inspector could not load; add the tools option to enable it.', err); return null; });
 
 // A boolean or string prop set through its attribute, so it also lands on an element that is not upgraded yet (the elements load on demand).
 export const setAttr = (el, name, on) => { if (typeof on === 'boolean') el.toggleAttribute(name, on); else el.setAttribute(name, on); };
@@ -78,8 +83,12 @@ export function createChrome({ doc, B, hosted, state, settings, act, on, pageUrl
         if (cur.full) { setAttr(drawer, 'open', false); handle.hidden = true; view.removeAttribute('data-inspecting'); return; }
         const now = cur.inspecting;
         drawer.setAttribute('heading', now ? `${now.meta.title}: details` : 'Inspector');
-        inspector ??= createElementInspector(drawer.querySelector('#gx-inspector-body'));
-        inspector.show(now && { meta: now.meta, element: now.element, extraSections: sectionsFor(sections(), now.meta.tag).map(sectionFromData) });
+        const inspectorBody = drawer.querySelector('#gx-inspector-body');
+        loadInspector().then(mod => {
+            if (!mod) { inspectorBody.textContent = 'Add the tools option to enable the inspector.'; return; }
+            inspector ??= mod.createElementInspector(inspectorBody);
+            inspector.show(now && { meta: now.meta, element: now.element, extraSections: sectionsFor(sections(), now.meta.tag).map(mod.sectionFromData) });
+        });
         const stored = settings.get('inspector');
         setInspector(stored == null ? Boolean(now) && !phone() : stored === '1', false);
     }

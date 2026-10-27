@@ -3,7 +3,7 @@
 // views, the scope, the lazy sample frames, the route, the inspector hooks); a factory reads nothing else. The cleanup ends what the page started (its timers, its element
 // chunks arriving late) and takes its content out of the host; mountGallery runs it before the next page is drawn and when it is destroyed.
 import { applyDynamic } from '../../js/dynamic.js';
-import { on, h } from '../../js/mount-support.js';
+import { on, h } from './mount-support.js';
 import { ELEMENTS, loadElement } from './gallery.data.js';
 import { renderElement } from './elements-view.js';
 import { FOUNDATIONS, blocks } from './gallery-views.js';

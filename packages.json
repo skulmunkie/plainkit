@@ -215,7 +215,9 @@
       "title": "Gallery",
       "built": true,
       "requires": [
-        "plainkit",
+        "plainkit"
+      ],
+      "optionalImports": [
         "plainkit.tools"
       ],
       "blazorOption": "gallery",

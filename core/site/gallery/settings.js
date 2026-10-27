@@ -1,7 +1,9 @@
 // The Settings page's body: theme, the Gallery's text size and sample width (its store, state.js) and logging. Mounted by the site app's Settings module (site/modules/settings.js).
-import { h } from '../../js/mount-support.js';
+import { h } from './mount-support.js';
 import { galleryStore } from './state.js';
-import { mountLogSettings } from '../../modules/log-settings/log-settings.js';
+import { createLogger } from '../../js/log.js';
+
+const log = createLogger('gallery-settings');
 
 const select = (doc, value, list) => h(doc, 'pk-select', { value }, ...list.map(([v, t]) => h(doc, 'option', { value: v }, t)));
 
@@ -24,6 +26,11 @@ export function mountSettings(host, ctx) {
     for (const [el, key, as] of [[scale, 'scale', Number], [width, 'width', String]]) ctx.on(el, 'pk-value-change', e => gallery.set(key, as(e.detail.value)));
     ctx.on(themes, 'pk-toggle', e => { const name = e.target.closest('pk-button')?.getAttribute('value'); if (name && name !== ctx.theme.name) ctx.theme.set(name); }); // the app keeps the theme
     const stop = ctx.theme.subscribe(paint);
-    const handle = mountLogSettings(logging, {});
-    return () => { stop(); handle?.destroy?.(); gallery.destroy(); };
+    // modules/log-settings belongs to the tools package: loaded here, so a gallery without tools shows a notice in its place.
+    let handle = null, gone = false;
+    import('../../modules/log-settings/log-settings.js').then(m => { if (!gone) handle = m.mountLogSettings(logging, {}); }, err => {
+        log.warn('The logging settings could not load; add the tools option to enable them.', err);
+        logging.textContent = 'Add the tools option to enable the logging settings.';
+    });
+    return () => { gone = true; stop(); handle?.destroy?.(); gallery.destroy(); };
 }

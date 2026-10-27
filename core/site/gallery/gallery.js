@@ -18,7 +18,7 @@ import { currentTheme, setTheme } from '../../js/theme.js';
 import { initPlainkit } from '../../js/plainkit.js';
 import { PAGE_TYPES, pageFor } from './pages.js';
 import { normalizeSections } from '../../js/gallery-sections.js';
-import { on, h, addressOf } from '../../js/mount-support.js';
+import { on, h, addressOf } from './mount-support.js';
 import { mountRouter } from '../../js/router.js';
 import { KIND_LABEL } from './gallery-views.js';
 import { createChrome, setAttr } from './chrome.js';
