@@ -82,6 +82,6 @@ export default Base => class extends Base {
             c.toggleAttribute('data-pk-section-hidden', off);
             if (off) c.style.display = 'none'; else if (c.style.display === 'none') c.style.removeProperty('display');
         }
-        if (on) for (const c of this.querySelectorAll('pk-card:not([data-pk-section])')) this.warnOnce('nosection', 'a pk-card in a layout with sections has no data-pk-section: it shows on every tab', { card: c.getAttribute('heading') });
+        if (on) for (const c of this.querySelectorAll('pk-card:not([data-pk-section])')) if (c.parentElement.closest(`[data-pk-section],${this.localName}`) === this) this.warnOnce('nosection', 'a pk-card in a layout with sections has no data-pk-section: it shows on every tab', { card: c.getAttribute('heading') }); // a card inside a [data-pk-section] wrapper is in that section (#1806)
     }
 };
