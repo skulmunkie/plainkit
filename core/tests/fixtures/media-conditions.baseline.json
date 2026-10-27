@@ -71,7 +71,9 @@
   "(max-width: 640px)"
  ],
  "dropdown": [
-  "(prefers-reduced-motion: reduce)"
+  "(prefers-reduced-motion: reduce)",
+  "(prefers-reduced-transparency: reduce)",
+  "(prefers-contrast: more)"
  ],
  "dropzone": [
   "(pointer: coarse),(max-width: 640px)"
