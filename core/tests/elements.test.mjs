@@ -119,7 +119,7 @@ test('the build writes per-element modules, a registry, the FOUC guard and a pag
     assert.deepEqual(Object.keys(registry).sort(), elements.map(e => e.meta.tag).sort());
     for (const el of elements) { assert.ok(out.has(`dist/elements/${el.name}.js`)); assert.ok(out.has(`${el.folder}/${el.name}/${el.name}.element.js`)); }
     const fouc = out.get('elements/elements.css');
-    for (const el of elements) assert.ok(fouc.includes(`${el.meta.tag}:not(:defined)`), `${el.meta.tag} is hidden until defined`);
+    for (const el of elements) assert.equal(fouc.includes(`${el.meta.tag}:not(:defined)`), el.meta.preUpgrade !== 'visible', `${el.meta.tag} is hidden until defined unless its meta says preUpgrade visible`);
     assert.doesNotMatch(out.get('dist/plainkit.css'), /\.btn-primary:hover|\.card-header \{/, 'the primary sheet carries no class-based component rules');
     assert.match(out.get('dist/plainkit.css'), /:not\(:defined\)/);
     assert.ok(out.has('dist/elements/api.json'));
