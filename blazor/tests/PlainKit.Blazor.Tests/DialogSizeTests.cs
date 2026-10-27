@@ -44,4 +44,11 @@ public sealed class DialogSizeTests : BunitContext, IAsyncLifetime
 
         Assert.Equal("720", cut.Find("pk-dialog").GetAttribute("max-width"));
     }
+
+    [Fact]
+    public void Scrollable_is_sent_as_the_scrollable_attribute_and_left_off_by_default() // #1800
+    {
+        Assert.NotNull(Render<PkDialog>(p => p.Add(x => x.Scrollable, true)).Find("pk-dialog").GetAttribute("scrollable"));
+        Assert.Null(Render<PkDialog>().Find("pk-dialog").GetAttribute("scrollable"));
+    }
 }

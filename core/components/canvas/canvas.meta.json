@@ -37,7 +37,7 @@
     { "name": "pk-canvas-select", "detail": { "ids": "string[]" }, "description": "The selection changed by a gesture (click, marquee, Ctrl+A, Escape, Tab focus): the new ids." },
     { "name": "pk-canvas-key", "detail": { "key": "string", "shiftKey": "boolean", "altKey": "boolean", "ctrlKey": "boolean" }, "description": "Delete, Escape, or Shift with an arrow (when there is no selection to move), on the focused surface, for the page to act on." },
     { "name": "pk-canvas-move", "detail": { "moves": "{ id: string, x: number, y: number }[]", "done": "boolean" }, "description": "Cancelable: the selection is asked to move to these world positions. Arrow keys send done true; dragging an already selected item sends done false while it runs and done true at the end (Escape puts it back with done true). The page writes them back to the items' data-x and data-y (or an SVG item's x and y); the canvas never moves items itself." },
-    { "name": "pk-canvas-resize", "detail": { "id": "string", "x": "number", "y": "number", "w": "number", "h": "number", "done": "boolean" }, "description": "Cancelable: the one selected item is asked to take this world rect, from a drag of one of its eight handles (done false while it runs, done true at the end; Shift keeps the ratio, Alt the centre, Escape puts it back). The page writes it back; the canvas never resizes items itself." }
+    { "name": "pk-canvas-resize", "detail": { "id": "string", "x": "number", "y": "number", "w": "number", "h": "number", "done": "boolean" }, "description": "Cancelable: the one selected item is asked to take this world rect, from a drag of one of its eight handles (done false while it runs, done true at the end; Shift keeps the ratio, Alt the centre, Escape puts it back), or from Ctrl or Cmd with an arrow key (done true: one grid step, Shift ten, bottom-right corner). The page writes it back; the canvas never resizes items itself." }
   ],
   "parts": [
     { "name": "frame", "description": "The focusable ground" },
@@ -76,7 +76,7 @@
     { "name": "centerOn(x, y)", "description": "Centres a world point" },
     { "name": "reset()", "description": "Back to zoom 1 at the origin" }
   ],
-  "a11y": "A labelled group and one tab stop. Arrows pan (mirrored in right-to-left), + and - zoom, 0 resets, 1 or Home fits; with a selection (selectable, not readonly) the arrows move it instead: one grid step, Shift ten, Alt one screen pixel, announced as \"Moved to x, y\". Delete, Escape and Shift+arrow reach the page. Zoom changes are announced; the plain wheel is the page's until focus.",
+  "a11y": "A labelled group and one tab stop. Arrows pan (mirrored in right-to-left), + and - zoom, 0 resets, 1 or Home fits; with a selection (selectable, not readonly) the arrows move it instead: one grid step, Shift ten, Alt one screen pixel, announced as \"Moved to x, y\". With one item selected, Ctrl (Cmd on a Mac) with an arrow resizes it from its bottom-right corner: one grid step, Shift ten, never below one step, announced as \"Resized to W by H\". Delete, Escape and Shift+arrow reach the page. Zoom changes are announced; the plain wheel is the page's until focus.",
   "mobile": "One finger pans, or drags a selected item; two pinch; a tap picks; the toolbar folds to icons with 44px targets.",
   "examples": [
     {

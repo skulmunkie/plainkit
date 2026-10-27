@@ -309,8 +309,9 @@ async function main() {
         const runAll = async (ctx, cases) => {
             for (const c of cases) {
                 guard.phase('running a case'); guard.caseName(c.name);
-                try { await withTimeout(c.run(ctx), CASE_TIMEOUT_MS * loadScale(), `case ${c.name}`); results.cases.push({ name: c.name, ok: true }); console.log(`  ok   ${c.name}`); }
-                catch (e) { results.cases.push({ name: c.name, ok: false, error: e.message }); console.log(`  FAIL ${c.name}: ${e.message}`); }
+                const t0 = Date.now(), took = () => `(${((Date.now() - t0) / 1000).toFixed(1)} s)`;
+                try { await withTimeout(c.run(ctx), CASE_TIMEOUT_MS * loadScale(), `case ${c.name}`); results.cases.push({ name: c.name, ok: true }); console.log(`  ok   ${c.name} ${took()}`); }
+                catch (e) { results.cases.push({ name: c.name, ok: false, error: e.message }); console.log(`  FAIL ${c.name} ${took()}: ${e.message}`); }
             }
         };
         if (serverCases.length || (o.shots && shotPlan.length)) { console.log('publishing the sample ...'); publish(pub, SAMPLE, o.publishTimeout); host = await startHost(pub, o.timeout); }

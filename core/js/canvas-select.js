@@ -6,6 +6,7 @@
 //   - draws a marquee while a primary-button drag runs over bare ground in mode="select" and selects what it touches,
 //   - moves the selection with the arrow keys (one grid step, Shift ten, Alt one screen pixel) through a cancelable pk-canvas-move the page answers by writing the item back (not when readonly),
 //   - moves the selection when an already selected item is dragged (pk-canvas-move with done false while it runs, done true at the end; Escape puts it back),
+//   - resizes the one selected item from its bottom-right corner with Ctrl (Cmd) and the arrows (one grid step, Shift ten; never below one step), through pk-canvas-resize with done true,
 //   - draws eight resize handles on a single selected item; dragging one asks for a new rect through a cancelable pk-canvas-resize (Shift keeps the ratio, Alt the centre, Escape puts it back),
 //   - snaps a dragged selection to what `snap` lists (grid, guides, edges, centres of the other items and the `targets` property), drawing the lines that hold it, and draws the `guides`,
 // and says what changed in the canvas's live region. The host owns the `selection` property (an array of ids); this layer sets it and emits pk-canvas-select.
@@ -123,6 +124,13 @@ export function mount(host) {
         else if (e.key === 'Escape' && size?.on) { const s = size; size = null; resize(s, null, true); }
         else if (e.key === 'Escape' && grab?.on) { const g = grab; grab = null; move(0, 0, true, g.base); lines([]); }
         else if (e.key === 'Escape' && host.selection.length) set([]);
+        else if (ARROWS[e.key] && (e.ctrlKey || e.metaKey) && !host.readonly && host.selection.length === 1 && !e.target.matches?.('input, textarea, select, [contenteditable]')) {
+            const it = items().find(i => i.id === host.selection[0]), step = host.steps().minor * (e.shiftKey ? 10 : 1), [ux, uy] = ARROWS[e.key];
+            if (!it) return;
+            const r = { x: it.x, y: it.y, w: Math.max(host.steps().minor, it.w + ux * step), h: Math.max(host.steps().minor, it.h + uy * step) };
+            if (r.w === it.w && r.h === it.h) return;
+            if (host.emit('pk-canvas-resize', { id: it.id, ...r, done: true })) status.textContent = `Resized to ${round(r.w)} by ${round(r.h)}`;
+        }
         else if (ARROWS[e.key] && !host.readonly && !e.ctrlKey && !e.metaKey && host.selection.length && !e.target.matches?.('input, textarea, select, [contenteditable]')) {
             const d = nudge(host.steps().minor, host.zoom, e), [ux, uy] = ARROWS[e.key];
             if (!move(ux * d, uy * d, true)) return;
