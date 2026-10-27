@@ -34,7 +34,7 @@ export function formatPart(entries, { chrome, kind = 'ui-baseline' }) {
 /** { chrome, entries: [[name, value], ...] } of a part's text; throws on a missing header or a line without a tab. */
 export function parsePart(text, { kind = 'ui-baseline' } = {}) {
     const lines = String(text).split(/\r?\n/).filter(l => l !== '');
-    const m = new RegExp(`^# ${kind} ${BASELINE_VERSION} chrome=(\S+)$`).exec(lines[0] ?? '');
+    const m = new RegExp(`^# ${kind} ${BASELINE_VERSION} chrome=(\\S+)$`).exec(lines[0] ?? '');
     if (!m) throw new Error(`not a ${kind} ${BASELINE_VERSION} file: the first line is "${lines[0] ?? ''}"`);
     const entries = lines.slice(1).map(l => {
         const [name, value, ...more] = l.split('\t');
