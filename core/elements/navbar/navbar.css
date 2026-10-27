@@ -1,7 +1,9 @@
 /* pk-navbar: brand, links, actions on one row; below 1024px the links fold behind a hamburger that toggles [open]. */
-:host { display: block; background: var(--color-panel); border-bottom: 1px solid var(--color-border); color: var(--color-text); font-size: var(--text-read); }
+:host { display: block; background: var(--surface-tint, var(--color-panel)); border-bottom: 1px solid var(--color-border); box-shadow: inset 0 1px var(--surface-border-highlight); color: var(--color-text); font-size: var(--text-read); }
 
 :host([sticky]) { position: sticky; top: 0; z-index: var(--z-sticky); }
+
+:host([sticky])::before { content: ""; position: absolute; inset: 0; z-index: -1; pointer-events: none; backdrop-filter: blur(var(--surface-blur)) saturate(var(--surface-saturate)); }
 
 [part="nav"] { display: flex; align-items: center; flex-wrap: wrap; gap: var(--space-2) var(--space-3); min-height: var(--app-header-h); padding: 0 var(--pk-navbar-padding, var(--space-4)); }
 
@@ -43,3 +45,7 @@
 :host([no-fold]) [part="brand"] { min-width: 0; }
 
 :host([no-fold]) ::slotted([slot="brand"]) { display: block; line-height: var(--touch-target); max-width: 100%; overflow: hidden; text-overflow: ellipsis; }
+
+@media (prefers-reduced-transparency: reduce) { :host([sticky])::before { backdrop-filter: none; } :host { background: var(--color-panel); } }
+@media (prefers-contrast: more) { :host([sticky])::before { backdrop-filter: none; } :host { background: var(--color-panel); } }
+@supports not (backdrop-filter: blur(1px)) { :host { background: var(--color-panel); } }
