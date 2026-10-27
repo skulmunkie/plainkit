@@ -21,7 +21,7 @@ test('the surface tokens exist and are off by default: no blur, no tint, no high
 });
 
 test('the solid surfaces a glass element falls back to keep text at AA in both themes (#1814)', () => {
-    assert.deepEqual(contrastFailures(tokens, [['--color-text', '--color-panel'], ['--color-text', '--color-flyout'], ['--color-muted', '--color-panel'], ['--color-muted-strong', '--color-flyout']]), []);
+    assert.deepEqual(contrastFailures(tokens, [['--color-text', '--color-panel'], ['--color-text', '--color-flyout'], ['--color-muted', '--color-panel'], ['--color-muted', '--color-flyout'], ['--color-muted-strong', '--color-flyout']]), []);
 });
 
 test('every element that reads --surface-tint blurs through the tokens and falls back to its solid surface (#1814)', () => {
