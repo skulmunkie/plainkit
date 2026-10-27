@@ -9,9 +9,9 @@
     padding: 0;
     border: 1px solid var(--color-border);
     border-radius: var(--radius-xl);
-    background: var(--color-panel);
+    background: var(--surface-tint, var(--color-panel));
     color: var(--color-text);
-    box-shadow: var(--shadow-modal);
+    box-shadow: inset 0 1px var(--surface-border-highlight), var(--shadow-modal);
     overflow: hidden;
     font-size: var(--text-read);
 }
@@ -19,6 +19,8 @@
 [part="dialog"][open] { display: flex; flex-direction: column; animation: palette-in 0.12s ease-out; }
 
 [part="dialog"]::backdrop { background: var(--modal-overlay-bg); backdrop-filter: blur(3px); }
+
+[part="dialog"]::before { content: ""; position: absolute; inset: 0; z-index: -1; border-radius: inherit; pointer-events: none; backdrop-filter: blur(var(--surface-blur)) saturate(var(--surface-saturate)); }
 
 [part="search"] { display: flex; align-items: center; gap: var(--space-3); flex: none; padding: var(--space-2) var(--space-4); border-bottom: 1px solid var(--color-border); }
 
@@ -45,5 +47,8 @@
 @keyframes palette-in { from { opacity: 0; transform: translateY(-0.5rem); } }
 
 @media (prefers-reduced-motion: reduce) { [part="dialog"][open] { animation: none; } }
+@media (prefers-reduced-transparency: reduce) { [part="dialog"]::backdrop, [part="dialog"]::before { backdrop-filter: none; } [part="dialog"] { background: var(--color-panel); } }
+@media (prefers-contrast: more) { [part="dialog"]::before { backdrop-filter: none; } [part="dialog"] { background: var(--color-panel); } }
+@supports not (backdrop-filter: blur(1px)) { [part="dialog"] { background: var(--color-panel); } }
 
 @media (--phone) { [part="dialog"] { margin-top: var(--space-4); } [part="hint"] { display: none; } }

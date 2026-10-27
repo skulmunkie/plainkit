@@ -22,6 +22,12 @@
       "type": "string"
     },
     {
+      "name": "Bookmarklet",
+      "prop": "bookmarklet",
+      "type": "bool",
+      "extra": true
+    },
+    {
       "name": "Target",
       "prop": "target",
       "type": "string"

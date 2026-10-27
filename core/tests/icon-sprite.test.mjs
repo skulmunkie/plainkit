@@ -27,3 +27,13 @@ test('drawIcon points the use at the symbol, reports a missing name once through
         assert.equal(u.getAttribute('href'), null);
     } finally { globalThis.fetch = realFetch; }
 });
+
+test('a <meta name="pk-icons"> in the page sets the sprite address once, at import (#1808)', async () => {
+    globalThis.document = { querySelector: s => (s === 'meta[name="pk-icons"]' ? { content: '/assets/plainkit-icons.svg' } : null) };
+    try {
+        const m = await import('../js/icon-sprite.js?pk-icons-meta'); // a fresh module instance that reads the stub
+        assert.equal(m.spriteUrl(), '/assets/plainkit-icons.svg');
+        assert.equal(m.iconHref('plus'), '/assets/plainkit-icons.svg#plus');
+    } finally { delete globalThis.document; }
+    assert.equal(spriteUrl('https://x.test/sdk/js/icon-sprite.js'), 'https://x.test/sdk/icons.svg', 'without the meta nothing changes');
+});

@@ -93,7 +93,7 @@
     }
   ],
   "methods": [],
-  "a11y": "A nav landmark; the hamburger is a button with aria-expanded controlling the links; the current link has aria-current=\"page\".",
+  "a11y": "A nav landmark; the hamburger is a button with aria-expanded controlling the links; the current link has aria-current=\"page\". A theme's glass surface tokens tint the bar (--surface-tint) and frost a sticky one (--surface-blur); with reduced transparency or more contrast asked for, or without backdrop-filter support, the bar is solid --color-panel.",
   "mobile": "Links fold behind a 44px hamburger and stack full width; dropdown menus open inline.",
   "examples": [
     {

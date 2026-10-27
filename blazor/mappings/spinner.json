@@ -20,6 +20,11 @@
       "name": "Overlay",
       "prop": "overlay",
       "type": "bool"
+    },
+    {
+      "name": "ShowLabel",
+      "prop": "showLabel",
+      "type": "bool"
     }
   ],
   "notes": "New component; the text-only Loading component is unchanged."

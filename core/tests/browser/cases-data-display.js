@@ -146,6 +146,21 @@ export const dataDisplayCases = [
         s.variant = 'ring'; await t.settle(); t.eq(getComputedStyle(s.part('dots')).display, 'none');
     }],
 
+    ['spinner: show-label makes the label visible beside the ring, under it with overlay; without it the label stays screen-reader only (#1804)', async t => {
+        const plain = await t.mount('<pk-spinner label="Loading orders"></pk-spinner>');
+        t.ok(plain.part('label').getBoundingClientRect().width <= 1, 'default: the label is visually hidden');
+        const s = await t.mount('<pk-spinner show-label label="Loading orders"></pk-spinner>'); await t.settle();
+        const ring = s.part('ring').getBoundingClientRect(), label = s.part('label').getBoundingClientRect();
+        t.ok(label.width > 20 && label.height > 8, 'the label is visible');
+        t.ok(label.left >= ring.right, 'beside the ring');
+        t.ok(Math.abs((label.top + label.height / 2) - (ring.top + ring.height / 2)) <= 2, 'centred on the ring');
+        t.eq(s.internals.role, 'status', 'still a status region');
+        const box = await t.mount('<div><pk-spinner overlay show-label label="Loading"></pk-spinner></div>');
+        box.style.position = 'relative'; box.style.height = '200px'; await t.settle();
+        const o = box.firstElementChild, r2 = o.part('ring').getBoundingClientRect(), l2 = o.part('label').getBoundingClientRect();
+        t.ok(l2.top >= r2.bottom, 'with overlay the label sits under the ring');
+    }],
+
     ['progress: native bar carries value and max, shows the percentage, goes indeterminate and colours by threshold', async t => {
         const p = await t.mount('<pk-progress label="Import" value="60" show-value level-thresholds="70,90"></pk-progress>');
         const bar = p.part('bar');

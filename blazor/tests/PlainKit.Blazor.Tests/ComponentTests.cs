@@ -72,6 +72,13 @@ public sealed class ComponentTests : BunitContext, IAsyncLifetime
     }
 
     [Fact]
+    public void Button_bookmarklet_is_an_explicit_opt_in_that_reaches_the_element()
+    {
+        Assert.True(Render<PkButton>(p => p.Add(x => x.Bookmarklet, true)).Find("pk-button").HasAttribute("bookmarklet"));
+        Assert.False(Render<PkButton>().Find("pk-button").HasAttribute("bookmarklet"));
+    }
+
+    [Fact]
     public void Dev_tools_page_hands_its_route_to_the_workspace_component_and_navigates_when_a_tab_is_chosen()
     {
         var cut = Render<PkDevToolsWorkspace>(p => p.Add(x => x.Tab, "scorecard"));
