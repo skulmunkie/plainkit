@@ -3,7 +3,7 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import behaviour from './dropdown.js';
 
-const item = (props = {}) => ({ localName: 'pk-menu-item', type: 'item', disabled: false, focused: 0, focus() { this.focused++; }, ...props });
+const item = (props = {}) => ({ localName: 'pk-menu-item', type: 'item', disabled: false, focused: 0, getAttribute(n) { return this[n] ?? null; }, focus() { this.focused++; }, ...props });
 
 const make = (props = {}, rows = []) => {
     const listeners = {}; const emitted = []; const attrs = {};
