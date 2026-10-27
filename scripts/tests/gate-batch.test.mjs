@@ -4,7 +4,9 @@ import assert from 'node:assert/strict';
 import fs from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
-import { attestPlan, caseNames, formatStep, issueFilter, mergedBranches, parseArgs, upsertStep } from '../gate-batch.mjs';
+import { STEPS, attestElements, attestPlan, caseNames, formatStep, issueFilter, mergedBranches, parseArgs, upsertStep } from '../gate-batch.mjs';
+import { listElementFolders } from '../../core/tools/element-folders.mjs';
+import { coreJsUsers } from '../core-js-users.mjs';
 
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..', '..');
 
@@ -50,6 +52,32 @@ test('formatStep shows name, status and seconds', () => {
     assert.match(formatStep({ name: 'verify', ok: true, seconds: 61, log: 'v.log' }), /verify\s+ok\s+61 s/);
     assert.match(formatStep({ name: 'attest', ok: false, seconds: 5, log: 'a.log' }), /attest\s+FAIL\s+5 s/);
     assert.match(formatStep({ name: 'attest', skipped: 'nothing', seconds: 0 }), /attest\s+skip\s+0 s\s+nothing/);
+});
+
+test('STEPS: sizes right after bootstrap, before verify; measure last', () => {
+    assert.equal(STEPS.indexOf('sizes'), STEPS.indexOf('bootstrap') + 1);
+    assert.ok(STEPS.indexOf('sizes') < STEPS.indexOf('verify'));
+    assert.equal(STEPS.at(-1), 'measure');
+});
+
+test('parseArgs reads --measure-ceilings, default false', () => {
+    assert.equal(parseArgs(['--result', 'r.json']).measureCeilings, false);
+    assert.equal(parseArgs(['--result', 'r.json', '--measure-ceilings']).measureCeilings, true);
+});
+
+test('attestElements adds the importers of a changed core/js module and notes shared ones', () => {
+    const asked = [];
+    const usersOf = f => { asked.push(f); return f === 'core/js/canvas-snap.js' ? { elements: ['canvas'] } : { full: 'shared' }; };
+    const r = attestElements(['core/components/dock/dock.js', 'core/js/canvas-snap.js', 'core/js/log.js', 'core/js/x.test.mjs', 'README.md'], new Set(['dock', 'canvas']), usersOf);
+    assert.deepEqual(r.elements, ['canvas', 'dock']);
+    assert.equal(r.notes.length, 1);
+    assert.match(r.notes[0], /core\/js\/log\.js/);
+    assert.ok(!asked.includes('core/js/x.test.mjs'));
+});
+
+test('attestElements on the repository: a dock-model change selects dock', () => {
+    const known = new Set(listElementFolders(path.join(root, 'core')).map(e => e.name));
+    assert.ok(attestElements(['core/js/dock-model.js'], known, coreJsUsers(root)).elements.includes('dock'));
 });
 
 test('mergedBranches reads the branches already merged from merge commit subjects (a resumed run)', () => {
