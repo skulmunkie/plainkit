@@ -15,6 +15,9 @@ const column = doc => {
     return { out, stack };
 };
 
+// The note an element page shows when its data module is not there: the data of an element that lives in an optional package (dock, canvas, heat-map, markdown) ships with that package.
+export const unavailableNote = (tag, err) => `${tag}: its gallery page needs the optional package that provides it (not installed here). ${err?.message ?? ''}`.trim();
+
 // An element page's data is its own module (issue 282): a placeholder stands in until the chunk arrives, then the playground replaces it. `live` marks the page the
 // inspector follows; leaving the page before the chunk lands drops the result, and the playground's timers end with the page (#1326).
 function elementSlot(ctx, tag, live, hold) {
@@ -23,7 +26,7 @@ function elementSlot(ctx, tag, live, hold) {
         if (!holder.isConnected) return;
         holder.replaceWith(renderElement(meta, { doc: ctx.doc, teardown: hold, ...(live ? { onLive: element => ctx.inspect.live(meta, element), onChange: ctx.inspect.change } : {}) }));
         if (live) ctx.inspect.shown();
-    }, err => { holder.textContent = `Could not load ${tag}: ${err.message}`; });
+    }, err => { holder.removeAttribute('aria-busy'); holder.textContent = unavailableNote(tag, err); });
     return holder;
 }
 
