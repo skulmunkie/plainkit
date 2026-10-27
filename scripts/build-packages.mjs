@@ -62,8 +62,8 @@ export async function assemble(repo = REPO) {
     const dist = path.join(repo, 'core', 'dist'), version = readVersion(repo), { artifacts } = plan(repo);
     return artifacts.map(({ id, files }) => {
         let entries = files.map(f => ({ path: f, data: fs.readFileSync(path.join(dist, f)) }));
-        if (id === CORE_ID) {
-            // manifest.extras.json lists the release's extra files (gallery, docs, and now the tool helpers): core's copy lists only what core carries.
+        {
+            // manifest.extras.json lists the release's extra files (gallery, docs, and the tool helpers). plainkit.tools claims it (a core-only Blazor app does not serve it): a zip's copy lists only what that zip carries.
             const have = new Set(files), i = entries.findIndex(e => e.path === 'manifest.extras.json');
             if (i >= 0) {
                 const m = JSON.parse(entries[i].data.toString('utf8')), keep = m.files.filter(f => have.has(f.path));

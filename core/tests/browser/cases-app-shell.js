@@ -358,6 +358,30 @@ export const appShellCases = [
         a.win.localStorage.removeItem('pk.app');
     }],
 
+    ['app-bar-search: Enter with no highlighted result raises pk-submit with the query; a highlighted result raises pk-select instead; an empty box raises nothing (#1820)', async t => {
+        const el = await t.mount('<pk-app-bar-search label="Search"></pk-app-bar-search>'); await customElements.whenDefined('pk-app-bar-search'); await t.settle();
+        const input = el.shadowRoot.querySelector('[part="control"]'), submits = [], picks = [];
+        el.addEventListener('pk-submit', e => submits.push(e.detail.query)); el.addEventListener('pk-select', e => picks.push(e.detail.item));
+        const key = k => input.dispatchEvent(new KeyboardEvent('keydown', { key: k, bubbles: true, composed: true, cancelable: true }));
+        const type = v => { input.value = v; input.dispatchEvent(new Event('input', { bubbles: true })); };
+        key('Enter'); t.eq(submits.length, 0, 'an empty box raises no pk-submit');
+        type('grace'); key('Enter'); t.eq(submits.join('|'), 'grace', 'Enter with nothing highlighted raises one pk-submit with the text');
+        el.items = [{ id: 'a', label: 'Order 8' }]; type('ord'); await t.settle(); key('ArrowDown'); key('Enter');
+        t.eq(picks.length, 1, 'a highlighted result is selected'); t.eq(submits.length, 1, 'and raises no pk-submit');
+    }],
+
+    ['app-bar-search: a visually hidden polite status part announces "N results", the no-results text or the error while the panel is open (#1822)', async t => {
+        const el = await t.mount('<pk-app-bar-search label="Search"></pk-app-bar-search>'); await customElements.whenDefined('pk-app-bar-search'); await t.settle();
+        const input = el.shadowRoot.querySelector('[part="control"]'), status = el.shadowRoot.querySelector('[part="status"]');
+        const type = v => { input.value = v; input.dispatchEvent(new Event('input', { bubbles: true })); };
+        t.eq(status.getAttribute('role'), 'status', 'the live region has role status'); t.ok(!status.closest('[role="listbox"]'), 'and is not inside the listbox');
+        el.items = [{ id: 'a', label: 'A' }, { id: 'b', label: 'B' }]; await t.settle(); t.eq(status.textContent, '', 'closed: empty');
+        type('x'); await t.settle(); t.eq(status.textContent, '2 results', 'two items read "2 results"');
+        el.items = []; await t.settle(); t.eq(status.textContent, 'No results', 'no items read the no-results text');
+        el.error = 'Search is unavailable.'; await t.settle(); t.eq(status.textContent, 'Search is unavailable.', 'an error reads the error text');
+        el.error = ''; type(''); await t.settle(); t.eq(status.textContent, '', 'closing empties it');
+    }],
+
     ['mountApp: ctx.search reaches the active module, and its subscribers end with the module (nothing is called after a switch)', async t => {
         const { mountApp, defineModule } = await src('js/app.js');
         const el = document.createElement('div'); t.stage('').append(el);

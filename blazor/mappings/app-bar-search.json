@@ -50,6 +50,14 @@
       "map": "prop"
     },
     {
+      "name": "ResultsLabel",
+      "prop": "resultsLabel",
+      "type": "string",
+      "default": "results",
+      "map": "prop",
+      "extra": true
+    },
+    {
       "name": "EmptyContent",
       "slot": "empty",
       "type": "RenderFragment?",
@@ -72,6 +80,13 @@
       "type": "EventCallback<PkSelectEventArgs>",
       "map": "event",
       "event": "pk-select"
+    },
+    {
+      "name": "OnSubmit",
+      "type": "EventCallback<PkQueryEventArgs>",
+      "map": "event",
+      "event": "pk-submit",
+      "extra": true
     }
   ],
   "location": {
