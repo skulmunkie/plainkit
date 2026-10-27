@@ -50,6 +50,14 @@
       "map": "prop"
     },
     {
+      "name": "ResultsLabel",
+      "prop": "resultsLabel",
+      "type": "string",
+      "default": "results",
+      "map": "prop",
+      "extra": true
+    },
+    {
       "name": "EmptyContent",
       "slot": "empty",
       "type": "RenderFragment?",
