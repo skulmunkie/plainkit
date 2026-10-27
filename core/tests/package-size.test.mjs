@@ -29,7 +29,7 @@ const MAX_PACKED_BYTES = 283_300;
 const MAX_UNPACKED_BYTES = 957_700;
 const TOP_LEVEL = new Set(['dist', 'LICENSE', 'README.md', 'package.json']);
 // dist/ is the runtime unit; these are the entries of dist/ the package may carry (dist/modules is the dev-tool unit, a separate download).
-const DIST = new Set(['breakpoints.report.json', 'elements', 'icons.svg', 'js', 'llms-full.txt', 'llms.txt',
+const DIST = new Set(['breakpoints.report.json', 'elements', 'icons.svg', 'js', 'llms-full.txt', 'llms.txt', 'themes',
     'manifest.json', 'plainkit.css', 'plainkit.js', 'plainkit.min.css', 'tools']);
 
 const r = spawnSync('npm pack --dry-run --json', { cwd: root, encoding: 'utf8', shell: true, maxBuffer: 64 << 20 });
