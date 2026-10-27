@@ -132,7 +132,7 @@ To show icon and text on a large screen and only the icon on a small one, give a
 </pk-dialog>
 ```
 
-`data-open`, `data-toggle` and `data-close` need no script (`references/openers.md`). To ask from code, `PkDialog.confirm({ heading, message, danger })` returns a promise of a boolean, and `PkToast.show(message, { kind })` shows a toast. `PkDialog` exists once a `pk-dialog` has connected and `PkToast` once a `pk-toast-stack` has, so have one of them in the page (empty is fine).
+`data-open`, `data-toggle` and `data-close` need no script (`references/openers.md`). On a link (`<a href="/cart" data-open="#cart">`) the opener opens the overlay instead of following the link once the overlay is defined, and the link still works with no JavaScript: progressive enhancement with no click handler of your own. To ask from code, `PkDialog.confirm({ heading, message, danger })` returns a promise of a boolean, and `PkToast.show(message, { kind })` shows a toast. `PkDialog` exists once a `pk-dialog` has connected and `PkToast` once a `pk-toast-stack` has, so have one of them in the page (empty is fine).
 
 ### Wire the dev tools
 

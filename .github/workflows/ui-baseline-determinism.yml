@@ -1,0 +1,138 @@
+# Does the same tree render identical screenshots twice on CI? (spike: docs/superpowers/specs/2026-10-27-ui-review-baseline-design.md, section 1)
+#
+# Manual only. It renders the whole UI review twice (run 1 and run 2, each in four shards, as separate jobs, cache off so a hit cannot hide a difference),
+# hashes every PNG and diffs the two sets.
+#   Green  = zero differing shots: this dispatch passes.
+#   Red    = the job "Compare the two renders" lists the differing shot names and count in its log and uploads the PNG pairs as the artifact
+#            ui-baseline-differing. Open a pair to see what moves (fonts, animation, a timing-dependent state).
+# Three green dispatches on different days (runner fleets change) gate the baseline update job and the PR comment job (tasks d and e of the spike).
+# Reads the repository only; no write permission, no secrets.
+name: UI baseline determinism
+
+on:
+  workflow_dispatch:
+    inputs:
+      ref:
+        description: Branch, tag or commit to render twice
+        default: main
+        required: false
+      full:
+        description: Render every element and scenario (--all); false renders the changed ones versus origin/main
+        type: boolean
+        default: true
+
+permissions:
+  contents: read
+
+jobs:
+  render:
+    name: Render run ${{ matrix.run }} shard ${{ matrix.shard }}/4
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    strategy:
+      fail-fast: false
+      matrix:
+        run: [1, 2]
+        shard: [1, 2, 3, 4]
+    env:
+      PK_CHROME: /usr/bin/google-chrome
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          ref: ${{ inputs.ref }}
+          fetch-depth: 0
+          persist-credentials: false
+
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
+        with:
+          node-version: '22'
+
+      - name: Install build dependencies (esbuild)
+        run: npm ci
+
+      - name: Render (cache off)
+        env:
+          SHARD: ${{ matrix.shard }}
+          FULL: ${{ inputs.full }}
+        run: |
+          if [ "$FULL" = "true" ]; then SEL="--all"; else SEL="--base origin/main"; fi
+          # exit 1 means audit findings, which this job does not judge; only exit 2 (the run itself failed) stops it
+          node scripts/ui-review.mjs $SEL --no-cache --shard "$SHARD/4" || [ $? -eq 1 ]
+
+      - name: Hash the screenshots
+        env:
+          RUN_ID: ${{ matrix.run }}
+          SHARD: ${{ matrix.shard }}
+        run: |
+          cd review-output
+          sha256sum *.png | sort -k2 > "../hashes-$RUN_ID-$SHARD.txt"
+          wc -l "../hashes-$RUN_ID-$SHARD.txt"
+
+      - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        with:
+          name: hashes-${{ matrix.run }}-${{ matrix.shard }}
+          path: hashes-${{ matrix.run }}-${{ matrix.shard }}.txt
+
+      # Only kept so the compare job can attach the pairs that differ; short-lived.
+      - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        with:
+          name: shots-${{ matrix.run }}-${{ matrix.shard }}
+          path: review-output/*.png
+          retention-days: 2
+          if-no-files-found: ignore
+
+  compare:
+    name: Compare the two renders
+    needs: render
+    if: always()
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333 # v8.0.2
+        with:
+          pattern: hashes-*
+          merge-multiple: true
+
+      - name: Diff the hashes
+        id: diff
+        run: |
+          cat hashes-1-*.txt | sort -k2 > a.txt
+          cat hashes-2-*.txt | sort -k2 > b.txt
+          echo "run 1: $(wc -l < a.txt) shots, run 2: $(wc -l < b.txt) shots"
+          if diff a.txt b.txt > diff.txt; then echo "identical: every shot rendered the same bytes twice"; exit 0; fi
+          # one name per differing shot (a shot present in only one run counts too)
+          grep -E '^[<>] ' diff.txt | awk '{print $3}' | sort -u > names.txt
+          echo "differing shots: $(wc -l < names.txt)"
+          cat names.txt
+          echo "differs=true" >> "$GITHUB_OUTPUT"
+
+      - name: Fetch the PNGs of the differing shots
+        if: steps.diff.outputs.differs == 'true'
+        uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333 # v8.0.2
+        with:
+          pattern: shots-*
+          path: shots
+
+      - name: Collect the differing pairs
+        if: steps.diff.outputs.differs == 'true'
+        run: |
+          mkdir -p pairs
+          while read -r n; do
+            for r in 1 2; do
+              f=$(find shots -path "*shots-$r-*" -name "$n" | head -n 1)
+              if [ -n "$f" ]; then cp "$f" "pairs/run$r-$n"; fi
+            done
+          done < names.txt
+          cp diff.txt names.txt pairs/
+
+      - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        if: steps.diff.outputs.differs == 'true'
+        with:
+          name: ui-baseline-differing
+          path: pairs/
+
+      - name: Fail on any difference
+        if: steps.diff.outputs.differs == 'true'
+        run: |
+          echo "::error::the same tree rendered different bytes twice; see the artifact ui-baseline-differing"
+          exit 1

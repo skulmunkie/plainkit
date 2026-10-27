@@ -333,6 +333,19 @@ export const overlaysCases = [
         toggleP.click(); await t.settle(); t.ok(!pop.open, 'data-toggle closes it again');
     }],
 
+    ['data-open on a link: with the drawer defined it opens and the link does not navigate; with the target not upgraded the link navigates (#1811)', async t => {
+        const before = location.href;
+        const box = await t.mount('<div><a id="pk-1811-a" href="#pk-1811-cart" data-open="#pk-1811-d">Cart</a><pk-drawer id="pk-1811-d" heading="Cart">Items</pk-drawer><a id="pk-1811-b" href="#pk-1811-fallback" data-open="#pk-1811-u">Later</a><x-pk-1811-later id="pk-1811-u"></x-pk-1811-later></div>');
+        const drawer = box.querySelector('pk-drawer'); await customElements.whenDefined('pk-drawer'); await t.settle();
+        try {
+            box.querySelector('#pk-1811-a').click(); await t.settle();
+            t.ok(drawer.open, 'the drawer opened'); t.eq(location.hash, new URL(before).hash, 'the link did not navigate');
+            drawer.open = false; await t.settle();
+            box.querySelector('#pk-1811-b').click(); await t.settle();
+            t.eq(location.hash, '#pk-1811-fallback', 'an opener whose target is not defined is a plain link');
+        } finally { history.replaceState(history.state, '', before); }
+    }],
+
     ['toast: kind sets its role, the timer dismisses it, hover pauses it', async t => {
         const el = await t.mount('<pk-toast kind="danger" heading="Failed" duration="80">Sync error.</pk-toast>');
         t.eq(el.internals.role, 'alert');
