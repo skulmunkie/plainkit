@@ -370,6 +370,18 @@ export const appShellCases = [
         t.eq(picks.length, 1, 'a highlighted result is selected'); t.eq(submits.length, 1, 'and raises no pk-submit');
     }],
 
+    ['app-bar-search: a visually hidden polite status part announces "N results", the no-results text or the error while the panel is open (#1822)', async t => {
+        const el = await t.mount('<pk-app-bar-search label="Search"></pk-app-bar-search>'); await customElements.whenDefined('pk-app-bar-search'); await t.settle();
+        const input = el.shadowRoot.querySelector('[part="control"]'), status = el.shadowRoot.querySelector('[part="status"]');
+        const type = v => { input.value = v; input.dispatchEvent(new Event('input', { bubbles: true })); };
+        t.eq(status.getAttribute('role'), 'status', 'the live region has role status'); t.ok(!status.closest('[role="listbox"]'), 'and is not inside the listbox');
+        el.items = [{ id: 'a', label: 'A' }, { id: 'b', label: 'B' }]; await t.settle(); t.eq(status.textContent, '', 'closed: empty');
+        type('x'); await t.settle(); t.eq(status.textContent, '2 results', 'two items read "2 results"');
+        el.items = []; await t.settle(); t.eq(status.textContent, 'No results', 'no items read the no-results text');
+        el.error = 'Search is unavailable.'; await t.settle(); t.eq(status.textContent, 'Search is unavailable.', 'an error reads the error text');
+        el.error = ''; type(''); await t.settle(); t.eq(status.textContent, '', 'closing empties it');
+    }],
+
     ['mountApp: ctx.search reaches the active module, and its subscribers end with the module (nothing is called after a switch)', async t => {
         const { mountApp, defineModule } = await src('js/app.js');
         const el = document.createElement('div'); t.stage('').append(el);
