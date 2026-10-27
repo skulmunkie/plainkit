@@ -293,6 +293,24 @@ export const overlaysCases = [
         t.eq(await q, false);
     }],
 
+    ['drawer and dialog: open set before heading and content in the same turn does not warn "empty"; really opened empty still warns once (#1807)', async t => {
+        const log = await import('../../js/log.js');
+        const box = await t.mount('<div><pk-drawer heading="Warm"></pk-drawer><pk-dialog heading="Warm"></pk-dialog></div>'); await t.settle();
+        const empties = () => log.getLogBuffer().filter(e => e.level === 'warn' && /no heading and no content/.test(e.message)).map(e => e.scope);
+        log.clearLogBuffer();
+        for (const tag of ['pk-drawer', 'pk-dialog']) {
+            const el = document.createElement(tag); box.append(el);
+            el.open = true; el.heading = 'Cart'; el.append('Two items'); // the order a framework batch may use
+        }
+        await t.settle();
+        t.eq(empties().join(), '', 'heading and content set in the same turn: no warning');
+        box.querySelectorAll('pk-drawer[heading="Cart"],pk-dialog[heading="Cart"]').forEach(el => { el.open = false; });
+        await t.settle();
+        const bare = document.createElement('pk-drawer'); box.append(bare); bare.open = true; await t.settle();
+        t.eq(empties().join(), 'pk-drawer', 'a drawer opened with nothing still warns, once');
+        bare.open = false; await t.settle();
+    }],
+
     ['dialog, drawer and popover: data-open, data-toggle and data-close work from the elements alone (the openers install when one connects)', async t => {
         const box = await t.mount('<div><pk-button data-open="#pk-inv-d">Open</pk-button><pk-button data-open="#pk-inv-w">Drawer</pk-button><pk-button data-toggle="#pk-inv-p">Toggle</pk-button><pk-dialog id="pk-inv-d" heading="Hi" size="sm">Text<pk-button data-close>Cancel</pk-button></pk-dialog><pk-drawer id="pk-inv-w" heading="Side">Body</pk-drawer><pk-popover id="pk-inv-p" heading="Pop">Body</pk-popover></div>');
         const [openD, openW, toggleP] = box.querySelectorAll('pk-button');
@@ -867,5 +885,26 @@ overlaysCases.push(
         el.part('button').click(); await t.settle(); t.ok(!dd.open && !el.open, 'a click on the button closes it and open follows');
         el.part('button').click(); await t.settle(); t.ok(dd.open && el.open, 'a click opens it and open follows');
         el.open = false; await t.settle(); t.ok(!dd.open, 'open=false closes the dropdown');
+    }],
+);
+
+// Issue 1810: not-yet-upgraded overlays take no room (an iframe with no script never upgrades them); a defined closed drawer takes none either.
+overlaysCases.push(
+    ['drawer, dialog and popover before upgrade: their content takes no room, a docked drawer keeps its place, a popover keeps its trigger; a defined closed drawer takes none (#1810)', async t => {
+        const host = t.stage('');
+        const f = document.createElement('iframe'); f.title = 'no script'; f.style.width = '800px'; f.style.height = '600px'; f.style.border = '0';
+        const loaded = new Promise(r => f.addEventListener('load', r, { once: true }));
+        f.srcdoc = `<!DOCTYPE html><html lang="en"><head><link rel="stylesheet" href="${new URL('../../plainkit.css', import.meta.url).href}"></head><body><pk-drawer id="d" heading="Cart"><p>Item one</p><p>Item two</p></pk-drawer><pk-dialog id="g" heading="Hi"><p>Body</p></pk-dialog><pk-popover id="p"><button slot="trigger" id="trig">Open</button><p id="pb">Pop body</p></pk-popover><pk-drawer id="k" docked heading="Inspector"><p>Docked body</p></pk-drawer></body></html>`;
+        host.append(f);
+        await loaded;
+        const d = f.contentDocument, h = id => d.getElementById(id).getBoundingClientRect().height;
+        t.ok(!f.contentWindow.customElements.get('pk-drawer'), 'nothing upgrades in the frame');
+        t.eq(h('d'), 0, 'an unupgraded drawer takes no room');
+        t.eq(h('g'), 0, 'an unupgraded dialog takes no room');
+        t.eq(h('pb'), 0, 'the popover body takes no room');
+        t.ok(h('trig') > 0, 'the popover trigger keeps its place');
+        t.ok(h('k') > 0, 'a docked drawer keeps its place');
+        const el = await t.mount('<pk-drawer heading="Cart"><p>Item one</p><p>Item two</p></pk-drawer>'); await t.settle();
+        t.eq(Math.round(el.getBoundingClientRect().height), 0, 'once defined, a closed drawer still takes no room');
     }],
 );
