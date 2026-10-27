@@ -144,8 +144,8 @@
         "gallery/elements/dock.data.js"
       ],
       "maxPackedBytes": null,
-      "maxUnpackedBytes": 59035,
-      "maxZipBytes": 22409
+      "maxUnpackedBytes": 60053,
+      "maxZipBytes": 23038
     },
     {
       "id": "plainkit.canvas",
