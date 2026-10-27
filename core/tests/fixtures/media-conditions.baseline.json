@@ -129,7 +129,9 @@
   "(prefers-reduced-motion: reduce)"
  ],
  "navbar": [
-  "(max-width: 1024px)"
+  "(max-width: 1024px)",
+  "(prefers-reduced-transparency: reduce)",
+  "(prefers-contrast: more)"
  ],
  "otp-input": [
   "(max-width: 640px)"
