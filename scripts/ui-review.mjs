@@ -16,6 +16,9 @@
 //   review-output/baseline-part.txt   one line per shot, <name><TAB><16 hex of the sha256 of the PNG bytes>, sorted, CRLF (scripts/ui-review-baseline.mjs; --jobs joins the parts into baseline.txt)
 //   review-output/baseline.units.txt  with --cache: the render cache's unit key of each shot (--jobs: merged), for skipping unchanged units
 //
+//   --only-changed compares each shot with core/tests/review/baseline.manifest.txt (same, changed or new; advisory off Linux, where the baseline is rendered), leaves the PNGs of unchanged shots out of the folder,
+//   and skips a unit whose cache key is the one in core/tests/review/baseline.units.txt (implies --cache)
+//
 // Scenarios (core/tests/review/scenarios/*.js; format in core/tests/review/scenario.js): named, scripted states of a page or element (a menu open, a
 // page scrolled, a collapsed rail with a flyout), each rendered to screenshots after its named `shot` steps in the same four combinations (or the subset
 // the scenario names) with its own measured expectations checked as code. A failed expectation is an error with a FIX line, like the audits.
@@ -38,7 +41,8 @@ import { ensureGenerated } from './generated.mjs';
 import { writeRunStamp } from './verify-guard.mjs';
 import { elementOfPath } from '../core/tools/element-folders.mjs';
 import { CACHE_MAX_AGE_DAYS, createCache, pruneCache } from './ui-review-cache.mjs';
-import { chromeMajor, formatPart, formatUnits, mergeParts, shotHash, shotNameOf } from './ui-review-baseline.mjs';
+import { compare, rows } from './ui-baseline-compare.mjs';
+import { chromeMajor, parsePart, formatPart, formatUnits, mergeParts, shotHash, shotNameOf } from './ui-review-baseline.mjs';
 import { chromeArgs, findChrome, killTree, launchBrowser, removeDir } from './attest-browser.mjs';
 import { auditFacts, summarize } from '../core/tests/review/audit.js';
 import { combinations, expectationFinding, keyEvents, mediaParams, mouseEvents, scenarioShotName, selectScenarios, stepsFor, validateScenario } from '../core/tests/review/scenario.js';
@@ -139,7 +143,7 @@ export function sumPhases(phases) {
 
 /** Command line to options; an unknown flag is an error message, not a silent default. */
 export function parseArgs(argv) {
-    const o = { elements: [], all: false, base: 'origin/main', out: 'review-output', strict: false, port: 0, timeout: 60, scenarios: null, scenariosOnly: false, shard: null, skipBase: false, jobs: 1, cache: false, cacheDir: null };
+    const o = { elements: [], all: false, base: 'origin/main', out: 'review-output', strict: false, port: 0, timeout: 60, scenarios: null, scenariosOnly: false, shard: null, skipBase: false, jobs: 1, cache: false, cacheDir: null, onlyChanged: false };
     for (let i = 0; i < argv.length; i++) {
         const a = argv[i];
         const value = () => { const v = argv[++i]; if (v === undefined || v.startsWith('--')) throw new Error(`${a} needs a value`); return v; };
@@ -148,6 +152,7 @@ export function parseArgs(argv) {
         else if (a === '--skip-base') o.skipBase = true;
         else if (a === '--cache') { if (o.cache !== 'off') o.cache = 'on'; }
         else if (a === '--no-cache') o.cache = 'off';
+        else if (a === '--only-changed') { o.onlyChanged = true; if (o.cache !== 'off') o.cache = 'on'; }
         else if (a === '--cache-dir') { o.cacheDir = path.resolve(value()); if (o.cache !== 'off') o.cache = 'on'; }
         else if (a === '--scenarios' || a === '--scenarios-only') {
             // The names are optional: `--scenarios` alone means every scenario, `--scenarios-only` alone the ones for the changed elements.
@@ -467,9 +472,13 @@ async function main() {
         const cacheDir = o.cacheDir ?? path.join(root, 'review-cache');
         if (o.cache) { const pruned = pruneCache(cacheDir); if (pruned) console.log(`cache: removed ${pruned} entr${pruned === 1 ? 'y' : 'ies'} unused for ${CACHE_MAX_AGE_DAYS} days`); }
         const cache = o.cache ? createCache({ root, dir: cacheDir, chrome: (await cdp.send('Browser.getVersion')).product, known }) : null;
+        const unitsFile = path.join(root, 'core', 'tests', 'review', 'baseline.units.txt');
+        let baselineUnits = null, skippedUnits = 0;
+        if (o.onlyChanged && fs.existsSync(unitsFile)) { try { baselineUnits = new Set(parsePart(fs.readFileSync(unitsFile, 'utf8'), { kind: 'ui-baseline-units' }).entries.map(e => e[1])); } catch (e) { console.warn(`ignoring baseline.units.txt (${e.message}): no unit is skipped`); } }
         const chromeVersion = chromeMajor((await cdp.send('Browser.getVersion')).product), unitKeys = [];
         const unit = async (u, render) => {
             if (!cache) return render();
+            if (baselineUnits?.has(cache.keyFor(u))) { skippedUnits++; return; }
             const s0 = manifest.shots.length;
             await cache.unit(u, { manifest, out }, render);
             for (const s of manifest.shots.slice(s0)) if (s.file) unitKeys.push([shotNameOf(s.file), cache.keyFor(u)]);
@@ -508,6 +517,7 @@ async function main() {
         const hashes = [...new Set(manifest.shots.map(s => s.file).filter(Boolean))].map(file => [shotNameOf(file), shotHash(fs.readFileSync(path.join(out, file)))]);
         fs.writeFileSync(path.join(out, 'baseline-part.txt'), formatPart(hashes, { chrome: chromeVersion }));
         if (cache) fs.writeFileSync(path.join(out, 'baseline.units.txt'), formatUnits(unitKeys, chromeVersion));
+        if (o.onlyChanged) onlyChanged(out, formatPart(hashes, { chrome: chromeVersion }), skippedUnits);
         fs.writeFileSync(path.join(out, 'manifest.json'), JSON.stringify(manifest, null, 2));
         fs.rmSync(incomplete, { force: true });
         for (const f of grouped) { console.log(`${f.severity.toUpperCase()} ${f.tag} #${f.example} ${f.rule}: ${f.message} [${f.seen.join(', ')}]`); console.log(`  FIX: ${f.fix}`); }
@@ -529,6 +539,19 @@ async function main() {
         if (!(await removeDir(profile))) console.error(`Could not delete the temporary profile ${profile}; delete it by hand.`);
     }
     return code;
+}
+
+// --only-changed: classify the shots against the committed manifest and delete the PNGs of the unchanged ones (their hash stays in baseline-part.txt). Advisory off Linux.
+function onlyChanged(out, partText, skipped) {
+    const file = path.join(root, 'core', 'tests', 'review', 'baseline.manifest.txt');
+    if (!fs.existsSync(file)) { console.warn('baseline: core/tests/review/baseline.manifest.txt is missing: nothing to compare with'); return; }
+    let r;
+    try { r = compare(fs.readFileSync(file, 'utf8'), partText); } catch (e) { console.warn(`baseline: ${e.message}`); return; }
+    if (process.platform !== 'linux') console.warn('baseline: advisory only: the baseline is rendered on Linux and this machine renders fonts differently');
+    for (const line of rows(r)) console.log(`baseline: ${line}`);
+    if (skipped) console.log(`baseline: ${skipped} unit(s) skipped, their inputs are those of the baseline`);
+    if (r.chromeMismatch) return;
+    for (const name of r.same) fs.rmSync(path.join(out, `${name}.png`), { force: true });
 }
 
 // A run never ends silently (an exit code of 255 told nothing): a crash, an interruption and an exit before main finished each say what happened and exit with a code of their own.
