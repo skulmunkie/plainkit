@@ -5,7 +5,7 @@ import { isActivateKey } from '../../js/activate-key.js';
 
 // pk-menu-item: a row of a dropdown or context menu. It carries its own role and state, activates on click, Enter or Space, and opens a slotted submenu.
 const ROLE = { item: 'menuitem', checkbox: 'menuitemcheckbox', radio: 'menuitemradio', header: 'presentation', divider: 'separator' };
-const subRows = el => el.slotted('submenu').filter(i => i.localName === 'pk-menu-item' && !i.disabled && !['header', 'divider'].includes(i.type));
+const subRows = el => el.slotted('submenu').filter(i => i.localName === 'pk-menu-item' && !i.disabled && !['header', 'divider'].includes(i.getAttribute('type')));
 export default Base => class extends Base {
     connected() {
         if (!this.$w) {
