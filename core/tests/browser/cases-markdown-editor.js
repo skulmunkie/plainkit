@@ -209,13 +209,16 @@ export const markdownEditorCases = [
         el.interceptLinks = true; await t.settle(); click(0);
         t.eq(prevented.at(-1), true, 'interceptLinks cancels the navigation');
     }],
-    ['markdown (#1700): under rtl at 375 px a wide table and a long code line stay inside the host on both sides and the content does not scroll sideways', async t => {
-        const host = t.stage('<div dir="rtl"><pk-markdown></pk-markdown></div>'); host.firstElementChild.style.inlineSize = '375px';
+    ['markdown (#1700): under rtl at 375 px a wide table and a long code line stay inside the host and the table scrolls inside itself', async t => {
+        // The host sets overflow-wrap: anywhere, which lets table cells shrink, so the fixture is a page that does not wrap (white-space: nowrap, inherited by the cells): eight cells of
+        // 16 letters are about 8 x 125 = 1000 px wide, far over the 375 px host, so without the table rules (display: block, max-inline-size, overflow-x) the table box and the content overflow.
+        const host = t.stage('<div dir="rtl"><pk-markdown></pk-markdown></div>'); host.firstElementChild.style.inlineSize = '375px'; host.firstElementChild.style.whiteSpace = 'nowrap';
         const md = host.querySelector('pk-markdown');
-        md.markdown = ['| a | b | c | d | e | f | g | h |','|---|---|---|---|---|---|---|---|','| aaaaaaaaaaaaaaaa | aaaaaaaaaaaaaaaa | aaaaaaaaaaaaaaaa | aaaaaaaaaaaaaaaa | aaaaaaaaaaaaaaaa | aaaaaaaaaaaaaaaa | aaaaaaaaaaaaaaaa | aaaaaaaaaaaaaaaa |','','```','x'.repeat(200),'```','','Averyveryverylongwordwithoutanybreaks'+'y'.repeat(120)].join('\n');
+        md.markdown = ['| a | b | c | d | e | f | g | h |', '|---|---|---|---|---|---|---|---|', '| ' + Array(8).fill('aaaaaaaaaaaaaaaa').join(' | ') + ' |', '', '```', 'x'.repeat(200), '```'].join('\n');
         await t.load(md); await t.load(md.shadowRoot); await t.settle();
-        const box = md.getBoundingClientRect(), content = md.shadowRoot.querySelector('[part=content]');
+        const box = md.getBoundingClientRect(), content = md.shadowRoot.querySelector('[part=content]'), table = content.querySelector('table');
         t.ok(content.scrollWidth <= content.clientWidth + 1, `the content scrolls sideways (scrollWidth ${content.scrollWidth}, clientWidth ${content.clientWidth})`);
         for (const n of content.children) { const r = n.getBoundingClientRect(); if (!r.width) continue; t.ok(r.left >= box.left - 1 && r.right <= box.right + 1, `<${n.localName}> spans ${Math.round(r.left)}..${Math.round(r.right)}, outside the host ${Math.round(box.left)}..${Math.round(box.right)}`); }
+        t.ok(table.scrollWidth > table.clientWidth + 1, `the wide table scrolls inside itself (scrollWidth ${table.scrollWidth}, clientWidth ${table.clientWidth})`);
     }],
 ];
