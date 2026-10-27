@@ -1,5 +1,5 @@
 {
-  "$comment": "The package declaration (spec docs/superpowers/specs/2026-10-20-separate-packages-design.md, #1656). Declared and tested (scripts/tests/packages.test.mjs); scripts/build-packages.mjs assembles the built packages. plainkit (core) owns every file no other package claims. Ceilings only ratchet down; an extra sets its first ceiling in the phase that builds it (measured plus 1 percent). hotkey.js stays in core: modules/tool-dock imports it as well as pk-tray (found by the P1 import test). siteOnly files are owned by core, ship in FULL and on Pages, are in no module, and may import every package. built: true packages are assembled into their own folder, zip and manifest by scripts/build-packages.mjs; the files of a package that is not built yet are carried inside core until the phase that builds it.",
+  "$comment": "The package declaration (spec docs/superpowers/specs/2026-10-20-separate-packages-design.md, #1656). Declared and tested (scripts/tests/packages.test.mjs); scripts/build-packages.mjs assembles the built packages. plainkit (core) owns every file no other package claims. Ceilings only ratchet down; an extra sets its first ceiling in the phase that builds it (measured plus 1 percent). hotkey.js stays in core: modules/tool-dock imports it as well as pk-tray (found by the P1 import test). siteOnly files (none now: the gallery is the package plainkit.gallery) are owned by core and may import every package. built: true packages are assembled into their own folder, zip and manifest by scripts/build-packages.mjs; the files of a package that is not built yet are carried inside core until the phase that builds it.",
   "schema": 1,
   "packages": [
     {
@@ -209,11 +209,25 @@
       "maxPackedBytes": null,
       "maxUnpackedBytes": 952800,
       "maxZipBytes": 199700
+    },
+    {
+      "id": "plainkit.gallery",
+      "title": "Gallery",
+      "built": true,
+      "requires": [
+        "plainkit",
+        "plainkit.tools"
+      ],
+      "blazorOption": "gallery",
+      "files": [
+        "gallery/"
+      ],
+      "maxPackedBytes": null,
+      "maxUnpackedBytes": 1146183,
+      "maxZipBytes": 369122
     }
   ],
-  "siteOnly": [
-    "gallery/"
-  ],
+  "siteOnly": [],
   "blazorPayload": {
     "coreOnly": 745062,
     "full": 1073700

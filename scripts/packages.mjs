@@ -51,7 +51,10 @@ const claimed = (claim, file) => (claim.endsWith('/') ? file.startsWith(claim) :
 
 /** The ids of every package that owns `file`: the explicit claims, or core when nobody claims it. A well-formed declaration yields exactly one. */
 export function ownersOf(file, packages) {
-    const hit = packages.filter(p => p.id !== CORE_ID && claims(p).some(c => claimed(c, file))).map(p => p.id);
+    const hits = packages.filter(p => p.id !== CORE_ID && claims(p).some(c => claimed(c, file)));
+    // A claim of exactly this file beats a folder claim (plainkit.gallery claims gallery/; canvas, dock and markdown name their own gallery/elements/<tag>.data.js).
+    const exact = hits.filter(p => claims(p).includes(file));
+    const hit = (exact.length ? exact : hits).map(p => p.id);
     return hit.length ? hit : [CORE_ID];
 }
 

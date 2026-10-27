@@ -74,11 +74,13 @@ test('P1: a package imports only itself and its requirements (no computed or lit
     assert.deepEqual(bad, [], `imports across package boundaries:\n${bad.join('\n')}\nFIX: move the file to the package that needs it, or the import out of the file; never widen requires to hide one.`);
 });
 
+// The gallery catalogue lists every element's script path as display data (a string it never loads), optional elements included.
+const CATALOGUE = 'gallery/gallery.data.js';
 test('P1: no file of another package names an extra-owned file as a string either (a computed import would hide a user)', () => {
     const bad = [];
     for (const p of packages.filter(x => x.id !== CORE_ID)) {
         const names = claims(p).filter(c => c.endsWith('.js')).map(c => c.replace(/^(js|elements)\//, ''));
-        for (const f of files.filter(x => x.endsWith('.js') && !isSiteOnly(x, data) && !ownersOf(x, packages).includes(p.id))) {
+        for (const f of files.filter(x => x.endsWith('.js') && !isSiteOnly(x, data) && x !== CATALOGUE && !ownersOf(x, packages).includes(p.id) && !allowedOwners(ownersOf(x, packages)[0], byId).has(p.id))) {
             const text = fs.readFileSync(path.join(dist, f), 'utf8');
             for (const n of names) if (new RegExp(`["'\`](?:[^"'\`\\n]*/)?${n.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}["'\`]`).test(text)) bad.push(`${f} names ${n} (${p.id})`);
         }

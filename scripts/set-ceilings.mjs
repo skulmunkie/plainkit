@@ -15,7 +15,7 @@ import { treeId } from './verify-guard.mjs';
 
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 /** Owner rule 2026-10-25: these may be set to measured + 1%. A new built package must be added to this list or to ONE_WAY (the test fails otherwise). */
-export const OPTIONAL = ['plainkit.tools', 'plainkit.markdown', 'plainkit.dock', 'plainkit.canvas', 'plainkit.ide'];
+export const OPTIONAL = ['plainkit.tools', 'plainkit.markdown', 'plainkit.dock', 'plainkit.canvas', 'plainkit.ide', 'plainkit.gallery'];
 export const ONE_WAY = ['plainkit', 'plainkit.audit', 'plainkit.blazor'];
 export const plusOne = n => Math.ceil(n * 1.01);
 
