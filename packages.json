@@ -69,8 +69,8 @@
         "zip-store.js"
       ],
       "maxPackedBytes": null,
-      "maxUnpackedBytes": 791175,
-      "maxZipBytes": 258710,
+      "maxUnpackedBytes": 811400,
+      "maxZipBytes": 265200,
       "files": [
         "elements/api.json",
         "modules/manifest.json"
@@ -91,7 +91,7 @@
       ],
       "maxPackedBytes": null,
       "maxUnpackedBytes": 137500,
-      "maxZipBytes": 52500
+      "maxZipBytes": 53500
     },
     {
       "id": "plainkit.markdown",
@@ -111,8 +111,8 @@
         "markdown/render.js"
       ],
       "maxPackedBytes": null,
-      "maxUnpackedBytes": 21690,
-      "maxZipBytes": 9400
+      "maxUnpackedBytes": 22600,
+      "maxZipBytes": 9800
     },
     {
       "id": "plainkit.dock",
@@ -135,8 +135,8 @@
         "dock-tree.js"
       ],
       "maxPackedBytes": null,
-      "maxUnpackedBytes": 40838,
-      "maxZipBytes": 16724
+      "maxUnpackedBytes": 43700,
+      "maxZipBytes": 17900
     },
     {
       "id": "plainkit.canvas",
@@ -161,8 +161,8 @@
         "viewport-logic.js"
       ],
       "maxPackedBytes": null,
-      "maxUnpackedBytes": 79216,
-      "maxZipBytes": 35477
+      "maxUnpackedBytes": 86300,
+      "maxZipBytes": 38700
     },
     {
       "id": "plainkit.blazor",
@@ -176,8 +176,8 @@
         "reconnect.js"
       ],
       "maxPackedBytes": null,
-      "maxUnpackedBytes": 3340,
-      "maxZipBytes": 1945
+      "maxUnpackedBytes": 3640,
+      "maxZipBytes": 2120
     },
     {
       "id": "plainkit.ide",
@@ -195,8 +195,8 @@
         "web-types.json"
       ],
       "maxPackedBytes": null,
-      "maxUnpackedBytes": 929944,
-      "maxZipBytes": 194875
+      "maxUnpackedBytes": 952800,
+      "maxZipBytes": 199700
     }
   ],
   "siteOnly": [
@@ -204,6 +204,6 @@
   ],
   "blazorPayload": {
     "coreOnly": 745062,
-    "full": 1048205
+    "full": 1073700
   }
 }
