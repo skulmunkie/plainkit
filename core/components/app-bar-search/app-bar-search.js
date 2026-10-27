@@ -92,6 +92,7 @@ export default Base => class extends Base {
     }
     keys(e) {
         if (e.key === 'Escape') { e.preventDefault(); e.stopPropagation(); if (this.$open) this.setOpen(false); else this.collapse(); return; }
+        if (e.key === 'Enter' && !(this.$open && this.$a >= 0)) { const query = this.part('control').value; if (query !== '') { e.preventDefault(); this.emit('pk-submit', { query }); this.setOpen(false); } return; }
         if (!this.$open) return;
         if (e.key === 'ArrowDown' || e.key === 'ArrowUp' || e.key === 'Home' || e.key === 'End') { e.preventDefault(); this.highlight(nextIndex(this.$a, this.$rows.length, e.key)); }
         else if (e.key === 'Enter' && this.$a >= 0) { e.preventDefault(); this.select(this.$rows[this.$a]); }

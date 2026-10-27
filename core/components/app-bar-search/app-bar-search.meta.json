@@ -82,6 +82,13 @@
       "description": "A result was chosen (click or Enter). The host decides what happens; this element does not navigate."
     },
     {
+      "name": "pk-submit",
+      "detail": {
+        "query": "string"
+      },
+      "description": "Enter was pressed with a non-empty query and no result highlighted: the host shows a full results page or submits a form. This element never navigates."
+    },
+    {
       "name": "pk-toggle",
       "detail": {
         "expanded": "bool"
@@ -187,7 +194,7 @@
     }
   ],
   "methods": [],
-  "a11y": "ARIA 1.2 combobox with aria-activedescendant (focus stays on the input). The input is a pk-input in this element's shadow tree and the results are in this one, so aria-controls and aria-activedescendant are set as element references (pk-input listbox; Chrome 135, Safari 16.4, Firefox 136: in an older browser they do nothing, the role, name and expanded state still apply). The highlighted result is the one option with aria-selected=\"true\". Arrow keys move, Enter picks, Escape closes the results, then collapses the field. The buttons are 44px touch targets.",
+  "a11y": "ARIA 1.2 combobox with aria-activedescendant (focus stays on the input). The input is a pk-input in this element's shadow tree and the results are in this one, so aria-controls and aria-activedescendant are set as element references (pk-input listbox; Chrome 135, Safari 16.4, Firefox 136: in an older browser they do nothing, the role, name and expanded state still apply). The highlighted result is the one option with aria-selected=\"true\". Arrow keys move, Enter picks, Escape closes the results, then collapses the field. The buttons are 44px touch targets. Enter with no highlighted result raises pk-submit.",
   "mobile": "Below the phone breakpoint (or with compact) the field is an icon button that expands over the header row; on a wider screen the field is centred in the free space of the header row.",
   "examples": [
     {

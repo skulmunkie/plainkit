@@ -72,6 +72,13 @@
       "type": "EventCallback<PkSelectEventArgs>",
       "map": "event",
       "event": "pk-select"
+    },
+    {
+      "name": "OnSubmit",
+      "type": "EventCallback<PkQueryEventArgs>",
+      "map": "event",
+      "event": "pk-submit",
+      "extra": true
     }
   ],
   "location": {
