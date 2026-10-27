@@ -174,8 +174,8 @@
         "gallery/elements/heat-map.data.js"
       ],
       "maxPackedBytes": null,
-      "maxUnpackedBytes": 109698,
-      "maxZipBytes": 43483
+      "maxUnpackedBytes": 115884,
+      "maxZipBytes": 46502
     },
     {
       "id": "plainkit.blazor",

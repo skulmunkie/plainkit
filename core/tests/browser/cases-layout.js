@@ -605,7 +605,7 @@ export const layoutCases = [
     ['app-shell contain (#1675): the body is the container named page, @container page answers to the body width and not the viewport, and the name is a hook', async t => {
         const host = t.stage('<pk-app-shell contain><div class="probe">x</div></pk-app-shell>'); host.style.inlineSize = '300px'; await t.load(host);
         const el = host.firstElementChild, body = el.shadowRoot.querySelector('[part=body]'), probe = el.firstElementChild, cs = getComputedStyle(body);
-        t.eq(cs.containerType, 'inline-size'); t.eq(cs.containerName, 'page'); t.eq(cs.overflowX, 'hidden', 'sideways overflow is clipped (clip beside a scrolling y computes to hidden)');
+        t.eq(cs.containerType, 'inline-size'); t.eq(cs.containerName, 'page'); t.ok(['hidden', 'clip'].includes(cs.overflowX), `sideways overflow is clipped, not scrollable or visible (overflow-x ${cs.overflowX}; clip beside a scrolling y computes to hidden or stays clip, by browser)`);
         const sheet = new CSSStyleSheet(); sheet.replaceSync('@container page (min-width: 900px) { .probe { margin-left: 11px; } } @container page (max-width: 600px) { .probe { margin-right: 7px; } }');
         document.adoptedStyleSheets = [...document.adoptedStyleSheets, sheet];
         try {

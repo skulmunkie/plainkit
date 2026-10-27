@@ -101,9 +101,9 @@ const SMOKE_ONLY = /^core\/(package\.json|VERSION)$/;
 /** core/js modules whose change can reach every area (the element base, the app layer): everything. Any other shared helper selects the smoke set. */
 const CORE_JS_FULL = /^core\/js\/(element|element-core|app|init|loader|loader-missing|dynamic|page-shell|page-lifecycle|app\/.+)\.js$/;
 /** Blazor source that stays full: the runtime, the bridge and interop, the extras and the generated files that are not one component's. */
-const BLAZOR_FULL = /^blazor\/src\/PlainKit\.Blazor\/(wwwroot\/|Generated\/(?!Pk[A-Za-z]+(?:\.[A-Za-z]+)?\.cs$)|[^/]*(PkRuntime|CallbackSlot|Bridge|Interop|Extra))/;
-/** A generated component file: Generated/PkButton.cs, Generated/PkButton.Extra.cs -> PkButton. */
-const GENERATED_COMPONENT = /^blazor\/src\/PlainKit\.Blazor\/Generated\/(Pk[A-Za-z]+)(?:\.[A-Za-z]+)?\.cs$/;
+const BLAZOR_FULL = /^blazor\/src\/PlainKit\.Blazor\/(wwwroot\/|Generated\/(?!Pk[A-Za-z]+(?:\.Extra\.cs|\.razor)$)|[^/]*(PkRuntime|CallbackSlot|Bridge|Interop|Extra))/;
+/** A generated component file: Generated/PkButton.razor, Generated/PkButton.Extra.cs -> PkButton (PkExtras.cs, PkGeneratedEnums.cs and the other shared files are not). */
+const GENERATED_COMPONENT = /^blazor\/src\/PlainKit\.Blazor\/Generated\/(Pk[A-Za-z]+)(?:\.Extra\.cs|\.razor)$/;
 
 /** The size-ceiling keys of packages.json: read only by scripts/check-package.mjs and scripts/blazor-extras-publish.mjs (verify --pack), never by a generator, the build or the sample. */
 export const CEILING_KEYS = ['maxPackedBytes', 'maxUnpackedBytes', 'maxZipBytes'];
