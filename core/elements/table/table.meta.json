@@ -251,7 +251,7 @@
       "type": "boolean",
       "default": false,
       "reflect": true,
-      "description": "Each row becomes a card below 640px."
+      "description": "Each row becomes a card below 640px. A cell with nothing in it (no text, or a cell template that rendered nothing) is left out of its card, label and all."
     },
     {
       "name": "caption",
