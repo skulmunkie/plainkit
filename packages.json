@@ -119,7 +119,8 @@
       "title": "Dock workspace",
       "built": true,
       "requires": [
-        "plainkit"
+        "plainkit",
+        "plainkit.tools"
       ],
       "blazorOption": "dock",
       "elements": [
@@ -129,6 +130,7 @@
         "dock-drag.js",
         "dock-float.js",
         "dock-flyout.js",
+        "dock-history.js",
         "dock-json.js",
         "dock-model.js",
         "dock-render.js",
