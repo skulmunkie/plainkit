@@ -23,7 +23,8 @@ export default {
         t.visible(SURFACE, 'the canvas surface');
         const panel = t.rect('#d [slot=canvas]'), canvas = t.rect('#surface');
         t.ok(canvas && canvas.width > 40 && canvas.height > 40, 'the canvas has a size');
-        if (t.shot !== 'phone') {
+        const wide = t.viewport.name === 'desktop' && t.shot !== 'phone'; // at 375 px the dock is tabbed: the tools and props slots have no box
+        if (wide) {
             t.within('#surface', '#d [slot=canvas]');
             t.noOverlap('#d [slot=tools]', '#d [slot=canvas]'); t.noOverlap('#d [slot=canvas]', '#d [slot=props]'); t.noOverlap('#d [slot=tools]', '#d [slot=props]');
         } else t.ok(panel && canvas && canvas.width <= panel.width + 1, 'on a phone the canvas still fits its panel');
