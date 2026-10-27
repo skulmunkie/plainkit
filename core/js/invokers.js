@@ -48,9 +48,9 @@ export function runInvoker(action) {
 
 const installed = new WeakSet();
 
-// Installs the delegated click listener once per root (idempotent, like the other initX functions).
+// One delegated click listener per root; a link opener whose overlay is defined does not navigate (#1811).
 export function initInvokers(root = document) {
     if (installed.has(root)) return;
     installed.add(root);
-    root.addEventListener('click', e => { const a = resolveInvoker(e.target, root); if (runInvoker(a) && a.type !== 'close' && a.element.show && e.target?.closest?.('[href]')) e.preventDefault(); });
+    root.addEventListener('click', e => { const a = resolveInvoker(e.target, root); runInvoker(a); if (a?.element.show && a.type !== 'close' && e.target.closest('[href]')) e.preventDefault(); });
 }
