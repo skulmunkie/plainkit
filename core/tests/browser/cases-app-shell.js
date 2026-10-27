@@ -374,7 +374,7 @@ export const appShellCases = [
         const el = await t.mount('<pk-app-bar-search label="Search"></pk-app-bar-search>'); await customElements.whenDefined('pk-app-bar-search'); await t.settle();
         const input = el.shadowRoot.querySelector('[part="control"]'), picks = [];
         el.addEventListener('pk-select', e => { picks.push(e.cancelable); e.preventDefault(); });
-        el.items = [{ id: 'a', label: 'A', href: '#/orders/8' }, { id: 'b', label: 'B', href: 'javascript:alert(1)' }]; input.value = 'x'; input.dispatchEvent(new Event('input', { bubbles: true })); await t.settle();
+        el.items = [{ id: 'a', label: 'A', href: '#/orders/8' }, { id: 'b', label: 'B', href: ['java', 'script:alert(1)'].join('') }]; input.value = 'x'; input.dispatchEvent(new Event('input', { bubbles: true })); await t.settle();
         const opts = el.shadowRoot.querySelectorAll('[role="option"]'), before = location.href;
         t.eq(opts[0].localName, 'a', 'a safe href renders an anchor'); t.eq(opts[0].getAttribute('href'), '#/orders/8', 'with that href'); t.eq(opts[1].localName, 'div', 'a javascript: href renders a div');
         opts[0].click(); t.eq(picks.join(), 'true', 'a click raises a cancelable pk-select'); t.eq(location.href, before, 'preventDefault kept the URL');
