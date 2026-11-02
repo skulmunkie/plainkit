@@ -60,7 +60,14 @@
       "type": "string",
       "default": "",
       "reflect": false,
-      "description": "A failed search: while set, the open results panel shows this message instead of the no-results message, so a failure never reads as nothing found. Set it when your search throws (for example \"Search is unavailable. Try again.\") and clear it with the next result."
+      "description": "A failed search: while set, the open results panel shows this message instead of the no-results message, so a failure never reads as nothing found, and a Retry button under it. Set it when your search throws (for example \"Search is unavailable. Try again.\") and clear it with the next result."
+    },
+    {
+      "name": "retryLabel",
+      "type": "string",
+      "default": "Retry",
+      "reflect": true,
+      "description": "The text of the Retry button shown with error; set it to localise."
     }
   ],
   "slots": [
@@ -80,6 +87,11 @@
         "query": "string"
       },
       "description": "The field's text, debounce milliseconds after the last keystroke. The host fetches or filters and sets items in response; this element never searches itself."
+    },
+    {
+      "name": "pk-retry",
+      "detail": {},
+      "description": "Retry was pressed on a failed search. pk-query is raised again right after it with the text in the field, so a host that only handles pk-query retries without listening to this; it is for a host that wants to log or reset state."
     },
     {
       "name": "pk-select",
@@ -131,6 +143,10 @@
     {
       "name": "error",
       "description": "The failed-search message (the error prop)."
+    },
+    {
+      "name": "retry",
+      "description": "The Retry button (a pk-button) shown under the failed-search message."
     },
     {
       "name": "status",
