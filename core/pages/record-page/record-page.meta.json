@@ -43,6 +43,13 @@
       "description": "Pins the title bar to the top of the scrolling page, with Edit, Cancel, Save and Delete in it, so they stay in reach while a long form scrolls. The same as config.sticky (either one pins it)."
     },
     {
+      "name": "wrapTitle",
+      "type": "boolean",
+      "default": false,
+      "reflect": true,
+      "description": "Draws the title bar as the compact record strip (pk-page-header variant record) and lets a long title wrap to at most three lines on a narrow container (a phone) instead of one ellipsized line. The same as config.wrapTitle (either one turns it on)."
+    },
+    {
       "name": "busy",
       "type": "boolean",
       "default": false,

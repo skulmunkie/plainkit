@@ -58,6 +58,25 @@ export const navItemCases = [
         a2.click(); await wait(50);
         t.eq(win.location.hash, '#slotted-target', 'the link still navigates once upgraded');
     }],
+    ['nav-item: defining the element does not move the slotted links or the rows under them (layout shift, #1877)', async t => {
+        const host = t.stage(''), f = document.createElement('iframe');
+        f.title = 'nav item layout shift';
+        f.style.cssText = 'width:600px;height:300px;border:0;display:block';
+        f.src = new URL('./nav-item-frame.html?hold=pk-nav-item', import.meta.url).href;
+        await new Promise(resolve => { f.addEventListener('load', resolve, { once: true }); host.append(f); });
+        const win = f.contentWindow, d = win.document;
+        await wait(400);
+        t.ok(!win.customElements.get('pk-nav-item'), 'pk-nav-item is not defined');
+        const ids = ['n1', 'n2', 'n3'], rects = () => ids.map(id => { const range = d.createRange(); range.selectNodeContents(d.querySelector('#' + id + ' > a')); const r = range.getBoundingClientRect(), h = box(d.querySelector('#' + id)); return [r.left, r.top, r.width, r.height, h.top, h.height]; });
+        const before = rects();
+        win.release(); await Promise.race([win.customElements.whenDefined('pk-nav-item'), wait(5000)]); await wait(300);
+        t.ok(!!win.customElements.get('pk-nav-item'), 'pk-nav-item is defined now');
+        const after = rects();
+        ids.forEach((id, i) => {
+            const dx = after[i].map((v, k) => Math.abs(v - before[i][k]));
+            t.ok(Math.max(...dx) < 1.5, id + ' link/row left,top,width,height,rowTop,rowHeight went from ' + before[i].map(Math.round) + ' to ' + after[i].map(Math.round) + ' when it upgraded, expected the same. FIX: reserve its box with pk-nav-item:not(:defined) in base.css');
+        });
+    }],
     ['menu-item: a description in the slot or the attribute pads the row, a plain item does not', async t => {
         const host = t.stage('<div role="menu"><pk-menu-item id="plain">Plain</pk-menu-item><pk-menu-item id="slot">Slot<span slot="description">desc</span></pk-menu-item><pk-menu-item id="attr" description="desc">Attr</pk-menu-item></div>');
         await t.load(host); await t.settle(); await wait(80);

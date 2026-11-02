@@ -9,6 +9,8 @@
     { "name": "level", "type": "number", "default": 1, "reflect": false, "description": "The heading level the title exposes to assistive technology. A page title is 1." },
     { "name": "crumbs", "type": "string", "default": "", "reflect": false, "description": "The breadcrumb trail as a JSON array of { \"label\", \"href\" }, as on pk-page-header. Use it instead of the breadcrumb slot." },
     { "name": "backLink", "type": "boolean", "default": false, "reflect": true, "description": "Draws a back link to the last crumb that has a usable href." },
+    { "name": "variant", "type": "enum", "default": "page", "values": ["page", "section", "record"], "reflect": true, "description": "As on pk-page-header: record is the compact strip of a single-record page." },
+    { "name": "wrapTitle", "type": "boolean", "default": false, "reflect": true, "description": "As on pk-page-header (record variant only): on a narrow container the title wraps to at most three lines instead of one ellipsized line." },
     { "name": "sticky", "type": "boolean", "default": false, "reflect": true, "description": "Pins the header (with its tabs) to the top of the scrolling page body." },
     { "name": "stickyFrom", "type": "enum", "default": "always", "values": ["always", "phone", "tablet"], "reflect": true, "description": "As the header's." },
     { "name": "tabsFrom", "type": "enum", "default": "always", "values": ["phone", "tablet", "always"], "reflect": true, "description": "As the header's." },

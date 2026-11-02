@@ -2,7 +2,7 @@
 // panels do not overlap, the selection outline stays inside the canvas, and after the viewport shrinks to a phone the canvas still has a size.
 const SURFACE = '#surface >>> [part=frame]';
 const SEL = '#surface >>> [part=selection] > [data-sel]';
-const shape = (id, x, label) => `<rect id="${id}" data-id="${id}" x="${x}" y="40" width="60" height="40" tabindex="0" role="button" aria-label="${label}" fill="currentColor" fill-opacity="0.15"></rect>`;
+const shape = (id, x, label) => `<rect id="${id}" data-id="${id}" x="${x}" y="40" width="60" height="44" tabindex="0" role="button" aria-label="${label}" fill="currentColor" fill-opacity="0.15"></rect>`;
 
 export default {
     name: 'canvas-in-dock',

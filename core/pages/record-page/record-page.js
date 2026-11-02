@@ -37,7 +37,7 @@ export default Base => class extends Base {
         if (!this.$w || !this.isConnected) return;
         if (name === 'config') { if ((this.config?.id ?? null) !== this.$id) this.fetch(); else { if (this.$id == null && !this.dirty) this.$values = { ...this.config?.values }; this.bar(); if (!this.patch()) this.draw(); } }
         else if (name === 'mode') this.draw();
-        else if (name === 'sticky') this.bar();
+        else if (name === 'sticky' || name === 'wrapTitle') this.bar();
         else if (name === 'deletable') this.part('delete').hidden = this.deleteHidden();
         else if (name === 'cancellable') this.part('cancel').hidden = this.cancelHidden();
         else if (name === 'error') this.notice();
@@ -93,6 +93,8 @@ export default Base => class extends Base {
         showTitleBar(this, this.part('header'), { ...this.config, heading: v || this.config?.title });
         // sticky (#1601): the header stays at the top while a long form scrolls, and Edit, Cancel, Save and Delete move into its actions so they stay in reach.
         const sticky = Boolean(this.sticky || this.config?.sticky), shell = this.part('header'), bar = this.part('bar');
+        // wrapTitle: the record strip, with a long title wrapped on a narrow container (forwarded to pk-page-header through the shell).
+        if (this.wrapTitle || this.config?.wrapTitle) { shell.setAttribute('variant', 'record'); shell.setAttribute('wrap-title', ''); } else { shell.removeAttribute('variant'); shell.removeAttribute('wrap-title'); }
         if (sticky) { shell.setAttribute('sticky', ''); bar.setAttribute('slot', 'actions'); shell.setAttribute('data-bare', 'false'); } else { shell.removeAttribute('sticky'); bar.removeAttribute('slot'); }
     }
     done() { renderState(this.part('state'), 'ready'); this.setDirty(false); this.bar(); this.draw(); }

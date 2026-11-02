@@ -387,6 +387,7 @@
     --pad-drawer: var(--space-4) var(--space-5);
     --pad-cell: var(--space-2) var(--space-3);
     --pad-nav-item: var(--space-1) var(--space-2);
+    --nav-item-min-h: 2.25rem;
     --pad-page: var(--space-6);
     --pad-header: 0 var(--space-4);
     --pad-footer: 0 var(--space-4);
@@ -427,7 +428,7 @@
 
 /* The page gutter narrows on a phone in every density; secondary text (chips, captions, mini buttons) is 13px there, 12px elsewhere. */
 @media (max-width: 640px) {
-    :root { --pad-page: var(--space-4); --text-meta: 0.93rem; }
+    :root { --pad-page: var(--space-4); --text-meta: 0.93rem; --nav-item-min-h: var(--touch-target); }
     [data-density="compact"] { --pad-page: var(--space-3); }
     [data-density="spacious"] { --pad-page: var(--space-4); }
 }
