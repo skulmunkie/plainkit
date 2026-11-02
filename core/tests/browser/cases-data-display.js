@@ -1228,6 +1228,13 @@ export const dataDisplayCases = [
         t.ok(col.getBoundingClientRect().width <= 391, 'the column keeps its width: ' + col.getBoundingClientRect().width);
         t.ok(sib.getBoundingClientRect().width <= 391, 'the sibling keeps its width: ' + sib.getBoundingClientRect().width);
     }],
+    ['tree: in an auto-width parent (inline-block, inline-flex, a popover-like box) the tree keeps a sensible width, not zero (#1851)', async t => {
+        const long = 'A very long category name that does not fit a narrow column at all, and keeps going on and on for a good while longer than that';
+        const el = await t.mount('<div><div id="ib" style="display:inline-block"><pk-tree label="Nav"><pk-tree-item label="Books"></pk-tree-item><pk-tree-item label="' + long + '"></pk-tree-item></pk-tree></div><div id="if" style="display:inline-flex"><pk-tree label="Nav2"><pk-tree-item label="Cards"></pk-tree-item></pk-tree></div></div>'); await t.settle();
+        for (const id of ['ib', 'if']) { const w = el.querySelector('#' + id).getBoundingClientRect().width; t.ok(w >= 128 && w <= 1000, id + ' parent width is sensible: ' + w); }
+        const tree = el.querySelector('#ib pk-tree'), r = tree.querySelector('pk-tree-item').part('row').getBoundingClientRect();
+        t.ok(r.width >= 120, 'the rows are not collapsed: ' + r.width);
+    }],
     ['tree: a wrapped label has padding above and below inside its row, and a one-line row keeps its height (#1775)', async t => {
         const long = 'A very long category name that does not fit a narrow navigation column at all';
         const el = await t.mount('<div style="inline-size:12rem"><pk-tree label="Nav"><pk-tree-item label="' + long + '"></pk-tree-item><pk-tree-item label="Short"></pk-tree-item></pk-tree></div>'); await t.settle();
