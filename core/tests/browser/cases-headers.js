@@ -132,20 +132,21 @@ export const headerCases = [
         }
     }],
 
-    ['--font-heading re-faces pk-heading, the page-header title and the card title, and the default is the body font (#1817)', async t => {
+    ['--font-heading re-faces pk-heading, the page-header title the card title and the dialog, drawer, empty-state and form-section titles, and the default is the body font (#1817)', async t => {
         const faces = async () => {
-            const host = t.stage('<div><pk-heading>Title</pk-heading><pk-page-header heading="Header"></pk-page-header><pk-card heading="Card">Body</pk-card></div>');
-            await t.load(host); await Promise.all(['pk-heading', 'pk-page-header', 'pk-card'].map(n => customElements.whenDefined(n))); await t.settle();
+            const host = t.stage('<div><pk-heading>Title</pk-heading><pk-page-header heading="Header"></pk-page-header><pk-card heading="Card">Body</pk-card><pk-dialog heading="D"></pk-dialog><pk-drawer heading="W"></pk-drawer><pk-empty-state heading="E"></pk-empty-state><pk-form-section heading="F"></pk-form-section></div>');
+            await t.load(host); await Promise.all(['pk-heading', 'pk-page-header', 'pk-card', 'pk-dialog', 'pk-drawer', 'pk-empty-state', 'pk-form-section'].map(n => customElements.whenDefined(n))); await t.settle();
             const wrap = host.firstElementChild, ff = n => getComputedStyle(n).fontFamily;
-            return { host, heading: ff(wrap.querySelector('pk-heading').shadowRoot.querySelector('[part="heading"]')), header: ff(wrap.querySelector('pk-page-header').part('title')), card: ff(wrap.querySelector('pk-card').part('title')), body: ff(wrap) };
+            return { host, heading: ff(wrap.querySelector('pk-heading').shadowRoot.querySelector('[part="heading"]')), header: ff(wrap.querySelector('pk-page-header').part('title')), card: ff(wrap.querySelector('pk-card').part('title')), dialog: ff(wrap.querySelector('pk-dialog').shadowRoot.querySelector('[part="title"]')), drawer: ff(wrap.querySelector('pk-drawer').shadowRoot.querySelector('[part="title"]')), empty: ff(wrap.querySelector('pk-empty-state').shadowRoot.querySelector('[part="heading"]')), section: ff(wrap.querySelector('pk-form-section').shadowRoot.querySelector('[part="title"]')), body: ff(wrap) };
         };
         const base = await faces();
         t.eq(base.heading, base.body, 'default: pk-heading uses the body font'); t.eq(base.header, base.body, 'default: the page-header title uses the body font'); t.eq(base.card, base.body, 'default: the card title uses the body font');
+        for (const k of ['dialog', 'drawer', 'empty', 'section']) t.eq(base[k], base.body, `default: the ${k} title uses the body font`);
         base.host.remove();
         document.documentElement.style.setProperty('--font-heading', 'Georgia, serif');
         try {
             const set = await faces();
-            for (const k of ['heading', 'header', 'card']) t.ok(/georgia/i.test(set[k]), k + ': font-family follows --font-heading: ' + set[k]);
+            for (const k of ['heading', 'header', 'card', 'dialog', 'drawer', 'empty', 'section']) t.ok(/georgia/i.test(set[k]), k + ': font-family follows --font-heading: ' + set[k]);
             t.eq(set.body, base.body, 'body text keeps the body font');
             set.host.remove();
         } finally { document.documentElement.style.removeProperty('--font-heading'); }
