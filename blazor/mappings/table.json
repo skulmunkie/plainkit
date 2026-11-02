@@ -15,7 +15,7 @@
       "type": "IReadOnlyList<PkTableColumn<TItem>>?",
       "attrExpr": "@_columns",
       "doc": "The columns: what the header says, how it sorts, and what fills the cells. A key names an item property in any casing (or is any name, when the column has a Text or a Cell) and is used exactly as given: in the column definition, the row, the cell slot and the sort and filter keys the table reports (Sort, OnSort, Filters).",
-      "note": "Sent as a JSON attribute ([{ key, label, type, align, sortable, hidePhone, shed, title, editor, options, free, required, min, max, maxLength }], camelCase). A column with a Cell template also fills the slot cell-<rowId>-<key> of each row; a column with a Header fragment fills the slot header-<key> beside the title."
+      "note": "Sent as a JSON attribute ([{ key, label, type, align, sortable, hidePhone, shed, noWrap, title, editor, options, free, required, min, max, maxLength }], camelCase). A column with a Cell template also fills the slot cell-<rowId>-<key> of each row; a column with a Header fragment fills the slot header-<key> beside the title."
     },
     {
       "name": "Items",
@@ -516,6 +516,11 @@
       "name": "HidePhone",
       "type": "bool",
       "doc": "Leave the column out of the card layout on a phone."
+    },
+    {
+      "name": "NoWrap",
+      "type": "bool",
+      "doc": "Keep the cell's text on one line and let the column size to it (for a short date-time); the phone card layout still wraps."
     },
     {
       "name": "Title",

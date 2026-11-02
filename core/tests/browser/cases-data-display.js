@@ -795,6 +795,26 @@ export const dataDisplayCases = [
         const phone = await at(375); t.eq(phone.w, 375); t.ok(phone.other, 'the SKU shows'); t.ok(!phone.td, 'the hidePhone cell is hidden in a card');
         const wide = await at(1200); t.ok(wide.td, 'shown on a wide screen');
     }],
+    ['table: a nowrap column keeps a date-time on one line and sizes to it; the same text wraps without it; cards still wrap (#1847)', async t => {
+        const { sampleDoc } = await import('../../site/gallery/frame.js');
+        const cols = nowrap => `[{"key":"id","label":"Id"},{"key":"when","label":"When"${nowrap ? ',"noWrap":true' : ''}},{"key":"note","label":"Note"}]`;
+        const rows = `[{"id":1,"when":"Aug 29, 2026, 3:51 PM","note":"A fairly long note that wants all the room the table can give it so the date column is squeezed"}]`;
+        const at = async (width, html) => {
+            const host = t.stage(''), f = document.createElement('iframe');
+            f.title = 'sample'; f.style.width = `${width}px`; f.style.height = '320px'; f.style.border = '0';
+            const loaded = new Promise(r => f.addEventListener('load', r, { once: true })); host.append(f); f.srcdoc = sampleDoc(html); await loaded;
+            await until(() => f.contentWindow.customElements.get('pk-table') && f.contentDocument.querySelector('pk-table')?.shadowRoot?.querySelector('tbody td[data-key="when"]'), 'the table');
+            const td = f.contentDocument.querySelector('pk-table').shadowRoot.querySelector('tbody td[data-key="when"]'), cs = f.contentWindow.getComputedStyle(td);
+            const r = f.contentDocument.createRange(); r.selectNodeContents(td); const lines = new Set([...r.getClientRects()].map(x => Math.round(x.top))).size;
+            return { lines, ws: cs.whiteSpace, attr: td.hasAttribute('data-nowrap') };
+        };
+        const tbl = (n, cards) => `<pk-table ${cards ? 'cards ' : ''}label="P" columns='${cols(n)}' rows='${rows}'></pk-table>`;
+        const on = await at(560, tbl(true)), off = await at(560, tbl(false));
+        t.ok(on.attr && on.ws === 'nowrap', 'the nowrap column emits data-nowrap and computes white-space: nowrap');
+        t.eq(on.lines, 1, 'the date text is one line');
+        t.ok(!off.attr && off.lines > 1, 'without nowrap the same cell wraps');
+        const cards = await at(375, tbl(true, true)); t.ok(cards.ws !== 'nowrap', 'the cards layout is not forced to nowrap');
+    }],
     ['table (375px): a slotted cell that rendered nothing is left out of its card; at 1200px it is drawn (#1794)', async t => {
         const { sampleDoc } = await import('../../site/gallery/frame.js');
         const html = `<pk-table cards label="P" columns='[{"key":"sku","label":"SKU"},{"key":"tag","label":"Tag"}]' rows='[{"id":1,"sku":"A"},{"id":2,"sku":"B"}]'><span slot="cell-1-tag"><b>hot</b></span><span slot="cell-2-tag"></span></pk-table>`;

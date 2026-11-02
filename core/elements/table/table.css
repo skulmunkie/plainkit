@@ -49,6 +49,8 @@ tr[data-skeleton] td::before { content: ""; display: block; block-size: 4.5em; b
 .sr { position: absolute; inline-size: 1px; block-size: 1px; overflow: hidden; clip-path: inset(50%); white-space: nowrap; }
 @keyframes pulse { 50% { opacity: 0.5; } }
 @media (prefers-reduced-motion: reduce) { tr[data-skeleton] td::before { animation: none; } }
+/* Issue 1847: a nowrap column keeps its cell text (a slotted date-time too, white-space is inherited) on one line and sizes to it; the cards layout wraps as before. */
+:host(:not([cards])) td[data-nowrap] { white-space: nowrap; }
 @media (--phone) {
     th button { display: inline-flex; align-items: center; min-block-size: var(--touch-target); min-inline-size: var(--touch-target); }
     /* A row-select checkbox is itself the touch target (the cell click toggles it too, table.js). */
