@@ -209,4 +209,16 @@ export const markdownEditorCases = [
         el.interceptLinks = true; await t.settle(); click(0);
         t.eq(prevented.at(-1), true, 'interceptLinks cancels the navigation');
     }],
+    ['markdown (#1700): a list under dir=rtl against the right edge of the page does not widen it (its outside markers stay inside the host)', async t => {
+        // Mounted straight on the page (the stage sits off screen) and pushed against the right edge of the left-to-right document, like a phone: anything that runs past the host widens the page.
+        const box = document.createElement('div'); box.dir = 'rtl'; box.style.cssText = 'position:absolute;top:0;inline-size:375px;left:' + (document.documentElement.clientWidth - 375) + 'px';
+        const md = box.appendChild(document.createElement('pk-markdown')); md.markdown = ['- one', '- two', '', '1. first', '2. second'].join('\n');
+        document.body.append(box);
+        try {
+            await t.load(box); await t.load(md.shadowRoot);
+            await until(() => md.shadowRoot.querySelector('[part=content] ul li') && md.shadowRoot.querySelector('[part=content] ol li'), 'both lists to render'); await t.settle();
+            const de = document.documentElement;
+            t.ok(de.scrollWidth <= de.clientWidth, `the page scrolls sideways (scrollWidth ${de.scrollWidth}, clientWidth ${de.clientWidth})`);
+        } finally { box.remove(); }
+    }],
 ];
