@@ -16,7 +16,7 @@
       "default": "{}",
       "map": "prop",
       "prop": "config",
-      "note": "Sent as a JSON attribute: { tabs?: [{ id, label }], widgets: [{ key, tab?, label, kind?: 'stat'|'chart', empty? }], sections?: [{ heading?, tab?, widgets: string[] }], filters?: [{ key, type, label, options? }], empty? }. Breaking: this replaces the earlier { tiles } shape."
+      "note": "Sent as a JSON attribute: { tabs?: [{ id, label }], widgets: [{ key, tab?, label, kind?: 'stat'|'chart'|'table', empty? }], sections?: [{ heading?, tab?, widgets: string[] }], filters?: [{ key, type, label, options? }], empty? }. Breaking: this replaces the earlier { tiles } shape."
     },
     {
       "name": "Load",

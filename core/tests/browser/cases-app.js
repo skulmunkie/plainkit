@@ -225,6 +225,31 @@ export const appCases = [
         t.eq(card('bad').dataset.state, 'error', 'the bad widget was never touched by the slow one settling');
     }],
 
+    ['pk-dashboard-page table widget (#1844): kind table draws a pk-table of the resolved columns and rows in a card that spans the whole grid row, at desktop and at 375px with no horizontal overflow, and no rows shows the empty state of its card', async t => {
+        for (const width of [1000, 375]) {
+            const el = document.createElement('pk-dashboard-page');
+            el.config = { widgets: [{ key: 'a', label: 'A', kind: 'stat' }, { key: 'orders', label: 'Open orders', kind: 'table' }, { key: 'none', label: 'Nothing', kind: 'table' }] };
+            el.load = async key => key === 'a' ? { value: '1' }
+                : key === 'none' ? { columns: [{ key: 'n', label: 'N' }], rows: [] }
+                : { columns: [{ key: 'no', label: 'Order' }, { key: 'customer', label: 'Customer' }, { key: 'total', label: 'Total', align: 'end' }], rows: [1, 2, 3].map(i => ({ id: i, no: `SO-100${i}`, customer: `Customer number ${i}`, total: `$${i}00.00` })) };
+            const host = t.stage(''); host.style.width = width + 'px'; host.append(el);
+            await t.load(host); await t.settle();
+            const card = key => el.shadowRoot.querySelector(`pk-card[data-key="${key}"]`);
+            await until(() => card('orders').querySelector('pk-table'), `${width}: the table widget`);
+            await customElements.whenDefined('pk-table'); await t.settle();
+            const grid = el.shadowRoot.querySelector('[part="grid"]'), c = card('orders'), table = c.querySelector('pk-table');
+            t.eq(c.dataset.kind, 'table', `${width}: data-kind on the card`);
+            t.eq(c.dataset.state, 'ready', `${width}: ready`);
+            t.eq(table.rows.length, 3, `${width}: every row is passed on`);
+            t.ok(Math.abs(c.getBoundingClientRect().width - grid.getBoundingClientRect().width) <= 1, `${width}: the table card spans the whole grid row`);
+            t.ok(c.getBoundingClientRect().right <= host.getBoundingClientRect().right + 1 && c.getBoundingClientRect().left >= host.getBoundingClientRect().left - 1, `${width}: the card stays inside its container`);
+            t.ok(el.scrollWidth <= el.clientWidth + 1 && document.documentElement.scrollWidth <= window.innerWidth + 1, `${width}: nothing scrolls horizontally`);
+            t.ok(table.getBoundingClientRect().height > 80, `${width}: the table has rows on screen`);
+            t.eq(card('none').dataset.state, 'empty', `${width}: no rows is the empty state of the card`);
+            t.ok(!card('none').querySelector('pk-table'), `${width}: and draws no table`);
+        }
+    }],
+
     ['pk-dashboard-page tabs (#489): a tab that was never opened never calls load(), opening it loads its widgets once, a revisit reloads nothing, and a filter change reloads only widgets that already loaded', async t => {
         const el = document.createElement('pk-dashboard-page');
         el.config = {
