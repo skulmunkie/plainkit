@@ -1,0 +1,19 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Static doc page (browser case fixture)</title>
+<link rel="stylesheet" href="../../plainkit.css">
+</head>
+<body>
+<pk-doc-page>
+<pk-side-nav slot="nav" label="Guides"><pk-nav-item href="#a">Guide A</pk-nav-item><pk-nav-item href="#b" current aria-current="page">Guide B</pk-nav-item><pk-nav-item href="#c">Guide C</pk-nav-item></pk-side-nav>
+<pk-toc slot="aside" for="#static-body" levels="h2" heading="On this page"></pk-toc>
+<h1 id="static-title">Guide B</h1>
+<div class="prose" id="static-body"><h2 id="one">One</h2><p>Static text.</p><h2 id="two">Two</h2><p>More static text.</p></div>
+<pk-pager label="Page navigation"><a slot="prev" href="#a" rel="prev">&larr; Guide A</a><span>2 of 3</span><a slot="next" href="#c" rel="next">Guide C &rarr;</a></pk-pager>
+</pk-doc-page>
+<script type="module" src="doc-page-static-frame.js"></script>
+</body>
+</html>

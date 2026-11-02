@@ -596,6 +596,37 @@ export const appCases = [
         }
     }],
 
+    ['pk-doc-page: static slotted mode - the author\'s nav, article and pager render as given with and without JavaScript, and the element builds, moves or rewrites none of them (#1829)', async t => {
+        const open = async (query, width) => {
+            const host = t.stage(''), fr = document.createElement('iframe');
+            fr.title = 'static doc page'; fr.style.cssText = `width:${width}px;height:900px;border:0;display:block`;
+            fr.src = new URL(`./doc-page-static-frame.html${query}`, import.meta.url).href;
+            await new Promise(resolve => { fr.addEventListener('load', resolve, { once: true }); host.append(fr); });
+            return { win: fr.contentWindow, d: fr.contentWindow.document };
+        };
+        const shown = n => { const r = n.getBoundingClientRect(); return r.width > 0 && r.height > 0; };
+        // Without JavaScript the pk-* tags are unknown inline elements: the author's links and text are all there and usable.
+        const plain = await open('?nojs', 1280);
+        t.ok(!plain.win.customElements.get('pk-doc-page'), 'the no-JS view leaves the page un-upgraded');
+        t.ok([...plain.d.querySelectorAll('pk-nav-item, #static-title, #static-body p, pk-pager a')].every(shown), 'un-upgraded: nav items, title, body and pager links are all visible');
+        t.eq(plain.d.querySelectorAll('pk-pager a[href]').length, 2, 'un-upgraded: the pager links are real links');
+        // With the element upgraded and no config: the same markup, in the slots, nothing built next to it.
+        const live = await open('', 1280), { win, d } = live, el = d.querySelector('pk-doc-page');
+        await until(() => win.customElements.get('pk-doc-page') && win.customElements.get('pk-side-nav') && win.customElements.get('pk-pager') && win.customElements.get('pk-toc'), 'the elements to upgrade');
+        await d.fonts.ready; await new Promise(r => win.requestAnimationFrame(() => win.requestAnimationFrame(r)));
+        t.eq(el.children.length, 5, 'the host children are exactly the ones the author wrote (none added)');
+        t.ok(!el.querySelector('.doc-page-title, [id^="pkdoc-body"], pk-breadcrumb, pk-button'), 'the element built no title, body, breadcrumb or menu button of its own');
+        t.ok(!/Documentation/.test(el.textContent), 'no empty home list ("Documentation") was drawn');
+        t.eq(el.querySelector('#static-title').assignedSlot?.parentElement.getAttribute('part'), 'article', 'the author\'s article is slotted into the article part');
+        t.eq(el.querySelector('pk-side-nav').assignedSlot?.name, 'nav', 'the author\'s nav is slotted into the nav slot');
+        t.ok([...el.querySelectorAll('pk-nav-item, #static-title, #static-body p, pk-pager a')].every(shown), 'upgraded: nav items, title, body and pager links are visible');
+        const cur = el.querySelector('pk-nav-item[aria-current="page"]');
+        t.ok(cur && cur.shadowRoot.querySelector('[part="link"]').getAttribute('aria-current') === 'page', 'the author\'s current item renders as the current page');
+        t.ok(el.querySelector('pk-toc').shadowRoot.querySelectorAll('a').length === 2, 'the author\'s pk-toc lists the two headings of the author\'s body');
+        const nav = el.querySelector('pk-side-nav').getBoundingClientRect(), title = el.querySelector('#static-title').getBoundingClientRect();
+        t.ok(nav.right <= title.left + 1, `the nav sits beside the article (${nav.right} vs ${title.left})`);
+    }],
+
     ['pk-doc-page: the article body and the pk-toc it owns are light DOM the toc can address by id, a same-page link scrolls and emits pk-navigate without touching history, and mounting/unmounting 100 times leaves no listener behind (#353)', async t => {
         const el = document.createElement('pk-doc-page');
         el.config = { items: [{ id: 'a', title: 'Guide A', summary: 'About A' }, { id: 'b', title: 'Guide B' }], id: 'a', search: true };

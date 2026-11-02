@@ -262,3 +262,26 @@ test('refresh() loads the current item again, so a loadItem set after the first 
     await el.$pending;
     assert.equal(el.$title.textContent, 'Guide a');
 });
+
+// Static slotted mode (#1829): the author's own markup in the slots is rendered as given; the element builds and moves nothing.
+test('static mode: host children and no config.items -> no shell, no paint, nothing appended, config/refresh are inert', () => {
+    const { el } = make();
+    Object.defineProperty(el, 'firstElementChild', { value: { localName: 'article' } });
+    let appended = 0; el.append = () => { appended++; };
+    el.connected();
+    assert.equal(appended, 0);
+    assert.equal(el.$nav, undefined);
+    assert.equal(el.$title, undefined);
+    el.config = { items: [{ id: 'a', title: 'A' }] };
+    el.changed('config'); el.refresh();
+    assert.equal(el.$nav, undefined);
+});
+
+test('static mode needs host children and no items: with none, or with config.items, the dynamic shell is built as before', () => {
+    const none = make().el; none.config = {}; none.connected();
+    assert.ok(none.$nav && none.$body);
+    const withItems = make().el;
+    Object.defineProperty(withItems, 'firstElementChild', { value: { localName: 'article' } });
+    withItems.config = { items: [{ id: 'a', title: 'A' }] }; withItems.connected();
+    assert.ok(withItems.$nav && withItems.$body);
+});
