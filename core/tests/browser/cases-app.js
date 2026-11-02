@@ -627,6 +627,49 @@ export const appCases = [
         t.ok(nav.right <= title.left + 1, `the nav sits beside the article (${nav.right} vs ${title.left})`);
     }],
 
+    ['pk-doc-page: static slotted mode on a phone draws its own Menu button in its shadow tree that opens the author\'s nav as a drawer (Escape, outside tap and a nav tap close it, focus returns to the button), and the author\'s children are never touched; a desktop width has no Menu button (#1829)', async t => {
+        const open = async width => {
+            const host = t.stage(''), fr = document.createElement('iframe');
+            fr.title = `static doc page ${width}`; fr.style.cssText = `width:${width}px;height:700px;border:0;display:block`;
+            fr.src = new URL('./doc-page-static-frame.html', import.meta.url).href;
+            await new Promise(resolve => { fr.addEventListener('load', resolve, { once: true }); host.append(fr); });
+            const win = fr.contentWindow, d = win.document, el = d.querySelector('pk-doc-page');
+            await until(() => win.customElements.get('pk-doc-page') && win.customElements.get('pk-side-nav'), 'the elements to upgrade');
+            await d.fonts.ready; await new Promise(r => win.requestAnimationFrame(() => win.requestAnimationFrame(r)));
+            return { win, d, el };
+        };
+        const shown = n => { const r = n.getBoundingClientRect(), s = n.ownerDocument.defaultView.getComputedStyle(n); return r.width > 0 && r.height > 0 && s.visibility !== 'hidden'; };
+        const wide = await open(1280);
+        const wideBtn = wide.el.shadowRoot.querySelector('[part="menu"]');
+        t.ok(!wideBtn || !shown(wideBtn), 'desktop width: no Menu button is shown');
+        const { win, d, el } = await open(375);
+        const kids = [...el.children], nav = el.querySelector('pk-side-nav'), before = kids.map(k => k.outerHTML).join('');
+        const btn = el.shadowRoot.querySelector('[part="menu"]');
+        t.ok(!!btn, 'phone: the element has a Menu button part of its own'); if (!btn) return;
+        await until(() => btn.shadowRoot?.querySelector('button'), 'the Menu button to upgrade');
+        t.ok(shown(btn) && /menu/i.test(btn.textContent), 'phone: the element draws a visible Menu button in its own shadow tree');
+        t.ok(!el.querySelector('pk-button'), 'the Menu button is not in the author\'s light DOM');
+        t.ok(!shown(nav), 'phone: the author\'s nav is a closed drawer to begin with');
+        const inner = () => btn.shadowRoot.querySelector('button');
+        t.eq(inner().getAttribute('aria-expanded'), 'false', 'the button reports aria-expanded=false while closed');
+        btn.focus(); inner().click();
+        await until(() => shown(nav), 'the nav drawer to open');
+        await until(() => inner().getAttribute('aria-expanded') === 'true', 'the button to report aria-expanded=true while open');
+        await until(() => nav.getBoundingClientRect().left >= -1, 'the open drawer to slide on screen');
+        nav.querySelector('pk-nav-item').dispatchEvent(new win.KeyboardEvent('keydown', { key: 'Escape', bubbles: true, composed: true }));
+        await until(() => !shown(nav), 'Escape to close the drawer');
+        t.ok(el.shadowRoot.activeElement === btn, 'after Escape focus is back on the Menu button');
+        inner().click(); await until(() => shown(nav), 'the drawer to reopen');
+        el.shadowRoot.querySelector('[part="backdrop"]').click();
+        await until(() => !shown(nav), 'a tap outside the drawer to close it');
+        t.ok(el.shadowRoot.activeElement === btn, 'after an outside tap focus is back on the Menu button');
+        inner().click(); await until(() => shown(nav), 'the drawer to open a third time');
+        nav.querySelector('pk-nav-item').click();
+        await until(() => !shown(nav), 'a tap on a nav item to close the drawer');
+        t.ok(el.children.length === kids.length && [...el.children].every((k, i) => k === kids[i]), 'the author\'s children are the same nodes, in the same order, none added');
+        t.eq([...el.children].map(k => k.outerHTML).join(''), before, 'no attribute or content of the author\'s markup changed');
+    }],
+
     ['pk-doc-page: the article body and the pk-toc it owns are light DOM the toc can address by id, a same-page link scrolls and emits pk-navigate without touching history, and mounting/unmounting 100 times leaves no listener behind (#353)', async t => {
         const el = document.createElement('pk-doc-page');
         el.config = { items: [{ id: 'a', title: 'Guide A', summary: 'About A' }, { id: 'b', title: 'Guide B' }], id: 'a', search: true };

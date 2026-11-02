@@ -28,9 +28,9 @@ const el = (doc, tag, attrs = {}, ...kids) => {
 
 export default Base => class extends Base {
     connected() {
-        if (this.$w || this.$static) return;
-        // Static mode (#1829): host-written slot content renders as given; nothing is built or moved.
-        if (this.firstElementChild && !this.config?.items?.length) { this.$static = true; return; }
+        if (this.$w) return;
+        // Static mode (#1829): host-written slot content renders as given; nothing is built or moved. On a phone the element's own Menu button (in its shadow) opens the author's nav as a drawer.
+        if (this.$static || (this.firstElementChild && !this.config?.items?.length)) { this.$static = true; this.menuOn(); return; }
         this.$w = true;
         this.$bodyId = `pkdoc-body-${++seq}`;
         this.buildShell();
@@ -38,7 +38,28 @@ export default Base => class extends Base {
         this.$first = true;
         this.$pending = this.paint();
     }
-    disconnected() { clearTimeout(this.$settleTimer); }
+    disconnected() { clearTimeout(this.$settleTimer); if (this.$static) this.menuSet(false); }
+    // Static mode's drawer (#1829): state lives only on this element's shadow parts (data-menu on the shell, pressed on its own button); the author's nav is shown by this shadow's CSS, never by an attribute written to it.
+    menuOn() {
+        const btn = this.part('menu'), nav = this.slotted('nav')[0];
+        btn.hidden = false;
+        btn.controls = nav ?? null;
+        if (this.$menuWired) return;
+        this.$menuWired = true;
+        loadElements(this.shadowRoot);
+        btn.addEventListener('pk-toggle', e => this.menuSet(e.detail.pressed)); // the button flips its own pressed state; the drawer follows it
+        this.part('backdrop').addEventListener('click', () => this.menuSet(false, true));
+        this.addEventListener('keydown', e => { if (e.key === 'Escape' && this.part('shell').hasAttribute('data-menu')) this.menuSet(false, true); });
+        this.addEventListener('click', e => { if (e.target.closest?.('pk-nav-item')) this.menuSet(false); });
+    }
+    menuSet(on, refocus) {
+        const shell = this.part('shell'), btn = this.part('menu');
+        shell.toggleAttribute('data-menu', on);
+        this.part('backdrop').hidden = !on;
+        btn.pressed = on;
+        if (on) this.slotted('nav')[0]?.querySelector('pk-nav-item')?.focusRow?.();
+        else if (refocus) btn.focus();
+    }
     // Draws the page again so a `loadItem` set after the first draw is used (a host that binds callbacks after its first render, #1401).
     refresh() { if (this.$w) this.$pending = this.load(this.config?.id ?? null, this.config ?? {}); }
     changed(name) { if (this.$w && name === 'config') this.$pending = this.paint(); }
