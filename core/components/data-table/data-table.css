@@ -8,6 +8,8 @@
 [data-lead] { flex: 1 1 24rem; display: flex; flex-wrap: wrap; align-items: center; gap: var(--space-1) var(--space-3); min-inline-size: 0; }
 [data-lead][hidden] { display: none; }
 [part="actions"] { display: flex; flex-wrap: wrap; max-inline-size: 100%; gap: var(--space-2); align-items: center; margin-inline-start: auto; }
+/* On a phone the actions row takes the full width and a slotted field (a pk-select, an input) fills it instead of keeping half its width; buttons keep their size and the add button stays an icon (issue 1848). */
+@media (--phone) { [part="actions"] { flex: 1 1 100%; } [part="actions"] ::slotted(:not(button, pk-button)) { flex: 1 1 100%; min-inline-size: 0; } }
 [part="filters"][data-nosearch]::part(search) { display: none; }
 [part="state"], [part="empty"] { margin-block-start: var(--space-4); }
 /* An idle state part has no content and takes no space: its margin would leave a gap under the table (issue 1711). */
