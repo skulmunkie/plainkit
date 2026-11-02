@@ -46,3 +46,26 @@ test('a group title is plain text: no href, tabindex, state attributes or branch
     NavItem.prototype.branch.call(host);
     assert.equal(host.expanded, false);
 });
+
+test('a slotted light-DOM <a href> is the link: the shadow row is presentational, the host never touches the author link (#1841)', () => {
+    const NavItem = navItem(class {});
+    const removed = []; const set = {};
+    const row = { removeAttribute: a => removed.push(a), setAttribute: (a, v) => { set[a] = v; } };
+    const anchor = new Proxy({}, { set() { throw new Error('the light-DOM anchor is host-owned'); } });
+    const toggled = {};
+    const host = { group: false, href: '', link: anchor, row, toggleAttribute: (a, v) => { toggled[a] = v; }, emit() { throw new Error('no toggle'); } };
+    NavItem.prototype.updated.call(host);
+    assert.deepEqual(set, { role: 'presentation' });
+    assert.equal(toggled['data-linked'], true);
+    assert.ok(['href', 'tabindex', 'aria-expanded'].every(a => removed.includes(a)));
+});
+
+test('the slotted link is stretched over the row and styled, and the rail keeps it reachable (#1841)', () => {
+    const css = read('css');
+    assert.ok(css.includes('::slotted(a)') && css.includes('::slotted(a)::after'));
+    assert.ok(css.includes(':host([data-linked]) [part="chevron"]'));
+    assert.ok(css.includes(':host([rail][data-linked]) [part="label"]'));
+    const js = read('js');
+    assert.ok(js.includes(':scope > a[href]') && !/\blink\.(setAttribute|href\s*=|append|remove)/.test(js));
+    assert.ok(meta.slots[0].description.includes('<a href>'));
+});

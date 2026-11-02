@@ -76,3 +76,21 @@
 
 @media (prefers-reduced-motion: reduce) { [part="chevron"]::before { transition: none; } }
 
+/* An author-written <a href> in the default slot is the row's one link works as a plain link before the element upgrades and without JavaScript.
+   The shadow row turns presentational; the slotted link is styled like the row and stretched over it, so the whole row is its click target. */
+:host([data-linked]) { position: relative; }
+
+:host([data-linked]) [part="chevron"] { display: none; }
+
+::slotted(a) { color: inherit; font: inherit; text-decoration: none; }
+
+::slotted(a)::after { content: ""; position: absolute; inset: 0; border-radius: var(--radius-md); }
+
+::slotted(a:focus-visible) { outline: none; }
+
+::slotted(a:focus-visible)::after { outline: var(--focus-ring); outline-offset: -2px; }
+
+:host([disabled]) ::slotted(a) { pointer-events: none; }
+
+/* Rail: only the icon shows, but the link stays laid out (invisible) under the stretched hit area so it keeps its focus and name. */
+:host([rail][data-linked]) [part="label"] { display: block; position: absolute; inset: 0; opacity: 0; }
