@@ -1,2 +1,2 @@
-:host { display: block; }
+:host { display: block; min-inline-size: 0; max-inline-size: 100%; contain: inline-size; }
 :host([wrap-labels]) { --pk-tree-item-label-white-space: normal; --pk-tree-item-label-overflow-wrap: anywhere; --pk-tree-item-row-padding-block: var(--space-1); }

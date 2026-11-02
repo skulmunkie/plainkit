@@ -1220,6 +1220,14 @@ export const dataDisplayCases = [
         t.ok(lab().scrollWidth <= lab().clientWidth + 1, 'the wrapped label is not cut off');
         t.ok(row().getBoundingClientRect().right <= el.getBoundingClientRect().right + 1, 'the row stays inside the column');
     }],
+    ['tree: a long item label never widens its parent or the sibling beside it (#1851)', async t => {
+        const long = 'A very long category name that does not fit a narrow column at all, and keeps going on and on for a good while longer than that';
+        const el = await t.mount('<div style="display:flex;inline-size:390px"><div id="col" style="flex:1 1 auto;display:flex;flex-direction:column"><pk-tree label="Nav"><pk-tree-item label="' + long + '"></pk-tree-item></pk-tree><div id="sib">card</div></div></div>'); await t.settle();
+        const tree = el.querySelector('pk-tree'), col = el.querySelector('#col'), sib = el.querySelector('#sib');
+        t.ok(tree.getBoundingClientRect().width <= 391, 'the tree host is no wider than its column: ' + tree.getBoundingClientRect().width);
+        t.ok(col.getBoundingClientRect().width <= 391, 'the column keeps its width: ' + col.getBoundingClientRect().width);
+        t.ok(sib.getBoundingClientRect().width <= 391, 'the sibling keeps its width: ' + sib.getBoundingClientRect().width);
+    }],
     ['tree: a wrapped label has padding above and below inside its row, and a one-line row keeps its height (#1775)', async t => {
         const long = 'A very long category name that does not fit a narrow navigation column at all';
         const el = await t.mount('<div style="inline-size:12rem"><pk-tree label="Nav"><pk-tree-item label="' + long + '"></pk-tree-item><pk-tree-item label="Short"></pk-tree-item></pk-tree></div>'); await t.settle();
