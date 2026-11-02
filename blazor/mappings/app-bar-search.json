@@ -58,6 +58,14 @@
       "extra": true
     },
     {
+      "name": "RetryLabel",
+      "prop": "retryLabel",
+      "type": "string",
+      "default": "Retry",
+      "map": "prop",
+      "extra": true
+    },
+    {
       "name": "EmptyContent",
       "slot": "empty",
       "type": "RenderFragment?",
@@ -74,6 +82,14 @@
       "type": "EventCallback<PkQueryEventArgs>",
       "map": "event",
       "event": "pk-query"
+    },
+    {
+      "name": "OnRetry",
+      "type": "EventCallback",
+      "map": "event",
+      "event": "pk-retry",
+      "cancelable": false,
+      "extra": true
     },
     {
       "name": "OnSelect",

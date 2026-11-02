@@ -64,7 +64,7 @@ A failed download throws to the `PkModuleBoundary` (Try again loads it again). S
 
 ## A dashboard from the modules' widgets
 
-A module can offer widgets to a dashboard without the dashboard knowing it. Add `contributes` to the module's JSON manifest (the fields of the SDK's config entry, no `can`): `{ "key": "open", "for": ["overview"], "tab": "sales", "label": "Open orders", "kind": "stat", "order": 10 }`. Implement `IPkWidgets.LoadWidget(key)` on the module class (the C# analogue of `widgets: { key: { load } }`) and return what the card draws: a stat's `value`, a chart's properties, never markup. The dashboard page names only the surface and owns the tab labels:
+A module can offer widgets to a dashboard without the dashboard knowing it. Add `contributes` to the module's JSON manifest (the fields of the SDK's config entry, no `can`): `{ "key": "open", "for": ["overview"], "tab": "sales", "label": "Open orders", "kind": "stat", "order": 10 }`. Implement `IPkWidgets.LoadWidget(key)` on the module class (the C# analogue of `widgets: { key: { load } }`) and return what the card draws: a stat's `value`, a chart's properties, a table's `{ columns, rows, caption? }` (kind `"table"`, drawn full row in a `pk-table`), never markup. The dashboard page names only the surface and owns the tab labels:
 
 ```razor
 <PkModuleDashboard Surface="overview" Heading="Overview" Tabs="@Tabs" />
@@ -75,6 +75,21 @@ A module can offer widgets to a dashboard without the dashboard knowing it. Add 
 ## Shared state
 
 `IPkStore`, `IPkSettings` and `IPkTheme` write the same `pk.<module>` envelope as the SDK's store (`{v,data}`, the same validation and migration), so a Blazor app and an SDK page on one origin read the same keys and share the theme. One shared fixture, `core/tests/fixtures/store-envelopes.json`, runs in both test suites. There is no cross-tab sync: a second tab sees a change on its next read, not live. Before the first render there is no storage, so a prerender uses the in-memory fallback.
+
+## Your own nav links
+
+Besides `Href`, a `PkNavItem` takes your own anchor in its `ChildContent`; the element styles it as the row and stretches its hit area over the row, and never changes it. This is the way to a link that is a real `<a>` in the server-rendered HTML (a `NavLink`-style anchor, a prerendered page), so it works before JavaScript loads, and without it. For example:
+
+```razor
+<nav aria-label="Main">
+    <ul>
+        <li><PkNavItem Current="@_onReports"><a href="reports" aria-current="@_reportsAria">Reports</a></PkNavItem></li>
+        <li><PkNavItem><a href="settings">Settings</a></PkNavItem></li>
+    </ul>
+</nav>
+```
+
+You set both `aria-current` on the anchor and `Current` on the row; the element does not copy one to the other. A page that must work with scripts blocked writes a native list of links as above: until the element is defined (or forever, with no JavaScript) the anchors show and work as a plain list. Use `Href` instead when you want the element to draw the link itself.
 
 ## Pages
 

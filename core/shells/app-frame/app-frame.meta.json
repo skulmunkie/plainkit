@@ -108,7 +108,7 @@
       "type": "string",
       "default": "",
       "reflect": false,
-      "description": "A failed search: while set, the header search's results panel shows this message instead of \"No results\" (pk-app-bar-search error). Set it when the search behind pk-query throws; clear it with the next result."
+      "description": "A failed search: while set, the header search's results panel shows this message instead of \"No results\" (pk-app-bar-search error). Set it when the search behind pk-query throws; clear it with the next result. The panel then shows a Retry button: pressing it raises pk-query again with the text (the search's own pk-retry also bubbles out of the frame)."
     }
   ],
   "slots": [

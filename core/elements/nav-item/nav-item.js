@@ -10,19 +10,21 @@ export default Base => class extends Base {
         if (this.$w) return;
         this.$w = true;
         for (const n of ['icon', 'badge']) this.watchSlot(n, () => { this.part(n).hidden = this.slotted(n).length === 0; });
-        this.shadowRoot.addEventListener('click', e => { if (!this.href && e.target.closest?.('[part="link"]')) this.branch(); });
-        this.shadowRoot.addEventListener('keydown', e => { if (!this.href && isActivateKey(e)) { e.preventDefault(); this.branch(); } });
+        this.shadowRoot.addEventListener('click', e => { if (!this.href && !this.link && e.target.closest?.('[part="link"]')) this.branch(); });
+        this.shadowRoot.addEventListener('keydown', e => { if (!this.href && !this.link && isActivateKey(e)) { e.preventDefault(); this.branch(); } });
         this.addEventListener('pointerover', e => { if (e.pointerType === 'mouse' && this.rail && !this.href && !this.flyout && this.children.length) this.flyout = true; });
         this.addEventListener('pointerleave', e => { if (e.pointerType === 'mouse' && this.flyout) this.$t = setTimeout(() => { if (!this.matches(':hover')) this.flyout = false; }, 250); });
         // A branch has no href of its own; watch its slotted children so the collapsed rail can mark it when one of them (in the flyout) is current.
         this.$obs = new MutationObserver(() => this.requestUpdate());
-        this.$obs.observe(this, { subtree: true, attributes: true, attributeFilter: ['current'] });
+        this.$obs.observe(this, { subtree: true, childList: true, attributes: true, attributeFilter: ['current'] });
     }
     disconnected() { this.$o?.(); this.$o = null; clearTimeout(this.$t); this.$obs?.disconnect(); }
     get hasCurrentDescendant() { return !this.href && this.querySelector(':scope > [slot="children"][current], :scope > [slot="children"] [current]') != null; }
     changed(name) { if (name === 'flyout') this.layer(); }
+    // An author-written <a href> child is host-owned: slotted and styled, never created, moved or changed here (#1841).
+    get link() { return this.querySelector(':scope > a[href]'); }
     get row() { return this.shadowRoot.querySelector('[part="link"]'); }
-    focusRow() { this.row?.focus({ preventScroll: true }); }
+    focusRow() { (this.link ?? this.row)?.focus({ preventScroll: true }); }
     get hasChildren() { return this.slotted('children').length > 0; }
     branch() {
         if (this.group) return;
@@ -31,7 +33,8 @@ export default Base => class extends Base {
     }
     updated() {
         const row = this.row; if (!row) return;
-        if (this.group) { for (const a of ['href', 'tabindex', 'aria-current', 'aria-disabled', 'aria-expanded', 'title']) row.removeAttribute(a); row.setAttribute('role', 'presentation'); return; }
+        const linked = !this.group && this.link != null; if (!this.group) { this.toggleAttribute('data-linked', linked); this.toggleAttribute('data-dresses-links', linked); }
+        if (this.group || linked) { for (const a of ['href', 'tabindex', 'aria-current', 'aria-disabled', 'aria-expanded', 'title']) row.removeAttribute(a); row.setAttribute('role', 'presentation'); return; }
         const href = safeHref(this.href);
         if (this.href && !href) this.warnOnce('href', `href=${JSON.stringify(this.href)} is not a same-site path, http(s), mailto, tel or sms address: the row has no link`, { href: this.href });
         if (href) { row.setAttribute('href', href); row.removeAttribute('role'); row.removeAttribute('tabindex'); } else { row.removeAttribute('href'); row.setAttribute('role', 'button'); row.tabIndex = 0; }

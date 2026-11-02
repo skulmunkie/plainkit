@@ -57,6 +57,9 @@
   "(prefers-contrast: more)",
   "(max-width: 640px)"
  ],
+ "data-table": [
+  "(max-width: 640px)"
+ ],
  "design-surface": [
   "(max-width: 640px)"
  ],

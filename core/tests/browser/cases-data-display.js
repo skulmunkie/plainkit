@@ -199,6 +199,21 @@ export const dataDisplayCases = [
         t.ok(!kids[1].hidden && kids[2].hidden, 'the third avatar is hidden'); t.eq(g.part('more').textContent, '+1'); t.ok(!g.part('more').hidden);
     }],
 
+    ['avatar: with no name and no image a neutral glyph shows inside the tile (not "?"); a name or a slotted icon changes that', async t => {
+        const host = t.stage('<pk-avatar colour="muted"></pk-avatar><pk-avatar colour="muted" src="data:image/png;base64,x"></pk-avatar><pk-avatar name="Ada"></pk-avatar><pk-avatar colour="muted"><b>I</b></pk-avatar>');
+        await t.load(host); await t.settle();
+        const [a, bad, named, slotted] = host.querySelectorAll('pk-avatar');
+        const g = a.part('glyph'), hr = a.getBoundingClientRect(), gr = g.getBoundingClientRect();
+        t.ok(!a.part('placeholder').hidden && gr.width > 4 && gr.height > 4, 'the glyph is drawn');
+        t.ok(gr.left >= hr.left && gr.right <= hr.right && gr.top >= hr.top && gr.bottom <= hr.bottom, 'the glyph sits inside the host');
+        t.eq(a.part('initials').textContent, '', 'no "?" initials');
+        t.ok(getComputedStyle(g, '::before').backgroundColor !== getComputedStyle(a).backgroundColor, 'the glyph colour differs from the tile');
+        await until(() => bad.part('image').hidden, 'the failed image hides'); t.ok(!bad.part('placeholder').hidden, 'a failed src with no name shows the glyph');
+        t.ok(named.part('placeholder').hidden && named.part('initials').textContent === 'AD','a name keeps its initials and hides the glyph');
+        t.ok(slotted.querySelector('b').getBoundingClientRect().width > 0, 'a slotted icon is rendered in place of the glyph');
+        t.eq(a.internals.role, 'img');
+    }],
+
     ['pagination: renders a window with ellipses, next and page buttons emit a cancelable pk-page, and the select changes the size', async t => {
         const p = await t.mount('<pk-pagination page="1" pages="20" total="500" page-size="25" sizes="[10,25,50]"></pk-pagination>');
         const nums = () => [...p.part('numbers').children].map(c => c.textContent);
@@ -795,6 +810,44 @@ export const dataDisplayCases = [
         const phone = await at(375); t.eq(phone.w, 375); t.ok(phone.other, 'the SKU shows'); t.ok(!phone.td, 'the hidePhone cell is hidden in a card');
         const wide = await at(1200); t.ok(wide.td, 'shown on a wide screen');
     }],
+    ['data-table (390px): a pk-select slotted in actions fills the toolbar width on a phone and keeps its own width on desktop; the add button stays an icon (#1848)', async t => {
+        const { sampleDoc } = await import('../../site/gallery/frame.js');
+        const html = `<pk-data-table label="P" add-label="Add" columns='[{"key":"sku","label":"SKU"}]'><pk-select slot="actions" aria-label="Status"><option value="a">All statuses</option><option value="b">Open</option></pk-select></pk-data-table>`;
+        const at = async width => {
+            const host = t.stage(''), f = document.createElement('iframe');
+            f.title = 'sample'; f.style.width = `${width}px`; f.style.height = '420px'; f.style.border = '0';
+            const loaded = new Promise(r => f.addEventListener('load', r, { once: true })); host.append(f); f.srcdoc = sampleDoc(html); await loaded;
+            await until(() => f.contentWindow.customElements.get('pk-select') && f.contentDocument.querySelector('pk-select')?.shadowRoot?.querySelector('select'), 'the select');
+            const dt = f.contentDocument.querySelector('pk-data-table'), sel = f.contentDocument.querySelector('pk-select');
+            await until(() => dt.part('add')?.getBoundingClientRect().width > 0, 'the add button');
+            const tb = dt.part('toolbar').getBoundingClientRect(), s = sel.getBoundingClientRect(), a = dt.part('add').getBoundingClientRect();
+            return { tb: tb.width, s: s.width, addW: a.width, w: f.contentWindow.innerWidth };
+        };
+        const phone = await at(390); t.eq(phone.w, 390);
+        t.ok(phone.s >= phone.tb - 1, `the select fills the toolbar (select ${Math.round(phone.s)}px, toolbar ${Math.round(phone.tb)}px)`);
+        t.ok(phone.addW < 80, `the add button stays an icon, not full width (${Math.round(phone.addW)}px)`);
+        const wide = await at(1280); t.ok(wide.s < wide.tb / 2, `on desktop the select keeps its own width (select ${Math.round(wide.s)}px, toolbar ${Math.round(wide.tb)}px)`);
+    }],
+    ['table: a nowrap column keeps a date-time on one line and sizes to it; the same text wraps without it; cards still wrap (#1847)', async t => {
+        const { sampleDoc } = await import('../../site/gallery/frame.js');
+        const cols = nowrap => `[{"key":"id","label":"Id"},{"key":"when","label":"When"${nowrap ? ',"noWrap":true' : ''}},{"key":"note","label":"Note"}]`;
+        const rows = `[{"id":1,"when":"Aug 29, 2026, 3:51 PM","note":"A fairly long note that wants all the room the table can give it so the date column is squeezed"}]`;
+        const at = async (width, html) => {
+            const host = t.stage(''), f = document.createElement('iframe');
+            f.title = 'sample'; f.style.width = `${width}px`; f.style.height = '320px'; f.style.border = '0';
+            const loaded = new Promise(r => f.addEventListener('load', r, { once: true })); host.append(f); f.srcdoc = sampleDoc(html); await loaded;
+            await until(() => f.contentWindow.customElements.get('pk-table') && f.contentDocument.querySelector('pk-table')?.shadowRoot?.querySelector('tbody td[data-key="when"]'), 'the table');
+            const td = f.contentDocument.querySelector('pk-table').shadowRoot.querySelector('tbody td[data-key="when"]'), cs = f.contentWindow.getComputedStyle(td);
+            const r = f.contentDocument.createRange(); r.selectNodeContents(td); const lines = new Set([...r.getClientRects()].map(x => Math.round(x.top))).size;
+            return { lines, ws: cs.whiteSpace, attr: td.hasAttribute('data-nowrap') };
+        };
+        const tbl = (n, cards) => `<pk-table ${cards ? 'cards ' : ''}label="P" columns='${cols(n)}' rows='${rows}'></pk-table>`;
+        const on = await at(560, tbl(true)), off = await at(560, tbl(false));
+        t.ok(on.attr && on.ws === 'nowrap', 'the nowrap column emits data-nowrap and computes white-space: nowrap');
+        t.eq(on.lines, 1, 'the date text is one line');
+        t.ok(!off.attr && off.lines > 1, 'without nowrap the same cell wraps');
+        const cards = await at(375, tbl(true, true)); t.ok(cards.ws !== 'nowrap', 'the cards layout is not forced to nowrap');
+    }],
     ['table (375px): a slotted cell that rendered nothing is left out of its card; at 1200px it is drawn (#1794)', async t => {
         const { sampleDoc } = await import('../../site/gallery/frame.js');
         const html = `<pk-table cards label="P" columns='[{"key":"sku","label":"SKU"},{"key":"tag","label":"Tag"}]' rows='[{"id":1,"sku":"A"},{"id":2,"sku":"B"}]'><span slot="cell-1-tag"><b>hot</b></span><span slot="cell-2-tag"></span></pk-table>`;
@@ -1001,6 +1054,23 @@ export const dataDisplayCases = [
         t.ok(getComputedStyle(el.part('error')).color !== getComputedStyle(el.part('empty')).color, 'it does not look like the empty state');
         el.error = ''; await t.settle();
         t.ok(!shown('error') && shown('empty'), 'cleared: the empty state again');
+    }],
+
+    ['app-bar-search: a failed search shows Retry; clicking it raises pk-retry and re-raises pk-query for the current text; it hides once results arrive (#1799)', async t => {
+        const el = await t.mount('<pk-app-bar-search debounce="0" label="Search"></pk-app-bar-search>'); await customElements.whenDefined('pk-app-bar-search');
+        const input = el.part('control'); input.value = 'inv'; input.dispatchEvent(new Event('input')); await t.settle();
+        const shown = p => !el.part(p).hidden && el.part(p).getBoundingClientRect().height > 0;
+        t.ok(!shown('retry'), 'no retry while nothing failed');
+        const seen = []; el.addEventListener('pk-retry', () => seen.push('retry')); el.addEventListener('pk-query', e => seen.push('query:' + e.detail.query));
+        el.items = []; el.error = 'Search is unavailable. Try again.'; await t.settle();
+        t.ok(shown('retry'), 'the retry button shows with the error'); t.eq(el.part('retry').getAttribute('label'), 'Retry');
+        el.part('retry').click(); await t.settle();
+        t.eq(seen.join(','), 'retry,query:inv', 'pk-retry, then the current query again');
+        t.ok(!el.part('popup').hidden, 'the panel stays open');
+        el.error = ''; el.items = [{ id: 'a', label: 'Invoice 1' }]; await t.settle();
+        t.ok(!shown('retry') && !shown('error'), 'results arrived: error and retry are gone');
+        el.retryLabel = 'Nochmal'; el.error = 'x'; await t.settle();
+        t.eq(el.part('retry').getAttribute('label'), 'Nochmal', 'retryLabel localises the button');
     }],
 
     ['table-filters: typing debounces pk-search; the trigger only shows once the default slot has content, opens/closes the panel and reports pk-toggle; Clear filters raises pk-clear-filters; the badge reflects filterCount', async t => {
@@ -1219,6 +1289,21 @@ export const dataDisplayCases = [
         t.ok(row().getBoundingClientRect().height > one + 8, 'wrapped the row is taller: ' + row().getBoundingClientRect().height + ' vs ' + one);
         t.ok(lab().scrollWidth <= lab().clientWidth + 1, 'the wrapped label is not cut off');
         t.ok(row().getBoundingClientRect().right <= el.getBoundingClientRect().right + 1, 'the row stays inside the column');
+    }],
+    ['tree: a long item label never widens its parent or the sibling beside it (#1851)', async t => {
+        const long = 'A very long category name that does not fit a narrow column at all, and keeps going on and on for a good while longer than that';
+        const el = await t.mount('<div style="display:flex;inline-size:390px"><div id="col" style="flex:1 1 auto;display:flex;flex-direction:column"><pk-tree label="Nav"><pk-tree-item label="' + long + '"></pk-tree-item></pk-tree><div id="sib">card</div></div></div>'); await t.settle();
+        const tree = el.querySelector('pk-tree'), col = el.querySelector('#col'), sib = el.querySelector('#sib');
+        t.ok(tree.getBoundingClientRect().width <= 391, 'the tree host is no wider than its column: ' + tree.getBoundingClientRect().width);
+        t.ok(col.getBoundingClientRect().width <= 391, 'the column keeps its width: ' + col.getBoundingClientRect().width);
+        t.ok(sib.getBoundingClientRect().width <= 391, 'the sibling keeps its width: ' + sib.getBoundingClientRect().width);
+    }],
+    ['tree: in an auto-width parent (inline-block, inline-flex, a popover-like box) the tree keeps a sensible width, not zero (#1851)', async t => {
+        const long = 'A very long category name that does not fit a narrow column at all, and keeps going on and on for a good while longer than that';
+        const el = await t.mount('<div><div id="ib" style="display:inline-block"><pk-tree label="Nav"><pk-tree-item label="Books"></pk-tree-item><pk-tree-item label="' + long + '"></pk-tree-item></pk-tree></div><div id="if" style="display:inline-flex"><pk-tree label="Nav2"><pk-tree-item label="Cards"></pk-tree-item></pk-tree></div></div>'); await t.settle();
+        for (const id of ['ib', 'if']) { const w = el.querySelector('#' + id).getBoundingClientRect().width; t.ok(w >= 128 && w <= 1000, id + ' parent width is sensible: ' + w); }
+        const tree = el.querySelector('#ib pk-tree'), r = tree.querySelector('pk-tree-item').part('row').getBoundingClientRect();
+        t.ok(r.width >= 120, 'the rows are not collapsed: ' + r.width);
     }],
     ['tree: a wrapped label has padding above and below inside its row, and a one-line row keeps its height (#1775)', async t => {
         const long = 'A very long category name that does not fit a narrow navigation column at all';

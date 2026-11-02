@@ -132,6 +132,52 @@ export const headerCases = [
         }
     }],
 
+    ['--font-heading re-faces pk-heading, the page-header title the card title and the dialog, drawer, empty-state and form-section titles, and the default is the body font (#1817)', async t => {
+        const faces = async () => {
+            const host = t.stage('<div><pk-heading>Title</pk-heading><pk-page-header heading="Header"></pk-page-header><pk-card heading="Card">Body</pk-card><pk-dialog heading="D"></pk-dialog><pk-drawer heading="W"></pk-drawer><pk-empty-state heading="E"></pk-empty-state><pk-form-section heading="F"></pk-form-section></div>');
+            await t.load(host); await Promise.all(['pk-heading', 'pk-page-header', 'pk-card', 'pk-dialog', 'pk-drawer', 'pk-empty-state', 'pk-form-section'].map(n => customElements.whenDefined(n))); await t.settle();
+            const wrap = host.firstElementChild, ff = n => getComputedStyle(n).fontFamily;
+            return { host, heading: ff(wrap.querySelector('pk-heading').shadowRoot.querySelector('[part="heading"]')), header: ff(wrap.querySelector('pk-page-header').part('title')), card: ff(wrap.querySelector('pk-card').part('title')), dialog: ff(wrap.querySelector('pk-dialog').shadowRoot.querySelector('[part="title"]')), drawer: ff(wrap.querySelector('pk-drawer').shadowRoot.querySelector('[part="title"]')), empty: ff(wrap.querySelector('pk-empty-state').shadowRoot.querySelector('[part="heading"]')), section: ff(wrap.querySelector('pk-form-section').shadowRoot.querySelector('[part="title"]')), body: ff(wrap) };
+        };
+        const base = await faces();
+        t.eq(base.heading, base.body, 'default: pk-heading uses the body font'); t.eq(base.header, base.body, 'default: the page-header title uses the body font'); t.eq(base.card, base.body, 'default: the card title uses the body font');
+        for (const k of ['dialog', 'drawer', 'empty', 'section']) t.eq(base[k], base.body, `default: the ${k} title uses the body font`);
+        base.host.remove();
+        document.documentElement.style.setProperty('--font-heading', 'Georgia, serif');
+        try {
+            const set = await faces();
+            for (const k of ['heading', 'header', 'card', 'dialog', 'drawer', 'empty', 'section']) t.ok(/georgia/i.test(set[k]), k + ': font-family follows --font-heading: ' + set[k]);
+            t.eq(set.body, base.body, 'body text keeps the body font');
+            set.host.remove();
+        } finally { document.documentElement.style.removeProperty('--font-heading'); }
+    }],
+
+    ['page-header: a record with wrap-title wraps a long title to at most three lines at 390px, keeps one ellipsized line at 1280px, and the default stays one line at 390px (#1849)', async t => {
+        const long = 'Purchase order 1042 for the north warehouse refit, the second delivery of shelving, racking, lighting and spare fittings';
+        const hit = (a, b) => a.left < b.right - 1 && b.left < a.right - 1 && a.top < b.bottom - 1 && b.top < a.bottom - 1;
+        const kids = '<pk-badge>Open</pk-badge><pk-badge variant="ok">Paid in full</pk-badge><pk-button slot="actions" variant="primary">Receive goods</pk-button>';
+        const titles = { crumb: '', heading: `heading="${long}"`, slotted: `heading="${long}"` };
+        for (const [mode, attr] of Object.entries(titles)) for (const wrap of [true, false]) for (const w of [390, 1280]) {
+            const crumbs = JSON.stringify([{ label: 'Purchase orders', href: '#po' }, ...(mode === 'crumb' ? [{ label: long }] : [])]);
+            const own = mode === 'slotted' ? `<pk-heading slot="title" level="1" weight="semibold" variant="h3" title="${long}">${long}</pk-heading>` : '';
+            const host = t.stage(`<pk-page-header variant="record" ${wrap ? 'wrap-title' : ''} home-href="#home" home-label="Home" ${attr} crumbs='${crumbs}'>${own}${kids}</pk-page-header>`);
+            host.style.width = `${w}px`; await t.load(host); await Promise.all(['pk-badge', 'pk-breadcrumb', 'pk-button', ...(own ? ['pk-heading'] : [])].map(n => customElements.whenDefined(n))); await t.settle(); await t.settle();
+            const h = host.firstElementChild, badges = [...h.querySelectorAll('pk-badge')], act = h.querySelector('pk-button'), label = `${mode}${wrap ? ' wrap-title' : ''} at ${w}px`;
+            const title = mode === 'crumb' ? h.part('trail').lastElementChild : mode === 'heading' ? h.part('title') : h.querySelector('pk-heading');
+            const line = parseFloat(getComputedStyle(mode === 'slotted' ? title.shadowRoot.querySelector('[part="heading"]') : title).lineHeight) || 24;
+            const lines = Math.round(rect(title).height / line);
+            if (wrap && w === 390) {
+                t.ok(lines >= 2 && lines <= 3, `${label}: the title wraps to two or three lines: ${lines} (${rect(title).height}px of ${line}px lines)`);
+                t.ok(title.scrollWidth <= title.clientWidth + 1, `${label}: the title is not cut horizontally`);
+            } else t.ok(lines <= 1, `${label}: the title is one line: ${lines}`);
+            if (!wrap || w === 1280) t.eq(getComputedStyle(mode === 'slotted' ? title : title).textOverflow, 'ellipsis', `${label}: the title ends in an ellipsis`);
+            for (const b of badges) t.ok(!hit(rect(b), rect(title)) && !hit(rect(b), rect(act)), `${label}: the badge "${b.textContent}" overlaps neither the title nor the action`);
+            t.ok(!hit(rect(act), rect(title)), `${label}: the action does not overlap the title`);
+            t.ok(rect(act).right <= rect(h).right + 1 && h.scrollWidth <= h.clientWidth + 1, `${label}: everything stays inside the header`);
+            if (mode !== 'crumb') t.eq(title.getAttribute('title') ?? h.part('title').title, long, `${label}: the full text stays available as the tooltip`);
+            host.remove();
+        }
+    }],
     ['page-header: a record with no crumbs and no heading keeps its chips and its actions on one row at every width', async t => {
         const host = t.stage('<pk-page-header variant="record"><pk-badge id="chip">Open</pk-badge>Acme Supply<button slot="actions" id="act">Print</button></pk-page-header>');
         const h = host.firstElementChild, mid = n => (rect(n).top + rect(n).bottom) / 2;
@@ -514,5 +560,19 @@ headerCases.push(
             t.ok(Math.abs(mid(b2) - mid(b1)) <= 2, `${w}px: both badges share the row`);
             host.remove();
         }
+    }],
+    ['--color-media-bg is black in both themes and fills a contain-fit pk-media letterbox (#1845)', async t => {
+        const root = document.documentElement, prev = root.getAttribute('data-theme');
+        try {
+            for (const theme of ['light', 'dark']) {
+                root.setAttribute('data-theme', theme);
+                const m = await t.mount('<pk-media ratio="1/1" fit="contain"><img alt="wide" width="40" height="10" src="data:image/gif;base64,R0lGODlhAQABAAAAACw="></pk-media>');
+                await customElements.whenDefined('pk-media'); await t.settle();
+                const probe = document.createElement('div'); probe.style.background = 'var(--color-media-bg)'; document.body.append(probe);
+                const token = getComputedStyle(probe).backgroundColor; probe.remove();
+                t.eq(token, 'rgb(0, 0, 0)', theme + ': the token is black');
+                t.eq(getComputedStyle(m.part('box')).backgroundColor, 'rgb(0, 0, 0)', theme + ': the contain-fit box uses the token');
+            }
+        } finally { if (prev === null) root.removeAttribute('data-theme'); else root.setAttribute('data-theme', prev); }
     }],
 );

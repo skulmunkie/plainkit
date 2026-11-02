@@ -36,11 +36,19 @@ test('the template has the expand button, the field with its own popup nested in
 
 test('the events pk-query, pk-select, pk-submit and pk-toggle are documented with the shapes the generated Blazor EventArgs already carry', () => {
     const names = meta.events.map(e => e.name);
-    assert.deepEqual(names.sort(), ['pk-query', 'pk-select', 'pk-submit', 'pk-toggle']);
+    assert.deepEqual(names.sort(), ['pk-query', 'pk-retry', 'pk-select', 'pk-submit', 'pk-toggle']);
     assert.deepEqual(meta.events.find(e => e.name === 'pk-query').detail, { query: 'string' });
     assert.deepEqual(meta.events.find(e => e.name === 'pk-select').detail, { item: 'object' });
     assert.deepEqual(meta.events.find(e => e.name === 'pk-submit').detail, { query: 'string' });
     assert.deepEqual(meta.events.find(e => e.name === 'pk-toggle').detail, { expanded: 'bool' });
+});
+
+test('a failed search offers a retry: a pk-button part after the error message, a pk-retry event with no detail, a retryLabel prop (#1799)', () => {
+    assert.match(read('html'), /<div part="error" hidden><\/div><pk-button part="retry"[^>]*hidden>/);
+    assert.deepEqual(meta.events.find(e => e.name === 'pk-retry').detail, {});
+    assert.ok(meta.parts.some(p => p.name === 'retry'));
+    assert.equal(prop('retryLabel').default, 'Retry');
+    assert.match(read('css'), /\[part="retry"\]/);
 });
 
 test('the phone breakpoint is named, not a literal, and collapses the pill to the expand button', () => {

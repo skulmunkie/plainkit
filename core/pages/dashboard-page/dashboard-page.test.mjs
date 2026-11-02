@@ -89,6 +89,47 @@ test('a chart widget resolves load(key) onto a pk-chart captioned from the widge
     assert.equal(chart.caption, 'Sales trend');
 });
 
+test('a table widget resolves load(key) onto a pk-table with the columns, rows and a caption (the result is, else the widget label), and kind is on the card', async () => {
+    const { el, body } = make();
+    el.config = { widgets: [{ key: 'top', label: 'Top customers', kind: 'table' }, { key: 'cap', label: 'Orders', kind: 'table' }] };
+    const columns = [{ key: 'name', label: 'Name' }, { key: 'total', label: 'Total', align: 'end' }];
+    el.load = async key => ({ columns, rows: [{ name: 'A', total: '1' }, { name: 'B', total: '2' }, { name: 'C', total: '3' }], ...(key === 'cap' ? { caption: 'Open orders' } : {}) });
+    el.connected();
+    await flush();
+    const card = cardFor(body, 'top');
+    assert.equal(card.dataset.kind, 'table');
+    assert.equal(stateOf(card), 'ready');
+    const table = card.children[0];
+    assert.equal(table.localName, 'pk-table');
+    assert.deepEqual(table.columns, columns);
+    assert.equal(table.rows.length, 3);
+    assert.equal(table.caption, 'Top customers');
+    assert.equal(cardFor(body, 'cap').children[0].caption, 'Open orders');
+});
+
+test('a table widget with no rows shows the empty state of its card, a rejected load shows Retry and a retry reloads, a null result hides the card', async () => {
+    const { el, body } = make();
+    el.config = { widgets: [{ key: 'none', label: 'None', kind: 'table' }, { key: 'bad', label: 'Bad', kind: 'table' }, { key: 'gone', label: 'Gone', kind: 'table' }] };
+    let fail = true;
+    el.load = async key => {
+        if (key === 'none') return { columns: [{ key: 'a', label: 'A' }], rows: [] };
+        if (key === 'gone') return null;
+        if (fail) throw new Error('boom');
+        return { columns: [{ key: 'a', label: 'A' }], rows: [{ a: '1' }] };
+    };
+    el.connected();
+    await flush();
+    assert.equal(stateOf(cardFor(body, 'none')), 'empty');
+    assert.equal(walk(cardFor(body, 'none')).some(n => n.localName === 'pk-table'), false);
+    assert.equal(stateOf(cardFor(body, 'bad')), 'error');
+    assert.equal(cardFor(body, 'gone').hidden, true);
+    fail = false;
+    el.loadWidget(el.config.widgets[1]);
+    await flush();
+    assert.equal(stateOf(cardFor(body, 'bad')), 'ready');
+    assert.equal(cardFor(body, 'bad').children[0].localName, 'pk-table');
+});
+
 test('per-widget async boundary: a fast card is ready while a slow sibling loads, and a rejecting card shows its own error without touching the others', async () => {
     const { el, body } = make();
     el.config = { widgets: [{ key: 'fast', label: 'Fast' }, { key: 'slow', label: 'Slow' }, { key: 'bad', label: 'Bad' }] };

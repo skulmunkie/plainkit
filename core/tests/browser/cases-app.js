@@ -225,6 +225,31 @@ export const appCases = [
         t.eq(card('bad').dataset.state, 'error', 'the bad widget was never touched by the slow one settling');
     }],
 
+    ['pk-dashboard-page table widget (#1844): kind table draws a pk-table of the resolved columns and rows in a card that spans the whole grid row, at desktop and at 375px with no horizontal overflow, and no rows shows the empty state of its card', async t => {
+        for (const width of [1000, 375]) {
+            const el = document.createElement('pk-dashboard-page');
+            el.config = { widgets: [{ key: 'a', label: 'A', kind: 'stat' }, { key: 'orders', label: 'Open orders', kind: 'table' }, { key: 'none', label: 'Nothing', kind: 'table' }] };
+            el.load = async key => key === 'a' ? { value: '1' }
+                : key === 'none' ? { columns: [{ key: 'n', label: 'N' }], rows: [] }
+                : { columns: [{ key: 'no', label: 'Order' }, { key: 'customer', label: 'Customer' }, { key: 'total', label: 'Total', align: 'end' }], rows: [1, 2, 3].map(i => ({ id: i, no: `SO-100${i}`, customer: `Customer number ${i}`, total: `$${i}00.00` })) };
+            const host = t.stage(''); host.style.width = width + 'px'; host.append(el);
+            await t.load(host); await t.settle();
+            const card = key => el.shadowRoot.querySelector(`pk-card[data-key="${key}"]`);
+            await until(() => card('orders').querySelector('pk-table'), `${width}: the table widget`);
+            await customElements.whenDefined('pk-table'); await t.settle();
+            const grid = el.shadowRoot.querySelector('[part="grid"]'), c = card('orders'), table = c.querySelector('pk-table');
+            t.eq(c.dataset.kind, 'table', `${width}: data-kind on the card`);
+            t.eq(c.dataset.state, 'ready', `${width}: ready`);
+            t.eq(table.rows.length, 3, `${width}: every row is passed on`);
+            t.ok(Math.abs(c.getBoundingClientRect().width - grid.getBoundingClientRect().width) <= 1, `${width}: the table card spans the whole grid row`);
+            t.ok(c.getBoundingClientRect().right <= host.getBoundingClientRect().right + 1 && c.getBoundingClientRect().left >= host.getBoundingClientRect().left - 1, `${width}: the card stays inside its container`);
+            t.ok(el.scrollWidth <= el.clientWidth + 1 && document.documentElement.scrollWidth <= window.innerWidth + 1, `${width}: nothing scrolls horizontally`);
+            t.ok(table.getBoundingClientRect().height > 80, `${width}: the table has rows on screen`);
+            t.eq(card('none').dataset.state, 'empty', `${width}: no rows is the empty state of the card`);
+            t.ok(!card('none').querySelector('pk-table'), `${width}: and draws no table`);
+        }
+    }],
+
     ['pk-dashboard-page tabs (#489): a tab that was never opened never calls load(), opening it loads its widgets once, a revisit reloads nothing, and a filter change reloads only widgets that already loaded', async t => {
         const el = document.createElement('pk-dashboard-page');
         el.config = {
@@ -569,6 +594,124 @@ export const appCases = [
                 t.eq(tracks.length === 2 ? colGap : 0, tracks.length === 2 ? parseFloat(win.getComputedStyle(d.documentElement).getPropertyValue('--space-8')) * (/rem$/.test(win.getComputedStyle(d.documentElement).getPropertyValue('--space-8').trim()) ? parseFloat(win.getComputedStyle(d.documentElement).fontSize) : 1) : 0, `${width}px: the column gap is --space-8`);
             }            t.ok(gaps.length >= 2 && Math.max(...gaps) - Math.min(...gaps) <= 6, `${width}px ${query || 'guide'}: the vertical gaps between the article's children differ by no more than 6px (${kids.map(k => k.localName).join(' | ')}: ${gaps.join(', ')})`);
         }
+    }],
+
+    ['pk-doc-page: static slotted mode - the author\'s nav, article and pager render as given with and without JavaScript, and the element builds, moves or rewrites none of them (#1829)', async t => {
+        const open = async (query, width) => {
+            const host = t.stage(''), fr = document.createElement('iframe');
+            fr.title = 'static doc page'; fr.style.cssText = `width:${width}px;height:900px;border:0;display:block`;
+            fr.src = new URL(`./doc-page-static-frame.html${query}`, import.meta.url).href;
+            await new Promise(resolve => { fr.addEventListener('load', resolve, { once: true }); host.append(fr); });
+            return { win: fr.contentWindow, d: fr.contentWindow.document };
+        };
+        const shown = n => { const r = n.getBoundingClientRect(); return r.width > 0 && r.height > 0; };
+        // Without JavaScript the pk-* tags are unknown inline elements: the author's links and text are all there and usable.
+        const plain = await open('?nojs', 1280);
+        t.ok(!plain.win.customElements.get('pk-doc-page'), 'the no-JS view leaves the page un-upgraded');
+        t.ok([...plain.d.querySelectorAll('pk-nav-item, #static-title, #static-body p, pk-pager a')].every(shown), 'un-upgraded: nav items, title, body and pager links are all visible');
+        t.eq(plain.d.querySelectorAll('pk-pager a[href]').length, 2, 'un-upgraded: the pager links are real links');
+        // With the element upgraded and no config: the same markup, in the slots, nothing built next to it.
+        const live = await open('', 1280), { win, d } = live, el = d.querySelector('pk-doc-page');
+        await until(() => win.customElements.get('pk-doc-page') && win.customElements.get('pk-side-nav') && win.customElements.get('pk-pager') && win.customElements.get('pk-toc'), 'the elements to upgrade');
+        await d.fonts.ready; await new Promise(r => win.requestAnimationFrame(() => win.requestAnimationFrame(r)));
+        t.eq(el.children.length, 5, 'the host children are exactly the ones the author wrote (none added)');
+        t.ok(!el.querySelector('.doc-page-title, [id^="pkdoc-body"], pk-breadcrumb, pk-button'), 'the element built no title, body, breadcrumb or menu button of its own');
+        t.ok(!/Documentation/.test(el.textContent), 'no empty home list ("Documentation") was drawn');
+        t.eq(el.querySelector('#static-title').assignedSlot?.parentElement.getAttribute('part'), 'article', 'the author\'s article is slotted into the article part');
+        t.eq(el.querySelector('pk-side-nav').assignedSlot?.name, 'nav', 'the author\'s nav is slotted into the nav slot');
+        t.ok([...el.querySelectorAll('pk-nav-item, #static-title, #static-body p, pk-pager a')].every(shown), 'upgraded: nav items, title, body and pager links are visible');
+        const cur = el.querySelector('pk-nav-item[aria-current="page"]');
+        t.ok(cur && cur.shadowRoot.querySelector('[part="link"]').getAttribute('aria-current') === 'page', 'the author\'s current item renders as the current page');
+        t.ok(el.querySelector('pk-toc').shadowRoot.querySelectorAll('a').length === 2, 'the author\'s pk-toc lists the two headings of the author\'s body');
+        const nav = el.querySelector('pk-side-nav').getBoundingClientRect(), title = el.querySelector('#static-title').getBoundingClientRect();
+        t.ok(nav.right <= title.left + 1, `the nav sits beside the article (${nav.right} vs ${title.left})`);
+    }],
+
+    ['pk-doc-page: static slotted mode on a phone draws its own Menu button in its shadow tree that opens the author\'s nav as a drawer (Escape, outside tap and a nav tap close it, focus returns to the button), and the author\'s children are never touched; a desktop width has no Menu button (#1829)', async t => {
+        const open = async width => {
+            const host = t.stage(''), fr = document.createElement('iframe');
+            fr.title = `static doc page ${width}`; fr.style.cssText = `width:${width}px;height:700px;border:0;display:block`;
+            fr.src = new URL('./doc-page-static-frame.html', import.meta.url).href;
+            await new Promise(resolve => { fr.addEventListener('load', resolve, { once: true }); host.append(fr); });
+            const win = fr.contentWindow, d = win.document, el = d.querySelector('pk-doc-page');
+            await until(() => win.customElements.get('pk-doc-page') && win.customElements.get('pk-side-nav'), 'the elements to upgrade');
+            await d.fonts.ready; await new Promise(r => win.requestAnimationFrame(() => win.requestAnimationFrame(r)));
+            return { win, d, el };
+        };
+        const shown = n => { const r = n.getBoundingClientRect(), s = n.ownerDocument.defaultView.getComputedStyle(n); return r.width > 0 && r.height > 0 && s.visibility !== 'hidden'; };
+        const wide = await open(1280);
+        const wideBtn = wide.el.shadowRoot.querySelector('[part="menu"]');
+        t.ok(!wideBtn || !shown(wideBtn), 'desktop width: no Menu button is shown');
+        const { win, d, el } = await open(375);
+        const kids = [...el.children], nav = el.querySelector('pk-side-nav'), before = kids.map(k => k.outerHTML).join('');
+        const btn = el.shadowRoot.querySelector('[part="menu"]');
+        t.ok(!!btn, 'phone: the element has a Menu button part of its own'); if (!btn) return;
+        await until(() => btn.shadowRoot?.querySelector('button'), 'the Menu button to upgrade');
+        t.ok(shown(btn) && /menu/i.test(btn.textContent), 'phone: the element draws a visible Menu button in its own shadow tree');
+        t.ok(!el.querySelector('pk-button'), 'the Menu button is not in the author\'s light DOM');
+        t.ok(!shown(nav), 'phone: the author\'s nav is a closed drawer to begin with');
+        const inner = () => btn.shadowRoot.querySelector('button');
+        t.eq(inner().getAttribute('aria-expanded'), 'false', 'the button reports aria-expanded=false while closed');
+        btn.focus(); inner().click();
+        await until(() => shown(nav), 'the nav drawer to open');
+        await until(() => inner().getAttribute('aria-expanded') === 'true', 'the button to report aria-expanded=true while open');
+        await until(() => nav.getBoundingClientRect().left >= -1, 'the open drawer to slide on screen');
+        nav.querySelector('pk-nav-item').dispatchEvent(new win.KeyboardEvent('keydown', { key: 'Escape', bubbles: true, composed: true }));
+        await until(() => !shown(nav), 'Escape to close the drawer');
+        t.ok(el.shadowRoot.activeElement === btn, 'after Escape focus is back on the Menu button');
+        inner().click(); await until(() => shown(nav), 'the drawer to reopen');
+        el.shadowRoot.querySelector('[part="backdrop"]').click();
+        await until(() => !shown(nav), 'a tap outside the drawer to close it');
+        t.ok(el.shadowRoot.activeElement === btn, 'after an outside tap focus is back on the Menu button');
+        inner().click(); await until(() => shown(nav), 'the drawer to open a third time');
+        nav.querySelector('pk-nav-item').click();
+        await until(() => !shown(nav), 'a tap on a nav item to close the drawer');
+        t.ok(el.children.length === kids.length && [...el.children].every((k, i) => k === kids[i]), 'the author\'s children are the same nodes, in the same order, none added');
+        t.eq([...el.children].map(k => k.outerHTML).join(''), before, 'no attribute or content of the author\'s markup changed');
+    }],
+
+    ['pk-master-detail-page: static slotted mode - the author\'s list and record render as given with and without JavaScript, side by side wide and one at a time on a phone (record-id picks which), and the element builds, moves or rewrites none of them (#1829)', async t => {
+        const open = async (query, width) => {
+            const host = t.stage(''), fr = document.createElement('iframe');
+            fr.title = `static master-detail ${width}`; fr.style.cssText = `width:${width}px;height:800px;border:0;display:block`;
+            fr.src = new URL(`./master-detail-static-frame.html${query}`, import.meta.url).href;
+            await new Promise(resolve => { fr.addEventListener('load', resolve, { once: true }); host.append(fr); });
+            const win = fr.contentWindow, d = win.document;
+            return { win, d, el: d.querySelector('pk-master-detail-page') };
+        };
+        const upgrade = async o => {
+            await until(() => o.win.customElements.get('pk-master-detail-page'), 'the elements to upgrade');
+            await o.d.fonts.ready; await new Promise(r => o.win.requestAnimationFrame(() => o.win.requestAnimationFrame(r)));
+            return o;
+        };
+        const shown = n => { const r = n.getBoundingClientRect(), s = n.ownerDocument.defaultView.getComputedStyle(n); return r.width > 0 && r.height > 0 && s.visibility !== 'hidden' && s.display !== 'none'; };
+        // Without JavaScript the pk-* tags are unknown inline elements: the author's links and text are all there and really visible (not visibility:hidden).
+        const plain = await open('?nojs', 1280);
+        t.ok(!plain.win.customElements.get('pk-master-detail-page'), 'the no-JS view leaves the page un-upgraded');
+        t.ok([...plain.d.querySelectorAll('nav a, #static-title, #static-record p, #static-back')].every(shown), 'un-upgraded: the list links, the record\'s title and text and its back link are all visible');
+        // Upgraded and wide: both panes, the author's markup in the slots, nothing built next to it.
+        const wide = await upgrade(await open('', 1280)), el = wide.el;
+        t.eq(el.children.length, 2, 'the host children are exactly the two the author wrote (none added)');
+        t.ok(!el.querySelector('pk-list-page, pk-button, pk-empty-state'), 'the element put no list page, Back button or empty state in the light DOM');
+        t.eq(el.querySelector('nav').assignedSlot?.name, 'list', 'the author\'s list is slotted into the list slot');
+        t.eq(el.querySelector('#static-record').assignedSlot?.name, 'detail', 'the author\'s record is slotted into the detail slot');
+        t.ok(!shown(el.shadowRoot.querySelector('pk-list-page')), 'the dynamic list page is not shown in static mode');
+        t.ok([...el.querySelectorAll('nav a, #static-title, #static-record p')].every(shown), 'the record is shown wide even without record-id');
+        const cur = el.querySelector('a[aria-current="page"]');
+        t.ok(!!cur, 'the current row is the one the author marked');
+        const list = el.querySelector('nav').getBoundingClientRect(), rec = el.querySelector('#static-record').getBoundingClientRect();
+        t.ok(list.right <= rec.left + 1 && shown(el.querySelector('#static-record')), `wide: the list sits beside the record (${list.right} vs ${rec.left})`);
+        t.ok(!el.shadowRoot.querySelector('[part="back"]') || !shown(el.shadowRoot.querySelector('[part="back"]')), 'no Back button is drawn (the author\'s own link goes back)');
+        // A phone shows one pane: the list, or with record-id the record.
+        const before = o => [...o.el.children].map(k => k.outerHTML).join('');
+        const listOnly = await upgrade(await open('', 375)), b1 = before(listOnly);
+        t.ok(shown(listOnly.el.querySelector('nav')) && !shown(listOnly.el.querySelector('#static-record')), 'phone, no record-id: the list shows and the record does not');
+        const recOnly = await upgrade(await open('?record', 375)), b2 = before(recOnly);
+        t.ok(!shown(recOnly.el.querySelector('nav')) && shown(recOnly.el.querySelector('#static-record')), 'phone, record-id set: the record shows and the list does not');
+        t.eq(recOnly.el.getAttribute('record-id'), '2', 'record-id is still what the host wrote');
+        t.eq(before(listOnly), b1, 'phone list: no attribute or content of the author\'s markup changed');
+        t.eq(before(recOnly), b2, 'phone record: no attribute or content of the author\'s markup changed');
+        t.ok(listOnly.el.children.length === 2 && recOnly.el.children.length === 2, 'phone: still exactly the two children the author wrote');
     }],
 
     ['pk-doc-page: the article body and the pk-toc it owns are light DOM the toc can address by id, a same-page link scrolls and emits pk-navigate without touching history, and mounting/unmounting 100 times leaves no listener behind (#353)', async t => {

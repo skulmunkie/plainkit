@@ -28,6 +28,8 @@ export default Base => class extends Base {
             this.$t = setTimeout(() => this.emit('pk-query', { query: input.value }, { cancelable: false }), this.debounce);
             this.setOpen(input.value !== '');
         });
+        // Retry: tell the host (pk-retry) and ask again for the text in the field (pk-query now, not after the debounce); the host clears error with the next result.
+        this.part('retry').addEventListener('click', () => { clearTimeout(this.$t); this.emit('pk-retry', null, { cancelable: false }); this.emit('pk-query', { query: input.value }, { cancelable: false }); });
         pop.addEventListener('slotchange', () => this.part('footer').hidden = !this.slotted('footer').length);
         pop.addEventListener('mousedown', e => e.preventDefault());
         pop.addEventListener('click', e => { const o = e.target.closest('[part="option"]'); if (!o) return; const item = this.$rows[Number(o.dataset.i)]; if (o.href && (e.button || e.metaKey || e.ctrlKey || e.shiftKey || e.altKey)) return; if (!this.select(item) && o.href) e.preventDefault(); });
@@ -44,7 +46,7 @@ export default Base => class extends Base {
         clearTimeout(this.$t);
     }
     changed(name) {
-        if (name === 'items' || name === 'error') this.paint();
+        if (name === 'items' || name === 'error' || name === 'retryLabel') this.paint();
         // A host-driven collapse (Blazor setting Expanded=false on navigation, since NavigationManager sees pushState routes popstate never
         // fires for): the same cleanup as collapse(), without re-emitting pk-toggle for a change the host made itself.
         else if (name === 'expanded' && !this.expanded) { this.setOpen(false); this.part('control').value = ''; }
@@ -80,6 +82,7 @@ export default Base => class extends Base {
         foot.hidden = !this.slotted('footer').length;
         const err = this.part('error'); err.textContent = this.error || ''; err.hidden = !this.error; // a failed search is not "No results" (#1799)
         this.part('empty').hidden = this.$rows.length > 0 || !!this.error;
+        const retry = this.part('retry'); retry.hidden = !this.error; retry.setAttribute('label', this.retryLabel); retry.textContent = this.retryLabel;
         this.announce();
         if (this.$open) { const b = this.part('box').getBoundingClientRect(); const h = pop.getBoundingClientRect().height; pop.dataset.placement = innerHeight - b.bottom < h && b.top > innerHeight - b.bottom ? 'top' : 'bottom'; pop.dataset.align = b.left + pop.getBoundingClientRect().width > innerWidth ? 'end' : 'start'; }
     }

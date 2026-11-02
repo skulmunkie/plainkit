@@ -72,7 +72,7 @@ function tr(el, row, id, sel, h) {
     pick.checked = sel.has(id);
     return h('tr', { 'data-pk-context': id, 'data-selected': sel.has(id), 'data-clickable': el.clickable, ...mark(row), 'aria-current': el.currentRow && el.currentRow === id ? 'true' : null },
         ...(el.selectable ? [h('td', { 'data-check': true }, pick)] : []),
-        ...el.list('columns').map(c => { const name = `cell-${id}-${c.key}`, s = el.querySelector(`:scope > [slot="${CSS.escape(name)}"]`); return h('td', { 'data-key': c.key, 'data-label': c.title ? null : c.label ?? c.key, 'data-title': c.title, 'data-align': al(c), 'data-hide-phone': c.hidePhone, 'data-shed': c.shed, 'data-empty': s && (s.assignedElements?.({ flatten: true }) ?? [s]).every(x => !x.childElementCount && !x.textContent.trim()) }, s ? h('slot', { name }) : String(row[c.key] ?? '')); }));
+        ...el.list('columns').map(c => { const name = `cell-${id}-${c.key}`, s = el.querySelector(`:scope > [slot="${CSS.escape(name)}"]`); return h('td', { 'data-key': c.key, 'data-label': c.title ? null : c.label ?? c.key, 'data-title': c.title, 'data-align': al(c), 'data-hide-phone': c.hidePhone, 'data-shed': c.shed, 'data-nowrap': c.noWrap, 'data-empty': s && (s.assignedElements?.({ flatten: true }) ?? [s]).every(x => !x.childElementCount && !x.textContent.trim()) }, s ? h('slot', { name }) : String(row[c.key] ?? '')); }));
 }
 
 // The header rows (the titles, and the filter row when filterable) for table.js, which has no room for them in its gzip budget.
@@ -80,7 +80,7 @@ function head(el, k, x, lead, sel, h) {
     const box = h('input', { type: 'checkbox', 'data-select-all': true, 'aria-label': 'Select all rows' });
     box.checked = sel.checked; box.indeterminate = sel.mixed;
     const head = [h('tr', {}, ...(el.selectable ? [h('th', { 'data-check': true }, box)] : []), ...(x ? [x.head(h)] : []),
-        ...k.map(c => h('th', { 'data-key': c.key, 'data-align': al(c), 'data-hide-phone': c.hidePhone, 'data-shed': c.shed, scope: 'col', 'aria-sort': c.sortable ? (el.sort === c.key ? el.sortDir : 'none') : null }, c.sortable ? h('button', { type: 'button' }, c.label ?? c.key) : (c.label ?? c.key), h('slot', { name: `header-${c.key}` }))))];
+        ...k.map(c => h('th', { 'data-key': c.key, 'data-align': al(c), 'data-hide-phone': c.hidePhone, 'data-shed': c.shed, 'data-nowrap': c.noWrap, scope: 'col', 'aria-sort': c.sortable ? (el.sort === c.key ? el.sortDir : 'none') : null }, c.sortable ? h('button', { type: 'button' }, c.label ?? c.key) : (c.label ?? c.key), h('slot', { name: `header-${c.key}` }))))];
     if (el.filterable) head.push(h('tr', { 'data-filters': true }, ...(lead ? [h('th', { colspan: lead })] : []), ...k.map(c => h('th', { 'data-hide-phone': c.hidePhone, 'data-shed': c.shed }, h('input', { type: 'search', 'data-filter': c.key, 'aria-label': `Filter ${c.label ?? c.key}`, value: el.filters[c.key] ?? '' })))));
     return head;
 }

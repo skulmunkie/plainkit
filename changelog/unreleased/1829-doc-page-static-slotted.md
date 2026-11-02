@@ -1,0 +1,5 @@
+---
+type: added
+issue: 1829
+---
+`pk-doc-page` has a static slotted mode for server-rendered, JavaScript-optional sites: when its markup has child elements and `config` has no items, it builds nothing and moves nothing, and your `pk-side-nav` (slot `nav`), `pk-toc` (slot `aside`), article and `pk-pager` render as you wrote them. The current item is the one you mark in the markup (`aria-current="page"` on a link, or `current` on a `pk-nav-item`); the page never decides it. This is the shared convention for static pages (slotted content as given, host-owned light DOM never created, moved or changed by the element, current item read from markup), which `pk-master-detail-page` will follow. Refs #1829. On a phone, static mode draws its own Menu button inside the element's shadow tree (a disclosure button with aria-expanded) that opens your nav as a drawer; Escape, a tap outside or a tap on a nav item closes it and focus returns to the button. Nothing is added to or written on your elements. The API docs (summary, slots, parts, a gallery example) now describe the mode.

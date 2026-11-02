@@ -66,7 +66,7 @@
   "slots": [
     {
       "name": "",
-      "description": "Label."
+      "description": "Label. An author-written <a href> child here is the row's link: it works without JavaScript, the element styles it and never changes it (set aria-current on it and `current` on the row yourself)."
     },
     {
       "name": "icon",
@@ -128,6 +128,10 @@
     {
       "title": "Row states",
       "html": "<div class=\"stack\"><pk-nav-item href=\"#\" current>Current</pk-nav-item><pk-nav-item href=\"#\"><span slot=\"badge\">3</span>With a badge</pk-nav-item><pk-nav-item href=\"#\" disabled>Disabled</pk-nav-item><pk-nav-item expanded>Branch<pk-nav-item slot=\"children\" href=\"#\">Child</pk-nav-item></pk-nav-item><pk-nav-item group>Group title</pk-nav-item><pk-nav-item href=\"#\">Under the title</pk-nav-item></div>"
+    },
+    {
+      "title": "Your own link (works without JavaScript)",
+      "html": "<nav aria-label=\"Example\"><ul><li><pk-nav-item current><a href=\"#\" aria-current=\"page\">Reports</a></pk-nav-item></li><li><pk-nav-item><a href=\"#\">Settings</a></pk-nav-item></li></ul></nav>"
     }
   ]
 }

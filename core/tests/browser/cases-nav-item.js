@@ -19,6 +19,45 @@ export const navItemCases = [
         t.ok(box(bd).width > 0, 'the badge part has width');
         t.ok(box(bl).right - box(bd).right <= parseFloat(getComputedStyle(bl).paddingRight) + 1, 'the badge sits at the row end');
     }],
+    ['nav-item: a slotted light-DOM <a href> is the one link, fills the row, shows current, and the host never touches it (#1841)', async t => {
+        const host = t.stage('<pk-nav-item id="s"><a href="#slotted" aria-current="page">Slotted</a></pk-nav-item><pk-nav-item id="p" href="#plain">Plain</pk-nav-item><pk-nav-item id="r" rail><span slot="icon">*</span><a href="#rail">Rail</a></pk-nav-item>');
+        await t.load(host); await t.settle(); await wait(80);
+        const s = host.querySelector('#s'), a = s.querySelector('a'), row = s.shadowRoot.querySelector('[part="link"]');
+        const before = s.innerHTML;
+        t.ok(!row.hasAttribute('href') && row.getAttribute('role') === 'presentation', 'the shadow row is presentational, so there is one link');
+        t.eq(getComputedStyle(s.shadowRoot.querySelector('[part="chevron"]')).display, 'none', 'no branch chevron beside a link');
+        t.eq(getComputedStyle(a).textDecorationLine, 'none', 'the link is not underlined');
+        const hit = getComputedStyle(a, '::after'), pad = box(s);
+        t.ok(hit.position === 'absolute' && getComputedStyle(s).position === 'relative' && Math.abs(parseFloat(hit.width) - pad.width) <= 1, 'the link hit area is stretched over the whole row (' + hit.width + ' vs ' + pad.width + ')');
+        a.focus(); t.ok(s.matches(':focus-within') || s.ownerDocument.activeElement === a, 'the link takes focus');
+        t.eq(s.innerHTML, before, 'the host left the author markup unchanged');
+        const r = host.querySelector('#r');
+        t.ok(box(r.querySelector('a')).width > 0 && box(r).height > 0, 'in the rail the link is still laid out (reachable)');
+    }],
+    ['nav-item: with the element not defined (no JavaScript yet) the slotted <a href> is a visible, focusable, working link; defining the element keeps the same link working and the light DOM unchanged (#1841)', async t => {
+        const host = t.stage(''), f = document.createElement('iframe');
+        f.title = 'nav item before it is defined';
+        f.style.cssText = 'width:600px;height:300px;border:0;display:block';
+        f.src = new URL('./nav-item-frame.html?hold=pk-nav-item', import.meta.url).href;
+        await new Promise(resolve => { f.addEventListener('load', resolve, { once: true }); host.append(f); });
+        const win = f.contentWindow, d = win.document;
+        await wait(400);
+        t.ok(!win.customElements.get('pk-nav-item'), 'pk-nav-item is not defined');
+        const a = d.querySelector('#n1 > a'), before = a.parentElement.innerHTML; // the host may add its own state attributes; its children are the author's
+        const r = box(a);
+        t.ok(r.width > 0 && r.height > 0 && getComputedStyle(a).visibility === 'visible', 'the link is visible (' + r.width.toFixed(0) + 'x' + r.height.toFixed(0) + ')');
+        a.focus(); t.ok(d.activeElement === a, 'the link takes focus');
+        a.click(); await wait(50);
+        t.eq(win.location.hash, '#slotted-target', 'the link navigates with no element code');
+        win.location.hash = '';
+        win.release(); await Promise.race([win.customElements.whenDefined('pk-nav-item'), wait(5000)]); await wait(300);
+        t.ok(!!win.customElements.get('pk-nav-item'), 'pk-nav-item is defined now');
+        t.eq(d.querySelector('#n1').innerHTML, before, 'defining the element left the author children unchanged');
+        const a2 = d.querySelector('#n1 > a'); t.ok(a2 === a, 'it is the same anchor node');
+        a2.focus(); t.ok(d.activeElement === a2, 'the link still takes focus');
+        a2.click(); await wait(50);
+        t.eq(win.location.hash, '#slotted-target', 'the link still navigates once upgraded');
+    }],
     ['menu-item: a description in the slot or the attribute pads the row, a plain item does not', async t => {
         const host = t.stage('<div role="menu"><pk-menu-item id="plain">Plain</pk-menu-item><pk-menu-item id="slot">Slot<span slot="description">desc</span></pk-menu-item><pk-menu-item id="attr" description="desc">Attr</pk-menu-item></div>');
         await t.load(host); await t.settle(); await wait(80);

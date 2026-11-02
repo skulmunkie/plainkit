@@ -4,7 +4,7 @@
 [part="crumbs"] { font-size: var(--text-meta); color: var(--page-crumbs-fg); }
 [part="titlebar"] { display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: var(--space-2) var(--space-4); min-inline-size: 0; }
 [part="lead"] { display: flex; align-items: center; flex-wrap: wrap; gap: var(--space-2); min-inline-size: 0; }
-[part="title"] { margin: 0; font-size: var(--pk-page-header-title-size, var(--text-lg)); font-weight: 600; color: var(--color-text); min-inline-size: 0; overflow-wrap: anywhere; }
+[part="title"] { margin: 0; font-family: var(--font-heading); font-size: var(--pk-page-header-title-size, var(--text-lg)); font-weight: 600; color: var(--color-text); min-inline-size: 0; overflow-wrap: anywhere; }
 [part="actions"] { display: flex; align-items: center; flex-wrap: wrap; gap: var(--space-2); margin-inline-start: auto; }
 [part="actions"][data-overflow] { inline-size: auto; margin-inline-start: auto; }
 slot[name="actions"][hidden], [part="overflow"][hidden] { display: none; }
@@ -58,6 +58,11 @@ slot[name="actions"][hidden], [part="overflow"][hidden] { display: none; }
 @container (max-width: 46rem) {
     :host(:not([heading]):not([spacious])) [part="crumbs"][hidden] ~ [part="titlebar"] [part="chips"]:not([hidden]) { grid-column: 1; }
     :host(:not([heading]):not([spacious])) [part="crumbs"][hidden] ~ [part="titlebar"] [part="actions"] { grid-column: 2; }
+}
+/* wrap-title (issue 1849, opt-in): on a narrow container a record title wraps to at most three lines, then ends in an ellipsis; wide it stays the one line above. */
+@container (max-width: 40rem) {
+    :host([variant="record"][wrap-title]) [part="title"], :host([variant="record"][wrap-title]) ::slotted([slot="title"]) { display: -webkit-box; -webkit-box-orient: vertical; -webkit-line-clamp: 3; line-clamp: 3; white-space: normal; text-overflow: clip; }
+    :host([variant="record"][wrap-title]:not([heading]):not([spacious])) [part="trail"] > [aria-current="page"] { display: -webkit-box; -webkit-box-orient: vertical; -webkit-line-clamp: 3; line-clamp: 3; white-space: normal; text-overflow: clip; line-height: 1.25; padding-block: var(--space-1); }
 }
 /* A narrow record: title and actions on row one, chips under them. */
 @container (max-width: 46rem) {

@@ -30,7 +30,7 @@
 
 [part="header"] { display: flex; align-items: center; justify-content: space-between; gap: var(--space-3); flex: none; padding: var(--pad-modal); border-bottom: 1px solid var(--color-border); }
 
-[part="title"] { margin: 0; font-size: var(--text-lg); }
+[part="title"] { margin: 0; font-family: var(--font-heading); font-size: var(--text-lg); }
 
 [part="close"] { flex: none; width: var(--touch-target); height: var(--touch-target); border: 0; border-radius: var(--radius-md); background: transparent; color: var(--color-muted); font: inherit; cursor: pointer; }
 
