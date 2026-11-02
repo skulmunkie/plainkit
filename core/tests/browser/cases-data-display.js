@@ -1290,6 +1290,16 @@ export const dataDisplayCases = [
         t.ok(lab().scrollWidth <= lab().clientWidth + 1, 'the wrapped label is not cut off');
         t.ok(row().getBoundingClientRect().right <= el.getBoundingClientRect().right + 1, 'the row stays inside the column');
     }],
+    ['tree-item: a long label stays inside the row and ends in an ellipsis, which needs a block label rather than a flex one (#1874)', async t => {
+        const long = 'A very long category name that does not fit a narrow navigation column at all';
+        const el = await t.mount('<div style="inline-size:12rem"><pk-tree label="Nav"><pk-tree-item label="' + long + '"></pk-tree-item></pk-tree></div>'); await t.settle();
+        const item = el.querySelector('pk-tree-item'), lab = item.part('label'), cs = getComputedStyle(lab);
+        t.eq(cs.textOverflow, 'ellipsis', 'the label ends in an ellipsis');
+        t.eq(cs.display, 'block', 'the label is a block, so text-overflow applies to its text');
+        t.eq(cs.overflow, 'hidden', 'the label clips its overflow');
+        t.ok(lab.scrollWidth > lab.clientWidth, 'the long label is cut: ' + lab.scrollWidth + ' vs ' + lab.clientWidth);
+        t.ok(item.part('row').getBoundingClientRect().right <= el.getBoundingClientRect().right + 1, 'the row stays inside the column');
+    }],
     ['tree: a long item label never widens its parent or the sibling beside it (#1851)', async t => {
         const long = 'A very long category name that does not fit a narrow column at all, and keeps going on and on for a good while longer than that';
         const el = await t.mount('<div style="display:flex;inline-size:390px"><div id="col" style="flex:1 1 auto;display:flex;flex-direction:column"><pk-tree label="Nav"><pk-tree-item label="' + long + '"></pk-tree-item></pk-tree><div id="sib">card</div></div></div>'); await t.settle();
