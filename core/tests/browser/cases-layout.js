@@ -1002,3 +1002,18 @@ layoutCases.push(
         }
     }],
 );
+layoutCases.push(
+    ['density: spacious opens every spacing role above the default, compact below, and the phone page gutter is the default phone gutter (#1818)', async t => {
+        const host = t.stage('<div><pk-stack id="d"></pk-stack><div data-density="spacious"><pk-stack id="s"></pk-stack></div><div data-density="compact"><pk-stack id="c"></pk-stack></div></div>');
+        const at = (id, name) => px(token(host.querySelector('#' + id), name));
+        for (const name of ['--gap-field', '--gap-control', '--gap-heading', '--gap-card', '--gap-section', '--flow-space', '--pad-page']) {
+            t.ok(at('s', name) > at('d', name), `${name}: spacious ${at('s', name)}px must exceed default ${at('d', name)}px`);
+            t.ok(at('c', name) < at('d', name), `${name}: compact ${at('c', name)}px must stay below default ${at('d', name)}px`);
+        }
+        const f = await gridFrame(t, 'sticky', 375, 600);
+        const probe = f.d.createElement('div'); probe.setAttribute('data-density', 'spacious'); probe.style.paddingInlineStart = 'var(--pad-page)'; f.d.body.append(probe);
+        const plain = f.d.createElement('div'); plain.style.paddingInlineStart = 'var(--pad-page)'; f.d.body.append(plain);
+        t.eq(f.win.getComputedStyle(probe).paddingInlineStart, f.win.getComputedStyle(plain).paddingInlineStart, 'at 375px spacious keeps the default phone gutter');
+        f.fr.remove();
+    }],
+);

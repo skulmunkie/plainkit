@@ -19,7 +19,7 @@ Dark is the default. Set `data-theme="light"` (or `"dark"`) on `<html>` to theme
 </body>
 ```
 
-Add `data-density="compact"` the same way to tighten the spacing roles (the gaps between fields, cards and sections, and the padding of cards, panels, dialogs and cells). Density changes the scale's roles, not the individual tokens, so it works with any theme.
+Add `data-density="compact"` the same way to tighten the spacing roles (the gaps between fields, cards and sections, and the padding of cards, panels, dialogs and cells). Density changes the scale's roles, not the individual tokens, so it works with any theme. `data-density="spacious"` does the opposite, one step looser (the same values as the Roomy preset), and keeps the narrow phone page gutter.
 
 ## Switch theme at run time
 

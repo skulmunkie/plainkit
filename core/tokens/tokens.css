@@ -409,10 +409,27 @@
     --pad-page: var(--space-4);
 }
 
+[data-density="spacious"] {
+    --gap-field: var(--space-5);
+    --gap-control: var(--space-3);
+    --gap-heading: var(--space-3);
+    --gap-card: var(--space-6);
+    --gap-section: var(--space-8);
+    --flow-space: var(--space-5);
+    --pad-card: var(--space-5) var(--space-6);
+    --pad-panel: var(--space-5);
+    --pad-form-section: var(--space-5);
+    --pad-modal: var(--space-5) var(--space-8);
+    --pad-drawer: var(--space-5) var(--space-6);
+    --pad-cell: var(--space-3) var(--space-4);
+    --pad-page: var(--space-8);
+}
+
 /* The page gutter narrows on a phone in every density; secondary text (chips, captions, mini buttons) is 13px there, 12px elsewhere. */
 @media (max-width: 640px) {
     :root { --pad-page: var(--space-4); --text-meta: 0.93rem; }
     [data-density="compact"] { --pad-page: var(--space-3); }
+    [data-density="spacious"] { --pad-page: var(--space-4); }
 }
 
 /* Form control tokens: control height, field-state colours per theme (each passes 4.5:1 on its theme's input surface), rating star, native control colour scheme. */
