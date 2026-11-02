@@ -199,6 +199,21 @@ export const dataDisplayCases = [
         t.ok(!kids[1].hidden && kids[2].hidden, 'the third avatar is hidden'); t.eq(g.part('more').textContent, '+1'); t.ok(!g.part('more').hidden);
     }],
 
+    ['avatar: with no name and no image a neutral glyph shows inside the tile (not "?"); a name or a slotted icon changes that', async t => {
+        const host = t.stage('<pk-avatar colour="muted"></pk-avatar><pk-avatar colour="muted" src="data:image/png;base64,x"></pk-avatar><pk-avatar name="Ada"></pk-avatar><pk-avatar colour="muted"><b>I</b></pk-avatar>');
+        await t.load(host); await t.settle();
+        const [a, bad, named, slotted] = host.querySelectorAll('pk-avatar');
+        const g = a.part('glyph'), hr = a.getBoundingClientRect(), gr = g.getBoundingClientRect();
+        t.ok(!a.part('placeholder').hidden && gr.width > 4 && gr.height > 4, 'the glyph is drawn');
+        t.ok(gr.left >= hr.left && gr.right <= hr.right && gr.top >= hr.top && gr.bottom <= hr.bottom, 'the glyph sits inside the host');
+        t.eq(a.part('initials').textContent, '', 'no "?" initials');
+        t.ok(getComputedStyle(g, '::before').backgroundColor !== getComputedStyle(a).backgroundColor, 'the glyph colour differs from the tile');
+        await until(() => bad.part('image').hidden, 'the failed image hides'); t.ok(!bad.part('placeholder').hidden, 'a failed src with no name shows the glyph');
+        t.ok(named.part('placeholder').hidden && named.part('initials').textContent === 'AD','a name keeps its initials and hides the glyph');
+        t.ok(slotted.querySelector('b').getBoundingClientRect().width > 0, 'a slotted icon is rendered in place of the glyph');
+        t.eq(a.internals.role, 'img');
+    }],
+
     ['pagination: renders a window with ellipses, next and page buttons emit a cancelable pk-page, and the select changes the size', async t => {
         const p = await t.mount('<pk-pagination page="1" pages="20" total="500" page-size="25" sizes="[10,25,50]"></pk-pagination>');
         const nums = () => [...p.part('numbers').children].map(c => c.textContent);

@@ -8,6 +8,11 @@
 :host([data-slot="5"]) { --_bg: var(--pk-avatar-bg, var(--chart-5)); }
 :host([data-slot="muted"]) { --_bg: var(--pk-avatar-bg, var(--color-surface-alt)); color: var(--color-muted); }
 [part="image"] { position: absolute; inset: 0; inline-size: 100%; block-size: 100%; object-fit: cover; }
+[part="placeholder"] { position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; }
+[part="placeholder"][hidden] { display: none; }
+[part="glyph"] { position: relative; display: block; inline-size: 60%; block-size: 60%; }
+[part="glyph"]::before { content: ""; position: absolute; inset-block-start: 4%; inset-inline-start: 31%; inline-size: 38%; block-size: 38%; border-radius: var(--radius-round); background: currentColor; }
+[part="glyph"]::after { content: ""; position: absolute; inset-block-end: -30%; inset-inline: 0; block-size: 70%; border-radius: var(--radius-round); background: currentColor; }
 [part="status"] { position: absolute; inset-block-end: 0; inset-inline-end: 0; display: none; inline-size: 28%; block-size: 28%; border: 2px solid var(--color-panel); border-radius: var(--radius-round); background: var(--color-muted); }
 :host([status="online"]) [part="status"] { display: block; background: var(--delta-up); }
 :host([status="away"]) [part="status"] { display: block; background: var(--chart-2); }

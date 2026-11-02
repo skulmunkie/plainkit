@@ -25,7 +25,9 @@ export default Base => class extends Base {
     updated() {
         const img = this.part('image');
         if (this.src && this.src !== this.$bad) { if (img.getAttribute('src') !== this.src) img.setAttribute('src', this.src); img.hidden = false; } else { img.removeAttribute('src'); img.hidden = true; }
-        this.part('initials').textContent = initials(this.name);
+        const named = !!String(this.name ?? '').trim();
+        this.part('initials').textContent = named ? initials(this.name) : '';
+        this.part('placeholder').hidden = named;
         this.dataset.slot = this.colour || String(colourSlot(this.name));
         this.aria({ role: 'img', ariaLabel: [this.name, this.status === 'none' ? '' : this.status].filter(Boolean).join(', ') });
     }

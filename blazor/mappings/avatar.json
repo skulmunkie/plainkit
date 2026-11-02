@@ -30,6 +30,12 @@
       "name": "Colour",
       "prop": "colour",
       "type": "string"
+    },
+    {
+      "name": "ChildContent",
+      "slot": "",
+      "type": "RenderFragment",
+      "extra": true
     }
   ]
 }
