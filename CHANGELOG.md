@@ -5,6 +5,32 @@ The format follows [Keep a Changelog](https://keepachangelog.com/) and the proje
 
 ## [Unreleased]
 
+## [0.26.0] - 2026-11-02
+
+### Added
+
+- A failed header search shows a Retry button under its error message (`pk-app-bar-search` and `pk-app-frame`). Pressing it raises `pk-retry` and raises `pk-query` again for the text in the field; `retryLabel` localises the button, and Blazor gets `OnRetry` and `RetryLabel`. (#1799)
+- The token `--font-heading` (default `var(--font-sans)`, so nothing changes) now sets the font of `pk-heading`, the page-header title, the card title and the dialog, drawer, form-section, empty-state and wizard titles; override it on `:root` to re-face titles. (#1817)
+- `data-density="spacious"` loosens the spacing roles one step (gaps between fields, cards and sections, padding of cards, panels, dialogs, drawers and cells), the counterpart of `compact`; the phone page gutter stays the default one. It matches the Roomy theme preset. (#1818)
+- `pk-doc-page` has a static slotted mode for server-rendered, JavaScript-optional sites: when its markup has child elements and `config` has no items, it builds nothing and moves nothing, and your `pk-side-nav` (slot `nav`), `pk-toc` (slot `aside`), article and `pk-pager` render as you wrote them. The current item is the one you mark in the markup (`aria-current="page"` on a link, or `current` on a `pk-nav-item`); the page never decides it. This is the shared convention for static pages (slotted content as given, host-owned light DOM never created, moved or changed by the element, current item read from markup), which `pk-master-detail-page` will follow. Refs #1829. On a phone, static mode draws its own Menu button inside the element's shadow tree (a disclosure button with aria-expanded) that opens your nav as a drawer; Escape, a tap outside or a tap on a nav item closes it and focus returns to the button. Nothing is added to or written on your elements. The API docs (summary, slots, parts, a gallery example) now describe the mode.
+- `pk-master-detail-page` has a static slotted mode for server-rendered, JavaScript-optional sites, following the convention of `pk-doc-page`: write your own list as a child with `slot="list"` (for example a `nav` of links) and the record as a child with `slot="detail"`, with no `config.list`, and the page lays them out as written, side by side wide and one pane at a time on a phone (the record when you wrote `record-id`, else the list). The current row is the one you mark (`aria-current`); the element never creates, moves or changes your elements, and `config`, `load`, `open`, `close` and `mountDetail` do nothing in this mode. With JavaScript blocked your links and text are all visible: `pk-master-detail-page` and `pk-doc-page` no longer hide themselves until upgraded, so a static page is not invisible before its script loads. This finishes the static slotted pages work. (#1829)
+- `pk-nav-item` accepts an author-written `<a href>` child as its link: it works as a plain link without JavaScript, and once the element is defined it is styled and stretched over the row (the element never changes the anchor; set `aria-current` on it and `current` on the row). The `href` attribute path is unchanged. With JavaScript blocked or not yet loaded the anchor stays visible and usable (the page layer no longer hides it with the un-upgraded element). `PkNavItem` takes the same anchor in `ChildContent`; the Blazor guide and skill show how to write a no-JavaScript nav as a native list. (#1841)
+- pk-dashboard-page accepts widgets of kind "table": load(key) resolves { columns, rows, caption? } and the card draws a pk-table across the whole row, with the same loading, error-with-Retry and hidden-on-null behaviour as stat and chart widgets; no rows shows the empty state of the card. (#1844)
+- The token `--color-media-bg` (black, the same in light and dark) is the letterbox colour behind contain-fit media; `pk-media` with `fit="contain"` now uses it. (#1845)
+- A table column takes `noWrap` (`NoWrap` on `PkTableColumn`): its cells keep their text, a short date-time for example, on one line and the column sizes to it. The phone cards layout still wraps. (#1847)
+- <pk-avatar> with no name and no image shows a neutral person glyph instead of "?"; a default slot lets the host supply its own icon (Blazor: ChildContent). (#1850)
+
+### Changed
+
+- A record page header can opt in to a wrapping title: wrap-title (Blazor WrapTitle) lets a long title wrap to at most three lines on a phone, while wide screens and the default keep the single ellipsized line with the full text as its tooltip. (#1849)
+
+### Fixed
+
+- `pk-markdown` gives its lists enough room for their bullets, so a right-to-left page at phone width no longer gets a horizontal scrollbar from the bullets running past the right edge. (#1700)
+- A select field with a placeholder shows it, as an empty first option, while its value is unset, instead of showing the first real option as chosen. (#1846)
+- A field slotted into a pk-data-table `actions` slot (a pk-select, an input) now fills the toolbar width on a phone instead of keeping half its width; buttons and the icon-only add button keep their size, and desktop is unchanged. (#1848)
+- A pk-tree no longer widens its column when an item label is very long: the tree keeps the width of its container and the long label is cut off inside it (with `wrap-labels` it wraps). (#1851)
+
 ## [0.25.0] - 2026-10-27
 
 ### Added
