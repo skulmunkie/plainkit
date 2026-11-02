@@ -178,6 +178,23 @@ export const headerCases = [
             host.remove();
         }
     }],
+    ['record-page: wrapTitle forwards through pk-page-shell, so a long title wraps to two or three lines at 390px and the default header stays the page variant (#1876)', async t => {
+        const long = 'Purchase order 1042 for the north warehouse refit, the second delivery of shelving, racking, lighting and spare fittings';
+        for (const wrap of [true, false]) {
+            const host = t.stage('<pk-record-page></pk-record-page>');
+            host.style.width = '390px';
+            const page = host.firstElementChild; page.config = { title: long, fields: [{ key: 'name', label: 'Name' }], badges: [{ label: 'Open' }] }; if (wrap) page.wrapTitle = true;
+            await t.load(host); await Promise.all(['pk-page-shell', 'pk-page-header', 'pk-heading', 'pk-badge'].map(n => customElements.whenDefined(n))); await t.settle(); await t.settle();
+            const shell = page.part('header'), header = shell.part('header'), label = `wrapTitle ${wrap} at 390px`;
+            t.eq(header.hasAttribute('wrap-title'), wrap, `${label}: the shell forwards wrap-title to the header`);
+            const title = shell.querySelector('[slot="title"] pk-heading') ?? page.querySelector('pk-heading');
+            const el = title.shadowRoot?.querySelector('[part="heading"]') ?? title, line = parseFloat(getComputedStyle(el).lineHeight) || 24, lines = Math.round(rect(title).height / line);
+            if (wrap) t.ok(lines >= 2 && lines <= 3, `${label}: the title wraps to two or three lines: ${lines} (${rect(title).height}px of ${line}px lines)`);
+            else t.ok(header.variant !== 'record' && !header.hasAttribute('wrap-title'), `${label}: the default header keeps the page variant`);
+            t.ok(header.scrollWidth <= header.clientWidth + 1, `${label}: everything stays inside the header`);
+            host.remove();
+        }
+    }],
     ['page-header: a record with no crumbs and no heading keeps its chips and its actions on one row at every width', async t => {
         const host = t.stage('<pk-page-header variant="record"><pk-badge id="chip">Open</pk-badge>Acme Supply<button slot="actions" id="act">Print</button></pk-page-header>');
         const h = host.firstElementChild, mid = n => (rect(n).top + rect(n).bottom) / 2;
