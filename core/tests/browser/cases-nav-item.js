@@ -34,6 +34,30 @@ export const navItemCases = [
         const r = host.querySelector('#r');
         t.ok(box(r.querySelector('a')).width > 0 && box(r).height > 0, 'in the rail the link is still laid out (reachable)');
     }],
+    ['nav-item: with the element not defined (no JavaScript yet) the slotted <a href> is a visible, focusable, working link; defining the element keeps the same link working and the light DOM unchanged (#1841)', async t => {
+        const host = t.stage(''), f = document.createElement('iframe');
+        f.title = 'nav item before it is defined';
+        f.style.cssText = 'width:600px;height:300px;border:0;display:block';
+        f.src = new URL('./nav-item-frame.html?hold=pk-nav-item', import.meta.url).href;
+        await new Promise(resolve => { f.addEventListener('load', resolve, { once: true }); host.append(f); });
+        const win = f.contentWindow, d = win.document;
+        await wait(400);
+        t.ok(!win.customElements.get('pk-nav-item'), 'pk-nav-item is not defined');
+        const a = d.querySelector('#n1 > a'), before = a.parentElement.innerHTML; // the host may add its own state attributes; its children are the author's
+        const r = box(a);
+        t.ok(r.width > 0 && r.height > 0 && getComputedStyle(a).visibility === 'visible', 'the link is visible (' + r.width.toFixed(0) + 'x' + r.height.toFixed(0) + ')');
+        a.focus(); t.ok(d.activeElement === a, 'the link takes focus');
+        a.click(); await wait(50);
+        t.eq(win.location.hash, '#slotted-target', 'the link navigates with no element code');
+        win.location.hash = '';
+        win.release(); await Promise.race([win.customElements.whenDefined('pk-nav-item'), wait(5000)]); await wait(300);
+        t.ok(!!win.customElements.get('pk-nav-item'), 'pk-nav-item is defined now');
+        t.eq(d.querySelector('#n1').innerHTML, before, 'defining the element left the author children unchanged');
+        const a2 = d.querySelector('#n1 > a'); t.ok(a2 === a, 'it is the same anchor node');
+        a2.focus(); t.ok(d.activeElement === a2, 'the link still takes focus');
+        a2.click(); await wait(50);
+        t.eq(win.location.hash, '#slotted-target', 'the link still navigates once upgraded');
+    }],
     ['menu-item: a description in the slot or the attribute pads the row, a plain item does not', async t => {
         const host = t.stage('<div role="menu"><pk-menu-item id="plain">Plain</pk-menu-item><pk-menu-item id="slot">Slot<span slot="description">desc</span></pk-menu-item><pk-menu-item id="attr" description="desc">Attr</pk-menu-item></div>');
         await t.load(host); await t.settle(); await wait(80);
