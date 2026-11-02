@@ -5,6 +5,8 @@
     { "name": "Level", "prop": "level", "type": "int", "default": 1 },
     { "name": "Crumbs", "prop": "crumbs", "type": "IReadOnlyList<PkCrumb>?", "json": true, "note": "Typed list of PkCrumb: sent as the element's crumbs attribute, as on PkPageHeader." },
     { "name": "BackLink", "prop": "backLink", "type": "bool" },
+    { "name": "Variant", "prop": "variant", "type": "PageHeaderVariant", "extra": true },
+    { "name": "WrapTitle", "prop": "wrapTitle", "type": "bool", "extra": true },
     { "name": "Sticky", "prop": "sticky", "type": "bool" },
     { "name": "StickyFrom", "prop": "stickyFrom", "type": "PageHeaderStickyFrom" },
     { "name": "TabsFrom", "prop": "tabsFrom", "type": "PageHeaderTabsFrom" },

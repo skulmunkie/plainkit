@@ -64,6 +64,13 @@
       "note": "Pins the title bar to the top of the scrolling page with Edit, Cancel, Save and Delete in it (as PkPageHeader Sticky does), so they stay in reach while a long form scrolls."
     },
     {
+      "name": "WrapTitle",
+      "prop": "wrapTitle",
+      "type": "bool",
+      "extra": true,
+      "note": "Draws the title bar as the compact record strip and wraps a long title to at most three lines on a phone (as PkPageHeader WrapTitle does)."
+    },
+    {
       "name": "Busy",
       "prop": "busy",
       "type": "bool",

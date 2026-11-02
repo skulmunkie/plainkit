@@ -369,6 +369,22 @@ test('sticky (the prop or config.sticky) pins the shell header and moves the but
     assert.equal(parts.header.getAttribute('sticky'), '', 'config.sticky does the same');
 });
 
+test('wrapTitle (the prop or config.wrapTitle) draws the record strip and forwards wrap-title to the shell header (#1876)', async () => {
+    const { el, parts } = make();
+    el.load = async () => ({ name: 'Widget' });
+    el.connected();
+    await tick();
+    assert.equal(parts.header.getAttribute('wrap-title'), null);
+    assert.equal(parts.header.getAttribute('variant'), null);
+    el.wrapTitle = true; el.changed('wrapTitle');
+    assert.equal(parts.header.getAttribute('wrap-title'), '');
+    assert.equal(parts.header.getAttribute('variant'), 'record');
+    el.wrapTitle = false; el.changed('wrapTitle');
+    assert.equal(parts.header.getAttribute('wrap-title'), null);
+    el.config = { ...el.config, wrapTitle: true }; el.changed('config');
+    assert.equal(parts.header.getAttribute('wrap-title'), '', 'config.wrapTitle does the same');
+});
+
 test('every committed field change is raised as pk-record-change with the values of all the cards (#1651)', async () => {
     const { el, events } = make();
     el.load = async () => ({ name: 'Widget', status: 'a' });
