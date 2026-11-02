@@ -3,7 +3,7 @@ import { loadElements } from '../../js/loader.js';
 import { filterControl } from '../../js/filter-controls.js';
 
 // Which element a widget's kind composes.
-const WIDGET_TAG = { stat: 'pk-stat', chart: 'pk-chart' };
+const WIDGET_TAG = { stat: 'pk-stat', chart: 'pk-chart', table: 'pk-table' };
 // How far outside the viewport a card may be and still start (#1295): 200px above and below; the sides are wide open, only the vertical position gates a start.
 const LAZY_MARGIN = '200px 50000px';
 
@@ -178,10 +178,13 @@ export default Base => class extends Base {
         if (this.$tokens[widget.key] !== token) return;
         if (result === null) { card.hidden = true; card.dataset.state = 'hidden'; return; }   // the host withdrew the widget after loading it (its module's own can)
         const tag = WIDGET_TAG[widget.kind] ?? 'pk-stat';
+        // A table widget resolves { columns, rows, caption? }; no rows is the card's empty state, like a widget with no load.
+        if (tag === 'pk-table' && !result?.rows?.length) { this.drawState(card, 'empty', { heading: widget.empty?.heading, description: widget.empty?.description }); return; }
         const el = this.ownerDocument.createElement(tag);
         if (tag === 'pk-stat') el.label = widget.label ?? '';
         if (tag === 'pk-chart') el.caption = widget.label ?? '';
-        Object.assign(el, result);
+        if (tag === 'pk-table') { el.label = widget.label ?? ''; el.columns = result.columns ?? []; el.rows = result.rows; el.caption = result.caption ?? widget.label ?? ''; }
+        else Object.assign(el, result);
         card.replaceChildren(el);
         loadElements(card);
         card.dataset.state = 'ready';
