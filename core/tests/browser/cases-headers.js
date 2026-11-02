@@ -132,6 +132,32 @@ export const headerCases = [
         }
     }],
 
+    ['page-header: a record with wrap-title wraps a long title to at most three lines at 390px, keeps one ellipsized line at 1280px, and the default stays one line at 390px (#1849)', async t => {
+        const long = 'Purchase order 1042 for the north warehouse refit, the second delivery of shelving, racking, lighting and spare fittings';
+        const hit = (a, b) => a.left < b.right - 1 && b.left < a.right - 1 && a.top < b.bottom - 1 && b.top < a.bottom - 1;
+        const kids = '<pk-badge>Open</pk-badge><pk-badge variant="ok">Paid in full</pk-badge><pk-button slot="actions" variant="primary">Receive goods</pk-button>';
+        const titles = { crumb: '', heading: `heading="${long}"`, slotted: `heading="${long}"` };
+        for (const [mode, attr] of Object.entries(titles)) for (const wrap of [true, false]) for (const w of [390, 1280]) {
+            const crumbs = JSON.stringify([{ label: 'Purchase orders', href: '#po' }, ...(mode === 'crumb' ? [{ label: long }] : [])]);
+            const own = mode === 'slotted' ? `<pk-heading slot="title" level="1" weight="semibold" variant="h3" title="${long}">${long}</pk-heading>` : '';
+            const host = t.stage(`<pk-page-header variant="record" ${wrap ? 'wrap-title' : ''} home-href="#home" home-label="Home" ${attr} crumbs='${crumbs}'>${own}${kids}</pk-page-header>`);
+            host.style.width = `${w}px`; await t.load(host); await Promise.all(['pk-badge', 'pk-breadcrumb', 'pk-button', ...(own ? ['pk-heading'] : [])].map(n => customElements.whenDefined(n))); await t.settle(); await t.settle();
+            const h = host.firstElementChild, badges = [...h.querySelectorAll('pk-badge')], act = h.querySelector('pk-button'), label = `${mode}${wrap ? ' wrap-title' : ''} at ${w}px`;
+            const title = mode === 'crumb' ? h.part('trail').lastElementChild : mode === 'heading' ? h.part('title') : h.querySelector('pk-heading');
+            const line = parseFloat(getComputedStyle(mode === 'slotted' ? title.shadowRoot.querySelector('[part="heading"]') : title).lineHeight) || 24;
+            const lines = Math.round(rect(title).height / line);
+            if (wrap && w === 390) {
+                t.ok(lines >= 2 && lines <= 3, `${label}: the title wraps to two or three lines: ${lines} (${rect(title).height}px of ${line}px lines)`);
+                t.ok(title.scrollWidth <= title.clientWidth + 1, `${label}: the title is not cut horizontally`);
+            } else t.ok(lines <= 1, `${label}: the title is one line: ${lines}`);
+            if (!wrap || w === 1280) t.eq(getComputedStyle(mode === 'slotted' ? title : title).textOverflow, 'ellipsis', `${label}: the title ends in an ellipsis`);
+            for (const b of badges) t.ok(!hit(rect(b), rect(title)) && !hit(rect(b), rect(act)), `${label}: the badge "${b.textContent}" overlaps neither the title nor the action`);
+            t.ok(!hit(rect(act), rect(title)), `${label}: the action does not overlap the title`);
+            t.ok(rect(act).right <= rect(h).right + 1 && h.scrollWidth <= h.clientWidth + 1, `${label}: everything stays inside the header`);
+            if (mode !== 'crumb') t.eq(title.getAttribute('title') ?? h.part('title').title, long, `${label}: the full text stays available as the tooltip`);
+            host.remove();
+        }
+    }],
     ['page-header: a record with no crumbs and no heading keeps its chips and its actions on one row at every width', async t => {
         const host = t.stage('<pk-page-header variant="record"><pk-badge id="chip">Open</pk-badge>Acme Supply<button slot="actions" id="act">Print</button></pk-page-header>');
         const h = host.firstElementChild, mid = n => (rect(n).top + rect(n).bottom) / 2;

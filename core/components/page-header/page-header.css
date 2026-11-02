@@ -59,6 +59,11 @@ slot[name="actions"][hidden], [part="overflow"][hidden] { display: none; }
     :host(:not([heading]):not([spacious])) [part="crumbs"][hidden] ~ [part="titlebar"] [part="chips"]:not([hidden]) { grid-column: 1; }
     :host(:not([heading]):not([spacious])) [part="crumbs"][hidden] ~ [part="titlebar"] [part="actions"] { grid-column: 2; }
 }
+/* wrap-title (issue 1849, opt-in): on a narrow container a record title wraps to at most three lines, then ends in an ellipsis; wide it stays the one line above. */
+@container (max-width: 40rem) {
+    :host([variant="record"][wrap-title]) [part="title"], :host([variant="record"][wrap-title]) ::slotted([slot="title"]) { display: -webkit-box; -webkit-box-orient: vertical; -webkit-line-clamp: 3; line-clamp: 3; white-space: normal; text-overflow: clip; }
+    :host([variant="record"][wrap-title]:not([heading]):not([spacious])) [part="trail"] > [aria-current="page"] { display: -webkit-box; -webkit-box-orient: vertical; -webkit-line-clamp: 3; line-clamp: 3; white-space: normal; text-overflow: clip; line-height: 1.25; padding-block: var(--space-1); }
+}
 /* A narrow record: title and actions on row one, chips under them. */
 @container (max-width: 46rem) {
     :host([variant="record"]) [part="lead"] { display: contents; }
