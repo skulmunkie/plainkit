@@ -670,6 +670,50 @@ export const appCases = [
         t.eq([...el.children].map(k => k.outerHTML).join(''), before, 'no attribute or content of the author\'s markup changed');
     }],
 
+    ['pk-master-detail-page: static slotted mode - the author\'s list and record render as given with and without JavaScript, side by side wide and one at a time on a phone (record-id picks which), and the element builds, moves or rewrites none of them (#1829)', async t => {
+        const open = async (query, width) => {
+            const host = t.stage(''), fr = document.createElement('iframe');
+            fr.title = `static master-detail ${width}`; fr.style.cssText = `width:${width}px;height:800px;border:0;display:block`;
+            fr.src = new URL(`./master-detail-static-frame.html${query}`, import.meta.url).href;
+            await new Promise(resolve => { fr.addEventListener('load', resolve, { once: true }); host.append(fr); });
+            const win = fr.contentWindow, d = win.document;
+            return { win, d, el: d.querySelector('pk-master-detail-page') };
+        };
+        const upgrade = async o => {
+            await until(() => o.win.customElements.get('pk-master-detail-page'), 'the elements to upgrade');
+            await o.d.fonts.ready; await new Promise(r => o.win.requestAnimationFrame(() => o.win.requestAnimationFrame(r)));
+            return o;
+        };
+        const shown = n => { const r = n.getBoundingClientRect(), s = n.ownerDocument.defaultView.getComputedStyle(n); return r.width > 0 && r.height > 0 && s.visibility !== 'hidden' && s.display !== 'none'; };
+        // Without JavaScript the pk-* tags are unknown inline elements: the author's links and text are all there and really visible (not visibility:hidden).
+        const plain = await open('?nojs', 1280);
+        t.ok(!plain.win.customElements.get('pk-master-detail-page'), 'the no-JS view leaves the page un-upgraded');
+        t.ok([...plain.d.querySelectorAll('nav a, #static-title, #static-record p, #static-back')].every(shown), 'un-upgraded: the list links, the record\'s title and text and its back link are all visible');
+        // Upgraded and wide: both panes, the author's markup in the slots, nothing built next to it.
+        const wide = await upgrade(await open('', 1280)), el = wide.el;
+        t.eq(el.children.length, 2, 'the host children are exactly the two the author wrote (none added)');
+        t.ok(!el.querySelector('pk-list-page, pk-button, pk-empty-state'), 'the element put no list page, Back button or empty state in the light DOM');
+        t.eq(el.querySelector('nav').assignedSlot?.name, 'list', 'the author\'s list is slotted into the list slot');
+        t.eq(el.querySelector('#static-record').assignedSlot?.name, 'detail', 'the author\'s record is slotted into the detail slot');
+        t.ok(!shown(el.shadowRoot.querySelector('pk-list-page')), 'the dynamic list page is not shown in static mode');
+        t.ok([...el.querySelectorAll('nav a, #static-title, #static-record p')].every(shown), 'the record is shown wide even without record-id');
+        const cur = el.querySelector('a[aria-current="page"]');
+        t.ok(!!cur, 'the current row is the one the author marked');
+        const list = el.querySelector('nav').getBoundingClientRect(), rec = el.querySelector('#static-record').getBoundingClientRect();
+        t.ok(list.right <= rec.left + 1 && shown(el.querySelector('#static-record')), `wide: the list sits beside the record (${list.right} vs ${rec.left})`);
+        t.ok(!el.shadowRoot.querySelector('[part="back"]') || !shown(el.shadowRoot.querySelector('[part="back"]')), 'no Back button is drawn (the author\'s own link goes back)');
+        // A phone shows one pane: the list, or with record-id the record.
+        const before = o => [...o.el.children].map(k => k.outerHTML).join('');
+        const listOnly = await upgrade(await open('', 375)), b1 = before(listOnly);
+        t.ok(shown(listOnly.el.querySelector('nav')) && !shown(listOnly.el.querySelector('#static-record')), 'phone, no record-id: the list shows and the record does not');
+        const recOnly = await upgrade(await open('?record', 375)), b2 = before(recOnly);
+        t.ok(!shown(recOnly.el.querySelector('nav')) && shown(recOnly.el.querySelector('#static-record')), 'phone, record-id set: the record shows and the list does not');
+        t.eq(recOnly.el.getAttribute('record-id'), '2', 'record-id is still what the host wrote');
+        t.eq(before(listOnly), b1, 'phone list: no attribute or content of the author\'s markup changed');
+        t.eq(before(recOnly), b2, 'phone record: no attribute or content of the author\'s markup changed');
+        t.ok(listOnly.el.children.length === 2 && recOnly.el.children.length === 2, 'phone: still exactly the two children the author wrote');
+    }],
+
     ['pk-doc-page: the article body and the pk-toc it owns are light DOM the toc can address by id, a same-page link scrolls and emits pk-navigate without touching history, and mounting/unmounting 100 times leaves no listener behind (#353)', async t => {
         const el = document.createElement('pk-doc-page');
         el.config = { items: [{ id: 'a', title: 'Guide A', summary: 'About A' }, { id: 'b', title: 'Guide B' }], id: 'a', search: true };

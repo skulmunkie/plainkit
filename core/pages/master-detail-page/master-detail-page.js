@@ -5,6 +5,8 @@ import { loadElements } from '../../js/loader.js';
 // Master and detail (#353): a pk-list-page beside (wide) or instead of (narrow) the record the ROUTE selected. The host owns `recordId`.
 export default Base => class extends Base {
     connected() {
+        // Static slotted mode (#1829, the convention in STANDARDS.md): the host wrote a list in slot=list and config has no list, so its list and record render as given, nothing is built, moved or written, and record-id only picks which pane a phone shows. Decided once, at connect.
+        if (this.$static || (!this.$w && this.querySelector?.(':scope > [slot="list"]') && !this.config?.list)) { this.$static = true; this.view(); return; }
         if (!this.$w) {
             this.$w = true;
             const list = this.part('list');
@@ -19,7 +21,16 @@ export default Base => class extends Base {
     refresh() { if (this.$w && this.isConnected) this.part('list').refresh?.(); }
     // The record's handle is destroyed when the element leaves the page, so a route change never leaves its content running.
     disconnected() { this.stop(); }
-    changed(name) { if (this.$w && this.isConnected && (name === 'config' || name === 'recordId')) this.sync(name === 'recordId'); }
+    changed(name) {
+        if (this.$static) { if (name === 'recordId') this.view(); return; }
+        if (this.$w && this.isConnected && (name === 'config' || name === 'recordId')) this.sync(name === 'recordId');
+    }
+    // Static mode: the layout part (this element's own shadow tree) carries the state; the host's children are not touched.
+    view() {
+        const layout = this.part('layout');
+        layout.dataset.static = '';
+        layout.dataset.view = this.recordId ? 'detail' : 'list';
+    }
 
     sync(moved) {
         showTitleBar(this, this.part('header'));

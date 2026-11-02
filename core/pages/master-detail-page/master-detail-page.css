@@ -12,5 +12,8 @@
     [part="layout"] { grid-template-columns: minmax(0, 3fr) minmax(0, 2fr); }
     [part="layout"][data-view] [part="master"], [part="layout"][data-view] [part="detail"] { display: block; }
     [part="bar"] { display: none; }
+    [data-static][data-view="list"] slot[name="detail"] { display: contents; }
 }
 :host([fill]) pk-page-shell { block-size: 100%; }
+/* Static slotted mode (issue 1829): the author's list and record are in the slots; the dynamic list page, Back bar and messages are not used. */
+[data-static] pk-list-page, [data-static] [part="bar"], [data-static] [part="none"] { display: none; }
