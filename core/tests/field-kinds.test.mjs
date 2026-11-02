@@ -1,7 +1,7 @@
 // js/field-kinds.js: the table of what a field spec becomes, and the rules of a conditional field (pk-field-group, js/page-fields.js).
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { resolveSpec, controlTag, isChecked, commitOf, controlAttrs, messageAttrs, isVisible, writeValue, readValue, formEntries, valuesFromEntries } from '../js/field-kinds.js';
+import { resolveSpec, controlTag, isChecked, commitOf, controlAttrs, messageAttrs, isVisible, writeValue, readValue, formEntries, valuesFromEntries, selectOptions } from '../js/field-kinds.js';
 
 test('every scalar kind is a pk-input; the others pick their own control', () => {
     for (const k of ['text', 'number', 'email', 'password', 'date', 'time', 'url', 'tel', 'unknown', undefined]) assert.equal(controlTag(k), 'pk-input');
@@ -72,4 +72,13 @@ test('read and write: a switch or checkbox holds a boolean, the others text; "fa
     writeValue(box, 'switch', undefined); assert.equal(box.checked, false);
     const input = {}; writeValue(input, 'text', undefined); assert.equal(readValue(input, 'text'), '');
     writeValue(input, 'text', 5); assert.equal(input.value, 5);
+});
+
+test('a select with a placeholder starts with an empty option that shows it; one that already has an empty option, or no placeholder, is unchanged (issue 1846)', () => {
+    const opts = [{ value: 'a', label: 'A' }];
+    assert.deepEqual(selectOptions({ options: opts, placeholder: 'Pick' }), [{ value: '', label: 'Pick' }, ...opts]);
+    assert.deepEqual(selectOptions({ options: opts }), opts);
+    assert.deepEqual(selectOptions({ placeholder: 'Pick' }), [{ value: '', label: 'Pick' }]);
+    const own = [{ value: '', label: 'None' }, ...opts];
+    assert.deepEqual(selectOptions({ options: own, placeholder: 'Pick' }), own);
 });

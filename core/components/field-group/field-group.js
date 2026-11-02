@@ -4,7 +4,7 @@
 // The element is form-associated: its form value is a FormData with one entry per shown field, its validity is the first invalid control's (anchored on it, so
 // the browser focuses the right field), and it answers the small protocol pk-form uses to look through it: problems(), report(on), checkField(key), focus().
 import { loadElements } from '../../js/loader.js';
-import { resolveSpec, controlTag, commitOf, readValue, writeValue, controlAttrs, messageAttrs, isVisible, isChecked, formEntries, valuesFromEntries } from '../../js/field-kinds.js';
+import { resolveSpec, controlTag, commitOf, readValue, writeValue, controlAttrs, selectOptions, messageAttrs, isVisible, isChecked, formEntries, valuesFromEntries } from '../../js/field-kinds.js';
 import { messageFor } from '../../js/validation.js';
 import { commitAsync, attachSuffix } from '../../js/field-extras.js';
 
@@ -129,7 +129,7 @@ export default Base => class extends Base {
         if (kind === 'custom') return this.buildCustom(doc, spec);
         const control = doc.createElement(tag), field = this.frame(spec, control);
         put(control, { ...controlAttrs(spec), ...messageAttrs(spec) });
-        if (kind === 'select') control.options = spec.options ?? [];
+        if (kind === 'select') control.options = selectOptions(spec);
         if (kind === 'combobox') control.append(...this.opts(doc, spec.options));
         if (spec.required) field.setAttribute('required', '');
         const commit = commitOf(kind), row = { spec, kind, field, control };
