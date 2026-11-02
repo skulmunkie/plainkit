@@ -13,7 +13,7 @@
           "weight": "semibold",
           "variant": "h3",
           "tabindex": "-1",
-          "truncate": "@(Variant == PageHeaderVariant.Record)",
+          "truncate": "@(Variant == PageHeaderVariant.Record && !WrapTitle)",
           "title": "@(Variant == PageHeaderVariant.Record ? Title : null)"
         }
       }
@@ -28,6 +28,12 @@
       "name": "Variant",
       "prop": "variant",
       "type": "PageHeaderVariant"
+    },
+    {
+      "name": "WrapTitle",
+      "prop": "wrapTitle",
+      "type": "bool",
+      "extra": true
     },
     {
       "name": "Sticky",
