@@ -37,4 +37,13 @@
 
 @media (--tablet) {
     [part="bar"] { display: flex; align-items: center; gap: var(--space-3); }
+
+    /* Static slotted mode (issue 1829): this shadow's own Menu button opens the author's nav as the drawer pk-side-nav already is; the state is data-menu on the shell, so nothing is written to the author's nav. */
+    [part="shell"][data-menu] slot[name="nav"]::slotted(*) { transform: none; visibility: visible; transition-delay: 0s; }
+
+    [part="backdrop"] { position: fixed; inset: 0; z-index: var(--z-flyout-backdrop); background: var(--flyout-backdrop-bg); }
+
+    [part="backdrop"][hidden] { display: none; }
 }
+
+[part="menu"][hidden] { display: none; }

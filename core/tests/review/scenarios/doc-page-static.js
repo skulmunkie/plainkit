@@ -9,8 +9,10 @@ export default {
         + '<h2>Theming</h2><div class="prose" id="doc-body"><h2 id="tokens">Tokens</h2><p>Plain server-rendered markup, shown as written.</p><h2 id="dark">Dark mode</h2><p>No script sets any of this up.</p></div>'
         + '<pk-pager label="Page navigation"><a slot="prev" href="#a" rel="prev">&larr; Getting started</a><span>2 of 3</span><a slot="next" href="#c" rel="next">Logging &rarr;</a></pk-pager>'
         + '</pk-doc-page>',
-    steps: [{ wait: 400 }, { shot: 'static' }],
+    steps: [{ wait: 400 }, { shot: 'static' }, { click: '#doc >>> [part="menu"]', on: ['phone'] }, { wait: 500, on: ['phone'] }, { shot: 'menu-open', on: ['phone'] }],
     expect(t) {
+        if (t.shot === 'menu-open') { t.inViewport('#doc pk-side-nav'); return; }
+        if (t.viewport.name === 'phone') t.visible('#doc >>> [part="menu"]', 'the element\'s own Menu button');
         t.inViewport('#doc');
         t.hasText('#doc h2', 'Theming');
         t.visible('#doc pk-pager', 'the author\'s pager');

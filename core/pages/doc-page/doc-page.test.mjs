@@ -267,9 +267,10 @@ test('refresh() loads the current item again, so a loadItem set after the first 
 test('static mode: host children and no config.items -> no shell, no paint, nothing appended, config/refresh are inert', () => {
     const { el } = make();
     Object.defineProperty(el, 'firstElementChild', { value: { localName: 'article' } });
-    let appended = 0; el.append = () => { appended++; };
+    let appended = 0, menus = 0; el.append = () => { appended++; }; el.menuOn = () => { menus++; }; // the Menu button lives in the shadow tree (browser case)
     el.connected();
     assert.equal(appended, 0);
+    assert.equal(menus, 1);
     assert.equal(el.$nav, undefined);
     assert.equal(el.$title, undefined);
     el.config = { items: [{ id: 'a', title: 'A' }] };
