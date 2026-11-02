@@ -189,7 +189,7 @@ Busy is counted (overlapping calls never clear each other early), the overlay de
 
 ### Respond to screen size and change the theme
 
-The elements already respond at the named breakpoints ({{breakpoints}} px, desktop-first); do not restyle them there. `data-theme="dark|light"` and `data-density="compact"` on `<html>` or any element; override tokens in a stylesheet loaded after `plainkit.css`. Reading a breakpoint from script (`mediaBelow`), the literal media-query widths and every token: `references/theming.md`.
+The elements already respond at the named breakpoints ({{breakpoints}} px, desktop-first); do not restyle them there. `data-theme="dark|light"` and `data-density="compact|spacious"` on `<html>` or any element; override tokens in a stylesheet loaded after `plainkit.css`. Reading a breakpoint from script (`mediaBelow`), the literal media-query widths and every token: `references/theming.md`.
 
 ### Ship a custom SDK
 
