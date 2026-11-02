@@ -14,6 +14,7 @@ import { fillSanitizedHtml } from '../../js/sanitized-html.js';
 // Options (config): navLabel ('Contents'), pagerLabel ('Page navigation'), breadcrumb: true (a pk-breadcrumb above the title: the home title, then the item),
 // embedded: true (the host draws the item nav and the breadcrumb itself, so neither is drawn here; the search box sits in the article header under the title and its status line names the matches; the host filters its own nav from searchItems), home.cards: true (the home list as a grid of pk-cards), scroller (a selector: the host's own scrolling box, which the table of contents follows instead of the window). Host search (a callback property): searchItems(query) -> { ids, status? } replaces the nav's title filter with a search
 // box that shows only the items whose id is in `ids` and says `status` in a polite line under it (the host decides what matches, for example the text of the documents).
+// Static slotted mode (#1829; pk-master-detail-page follows the same convention): when the host wrote child elements and config has no items, the slots (nav, aside, default) render the host's markup as given, the current item is the one it marks (aria-current), and nothing is built, moved or written. Decided at connect.
 // Event: pk-navigate { id, anchor, replace: false } - a same-page link inside the article was followed; the host rewrites the address
 // (history.pushState/replaceState) and keeps `anchor` in the next config it sets. The element never touches history or the document itself.
 
@@ -27,7 +28,9 @@ const el = (doc, tag, attrs = {}, ...kids) => {
 
 export default Base => class extends Base {
     connected() {
-        if (this.$w) return;
+        if (this.$w || this.$static) return;
+        // Static mode (#1829): host-written slot content renders as given; nothing is built or moved.
+        if (this.firstElementChild && !this.config?.items?.length) { this.$static = true; return; }
         this.$w = true;
         this.$bodyId = `pkdoc-body-${++seq}`;
         this.buildShell();

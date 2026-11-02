@@ -89,6 +89,10 @@ Plainkit is a vanilla toolkit with exactly one owner of reactivity at any point:
 9. **The template engine** stays limited to `{{ prop }}` / `{{ prop|str }}` interpolation and the `data-if` / `data-if-not` attributes. Anything richer overrides `render()`.
 10. **The base class does not grow.** `PkElement` calls exactly these hooks on an element: `connected`, `disconnected`, `changed`, `updated`, `onReset`, `onRestore`. A new hook, method or binding feature is a design decision: change this section and `tests/element-surface.test.mjs` together.
 
+### Static slotted pages (#1829)
+
+A page type that normally builds its content from `config` and callbacks (`pk-doc-page`; `pk-master-detail-page` follows) also has a static slotted mode, so a server-rendered, JavaScript-optional site can write the page as plain markup. One convention for both: (1) the mode is decided once, when the element connects: the host wrote child elements and `config` has no items; with `config.items`, or no children, the page is dynamic exactly as before. (2) The slots (`nav`, `aside`, the default slot) render the host's markup as given: real links, a `pk-side-nav`, a `pk-toc`, the article, a `pk-pager`. (3) The current item is whatever the host marks in its markup (`aria-current="page"` on a link, `current` on a `pk-nav-item`); the page never decides it, and the host (server, router) keeps it up to date. (4) The element never creates, moves, rewrites or sets an attribute on those children (rules 1 and 3), builds no shell, and `config`, `loadItem` and `refresh()` do nothing in this mode. Without JavaScript the tags are unknown inline elements and the author's links and text are all there; with JavaScript the page lays them out in place.
+
 ### Blazor
 
 11. **Attributes down, events up.** A component renders its parameters as attributes and turns the element's commit event into a parameter callback (`@bind-Value` listens for the change, not for every keystroke).
