@@ -17,7 +17,7 @@
       "type": "string",
       "default": "",
       "reflect": false,
-      "description": "An image URL; initials show until it loads or if it fails."
+      "description": "An image URL; initials (or the placeholder glyph when there is no name) show until it loads or if it fails."
     },
     {
       "name": "size",
@@ -63,7 +63,12 @@
       "description": "A colour slot 1 to 5, or muted; by default a stable slot chosen from the name."
     }
   ],
-  "slots": [],
+  "slots": [
+    {
+      "name": "",
+      "description": "Replaces the neutral person glyph shown when there is no name and no image."
+    }
+  ],
   "events": [],
   "parts": [
     {
@@ -73,6 +78,14 @@
     {
       "name": "initials",
       "description": "The initials."
+    },
+    {
+      "name": "placeholder",
+      "description": "The neutral person glyph (or the slotted icon), shown only when there is no name and no image."
+    },
+    {
+      "name": "glyph",
+      "description": "The built-in person glyph inside the placeholder."
     },
     {
       "name": "status",
@@ -111,6 +124,10 @@
     {
       "title": "Sizes and status",
       "html": "<pk-avatar name=\"Ada Lovelace\" size=\"sm\"></pk-avatar>\n<pk-avatar name=\"Sam Lee\" status=\"online\"></pk-avatar>\n<pk-avatar name=\"Ana Ruiz\" size=\"lg\" shape=\"square\"></pk-avatar>"
+    },
+    {
+      "title": "No name or image",
+      "html": "<pk-avatar colour=\"muted\"></pk-avatar>\n<pk-avatar colour=\"muted\" size=\"lg\" shape=\"square\"></pk-avatar>"
     }
   ]
 }

@@ -22,3 +22,10 @@ test('groupOverflow splits visible people from the +N', () => {
     assert.deepEqual(groupOverflow([1, 2, 3, 4, 5, 6], 4), { shown: [1, 2, 3, 4], more: 2 });
     assert.deepEqual(groupOverflow([1, 2], 4), { shown: [1, 2], more: 0 });
 });
+
+test('the placeholder glyph markup and the nameless contract', async () => {
+    const { readFileSync } = await import('node:fs');
+    const html = readFileSync(new URL('./avatar.html', import.meta.url), 'utf8');
+    assert.match(html, /part="placeholder"[^>]*aria-hidden="true"/);
+    assert.match(html, /<slot>\s*<span part="glyph">/);
+});
