@@ -64,7 +64,7 @@ A failed download throws to the `PkModuleBoundary` (Try again loads it again). S
 
 ## A dashboard from the modules' widgets
 
-A module can offer widgets to a dashboard without the dashboard knowing it. Add `contributes` to the module's JSON manifest (the fields of the SDK's config entry, no `can`): `{ "key": "open", "for": ["overview"], "tab": "sales", "label": "Open orders", "kind": "stat", "order": 10 }`. Implement `IPkWidgets.LoadWidget(key)` on the module class (the C# analogue of `widgets: { key: { load } }`) and return what the card draws: a stat's `value`, a chart's properties, never markup. The dashboard page names only the surface and owns the tab labels:
+A module can offer widgets to a dashboard without the dashboard knowing it. Add `contributes` to the module's JSON manifest (the fields of the SDK's config entry, no `can`): `{ "key": "open", "for": ["overview"], "tab": "sales", "label": "Open orders", "kind": "stat", "order": 10 }`. Implement `IPkWidgets.LoadWidget(key)` on the module class (the C# analogue of `widgets: { key: { load } }`) and return what the card draws: a stat's `value`, a chart's properties, a table's `{ columns, rows, caption? }` (kind `"table"`, drawn full row in a `pk-table`), never markup. The dashboard page names only the surface and owns the tab labels:
 
 ```razor
 <PkModuleDashboard Surface="overview" Heading="Overview" Tabs="@Tabs" />
