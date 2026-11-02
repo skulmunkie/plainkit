@@ -24,7 +24,7 @@ const esc = s => s.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
 function emptyPlan() {
     return {
         docsOnly: false, nodeAll: false, audit: false, auditModules: false, releasePr: false,
-        nodeFiles: new Set(), dotnet: null /* null | { all: bool, classes: Set } */, browserFull: false, browserElements: new Set(), uiElements: new Set(),
+        nodeFiles: new Set(), dotnet: null /* null | { all: bool, classes: Set } */, browserFull: false, browserElements: new Set(), uiElements: new Set(), uiScenarios: new Set(),
         rules: [], notes: [],
     };
 }
@@ -116,6 +116,13 @@ export function planChanged(files, ctx) {
             rule(f, 'shared core', 'shared base, token, layout or js file: every node test, the audits, and (with --browser) the whole browser suite; the full UI review needs the label ui-review-full');
             continue;
         }
+        if ((m = /^core\/tests\/review\/scenarios\/([^/]+)\.js$/.exec(f))) {
+            // A UI review scenario: the review runs just that scenario (--scenarios-only <name>) and the node tests that name the file run too.
+            plan.uiScenarios.add(m[1]);
+            testsMentioning([new RegExp(esc(f)), new RegExp(`scenarios/${esc(m[1])}(?![\\w-])`)]).forEach(p => plan.nodeFiles.add(p));
+            rule(f, 'ui scenario', `scenario ${m[1]}: UI review of that scenario alone (with --browser) and the node tests that name it`);
+            continue;
+        }
         if (/^core\/tests\/browser\//.test(f)) {
             // A browser case or the runner: the browser suite is what covers it (cases cannot be mapped to a file), plus any node test that names it.
             plan.browserFull = true;
@@ -148,7 +155,7 @@ export function planSteps(plan, { browser = false } = {}) {
     if (plan.auditModules) steps.push({ id: 'audit-modules', why: 'modules or shared code changed' });
     if (plan.dotnet) steps.push({ id: 'dotnet', why: plan.dotnet.all ? 'the whole dotnet test' : `${plan.dotnet.classes.size} test class(es)` });
     if (browser && (plan.browserFull || plan.browserElements.size)) steps.push({ id: 'browser', why: plan.browserFull ? 'the whole browser suite (not mappable)' : `cases naming ${[...plan.browserElements].join(', ')}` });
-    if (browser && plan.uiElements.size) steps.push({ id: 'ui-review', why: `gallery examples and scenarios of ${[...plan.uiElements].join(', ')}` });
+    if (browser && (plan.uiElements.size || plan.uiScenarios.size)) steps.push({ id: 'ui-review', why: [plan.uiElements.size && `gallery examples and scenarios of ${[...plan.uiElements].join(', ')}`, plan.uiScenarios.size && `scenario(s) ${[...plan.uiScenarios].join(', ')}`].filter(Boolean).join('; ') });
     return steps;
 }
 
@@ -200,7 +207,9 @@ export function buildChecks(plan, { CHECKS, NODE, browser = false }) {
             return synth('browser', () => [NODE, 'scripts/attest-browser.mjs', ...args]);
         }
         if (id === 'ui-review') {
-            return synth('ui-review', () => [NODE, 'scripts/ui-review.mjs', '--elements', [...plan.uiElements].sort().join(','), '--jobs', '4', '--out', path.join(os.tmpdir(), 'pk-ui-review-changed')], {
+            const scen = [...plan.uiScenarios].sort().join(',');
+            const sel = plan.uiElements.size ? ['--elements', [...plan.uiElements].sort().join(','), ...(scen ? ['--scenarios', scen] : [])] : ['--scenarios-only', scen];
+            return synth('ui-review', () => [NODE, 'scripts/ui-review.mjs', ...sel, '--jobs', '4', '--out', path.join(os.tmpdir(), 'pk-ui-review-changed')], {
                 group: 'browser', after: ['browser'], cause: 'a UI review audit error on a gallery example or scenario of a changed element',
                 fix: 'run `node scripts/ui-review.mjs --elements <name>`, open the shots in the output folder, and fix the element (each finding prints its own FIX line)',
             });
@@ -216,7 +225,7 @@ export function describePlan(plan, { base, browser }) {
     for (const r of plan.rules) { if (!byRule.has(r.rule)) byRule.set(r.rule, { why: r.why, files: [] }); byRule.get(r.rule).files.push(r.file); }
     for (const [name, { why, files }] of byRule) out.push(`  ${name}: ${files.length > 3 ? `${files.slice(0, 3).join(', ')} and ${files.length - 3} more` : files.join(', ')}  (${why})`);
     for (const s of planSteps(plan, { browser })) out.push(`  -> ${s.id}: ${s.why}`);
-    if (!browser && (plan.browserFull || plan.browserElements.size || plan.uiElements.size)) out.push('  (browser cases and UI review not selected: add --browser)');
+    if (!browser && (plan.browserFull || plan.browserElements.size || plan.uiElements.size || plan.uiScenarios.size)) out.push('  (browser cases and UI review not selected: add --browser)');
     for (const n of plan.notes) out.push(`  note: ${n}`);
     out.push('  The full verify --pack, the whole browser suite and the Node 22 job stay for the nightly run, release pull requests, the version tag and the full-ci label.');
     return out.join('\n');

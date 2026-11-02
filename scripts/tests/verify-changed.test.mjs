@@ -150,6 +150,19 @@ test('a browser case or the runner: the browser suite covers it, not the full no
     assert.ok(!planSteps(plan).some(s => s.id === 'browser'), 'only with --browser');
 });
 
+test('a scenario file: the UI review of that scenario alone, not the full node job', () => {
+    const plan = planChanged(['core/tests/review/scenarios/menu-open.js'], ctxOf());
+    assert.equal(plan.nodeAll, false);
+    assert.deepEqual([...plan.uiScenarios], ['menu-open']);
+    assert.ok(!planSteps(plan).some(s => s.id === 'ui-review'), 'only with --browser');
+    assert.ok(planSteps(plan, { browser: true }).some(s => s.id === 'ui-review'));
+    const run = buildChecks(plan, { CHECKS, NODE: 'node', browser: true }).find(c => c.id === 'ui-review').cmd();
+    assert.deepEqual(run.slice(1, 4), ['scripts/ui-review.mjs', '--scenarios-only', 'menu-open']);
+    const mixed = planChanged(['core/tests/review/scenarios/menu-open.js', 'core/elements/button/button.css'], ctxOf());
+    const cmd = buildChecks(mixed, { CHECKS, NODE: 'node', browser: true }).find(c => c.id === 'ui-review').cmd();
+    assert.ok(cmd.includes('--elements') && cmd.includes('--scenarios') && !cmd.includes('--scenarios-only'));
+});
+
 test('an element folder without a meta.json is unknown, so the full node job', () => {
     assert.equal(planChanged(['core/elements/ghost/ghost.css'], ctxOf()).nodeAll, true);
 });
