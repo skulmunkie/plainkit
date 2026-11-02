@@ -561,4 +561,18 @@ headerCases.push(
             host.remove();
         }
     }],
+    ['--color-media-bg is black in both themes and fills a contain-fit pk-media letterbox (#1845)', async t => {
+        const root = document.documentElement, prev = root.getAttribute('data-theme');
+        try {
+            for (const theme of ['light', 'dark']) {
+                root.setAttribute('data-theme', theme);
+                const m = await t.mount('<pk-media ratio="1/1" fit="contain"><img alt="wide" width="40" height="10" src="data:image/gif;base64,R0lGODlhAQABAAAAACw="></pk-media>');
+                await customElements.whenDefined('pk-media'); await t.settle();
+                const probe = document.createElement('div'); probe.style.background = 'var(--color-media-bg)'; document.body.append(probe);
+                const token = getComputedStyle(probe).backgroundColor; probe.remove();
+                t.eq(token, 'rgb(0, 0, 0)', theme + ': the token is black');
+                t.eq(getComputedStyle(m.part('box')).backgroundColor, 'rgb(0, 0, 0)', theme + ': the contain-fit box uses the token');
+            }
+        } finally { if (prev === null) root.removeAttribute('data-theme'); else root.setAttribute('data-theme', prev); }
+    }],
 );

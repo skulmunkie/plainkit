@@ -66,6 +66,7 @@ Order matters in a stylesheet cascade: link Plainkit first and your file after i
 | Family | Names | What it is |
 |---|---|---|
 | Colour | `--color-bg`, `--color-panel`, `--color-text`, `--color-muted`, `--color-border`, `--color-accent`, `--color-link` | surfaces, text and accents; different in each theme |
+| Media | `--color-media-bg` | the same black in light and dark, behind contain-fit media (the `pk-media` letterbox); use it instead of a literal `#000` |
 | Space | `--space-1` to `--space-12`, or the named aliases `--space-2xs` to `--space-3xl` | the spacing scale; use it for gaps and padding. Aliases: `2xs`=1, `xs`=2, `sm`=3, `md`=4, `lg`=5, `xl`=6, `2xl`=8, `3xl`=12 (both forms work) |
 | Text | `--text-meta`, `--text-read`, `--text-lg` | font sizes for secondary text, reading text and larger text |
 | Type | `--font-sans`, `--font-mono`, `--font-heading` | body, code and title fonts; `--font-heading` (default `var(--font-sans)`) faces `pk-heading`, the page-header title and the card title, so one override re-faces them |
