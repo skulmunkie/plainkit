@@ -21,6 +21,12 @@ export function commitOf(kind) {
     return { event: 'pk-value-change', read: e => e.detail.value };
 }
 
+/** The options of a select field: with a placeholder, an empty-valued first option that shows it (unless the options already have an empty one), so an unset value is not shown as the first real option. */
+export function selectOptions(spec) {
+    const list = spec.options ?? [];
+    return !spec.placeholder || list.some(o => (o && typeof o === 'object' ? o.value : o) === '') ? list : [{ value: '', label: spec.placeholder }, ...list];
+}
+
 /** The control's current value. */
 export const readValue = (el, kind) => (isChecked(kind) ? el.checked : el.value);
 /** Sets the control's value; a missing value empties it (a checkbox or switch unchecks). */

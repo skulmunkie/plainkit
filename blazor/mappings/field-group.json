@@ -54,7 +54,7 @@
     {
       "name": "Placeholder",
       "type": "string?",
-      "doc": "The control's placeholder."
+      "doc": "The control's placeholder (a select shows it as an empty first option while unset)."
     },
     {
       "name": "AutoComplete",
