@@ -24,7 +24,7 @@
       "type": "Func<string, Task<object?>>?",
       "arg": "string",
       "refresh": true,
-      "doc": "Loads one widget by its key (config.widgets[].key), independently of the others, and returns what the widget draws: for a stat an object with value (and delta, trend...), for a chart the chart properties. Throwing shows that card's error state with Retry; the other widgets are unaffected."
+      "doc": "Loads one widget by its key (config.widgets[].key), independently of the others, and returns what the widget draws: for a stat an object with value (and delta, trend...), for a chart the chart properties, for a table widget (kind 'table') { columns: [{ key, label, align? }], rows, caption? } (no rows shows the card empty state). Throwing shows that card's error state with Retry; the other widgets are unaffected."
     },
     {
       "name": "OnAction",

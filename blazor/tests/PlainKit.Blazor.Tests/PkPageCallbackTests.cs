@@ -749,6 +749,26 @@ public sealed class PkPageCallbackTests : BunitContext, IAsyncLifetime
     }
 
     [Fact]
+    public async Task DashboardPage_load_returns_columns_rows_and_caption_for_a_table_widget()
+    {
+        var cut = Render<PkDashboardPage>(p => p
+            .Add(x => x.Config, new { widgets = new[] { new { key = "recent", label = "Recent orders", kind = "table" } } })
+            .Add(x => x.Load, k => Task.FromResult<object?>(new
+            {
+                columns = new object[] { new { key = "id", label = "Order" }, new { key = "total", label = "Total", align = "end" } },
+                rows = new[] { new { id = "A-1", total = 12 }, new { id = "A-2", total = 30 } },
+                caption = "Last two orders",
+            })));
+        var host = Assert.IsType<DotNetObjectReference<PkCallbackHost<string>>>(Assert.Single(_bridge.Invocations["setCallback"]).Arguments[2]);
+        var result = JsonSerializer.SerializeToElement(await cut.InvokeAsync(() => host.Value.Invoke("recent")));
+
+        Assert.Equal(2, result.GetProperty("columns").GetArrayLength());
+        Assert.Equal(2, result.GetProperty("rows").GetArrayLength());
+        Assert.Equal("Last two orders", result.GetProperty("caption").GetString());
+        Assert.Contains("table", cut.Find("pk-dashboard-page").GetAttribute("config"));
+    }
+
+    [Fact]
     public async Task DashboardPage_load_that_throws_faults_only_that_call()
     {
         var cut = Render<PkDashboardPage>(p => p.Add(x => x.Load, k => k == "bad" ? throw new InvalidOperationException("no data") : Task.FromResult<object?>("ok")));
