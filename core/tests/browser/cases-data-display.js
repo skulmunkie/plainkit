@@ -795,6 +795,24 @@ export const dataDisplayCases = [
         const phone = await at(375); t.eq(phone.w, 375); t.ok(phone.other, 'the SKU shows'); t.ok(!phone.td, 'the hidePhone cell is hidden in a card');
         const wide = await at(1200); t.ok(wide.td, 'shown on a wide screen');
     }],
+    ['data-table (390px): a pk-select slotted in actions fills the toolbar width on a phone and keeps its own width on desktop; the add button stays an icon (#1848)', async t => {
+        const { sampleDoc } = await import('../../site/gallery/frame.js');
+        const html = `<pk-data-table label="P" add-label="Add" columns='[{"key":"sku","label":"SKU"}]'><pk-select slot="actions" aria-label="Status"><option value="a">All statuses</option><option value="b">Open</option></pk-select></pk-data-table>`;
+        const at = async width => {
+            const host = t.stage(''), f = document.createElement('iframe');
+            f.title = 'sample'; f.style.width = `${width}px`; f.style.height = '420px'; f.style.border = '0';
+            const loaded = new Promise(r => f.addEventListener('load', r, { once: true })); host.append(f); f.srcdoc = sampleDoc(html); await loaded;
+            await until(() => f.contentWindow.customElements.get('pk-select') && f.contentDocument.querySelector('pk-select')?.shadowRoot?.querySelector('select'), 'the select');
+            const dt = f.contentDocument.querySelector('pk-data-table'), sel = f.contentDocument.querySelector('pk-select');
+            await until(() => dt.part('add')?.getBoundingClientRect().width > 0, 'the add button');
+            const tb = dt.part('toolbar').getBoundingClientRect(), s = sel.getBoundingClientRect(), a = dt.part('add').getBoundingClientRect();
+            return { tb: tb.width, s: s.width, addW: a.width, w: f.contentWindow.innerWidth };
+        };
+        const phone = await at(390); t.eq(phone.w, 390);
+        t.ok(phone.s >= phone.tb - 1, `the select fills the toolbar (select ${Math.round(phone.s)}px, toolbar ${Math.round(phone.tb)}px)`);
+        t.ok(phone.addW < 80, `the add button stays an icon, not full width (${Math.round(phone.addW)}px)`);
+        const wide = await at(1280); t.ok(wide.s < wide.tb / 2, `on desktop the select keeps its own width (select ${Math.round(wide.s)}px, toolbar ${Math.round(wide.tb)}px)`);
+    }],
     ['table: a nowrap column keeps a date-time on one line and sizes to it; the same text wraps without it; cards still wrap (#1847)', async t => {
         const { sampleDoc } = await import('../../site/gallery/frame.js');
         const cols = nowrap => `[{"key":"id","label":"Id"},{"key":"when","label":"When"${nowrap ? ',"noWrap":true' : ''}},{"key":"note","label":"Note"}]`;
