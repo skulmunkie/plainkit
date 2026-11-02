@@ -132,6 +132,25 @@ export const headerCases = [
         }
     }],
 
+    ['--font-heading re-faces pk-heading, the page-header title and the card title, and the default is the body font (#1817)', async t => {
+        const faces = async () => {
+            const host = t.stage('<div><pk-heading>Title</pk-heading><pk-page-header heading="Header"></pk-page-header><pk-card heading="Card">Body</pk-card></div>');
+            await t.load(host); await Promise.all(['pk-heading', 'pk-page-header', 'pk-card'].map(n => customElements.whenDefined(n))); await t.settle();
+            const wrap = host.firstElementChild, ff = n => getComputedStyle(n).fontFamily;
+            return { host, heading: ff(wrap.querySelector('pk-heading').shadowRoot.querySelector('[part="heading"]')), header: ff(wrap.querySelector('pk-page-header').part('title')), card: ff(wrap.querySelector('pk-card').part('title')), body: ff(wrap) };
+        };
+        const base = await faces();
+        t.eq(base.heading, base.body, 'default: pk-heading uses the body font'); t.eq(base.header, base.body, 'default: the page-header title uses the body font'); t.eq(base.card, base.body, 'default: the card title uses the body font');
+        base.host.remove();
+        document.documentElement.style.setProperty('--font-heading', 'Georgia, serif');
+        try {
+            const set = await faces();
+            for (const k of ['heading', 'header', 'card']) t.ok(/georgia/i.test(set[k]), k + ': font-family follows --font-heading: ' + set[k]);
+            t.eq(set.body, base.body, 'body text keeps the body font');
+            set.host.remove();
+        } finally { document.documentElement.style.removeProperty('--font-heading'); }
+    }],
+
     ['page-header: a record with wrap-title wraps a long title to at most three lines at 390px, keeps one ellipsized line at 1280px, and the default stays one line at 390px (#1849)', async t => {
         const long = 'Purchase order 1042 for the north warehouse refit, the second delivery of shelving, racking, lighting and spare fittings';
         const hit = (a, b) => a.left < b.right - 1 && b.left < a.right - 1 && a.top < b.bottom - 1 && b.top < a.bottom - 1;

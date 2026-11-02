@@ -68,6 +68,7 @@ Order matters in a stylesheet cascade: link Plainkit first and your file after i
 | Colour | `--color-bg`, `--color-panel`, `--color-text`, `--color-muted`, `--color-border`, `--color-accent`, `--color-link` | surfaces, text and accents; different in each theme |
 | Space | `--space-1` to `--space-12`, or the named aliases `--space-2xs` to `--space-3xl` | the spacing scale; use it for gaps and padding. Aliases: `2xs`=1, `xs`=2, `sm`=3, `md`=4, `lg`=5, `xl`=6, `2xl`=8, `3xl`=12 (both forms work) |
 | Text | `--text-meta`, `--text-read`, `--text-lg` | font sizes for secondary text, reading text and larger text |
+| Type | `--font-sans`, `--font-mono`, `--font-heading` | body, code and title fonts; `--font-heading` (default `var(--font-sans)`) faces `pk-heading`, the page-header title and the card title, so one override re-faces them |
 | Shape and depth | `--radius-sm` to `--radius-xl`, `--shadow-card`, `--shadow-modal` | corners and elevation |
 | Motion | `--duration-fast`, `--duration-base`, `--duration-slow`, `--ease` | quick UI feedback: hover/focus state changes, expand/collapse, drawer/flyout slide |
 | Layers | `--z-sticky`, `--z-modal`, `--z-toast` | stacking order, so a toast is always above a dialog |
@@ -157,4 +158,4 @@ The [Scorecard](../../app.html#/scorecard) audits pages and elements at both the
 
 ## Optional themes
 
-An optional theme is one small stylesheet, `dist/themes/<name>.css` (source: `core/tokens/themes/<name>.css`). It is built and listed in the manifest like any other file, but `plainkit.css` never imports it and page weight does not count it: link it after `plainkit.css` only on pages that want it. The first one, `heading-font.css`, sets the heading font to the body font.
+An optional theme is one small stylesheet, `dist/themes/<name>.css` (source: `core/tokens/themes/<name>.css`). It is built and listed in the manifest like any other file, but `plainkit.css` never imports it and page weight does not count it: link it after `plainkit.css` only on pages that want it. The first one, `heading-font.css`, sets `--font-heading` to the body font.
