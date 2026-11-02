@@ -99,3 +99,27 @@ test('refresh() asks the list to load again once the page is connected (#1415)',
     el.connected(); el.refresh();
     assert.equal(n, 1);
 });
+
+test('static mode (#1829): a host child in slot=list and no config.list -> no list wiring, no title bar, no start; recordId only picks the view', () => {
+    const { el, parts } = make();
+    el.querySelector = sel => (sel === ':scope > [slot="list"]' ? {} : null);
+    el.mountDetail = () => { throw new Error('must not run'); };
+    el.recordId = '';
+    el.connected();
+    assert.equal(parts.layout.dataset.static, '');
+    assert.equal(parts.layout.dataset.view, 'list');
+    assert.equal(parts.list.load, undefined);
+    assert.equal(parts.none.children.length, 0);
+    el.recordId = '5'; el.changed('recordId');
+    assert.equal(parts.layout.dataset.view, 'detail');
+    assert.equal(parts.record.children.length, 0);
+    el.config = { list: { columns: [] } }; el.changed('config'); el.refresh();
+    assert.equal(parts.list.config, undefined);
+});
+
+test('static mode needs a slot=list child and no config.list: otherwise the dynamic page is built as before', () => {
+    const none = make().el; none.querySelector = () => null; none.connected();
+    assert.ok(none.part('list').load);
+    const withList = make().el; withList.querySelector = () => ({}); withList.config = { list: { columns: [] } }; withList.connected();
+    assert.ok(withList.part('list').load);
+});
