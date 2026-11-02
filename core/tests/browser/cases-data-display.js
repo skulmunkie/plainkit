@@ -1023,6 +1023,23 @@ export const dataDisplayCases = [
         t.ok(!shown('error') && shown('empty'), 'cleared: the empty state again');
     }],
 
+    ['app-bar-search: a failed search shows Retry; clicking it raises pk-retry and re-raises pk-query for the current text; it hides once results arrive (#1799)', async t => {
+        const el = await t.mount('<pk-app-bar-search debounce="0" label="Search"></pk-app-bar-search>'); await customElements.whenDefined('pk-app-bar-search');
+        const input = el.part('control'); input.value = 'inv'; input.dispatchEvent(new Event('input')); await t.settle();
+        const shown = p => !el.part(p).hidden && el.part(p).getBoundingClientRect().height > 0;
+        t.ok(!shown('retry'), 'no retry while nothing failed');
+        const seen = []; el.addEventListener('pk-retry', () => seen.push('retry')); el.addEventListener('pk-query', e => seen.push('query:' + e.detail.query));
+        el.items = []; el.error = 'Search is unavailable. Try again.'; await t.settle();
+        t.ok(shown('retry'), 'the retry button shows with the error'); t.eq(el.part('retry').getAttribute('label'), 'Retry');
+        el.part('retry').click(); await t.settle();
+        t.eq(seen.join(','), 'retry,query:inv', 'pk-retry, then the current query again');
+        t.ok(!el.part('popup').hidden, 'the panel stays open');
+        el.error = ''; el.items = [{ id: 'a', label: 'Invoice 1' }]; await t.settle();
+        t.ok(!shown('retry') && !shown('error'), 'results arrived: error and retry are gone');
+        el.retryLabel = 'Nochmal'; el.error = 'x'; await t.settle();
+        t.eq(el.part('retry').getAttribute('label'), 'Nochmal', 'retryLabel localises the button');
+    }],
+
     ['table-filters: typing debounces pk-search; the trigger only shows once the default slot has content, opens/closes the panel and reports pk-toggle; Clear filters raises pk-clear-filters; the badge reflects filterCount', async t => {
         const bare = await t.mount('<pk-table-filters debounce="10" label="Search products"></pk-table-filters>');
         t.ok(bare.part('trigger').hidden, 'no filter fields slotted: no trigger');

@@ -110,5 +110,9 @@ export const appFrameCases = [
         t.eq(search.error, 'Search is unavailable.', 'passed to the inner search');
         frame.searchError = ''; await wait(50);
         t.eq(search.error, '', 'cleared');
+        let n = 0; frame.addEventListener('pk-retry', () => n++);
+        frame.searchError = 'down'; await wait(50);
+        search.part('retry').click(); await wait(50);
+        t.eq(n, 1, 'pk-retry from the header search reaches the frame host (#1799)');
     }],
 ];
