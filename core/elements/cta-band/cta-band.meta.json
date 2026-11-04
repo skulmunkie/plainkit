@@ -1,0 +1,74 @@
+{
+  "tag": "pk-cta-band",
+  "title": "CTA band",
+  "group": "Containers",
+  "tier": "element",
+  "preUpgrade": "visible",
+  "summary": "A full-width call-to-action surface: your own heading, a line of text and one or two actions. Neutral or brand surface, start or centred, optionally edge to edge. Your markup is never changed; before it upgrades (or with JavaScript off) the heading, text and links show as plain blocks.",
+  "props": [
+    {
+      "name": "tone",
+      "type": "enum",
+      "default": "neutral",
+      "values": [
+        "neutral",
+        "brand"
+      ],
+      "reflect": true,
+      "description": "The surface: neutral is the alternate surface colour, brand the accent fill with white text; primary buttons inside it turn light so they stand out."
+    },
+    {
+      "name": "align",
+      "type": "enum",
+      "default": "start",
+      "values": [
+        "start",
+        "center"
+      ],
+      "reflect": true,
+      "description": "Aligns the text and the actions."
+    },
+    {
+      "name": "bleed",
+      "type": "boolean",
+      "default": false,
+      "reflect": true,
+      "description": "Runs the band edge to edge of the viewport from inside a padded column. Off, it fills its column."
+    }
+  ],
+  "slots": [
+    {
+      "name": "heading",
+      "description": "Your own heading (h2 or the level that fits the page). The element never sets a level or invents one; with none it logs one warning."
+    },
+    {
+      "name": "",
+      "description": "The text under the heading."
+    },
+    {
+      "name": "actions",
+      "description": "A wrapper (a span) of one or two buttons or links. They sit side by side; give each button `block` and on a phone each is full width."
+    }
+  ],
+  "events": [],
+  "parts": [],
+  "cssProperties": [
+    {
+      "name": "--pk-cta-band-bg",
+      "description": "The surface colour.",
+      "default": "var(--color-surface-alt) (neutral) or var(--color-accent-fill) (brand)"
+    }
+  ],
+  "methods": [],
+  "a11y": "A plain block of your own heading, text and links: no live region and no role, so it is not announced as an alert. The heading level is yours, so the band fits the page outline. Text on the brand surface is white on the accent fill (4.5:1 or better), and its primary buttons take a light panel fill.",
+  "examples": [
+    {
+      "title": "Brand, centred",
+      "html": "<pk-cta-band tone=\"brand\" align=\"center\">\n  <h2 slot=\"heading\">Ready to start?</h2>\n  <p>Free for 30 days. No card needed.</p>\n  <span slot=\"actions\"><pk-button block href=\"#signup\">Start free</pk-button><pk-button block href=\"#demo\">Book a demo</pk-button></span>\n</pk-cta-band>"
+    },
+    {
+      "title": "Neutral, start aligned",
+      "html": "<pk-cta-band>\n  <h2 slot=\"heading\">Questions before you buy?</h2>\n  <p>Talk to a person on the team.</p>\n  <span slot=\"actions\"><pk-button block href=\"#contact\">Contact us</pk-button></span>\n</pk-cta-band>"
+    }
+  ]
+}

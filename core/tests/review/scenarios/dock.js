@@ -176,7 +176,7 @@ export default {
     expect(t) {
         // The wrapper (.rv-bounded), not the page, carries any overflow from stacking two full examples: the document itself never grows past the
         // viewport just because a demo used more than one dock (a host page is expected to bound pk-dock's container the same way).
-        t.ok(t.metric(':root', 'scrollHeight') <= t.viewport.height + 1, 'the page does not scroll: a tall demo scrolls inside its own bounded wrapper');
+        t.ok(t.metric('html', 'scrollHeight') <= t.viewport.height + 1, 'the page does not scroll: a tall demo scrolls inside its own bounded wrapper');
         t.inViewport('#dock');
         t.exists('#dock >>> [part=group]');
         t.visible('#dock >>> [part=group]', 'the dock draws its groups');

@@ -130,12 +130,12 @@
   "a11y": "Fields are labelled pk-field controls; pk-form moves focus to the first invalid field and lists the problems in a summary, and a server error focuses its field. The loading and error states use pk-skeleton and pk-alert's own roles and announcements.",
   "examples": [
     {
-      "title": "Product record (set config, load and save from script: an inline script cannot run under this site's CSP)",
-      "html": "<pk-record-page id=\"product\"></pk-record-page>"
+      "title": "Product record (a new record from config values; load and save are properties set from script, which an inline script cannot do under this site's CSP)",
+      "html": "<pk-record-page id=\"product\" config='{\"heading\":\"Product\",\"title\":\"Trailhead jacket\",\"fields\":[{\"key\":\"name\",\"label\":\"Name\",\"required\":true},{\"key\":\"sku\",\"label\":\"SKU\"},{\"key\":\"status\",\"label\":\"Status\",\"kind\":\"select\",\"options\":[\"Draft\",\"Active\",\"Retired\"]},{\"key\":\"notes\",\"label\":\"Notes\",\"kind\":\"textarea\"}],\"values\":{\"name\":\"Trailhead jacket\",\"sku\":\"TJ-204\",\"status\":\"Active\",\"notes\":\"Waterproof shell.\"},\"sidebar\":[{\"heading\":\"Publishing\",\"fields\":[\"status\"]}]}'></pk-record-page>"
     },
     {
       "title": "Sections around the fields (main-before, main-after, side-after)",
-      "html": "<pk-record-page id=\"product-sections\"><pk-card slot=\"main-after\" heading=\"Activity\">Created by the import on 3 March.</pk-card><pk-card slot=\"side-after\" heading=\"Related\">Two open orders.</pk-card></pk-record-page>"
+      "html": "<pk-record-page id=\"product-sections\" config='{\"heading\":\"Product\",\"title\":\"Trailhead jacket\",\"fields\":[{\"key\":\"name\",\"label\":\"Name\",\"required\":true},{\"key\":\"sku\",\"label\":\"SKU\"},{\"key\":\"status\",\"label\":\"Status\",\"kind\":\"select\",\"options\":[\"Draft\",\"Active\",\"Retired\"]},{\"key\":\"notes\",\"label\":\"Notes\",\"kind\":\"textarea\"}],\"values\":{\"name\":\"Trailhead jacket\",\"sku\":\"TJ-204\",\"status\":\"Active\",\"notes\":\"Waterproof shell.\"},\"sidebar\":[{\"heading\":\"Publishing\",\"fields\":[\"status\"]}]}'><pk-card slot=\"main-after\" heading=\"Activity\">Created by the import on 3 March.</pk-card><pk-card slot=\"side-after\" heading=\"Related\">Two open orders.</pk-card></pk-record-page>"
     }
   ],
   "methods": [

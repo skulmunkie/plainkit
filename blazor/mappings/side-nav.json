@@ -61,6 +61,13 @@
       "prop": "autoExpandActive"
     },
     {
+      "name": "AllowMultiple",
+      "type": "bool",
+      "map": "prop",
+      "prop": "allowMultiple",
+      "extra": true
+    },
+    {
       "name": "BrandContent",
       "type": "RenderFragment?",
       "map": "slot",

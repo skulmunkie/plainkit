@@ -1,0 +1,12 @@
+{
+  "component": "PkCtaBand",
+  "params": [
+    { "name": "Tone", "prop": "tone", "type": "CtaBandTone" },
+    { "name": "Align", "prop": "align", "type": "CtaBandAlign" },
+    { "name": "Bleed", "prop": "bleed", "type": "bool" },
+    { "name": "HeadingContent", "slot": "heading", "type": "RenderFragment?" },
+    { "name": "ChildContent", "slot": "", "type": "RenderFragment?" },
+    { "name": "ActionsContent", "slot": "actions", "type": "RenderFragment?" }
+  ],
+  "notes": "A static content element (#1838): the heading is your own markup in HeadingContent, the element never sets a level."
+}

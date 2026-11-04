@@ -356,4 +356,12 @@ export const recordFormCases = [
         const own = await t.mount(`<pk-page-header heading="Mug"><pk-tabs slot="tabs"><pk-tab value="x">X</pk-tab></pk-tabs></pk-page-header>`); await t.load(own.shadowRoot); own.tabs = data; await t.settle(); await t.settle();
         t.eq(own.part('strip').children.length, 0, 'a slotted pk-tabs wins: nothing is drawn');
     }],
+    ['record-page: every gallery example draws a titled, field-bearing page, not an empty strip (#1889)', async t => {
+        const meta = await (await fetch(new URL('../../pages/record-page/record-page.meta.json', import.meta.url))).json();
+        for (const ex of meta.examples) {
+            const el = await t.mount(ex.html); await t.load(el.shadowRoot); await t.settle(); await t.settle(); await t.settle();
+            t.ok(rect(el).height > 150, `the example is more than an empty strip (${Math.round(rect(el).height)}px): ${ex.title.slice(0, 30)}`);
+            t.ok(el.shadowRoot.textContent.includes('Trailhead jacket') || (el.querySelector('pk-card') && el.shadowRoot.querySelector('pk-field-group, pk-field-list')), 'the title or fields are drawn');
+        }
+    }],
 ];

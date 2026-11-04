@@ -8,7 +8,7 @@
       "built": true,
       "requires": [],
       "blazorOption": null,
-      "maxPackedBytes": 283300,
+      "maxPackedBytes": 291492,
       "maxUnpackedBytes": 957700
     },
     {
@@ -69,7 +69,7 @@
         "zip-store.js"
       ],
       "maxPackedBytes": null,
-      "maxUnpackedBytes": 825144,
+      "maxUnpackedBytes": 836593,
       "maxZipBytes": 268753,
       "files": [
         "breakpoints.report.json",

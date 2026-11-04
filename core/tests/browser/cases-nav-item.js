@@ -77,6 +77,48 @@ export const navItemCases = [
             t.ok(Math.max(...dx) < 1.5, id + ' link/row left,top,width,height,rowTop,rowHeight went from ' + before[i].map(Math.round) + ' to ' + after[i].map(Math.round) + ' when it upgraded, expected the same. FIX: reserve its box with pk-nav-item:not(:defined) in base.css');
         });
     }],
+    ['side-nav (#1891): opening a parent collapses its expanded siblings; nested state, aria-expanded, filter and current-path follow', async t => {
+        const html = '<pk-side-nav id="n" filterable><pk-nav-item id="a">A<pk-nav-item slot="children" id="a1">A1<pk-nav-item slot="children" href="#ax">AX</pk-nav-item></pk-nav-item><pk-nav-item slot="children" href="#a2">A2</pk-nav-item></pk-nav-item><pk-nav-item id="b">B<pk-nav-item slot="children" href="#b1">B1</pk-nav-item></pk-nav-item><pk-nav-item id="c">C<pk-nav-item slot="children" href="' + '/c1">C1</pk-nav-item></pk-nav-item></pk-side-nav>';
+        const host = t.stage(html); await t.load(host); await t.settle(); await wait(80);
+        const nav = host.querySelector('#n'), q = id => host.querySelector('#' + id);
+        const click = id => q(id).row.click(), aria = id => q(id).row.getAttribute('aria-expanded');
+        click('a'); click('a1'); await wait(40);
+        t.ok(q('a').expanded && q('a1').expanded, 'A and its child A1 open');
+        click('b'); await wait(40);
+        t.ok(q('b').expanded && !q('a').expanded, 'opening B collapses A');
+        t.ok(q('a1').expanded, 'the collapsed A keeps its own nested state');
+        t.eq(aria('a') + aria('b') + aria('c'), 'falsetruefalse', 'aria-expanded matches');
+        click('a'); await wait(40);
+        t.ok(q('a').expanded && !q('b').expanded && q('a1').expanded, 'reopening A collapses B; A1 is still open');
+        click('a1'); click('a1'); await wait(40);
+        t.ok(q('a').expanded, 'toggling a child never collapses its parent');
+        const input = nav.shadowRoot.querySelector('[part="filter-input"]'), type = v => { input.value = v; input.dispatchEvent(new Event('input', { bubbles: true })); return wait(40); };
+        await type('b1');
+        t.ok(q('b').expanded, 'the filter opens a match');
+        await type('a2');
+        t.ok(q('a').expanded && q('b').expanded, 'the filter is exempt: several branches stay open while filtering');
+        await type('');
+        t.ok(q('a').expanded && !q('b').expanded && !q('c').expanded, 'clearing the filter restores exactly what was open');
+        nav.currentPath = '/c1'; nav.autoExpandActive = true; await wait(60);
+        t.ok(q('c').expanded && !q('a').expanded && !q('b').expanded, 'auto-expand opens only the active chain');
+    }],
+    ['side-nav (#1891): allow-multiple keeps several branches open; a persisted multi-open state is reduced on load; the rail flyout is unaffected', async t => {
+        const kids = '<pk-nav-item id="a">A<pk-nav-item slot="children" href="#a1">A1</pk-nav-item></pk-nav-item><pk-nav-item id="b">B<pk-nav-item slot="children" href="#b1">B1</pk-nav-item></pk-nav-item>';
+        const host = t.stage('<pk-side-nav id="m" allow-multiple>' + kids + '</pk-side-nav>'); await t.load(host); await t.settle(); await wait(80);
+        host.querySelector('#a').row.click(); host.querySelector('#b').row.click(); await wait(40);
+        t.ok(host.querySelector('#a').expanded && host.querySelector('#b').expanded, 'with allow-multiple both branches stay open');
+        const key = 'pk-test-1891-' + Math.random();
+        try {
+            localStorage.setItem(key, JSON.stringify({ o: ['A', 'B'], c: false }));
+            const h2 = t.stage('<pk-side-nav persist="' + key + '">' + kids + '</pk-side-nav>'); await t.load(h2); await t.settle(); await wait(80);
+            const open = [...h2.querySelectorAll('pk-nav-item')].filter(i => i.expanded).length;
+            t.eq(open, 1, 'a persisted state with two open siblings opens exactly one');
+            const h3 = t.stage('<pk-side-nav collapsed>' + kids + '</pk-side-nav>'); await t.load(h3); await t.settle(); await wait(80);
+            const a = h3.querySelector('#a'), b = h3.querySelector('#b');
+            a.row.click(); b.row.click(); await wait(40);
+            t.ok(a.flyout && b.flyout, 'rail flyouts are not exclusive-managed by the nav');
+        } finally { localStorage.removeItem(key); }
+    }],
     ['menu-item: a description in the slot or the attribute pads the row, a plain item does not', async t => {
         const host = t.stage('<div role="menu"><pk-menu-item id="plain">Plain</pk-menu-item><pk-menu-item id="slot">Slot<span slot="description">desc</span></pk-menu-item><pk-menu-item id="attr" description="desc">Attr</pk-menu-item></div>');
         await t.load(host); await t.settle(); await wait(80);

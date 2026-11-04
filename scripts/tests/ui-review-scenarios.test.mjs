@@ -102,7 +102,7 @@ const fakeEnv = (els, viewport = { width: 1000, height: 800 }) => ({
     text: s => els[s]?.text ?? '',
     style: (s, p) => els[s]?.style?.[p] ?? '',
     attr: (s, n) => els[s]?.attr?.[n] ?? null,
-    metric: (s, n) => els[s]?.metric?.[n] ?? 0,
+    metric: (s, n) => els[s]?.metric?.[n] ?? (els[s] ? 0 : null),
     clipBoxes: s => els[s]?.clips ?? [],
 });
 const run = (els, fn, context) => { const { t, failures } = createExpectations(fakeEnv(els), context); fn(t); return failures.map(f => f.message); };
@@ -161,6 +161,18 @@ test('scroll helpers read the metrics', () => {
     const els = { '#s': { x: 0, y: 0, width: 10, height: 10, metric: { scrollHeight: 500, clientHeight: 100, scrollTop: 40 } }, '#n': { x: 0, y: 0, width: 10, height: 10, metric: { scrollHeight: 100, clientHeight: 100 } } };
     assert.deepEqual(run(els, t => { t.scrolls('#s'); assert.equal(t.metric('#s', 'scrollTop'), 40); }), []);
     assert.match(run(els, t => t.scrolls('#n'))[0], /does not scroll/);
+});
+
+test('t.metric on a selector that matches nothing fails with a FIX line, unless optional', () => {
+    const { t, failures } = createExpectations(fakeEnv({}));
+    assert.equal(t.metric('#typo', 'scrollHeight'), 0);
+    assert.equal(failures.length, 1);
+    assert.match(failures[0].message, /#typo was not found/);
+    assert.match(failures[0].fix, /#typo/);
+    assert.equal(t.metric('#maybe', 'scrollTop', { optional: true }), 0);
+    assert.equal(failures.length, 1);
+    t.scrolls('#typo2');
+    assert.ok(failures.some(f => f.message.includes('#typo2 was not found')));
 });
 
 test('scenario shots group into one finding per problem, listing the shots and combinations', () => {
