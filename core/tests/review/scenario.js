@@ -196,10 +196,15 @@ export function createExpectations(env, context = {}) {
             const a = box(sel); if (!a) return false;
             return a[dim] >= min - 0.5 || fail(`${sel} is ${r1(a[dim])}px ${dim}, expected at least ${min}px`);
         },
-        /** A scroll metric of an element: scrollTop, scrollHeight, clientHeight, scrollWidth, clientWidth. */
-        metric: (sel, name) => env.metric(sel, name),
+        /** A scroll metric of an element: scrollTop, scrollHeight, clientHeight, scrollWidth, clientWidth. A selector that matches nothing fails (a mistyped selector must not read 0 and pass); { optional: true } reads 0 where the element may be absent. */
+        metric: (sel, name, { optional = false } = {}) => {
+            const v = env.metric(sel, name);
+            if (v !== null && v !== undefined) return v;
+            if (!optional) fail(`${sel} was not found, so its ${name} cannot be read`, `check the selector "${sel}" in the scenario, or pass { optional: true } to t.metric if the element may legitimately be absent`);
+            return 0;
+        },
         /** The element scrolls (its content is taller than its box). */
-        scrolls: sel => env.metric(sel, 'scrollHeight') > env.metric(sel, 'clientHeight') + 1 || fail(`${sel} does not scroll: its content is ${env.metric(sel, 'scrollHeight')}px in a ${env.metric(sel, 'clientHeight')}px box`),
+        scrolls: sel => t.metric(sel, 'scrollHeight') > t.metric(sel, 'clientHeight') + 1 || fail(`${sel} does not scroll: its content is ${t.metric(sel, 'scrollHeight')}px in a ${t.metric(sel, 'clientHeight')}px box`),
         /** A CSS property has a value. */
         styleIs: (sel, prop, value) => env.style(sel, prop) === value || fail(`${sel} has ${prop}: ${env.style(sel, prop)}, expected ${value}`),
         /** The text colour of fg reads at least `min`:1 (default 4.5, WCAG AA small text) on the background colour of bg. Both must be opaque. */
