@@ -34,13 +34,16 @@ One heading, one line of text and one or two actions. `tone="brand"` is the fill
 
 ## Logo strip (recipe)
 
-A wrapping row of linked logos: a `pk-cluster` (wraps, fixed gap) of `<a>` around a `pk-media`. The same `ratio` on every `pk-media` gives equal-height boxes, and each link carries an `aria-label` with the company name. The SDK has no greyscale switch and no strip element: a consumer who wants muted logos adds an `img` filter in their own theme stylesheet, which is allowed there and not in the library.
+A responsive grid of linked logos: a `pk-grid` (`min="9rem"` wraps two or three per row on a phone; `tracks="repeat(5, minmax(0, 10rem))"` caps each logo at 10rem and puts five in one row from tablet up) of `<a>` around a `pk-media`. A `pk-media` has no width of its own, so it needs a parent that gives it one: a grid column does, a `pk-cluster` or a flex row does not (it renders the logos at 0x0). The same `ratio` on every `pk-media` gives equal-height boxes, at least 48px high with a 9rem column, so the links are tappable. Change the `5` to the number of logos; on a phone the tracks fall back to the `min` columns. Each link carries an `aria-label` with the company name. The SDK has no greyscale switch and no strip element: a consumer who wants muted logos adds an `img` filter in their own theme stylesheet, which is allowed there and not in the library.
 
 ```html
-<pk-cluster gap="md" align="center">
+<pk-grid min="9rem" tracks="repeat(5, minmax(0, 10rem))" gap="md">
   <a href="https://example.com" aria-label="Acme"><pk-media ratio="3/1"><img src="acme.svg" alt="Acme"></pk-media></a>
   <a href="https://example.com" aria-label="Globex"><pk-media ratio="3/1"><img src="globex.svg" alt="Globex"></pk-media></a>
-</pk-cluster>
+  <a href="https://example.com" aria-label="Initech"><pk-media ratio="3/1"><img src="initech.svg" alt="Initech"></pk-media></a>
+  <a href="https://example.com" aria-label="Umbrella"><pk-media ratio="3/1"><img src="umbrella.svg" alt="Umbrella"></pk-media></a>
+  <a href="https://example.com" aria-label="Hooli"><pk-media ratio="3/1"><img src="hooli.svg" alt="Hooli"></pk-media></a>
+</pk-grid>
 ```
 
 ## Contact block (recipe)
