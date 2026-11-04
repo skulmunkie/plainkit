@@ -1,6 +1,22 @@
 /* Gallery page chrome: the shell around the nav, the bars, the view and the inspector; entry cards, frames, foundation swatches. The chrome and the
    pages are pk-* elements (pk-side-nav, pk-button, pk-drawer, pk-card, pk-page-header ...); this file holds only what the gallery itself needs. Tokens only. */
 
+
+/* Gallery page chrome (core/site/gallery/gallery.css) (private tokens, owned by this stylesheet): schematic-only sizes with no equivalent on the shared scale. */
+:root {
+    --_gx-border-w: 1px;
+    --_gx-swatch-size: 1.5rem;
+    --_gx-stage-reserve: 24rem;
+    --_gx-stage-min-h: 30rem;
+    --_gx-el-group-min-w: 14rem;
+    --_gx-el-log-max-h: 10rem;
+    --_gx-nav-w: 17.5rem;
+    --_gx-nav-title-tracking: 0.05em;
+    --_gx-focus-offset: -2px;
+    --_gx-title-min-w: 6rem;
+    --_gx-api-table-min-w: 36rem;
+}
+
 [hidden]:is(pk-button, pk-menu-item, pk-dropdown, pk-drawer, pk-side-nav, pk-toolbar) { display: none; }
 
 /* ---- entries, frames, foundations ---- */

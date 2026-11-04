@@ -1,4 +1,4 @@
-// Internal chrome tokens (--_te-*, --_sc-*, ...) belong to PlainKit's own site/devtools pages (#710). They are not part of the public
+// Internal chrome tokens (--_te-*, --_sc-*, ...) belong to PlainKit's own site/devtools pages (#710) and are defined in the stylesheet that uses them (core/site, core/modules; #1644), never in the shipped page layer (tokens/tokens.css). They are not part of the public
 // token set: no documentation, skill, guide or gallery sample may mention one, and none may appear in the API-surface token list.
 import test from 'node:test';
 import assert from 'node:assert/strict';
@@ -10,7 +10,8 @@ import { surface } from '../tools/api-surface.mjs';
 const core = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 const repo = path.resolve(core, '..');
 const tokensCss = fs.readFileSync(path.join(core, 'tokens', 'tokens.css'), 'utf8');
-const internal = [...new Set([...tokensCss.matchAll(/(--_[a-z0-9-]+)\s*:/g)].map(m => m[1]))];
+const ownerCss = ['site', 'modules'].flatMap(d => walk(path.join(core, d))).filter(f => f.endsWith('.css')).map(f => fs.readFileSync(f, 'utf8')).join('\n');
+const internal = [...new Set([...ownerCss.matchAll(/(--_[a-z0-9-]+)\s*:/g)].map(m => m[1]))];
 const families = [...new Set(internal.map(n => n.match(/^--_[a-z]+(?:-[a-z]+)?-/)[0]))];
 
 function walk(dir) {
@@ -19,8 +20,9 @@ function walk(dir) {
 }
 
 test('internal tokens exist and use the reserved --_ prefix only', () => {
-    assert.ok(internal.length > 30, 'the chrome families are defined in tokens.css');
-    for (const m of tokensCss.matchAll(/(?<![\w-])--(te|sc|ce|gd|lb|gx|gal-pv|gal-shell)-[a-z0-9]+[a-z0-9-]*\s*:/g)) assert.fail(`${m[0]} is a chrome token and must be written --_${m[1]}-...`);
+    assert.ok(internal.length > 30, 'the chrome families are defined in the site and module stylesheets');
+    assert.deepEqual([...tokensCss.matchAll(/(?<![\w-])--_[a-z0-9-]+\s*:/g)].map(m => m[0]), [], 'FIX: private --_ tokens live in the stylesheet that uses them (core/site, core/modules), not in the shipped tokens/tokens.css');
+    for (const m of ownerCss.matchAll(/(?<![\w-])--(te|sc|ce|gd|lb|gx|gal-pv|gal-shell)-[a-z0-9]+[a-z0-9-]*\s*:/g)) assert.fail(`${m[0]} is a chrome token and must be written --_${m[1]}-...`);
 });
 
 test('internal tokens are not in the API surface', () => {

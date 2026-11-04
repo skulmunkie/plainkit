@@ -1,5 +1,12 @@
 /* Layout builder chrome (modules/layout-builder). Tokens only. */
 
+
+/* Layout builder chrome (core/modules/layout-builder/layout-builder.css) (private tokens, owned by this stylesheet): schematic-only sizes with no equivalent on the shared scale. */
+:root {
+    --_lb-canvas-h: 40rem;
+    --_lb-canvas-min-h: 12rem;
+}
+
 .lb { position: relative; display: flex; flex-direction: column; gap: var(--space-2); height: var(--_lb-canvas-h); min-height: 0; min-width: 0; }
 
 .lb > pk-dock { flex: 1 1 auto; min-height: 0; block-size: auto; }

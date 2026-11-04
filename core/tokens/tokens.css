@@ -274,48 +274,6 @@
     --dg-clickable-hover-bg: rgba(74, 144, 226, 0.08);
 }
 
-/* Gallery preview chrome (core/site/gallery/frame.css): schematic-only sizes with no equivalent on the shared scale. */
-:root {
-    --_gal-pv-border-w: 1px;
-    --_gal-shell-side-w: 7rem;
-    --_gal-shell-min-h: 10rem;
-}
-
-/* Theme editor chrome (core/modules/theme-editor/theme-editor.css): schematic-only sizes with no equivalent on the shared scale. */
-:root {
-    --_te-border-w: 1px;
-    --_te-toolbar-col-min: 11rem;
-    --_te-row-name-min: 9rem;
-    --_te-row-name-max: 16rem;
-    --_te-palette-col-min: 12rem;
-    --_te-pair-col1-w: 3.5rem;
-    --_te-saved-name-min: 10rem;
-    --_te-changed-bar-w: 3px;
-    --_te-preview-h: 34rem;
-}
-
-/* Scorecard chrome (core/modules/scorecard/scorecard.css): schematic-only sizes with no equivalent on the shared scale. */
-:root {
-    --_sc-scores-tile-min-w: 10rem;
-    --_sc-table-col1-w: 8rem;
-    --_sc-table-col-last-w: 14rem;
-    --_sc-frames-w: 1280px;
-    --_sc-frames-h: 700px;
-    --_sc-frames-offscreen: -10000px;
-    --_sc-measure-host-w: 900px;
-}
-
-/* Code explorer chrome (core/modules/code-explorer/code-explorer.css): schematic-only sizes with no equivalent on the shared scale. */
-:root {
-    --_ce-border-w: 1px;
-}
-
-/* Layout builder chrome (core/modules/layout-builder/layout-builder.css): schematic-only sizes with no equivalent on the shared scale. */
-:root {
-    --_lb-canvas-h: 40rem;
-    --_lb-canvas-min-h: 12rem;
-}
-
 /* Design surface (core/elements/design-surface): the page frame widths and the mark outlines; schematic-only sizes with no equivalent on the shared scale. */
 :root {
     --surface-phone-w: 375px;
@@ -332,21 +290,6 @@
     --site-docs-nav-w: 18rem;
     --site-scroll-max-w: 72rem;
     --site-search-w: 14rem;
-}
-
-/* Gallery page chrome (core/site/gallery/gallery.css): schematic-only sizes with no equivalent on the shared scale. */
-:root {
-    --_gx-border-w: 1px;
-    --_gx-swatch-size: 1.5rem;
-    --_gx-stage-reserve: 24rem;
-    --_gx-stage-min-h: 30rem;
-    --_gx-el-group-min-w: 14rem;
-    --_gx-el-log-max-h: 10rem;
-    --_gx-nav-w: 17.5rem;
-    --_gx-nav-title-tracking: 0.05em;
-    --_gx-focus-offset: -2px;
-    --_gx-title-min-w: 6rem;
-    --_gx-api-table-min-w: 36rem;
 }
 
 /* pk-tray: the panel's extent per size choice (height for the bottom and top edges, width for the start and end edges). */

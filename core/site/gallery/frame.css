@@ -1,4 +1,12 @@
 /* Demo-only chrome for gallery samples (schematics); not part of the SDK. Every colour and size is a token. */
+
+/* Gallery preview chrome (core/site/gallery/frame.css) (private tokens, owned by this stylesheet): schematic-only sizes with no equivalent on the shared scale. */
+:root {
+    --_gal-pv-border-w: 1px;
+    --_gal-shell-side-w: 7rem;
+    --_gal-shell-min-h: 10rem;
+}
+
 body { height: auto; padding: var(--space-3); }
 
 /* The preview host (preview.html): a pattern or layout as a whole page (pk-container + pk-stack), or a page in a 375px pk-frame filling the window. */
