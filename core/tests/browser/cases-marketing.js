@@ -108,4 +108,20 @@ export const marketingCases = [
             t.ok(Math.abs(box(after).top - top) < 1.5, `at ${w}px the content under the quote moved ${(box(after).top - top).toFixed(1)}px when it upgraded`);
         }
     }],
+    ['logo strip recipe (pk-grid of links around pk-media): every logo has a size, the links are at least 44px high and nothing overflows, at 375 and 1280 (#1838)', async t => {
+        const logo = n => `<a href="#${n}" aria-label="${n}"><pk-media ratio="3/1"><svg viewBox="0 0 3 1" role="img" aria-label="${n} logo"><rect width="3" height="1" fill="currentColor" opacity="0.15"></rect></svg></pk-media></a>`;
+        for (const w of [375, 1280]) {
+            const host = t.stage(`<div style="width:${w}px"><pk-grid id="strip" min="9rem" gap="md">${logo('Acme')}${logo('Globex')}${logo('Initech')}</pk-grid></div>`);
+            await t.load(host); await t.settle(); await wait(80);
+            const links = [...host.querySelectorAll('#strip > a')], hs = links.map(a => box(a).height);
+            for (const a of links) {
+                const b = box(a), m = box(a.querySelector('pk-media')), s = box(a.querySelector('svg'));
+                t.ok(b.width > 40 && b.height >= 44, `at ${w}px the ${a.getAttribute('aria-label')} link is ${b.width.toFixed(0)}x${b.height.toFixed(0)}, expected at least 44px high`);
+                t.ok(m.width > 0 && m.height > 0 && s.width > 0 && s.height > 0, `at ${w}px the ${a.getAttribute('aria-label')} logo has a size (${s.width.toFixed(0)}x${s.height.toFixed(0)})`);
+            }
+            t.ok(Math.max(...hs) - Math.min(...hs) < 1, `at ${w}px the logos are equal height`);
+            const strip = box(host.querySelector('#strip'));
+            t.ok(strip.width <= w + 0.5 && links.every(a => box(a).right <= w + 0.5), `at ${w}px the strip does not overflow`);
+        }
+    }],
 ];

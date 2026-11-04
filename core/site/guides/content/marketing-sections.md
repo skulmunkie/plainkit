@@ -34,13 +34,13 @@ One heading, one line of text and one or two actions. `tone="brand"` is the fill
 
 ## Logo strip (recipe)
 
-A wrapping row of linked logos: a `pk-cluster` (wraps, fixed gap) of `<a>` around a `pk-media`. The same `ratio` on every `pk-media` gives equal-height boxes, and each link carries an `aria-label` with the company name. The SDK has no greyscale switch and no strip element: a consumer who wants muted logos adds an `img` filter in their own theme stylesheet, which is allowed there and not in the library.
+A responsive grid of linked logos: a `pk-grid min="9rem"` (equal columns that wrap) of `<a>` around a `pk-media`. A `pk-media` has no width of its own, so it needs a parent that gives it one: a grid column does, a `pk-cluster` or a flex row does not (it renders the logos at 0x0). The same `ratio` on every `pk-media` gives equal-height boxes, at least 48px high with a 9rem column, so the links are tappable. The columns share the row, so a short strip stretches each logo wider. Each link carries an `aria-label` with the company name. The SDK has no greyscale switch and no strip element: a consumer who wants muted logos adds an `img` filter in their own theme stylesheet, which is allowed there and not in the library.
 
 ```html
-<pk-cluster gap="md" align="center">
+<pk-grid min="9rem" gap="md">
   <a href="https://example.com" aria-label="Acme"><pk-media ratio="3/1"><img src="acme.svg" alt="Acme"></pk-media></a>
   <a href="https://example.com" aria-label="Globex"><pk-media ratio="3/1"><img src="globex.svg" alt="Globex"></pk-media></a>
-</pk-cluster>
+</pk-grid>
 ```
 
 ## Contact block (recipe)
