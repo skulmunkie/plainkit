@@ -1,0 +1,13 @@
+{
+  "component": "PkQuote",
+  "params": [
+    { "name": "Cite", "prop": "cite", "type": "string?" },
+    { "name": "Size", "prop": "size", "type": "QuoteSize" },
+    { "name": "ChildContent", "slot": "", "type": "RenderFragment?" },
+    { "name": "PortraitContent", "slot": "portrait", "type": "RenderFragment?" },
+    { "name": "NameContent", "slot": "name", "type": "RenderFragment?" },
+    { "name": "RoleContent", "slot": "role", "type": "RenderFragment?" },
+    { "name": "RatingContent", "slot": "rating", "type": "RenderFragment?" }
+  ],
+  "notes": "A static content element: your blockquote is the default slot. Added with the core element (#1838); docs and skills follow in the next slice."
+}

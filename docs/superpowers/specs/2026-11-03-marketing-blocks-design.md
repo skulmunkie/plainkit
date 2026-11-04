@@ -39,7 +39,7 @@ Non-goals:
 
 ## 4. Placement: core or an optional package (Q1)
 
-Core `plainkit` is at 280,547 of 283,300 packed bytes (`core/tests/package-size.test.mjs`): about 2.7 KB of headroom, a one-way ratchet that branches never raise. Estimated cost, from the gzip size of comparable files (`card.element.js` 1.7 KB, `alert.element.js` 1.9 KB, `rating.element.js` 1.6 KB):
+Core `plainkit` is at 280,547 of 283,300 packed bytes (raised by the owner to 291,492 on 2026-11-04 as temporary headroom for pk-quote and pk-cta-band, to be carved back out later, #1838) (`core/tests/package-size.test.mjs`): about 2.7 KB of headroom, a one-way ratchet that branches never raise. Estimated cost, from the gzip size of comparable files (`card.element.js` 1.7 KB, `alert.element.js` 1.9 KB, `rating.element.js` 1.6 KB):
 
 | Item | Packed estimate |
 | --- | --- |
