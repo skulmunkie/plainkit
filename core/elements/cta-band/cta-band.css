@@ -1,0 +1,8 @@
+:host { inline-size: 100%; min-inline-size: 0; container-type: inline-size; background: var(--pk-cta-band-bg, var(--color-surface-alt)); color: var(--color-text); text-align: start; }
+:host([bleed]) { inline-size: 100vw; margin-inline: calc(50% - 50vw); }
+:host([tone="brand"]) { background: var(--pk-cta-band-bg, var(--color-accent-fill)); color: var(--btn-primary-fg); --pk-button-bg: var(--color-panel); --pk-button-bg-hover: var(--color-surface); --pk-button-fg: var(--color-text); }
+:host([align="center"]) { text-align: center; }
+/* The box (display, padding) is reserved in base.css, so it is the same before the element upgrades. */
+::slotted([slot="actions"]) { display: flex; flex-wrap: wrap; gap: var(--space-3); }
+:host([align="center"]) ::slotted([slot="actions"]) { justify-content: center; }
+@container (max-width: 40rem) { ::slotted([slot="actions"]) { flex-direction: column; align-items: stretch; } }

@@ -78,7 +78,7 @@ export const navItemCases = [
         });
     }],
     ['side-nav (#1891): opening a parent collapses its expanded siblings; nested state, aria-expanded, filter and current-path follow', async t => {
-        const html = '<pk-side-nav id="n" filterable><pk-nav-item id="a">A<pk-nav-item slot="children" id="a1">A1<pk-nav-item slot="children" href="#ax">AX</pk-nav-item></pk-nav-item><pk-nav-item slot="children" href="#a2">A2</pk-nav-item></pk-nav-item><pk-nav-item id="b">B<pk-nav-item slot="children" href="#b1">B1</pk-nav-item></pk-nav-item><pk-nav-item id="c">C<pk-nav-item slot="children" href="/c1">C1</pk-nav-item></pk-nav-item></pk-side-nav>';
+        const html = '<pk-side-nav id="n" filterable><pk-nav-item id="a">A<pk-nav-item slot="children" id="a1">A1<pk-nav-item slot="children" href="#ax">AX</pk-nav-item></pk-nav-item><pk-nav-item slot="children" href="#a2">A2</pk-nav-item></pk-nav-item><pk-nav-item id="b">B<pk-nav-item slot="children" href="#b1">B1</pk-nav-item></pk-nav-item><pk-nav-item id="c">C<pk-nav-item slot="children" href="' + '/c1">C1</pk-nav-item></pk-nav-item></pk-side-nav>';
         const host = t.stage(html); await t.load(host); await t.settle(); await wait(80);
         const nav = host.querySelector('#n'), q = id => host.querySelector('#' + id);
         const click = id => q(id).row.click(), aria = id => q(id).row.getAttribute('aria-expanded');

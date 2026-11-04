@@ -66,13 +66,7 @@
       "description": "The Source link when cite is set."
     }
   ],
-  "cssProperties": [
-    {
-      "name": "--pk-quote-gap",
-      "description": "Space between the quote and its caption.",
-      "default": "var(--space-3)"
-    }
-  ],
+  "cssProperties": [],
   "methods": [],
   "a11y": "A figure with a figcaption around your blockquote, so the attribution belongs to the quote. The portrait is named by pk-avatar and the rating keeps its own label, so each is spoken once. The element adds no hover-only content and never edits the nodes you wrote.",
   "examples": [
