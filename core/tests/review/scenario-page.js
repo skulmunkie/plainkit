@@ -90,7 +90,7 @@ export async function startScenario({ name, root, state, measure, settle, pendin
         },
         describe: sel => { const el = find(sel); if (!el) return 'not found'; const cs = getComputedStyle(el); const r = el.getBoundingClientRect(); return `display ${cs.display}, visibility ${cs.visibility}, ${Math.round(r.width)}x${Math.round(r.height)} at ${Math.round(r.x)},${Math.round(r.y)}`; },
         // html and body are the page, not something inside the frame: find() would never see them and every page-overflow check read 0 <= 0 (#1873).
-        metric: (sel, name) => (sel === 'html' ? document.documentElement : sel === 'body' ? document.body : find(sel))?.[name] ?? 0,
+        metric: (sel, name) => (sel === 'html' ? document.documentElement : sel === 'body' ? document.body : find(sel))?.[name] ?? null, // null: no such element (t.metric fails on it, #1887)
         count: sel => findIn(frame, sel, true).length,
         visible: sel => { const el = find(sel); return Boolean(el) && boxed(el) && (!el.checkVisibility || el.checkVisibility({ visibilityProperty: true })); },
         text: sel => (find(sel)?.textContent ?? '').replace(/\s+/g, ' ').trim(),
