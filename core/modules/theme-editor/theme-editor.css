@@ -1,5 +1,19 @@
 /* Theme editor chrome (modules/theme-editor). Tokens only. */
 
+
+/* Theme editor chrome (core/modules/theme-editor/theme-editor.css) (private tokens, owned by this stylesheet): schematic-only sizes with no equivalent on the shared scale. */
+:root {
+    --_te-border-w: 1px;
+    --_te-toolbar-col-min: 11rem;
+    --_te-row-name-min: 9rem;
+    --_te-row-name-max: 16rem;
+    --_te-palette-col-min: 12rem;
+    --_te-pair-col1-w: 3.5rem;
+    --_te-saved-name-min: 10rem;
+    --_te-changed-bar-w: 3px;
+    --_te-preview-h: 34rem;
+}
+
 .te { display: flex; flex-direction: column; gap: var(--space-3); min-width: 0; }
 
 .te[data-fixed] { min-height: 0; }

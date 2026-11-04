@@ -2,6 +2,12 @@
    buttons and badges are pk-* elements; what is left here is the host, the code viewer frame (cv-*; the listing is pk-code-view), the outline (co-*) and the search
    results (csr-*), none of which an element covers, plus the small ce-* layout classes around the elements. */
 
+
+/* Code explorer chrome (core/modules/code-explorer/code-explorer.css) (private tokens, owned by this stylesheet): schematic-only sizes with no equivalent on the shared scale. */
+:root {
+    --_ce-border-w: 1px;
+}
+
 /* The <pk-code-explorer> element: a flex column of a set height so the workspace inside can fill it and scroll its panes. */
 pk-code-explorer {
     --_ce-mono: ui-monospace, "Cascadia Code", Consolas, monospace;
