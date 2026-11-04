@@ -17,7 +17,7 @@ export default Base => class extends Base {
             this.part('backdrop').addEventListener('click', () => this.request('backdrop'));
             this.part('filter-input')?.addEventListener('input', e => this.filter(e.target.value));
             this.addEventListener('keydown', e => this.key(e));
-            this.addEventListener('pk-toggle', () => this.save());
+            this.addEventListener('pk-toggle', e => { this.exclusive(e.target.closest?.('pk-nav-item'), e.detail?.expanded); this.save(); });
             this.addEventListener('keydown', e => { if (e.key === 'Escape' && this.open) this.request('escape'); });
             this.watchSlot('', () => this.sync());
             this.watchSlot('brand', () => this.sync());
@@ -74,7 +74,18 @@ export default Base => class extends Base {
         const s = parseNav(text);
         if (text) { const was = this.collapsed; this.collapsed = s.collapsed; if (this.collapsed !== was) this.emit('pk-nav-toggle', { collapsed: this.collapsed }, { cancelable: false }); }
         const open = new Set(s.open);
-        if (text) for (const i of items(this)) if (i.querySelector('pk-nav-item')) i.expanded = open.has(idOf(i));
+        if (text) { for (const i of items(this)) if (i.querySelector('pk-nav-item')) i.expanded = open.has(idOf(i)); this.reduce(); }
+    }
+    // One open parent per level unless allow-multiple: opening a row collapses its expanded siblings (their own children keep their state).
+    // The filter opens matches without a user toggle, so it is exempt while a filter is active (); a persisted state is reduced on load.
+    exclusive(row, opened) {
+        if (!row || !opened || this.allowMultiple || this.$saved) return;
+        for (const i of items(this)) if (i !== row && i.expanded && i.parentElement === row.parentElement) i.expanded = false;
+    }
+    reduce() {
+        if (this.allowMultiple) return;
+        const seen = new Set();
+        for (const i of items(this)) if (i.expanded) { const p = i.parentElement; if (seen.has(p)) i.expanded = false; else seen.add(p); }
     }
     filter(q) {
         const all = rowsOf(this); for (const g of items(this).filter(i => i.group)) g.hidden = Boolean(q.trim());
