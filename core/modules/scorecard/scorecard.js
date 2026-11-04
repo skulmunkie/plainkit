@@ -45,6 +45,7 @@ import { timeRows, readTexts, measureSizes } from './measure.js';
 import { h, table, card, missing, scoreTile, scoreTiles, emptyState, categoryTabs, paintSize, paintApi, paintTiers, paintSweep, paintSecurity, paintHistory, note } from './sections.js';
 
 const STYLES = ['../../plainkit.css'];
+const OWN_STYLES = ['./scorecard.css'];
 
 export const DEFAULTS = Object.freeze({ themes: ['dark', 'light'], widths: [375, 1024], penalty: { error: 25, warn: 8 }, concurrency: 8, settleMs: 120, defineMs: 3000 });
 export const SECTIONS = Object.freeze(['ranked', 'performance', 'size', 'api', 'tiers', 'sweep', 'security', 'history']);
@@ -198,7 +199,7 @@ export async function mountScorecard(container, options = {}) {
     const runs = sections.has('ranked') || sections.has('performance');
     if (runs && !normalizeTargets(targets).length) throw new Error('mountScorecard needs targets: URLs, { name, url }, { name, html } or { name, srcdoc }');
     const doc = container.ownerDocument;
-    await ensureStyles(styleUrls(STYLES, import.meta.url), doc);
+    await ensureStyles([...styleUrls(STYLES, import.meta.url), ...styleUrls(OWN_STYLES, import.meta.url)], doc);
     const root = h(doc, 'pk-container', { size: 'full', padding: theme ? 'md' : 'none' });
     const stack = h(doc, 'pk-stack', { gap: 'md' });
     root.append(stack);

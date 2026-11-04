@@ -222,7 +222,8 @@ export const S_RULES = [
                 [/(?<!var\([^)]*)\b\d+(?:\.\d+)?(?:px|rem|em)\b/g, 'a literal length'],
                 [/\bz-index\s*:\s*\d+/g, 'a literal z-index'],
             ]) {
-                hits.push(...hitsForEach(stripped, re, m => hitAt(file.text, m.index, m[0], { found: m[0] })));
+                // A private `--_*` token declaration is where the owning stylesheet defines its own schematic size (#1644): not a literal in use.
+                hits.push(...hitsForEach(stripped, re, m => (/^\s*--_[\w-]+\s*:/.test(stripped.slice(stripped.lastIndexOf('\n', m.index) + 1, m.index + m[0].length)) ? null : hitAt(file.text, m.index, m[0], { found: m[0] }))).filter(Boolean));
             }
             return hits;
         },
