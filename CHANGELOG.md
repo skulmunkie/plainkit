@@ -5,6 +5,30 @@ The format follows [Keep a Changelog](https://keepachangelog.com/) and the proje
 
 ## [Unreleased]
 
+## [0.27.0] - 2026-11-04
+
+### Added
+
+- The "Marketing sections" guide and gallery pattern show a testimonial (`pk-quote`), a logo strip and a contact block as recipes of existing elements, and a closing `pk-cta-band`. (#1838)
+- `pk-cta-band`: a call-to-action surface with your own heading, a line of text and one or two actions (`tone` neutral or brand, `align` start or center, `bleed` for edge to edge). Your markup is never changed, the actions are full width on a phone, and the heading, text and links show as plain blocks before the element upgrades or with JavaScript off. (#1838)
+- `pk-quote`: a testimonial or pull quote. Your own `blockquote` is slotted into a shadow `figure`, with a `figcaption` for the portrait, name, role and rating slots and an optional `cite` source link; your markup is never changed, and the plain blockquote shows before the element upgrades or with JavaScript off. (#1838)
+- `pk-record-page` takes `wrapTitle` (also `config.wrapTitle`; Blazor `PkRecordPage` `WrapTitle`): it draws the compact record strip and lets a long title wrap to at most three lines on a phone. `pk-page-shell` forwards `variant` and `wrap-title` to its header (Blazor `PkPageShell` `Variant`, `WrapTitle`). (#1876)
+
+### Changed
+
+- `pk-quote` `size="large"` now sets the quote in the `--text-h2` size, so it is clearly bigger than the default (it was almost the same size). (#1838)
+- **Behaviour change:** `pk-side-nav` now keeps one branch open per level: opening a parent collapses its expanded siblings (their nested state is kept, the filter box is exempt, and a persisted state with several open siblings is reduced on load). Add `allow-multiple` (Blazor `AllowMultiple`) to keep the old behaviour of several branches open at once. (#1891)
+
+### Fixed
+
+- A long `pk-tree-item` label ends in an ellipsis again instead of being cut off without one (a second label rule made it a flex box). (#1874)
+- A `pk-nav-item` that holds a slotted link keeps its row height, padding and icon column before the element upgrades, so the nav rows no longer jump when the element is defined late. (#1877)
+- The record page gallery examples draw a representative product record (title, fields and sidebar card) instead of an empty strip, because their config is now given. (#1889)
+
+### Notes
+
+- The private chrome tokens are defined in the site and module stylesheets that use them instead of in `plainkit.css`, so the page layer is about 0.4 KB gzip smaller. No public token changes. (#1644)
+
 ## [0.26.0] - 2026-11-02
 
 ### Added
