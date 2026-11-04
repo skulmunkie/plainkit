@@ -56,7 +56,7 @@ export default {
         }
         if (['open', 'row-focus', 'multi-open', 'rtl-open'].includes(t.shot)) {
             const id = t.shot === 'multi-open' ? 'multi' : 'single', panel = PANEL(id);
-            t.visible(panel, 'the popup'); t.inViewport(panel); t.ok(t.metric(panel, 'width') <= t.viewport.width - 8, 'the popup is narrower than the viewport (phone width check)'); t.visible(ROWS(id), 'the rows');
+            t.visible(panel, 'the popup'); t.inViewport(panel); t.ok(t.rect(panel).width <= t.viewport.width - 8, 'the popup is narrower than the viewport (phone width check)'); t.visible(ROWS(id), 'the rows');
             t.visible(`${TABLE(id)} >>> [part=filters] >>> [part=search]`, 'the search box'); t.visible(`${TABLE(id)} >>> [part=pagination]`, 'the pager');
             t.noOverlap(CTL(id), panel, 'the popup over its own field');
             t.ok(t.viewport.name !== 'phone' || (t.rect(`${TABLE(id)} >>> [part=filters] >>> [part=search]`)?.height ?? 0) >= 44, 'the popup search box is at least 44px tall on a phone', 'the table-filters search box needs min-block-size: var(--touch-target) in its phone rule (#889)');

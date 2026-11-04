@@ -39,7 +39,7 @@ export default {
         { shot: 'width-tablet' },
     ],
     expect(t) {
-        t.ok(t.metric(':root', 'scrollHeight') <= t.viewport.height + 1, 'the page does not scroll: the dock scrolls its panels inside itself');
+        t.ok(t.metric('html', 'scrollHeight') <= t.viewport.height + 1, 'the page does not scroll: the dock scrolls its panels inside itself');
         t.inViewport(DOCK);
         t.visible(`${DOCK} >>> [part=toolbar]`, 'the dock toolbar holds the builder\'s menus');
         t.within('#host pk-dropdown[data-menu="file"]', `${DOCK} >>> [part=toolbar]`);
