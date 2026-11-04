@@ -370,6 +370,7 @@ import { auditDashboardCases } from './cases-audit-dashboard.js'; cases.push(...
 import { auditScreensCases } from './cases-audit-screens.js'; cases.push(...auditScreensCases);
 import { dockCases, dockDeclCases } from './cases-dock.js'; cases.push(...dockCases, ...dockDeclCases);
 import { navItemCases } from './cases-nav-item.js'; cases.push(...navItemCases);
+import { marketingCases } from './cases-marketing.js'; cases.push(...marketingCases);
 import { emptyPartsCases } from './cases-empty-parts.js'; cases.push(...emptyPartsCases);
 import { slotchangeLoopCases } from './cases-slotchange-loop.js'; cases.push(...slotchangeLoopCases);
 import { devtoolsWorkspaceCases } from './cases-devtools-workspace.js'; cases.push(...devtoolsWorkspaceCases);

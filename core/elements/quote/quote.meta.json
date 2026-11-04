@@ -1,0 +1,88 @@
+{
+  "tag": "pk-quote",
+  "title": "Quote",
+  "group": "Data display",
+  "tier": "element",
+  "preUpgrade": "visible",
+  "summary": "A testimonial or pull quote: your own blockquote, with a caption for the portrait, name, role and rating. The element draws a figure and figcaption around your markup and never changes it; before it upgrades (or with JavaScript off) the plain blockquote shows.",
+  "props": [
+    {
+      "name": "cite",
+      "type": "string",
+      "default": "",
+      "reflect": true,
+      "description": "The source URL (a same-site path or http(s) address). Renders one Source link in the caption; your own blockquote cite attribute is untouched."
+    },
+    {
+      "name": "size",
+      "type": "enum",
+      "default": "default",
+      "values": [
+        "default",
+        "large"
+      ],
+      "reflect": true,
+      "description": "large sets bigger type for a lone hero quote."
+    }
+  ],
+  "slots": [
+    {
+      "name": "",
+      "description": "The author's blockquote."
+    },
+    {
+      "name": "portrait",
+      "description": "A pk-avatar or image beside the name."
+    },
+    {
+      "name": "name",
+      "description": "Who said it."
+    },
+    {
+      "name": "role",
+      "description": "Their role or context, under the name."
+    },
+    {
+      "name": "rating",
+      "description": "A read-only pk-rating."
+    }
+  ],
+  "events": [],
+  "parts": [
+    {
+      "name": "figure",
+      "description": "The figure around the quote and its caption."
+    },
+    {
+      "name": "caption",
+      "description": "The figcaption row; hidden when it has nothing to show."
+    },
+    {
+      "name": "who",
+      "description": "The name and role column."
+    },
+    {
+      "name": "source",
+      "description": "The Source link when cite is set."
+    }
+  ],
+  "cssProperties": [
+    {
+      "name": "--pk-quote-gap",
+      "description": "Space between the quote and its caption.",
+      "default": "var(--space-3)"
+    }
+  ],
+  "methods": [],
+  "a11y": "A figure with a figcaption around your blockquote, so the attribution belongs to the quote. The portrait is named by pk-avatar and the rating keeps its own label, so each is spoken once. The element adds no hover-only content and never edits the nodes you wrote.",
+  "examples": [
+    {
+      "title": "Testimonial",
+      "html": "<pk-quote>\n  <blockquote><p>Fast delivery and the fit was perfect.</p></blockquote>\n  <pk-avatar slot=\"portrait\" name=\"Alex Roe\"></pk-avatar>\n  <span slot=\"name\">Alex Roe</span>\n  <span slot=\"role\">Customer since 2023</span>\n  <pk-rating slot=\"rating\" readonly value=\"5\" label=\"5 out of 5\"></pk-rating>\n</pk-quote>"
+    },
+    {
+      "title": "Large, with a source",
+      "html": "<pk-quote size=\"large\" cite=\"https://example.com/review/42\">\n  <blockquote><p>The simplest setup we have shipped.</p></blockquote>\n  <span slot=\"name\">Sam Lee</span>\n  <span slot=\"role\">Head of Product</span>\n</pk-quote>"
+    }
+  ]
+}
