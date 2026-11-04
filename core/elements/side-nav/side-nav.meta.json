@@ -55,6 +55,13 @@
       "default": false,
       "reflect": true,
       "description": "With current-path, also opens every ancestor branch of the active row and collapses every other branch."
+    },
+    {
+      "name": "allowMultiple",
+      "type": "boolean",
+      "default": false,
+      "reflect": true,
+      "description": "Let several branches of one level stay open. By default opening a branch collapses its expanded siblings."
     }
   ],
   "slots": [
