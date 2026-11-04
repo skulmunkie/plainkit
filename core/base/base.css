@@ -146,7 +146,7 @@ pk-nav-item:not(:defined) > [slot="icon"] { flex: none; width: 1.25rem; text-ali
 pk-nav-item:not(:defined) > [slot="badge"] { margin-inline-start: auto; order: 1; }
 /* A quote's blockquote is the author's node, so it is drawn from here (an outer rule beats ::slotted), the same before and after the element upgrades (#1838). */
 pk-quote:not(:defined) { display: block; }
-pk-quote > blockquote { display: flow-root; margin: 0; padding-inline-start: var(--space-4); border-inline-start: 3px solid var(--color-accent); font-size: var(--text-lg); }
+pk-cta-band { display: block; padding: var(--space-6) var(--space-4); }
+pk-quote > blockquote { display: flow-root; margin: 0 0 var(--space-3); padding-inline-start: var(--space-4); border-inline-start: 3px solid var(--color-accent); font-size: var(--text-lg); }
 pk-quote[size=large] > blockquote { font-size: var(--text-h4); }
-pk-quote:not(:defined) > blockquote { margin-block-end: var(--space-3); }
 pk-quote:not(:defined) > [slot] { display: block; padding-inline-start: var(--space-4); }

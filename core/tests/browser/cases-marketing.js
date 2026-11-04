@@ -11,7 +11,61 @@ const frame = async (t, w, hold) => {
     return f.contentWindow;
 };
 
+const bandFrame = async (t, w, hold) => {
+    const host = t.stage(''), f = document.createElement('iframe');
+    f.title = 'cta band fixture';
+    f.style.cssText = `width:${w}px;height:600px;border:0;display:block`;
+    f.src = new URL(`./cta-band-frame.html${hold ? '?hold=pk-cta-band' : ''}`, import.meta.url).href;
+    await new Promise(resolve => { f.addEventListener('load', resolve, { once: true }); host.append(f); });
+    await wait(400);
+    return f.contentWindow;
+};
+const BAND = '<h2 slot="heading">Ready to start?</h2><p>Free for 30 days.</p><span slot="actions"><pk-button id="b1">Start free</pk-button><pk-button id="b2">Book a demo</pk-button></span>';
+
 export const marketingCases = [
+    ['cta-band: the heading, text and actions stack in the band; under 640px the actions are full width and 44px high, above they sit side by side', async t => {
+        for (const w of [375, 1280]) {
+            const win = await bandFrame(t, w, false), host = win.document;
+            await win.customElements.whenDefined('pk-cta-band'); await win.customElements.whenDefined('pk-button'); await wait(200);
+            const c = host.querySelector('#b1'), h = c.querySelector('h2'), p = c.querySelector('p'), a = c.querySelector('[slot=actions]');
+            const extra = host.createElement('pk-button'); extra.setAttribute('block', ''); extra.textContent = 'Book a demo'; a.append(extra); await win.customElements.whenDefined('pk-button'); await wait(200);
+            const [b1, b2] = c.querySelectorAll('pk-button');
+            t.ok(box(p).top >= box(h).bottom - 0.5 && box(a).top >= box(p).bottom - 0.5, `at ${w}px the heading, the text and the actions stack in that order`);
+            t.ok(box(c).width <= w + 0.5 && c.scrollWidth <= c.clientWidth + 1, `at ${w}px nothing overflows the band`);
+            if (w < 640) {
+                t.ok(Math.abs(box(b1).width - box(b2).width) < 1 && box(b1).width > w * 0.7 && box(b2).top >= box(b1).bottom - 0.5, `at ${w}px the two actions are full width, one under the other (${box(b1).width.toFixed(0)} wide)`);
+                t.ok(box(b1.shadowRoot.querySelector('[part=control]')).width > w * 0.7, `at ${w}px the button itself, not only its host, is full width`);
+                t.ok(box(b1).height >= 43.5, `at ${w}px an action is ${box(b1).height.toFixed(1)} high, the touch target is 44`);
+            } else t.ok(Math.abs(box(b1).top - box(b2).top) < 2 && box(b2).left > box(b1).right - 0.5, `at ${w}px the actions sit side by side`);
+            t.ok(getComputedStyle(c).backgroundColor !== 'rgba(0, 0, 0, 0)', `at ${w}px tone brand draws a surface`);
+        }
+    }],
+    ['cta-band: align center centres the text and actions; bleed reaches both viewport edges inside a padded column; bleed adds no horizontal scroll', async t => {
+        const win = await bandFrame(t, 375, false), d = win.document;
+        await win.customElements.whenDefined('pk-cta-band'); await win.customElements.whenDefined('pk-button'); await wait(200);
+        const n = d.querySelector('#b1'), h = n.querySelector('h2'), band = box(n);
+        t.ok(Math.abs((box(h).left + box(h).right) / 2 - (band.left + band.right) / 2) < 40 || getComputedStyle(h).textAlign === 'center', 'align center centres the heading');
+        t.eq(getComputedStyle(n.querySelector('p')).textAlign, 'center', 'align center centres the text');
+        const e = box(d.querySelector('#b2'));
+        t.ok(e.left <= 0.5 && Math.abs(e.right - d.documentElement.clientWidth) <= 1, `bleed reaches both viewport edges from inside a padded column (${e.left.toFixed(1)} to ${e.right.toFixed(1)} of ${d.documentElement.clientWidth})`);
+        t.ok(d.documentElement.scrollWidth <= d.documentElement.clientWidth + 1, 'bleed adds no horizontal scroll');
+    }],
+    ['cta-band: with the element not defined (no JavaScript yet) the heading, text and links are visible; defining it keeps the author nodes and moves nothing by 1.5px or more, at 375 and 1280 (#1838)', async t => {
+        for (const w of [375, 1280]) {
+            const win = await bandFrame(t, w, true), d = win.document;
+            t.ok(!win.customElements.get('pk-cta-band'), 'pk-cta-band is not defined');
+            const q = d.querySelector('#b1'), h = q.querySelector('h2'), after = d.querySelector('#after');
+            t.ok(box(h).height > 0 && getComputedStyle(h).visibility === 'visible' && box(q.querySelector('a, pk-button')).height > 0, `at ${w}px the heading and the actions are visible`);
+            const html = q.innerHTML, qb = box(q), hb = box(h), top = box(after).top;
+            win.release(); await Promise.race([win.customElements.whenDefined('pk-cta-band'), wait(5000)]); await wait(300);
+            t.ok(!!win.customElements.get('pk-cta-band'), 'pk-cta-band is defined now');
+            t.eq(q.innerHTML, html, `at ${w}px defining the element left the author children unchanged`);
+            const qa = box(q), ha = box(h);
+            t.ok(Math.abs(qa.height - qb.height) < 1.5 && Math.abs(qa.width - qb.width) < 1.5, `at ${w}px the band went from ${qb.width.toFixed(1)}x${qb.height.toFixed(1)} to ${qa.width.toFixed(1)}x${qa.height.toFixed(1)}, expected the same. FIX: reserve the box with pk-cta-band:not(:defined) in base.css`);
+            t.ok(Math.abs(ha.top - hb.top) < 1.5, `at ${w}px the heading moved ${(ha.top - hb.top).toFixed(1)}px`);
+            t.ok(Math.abs(box(after).top - top) < 1.5, `at ${w}px the content under the band moved ${(box(after).top - top).toFixed(1)}px when it upgraded`);
+        }
+    }],
     ['quote: a shadow figure wraps the slotted blockquote; the portrait and the name share a row and the caption sits under the quote, with no overflow, at 375 and 1280', async t => {
         for (const w of [375, 1280]) {
             const host = t.stage(`<div style="width:${w}px"><pk-quote id="q"><blockquote><p>Fast delivery and the fit was perfect.</p></blockquote><span slot="portrait" id="pt" style="display:inline-block;width:40px;height:40px">P</span><span slot="name">Alex Roe</span><span slot="role">Customer since 2023</span></pk-quote></div>`);
@@ -27,7 +81,7 @@ export const marketingCases = [
             t.eq(getComputedStyle(q).display, 'block', `at ${w}px the host is a block`);
         }
     }],
-    ['quote: the cite prop renders one source link in the caption, an unsafe URL renders none, and the author markup is unchanged', async t => {
+    ['quote: the cite prop renders one source link in the caption, an unsafe URL renders none, and bleed adds no horizontal scroll', async t => {
         const host = t.stage('<pk-quote id="a" cite="https://example.com/review/42"><blockquote><p>Good.</p></blockquote><span slot="name">A</span></pk-quote><pk-quote id="b" cite="data:text/html,x"><blockquote><p>Good.</p></blockquote></pk-quote>');
         const before = host.querySelector('#a').innerHTML;
         await t.load(host); await t.settle(); await wait(80);
