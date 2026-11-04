@@ -1,0 +1,20 @@
+{
+  "id": "marketing-sections",
+  "title": "Marketing sections",
+  "summary": "The four blocks of a marketing page: a testimonial, a logo strip, a contact block and a closing call-to-action band.",
+  "built": "Quote and CtaBand (elements); logo strip (Cluster, Media) and contact block (address, FieldList) as recipes.",
+  "mobile": "The logos wrap, the contact list stacks and the band's buttons are full width and keep 44px.",
+  "used": [
+    "avatar",
+    "button",
+    "cluster",
+    "cta-band",
+    "field-list",
+    "media",
+    "quote",
+    "rating",
+    "stack",
+    "text"
+  ],
+  "order": 11
+}
