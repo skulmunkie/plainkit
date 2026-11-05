@@ -14,3 +14,9 @@
 /* A phone shows the icon alone: a touch-sized square. */
 @media (max-width: 640px) { #components-reconnect-modal pk-button[icon] { min-inline-size: var(--touch-target); } }
 #components-reconnect-modal pk-button:not([icon]) pk-icon { margin-inline-end: var(--space-1); }
+/* A narrow viewport keeps one row (#1907): pk-alert wraps its actions under the message on a phone, so the banner undoes that: the action stays at the end and a long message truncates first. */
+@media (max-width: 640px) {
+    #components-reconnect-modal pk-alert { flex-wrap: nowrap; align-items: center; }
+    #components-reconnect-modal pk-alert::part(actions) { flex: none; order: 0; }
+    #components-reconnect-modal pk-alert::part(message) { overflow: hidden; white-space: nowrap; text-overflow: ellipsis; }
+}

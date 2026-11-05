@@ -83,6 +83,29 @@ export const RECONNECT_CASES = [
             await ctx.noErrors(ctx.openMark, BENIGN);
         });
       } },
+    { name: 'reconnect-banner-narrow-single-row', // #1907: at 590 and 375 px the action stays on the message's row and a long message truncates before the action wraps; the banner keeps one row
+      async run(ctx) {
+        await barUp(ctx);
+        const measure = () => ctx.eval(`(() => { const bar = ${BAR}.getBoundingClientRect(), al = ${BAR}.querySelector('pk-alert'), msg = al.shadowRoot.querySelector('[part="message"]').getBoundingClientRect(), b = ${MODAL}.querySelector('[data-act="reload"]').getBoundingClientRect(); return { barH: bar.height, btnH: b.height, btnTop: b.top - bar.top, btnLeft: b.left, btnRight: b.right, msgRight: msg.right, vw: innerWidth, scrollX: document.documentElement.scrollWidth - innerWidth }; })()`);
+        for (const [w, touch] of [[590, false], [375, true]]) {
+            await ctx.viewport({ name: 'narrow', width: w, height: 812, touch }, 'light');
+            try {
+                await ctx.open('/'); await ctx.waitFor(`!!${BAR}`, `the banner at ${w}px`);
+                for (const long of [false, true]) {
+                    await fire(ctx, 'retrying', ', currentAttempt: 3'); await ctx.waitFor(`${KIND} === 'busy'`, 'the busy banner');
+                    if (long) await ctx.eval(`(${MODAL}.querySelector('[data-part="text"]').textContent = 'Reconnecting to the server, this can take a while when the network is slow or the host is restarting, please keep this page open', true)`);
+                    await ctx.sleep(250);
+                    const m = await measure(), what = `${w}px${long ? ' long message' : ''}: ${JSON.stringify(m)}`;
+                    ctx.ok(m.barH <= m.btnH + 28, `the banner keeps one row (${what})`);
+                    ctx.ok(m.btnTop <= 16 && m.btnRight <= m.vw + 1 && m.scrollX <= 1, `the action sits on the message row inside the viewport (${what})`);
+                    ctx.ok(m.msgRight <= m.btnLeft + 1, `the message ends before the action starts (${what})`);
+                    if (long) await ctx.shot(`reconnect-narrow-${w}`, { name: 'narrow', width: w, height: 812, touch }, 'light');
+                    await fire(ctx, 'hide'); await ctx.waitFor(`${BAR}.hidden`, 'the banner to hide');
+                }
+                await ctx.noErrors(ctx.openMark, BENIGN);
+            } finally { await ctx.viewport({ name: 'desktop', width: 1280, height: 900 }, 'light'); }
+        }
+      } },
     { name: 'reconnect-host-restart-rejected', // the circuit is really gone: the banner shows reconnecting, then the session ended with a visible countdown; Cancel keeps the page, Reload gives a fresh circuit
       async run(ctx) {
         await barUp(ctx);
