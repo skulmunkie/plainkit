@@ -10,16 +10,14 @@ namespace PlainKit.Blazor.Components
         }
 
         internal Task ClickRowForTestAsync(string id) => HandleRowClickAsync(new PkRowClickEventArgs { Id = id });
+        internal Task ExpandRowForTestAsync(string id, bool open) => HandleRowExpandAsync(new PkRowExpandEventArgs { Id = id, Expanded = open });
     }
 }
 
 namespace PlainKit.Blazor.Testing
 {
-    /// <summary>
-    /// Component tests for pages that use <see cref="Components.PkDataTable{TItem}"/>. In the browser the element calls <c>Load</c>; under bUnit there is no element,
-    /// so nothing loads and no rows, <c>Cell</c> output or row click exist. These helpers do what the element does: <c>await cut.Instance.LoadAsync()</c>
-    /// runs your <c>Load</c> (and renders the rows and cell templates), <c>ClickRowAsync(id)</c> raises the row click.
-    /// </summary>
+    /// <summary>Component tests for pages that use <see cref="Components.PkDataTable{TItem}"/>. Under bUnit there is no element, so these do what it does: <c>LoadAsync()</c> runs your <c>Load</c>
+    /// (and renders the rows, cell and detail templates), <c>ClickRowAsync(id)</c> raises the row click, <c>ExpandRowAsync(id)</c> expands a row.</summary>
     public static class PkDataTableTesting
     {
         /// <summary>Loads one page the way the element does and returns the items of that page; the table has rendered them (read <c>cut.Markup</c> or <c>Find("[slot=cell-1-Name]")</c> after the await).</summary>
@@ -35,10 +33,9 @@ namespace PlainKit.Blazor.Testing
         }
 
         /// <summary>Raises the element's row click for the loaded row with this id (<c>IdOf</c>), so <c>OnRowClick</c> gets the item; an id that is not a loaded row does nothing, as in the browser.</summary>
-        public static Task ClickRowAsync<TItem>(this Components.PkDataTable<TItem> table, string id)
-        {
-            ArgumentNullException.ThrowIfNull(table);
-            return table.ClickRowForTestAsync(id);
-        }
+        public static Task ClickRowAsync<TItem>(this Components.PkDataTable<TItem> table, string id) => (table ?? throw new ArgumentNullException(nameof(table))).ClickRowForTestAsync(id);
+
+        /// <summary>Raises the element's row expand for the loaded row with this id (Expanded follows it and OnRowExpand fires, never OnRowClick); <c>open: false</c> collapses it.</summary>
+        public static Task ExpandRowAsync<TItem>(this Components.PkDataTable<TItem> table, string id, bool open = true) => (table ?? throw new ArgumentNullException(nameof(table))).ExpandRowForTestAsync(id, open);
     }
 }

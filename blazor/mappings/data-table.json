@@ -165,6 +165,51 @@
       "doc": "The id (IdOf) of the row whose record is open in a detail pane: it is tinted and marked aria-current. Set it from the route; the list never changes it."
     },
     {
+      "name": "Expandable",
+      "prop": "expandable",
+      "type": "bool",
+      "doc": "Rows get a toggle that shows their DetailTemplate under them (the detail is rendered for the loaded page's rows only). Expanding is not a row click."
+    },
+    {
+      "name": "Expander",
+      "prop": "expander",
+      "type": "string?",
+      "note": "\"none\" leaves out the built-in toggle column; the host then opens rows through Expanded."
+    },
+    {
+      "name": "Expanded",
+      "prop": "expanded",
+      "type": "IReadOnlyList<string>?",
+      "doc": "The ids (IdOf) of the expanded rows (two-way: @bind-Expanded; needs Expandable and a DetailTemplate)."
+    },
+    {
+      "name": "ExpandedChanged",
+      "map": "param",
+      "type": "EventCallback<IReadOnlyList<string>?>",
+      "doc": "Raised with the new value of Expanded (two-way: Expanded follows it)."
+    },
+    {
+      "name": "DetailTemplate",
+      "map": "param",
+      "type": "RenderFragment<TItem>?",
+      "doc": "The detail of one loaded row, shown under it when the user expands it (the element's detail-<rowId> slot). Needs Expandable and IdOf.",
+      "note": "The slot name is dynamic: the component renders one slot=\"detail-<rowId>\" per loaded row when Expandable is set, and only those rows get a toggle."
+    },
+    {
+      "name": "DetailPanels",
+      "map": "param",
+      "type": "IReadOnlyDictionary<string, RenderFragment<TItem>>?",
+      "doc": "Further named detail panels of a loaded row, by panel name (the element's detail-<rowId>.<name> slots), next to or instead of DetailTemplate. Needs Expandable. A named panel has no toggle: the host opens it by putting \"<rowId>.<name>\" in Expanded.",
+      "note": "The slot name is dynamic: one slot=\"detail-<rowId>.<name>\" per panel and loaded row when Expandable is set."
+    },
+    {
+      "name": "OnRowExpand",
+      "event": "pk-row-expand",
+      "type": "EventCallback<PkTableRowExpandArgs<TItem>>",
+      "custom": true,
+      "doc": "The user expanded or collapsed a row: its id, item and the new state. Expanded already follows it. Not a row click."
+    },
+    {
       "name": "Selectable",
       "prop": "selectable",
       "type": "bool",
