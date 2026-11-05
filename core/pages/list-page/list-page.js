@@ -1,7 +1,7 @@
 import { showTitleBar } from '../../js/page-shell.js';
 import { loadElements } from '../../js/loader.js';
 
-const TABLE_KEYS = ['columns', 'filters', 'pageSize', 'pageSizeOptions', 'sort', 'sortDir', 'search', 'filterValues', 'page', 'searchDebounce', 'pagerLabel', 'label', 'caption', 'empty', 'noResults', 'loadError', 'stickyHeader', 'selectPageOnly'];
+const TABLE_KEYS = ['columns', 'filters', 'pageSize', 'pageSizeOptions', 'sort', 'sortDir', 'search', 'filterValues', 'page', 'searchDebounce', 'pagerLabel', 'label', 'caption', 'empty', 'noResults', 'loadError', 'stickyHeader', 'selectPageOnly', 'expandable', 'expander'];
 
 // The page frame around a pk-data-table, which owns the query, load and states (#801).
 export default Base => class extends Base {
@@ -10,7 +10,7 @@ export default Base => class extends Base {
         this.$w = true;
         loadElements(this.shadowRoot);
         this.sync();
-        // Host `cell-<id>-<key>` children are re-slotted into the table (#1000, #817).
+        // Host `cell-<id>-<key>` and `detail-<id>` children are re-slotted into the table (#1000, #817, #1913).
         (this.$mo = new MutationObserver(() => { this.forwardSlots(); this.showHeaderSlot(); })).observe(this, { childList: true });
         this.forwardSlots();
         const slot = this.shadowRoot?.querySelector?.('slot[name="before-list"]'), before = this.part('before');
@@ -20,7 +20,7 @@ export default Base => class extends Base {
     // The bridge calls this when `load` is set after the first (empty) draw (#1401).
     refresh() { return this.part('table')?.refresh?.(); }
     forwardSlots() {
-        const table = this.part('table'), names = [...this.children].map(c => c.slot).filter(s => s?.startsWith('cell-')), have = [...table.children].filter(c => c.name?.startsWith('cell-'));
+        const table = this.part('table'), names = [...this.children].map(c => c.slot).filter(s => /^(cell|detail)-/.test(s)), have = [...table.children].filter(c => /^(cell|detail)-/.test(c.name));
         if (names.join() === have.map(c => c.name).join()) return;
         for (const c of have) c.remove();
         for (const name of names) { const s = this.ownerDocument.createElement('slot'); s.name = s.slot = name; table.append(s); }
@@ -38,6 +38,7 @@ export default Base => class extends Base {
         this.buildActions();
         const cfg = this.config ?? {};
         for (const k of TABLE_KEYS) table[k] = cfg[k];
+        if (cfg.expanded) table.expanded = cfg.expanded; // only when the config names rows: a re-render must not collapse what the reader opened
         table.hideSearch = cfg.searchable === false;
         table.searchLabel = cfg.searchLabel ?? cfg.searchPlaceholder; table.searchPlaceholder = cfg.searchPlaceholder;
         table.cards = cfg.cards ?? !cfg.selectable; // a card has no select-all

@@ -533,6 +533,36 @@ export const dataDisplayCases = [
         t.eq(td(1, 'qty').dataset.align, 'end', 'a number column aligns to the end'); t.ok(td(1, 'note').hasAttribute('data-hide-phone'), 'hidePhone reaches the cell');
     }],
 
+    ['data-table: expandable, expander and expanded reach the inner table, detail-<rowId> slots show under the open row, the toggle expands without a row click, and expanded follows the reader (#1913)', async t => {
+        const el = await t.mount(`<pk-data-table expandable clickable columns='[{"key":"sku","label":"SKU"}]'><p slot="detail-1">Detail one</p></pk-data-table>`);
+        el.load = async () => ({ rows: [{ id: 1, sku: 'A' }, { id: 2, sku: 'B' }], total: 2 });
+        el.refresh();
+        const table = el.part('table'), clicks = [], expands = [], rootOf = () => table.shadowRoot;
+        el.addEventListener('pk-row-click', e => clicks.push(e.detail.id)); el.addEventListener('pk-row-expand', e => expands.push(`${e.detail.id}:${e.detail.expanded}`));
+        await until(() => rootOf()?.querySelector('tbody tr[data-pk-context="2"]'), 'the rows'); const root = rootOf();
+        t.ok(table.expandable, 'expandable reaches the inner table');
+        const toggle = () => root.querySelector('button[data-expand-id="1"]'), visible = () => { const r = el.querySelector('p').getBoundingClientRect(); return r.width > 0 && r.height > 0; };
+        t.ok(toggle(), 'a row with a detail slot has a toggle'); t.ok(!root.querySelector('button[data-expand-id="2"]'), 'a row without one has none'); t.ok(!visible(), 'the detail is hidden while collapsed');
+        toggle().click(); await until(visible, 'the detail to show under its row');
+        t.eq(expands.join(), '1:true', 'pk-row-expand reaches the host'); t.eq(clicks.length, 0, 'the toggle is not a row click');
+        t.eq(el.expanded.map(String).join(), '1', 'expanded follows the reader');
+        el.expanded = []; await until(() => !visible(), 'the host to collapse it'); t.eq(table.expanded.length, 0, 'a host-set expanded reaches the table');
+        el.expander = 'none'; await until(() => !toggle(), 'the toggle column to go'); t.eq(table.expander, 'none', 'expander reaches the table');
+        const late = document.createElement('p'); late.slot = 'detail-2'; late.textContent = 'Late'; el.append(late); el.expanded = ['2']; await until(() => late.getBoundingClientRect().height > 0, 'a later detail slot to show');
+    }],
+
+    ['list-page: config.expandable and detail-<rowId> children expand a row in place without a row click, and config.expanded opens rows (#1913)', async t => {
+        const el = await t.mount(`<pk-list-page clickable><p slot="detail-1">Detail one</p></pk-list-page>`); await Promise.all(['pk-list-page', 'pk-data-table', 'pk-table'].map(n => customElements.whenDefined(n)));
+        el.config = { columns: [{ key: 'sku', label: 'SKU' }], expandable: true, expanded: ['1'] };
+        el.load = async () => ({ rows: [{ id: 1, sku: 'A' }, { id: 2, sku: 'B' }], total: 2 });
+        el.refresh?.(); const clicks = []; el.addEventListener('pk-row-click', e => clicks.push(e.detail.id));
+        const root = () => { const d = el.shadowRoot.querySelector('pk-data-table'); return typeof d?.part === 'function' ? d.part('table')?.shadowRoot : null; }, shown = () => el.querySelector('p').getBoundingClientRect().height > 0;
+        await until(() => root()?.querySelector('tbody tr[data-pk-context="2"]'), 'the rows');
+        await until(shown, 'config.expanded to open row 1');
+        root().querySelector('button[data-expand-id="1"]').click(); await until(() => !shown(), 'the toggle to collapse it');
+        t.eq(clicks.length, 0, 'expanding is not a row click');
+    }],
+
     ['data-table: a cell slot added while the inner pk-table is not upgraded yet raises no error and shows once it is (#1187)', async t => {
         const el = await mountDataTable(t, `<pk-data-table columns='[{"key":"sku","label":"SKU"}]'></pk-data-table>`);
         const table = el.part('table'), errors = [], onError = e => { errors.push(e.message); e.preventDefault(); };
