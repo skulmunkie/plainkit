@@ -21,7 +21,7 @@
         "plain"
       ],
       "reflect": true,
-      "description": "Visual weight."
+      "description": "Visual weight. plain is the bare button (no border, a tinted hover): use it for an icon-only button in an app bar, a drawer header or a toolbar. ghost is the outlined quiet button and keeps its 1px border, with text or an icon alone; secondary is the accent outline."
     },
     {
       "name": "size",

@@ -844,4 +844,14 @@ export const appShellCases = [
             t.eq(ov.shadowRoot.querySelectorAll('pk-tab').length, 2, 'the overview surface keeps its own two tabs, Sales and Operations');
         }
     }],
+    ['icon-only buttons (#1909): variant plain is the bare icon button, ghost keeps its border, the collapsed pk-app-bar-search button is bare, and --pk-button-border overrides both', async t => {
+        const host = await t.mount('<div><pk-button icon variant="plain" icon-name="search" label="Plain"></pk-button><pk-button icon variant="ghost" icon-name="search" label="Ghost"></pk-button><pk-app-bar-search compact label="Search"></pk-app-bar-search></div>');
+        await Promise.all(['pk-button', 'pk-app-bar-search'].map(n => customElements.whenDefined(n))); await t.settle();
+        const bd = el => getComputedStyle(el.shadowRoot.querySelector('[part="control"]')), [plain, ghost, search] = host.children, expand = search.shadowRoot.querySelector('[part="expand"]');
+        const bare = c => c.borderTopColor === 'rgba(0, 0, 0, 0)' || c.borderTopWidth === '0px';
+        t.ok(bare(bd(plain)), 'plain icon button has no visible border'); t.ok(!bare(bd(ghost)), 'ghost icon button keeps its border');
+        t.ok(getComputedStyle(expand).display !== 'none', 'the compact search shows its expand button'); t.ok(bare(bd(expand)), 'the collapsed search button is bare by default');
+        search.style.setProperty('--pk-button-border', 'red'); await t.settle();
+        t.ok(!bare(bd(expand)), '--pk-button-border on the host reaches the collapsed button');
+    }],
 ];
