@@ -51,6 +51,13 @@
       "prop": "launcherLabel"
     },
     {
+      "name": "LauncherVariant",
+      "type": "TrayLauncherVariant",
+      "default": "default",
+      "map": "prop",
+      "prop": "launcherVariant"
+    },
+    {
       "name": "Hotkey",
       "type": "string",
       "default": "",

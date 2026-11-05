@@ -618,6 +618,15 @@ export const layoutCases = [
         const plain = t.stage('<pk-app-shell><div>x</div></pk-app-shell>'); await t.load(plain);
         t.eq(getComputedStyle(plain.firstElementChild.shadowRoot.querySelector('[part=body]')).containerType, 'normal', 'without contain the body is no container');
     }],
+    ['app-shell body bottom padding (#1910): --pk-app-shell-body-padding-block-end reserves room under the last row, so a floating launcher can stay clear of it; flush still wins', async t => {
+        const mk = async attrs => { const host = t.stage(`<pk-app-shell ${attrs}><div class="k">x</div></pk-app-shell>`); host.style.inlineSize = '1280px'; await t.load(host); const el = host.firstElementChild; el.style.blockSize = '400px'; el.firstElementChild.style.blockSize = '900px'; await t.settle(); return el; };
+        const tail = el => { const b = el.shadowRoot.querySelector('[part=body]'); b.scrollTop = b.scrollHeight; return b.getBoundingClientRect().bottom - el.firstElementChild.getBoundingClientRect().bottom; };
+        const el = await mk(''), g0 = tail(el); t.ok(g0 > 8, `default keeps the page padding under the last row (${g0})`);
+        el.style.setProperty('--pk-app-shell-body-padding-block-end', '96px'); await t.settle();
+        t.ok(Math.abs(tail(el) - 96) <= 1, `96px reserves 96px under the last row (${tail(el)})`);
+        const fl = await mk('flush'); fl.style.setProperty('--pk-app-shell-body-padding-block-end', '96px'); await t.settle();
+        t.ok(Math.abs(tail(fl)) <= 1, 'flush ignores the hook');
+    }],
     ['app-shell body top padding (#1904): --pk-app-shell-body-padding-block-start sets the gap above the first child (inherits, so a page can set it on a wrapper above), the sticky offset follows, flush still wins', async t => {
         const mk = async attrs => { const host = t.stage(`<pk-app-shell ${attrs}><div class="k">x</div></pk-app-shell>`); host.style.inlineSize = '1280px'; await t.load(host); const el = host.firstElementChild; el.style.blockSize = '400px'; await t.settle(); return el; };
         const gap = el => el.firstElementChild.getBoundingClientRect().top - el.shadowRoot.querySelector('[part=body]').getBoundingClientRect().top;
