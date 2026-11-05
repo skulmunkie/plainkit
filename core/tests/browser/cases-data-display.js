@@ -849,6 +849,7 @@ export const dataDisplayCases = [
             const loaded = new Promise(r => f.addEventListener('load', r, { once: true })); host.append(f); f.srcdoc = sampleDoc(html); await loaded;
             await until(() => f.contentWindow.customElements.get('pk-select') && f.contentDocument.querySelector('pk-select')?.shadowRoot?.querySelector('select'), 'the select');
             const dt = f.contentDocument.querySelector('pk-data-table'), sel = f.contentDocument.querySelector('pk-select');
+            await f.contentWindow.customElements.whenDefined('pk-data-table'); // dt.part is the element's method only once it is upgraded (before that it is Element.part, a DOMTokenList)
             await until(() => dt.part('add')?.getBoundingClientRect().width > 0, 'the add button');
             const tb = dt.part('toolbar').getBoundingClientRect(), s = sel.getBoundingClientRect(), a = dt.part('add').getBoundingClientRect();
             return { tb: tb.width, s: s.width, addW: a.width, w: f.contentWindow.innerWidth };
