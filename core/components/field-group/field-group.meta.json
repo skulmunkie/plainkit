@@ -58,7 +58,7 @@
       "default": "grid",
       "values": ["grid", "inline"],
       "reflect": true,
-      "description": "grid (the form-section grid: columns, span and cols apply) or inline: the fields sit in one wrapping row at their own width (12rem, shrinking), bottom-aligned with the content of the end slot, for a short add-row. span, columnSpan, cols and columns are ignored inline. Bottom alignment is of the whole field, so a hint under one field lifts its control: keep hints out of an add-row."
+      "description": "grid (the form-section grid: columns, span and cols apply) or inline: the fields sit in one wrapping row, bottom-aligned with the content of the end slot, for a short add-row. A field is 12rem wide (shrinking) unless it has cols (1 to 12), which sizes it as twelfths of the row exactly as in the grid (never under 5rem), so a short quantity stays short beside a wide picker. span, columnSpan and columns are ignored inline. Bottom alignment is of the whole field, so a hint under one field lifts its control: keep hints out of an add-row."
     },
     {
       "name": "disabled",
@@ -125,7 +125,7 @@
     },
     {
       "title": "Inline: a short add-row, the fields at their own width with the buttons in the end slot",
-      "html": "<pk-field-group label=\"Add line\" layout=\"inline\" fields='[{\"key\":\"sku\",\"label\":\"SKU\"},{\"key\":\"qty\",\"label\":\"Quantity\",\"kind\":\"number\"}]'><pk-button slot=\"end\" variant=\"primary\">Add</pk-button><pk-button slot=\"end\" variant=\"ghost\">Cancel</pk-button></pk-field-group>"
+      "html": "<pk-field-group label=\"Add line\" layout=\"inline\" fields='[{\"key\":\"sku\",\"label\":\"SKU\",\"cols\":6},{\"key\":\"qty\",\"label\":\"Quantity\",\"kind\":\"number\",\"cols\":2}]'><pk-button slot=\"end\" variant=\"primary\">Add</pk-button><pk-button slot=\"end\" variant=\"ghost\">Cancel</pk-button></pk-field-group>"
     },
     {
       "title": "Fields with a conditional one (set fields and values from script: an inline script cannot run under this site's CSP)",

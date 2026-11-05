@@ -7,5 +7,6 @@
 :host([layout=inline]) { display: flex; flex-wrap: wrap; align-items: end; gap: var(--space-3); }
 :host([layout=inline]) [part=group] { display: contents; }
 :host([layout=inline]) [part=group] > * { flex: 0 1 12rem; min-inline-size: 0; }
+:host([layout=inline]) [part=group] > [data-cols] { flex-basis: max(5rem, calc((100% + var(--space-3)) * var(--c) / 12 - var(--space-3))); } /* cols (twelfths of the row) as in the grid, never under 5rem */
 slot[slot="label-action"] { display: inline-block; margin-inline-start: var(--space-2); vertical-align: middle; }
 [action-end] > slot[slot] { display: block; margin-inline-start: auto; }
