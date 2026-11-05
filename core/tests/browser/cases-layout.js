@@ -857,6 +857,37 @@ layoutCases.push(
     }],
 );
 
+// #1912: on a phone the list page is compact: the search box and Filters share one row, the title bar, the toolbar and the first card are one small step apart (a --space-3 gap each), and the pager footer is about as tall as its content.
+layoutCases.push(
+    ['list page on a phone (375 and 390): search and Filters share one row, one --space-3 step between the title bar, the toolbar and the first card, a compact pager footer; at 1280 the search and Filters keep their row', async t => {
+        for (const width of [375, 390, 1280]) {
+            const host = t.stage(''), fr = document.createElement('iframe'), at = `${width}px`;
+            fr.title = `list page at ${at}`; fr.style.cssText = `width:${width}px;height:800px;border:0;display:block`;
+            fr.src = new URL('./list-fill-frame.html', import.meta.url).href + '?phone=1';
+            await new Promise(resolve => { fr.addEventListener('load', resolve, { once: true }); host.append(fr); });
+            const win = fr.contentWindow, d = win.document, wait = ms => new Promise(r => setTimeout(r, ms));
+            await Promise.all(['pk-list-page', 'pk-data-table', 'pk-table', 'pk-table-filters', 'pk-pagination'].map(tag => win.customElements.whenDefined(tag)));
+            const list = d.querySelector('pk-list-page'), dt = list.part('table');
+            for (let i = 0; i < 150 && !dt.part('table')?.shadowRoot?.querySelector('[part=body] tr'); i++) await wait(40);
+            await wait(300);
+            const rect = el => el.getBoundingClientRect(), fs = dt.part('filters').shadowRoot, search = fs.querySelector('[part=search]'), trigger = fs.querySelector('[part=trigger]');
+            const header = list.part('header').shadowRoot.querySelector('[part=header]'), card = dt.part('table').shadowRoot.querySelector('[part=body] tr'), footer = dt.part('table').shadowRoot.querySelector('[part=footer]'), nav = dt.part('pagination').shadowRoot.querySelector('nav');
+            const probe = d.createElement('div'); probe.style.cssText = 'position:absolute;width:var(--space-3);height:var(--space-2)'; d.body.append(probe);
+            const step = rect(probe).width, small = rect(probe).height; probe.remove();
+            const s = rect(search), f = rect(trigger), h = rect(header), c = rect(card), ft = rect(footer), n = rect(nav);
+            t.ok(Math.abs((s.top + s.height / 2) - (f.top + f.height / 2)) <= 4 && f.left >= s.right - 1 && f.right <= width + 1, `${at}: Filters shares the search row (search ${Math.round(s.left)}-${Math.round(s.right)} at y ${Math.round(s.top)}, Filters ${Math.round(f.left)}-${Math.round(f.right)} at y ${Math.round(f.top)})`);
+            t.ok(s.width >= 150, `${at}: the search keeps a usable width (${Math.round(s.width)})`);
+            if (width < 500) {
+                t.ok(Math.abs(s.top - h.bottom - step) <= 2, `${at}: the title bar and the search row are one --space-3 (${step}px) apart (${Math.round(s.top - h.bottom)})`);
+                t.ok(Math.abs(c.top - s.bottom - step) <= 2 || Math.abs(c.top - Math.max(s.bottom, f.bottom) - step) <= 2, `${at}: the search row and the first card are one --space-3 apart (${Math.round(c.top - Math.max(s.bottom, f.bottom))})`);
+                t.ok(ft.height <= n.height + 2 * small + 2, `${at}: the pager footer (${Math.round(ft.height)}px) is about as tall as its content (${Math.round(n.height)}px) plus a small step`);
+            }
+            t.ok(d.documentElement.scrollWidth <= width, `${at}: the page does not scroll sideways`);
+            fr.remove();
+        }
+    }],
+);
+
 // #1726: a before-list region much taller than the window must not squeeze the rows to zero: it gives way (caps and scrolls) and the table keeps a usable height, the pager stays in view.
 layoutCases.push(
     ['full-height list page with a tall before-list region (the Blazor u-contents wrapper): the rows keep a usable height, the before region caps and scrolls, the pager stays in view and the page does not collapse the rows (1280x700 and 375x600)', async t => {

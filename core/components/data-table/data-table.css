@@ -9,7 +9,9 @@
 [data-lead][hidden] { display: none; }
 [part="actions"] { display: flex; flex-wrap: wrap; max-inline-size: 100%; gap: var(--space-2); align-items: center; margin-inline-start: auto; }
 /* On a phone the actions row takes the full width and a slotted field (a pk-select, an input) fills it instead of keeping half its width; buttons keep their size and the add button stays an icon (issue 1848). */
-@media (--phone) { [part="actions"] { flex: 1 1 100%; } [part="actions"] ::slotted(:not(button, pk-button)) { flex: 1 1 100%; min-inline-size: 0; } }
+/* On a phone the search grows and Filters (an icon button there) stays beside it on the same row, and the pager footer is as tall as its content plus a small step. */
+@media (--phone) { [part="filters"]::part(search) { flex: 1 1 8rem; inline-size: auto; } [part="table"]::part(toolbar) { margin-block-end: 0; } [part="table"][data-nocaption]::part(caption) { display: none; } :host { --pk-table-footer-padding: var(--space-1); } }
+@media (--phone) { [part="actions"] { flex: var(--pk-data-table-actions-flex, 1 1 100%); } [part="actions"] ::slotted(:not(button, pk-button)) { flex: 1 1 100%; min-inline-size: 0; } }
 [part="filters"][data-nosearch]::part(search) { display: none; }
 [part="state"], [part="empty"] { margin-block-start: var(--space-4); }
 /* An idle state part has no content and takes no space: its margin would leave a gap under the table (issue 1711). */

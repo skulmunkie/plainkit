@@ -120,7 +120,7 @@ export default Base => class extends Base {
         filters.label = this.opt('searchLabel') || 'Search'; filters.placeholder = this.opt('searchPlaceholder'); filters.debounce = this.opt('searchDebounce'); filters.toggleAttribute('data-nosearch', !!this.hideSearch);
         pagination.sizes = this.opt('pageSizeOptions') ?? []; pagination.label = this.opt('pagerLabel') || 'Pagination';
         if (this.opt('search') !== this.$seed) filters.value = this.$seed = this.opt('search');
-        table.label = this.opt('label'); table.caption = this.opt('caption');
+        table.label = this.opt('label'); table.caption = this.opt('caption'); table.toggleAttribute('data-nocaption', !this.opt('caption'));
         table.columns = this.opt('columns');
         table.rowKey = this.rowKey;
         table.clickable = this.clickable || typeof this.rowHref === 'function';
