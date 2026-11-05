@@ -357,6 +357,24 @@ export const headerCases = [
         const items = [...h.shadowRoot.querySelectorAll('[part="overflow"] pk-menu-item')];
         t.ok(items[0]?.hasAttribute('warning'), 'the overflow item keeps the warning state');
     }],
+    ['page-header (#1911): at 390 and 375 a record with wrap-title keeps its long title to two lines beside the actions, and its 7-tab strip scrolls inside the header with a fade, the last tab reachable, nothing wider than the header', async t => {
+        const tabs = `<span slot="tabs" class="u-contents"><pk-tabs value="t1">${['Overview', 'Purchase orders', 'Stock levels', 'Suppliers', 'Pricing', 'Activity log', 'Attachments'].map((l, i) => `<pk-tab value="t${i + 1}">${l}</pk-tab>`).join('')}</pk-tabs></span>`;
+        const long = 'Stainless steel double wall vacuum insulated travel mug with lid and handle 500 ml';
+        const acts = '<span slot="actions" class="u-contents"><pk-button variant="ghost">Cancel</pk-button><pk-button>Save</pk-button><pk-button variant="warn">Delete</pk-button></span>';
+        const shapes = { heading: `<pk-page-header variant="record" wrap-title heading="${long}"><pk-badge>Active</pk-badge>${acts}${tabs}</pk-page-header>`, crumbs: `<pk-page-header variant="record" wrap-title crumbs='[{"label":"Stock","href":"#"},{"label":"${long}"}]'><pk-badge>Active</pk-badge>${acts}${tabs}</pk-page-header>` };
+        for (const [k, html] of Object.entries(shapes)) for (const width of [390, 375]) {
+            const host = t.stage(html); host.style.width = `${width}px`; await t.load(host); await t.settle(); await t.settle();
+            const h = host.firstElementChild, strip = h.querySelector('pk-tabs'), list = strip.shadowRoot.querySelector('[part="list"]'), at = `${k} ${width}px`, edge = rect(host).right;
+            t.ok(rect(h).right <= edge + 1 && rect(strip).right <= edge + 1 && h.shadowRoot.querySelector('[part="header"]').scrollWidth <= width, `${at}: the header and its strip stay inside the page width`);
+            t.ok(list.scrollWidth > list.clientWidth + 8 && ['end', 'both'].includes(list.dataset.fade), `${at}: the strip scrolls (${list.scrollWidth} in ${list.clientWidth}) and a fade marks the hidden tabs (${list.dataset.fade})`);
+            list.scrollLeft = list.scrollWidth; await t.settle();
+            t.ok(rect(strip.querySelector('pk-tab:last-of-type')).right <= rect(list).right + 1, `${at}: the last tab is reachable by scrolling`);
+            const title = k === 'crumbs' ? h.shadowRoot.querySelector('[part="trail"] [aria-current="page"]') : h.part('title'), cs = getComputedStyle(title);
+            const lh = parseFloat(cs.lineHeight) || parseFloat(cs.fontSize) * 1.3, pad = parseFloat(cs.paddingTop) + parseFloat(cs.paddingBottom);
+            t.ok(rect(title).height <= lh * 2 + pad + 2, `${at}: the title keeps to two lines beside the actions (${Math.round(rect(title).height)}px, a line is ${Math.round(lh)}px)`);
+        }
+    }],
+
 ];
 
 // Issue 801: the crumbs prop (a JSON array) draws the breadcrumb, a home crumb and a back link in the element's own shadow tree.
