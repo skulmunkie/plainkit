@@ -618,6 +618,18 @@ export const layoutCases = [
         const plain = t.stage('<pk-app-shell><div>x</div></pk-app-shell>'); await t.load(plain);
         t.eq(getComputedStyle(plain.firstElementChild.shadowRoot.querySelector('[part=body]')).containerType, 'normal', 'without contain the body is no container');
     }],
+    ['app-shell body top padding (#1904): --pk-app-shell-body-padding-block-start sets the gap above the first child (inherits, so a page can set it on a wrapper above), the sticky offset follows, flush still wins', async t => {
+        const mk = async attrs => { const host = t.stage(`<pk-app-shell ${attrs}><div class="k">x</div></pk-app-shell>`); host.style.inlineSize = '1280px'; await t.load(host); const el = host.firstElementChild; el.style.blockSize = '400px'; await t.settle(); return el; };
+        const gap = el => el.firstElementChild.getBoundingClientRect().top - el.shadowRoot.querySelector('[part=body]').getBoundingClientRect().top;
+        const base = await mk(''), g0 = gap(base), inl0 = getComputedStyle(base.shadowRoot.querySelector('[part=body]')).paddingInlineStart; t.ok(g0 > 8, `default keeps the page padding (${g0})`);
+        base.style.setProperty('--pk-app-shell-body-padding-block-start', '0px'); await t.settle();
+        t.ok(Math.abs(gap(base)) <= 1, `0px removes the top gap (${gap(base)})`);
+        t.eq(getComputedStyle(base.shadowRoot.querySelector('[part=body]')).paddingInlineStart, inl0, 'the inline padding is untouched');
+        base.style.setProperty('--pk-app-shell-body-padding-block-start', '4px'); await t.settle();
+        t.ok(Math.abs(gap(base) - 4) <= 1, `4px sets a 4px gap (${gap(base)})`);
+        const fl = await mk('flush'); fl.style.setProperty('--pk-app-shell-body-padding-block-start', '20px'); await t.settle();
+        t.ok(Math.abs(gap(fl)) <= 1, 'flush ignores the hook');
+    }],
 ];
 
 // Issue 837: the actions of a card header (a PkCardMenu button) stay on the header row at the inline end when the heading is long and wraps.
