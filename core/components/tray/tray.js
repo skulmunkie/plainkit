@@ -54,7 +54,8 @@ export default Base => class extends Base {
     updated() {
         for (const b of this.part('sizes').children) b.pressed = b.getAttribute('value') === this.size;
         const launcher = this.part('launcher');
-        launcher.pressed = this.open;
+        launcher.pressed = this.open;
+        const icon = this.launcherVariant === 'icon'; launcher.toggleAttribute('icon', icon); if (icon) launcher.setAttribute('label', this.launcherLabel); else launcher.removeAttribute('label'); // an icon launcher is named by launcher-label
         if (this.hotkey) { launcher.setAttribute('title', launcherTitle(this.launcherLabel, this.hotkey)); launcher.setAttribute('aria-keyshortcuts', this.hotkey); }
         else { launcher.removeAttribute('title'); launcher.removeAttribute('aria-keyshortcuts'); }
         if (!this.label) this.warnOnce('label', 'has no label: the panel has no accessible name');

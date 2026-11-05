@@ -46,6 +46,14 @@
       "description": "The floating launcher's text. Required unless the launcher slot supplies a name."
     },
     {
+      "name": "launcherVariant",
+      "type": "enum",
+      "default": "default",
+      "values": ["default", "icon"],
+      "reflect": true,
+      "description": "icon turns the launcher into a bare circle around one icon (put a pk-icon in the launcher slot; launcher-label stays its accessible name): no border, transparent while the tray is closed, filled while it is open, a padding of --pk-tray-launcher-padding. On a phone it keeps the 44px touch target. default is the labelled secondary button."
+    },
+    {
       "name": "hotkey",
       "type": "string",
       "default": "",
@@ -108,6 +116,9 @@
     { "name": "--pk-tray-medium-h", "description": "Height of the medium size", "default": "40vh" },
     { "name": "--pk-tray-large-h", "description": "Height of the large size", "default": "65vh" },
     { "name": "--pk-tray-z", "description": "Stacking level of the panel", "default": "var(--z-flyout)" },
+    { "name": "--pk-tray-launcher-inset-block-end", "description": "Distance of the launcher from the bottom edge of the viewport", "default": "var(--space-3)" },
+    { "name": "--pk-tray-launcher-inset-inline-end", "description": "Distance of the launcher from the inline end edge (the start edge with edge=\"start\")", "default": "var(--space-3)" },
+    { "name": "--pk-tray-launcher-padding", "description": "Padding around the icon of launcher-variant=\"icon\"", "default": "var(--space-1)" },
     { "name": "--pk-tray-launcher-z", "description": "Stacking level of the launcher, above the open panel", "default": "var(--z-pop)" }
   ],
   "methods": [
@@ -125,6 +136,10 @@
     {
       "title": "Tray at the end edge",
       "html": "<pk-button data-open=\"#inspector-tray\" variant=\"secondary\">Open the inspector</pk-button>\n<pk-tray id=\"inspector-tray\" label=\"Inspector\" launcher-label=\"Inspector\" edge=\"end\" size=\"small\"><p>Properties go here.</p></pk-tray>"
+    },
+    {
+      "title": "A single-icon help launcher: launcher-variant=\"icon\", a pk-icon in the launcher slot",
+      "html": "<pk-tray label=\"Help\" launcher-label=\"Help\" launcher-variant=\"icon\" edge=\"end\" size=\"small\"><pk-icon slot=\"launcher\" name=\"search\"></pk-icon><p>Help content goes here.</p></pk-tray>"
     }
   ]
 }

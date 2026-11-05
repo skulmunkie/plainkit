@@ -21,6 +21,7 @@ async function frame(t, html, width, height = 600, dir = '') {
 const landed = async doc => { for (const el of doc.querySelectorAll('pk-tray')) await Promise.all(el.part('panel').getAnimations().map(a => a.finished.catch(() => {}))); await wait(30); };
 const rect = e => e.getBoundingClientRect();
 const near = (a, b, tol = 1.5) => Math.abs(a - b) <= tol;
+const win = doc => doc.defaultView;
 const press = (win, doc, init) => doc.dispatchEvent(new win.KeyboardEvent('keydown', { bubbles: true, cancelable: true, ...init }));
 
 const PAGE = '<button id="page-btn">Page button</button><div id="tall" data-tall></div>';
@@ -185,4 +186,21 @@ export const trayCases = [
         t.ok(extra.right <= close.left + 1 && rect(tray.part('sizes')).right <= close.left + 1, 'Close is last');
         t.ok(h.getBoundingClientRect().height < 60, 'the header is compact');
     }],
+    ['tray launcher-variant="icon" (#1908): the launcher is a bare circle about the icon size (padding hook honoured by the mini button), transparent while closed and filled while open, and the inset hooks move it', async t => {
+        const { doc, tray, launcher } = await frame(t, '<pk-tray label="Help" launcher-label="Help" launcher-variant="icon"><pk-icon slot="launcher" name="search"></pk-icon><p>Help content.</p></pk-tray>', 900, 600);
+        const l = launcher(), ctl = () => l.shadowRoot.querySelector('[part="control"]'), cs = () => getComputedStyle(ctl()), icon = doc.querySelector('pk-icon');
+        const box = rect(ctl()), ib = rect(icon);
+        t.ok(box.width <= ib.width + 14 && box.height <= ib.height + 14, `the closed launcher is about the icon (${Math.round(box.width)}x${Math.round(box.height)} around ${Math.round(ib.width)}x${Math.round(ib.height)})`);
+        t.ok(cs().borderTopColor === 'rgba(0, 0, 0, 0)' && cs().backgroundColor === 'rgba(0, 0, 0, 0)', `closed: no border and a transparent fill (${cs().borderTopColor}, ${cs().backgroundColor})`);
+        t.ok(parseFloat(cs().borderTopLeftRadius) >= box.height / 2 - 1, `the launcher is a circle (radius ${cs().borderTopLeftRadius} on ${Math.round(box.height)}px)`);
+        const to = rect(l); t.ok(near(win(doc).innerWidth - to.right, 12, 4) && near(win(doc).innerHeight - to.bottom, 12, 4), `by default it sits one --space-3 from the corner (${Math.round(win(doc).innerWidth - to.right)}, ${Math.round(win(doc).innerHeight - to.bottom)})`);
+        tray.style.setProperty('--pk-tray-launcher-padding', '12px'); await wait(60); t.ok(rect(ctl()).width >= ib.width + 22, `--pk-tray-launcher-padding reaches the mini button (${Math.round(rect(ctl()).width)}px around ${Math.round(ib.width)}px)`); tray.style.removeProperty('--pk-tray-launcher-padding'); await wait(60);
+        l.click(); await wait(80); await landed(doc);
+        t.ok(tray.open && cs().backgroundColor !== 'rgba(0, 0, 0, 0)', `open (by a click): the launcher is filled (${cs().backgroundColor}, pressed ${l.hasAttribute('pressed')})`);
+        l.click(); await wait(80);
+        tray.style.setProperty('--pk-tray-launcher-inset-block-end', '40px'); tray.style.setProperty('--pk-tray-launcher-inset-inline-end', '30px'); await wait(60);
+        const moved = rect(l); t.ok(near(win(doc).innerWidth - moved.right, 30, 4) && near(win(doc).innerHeight - moved.bottom, 40, 4), `the inset hooks move it (${Math.round(win(doc).innerWidth - moved.right)}, ${Math.round(win(doc).innerHeight - moved.bottom)})`);
+        t.ok(l.getAttribute('label') === 'Help' || l.getAttribute('aria-label') === 'Help', 'the launcher keeps its name');
+    }],
+
 ];
