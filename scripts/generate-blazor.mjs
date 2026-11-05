@@ -658,10 +658,12 @@ export function renderComponent(m, mappingName, ns = 'PlainKit.Blazor') {
     // fieldGroup: each spec's label action and editor fill the element's label-action-<key> and editor-<key> slots.
     const groupSlots = m.fieldGroup ? '@foreach (var f in Visible()) {if (f.LabelAction is not null) {<span slot="@($"label-action-{f.Key}")">@f.LabelAction(Model)</span>} if (f.Editor is not null) {<div slot="@($"editor-{f.Key}")">@f.Editor(Model)</div>}}' : '';
     // dataTable: the header template of each column and the cell template of each column in each loaded row fill the element's header-<key> and cell-<id>-<key> slots.
-    const tableSlots = m.dataTable ? '@foreach (var c in Columns.Where(c => c.Header is not null)) {<span slot="@($"header-{c.Key}")" class="u-contents" @key="@($"header-{c.Key}")">@c.Header</span>}@foreach (var row in _rows) {foreach (var column in Columns.Where(c => c.Cell is not null)) {<span slot="@($"cell-{row.Id}-{column.Key}")" class="u-contents" @key="@($"cell-{row.Id}-{column.Key}")">@column.Cell!(row.Item)</span>}}' : '';
+    const tableSlots = m.dataTable ? '@foreach (var c in Columns.Where(c => c.Header is not null)) {<span slot="@($"header-{c.Key}")" class="u-contents" @key="@($"header-{c.Key}")">@c.Header</span>}@foreach (var row in _rows) {foreach (var column in Columns.Where(c => c.Cell is not null)) {<span slot="@($"cell-{row.Id}-{column.Key}")" class="u-contents" @key="@($"cell-{row.Id}-{column.Key}")">@column.Cell!(row.Item)</span>}@if (Expandable && DetailTemplate is not null) {<div slot="@($"detail-{row.Id}")" @key="@($"detail-{row.Id}")">@DetailTemplate(row.Item)</div>}@if (Expandable && DetailPanels is not null) {@foreach (var panel in DetailPanels) {<div slot="@($"detail-{row.Id}.{panel.Key}")" @key="@($"detail-{row.Id}.{panel.Key}")">@panel.Value(row.Item)</div>}}}' : '';
     // table: the header template of each column, then the raw table (ChildContent) or, per row, the cell templates and the detail.
     const rowSlots = m.table ? '@foreach (var c in _heads) {<span slot="@($"header-{c.Key}")" class="u-contents" @key="@($"header-{c.Key}")">@c.Header</span>}@if (ChildContent is not null) {<table class="@TableClass">@if (HeadContent is not null) { <thead>@HeadContent</thead> }<tbody>@ChildContent</tbody>@if (FootContent is not null) { <tfoot>@FootContent</tfoot> }</table>} else {@foreach (var row in _items) {@foreach (var column in _cells) {<span slot="@($"cell-{row.Id}-{column.Key}")" class="u-contents" @key="@($"cell-{row.Id}-{column.Key}")">@column.Cell!(row.Item)</span>}@if (Expandable && DetailTemplate is not null) {<div slot="@($"detail-{row.Id}")" @key="@($"detail-{row.Id}")">@DetailTemplate(row.Item)</div>}@if (Expandable && DetailPanels is not null) {@foreach (var panel in DetailPanels) {<div slot="@($"detail-{row.Id}.{panel.Key}")" @key="@($"detail-{row.Id}.{panel.Key}")">@panel.Value(row.Item)</div>}}}}' : '';
-    const children = children0 + cells + slotMaps + editors + groupSlots + tableSlots + rowSlots;
+    // cells with a DetailTemplate (the list page): each loaded row's detail fills the element's detail-<id> slot (and a named panel its detail-<id>.<name> slot).
+    const details = m.cells && m.params.some(d => d.name === 'DetailTemplate') ? '@if (Expandable) {foreach (var row in _cellRows) {@if (DetailTemplate is not null) {<div slot="@($"detail-{row.Id}")" @key="@($"detail-{row.Id}")">@DetailTemplate(row.Item)</div>}@if (DetailPanels is not null) {@foreach (var panel in DetailPanels) {<div slot="@($"detail-{row.Id}.{panel.Key}")" @key="@($"detail-{row.Id}.{panel.Key}")">@panel.Value(row.Item)</div>}}}}' : '';
+    const children = children0 + cells + details + slotMaps + editors + groupSlots + tableSlots + rowSlots;
     // table: raw mode with no rows shows the empty state instead of the table.
     if (m.table) L.push('@if (ChildContent is not null && IsEmpty && (EmptyContent is not null || EmptyText is not null))', '{', '    <div class="u-contents">@if (EmptyContent is not null) { @EmptyContent } else { @EmptyText }</div>', '}', 'else', '{');
     if (attrs.length === 0) L.push(`<${m.tag}>${children}</${m.tag}>`);
@@ -714,6 +716,8 @@ export function renderComponent(m, mappingName, ns = 'PlainKit.Blazor') {
             '        if (e.Selected is null) return; // pk-select also bubbles from menus and trees in the cell slots', '        Selected = e.Selected;', '        SelectScope = e.Scope ?? "page";',
             '        await SelectedChanged.InvokeAsync(Selected);', '        await OnSelect.InvokeAsync(e);', '    }',
             '', '    private Task HandleRowClickAsync(PkRowClickEventArgs e) => _rows.Find(r => r.Id == e.Id) is { } row ? OnRowClick.InvokeAsync(row.Item) : Task.CompletedTask;',
+            '', '    private async Task HandleRowExpandAsync(PkRowExpandEventArgs e)', '    {', '        if (e.Id is null) return;', '        Expanded = (Expanded ?? []).Where(x => x != e.Id).Concat(e.Expanded == true ? [e.Id] : []).ToList();', '        await ExpandedChanged.InvokeAsync(Expanded);',
+            '        if (_rows.Find(r => r.Id == e.Id) is { } row) await OnRowExpand.InvokeAsync(new PkTableRowExpandArgs<TItem>(e.Id, row.Item, e.Expanded == true));', '    }',
             '', '    /// <inheritdoc />', '    public void Dispose() => _load.Dispose();');
     }
     if (m.table) {
@@ -771,7 +775,7 @@ export function renderComponent(m, mappingName, ns = 'PlainKit.Blazor') {
     }
     if (m.cells) L.push('', '    private List<(string Id, TItem Item)> _cellRows = [];', '',
         '    private async Task<object?> ShowCellsAsync(IReadOnlyList<TItem> items)', '    {',
-        `        if ((Cells is null${m.cells.columns ? ' && Columns is null' : ''}) || IdOf is null) return null;`,
+        `        if ((Cells is null${m.cells.columns ? ' && Columns is null' : ''}${m.params.some(d => d.name === 'DetailTemplate') ? ' && DetailTemplate is null && DetailPanels is null' : ''}) || IdOf is null) return null;`,
         '        await InvokeAsync(() => { _cellRows = items.Select(i => (IdOf!(i), i)).ToList(); StateHasChanged(); });',
         '        return null;', '    }');
     // Typed columns: a column's Text (and the property fallback, as PkDataTable) fills the row it names, so the rows the callback returns are built through the same PkTableRows as PkDataTable's.
@@ -800,7 +804,7 @@ export function renderComponent(m, mappingName, ns = 'PlainKit.Blazor') {
     if ((custom.length && !m.fieldGroup) || m.dataTable || m.table) {
         // Called once by PkElementBase, not on every parameter change: the handlers do not depend on the parameters.
         L.push('', '    /// <inheritdoc />', '    protected override void AddEventHandlers(Dictionary<string, object> handlers)', '    {');
-        if (m.dataTable) L.push('        handlers["onpk-select"] = EventCallback.Factory.Create<PkTableSelectEventArgs>(this, HandleSelectAsync);', '        handlers["onpk-row-click"] = EventCallback.Factory.Create<PkRowClickEventArgs>(this, HandleRowClickAsync);');
+        if (m.dataTable) L.push('        handlers["onpk-select"] = EventCallback.Factory.Create<PkTableSelectEventArgs>(this, HandleSelectAsync);', '        handlers["onpk-row-click"] = EventCallback.Factory.Create<PkRowClickEventArgs>(this, HandleRowClickAsync);', '        handlers["onpk-row-expand"] = EventCallback.Factory.Create<PkRowExpandEventArgs>(this, HandleRowExpandAsync);');
         if (m.table) for (const [ev, h, t] of [['sort', 'Sort', 'PkSortEventArgs'], ['filter', 'Filter', 'PkFilterEventArgs'], ['select', 'Select', 'PkTableSelectEventArgs'], ['select-all', 'SelectAll', 'PkSelectAllEventArgs'], ['row-click', 'RowClick', 'PkRowClickEventArgs'], ['row-expand', 'RowExpand', 'PkRowExpandEventArgs'], ['cell-edit', 'CellEdit', 'PkCellEditEventArgs']]) L.push(`        handlers["onpk-${ev}"] = EventCallback.Factory.Create<${t}>(this, Handle${h});`);
         for (const h of custom) L.push(`        ${listened(h) ? `if (${[...h.callbacks.map(c => `${c.name}.HasDelegate`), ...(typeof h.listened === 'string' ? [h.listened] : [])].join(' || ')}) ` : ''}handlers[${lit(h.attr)}] = EventCallback.Factory.Create<${h.args}>(this, ${handlerName(h)});`);
         L.push('    }');

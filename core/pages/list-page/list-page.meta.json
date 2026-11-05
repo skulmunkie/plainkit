@@ -56,6 +56,12 @@
       "detailProps": { "id": "string", "row": "object" }
     },
     {
+      "name": "pk-row-expand",
+      "detail": { "id": "string", "index": "number", "expanded": "bool" },
+      "description": "The reader expanded or collapsed a row (config.expandable): expanded is the new state. The table's own event, passed through; not a row click.",
+      "cancelable": false
+    },
+    {
       "name": "pk-bulk",
       "detail": { "action": "string", "selected": "string[]", "scope": "'page' | 'all'", "query": "object" },
       "description": "A button of config.bulkActions was pressed: its id and the selection at that moment, as pk-select carries it.",

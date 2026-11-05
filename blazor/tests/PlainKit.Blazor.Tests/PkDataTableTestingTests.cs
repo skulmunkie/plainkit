@@ -1,4 +1,5 @@
 using Bunit;
+using Microsoft.AspNetCore.Components;
 using Microsoft.Extensions.DependencyInjection;
 using PlainKit.Blazor;
 using PlainKit.Blazor.Testing;
@@ -75,5 +76,38 @@ public sealed class PkDataTableTestingTests : BunitContext, IAsyncLifetime
         Assert.Equal("Zed", Assert.Single(items).Name);
         Assert.Equal(new PkListRequest("z", "Name", true, 2, 5), seen[1] with { CancellationToken = default });
         Assert.Equal(["cell-7-Name"], cut.FindAll("pk-data-table > span[slot]").Select(s => s.GetAttribute("slot")));   // the rows of the last load replace the earlier ones
+    }
+
+    [Fact]
+    public async Task Expandable_rows_render_their_detail_and_a_row_expand_is_not_a_row_click()
+    {
+        var expanded = new List<string>();
+        PkTableRowExpandArgs<Customer>? last = null;
+        Customer? clicked = null;
+        var cut = Render<PkDataTable<Customer>>(p => p
+            .Add(x => x.Columns, Columns)
+            .Add(x => x.IdOf, c => c.Id.ToString())
+            .Add(x => x.Expandable, true)
+            .Add(x => x.DetailTemplate, c => b => b.AddContent(0, "detail:" + c.Name))
+            .Add(x => x.DetailPanels, new Dictionary<string, RenderFragment<Customer>> { ["notes"] = c => b => b.AddContent(0, "notes:" + c.Name) })
+            .Add(x => x.ExpandedChanged, e => expanded = [.. e ?? []])
+            .Add(x => x.OnRowExpand, a => last = a)
+            .Add(x => x.OnRowClick, c => clicked = c)
+            .Add(x => x.Load, r => Task.FromResult(new PkListResult<Customer>([new(1, "Ada"), new(2, "Grace")], 2))));
+
+        await cut.Instance.LoadAsync();
+
+        Assert.Equal("detail:Grace", cut.Find("[slot=detail-2]").TextContent);
+        Assert.Equal("notes:Ada", cut.Find("[slot='detail-1.notes']").TextContent);
+        Assert.Equal("", cut.Find("pk-data-table").GetAttribute("expander") ?? "");
+
+        await cut.Instance.ExpandRowAsync("2");
+        Assert.Equal(["2"], expanded);
+        Assert.Equal(new PkTableRowExpandArgs<Customer>("2", new(2, "Grace"), true), last);
+        Assert.Null(clicked);   // expanding is not a row click
+
+        await cut.Instance.ExpandRowAsync("2", open: false);
+        Assert.Empty(expanded);
+        Assert.False(last!.Expanded);
     }
 }
