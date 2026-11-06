@@ -61,9 +61,10 @@ slot[name="actions"][hidden], [part="overflow"][hidden] { display: none; }
 }
 /* wrap-title (issue 1849, opt-in): on a narrow container a record title wraps to at most three lines, then ends in an ellipsis; wide it stays the one line above. */
 @container (max-width: 40rem) {
-    :host([variant="record"][wrap-title]) [part="title"], :host([variant="record"][wrap-title]) ::slotted([slot="title"]) { display: -webkit-box; -webkit-box-orient: vertical; -webkit-line-clamp: 3; line-clamp: 3; white-space: normal; text-overflow: clip; }
-    :host([variant="record"][wrap-title]:not([heading]):not([spacious])) [part="trail"] > [aria-current="page"] { display: -webkit-box; -webkit-box-orient: vertical; -webkit-line-clamp: 3; line-clamp: 3; white-space: normal; text-overflow: clip; line-height: 1.25; padding-block: var(--space-1); }
+    :host([variant="record"][wrap-title]) [part="title"], :host([variant="record"][wrap-title]) ::slotted([slot="title"]) { display: -webkit-box; -webkit-box-orient: vertical; -webkit-line-clamp: var(--_lc, 3); line-clamp: var(--_lc, 3); white-space: normal; text-overflow: clip; }
+    :host([variant="record"][wrap-title]:not([heading]):not([spacious])) [part="trail"] > [aria-current="page"] { display: -webkit-box; -webkit-box-orient: vertical; -webkit-line-clamp: var(--_lc, 3); line-clamp: var(--_lc, 3); white-space: normal; text-overflow: clip; line-height: 1.25; padding-block: var(--space-1); }
 }
+@container (max-width: 30rem) { [part="header"] { --_lc: 2; } } /* two lines on a phone; set on a descendant, because a :host rule cannot query the host's own container */
 /* A narrow record: title and actions on row one, chips under them. */
 @container (max-width: 46rem) {
     :host([variant="record"]) [part="lead"] { display: contents; }

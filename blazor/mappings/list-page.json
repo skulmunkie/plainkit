@@ -159,6 +159,47 @@
       "note": "A row was clicked (or Enter or Space on the focused row): Id is the row key (config.rowKey, default id), Row the row as JsonElement. The usual handler navigates to the record page. Setting it makes the rows clickable."
     },
     {
+      "name": "Expandable",
+      "map": "param",
+      "configKey": "expandable",
+      "type": "bool",
+      "when": "Expandable",
+      "value": "true",
+      "doc": "Rows with a DetailTemplate get a toggle that shows it under them (the detail is rendered for the loaded page's rows only; needs IdOf). Expanding is not a row click."
+    },
+    {
+      "name": "Expander",
+      "map": "param",
+      "configKey": "expander",
+      "type": "string?",
+      "doc": "\"none\" leaves out the built-in toggle column; the host then opens rows through Expanded."
+    },
+    {
+      "name": "Expanded",
+      "map": "param",
+      "configKey": "expanded",
+      "type": "IReadOnlyList<string>?",
+      "doc": "The ids (IdOf) of the rows to show expanded. Initial only: the reader's own toggling is reported by OnRowExpand."
+    },
+    {
+      "name": "DetailTemplate",
+      "map": "param",
+      "type": "RenderFragment<TItem>?",
+      "doc": "The detail of one loaded row, shown under it when the user expands it (the element's detail-<rowId> slot). Needs Expandable and IdOf."
+    },
+    {
+      "name": "DetailPanels",
+      "map": "param",
+      "type": "IReadOnlyDictionary<string, RenderFragment<TItem>>?",
+      "doc": "Further named detail panels of a loaded row, by panel name (the element's detail-<rowId>.<name> slots). Needs Expandable. A named panel has no toggle: open it by putting \"<rowId>.<name>\" in Expanded."
+    },
+    {
+      "name": "OnRowExpand",
+      "event": "pk-row-expand",
+      "type": "EventCallback<PkRowExpandEventArgs>",
+      "note": "A row was expanded or collapsed: Id is the row key, Expanded the new state. Not a row click."
+    },
+    {
       "name": "OnBulk",
       "event": "pk-bulk",
       "type": "EventCallback<PkBulkEventArgs>"

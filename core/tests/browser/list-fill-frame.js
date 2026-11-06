@@ -3,7 +3,7 @@
 import { loadElements } from '../../js/loader.js';
 
 const ROWS = Array.from({ length: 50 }, (_, i) => ({ id: i + 1, sku: `AC-${1000 + i}`, title: `Widget number ${i + 1}` }));
-const q = new URLSearchParams(location.search), overlay = q.has('overlay'), wrap = q.get('wrap'), tall = q.has('tall'), bar = q.has('bar');
+const q = new URLSearchParams(location.search), overlay = q.has('overlay'), wrap = q.get('wrap'), tall = q.has('tall'), bar = q.has('bar'), phone = q.has('phone');
 const mk = (tag, attrs = {}, text) => { const e = document.createElement(tag); for (const [k, v] of Object.entries(attrs)) e.setAttribute(k, v); if (text) e.textContent = text; return e; };
 
 if (q.get('theme')) document.documentElement.setAttribute('data-theme', q.get('theme'));
@@ -15,13 +15,14 @@ if (tall) {
     const w = mk('span', { slot: 'before-list', class: 'u-contents' }), box = mk('div', { id: 'tall' });
     for (let i = 0; i < 24; i++) box.append(mk('p', {}, 'Summary line ' + (i + 1) + ': totals, tax and the notes the reader should see before the list.'));
     w.append(box); list.append(w);
-} else list.append(mk('pk-alert', { slot: 'before-list', kind: 'info' }, 'Prices include tax.'));
+} else if (!phone) list.append(mk('pk-alert', { slot: 'before-list', kind: 'info' }, 'Prices include tax.'));
 list.config = {
     heading: 'Orders', breadcrumb: [{ label: 'Sales', href: '#' }, { label: 'Orders' }], stickyHeader: true, selectable: true, pageSize: 50,
     ...(bar ? { toolbarInHeader: true, searchable: true, actions: [{ label: 'New order' }], filters: [{ key: 'kind', type: 'select', label: 'Kind', options: ['a', 'b'] }] } : {}),
     columns: [{ key: 'sku', label: 'SKU' }, { key: 'title', label: 'Title' }], bulkActions: [{ id: 'archive', label: 'Archive' }],
 };
-list.load = () => ({ rows: ROWS, total: 200 });
+if (phone) list.config = { heading: 'Orders', breadcrumb: [{ label: 'Sales', href: '#' }, { label: 'Orders' }], pageSize: 5, searchable: true, filters: [{ key: 'kind', type: 'select', label: 'Kind', options: ['a', 'b'] }], columns: [{ key: 'sku', label: 'SKU' }, { key: 'title', label: 'Title' }] }; // ?phone=1: the phone list page of #1912 (cards, search, Filters, a pager)
+list.load = () => ({ rows: phone ? ROWS.slice(0, 5) : ROWS, total: 200 });
 let top = list;
 if (overlay) { const o = mk('pk-loading-overlay', { fill: '', busy: '', label: 'Saving' }); o.append(list); top = o; }
 // wrap=main: the <main id="pk-main"> that the Blazor PkApp draws around the page (a block, not a flex column) (#1716).

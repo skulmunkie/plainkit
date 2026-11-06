@@ -618,6 +618,27 @@ export const layoutCases = [
         const plain = t.stage('<pk-app-shell><div>x</div></pk-app-shell>'); await t.load(plain);
         t.eq(getComputedStyle(plain.firstElementChild.shadowRoot.querySelector('[part=body]')).containerType, 'normal', 'without contain the body is no container');
     }],
+    ['app-shell body bottom padding (#1910): --pk-app-shell-body-padding-block-end reserves room under the last row, so a floating launcher can stay clear of it; flush still wins', async t => {
+        const mk = async attrs => { const host = t.stage(`<pk-app-shell ${attrs}><div class="k">x</div></pk-app-shell>`); host.style.inlineSize = '1280px'; await t.load(host); const el = host.firstElementChild; el.style.blockSize = '400px'; el.firstElementChild.style.blockSize = '900px'; await t.settle(); return el; };
+        const tail = el => { const b = el.shadowRoot.querySelector('[part=body]'); b.scrollTop = b.scrollHeight; return b.getBoundingClientRect().bottom - el.firstElementChild.getBoundingClientRect().bottom; };
+        const el = await mk(''), g0 = tail(el); t.ok(g0 > 8, `default keeps the page padding under the last row (${g0})`);
+        el.style.setProperty('--pk-app-shell-body-padding-block-end', '96px'); await t.settle();
+        t.ok(Math.abs(tail(el) - 96) <= 1, `96px reserves 96px under the last row (${tail(el)})`);
+        const fl = await mk('flush'); fl.style.setProperty('--pk-app-shell-body-padding-block-end', '96px'); await t.settle();
+        t.ok(Math.abs(tail(fl)) <= 1, 'flush ignores the hook');
+    }],
+    ['app-shell body top padding (#1904): --pk-app-shell-body-padding-block-start sets the gap above the first child (inherits, so a page can set it on a wrapper above), the sticky offset follows, flush still wins', async t => {
+        const mk = async attrs => { const host = t.stage(`<pk-app-shell ${attrs}><div class="k">x</div></pk-app-shell>`); host.style.inlineSize = '1280px'; await t.load(host); const el = host.firstElementChild; el.style.blockSize = '400px'; await t.settle(); return el; };
+        const gap = el => el.firstElementChild.getBoundingClientRect().top - el.shadowRoot.querySelector('[part=body]').getBoundingClientRect().top;
+        const base = await mk(''), g0 = gap(base), inl0 = getComputedStyle(base.shadowRoot.querySelector('[part=body]')).paddingInlineStart; t.ok(g0 > 8, `default keeps the page padding (${g0})`);
+        base.style.setProperty('--pk-app-shell-body-padding-block-start', '0px'); await t.settle();
+        t.ok(Math.abs(gap(base)) <= 1, `0px removes the top gap (${gap(base)})`);
+        t.eq(getComputedStyle(base.shadowRoot.querySelector('[part=body]')).paddingInlineStart, inl0, 'the inline padding is untouched');
+        base.style.setProperty('--pk-app-shell-body-padding-block-start', '4px'); await t.settle();
+        t.ok(Math.abs(gap(base) - 4) <= 1, `4px sets a 4px gap (${gap(base)})`);
+        const fl = await mk('flush'); fl.style.setProperty('--pk-app-shell-body-padding-block-start', '20px'); await t.settle();
+        t.ok(Math.abs(gap(fl)) <= 1, 'flush ignores the hook');
+    }],
 ];
 
 // Issue 837: the actions of a card header (a PkCardMenu button) stay on the header row at the inline end when the heading is long and wraps.
@@ -839,6 +860,37 @@ layoutCases.push(
                 t.ok(a.right >= s.right && a.left >= s.left, `${at}: the action sits at the end of the row`);
             } else t.ok(s.top >= Math.min(c.bottom, h.bottom) - 1, `${at}: the search box wraps under the title`);
             for (const [k, r] of Object.entries({ crumb: c, heading: h, search: s, actions: a })) t.ok(r.left >= -1 && r.right <= width + 1 && r.width > 0, `${at}: the ${k} is inside the window (${Math.round(r.left)}-${Math.round(r.right)})`);
+            t.ok(d.documentElement.scrollWidth <= width, `${at}: the page does not scroll sideways`);
+            fr.remove();
+        }
+    }],
+);
+
+// #1912: on a phone the list page is compact: the search box and Filters share one row, the title bar, the toolbar and the first card are one small step apart (a --space-3 gap each), and the pager footer is about as tall as its content.
+layoutCases.push(
+    ['list page on a phone (375 and 390): search and Filters share one row, one --space-3 step between the title bar, the toolbar and the first card, a compact pager footer; at 1280 the search and Filters keep their row', async t => {
+        for (const width of [375, 390, 1280]) {
+            const host = t.stage(''), fr = document.createElement('iframe'), at = `${width}px`;
+            fr.title = `list page at ${at}`; fr.style.cssText = `width:${width}px;height:800px;border:0;display:block`;
+            fr.src = new URL('./list-fill-frame.html', import.meta.url).href + '?phone=1';
+            await new Promise(resolve => { fr.addEventListener('load', resolve, { once: true }); host.append(fr); });
+            const win = fr.contentWindow, d = win.document, wait = ms => new Promise(r => setTimeout(r, ms));
+            await Promise.all(['pk-list-page', 'pk-data-table', 'pk-table', 'pk-table-filters', 'pk-pagination'].map(tag => win.customElements.whenDefined(tag)));
+            const list = d.querySelector('pk-list-page'), dt = list.part('table');
+            for (let i = 0; i < 150 && !dt.part('table')?.shadowRoot?.querySelector('[part=body] tr'); i++) await wait(40);
+            await wait(300);
+            const rect = el => el.getBoundingClientRect(), fs = dt.part('filters').shadowRoot, search = fs.querySelector('[part=search]'), trigger = fs.querySelector('[part=trigger]');
+            const header = list.part('header').shadowRoot.querySelector('[part=header]'), card = dt.part('table').shadowRoot.querySelector('[part=body] tr'), footer = dt.part('table').shadowRoot.querySelector('[part=footer]'), nav = dt.part('pagination').shadowRoot.querySelector('nav');
+            const probe = d.createElement('div'); probe.style.cssText = 'position:absolute;width:var(--space-3);height:var(--space-2)'; d.body.append(probe);
+            const step = rect(probe).width, small = rect(probe).height; probe.remove();
+            const s = rect(search), f = rect(trigger), h = rect(header), c = rect(card), ft = rect(footer), n = rect(nav);
+            t.ok(Math.abs((s.top + s.height / 2) - (f.top + f.height / 2)) <= 4 && f.left >= s.right - 1 && f.right <= width + 1, `${at}: Filters shares the search row (search ${Math.round(s.left)}-${Math.round(s.right)} at y ${Math.round(s.top)}, Filters ${Math.round(f.left)}-${Math.round(f.right)} at y ${Math.round(f.top)})`);
+            t.ok(s.width >= 150, `${at}: the search keeps a usable width (${Math.round(s.width)})`);
+            if (width < 500) {
+                t.ok(Math.abs(s.top - h.bottom - step) <= 2, `${at}: the title bar and the search row are one --space-3 (${step}px) apart (${Math.round(s.top - h.bottom)})`);
+                t.ok(Math.abs(c.top - s.bottom - step) <= 2 || Math.abs(c.top - Math.max(s.bottom, f.bottom) - step) <= 2, `${at}: the search row and the first card are one --space-3 apart (${Math.round(c.top - Math.max(s.bottom, f.bottom))})`);
+                t.ok(ft.height <= n.height + 2 * small + 2, `${at}: the pager footer (${Math.round(ft.height)}px) is about as tall as its content (${Math.round(n.height)}px) plus a small step`);
+            }
             t.ok(d.documentElement.scrollWidth <= width, `${at}: the page does not scroll sideways`);
             fr.remove();
         }

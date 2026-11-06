@@ -43,7 +43,7 @@
       "type": "boolean",
       "default": false,
       "reflect": true,
-      "description": "Record variant only: on a narrow container (40rem or less, a phone) the title wraps to at most three lines, then ends in an ellipsis, instead of the single ellipsized line. Wide containers keep one line. Off by default (the one-line title keeps the chips and actions on a steady row); the full title stays the tooltip in the one-line mode. With a slotted pk-heading, leave its truncate off."
+      "description": "Record variant only: on a narrow container (40rem or less, a phone) the title wraps to at most three lines (two on a phone, 30rem or less), then ends in an ellipsis, instead of the single ellipsized line. Wide containers keep one line. Off by default (the one-line title keeps the chips and actions on a steady row); the full title stays the tooltip in the one-line mode. With a slotted pk-heading, leave its truncate off."
     },
     {
       "name": "sticky",
@@ -156,7 +156,7 @@
     },
     {
       "name": "tabs",
-      "description": "A tab strip (pk-tabs with tabs only, or your own) docked at the foot of the header, so with sticky it stays in view with the bar; replaces the strip drawn from the tabs array; hidden when empty or when tabs-from says it does not apply at this width."
+      "description": "A tab strip (pk-tabs with tabs only, or your own) docked at the foot of the header, so with sticky it stays in view with the bar; replaces the strip drawn from the tabs array; hidden when empty or when tabs-from says it does not apply at this width. A strip with more tabs than the width holds scrolls inside the header with a fade on the hidden side (pk-tabs overflow=\"scroll\", its default; overflow=\"menu\" lists them in a menu instead), so it never widens the page."
     }
   ],
   "events": [

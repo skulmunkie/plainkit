@@ -50,9 +50,19 @@
 
 :host([edge="top"]) [part="body"] { padding-block-end: var(--space-3); }
 
-[part="launcher"] { position: fixed; z-index: var(--pk-tray-launcher-z, var(--z-pop)); inset-block-end: var(--space-3); inset-inline-end: var(--space-3); }
+[part="launcher"] { position: fixed; z-index: var(--pk-tray-launcher-z, var(--z-pop)); inset-block-end: var(--pk-tray-launcher-inset-block-end, var(--space-3)); inset-inline-end: var(--pk-tray-launcher-inset-inline-end, var(--space-3)); }
 
-:host([edge="start"]) [part="launcher"] { inset-inline: var(--space-3) auto; }
+:host([edge="start"]) [part="launcher"] { inset-inline: var(--pk-tray-launcher-inset-inline-end, var(--space-3)) auto; }
+
+/* launcher-variant="icon": a bare circle around one icon, transparent while the tray is closed and filled while it is open (the host's open attribute). */
+:host([launcher-variant="icon"]) [part="launcher"] { --pk-button-border: transparent; --pk-button-radius: var(--radius-round); --pk-button-padding: var(--pk-tray-launcher-padding, var(--space-1)); --pk-button-bg: transparent; --pk-button-bg-hover: var(--color-surface-alt); --pk-button-fg: var(--color-muted); }
+
+:host([launcher-variant="icon"][open]) [part="launcher"] { --pk-button-bg: var(--color-accent-fill); --pk-button-bg-hover: var(--color-accent-fill-hover); --pk-button-fg: var(--btn-primary-fg); }
+
+/* The secondary button recolours its text and border on hover unless it is pressed; the icon launcher stays bare and keeps its glyph readable whatever its pressed state. */
+:host([launcher-variant="icon"]) [part="launcher"]::part(control):hover { border-color: transparent; color: var(--color-text); }
+
+:host([launcher-variant="icon"][open]) [part="launcher"]::part(control):hover { color: var(--btn-primary-fg); }
 
 @media (--phone) {
     :host([edge="start"]) [part="panel"], :host([edge="end"]) [part="panel"] { inset-block-end: calc(var(--touch-target) + var(--space-3) * 2); inline-size: 100vw; }

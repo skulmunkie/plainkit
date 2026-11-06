@@ -343,6 +343,23 @@ export const fieldGroupCases = [
         const grid = await t.mount('<pk-field-group label="Plain"></pk-field-group>'); t.ok(!grid.hasAttribute('layout'), 'grid stays the default');
     }],
 
+    ['field-group: layout inline honours cols as twelfths of the row, so a short field stays short and a wide one grows; fields without cols keep 12rem; on a narrow container they wrap and stay inside (#1906)', async t => {
+        const fields = [{ key: 'qty', label: 'Quantity', kind: 'number', cols: 2 }, { key: 'price', label: 'Price', kind: 'number', cols: 3 }, { key: 'sku', label: 'SKU', cols: 4 }, { key: 'note', label: 'Note' }];
+        const host = t.stage('<div><pk-field-group label="Add line" layout="inline"></pk-field-group></div>'); host.style.width = '960px';
+        const el = host.querySelector('pk-field-group'); el.fields = fields; el.values = {};
+        await t.load(host); await t.load(el.shadowRoot); await t.settle(); await t.settle();
+        const w = () => [...el.shadowRoot.querySelectorAll('pk-field')].map(f => f.getBoundingClientRect().width), box = () => el.getBoundingClientRect().width;
+        const rem = parseFloat(getComputedStyle(document.documentElement).fontSize), gap = parseFloat(getComputedStyle(el).columnGap) || 0; let [qty, price, sku, note] = w(), row = box(), twelfth = (row + gap) / 12;
+        t.ok(Math.abs(qty - (2 * twelfth - gap)) <= 3, `cols 2 is two twelfths of the row (${qty} of ${row})`);
+        t.ok(Math.abs(price - (3 * twelfth - gap)) <= 3, `cols 3 is three twelfths (${price})`);
+        t.ok(sku > price && sku > qty * 2, `cols 4 is wider than both (${sku})`);
+        t.ok(Math.abs(note - 12 * rem) <= 3, `a field without cols keeps 12rem (${note})`);
+        host.style.width = '320px'; await t.settle(); await t.settle();
+        const rs = [...el.shadowRoot.querySelectorAll('pk-field')].map(f => f.getBoundingClientRect()), b = el.getBoundingClientRect();
+        t.ok(rs.every(r => r.right <= b.right + 1 && r.left >= b.left - 1), 'on a narrow container every field stays inside it');
+        t.ok(rs[3].top > rs[0].top + 10, 'and the row wraps');
+    }],
+
     ['field-group: a select field with styled renders the themed list with the native select value, change, required, disabled and keyboard behaviour (#1621)', async t => {
         const opts = [{ value: 'open', label: 'Open' }, { value: 'closed', label: 'Closed' }];
         const { el, form } = await inForm(t, [{ key: 'st', label: 'Status', kind: 'select', styled: true, required: true, options: opts, msg: { required: 'Pick a status.' } }, { key: 'nat', label: 'Native', kind: 'select', options: opts }], {});

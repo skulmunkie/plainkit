@@ -100,6 +100,8 @@
     }
   ],
   "cssProperties": [
+    { "name": "--pk-app-shell-body-padding-block-start", "description": "The padding above the first thing in the body (default: the page padding). Set it to 0px to sit a record page header flush under the top bar, or to a smaller step to tighten the band; the sticky page header offset follows. Inline and bottom padding are untouched; flush still removes all of it.", "default": "page padding" },
+    { "name": "--pk-app-shell-body-padding-block-end", "description": "The padding under the last thing in the body (default: the page padding). Raise it to keep the last row and the pager clear of a floating launcher, for example a pk-tray launcher in the bottom corner: calc(var(--touch-target) + var(--space-6)). Inline and top padding are untouched; flush still removes all of it.", "default": "page padding" },
     { "name": "--pk-app-shell-container", "description": "The container name of the body when contain is set (an identifier, not a length); @container <name> (...) queries the body width.", "default": "page" },
     { "name": "--pk-fill-shrink", "description": "Set on a page type's host (1) so it may shrink to the height left in the body instead of keeping its own height; the default 0 keeps ordinary content at its height so the body scrolls. List pages and filling (fill) master-detail and workspace pages set it." }
   ],

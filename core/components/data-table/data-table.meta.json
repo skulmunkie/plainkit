@@ -225,6 +225,28 @@
       "description": "Keep the header row visible while the rows scroll, as pk-table's stickyHeader. In a flex column of definite height (a pk-stack[fill], an app-shell body) it fills that height: only the rows scroll, the pager and bulk bar stay in view. Without a definite height the table is as tall as its rows."
     },
     {
+      "name": "expandable",
+      "type": "boolean",
+      "default": false,
+      "reflect": true,
+      "description": "Rows that have a detail-<rowId> child get a toggle that shows or hides it under the row, as pk-table's expandable. The detail is yours to render for the loaded page's rows. Expanding is not a row click."
+    },
+    {
+      "name": "expander",
+      "type": "string",
+      "default": "",
+      "reflect": false,
+      "description": "Set to none to leave out the toggle column: the host opens rows by setting expanded, as pk-table's expander."
+    },
+    {
+      "name": "expanded",
+      "type": "json",
+      "default": [],
+      "reflect": false,
+      "commit": "pk-row-expand",
+      "description": "Ids of the expanded rows, as pk-table's expanded: the reader changes it and pk-row-expand reports each change; after that the host owns it. Set it to open rows from your own control."
+    },
+    {
       "name": "selected",
       "type": "json",
       "default": [],
@@ -256,6 +278,7 @@
     { "name": "no-results", "description": "Content shown instead of the built-in no-results state when a search or filter is active and nothing matches." },
     { "name": "bulk", "description": "Bulk actions (buttons) shown in the bar that appears while rows are selected, beside the count; act on the pk-select detail (the ids, or the query for scope 'all'). Needs selectable." },
     { "name": "cell-<rowId>-<key>", "dynamic": true, "description": "Custom content for one cell, exactly as pk-table's cell slots: the row's id (its rowKey field) and the column key. A row with no such child shows the plain value. Column options (align, type, hidePhone) in columns apply as in pk-table." },
+    { "name": "detail-<rowId>", "dynamic": true, "description": "Detail content of one row, shown under it when the row is expanded (expandable), exactly as pk-table's detail slots (detail-<rowId>.<name> panels too). A row without it has no toggle." },
     { "name": "header-<key>", "dynamic": true, "description": "Content beside one column header's title (a help tooltip, an icon button), exactly as pk-table's header slots; the text title and the sort button stay." }
   ],
   "events": [
@@ -292,6 +315,12 @@
       "cancelable": true
     },
     {
+      "name": "pk-row-expand",
+      "detail": { "id": "string", "index": "number", "expanded": "bool" },
+      "description": "The reader expanded or collapsed a row (pk-table's event, passed on); expanded is the new state and the expanded prop already holds it.",
+      "cancelable": false
+    },
+    {
       "name": "pk-select",
       "detail": { "selected": "string[]", "scope": "'page' | 'all'", "query": "{ page, pageSize, sort, sortDir, search, filters }" },
       "description": "The selection changed (a row, the page or Select all N, a cleared selection, or a search that narrowed scope all to page). For scope 'all' run the bulk action against query on the server. pk-table's own pk-select and pk-select-all stop inside the element.",
@@ -314,7 +343,7 @@
     { "name": "noResults", "description": "Holds the no-results slot while shown." },
     { "name": "state", "description": "Holds the loading/empty/error state while load() is in flight or the result is empty; the table is hidden while this is shown." }
   ],
-  "cssProperties": [],
+  "cssProperties": [{ "name": "--pk-data-table-actions-flex", "description": "The flex of the actions row on a phone (the actions take a row of their own). pk-list-page sets 0 0 0 while it has no actions or toolbar content so that no empty row leaves a gap under the search; set it the same way when your own actions slot is empty.", "default": "1 1 100%" }],
   "methods": [
     { "name": "focus(where?)", "description": "Moves focus from the host. No argument: the search box, or the first row when the search is hidden. \"search\": the search box only (nothing while it is hidden or not drawn yet). \"next\": the row after the focused one, the first when no row has focus. \"previous\", \"first\", \"last\": only while a row has focus (the call does nothing otherwise, so Home and the arrows stay the search box's own). Returns whether focus moved." },
     { "name": "refresh()", "description": "Runs load(query) again for the current query, for example after a bulk action. Returns a promise." },

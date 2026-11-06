@@ -23,7 +23,7 @@
 /* The bar keeps its row until it upgrades (CLS, issue 1372). */
 ::slotted(pk-navbar:not(:defined)) { display: block; min-block-size: max(var(--app-header-h), calc(var(--touch-target) + 0.5em)); }
 
-[part="body"] { flex: 1; min-height: 0; display: flex; flex-direction: column; position: relative; overflow-y: auto; scrollbar-gutter: stable; overscroll-behavior: contain; --pk-page-header-sticky-top: calc(-1 * var(--pad-page)); padding: var(--pad-page); padding-inline: max(var(--pad-page), env(safe-area-inset-left)) max(var(--pad-page), env(safe-area-inset-right)); }
+[part="body"] { flex: 1; min-height: 0; display: flex; flex-direction: column; position: relative; overflow-y: auto; scrollbar-gutter: stable; overscroll-behavior: contain; --pk-page-header-sticky-top: calc(-1 * var(--pk-app-shell-body-padding-block-start, var(--pad-page))); padding: var(--pad-page); padding-block-start: var(--pk-app-shell-body-padding-block-start, var(--pad-page)); padding-block-end: var(--pk-app-shell-body-padding-block-end, var(--pad-page)); padding-inline: max(var(--pad-page), env(safe-area-inset-left)) max(var(--pad-page), env(safe-area-inset-right)); }
 
 /* Ordinary content keeps its height; a filling page type opts in with --pk-fill-shrink: 1 (1551). */
 [part="body"] > slot:not([name])::slotted(*) { flex-shrink: var(--pk-fill-shrink, 0); }
@@ -54,6 +54,6 @@
 @media (--tablet) { :host { grid-template-columns: minmax(0, 1fr); } ::slotted(pk-side-nav:not(:defined)) { display: none; } } /* Its drawer is off canvas once defined: until then it would sit in flow above the main column and push it down when it upgrades (issue 1204). */
 
 @media (--phone) {
-    [part="body"] { --pk-page-header-sticky-top: calc(-1 * var(--space-4)); padding: var(--space-4); padding-inline: max(var(--space-4), env(safe-area-inset-left)) max(var(--space-4), env(safe-area-inset-right)); }
+    [part="body"] { --pk-page-header-sticky-top: calc(-1 * var(--pk-app-shell-body-padding-block-start, var(--space-4))); padding: var(--space-4); padding-block-start: var(--pk-app-shell-body-padding-block-start, var(--space-4)); padding-block-end: var(--pk-app-shell-body-padding-block-end, var(--space-4)); padding-inline: max(var(--space-4), env(safe-area-inset-left)) max(var(--space-4), env(safe-area-inset-right)); }
     ::slotted([slot="footer"]) { min-height: var(--touch-target); min-width: var(--touch-target); justify-content: center; }
 }

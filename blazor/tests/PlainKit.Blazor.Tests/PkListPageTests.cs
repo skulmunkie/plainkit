@@ -68,6 +68,31 @@ public sealed class PkListPageTests : BunitContext, IAsyncLifetime
     }
 
     [Fact]
+    public async Task Expandable_puts_the_expansion_in_the_config_and_each_loaded_row_gets_its_detail_slot()
+    {
+        PkRowExpandEventArgs? seen = null;
+        var cut = Render<PkListPage<Order>>(p => p
+            .Add(x => x.Expandable, true)
+            .Add(x => x.Expander, "none")
+            .Add(x => x.Expanded, ["A-1"])
+            .Add(x => x.DetailTemplate, o => b => b.AddContent(0, "detail:" + o.OrderNo))
+            .Add(x => x.DetailPanels, new Dictionary<string, RenderFragment<Order>> { ["lines"] = o => b => b.AddContent(0, "lines:" + o.OrderNo) })
+            .Add(x => x.OnRowExpand, e => seen = e)
+            .Add(x => x.Load, r => Task.FromResult(new PkListResult<Order>([new("A-1", 5)], 1)))
+            .Add(x => x.IdOf, o => o.OrderNo));
+
+        await LoadedRows(cut);
+
+        var config = JsonDocument.Parse(cut.Find("pk-list-page").GetAttribute("config")!).RootElement;
+        Assert.True(config.GetProperty("expandable").GetBoolean());
+        Assert.Equal("none", config.GetProperty("expander").GetString());
+        Assert.Equal("A-1", config.GetProperty("expanded")[0].GetString());
+        Assert.Equal("detail:A-1", cut.Find("[slot='detail-A-1']").TextContent);
+        Assert.Equal("lines:A-1", cut.Find("[slot='detail-A-1.lines']").TextContent);
+        Assert.Null(seen);
+    }
+
+    [Fact]
     public async Task Without_typed_Columns_the_rows_are_the_items()
     {
         var cut = Render<PkListPage<Order>>(p => p.Add(x => x.Load, r => Task.FromResult(new PkListResult<Order>([new("A-1", 5)], 1))));

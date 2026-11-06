@@ -10,7 +10,7 @@ const SETTINGS = Object.keys(DEFAULTS);
 export default Base => class extends Base {
     opt(name) { return this[name] ?? DEFAULTS[name]; }
     connected() {
-        // Cell content (#817): the host's `cell-<id>-<key>` children are re-slotted into the inner pk-table, which finds them as its own children.
+        // Cell and detail content (#817, #1913): the host's `cell-<id>-<key>`, `header-<key>` and `detail-<id>` children are re-slotted into the inner pk-table, which finds them as its own children.
         (this.$mo ??= new MutationObserver(() => this.forwardSlots())).observe(this, { childList: true });
         if (this.hasAttribute('config') || Object.hasOwn(this, 'config')) this.warnOnce('config', 'config was removed: set columns, page-size, filters, empty ... as plain props (see the changelog)');
         if (this.$w) return;
@@ -28,6 +28,7 @@ export default Base => class extends Base {
         };
         table.addEventListener('pk-sort', e => go({ sort: e.detail.key, sortDir: e.detail.direction ?? 'ascending', page: 1 }));
         table.addEventListener('pk-row-click', e => this.rowHref?.(e.detail.row));
+        table.addEventListener('pk-row-expand', () => { this.expanded = table.expanded; }); // the event itself bubbles to the host; a toggle is not a row click (pk-table skips clicks on its button)
         // pk-table's own selection events stop here: the host hears one pk-select with the ids, the scope and the query.
         table.addEventListener('pk-select', e => { e.stopPropagation(); this.selected = e.detail.selected; this.selectScope = 'page'; this.announce(); });
         table.addEventListener('pk-select-all', e => { e.stopPropagation(); if (e.detail.scope === 'all') { this.selectScope = 'all'; this.announce(); } });
@@ -50,7 +51,7 @@ export default Base => class extends Base {
     }
     disconnected() { this.$mo?.disconnect(); this.$abort?.abort(); }
     forwardSlots() {
-        const table = this.part('table'), names = [...this.children].map(c => c.slot).filter(s => /^(cell|header)-/.test(s)), have = [...table.children].filter(c => /^(cell|header)-/.test(c.name));
+        const table = this.part('table'), names = [...this.children].map(c => c.slot).filter(s => /^(cell|header|detail)-/.test(s)), have = [...table.children].filter(c => /^(cell|header|detail)-/.test(c.name));
         if (names.join() === have.map(c => c.name).join()) return;
         for (const c of have) c.remove();
         for (const name of names) { const s = this.ownerDocument.createElement('slot'); s.name = s.slot = name; table.append(s); }
@@ -119,7 +120,7 @@ export default Base => class extends Base {
         filters.label = this.opt('searchLabel') || 'Search'; filters.placeholder = this.opt('searchPlaceholder'); filters.debounce = this.opt('searchDebounce'); filters.toggleAttribute('data-nosearch', !!this.hideSearch);
         pagination.sizes = this.opt('pageSizeOptions') ?? []; pagination.label = this.opt('pagerLabel') || 'Pagination';
         if (this.opt('search') !== this.$seed) filters.value = this.$seed = this.opt('search');
-        table.label = this.opt('label'); table.caption = this.opt('caption');
+        table.label = this.opt('label'); table.caption = this.opt('caption'); table.toggleAttribute('data-nocaption', !this.opt('caption'));
         table.columns = this.opt('columns');
         table.rowKey = this.rowKey;
         table.clickable = this.clickable || typeof this.rowHref === 'function';
@@ -129,7 +130,8 @@ export default Base => class extends Base {
         table.selectable = this.selectable;
         table.selected = this.selected ?? [];
         table.selectScope = this.selectScope;
-        for (const k of ['rowHrefTemplate', 'navigate', 'selectPageOnly', 'cards', 'striped', 'density', 'maxHeight', 'stickyHeader']) table[k] = this[k];
+        for (const k of ['rowHrefTemplate', 'navigate', 'selectPageOnly', 'cards', 'striped', 'density', 'maxHeight', 'stickyHeader', 'expandable', 'expander']) table[k] = this[k];
+        table.expanded = this.expanded ?? [];
     }
 
     // Zero rows: while a search or filter is active `noResults` (when set), else `empty`; with nothing active a host child in the `empty` slot (`no-results` while searching) replaces the built-in state.
