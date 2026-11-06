@@ -32,7 +32,7 @@
       "type": "boolean",
       "default": false,
       "reflect": true,
-      "description": "Makes the body a named inline-size container (name from --pk-app-shell-container, default page) so @container page (...) answers to the body width with no wrapper element, clips sideways overflow, and lets any single slotted child fill the height (flex 1, min-height 0) so a list page or a fixed region plus a scrolling one needs no :has() hack. Off by default; composes with flush."
+      "description": "Makes the body a named inline-size container (name from --pk-app-shell-container, default page) so @container page (...) answers to the body width with no wrapper element, clips sideways overflow, and lets any single slotted child fill the height (flex 1, min-height 0) so a list page or a fixed region plus a scrolling one needs no :has() hack. A wrapper div around the page is not a single filling child and does not pass the height on: use no wrapper, or pk-stack fill / pk-grid fill. Off by default; composes with flush."
     },
     {
       "name": "backHref",
