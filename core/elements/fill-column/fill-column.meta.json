@@ -19,6 +19,7 @@
   ],
   "cssProperties": [
     { "name": "--pk-fill-column-fixed", "description": "Overrides the fixed prop.", "default": "fixed" },
+    { "name": "--pk-fill-shrink", "description": "Set on a slotted page type (1) so it may shrink to the rest region instead of keeping its own height; the default 0 keeps ordinary content at its height so the rest scrolls. List pages set it.", "default": "0" },
     { "name": "--pk-fill-column-gap", "description": "Overrides gap.", "default": "gap" }
   ],
   "methods": [],
