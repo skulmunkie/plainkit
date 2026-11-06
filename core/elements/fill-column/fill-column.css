@@ -8,3 +8,4 @@
 [part="fixed"] { flex: none; display: flex; flex-direction: column; gap: var(--pk-fill-column-gap, var(--_g)); block-size: var(--pk-fill-column-fixed, var(--_fh, auto)); min-block-size: 0; overflow: clip; }
 [part="fixed"][hidden] { display: none; }
 [part="rest"] { flex: 1 1 0; min-block-size: 0; overflow-y: auto; overscroll-behavior: contain; display: flex; flex-direction: column; }
+[part="rest"] > slot::slotted(*) { flex-shrink: var(--pk-fill-shrink, 0); }
