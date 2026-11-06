@@ -3,7 +3,7 @@
   "title": "Fill column",
   "group": "Layout",
   "tier": "element",
-  "summary": "A column in a parent of fixed height: the fixed slot keeps its height, the rest fills and scrolls.",
+  "summary": "A column in a parent of fixed height: the fixed slot keeps its height, the rest fills and scrolls. The rest region is a flex column, so a page type such as pk-list-page fills it.",
   "props": [
     { "name": "fixed", "type": "string", "default": "", "reflect": true, "description": "Fixed region height, a CSS length (12rem). Empty: natural height." },
     { "name": "gap", "type": "enum", "default": "md", "values": ["none", "xs", "sm", "md", "lg", "xl"], "reflect": true, "description": "Space between regions." }
