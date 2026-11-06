@@ -19,7 +19,7 @@ export default Base => class extends Base {
         if (!this.$w) {
             this.$w = true;
             const panel = this.part('panel');
-            this.part('launcher').addEventListener('click', () => { this.ask(!this.open, 'launcher'); this.requestUpdate(); }); // the button flipped its own pressed; a vetoed close puts it back
+            this.shadowRoot.addEventListener('click', e => { if (e.composedPath().includes(this.part('launcher'))) { this.ask(!this.open, 'launcher'); this.requestUpdate(); } }); // on the root, so it runs after the button flipped its own pressed (a real click runs a microtask checkpoint between listeners on one target, which put pressed back before the flip); a vetoed close puts it back (1924)
             this.part('close').addEventListener('click', () => this.ask(false, 'close'));
             panel.addEventListener('keydown', e => { if (e.key === 'Escape' && !e.defaultPrevented) this.ask(false, 'escape'); });
             // The size choice and the launcher are this element's own buttons: their pk-toggle is not news to the page.

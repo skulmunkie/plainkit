@@ -17,6 +17,8 @@ export default {
         { click: '#tray >>> [part=close]' }, { shot: 'closed-again' },
     ],
     expect(t) {
+        if (t.shot === 'open') t.ok(t.attr(C, 'aria-pressed') === 'true', 'after a real click the launcher button is pressed (aria-pressed ' + t.attr(C, 'aria-pressed') + ') (#1924)');
+        if (t.shot === 'closed-again') t.ok(t.attr(C, 'aria-pressed') === 'false', 'after closing, the launcher button is not pressed (#1924)');
         const v = t.viewport;
         t.visible(L, 'the launcher'); t.inViewport(L);
         const c = t.rect(C);
