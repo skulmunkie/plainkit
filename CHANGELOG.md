@@ -5,6 +5,28 @@ The format follows [Keep a Changelog](https://keepachangelog.com/) and the proje
 
 ## [Unreleased]
 
+## [0.28.0] - 2026-11-06
+
+### Added
+
+- `pk-app-shell` has a documented hook, `--pk-app-shell-body-padding-block-start`, for the padding above the first thing in the body. Set it to `0px` (or a smaller step) on the shell or an ancestor to tighten the band above a record page header; the sticky page header offset follows, and `flush` still removes all body padding. (#1904)
+- The icon sprite has an `image` symbol (a picture frame with a sun and a hill), so `pk-avatar` and other places can show a neutral placeholder for records that are not people: `<pk-icon name="image">`. (#1905)
+- `pk-tray` takes `launcher-variant="icon"` (Blazor `LauncherVariant`): the launcher becomes a bare circle around the icon in its `launcher` slot, transparent while the tray is closed and filled while it is open, named by `launcher-label`. `--pk-tray-launcher-inset-block-end`, `--pk-tray-launcher-inset-inline-end` and `--pk-tray-launcher-padding` move and size it. `pk-button` size `mini` now honours `--pk-button-padding` (it ignored it before). (#1908)
+- `pk-app-shell` has a documented hook, `--pk-app-shell-body-padding-block-end`, for the padding under the last thing in the body, so a page with a floating launcher (a `pk-tray` launcher in the bottom corner) can keep its last row and pager clear of it. `flush` still removes all body padding. (#1910)
+- `PkDataTable<TItem>` and `PkListPage<TItem>` take `Expandable`, `Expander`, `Expanded`, `DetailTemplate`, `DetailPanels` and `OnRowExpand`, with the meaning they have on `PkTable<TItem>` (`PkDataTable` also has `@bind-Expanded`; `PkListPage` takes `Expanded` as the initial value). The detail is rendered for the loaded page's rows, and expanding a row is not a row click. In bUnit, `ExpandRowAsync(id)` on `PkDataTable` expands a row. (#1913)
+- `pk-data-table` takes `expandable`, `expander` and `expanded` (the same as `pk-table`), shows `detail-<rowId>` children under their row and passes `pk-row-expand` on; expanding a row is not a row click. `pk-list-page` forwards `expandable`, `expander` and `expanded` from its `config` and the `detail-<rowId>` children too. (#1913)
+
+### Changed
+
+- `pk-field-group` with `layout="inline"` now honours a field's `cols` (twelfths of the row, as in the grid; Blazor `PkFieldSpec.Cols`), never narrower than 5rem, so a short quantity stays short beside a wide picker in an add-row. Fields without `cols` keep their 12rem width. (#1906)
+- The docs and the agent skills now say which `pk-button` variant is the bare icon button: `plain` has no border, `ghost` keeps its 1px border and `secondary` an accent one. The collapsed `pk-app-bar-search` button is already a plain (borderless) button, and `--pk-button-border` on the host is the documented way to give it a border. (#1909)
+- Behaviour change on a narrow container: a `pk-page-header` record with `wrap-title` (Blazor `WrapTitle`) now clamps its title to two lines (it was three) when its container is 30rem or less, such as a phone, so the title beside the actions no longer takes most of the first screen; a wider narrow container keeps three lines, and wide screens keep the one line. The docs say that a tab strip in the header scrolls with a fade (`pk-tabs` overflow `scroll`, the default) or lists its tabs in a menu (`overflow="menu"`). (#1911)
+- Behaviour change on a phone: a button slotted into the `pk-list-page` toolbar now shares the search row when it fits (the search box grows and the button, an icon button for Filters, sits beside it) instead of wrapping onto its own row; a page with no actions leaves no empty row under the search. `pk-list-page` and `pk-data-table` are also more compact: an empty table caption no longer adds a padded band above the first card, so the title bar, the search row and the first card are one `--space-3` step apart, and the pager footer is as tall as its content plus a small step. Desktop is unchanged. `--pk-data-table-actions-flex` sets the flex of the actions row on a phone. (#1912)
+
+### Fixed
+
+- The `PkReconnect` banner keeps one row on a narrow viewport (640px and below): the action button stays at the end of the message row instead of wrapping under it and tripling the banner height, and a long message truncates with an ellipsis first. (#1907)
+
 ## [0.27.0] - 2026-11-04
 
 ### Added
