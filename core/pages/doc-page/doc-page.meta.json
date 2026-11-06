@@ -39,7 +39,7 @@
     { "name": "aside", "description": "Wraps the table of contents slot." },
     { "name": "article", "description": "Wraps the default slot: the title, summary, body and pager the element builds." }
   ],
-  "cssProperties": [],
+  "cssProperties": [{ "name": "--pk-doc-page-nav-max", "description": "Height cap of the static slotted nav above the tablet width (it is sticky and scrolls itself past this). Set it smaller inside a shell with a header and footer.", "default": "100dvh" }],
   "writes": [
     { "target": "the nav, toggle button and table of contents (pk-side-nav, pk-button, pk-toc)", "attributes": ["open", "pressed", "filterable", "hidden", "label", "placeholder", "aria-label", "scroller"], "why": "Light-DOM elements this element creates and owns itself (never host-given nodes): its own drawer toggle opens/closes the nav (open, pressed), its own config.search turns the nav's built-in filter on (filterable), and the table of contents is hidden while the shown page has no headings to list (hidden)." }
   ],

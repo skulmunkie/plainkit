@@ -27,6 +27,10 @@
 
 ::slotted(.doc-page-summary) { color: var(--color-muted); font-size: var(--text-lg); }
 
+/* Static slotted nav, wide layout (1878): sticky beside a long article, capped to the viewport so it scrolls itself; the tablet block below gives the drawer back its fixed position. */
+
+slot[name="nav"]::slotted(*) { position: sticky; inset-block-start: 0; align-self: flex-start; max-block-size: var(--pk-doc-page-nav-max, 100dvh); }
+
 @media (--wide) {
     [part="page"] { grid-template-columns: minmax(0, 46rem); }
 
@@ -40,6 +44,8 @@
 
     /* Static slotted mode (issue 1829): this shadow's own Menu button opens the author's nav as the drawer pk-side-nav already is; the state is data-menu on the shell, so nothing is written to the author's nav. */
     [part="shell"][data-menu] slot[name="nav"]::slotted(*) { transform: none; visibility: visible; transition-delay: 0s; }
+
+    slot[name="nav"]::slotted(*) { position: fixed; align-self: auto; max-block-size: none; }
 
     [part="backdrop"] { position: fixed; inset: 0; z-index: var(--z-flyout-backdrop); background: var(--flyout-backdrop-bg); }
 
