@@ -49,9 +49,9 @@
       "name": "launcherVariant",
       "type": "enum",
       "default": "default",
-      "values": ["default", "icon"],
+      "values": ["default", "icon", "none"],
       "reflect": true,
-      "description": "icon turns the launcher into a bare circle around one icon (put a pk-icon in the launcher slot; launcher-label stays its accessible name): no border, transparent while the tray is closed, filled while it is open, a padding of --pk-tray-launcher-padding. On a phone it keeps the 44px touch target. default is the labelled secondary button."
+      "description": "none draws no launcher: open the tray from a control the page already has, `data-toggle=\"#id\"` or `data-open=\"#id\"` as on pk-drawer (that control gets aria-expanded, aria-controls when the tray has an id, and the hotkey in its title), or with the open property. icon turns the launcher into a bare circle around one icon (put a pk-icon in the launcher slot; launcher-label stays its accessible name): no border, transparent while the tray is closed, filled while it is open, a padding of --pk-tray-launcher-padding. On a phone it keeps the 44px touch target. default is the labelled secondary button."
     },
     {
       "name": "hotkey",
@@ -140,6 +140,13 @@
     {
       "title": "A single-icon help launcher: launcher-variant=\"icon\", a pk-icon in the launcher slot",
       "html": "<pk-tray label=\"Help\" launcher-label=\"Help\" launcher-variant=\"icon\" edge=\"end\" size=\"small\"><pk-icon slot=\"launcher\" name=\"search\"></pk-icon><p>Help content goes here.</p></pk-tray>"
+    }
+  ],
+  "writes": [
+    {
+      "target": "the page's own openers: elements with data-open or data-toggle whose selector matches this tray",
+      "attributes": ["aria-expanded", "aria-controls", "aria-keyshortcuts", "title"],
+      "why": "So a header or footer button that opens the tray (launcher-variant=none) reports its state like the launcher does: aria-expanded follows open, aria-controls names the tray when it has an id, and the hotkey shows in the title (an author-set title is left alone). Not undone when the tray disconnects."
     }
   ]
 }
