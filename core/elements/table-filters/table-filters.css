@@ -7,6 +7,10 @@
 [part="trigger"]:focus-visible { outline: var(--focus-ring); outline-offset: 2px; }
 [part="count"] { min-inline-size: 1.2em; padding: 0 0.3em; border-radius: var(--radius-round); background: var(--color-accent); color: var(--color-panel); font-size: var(--text-meta); line-height: 1.2em; text-align: center; }
 [part="panel"] { flex-basis: 100%; margin-block-start: var(--space-2); border: 1px solid var(--color-border); border-radius: var(--radius-md); background: var(--color-panel); }
+/* A panel taller than the viewport scrolls its own body (header and Clear filters stay in view), so a short phone viewport never clips the lower fields. */
+[part="panel"]:not([hidden]) { display: flex; flex-direction: column; max-block-size: 60dvh; }
+[part="body"] { overflow-y: auto; min-block-size: 0; overscroll-behavior: contain; }
+[part="header"], [part="footer"] { flex: none; }
 [part="header"] { display: flex; align-items: center; justify-content: space-between; padding: var(--space-2) var(--space-3); border-block-end: 1px solid var(--color-border); }
 [part="heading"] { font-weight: 600; }
 [part="close"] { all: unset; cursor: pointer; padding: var(--space-1); border-radius: var(--radius-sm); }

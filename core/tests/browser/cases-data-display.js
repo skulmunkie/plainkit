@@ -1024,6 +1024,20 @@ export const dataDisplayCases = [
         }
     }],
 
+    ['table-filters: an open panel taller than the viewport scrolls its body, and the header and Clear filters stay reachable (#1935)', async t => {
+        const host = t.stage(`<div style="inline-size:390px"><pk-table-filters label="Search" filter-count="2">${Array.from({ length: 40 }, (_, i) => `<pk-input label="Field ${i}"></pk-input>`).join('')}</pk-table-filters></div>`);
+        await t.load(host); await t.settle();
+        const f = host.querySelector('pk-table-filters'); f.open = true; await new Promise(r => setTimeout(r, 200));
+        const p = n => f.shadowRoot.querySelector(`[part="${n}"]`), vh = window.innerHeight;
+        t.ok(p('body').scrollHeight > p('body').clientHeight, `the body overflows its box and scrolls (${p('body').scrollHeight} > ${p('body').clientHeight})`);
+        t.ok(p('panel').getBoundingClientRect().height <= vh * 0.7, `the panel is clamped below the viewport height (${Math.round(p('panel').getBoundingClientRect().height)} of ${vh})`);
+        const pr = p('panel').getBoundingClientRect(), cr = p('clear').getBoundingClientRect(), hr = p('header').getBoundingClientRect();
+        t.ok(cr.top >= pr.top && cr.bottom <= pr.bottom + 1, 'Clear filters is inside the panel box, not clipped');
+        t.ok(hr.top >= pr.top, 'the header (close) is inside the panel');
+        p('body').scrollTop = p('body').scrollHeight;
+        const last = f.querySelector('pk-input:last-child').getBoundingClientRect(), br = p('body').getBoundingClientRect();
+        t.ok(last.bottom <= br.bottom + 1 && last.top >= br.top, 'scrolled to the end, the last field is fully inside the body');
+    }],
     ['table-filters: the search box and filter trigger default to the input radius; --pk-table-filters-radius makes them a pill, always a length (never an ellipse), at a wide and a narrow width (#1706)', async t => {
         const ref = getComputedStyle((await t.mount('<pk-input label="Ref"></pk-input>')).part('box')).borderTopLeftRadius;
         for (const width of ['40rem', '12rem']) {
