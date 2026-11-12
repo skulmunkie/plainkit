@@ -141,7 +141,7 @@ A toast after the add: `<PkToastStack>` plus a conditional `<PkToast OnDismiss="
     private void Open(PkTableRowClickArgs<Order> row) => Console.WriteLine(row.Item.Number);
 }
 ```
-Hand-written markup instead of `Columns` and `Items` (a static header and a `@foreach` body): set `ChildContent` (with `HeadContent`, `FootContent`) on `PkTable TItem="object"`; `references/table-raw-mode.md`. A data-driven `PkTable` also takes `FootContent` for a totals or summary row (one cell spanning every column; a trailing card on a phone).
+Hand-written markup instead of `Columns` and `Items` (a static header and a `@foreach` body): set `ChildContent` (with `HeadContent`, `FootContent`) on `PkTable TItem="object"`; `references/table-raw-mode.md`. A data-driven `PkTable` also takes `FootContent` for a totals or summary row (one cell spanning every column; a trailing card on a phone). A picture-led list uses a media column: `new() { Key = "cover", Label = "Cover", Type = PkTableColumnType.Media, Ratio = "3/4", Size = PkTableColumnSize.Md, Alt = "title" }` (the row value is the image URL; a plain img in a box reserved before it loads; on a phone it leads the card; the same column works in `PkDataTable` and `PkListPage`).
 
 ### Select all rows of a paged `PkTable`
  To edit cells in place set `Editable`, give a column an `Editor` (`PkTableEditor`: `Text`, `Number`, `Select`, `Date`, `Textarea`, `Combobox`; `Options`, `Free`, `Required`, `Min`, `Max`, `MaxLength` as the element) and update your item in `OnCellEdit`; `Min` and `Max` take a number or, for a date, a `DateOnly` or an ISO string.

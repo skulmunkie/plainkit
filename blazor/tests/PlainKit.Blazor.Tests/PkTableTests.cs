@@ -354,4 +354,15 @@ public sealed class PkTableTests : BunitContext, IAsyncLifetime
         Assert.Equal((0d, 99.5), (c[3].GetProperty("min").GetDouble(), c[3].GetProperty("max").GetDouble()));
         Assert.False(c[4].TryGetProperty("min", out _) || c[4].TryGetProperty("free", out _) || c[4].TryGetProperty("editor", out _));
     }
+
+    // Issue 1938: a media column reaches the element's column definition with its ratio, fit, size and alt.
+    [Fact]
+    public void A_Media_column_reaches_the_column_definition()
+    {
+        var cut = Render<PkTable<Order>>(p => p.Add(x => x.Columns, [new() { Key = "number", Label = "Cover", Type = PkTableColumnType.Media, Ratio = "3/4", Fit = PkTableColumnFit.Contain, Size = PkTableColumnSize.Lg, Alt = "status" }]).Add(x => x.Items, Orders).Add(x => x.IdOf, o => o.Number.ToString()));
+        using var columns = JsonDocument.Parse(cut.Find("pk-table").GetAttribute("columns")!);
+        var c = columns.RootElement[0];
+        Assert.Equal("media", c.GetProperty("type").GetString()); Assert.Equal("3/4", c.GetProperty("ratio").GetString());
+        Assert.Equal("contain", c.GetProperty("fit").GetString()); Assert.Equal("lg", c.GetProperty("size").GetString()); Assert.Equal("status", c.GetProperty("alt").GetString());
+    }
 }

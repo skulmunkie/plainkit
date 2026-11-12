@@ -52,3 +52,53 @@ export const tableMediaCases = [
         t.ok(rect(td).left > rect(name).left, 'media is to the right of the name');
     }],
 ];
+
+const phoneDoc = async (t, width, { media = true, dir = '', src = PIX } = {}) => {
+    const { sampleDoc } = await import('../../site/gallery/frame.js');
+    const cols = JSON.stringify([...(media ? [{ key: 'pic', label: 'Cover', type: 'media', ratio: '3/4' }] : []), { key: 'name', label: 'Name', title: true }, { key: 'by', label: 'By' }, { key: 'year', label: 'Year' }]);
+    const rows = JSON.stringify([{ id: 1, pic: src, name: 'A fairly long book title that wraps over two lines', by: 'An Author', year: '2026' }]);
+    const host = t.stage(''), f = document.createElement('iframe');
+    f.title = 'sample'; f.style.width = `${width}px`; f.style.height = '480px'; f.style.border = '0';
+    const loaded = new Promise(r => f.addEventListener('load', r, { once: true })); host.append(f);
+    f.srcdoc = sampleDoc(`<pk-table cards label="Books" ${dir} columns='${cols}' rows='${rows}'></pk-table>`); await loaded;
+    const sr = () => f.contentDocument.querySelector('pk-table')?.shadowRoot;
+    await until(() => sr()?.querySelector('tbody td[data-key="name"]') && (!media || sr().querySelector('td[data-media] img')), 'the table'); await wait(150);
+    const tr = sr().querySelector('tbody tr'), td = k => sr().querySelector(`tbody td[data-key="${k}"]`), w = f.contentWindow, wcs = w.getComputedStyle(tr);
+    return { w, tr, td, pad: { l: parseFloat(wcs.paddingLeft), r: parseFloat(wcs.paddingRight), t: parseFloat(wcs.paddingTop), b: parseFloat(wcs.paddingBottom) }, doc: f.contentDocument.documentElement };
+};
+const R = e => e.getBoundingClientRect();
+tableMediaCases.push(
+    ['table media column in cards (phone 390): the image leads the card at the inline start, as tall as the card content, with the stacked cells beside it', async t => {
+        const p = await phoneDoc(t, 390); t.eq(p.w.innerWidth, 390);
+        const tr = R(p.tr), m = R(p.td('pic')), name = R(p.td('name')), by = R(p.td('by'));
+        t.ok(Math.abs(m.left - (tr.left + p.pad.l)) < 1.5, 'media at the card inner start: ' + m.left + ' vs ' + (tr.left + p.pad.l));
+        t.ok(Math.abs(m.height - (p.tr.clientHeight - p.pad.t - p.pad.b)) < 2, 'media as tall as the card content: ' + m.height + ' vs ' + tr.height);
+        t.ok(name.left >= m.right - 0.5 && by.left >= m.right - 0.5, 'title and cells sit beside the media, not under it');
+        t.ok(by.top >= name.bottom - 1, 'the other cells stack under the title');
+        t.ok(p.doc.scrollWidth <= p.doc.clientWidth, 'no horizontal overflow');
+    }],
+    ['table media column in cards: the box is the same before and after the image loads, and when it fails', async t => {
+        const a = await phoneDoc(t, 375, { src: '/__no_such_image__.png?' + Date.now() }), ma = R(a.td('pic')), ta = R(a.tr);
+        const b = await phoneDoc(t, 375), mb = R(b.td('pic')), tb = R(b.tr);
+        t.ok(Math.abs(ma.width - mb.width) < 1 && Math.abs(ma.height - mb.height) < 1 && Math.abs(ta.height - tb.height) < 1, 'same box: ' + [ma.width, ma.height, ta.height] + ' vs ' + [mb.width, mb.height, tb.height]);
+    }],
+    ['table media column in cards: right-to-left puts the image at the card inline start (the right)', async t => {
+        const p = await phoneDoc(t, 390, { dir: 'dir="rtl"' }); p.doc.setAttribute('dir', 'rtl'); await wait(100);
+        const tr = R(p.tr), m = R(p.td('pic')), name = R(p.td('name'));
+        t.ok(Math.abs(m.right - (tr.right - p.pad.r)) < 1.5 && name.right <= m.left + 0.5, 'media at the right edge, title to its left');
+    }],
+    ['table cards without a media column are unchanged: the cells stay flex rows with their labels', async t => {
+        const p = await phoneDoc(t, 390, { media: false }); const by = p.td('by');
+        t.eq(p.w.getComputedStyle(by).display, 'flex', 'a labelled cell is a flex row'); t.ok(Math.abs(R(by).width - (p.tr.clientWidth - p.pad.l - p.pad.r)) < 1.5, 'it spans the card');
+    }],
+);
+tableMediaCases.push(
+    ['pk-list-page passes a media column (type, ratio, alt) through its config unchanged', async t => {
+        const box = await t.mount('<div style="width:900px"><pk-list-page></pk-list-page></div>'), lp = box.querySelector('pk-list-page');
+        const cols = [{ key: 'pic', label: 'Cover', type: 'media', ratio: '16/9', alt: 'name' }, { key: 'name', label: 'Name' }];
+        await Promise.all(['pk-list-page', 'pk-data-table', 'pk-table'].map(n => customElements.whenDefined(n))); lp.load = () => ({ rows: [{ id: 1, pic: PIX, name: 'One' }], total: 1 }); lp.config = { heading: 'Books', columns: cols, density: 'compact' };
+        const tbl = () => lp.shadowRoot?.querySelector('[part=table]')?.shadowRoot?.querySelector('[part=table]')?.shadowRoot;
+        const td = await until(() => tbl()?.querySelector('tbody td[data-media] img')?.parentElement, 'the media cell'); await t.settle();
+        t.eq(td.querySelector('img').alt, 'One', 'alt reads the row key'); t.ok(Math.abs(rect(td).width / rect(td).height - 16 / 9) < 0.05, 'the ratio reaches the box: ' + rect(td).width / rect(td).height);
+    }],
+);
