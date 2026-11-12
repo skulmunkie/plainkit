@@ -10,7 +10,7 @@
 /* A panel taller than the viewport scrolls its own body (header and Clear filters stay in view), so a short phone viewport never clips the lower fields. */
 [part="panel"]:not([hidden]) { display: flex; flex-direction: column; max-block-size: 60dvh; }
 /* placement="start" (the flyout): the panel leaves the toolbar flow and overlays the table area, from the toolbar's bottom edge down (the data table's toolbar is the containing block). */
-:host([placement="start"]) [part="panel"] { position: absolute; z-index: 1; inset-block-start: calc(100% + var(--space-3)); inset-inline-start: 0; inline-size: min(var(--pk-table-filters-w, 22rem), 100%); flex-basis: auto; margin: 0; box-shadow: var(--shadow-pop); }
+:host([placement="start"]) [part="panel"] { position: absolute; z-index: 1; inset-block-start: calc(100% + var(--space-3)); inset-inline-start: 0; inline-size: min(var(--pk-table-filters-w, 22rem), 100%); flex-basis: auto; margin: 0; box-shadow: var(--shadow-pop); max-block-size: max(var(--pk-table-filters-max, 60dvh), 15rem); }
 [part="body"] { overflow-y: auto; min-block-size: 0; overscroll-behavior: contain; }
 [part="header"], [part="footer"] { flex: none; }
 [part="header"] { display: flex; align-items: center; justify-content: space-between; padding: var(--space-2) var(--space-3); border-block-end: 1px solid var(--color-border); }

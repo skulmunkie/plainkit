@@ -20,6 +20,8 @@ export default Base => class extends Base {
         this.part('trigger').addEventListener('click', () => this.toggle(!this.open));
         this.part('close').addEventListener('click', () => this.toggle(false));
         this.part('clear').addEventListener('click', () => this.emit('pk-clear-filters'));
+        // The flyout is non-modal, so Escape is the keyboard way out: it closes the panel and gives focus back to the Filters trigger.
+        this.addEventListener('keydown', e => { if (e.key === 'Escape' && this.open && this.placement === 'start') { e.stopPropagation(); this.toggle(false); this.part('trigger').focus(); } });
         this.watchSlot('', () => this.requestUpdate());
     }
     toggle(open) { if (this.emit('pk-toggle', { open })) this.open = open; }
