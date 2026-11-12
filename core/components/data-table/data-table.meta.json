@@ -211,6 +211,13 @@
       "description": "Row height, as pk-table's density."
     },
     {
+      "name": "urlState",
+      "type": "string",
+      "default": "",
+      "reflect": true,
+      "description": "Opt-in: keeps the view in the address, with history.replaceState (no history entry, other parameters and the hash kept, defaults omitted). No url-state attribute = off; an empty one uses the plain names q (search), sort (column key), desc (1 when descending), page and f.<key> (one per filter, a list repeats the key); a value is a prefix for two lists on one page (a.q, a.page). The page size is not in the address. The first load reads the address, and it wins over page, sort, search and filterValues; after each change the address is written. Query-string mode only: a hash-routed app is not handled yet. Needs a load."
+    },
+    {
       "name": "maxHeight",
       "type": "string",
       "default": "",
@@ -294,6 +301,13 @@
       "description": "load() rejected: the built-in error state with Retry is showing. error is what it rejected with (not raised for a response a newer request overtook).",
       "cancelable": true,
       "detailProps": { "error": "unknown" }
+    },
+    {
+      "name": "pk-url-change",
+      "detail": { "url": "string" },
+      "description": "urlState wrote the address: url is the path, query and hash as the browser shows it, so a host can keep it as a back target. Not cancelable.",
+      "cancelable": false,
+      "detailProps": { "url": "string" }
     },
     {
       "name": "pk-query-change",

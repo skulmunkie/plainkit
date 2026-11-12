@@ -39,6 +39,7 @@ export default Base => class extends Base {
         this.buildActions();
         const cfg = this.config ?? {};
         for (const k of TABLE_KEYS) table[k] = cfg[k];
+        if (cfg.urlState != null) table.urlState = cfg.urlState; // set only when named: an empty value turns it on (unprefixed names)
         if (cfg.expanded) table.expanded = cfg.expanded; // only when the config names rows: a re-render must not collapse what the reader opened
         table.hideSearch = cfg.searchable === false;
         table.searchLabel = cfg.searchLabel ?? cfg.searchPlaceholder; table.searchPlaceholder = cfg.searchPlaceholder;
