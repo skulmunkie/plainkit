@@ -1,6 +1,7 @@
 // The view of a pk-data-table in the address (urlState, #1946), loaded only when urlState is set. Names (the public contract): q search, sort column key,
 // desc (1) for a descending sort, page, f.<key> a filter (a list value repeats the key); a prefix puts "<prefix>." before each. Defaults are omitted, other
 // parameters and the hash are kept, and history.replaceState adds no entry (as tab-param does). The page size is a preference, not a view: never written.
+import { addrParams, addrKeep } from './address-query.js';
 const name = (p, n) => (p ? `${p}.${n}` : n);
 
 /** The query parameters of `search` that belong to the list with `prefix`, as a partial query ({} when none). Pure. */
@@ -29,11 +30,10 @@ export function sync(el) {
     const win = el.ownerDocument.defaultView, prefix = el.urlState || '';
     if (!el.$ur) {
         el.$ur = 1;
-        const got = readQuery(win.location.search, prefix);
+        const got = readQuery(addrParams(win).toString(), prefix);
         if (Object.keys(got).length) { el.$query = { ...el.query, ...got, filters: { ...el.query.filters, ...got.filters } }; el.$touched = true; el.part('filters').value = el.$query.search; el.$seed = el.opt('search'); el.seedFilters(); }
         return;
     }
-    const u = writeQuery(win.location.href, prefix, el.query, { sort: el.opt('sort') || null, sortDir: el.opt('sortDir') });
-    win.history.replaceState(win.history.state, '', u);
-    el.emit('pk-url-change', { url: u.pathname + u.search + u.hash }, { cancelable: false });
+    addrKeep(win, writeQuery('http://h/?' + addrParams(win), prefix, el.query, { sort: el.opt('sort') || null, sortDir: el.opt('sortDir') }).searchParams);
+    el.emit('pk-url-change', { url: win.location.pathname + win.location.search + win.location.hash }, { cancelable: false });
 }

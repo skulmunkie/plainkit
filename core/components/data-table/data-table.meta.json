@@ -377,6 +377,10 @@
     {
       "title": "Page size, add button, labels and empty states (set load from script)",
       "html": "<pk-data-table selectable columns='[{\"key\":\"sku\",\"label\":\"SKU\"},{\"key\":\"name\",\"label\":\"Name\"}]' page-size=\"10\" add-label=\"+ Add product\" search-label=\"Find a product\" label=\"Products\" empty='{\"heading\":\"No products yet\"}' no-results='{\"heading\":\"No product matches\"}'></pk-data-table>"
+    },
+    {
+      "title": "The view in the address (url-state): reload or Back restores the search, sort, page and filters; a value is a prefix for two lists on one page (set load from script)",
+      "html": "<pk-data-table url-state columns='[{\"key\":\"sku\",\"label\":\"SKU\",\"sortable\":true},{\"key\":\"name\",\"label\":\"Name\"}]' page-size=\"10\" label=\"Products\"></pk-data-table>"
     }
   ]
 }
