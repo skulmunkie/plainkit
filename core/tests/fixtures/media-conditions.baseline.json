@@ -237,6 +237,7 @@
   "print"
  ],
  "table-filters": [
+  "(prefers-reduced-motion: reduce)",
   "(max-width: 640px)"
  ],
  "tabs": [

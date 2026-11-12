@@ -22,6 +22,8 @@ export function shedCss(columns) {
 }
 
 export function after(t) {
+    if (t.list('columns').some(c => c.type === 'media')) t.lz('$mm', () => import('./table-media.js')); // the media column kind (#1938) rides on this part's load
+    t.$mm?.after(t);
     const css = shedCss(t.list('columns')), root = t.shadowRoot;
     if (css === t.$shedCss) return;
     root.adoptedStyleSheets = root.adoptedStyleSheets.filter(s => s !== t.$shedSheet);

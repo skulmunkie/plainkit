@@ -1,5 +1,6 @@
 // The element tests that need a real browser: shadow DOM, slots, events, keyboard, forms, ElementInternals, strict CSP, theme inheritance.
 import { dataDisplayCases } from './cases-data-display.js';
+import { tableMediaCases } from './cases-table-media.js';
 // Each case is [name, async (t) => void]. t offers mount(html), settle(), key(el, key), and plain assertions.
 
 import { overlaysCases } from './cases-overlays.js';
@@ -350,6 +351,7 @@ export const cases = [
 
     ...overlaysCases,
     ...dataDisplayCases,
+    ...tableMediaCases,
 ];
 import { formCases } from './cases-forms.js';
 cases.push(...formCases);
@@ -371,6 +373,7 @@ import { auditScreensCases } from './cases-audit-screens.js'; cases.push(...audi
 import { dockCases, dockDeclCases } from './cases-dock.js'; cases.push(...dockCases, ...dockDeclCases);
 import { navItemCases } from './cases-nav-item.js'; cases.push(...navItemCases);
 import { marketingCases } from './cases-marketing.js'; cases.push(...marketingCases);
+import { dataTableUrlCases } from './cases-data-table-url.js'; cases.push(...dataTableUrlCases);
 import { emptyPartsCases } from './cases-empty-parts.js'; cases.push(...emptyPartsCases);
 import { slotchangeLoopCases } from './cases-slotchange-loop.js'; cases.push(...slotchangeLoopCases);
 import { devtoolsWorkspaceCases } from './cases-devtools-workspace.js'; cases.push(...devtoolsWorkspaceCases);
@@ -441,3 +444,4 @@ cases.push(['pk-field marks a control invalid when the control is defined after 
     t.eq(c.invalid, false, 'clearing the error clears it');
 }]);
 import { siteToolCases } from './cases-site-tools.js'; cases.push(...siteToolCases);
+import { dataTableFlyoutCases } from './cases-data-table-flyout.js'; cases.push(...dataTableFlyoutCases);

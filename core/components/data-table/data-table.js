@@ -4,7 +4,7 @@ import { filterControl, setFilterOptions } from '../../js/filter-controls.js';
 
 // The one query/load/selection machine of a paged list (#801): pk-list-page, the lookup picker and Blazor's PkDataTable all sit on this element.
 // The settings are plain props; an unset one reads its default. The defaults are the meta's (a test holds them together).
-export const DEFAULTS = { columns: [], filters: [], pageSize: 25, pageSizeOptions: null, sort: '', sortDir: 'ascending', hideSearch: false, search: '', filterValues: {}, page: 1, searchLabel: '', searchPlaceholder: '', searchDebounce: 250, pagerLabel: '', label: '', caption: '', empty: null, noResults: null, loadError: '' };
+export const DEFAULTS = { columns: [], filters: [], pageSize: 25, pageSizeOptions: null, sort: '', sortDir: 'ascending', hideSearch: false, filterPanel: 'inline', search: '', filterValues: {}, page: 1, searchLabel: '', searchPlaceholder: '', searchDebounce: 250, pagerLabel: '', label: '', caption: '', empty: null, noResults: null, loadError: '' };
 const SETTINGS = Object.keys(DEFAULTS);
 
 export default Base => class extends Base {
@@ -32,6 +32,9 @@ export default Base => class extends Base {
         // pk-table's own selection events stop here: the host hears one pk-select with the ids, the scope and the query.
         table.addEventListener('pk-select', e => { e.stopPropagation(); this.selected = e.detail.selected; this.selectScope = 'page'; this.announce(); });
         table.addEventListener('pk-select-all', e => { e.stopPropagation(); if (e.detail.scope === 'all') { this.selectScope = 'all'; this.announce(); } });
+        // A flyout panel is bounded by the table area (its body scrolls, the header and Clear filters stay in view); the area is measured as it opens.
+        this.$z = () => filters.style.setProperty('--pk-table-filters-max', this.part('area').clientHeight + 'px');
+        filters.addEventListener('pk-toggle', e => e.detail.open && (window.addEventListener('resize', this.$z), this.$z()));
         filters.addEventListener('pk-search', e => go({ search: e.detail.query, page: 1 }, true));
         filters.addEventListener('pk-value-change', e => {
             const key = e.target?.dataset?.key;
@@ -49,7 +52,7 @@ export default Base => class extends Base {
         this.buildFilters();
         this.refresh();
     }
-    disconnected() { this.$mo?.disconnect(); this.$abort?.abort(); }
+    disconnected() { globalThis.window?.removeEventListener('resize', this.$z); this.$mo?.disconnect(); this.$abort?.abort(); }
     forwardSlots() {
         const table = this.part('table'), names = [...this.children].map(c => c.slot).filter(s => /^(cell|header|detail)-/.test(s)), have = [...table.children].filter(c => /^(cell|header|detail)-/.test(c.name));
         if (names.join() === have.map(c => c.name).join()) return;
@@ -118,6 +121,7 @@ export default Base => class extends Base {
         this.forwardSlots();
         // The labels and inputs of the parts (each one's own prop; searchLabel is the accessible name of the search box and its placeholder unless searchPlaceholder says more).
         filters.label = this.opt('searchLabel') || 'Search'; filters.placeholder = this.opt('searchPlaceholder'); filters.debounce = this.opt('searchDebounce'); filters.toggleAttribute('data-nosearch', !!this.hideSearch);
+        filters.placement = this.opt('filterPanel') === 'flyout' ? 'start' : 'inline';
         pagination.sizes = this.opt('pageSizeOptions') ?? []; pagination.label = this.opt('pagerLabel') || 'Pagination';
         if (this.opt('search') !== this.$seed) filters.value = this.$seed = this.opt('search');
         table.label = this.opt('label'); table.caption = this.opt('caption'); table.toggleAttribute('data-nocaption', !this.opt('caption'));
@@ -146,7 +150,9 @@ export default Base => class extends Base {
     // with Retry if it rejects, the configured empty state for zero rows, or the table itself. A request started while an older one is still
     // in flight is the only one that gets to draw (a token, the same guard js/app/module.js's own request cancellation makes at the module level).
     async refresh() {
-        const table = this.part('table'), state = this.part('state'), q = this.query;
+        const table = this.part('table'), state = this.part('state');
+        if (this.hasAttribute('url-state')) (await (this.$us ??= import('../../js/url-state.js'))).sync(this); // the view in the address (#1946): read before the first load, written after each change
+        const q = this.query;
         this.sync();
         const token = (this.$token = {});
         // A new request cancels the one still in flight: load(query, { signal }) can pass the signal on to fetch.

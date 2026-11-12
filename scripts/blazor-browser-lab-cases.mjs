@@ -73,6 +73,25 @@ export const LAB_CASES = [
         await ctx.sleep(2500); // past the slow load: its answer, or its cancellation, must not surface as an error
         await ctx.noErrors(ctx.openMark, BENIGN);
       } },
+    { name: 'list-url-state-back-restores-the-view', // #1946: UrlState keeps the search in the address (replaceState); a row opens another page; Back brings the list back with its view
+      async run(ctx) {
+        await ctx.open('/lab/url-state');
+        await waitText(ctx, 'Ticket 5');
+        await ctx.typeInto('pk-list-page >>> input[type="search"]', 'Ticket 3');
+        await waitGone(ctx, 'Ticket 5');
+        await ctx.waitFor(`new URLSearchParams(location.search).get('q') === 'Ticket 3'`, 'the search to be written to the address');
+        await ctx.waitFor(`document.getElementById('lab-url-address')?.textContent.includes('/lab/url-state?') && document.getElementById('lab-url-address').textContent.includes('q=Ticket')`, 'OnUrlChange to hand the address to the page');
+        const before = await ctx.eval('history.length');
+        await ctx.clickDeep('pk-list-page >>> tr', 'Ticket 3');
+        await ctx.waitFor(`location.pathname === '/lab/tickets/3'`, 'the row click to navigate to /lab/tickets/3');
+        await ctx.eval('history.back()');
+        await ctx.waitFor(`location.pathname === '/lab/url-state'`, 'Back to return to the list');
+        await waitText(ctx, 'Ticket 3');
+        ctx.ok(!(await has(ctx, 'Ticket 5')), 'after Back the list shows the searched view, not all five tickets');
+        ctx.ok(await ctx.eval(`document.querySelector('pk-list-page').shadowRoot.querySelector('pk-data-table').part('filters').shadowRoot.querySelector('input[type="search"]').value`) === 'Ticket 3', 'the search box shows the restored search');
+        ctx.ok(before >= 1, 'history had entries');
+        await ctx.noErrors(ctx.openMark, BENIGN);
+      } },
     { name: 'list-row-click-callback',
       async run(ctx) {
         await ctx.open('/lab/tickets');
@@ -552,6 +571,7 @@ export async function onPhone(ctx, fn) {
 export const LAB_SHOTS = [
     async (ctx, vp, theme) => { await ctx.open('/lab/fields'); await ctx.sleep(500); await ctx.shot('lab-fields', vp, theme); },
     async (ctx, vp, theme) => { await ctx.open('/lab/tickets'); await ctx.sleep(800); await ctx.shot('lab-list', vp, theme); },
+    async (ctx, vp, theme) => { await ctx.open('/lab/url-state?q=Ticket+3'); await ctx.sleep(1000); await ctx.shot('lab-url-state', vp, theme); }, // #1946: the view restored from the address
     async (ctx, vp, theme) => {
         await ctx.open('/lab/ticket-follow'); await ctx.sleep(800);
         await ctx.shot('lab-follow-bug', vp, theme);

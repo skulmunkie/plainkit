@@ -7,6 +7,16 @@
 [part="trigger"]:focus-visible { outline: var(--focus-ring); outline-offset: 2px; }
 [part="count"] { min-inline-size: 1.2em; padding: 0 0.3em; border-radius: var(--radius-round); background: var(--color-accent); color: var(--color-panel); font-size: var(--text-meta); line-height: 1.2em; text-align: center; }
 [part="panel"] { flex-basis: 100%; margin-block-start: var(--space-2); border: 1px solid var(--color-border); border-radius: var(--radius-md); background: var(--color-panel); }
+/* A panel taller than the viewport scrolls its own body (header and Clear filters stay in view), so a short phone viewport never clips the lower fields. */
+[part="panel"]:not([hidden]) { display: flex; flex-direction: column; max-block-size: 60dvh; }
+/* placement="start" (the flyout): the panel leaves the toolbar flow and overlays the table area, from the toolbar's bottom edge down (the data table's toolbar is the containing block). */
+:host([placement="start"]) [part="panel"] { position: absolute; z-index: 1; inset-block-start: calc(100% + var(--space-3)); inset-inline-start: 0; inline-size: min(var(--pk-table-filters-w, 22rem), 100%); flex-basis: auto; margin: 0; box-shadow: var(--shadow-pop); max-block-size: max(var(--pk-table-filters-max, 60dvh), 15rem); }
+:host([placement="start"]) [part="panel"]:not([hidden]) { animation: flyout-in var(--duration-base) var(--ease); }
+:host([placement="start"]) [part="panel"]:dir(rtl) { --_from: 1.5rem; }
+@keyframes flyout-in { from { opacity: 0; transform: translateX(var(--_from, -1.5rem)); } }
+@media (prefers-reduced-motion: reduce) { :host([placement="start"]) [part="panel"] { animation: none; } }
+[part="body"] { overflow-y: auto; min-block-size: 0; overscroll-behavior: contain; }
+[part="header"], [part="footer"] { flex: none; }
 [part="header"] { display: flex; align-items: center; justify-content: space-between; padding: var(--space-2) var(--space-3); border-block-end: 1px solid var(--color-border); }
 [part="heading"] { font-weight: 600; }
 [part="close"] { all: unset; cursor: pointer; padding: var(--space-1); border-radius: var(--radius-sm); }
@@ -19,6 +29,8 @@
 [part="clear"]:focus-visible { outline: var(--focus-ring); }
 [part="trigger-icon"] { inline-size: 1.25em; block-size: 1.25em; flex: none; fill: none; stroke: currentColor; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
 @media (--phone) {
+    /* the flyout is a sheet over the table area on a phone */
+    :host([placement="start"]) [part="panel"] { inline-size: 100%; }
     [part="search"] { inline-size: 100%; min-block-size: var(--touch-target); font-size: 16px; }
     [part="trigger"], [part="close"], [part="clear"] { min-block-size: var(--touch-target); }
     [part="close"] { min-inline-size: var(--touch-target); }

@@ -354,4 +354,28 @@ public sealed class PkDataTableTests : BunitContext, IAsyncLifetime
         var plain = Render(Immediate(_ => Page(1, "Ada")), null).Find("pk-data-table");
         Assert.Null(plain.GetAttribute("row-href-template")); Assert.Null(plain.GetAttribute("filters"));
     }
+
+    // #1946: UrlState is the element's url-state attribute (null is off, an empty string is on), and pk-url-change reaches OnUrlChange.
+    [Fact]
+    public async Task UrlState_sets_the_attribute_and_OnUrlChange_gets_the_address()
+    {
+        string? got = null;
+        var off = Render<PkDataTable<Customer>>();
+        Assert.False(off.Find("pk-data-table").HasAttribute("url-state"));
+
+        var cut = Render<PkDataTable<Customer>>(p => p
+            .Add(x => x.UrlState, "")
+            .Add(x => x.OnUrlChange, EventCallback.Factory.Create<PkUrlChangeEventArgs>(this, e => got = e.Url)));
+        Assert.True(cut.Find("pk-data-table").HasAttribute("url-state"));
+        await cut.Find("pk-data-table").TriggerEventAsync("onpk-url-change", new PkUrlChangeEventArgs { Url = "/customers?page=2" });
+        Assert.Equal("/customers?page=2", got);
+    }
+
+    [Fact]
+    public void FilterPanel_sets_the_filter_panel_attribute()
+    {
+        Assert.Equal("inline", Render<PkDataTable<Customer>>().Find("pk-data-table").GetAttribute("filter-panel"));
+        var cut = Render<PkDataTable<Customer>>(p => p.Add(x => x.FilterPanel, PkFilterPanel.Flyout));
+        Assert.Equal("flyout", cut.Find("pk-data-table").GetAttribute("filter-panel"));
+    }
 }

@@ -1,0 +1,15 @@
+@page "/lab/url-state"
+@inject NavigationManager Nav
+
+@* Lab (#1946): a list that keeps its view in the address. Search, open a row, press Back: the view comes back from the address (UrlState="" = the plain names q, sort, desc, page, f.<key>). OnUrlChange hands the address on; the list never asks NavigationManager. *@
+<PkListPage TItem="Ticket" Config="@Config" Columns="_columns" Load="Load" IdOf="t => t.Id" OnRowClick="Open" UrlState="" OnUrlChange="e => _address = e.Url ?? string.Empty" />
+<p id="lab-url-address">Address: @_address</p>
+
+@code {
+    private const string Config = """{"heading":"Tickets (url state)"}""";
+    private static readonly PkTableColumn<Ticket>[] _columns = [new() { Key = "id", Label = "Ticket" }, new() { Key = "title", Label = "Title" }];
+    private string _address = "";
+
+    private Task<PkListResult<Ticket>> Load(PkListRequest r) => TicketStore.ListAsync(r, false);
+    private void Open(PkRowClickEventArgs e) => Nav.NavigateTo("/lab/tickets/" + e.Id);
+}

@@ -91,6 +91,14 @@ export function loadBlazorMappings(rootDir = root) {
     return out;
 }
 
+// The public components of PlainKit.Blazor that no pk-* mapping covers (PkReconnect, PkScripts, the dev tools...): the Pk*.razor files of the package minus the mapped ones, so B3 knows them (#1944).
+export function loadBlazorOther(rootDir = root, mapped = loadBlazorMappings(rootDir)) {
+    const base = path.join(rootDir, 'blazor', 'src', 'PlainKit.Blazor'), known = new Set(Object.values(mapped).map(m => m.component)), out = new Set();
+    const walk = dir => { for (const e of fs.readdirSync(dir, { withFileTypes: true })) { if (e.isDirectory()) { if (!/^(bin|obj|node_modules)$/.test(e.name)) walk(path.join(dir, e.name)); } else if (/^Pk[A-Z]\w*\.razor$/.test(e.name) && !known.has(e.name.replace(/\.razor$/, ''))) out.add(e.name.replace(/\.razor$/, '')); } };
+    if (fs.existsSync(base)) walk(base);
+    return [...out].sort();
+}
+
 // --- Tokens (design 3.3): parse core/tokens/tokens.css into { name, value, group } entries. ------------------------
 
 const TOKEN_GROUPS = ['color', 'space', 'text', 'radius', 'shadow', 'duration', 'ease'];
@@ -141,7 +149,7 @@ export async function buildAuditData(rootDir = root) {
     const tokens = loadTokens(rootDir);
     const pageTypes = await loadPageTypes(rootDir);
     const blazorComponents = loadBlazorMappings(rootDir);
-    return { elements, tokens, pageTypes, blazorComponents };
+    return { elements, tokens, pageTypes, blazorComponents, blazorOther: loadBlazorOther(rootDir, blazorComponents) };
 }
 
 function renderModule(data) {
@@ -171,6 +179,8 @@ export const DEPRECATED_ATTRS = ${JSON.stringify(data.elements.deprecatedAttrs)}
 export const TOKENS = ${JSON.stringify(compactTokens(data.tokens))}.map(([name, value]) => ({ name, value, group: name.split('-')[2] }));
 
 export const PAGE_TYPES = ${JSON.stringify(data.pageTypes)};
+
+export const BLAZOR_OTHER_COMPONENTS = ${JSON.stringify(data.blazorOther)};
 
 // params is one space-separated string per component (b-rules.mjs splits it).
 export const BLAZOR_COMPONENTS = Object.fromEntries(Object.entries(${JSON.stringify(compactBlazor(data.blazorComponents))}).map(([tag, params]) => [tag, { component: 'Pk' + tag.slice(3).replace(/(^|-)(.)/g, (m, d, c) => c.toUpperCase()), params }]));
