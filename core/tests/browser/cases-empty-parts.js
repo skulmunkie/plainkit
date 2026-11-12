@@ -23,4 +23,16 @@ export const emptyPartsCases = [
     pair('drawer', 'pk-drawer', 'heading="T"', 'footer', 'footer', modal),
     pair('drawer', 'pk-drawer', 'heading="T"', 'actions', 'actions', modal),
     pair('tooltip', 'pk-tooltip', 'text="Tip"', 'links', 'links', e => e.show()),
+    ['app-shell: a footer whose every slotted child is hidden at the current breakpoint is not drawn (#1936)', async t => {
+        const host = t.stage('<pk-app-shell id="s"><span slot="footer" data-show-above="phone">Wide only</span><span slot="footer" data-hide-above="phone">Phone only</span><div>Body</div></pk-app-shell><pk-app-shell id="v"><span slot="footer">Always</span><div>Body</div></pk-app-shell>');
+        await t.load(host); await t.settle(); await wait(120);
+        const s = host.querySelector('#s'), v = host.querySelector('#v'), kids = [...s.querySelectorAll('[slot=footer]')];
+        t.ok(kids.some(k => getComputedStyle(k).display !== 'none'), 'one child is visible at this width');
+        t.eq(getComputedStyle(part(s, 'footer')).display, 'flex', 'a footer with a visible child is drawn');
+        for (const k of kids) k.style.display = 'none';
+        s.requestUpdate(); await wait(120);
+        t.eq(getComputedStyle(part(s, 'footer')).display, 'none', 'every child hidden: the footer bar is display none');
+        t.eq(box(s, 'footer').height, 0, 'and 0 high');
+        t.eq(getComputedStyle(part(v, 'footer')).display, 'flex', 'the control footer with a visible child is still drawn');
+    }],
 ];
