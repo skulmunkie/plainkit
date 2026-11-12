@@ -94,7 +94,7 @@ export function loadBlazorMappings(rootDir = root) {
 // The public components of PlainKit.Blazor that no pk-* mapping covers (PkReconnect, PkScripts, the dev tools...): the Pk*.razor files of the package minus the mapped ones, so B3 knows them (#1944).
 export function loadBlazorOther(rootDir = root, mapped = loadBlazorMappings(rootDir)) {
     const base = path.join(rootDir, 'blazor', 'src', 'PlainKit.Blazor'), known = new Set(Object.values(mapped).map(m => m.component)), out = new Set();
-    const walk = dir => { for (const e of fs.readdirSync(dir, { withFileTypes: true })) { if (e.isDirectory()) { if (!/^(bin|obj|wwwroot|node_modules)$/.test(e.name)) walk(path.join(dir, e.name)); } else if (/^Pk[A-Z]\w*\.razor$/.test(e.name) && !known.has(e.name.replace(/\.razor$/, ''))) out.add(e.name.replace(/\.razor$/, '')); } };
+    const walk = dir => { for (const e of fs.readdirSync(dir, { withFileTypes: true })) { if (e.isDirectory()) { if (!/^(bin|obj|node_modules)$/.test(e.name)) walk(path.join(dir, e.name)); } else if (/^Pk[A-Z]\w*\.razor$/.test(e.name) && !known.has(e.name.replace(/\.razor$/, ''))) out.add(e.name.replace(/\.razor$/, '')); } };
     if (fs.existsSync(base)) walk(base);
     return [...out].sort();
 }
