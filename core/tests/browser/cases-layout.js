@@ -933,6 +933,30 @@ layoutCases.push(
     }],
 );
 
+// #1938: density, striped and maxHeight go through pk-list-page config to its data table (compact rows are shorter than comfortable ones), and a config without them leaves the table's defaults.
+layoutCases.push(
+    ['list page config: density compact and comfortable change the row height, striped and maxHeight reach the table, an absent key changes nothing (#1938)', async t => {
+        const open = async search => {
+            const host = t.stage(''), fr = document.createElement('iframe');
+            fr.title = `list page ${search}`; fr.style.cssText = 'width:1280px;height:800px;border:0;display:block';
+            fr.src = new URL('./list-fill-frame.html', import.meta.url).href + search;
+            await new Promise(resolve => { fr.addEventListener('load', resolve, { once: true }); host.append(fr); });
+            const win = fr.contentWindow, wait = ms => new Promise(r => setTimeout(r, ms));
+            await Promise.all(['pk-list-page', 'pk-data-table', 'pk-table'].map(tag => win.customElements.whenDefined(tag)));
+            const dt = win.document.querySelector('pk-list-page').part('table');
+            for (let i = 0; i < 150 && !dt.part('table')?.shadowRoot?.querySelector('[part=body] tr'); i++) await wait(40);
+            await wait(300);
+            return { fr, dt, row: dt.part('table').shadowRoot.querySelector('[part=body] tr').getBoundingClientRect().height };
+        };
+        const compact = await open('?density=compact&striped=1&maxh=300px'), comfy = await open('?density=comfortable'), plain = await open('?x=1');
+        t.ok(compact.row < comfy.row - 4, `compact rows are shorter than comfortable ones (${compact.row} vs ${comfy.row})`);
+        t.eq(compact.dt.density, 'compact', 'the data table has density compact');
+        t.ok(compact.dt.striped === true && compact.dt.maxHeight === '300px', `striped and maxHeight reach the data table (${compact.dt.striped}, ${compact.dt.maxHeight})`);
+        t.ok(plain.dt.density === 'default' && !plain.dt.striped && !plain.dt.maxHeight, `without the keys the defaults stay (${plain.dt.density}, ${plain.dt.striped}, "${plain.dt.maxHeight}")`);
+        for (const x of [compact, comfy, plain]) x.fr.remove();
+    }],
+);
+
 // #1912: on a phone the list page is compact: the search box and Filters share one row, the title bar, the toolbar and the first card are one small step apart (a --space-3 gap each), and the pager footer is about as tall as its content.
 layoutCases.push(
     ['list page on a phone (375 and 390): search and Filters share one row, one --space-3 step between the title bar, the toolbar and the first card, a compact pager footer; at 1280 the search and Filters keep their row', async t => {

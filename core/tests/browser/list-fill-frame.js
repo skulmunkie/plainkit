@@ -24,6 +24,8 @@ list.config = {
     columns: [{ key: 'sku', label: 'SKU' }, { key: 'title', label: 'Title' }], bulkActions: [{ id: 'archive', label: 'Archive' }],
 };
 if (phone) list.config = { heading: 'Orders', breadcrumb: [{ label: 'Sales', href: '#' }, { label: 'Orders' }], pageSize: 5, searchable: true, filters: [{ key: 'kind', type: 'select', label: 'Kind', options: ['a', 'b'] }], columns: [{ key: 'sku', label: 'SKU' }, { key: 'title', label: 'Title' }] }; // ?phone=1: the phone list page of #1912 (cards, search, Filters, a pager)
+// ?density=compact|comfortable, ?striped=1, ?maxh=300px (#1938): the table's look keys go through pk-list-page config.
+if (q.has('density') || q.has('striped') || q.has('maxh')) list.config = { ...list.config, ...(q.get('density') ? { density: q.get('density') } : {}), ...(q.has('striped') ? { striped: true } : {}), ...(q.get('maxh') ? { maxHeight: q.get('maxh') } : {}) };
 // ?slotted=1 (#1942): toolbarInHeader with the host's own slotted actions and a badge, and a home crumb, no config.actions.
 if (slotted) { list.append(mk('pk-button', { slot: 'actions' }, 'Export'), mk('pk-button', { slot: 'actions' }, 'Import'), mk('pk-badge', { slot: 'badges' }, 'Beta')); }
 list.load = () => ({ rows: phone ? ROWS.slice(0, 5) : ROWS, total: 200 });
