@@ -9,7 +9,7 @@ async function open(t, search, hash = '', lists = 1) {
     fr.src = new URL('./url-state-frame.html', import.meta.url).href + search + hash;
     await new Promise(resolve => { fr.addEventListener('load', resolve, { once: true }); host.append(fr); });
     const win = fr.contentWindow, d = win.document;
-    await Promise.all(['pk-data-table', 'pk-table', 'pk-table-filters', 'pk-pagination'].map(tag => win.customElements.whenDefined(tag)));
+    await Promise.all((search.includes('_tabs') ? ['pk-tabs', 'pk-tab'] : ['pk-data-table', 'pk-table', 'pk-table-filters', 'pk-pagination']).map(tag => win.customElements.whenDefined(tag)));
     await until(() => win.calls.length >= lists, 'the first load');
     await wait(150);
     const dt = id => d.getElementById(id ?? 'list');
@@ -60,6 +60,20 @@ export const dataTableUrlCases = [
         await until(() => f.fr.contentWindow.calls?.length >= 1, 'the load after the reload'); await wait(150);
         const c = f.fr.contentWindow.calls[0];
         t.ok(c.search === 'ebay' && c.page === 3 && c.sort === 'name' && c.sortDir === 'descending', `the reload restores the view from the hash (${JSON.stringify(c)})`);
+        f.fr.remove();
+    }],
+    ['tabs tab-param in a hash-routed app (#/path?query): the tab is written inside the hash, the route and other parameters stay, a reload restores it (#1958)', async t => {
+        const f = await open(t, '?_tabs=1&keep=1', '#/orders?x=1'), before = f.win.history.length;
+        await Promise.all(['pk-tabs', 'pk-tab'].map(tag => f.win.customElements.whenDefined(tag)));
+        const tabs = f.d.getElementById('tabs');
+        f.d.querySelector('pk-tab[value=b]').click(); await wait(200);
+        const h = f.win.location.hash, hp = new URLSearchParams(h.slice(h.indexOf('?') + 1));
+        t.ok(h.startsWith('#/orders?') && hp.get('x') === '1' && hp.get('tab') === 'b', `the tab is inside the hash, the route and x kept (${h})`);
+        t.eq(f.win.location.search, '?_tabs=1&keep=1', 'location.search is untouched');
+        t.ok(f.win.history.length === before, 'no history entry is added');
+        const loaded = new Promise(r => f.fr.addEventListener('load', r, { once: true })); f.win.location.reload(); await loaded;
+        const w = f.fr.contentWindow; await w.customElements.whenDefined('pk-tabs'); await until(() => w.document.getElementById('tabs')?.value, 'the tabs after the reload'); await wait(150);
+        t.eq(w.document.getElementById('tabs').value, 'b', 'the reload restores the tab from the hash');
         f.fr.remove();
     }],
     ['data-table urlState: two lists with prefixes a and b keep their own parameters, and urlState off writes nothing (#1946)', async t => {

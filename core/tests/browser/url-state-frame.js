@@ -18,6 +18,11 @@ const make = (id, prefix) => {
     };
     return t;
 };
-if (q.has('_two')) document.body.append(make('a', 'a'), make('b', 'b'));
+if (q.has('_tabs')) {
+    // ?_tabs=1 (#1958): a pk-tabs that keeps its tab in the address (tab-param).
+    const tabs = document.createElement('pk-tabs'); tabs.id = 'tabs'; tabs.tabParam = 'tab';
+    for (const v of ['a', 'b']) { const tab = document.createElement('pk-tab'), panel = document.createElement('pk-tab-panel'); tab.value = panel.value = v; tab.textContent = `Tab ${v}`; panel.textContent = `Panel ${v}`; tabs.append(tab, panel); }
+    document.body.append(tabs); window.calls.push({ tabs: true });
+} else if (q.has('_two')) document.body.append(make('a', 'a'), make('b', 'b'));
 else document.body.append(make('list', q.has('_us') ? q.get('_us') : null));
 loadElements(document);
