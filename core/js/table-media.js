@@ -2,7 +2,7 @@
 // ratio, so nothing moves when the image loads; a plain <img> fills it and a taller row crops it. The rules live in one adopted sheet shared by every table.
 const sheet = new CSSStyleSheet();
 sheet.replaceSync('td[data-media]{--_h:var(--pk-table-media-h,calc(var(--space-12)*1.5));position:relative;box-sizing:border-box;padding:0;block-size:var(--_h);inline-size:calc(var(--_h)*var(--_r,1));max-inline-size:calc(var(--_h)*var(--_r,1));background:var(--color-surface-alt)}'
-    + 'th[data-align="m"]{max-inline-size:0;overflow:hidden}'
+    + 'th[data-align="m"]{max-inline-size:0;overflow:hidden;text-overflow:ellipsis}'
     + 'td[data-media="sm"]{--_h:var(--pk-table-media-h,var(--space-12))}td[data-media="lg"]{--_h:var(--pk-table-media-h,calc(var(--space-12)*2))}'
     + 'td[data-media] img{position:absolute;inset:0;inline-size:100%;block-size:100%;object-fit:cover}td[data-fit="contain"] img{object-fit:contain}'
     // Phone cards (640px and below, the cards layout): the media cell leads the card, spanning the stacked cells at the inline start; its height is the card content's, the floor otherwise.
