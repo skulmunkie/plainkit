@@ -1,5 +1,6 @@
 import { showTitleBar } from '../../js/page-shell.js';
 import { loadElements } from '../../js/loader.js';
+import { safeHref } from '../../js/safe-url.js';
 
 const TABLE_KEYS = ['columns', 'filters', 'pageSize', 'pageSizeOptions', 'sort', 'sortDir', 'search', 'filterValues', 'page', 'searchDebounce', 'pagerLabel', 'label', 'caption', 'empty', 'noResults', 'loadError', 'stickyHeader', 'selectPageOnly', 'expandable', 'expander'];
 
@@ -61,11 +62,20 @@ export default Base => class extends Base {
 
     // toolbarInHeader (#1723): the title goes to the table's lead slots, the host actions to its actions slot; the shell header stays bare.
     buildLead(on) {
-        const t = this.part('table'), { heading, breadcrumb } = this.config ?? {}, h = this.shadowRoot?.querySelector?.('pk-page-shell > slot[slot="actions"]');
-        showTitleBar(this, t, on ? { heading, breadcrumb } : {});
-        t.$bar.push(...(on ? [Object.assign(this.ownerDocument.createElement('slot'), { name: 'actions', slot: 'actions' })] : []));
-        if (h) h.name = on ? 'x' : 'actions';
+        const t = this.part('table'), { heading, breadcrumb, badges, homeHref, homeLabel, homeIcon } = this.config ?? {}, doc = this.ownerDocument;
+        const fwd = n => this.shadowRoot?.querySelector?.(`pk-page-shell > slot[slot="${n}"]`);
+        showTitleBar(this, t, on ? { heading, breadcrumb, badges } : {});
+        t.toggleAttribute?.('data-in-bar', on); // the page's own slotted actions keep their width in the table's actions box (#1942)
+        t.$bar.push(...(on ? ['actions', 'badges'].map(name => Object.assign(doc.createElement('slot'), { name, slot: name })) : []));
+        for (const n of ['actions', 'badges']) { const s = fwd(n); if (s) s.name = on ? 'x-' + n : n; }
+        // The home crumb the page header draws for homeHref: an icon link before the trail.
+        const nav = t.$bar.find(n => n.localName === 'pk-breadcrumb'), home = safeHref(homeHref);
+        if (on && nav && home) {
+            const a = doc.createElement('a'), icon = doc.createElement('pk-icon');
+            a.href = home; a.setAttribute('aria-label', homeLabel ?? 'Home'); icon.setAttribute('name', homeIcon ?? 'dashboard'); a.append(icon); nav.prepend(a);
+        }
         t.append?.(...t.$bar);
+        if (on) loadElements(t);
     }
 
     // One pk-button per entry. A bulk action ({ id, label, variant? }) raises pk-bulk with its id and the table's selection, { action, selected, scope, query }.

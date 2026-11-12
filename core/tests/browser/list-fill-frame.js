@@ -3,7 +3,7 @@
 import { loadElements } from '../../js/loader.js';
 
 const ROWS = Array.from({ length: 50 }, (_, i) => ({ id: i + 1, sku: `AC-${1000 + i}`, title: `Widget number ${i + 1}` }));
-const q = new URLSearchParams(location.search), overlay = q.has('overlay'), wrap = q.get('wrap'), tall = q.has('tall'), bar = q.has('bar'), phone = q.has('phone');
+const q = new URLSearchParams(location.search), overlay = q.has('overlay'), wrap = q.get('wrap'), tall = q.has('tall'), bar = q.has('bar'), phone = q.has('phone'), slotted = q.has('slotted');
 const mk = (tag, attrs = {}, text) => { const e = document.createElement(tag); for (const [k, v] of Object.entries(attrs)) e.setAttribute(k, v); if (text) e.textContent = text; return e; };
 
 if (q.get('theme')) document.documentElement.setAttribute('data-theme', q.get('theme'));
@@ -18,10 +18,13 @@ if (tall) {
 } else if (!phone) list.append(mk('pk-alert', { slot: 'before-list', kind: 'info' }, 'Prices include tax.'));
 list.config = {
     heading: 'Orders', breadcrumb: [{ label: 'Sales', href: '#' }, { label: 'Orders' }], stickyHeader: true, selectable: true, pageSize: 50,
+    ...(slotted ? { toolbarInHeader: true, searchable: true, homeHref: '#', homeLabel: 'Start', homeIcon: 'dashboard', filters: [{ key: 'kind', type: 'select', label: 'Kind', options: ['a', 'b'] }] } : {}),
     ...(bar ? { toolbarInHeader: true, searchable: true, actions: [{ label: 'New order' }], filters: [{ key: 'kind', type: 'select', label: 'Kind', options: ['a', 'b'] }] } : {}),
     columns: [{ key: 'sku', label: 'SKU' }, { key: 'title', label: 'Title' }], bulkActions: [{ id: 'archive', label: 'Archive' }],
 };
 if (phone) list.config = { heading: 'Orders', breadcrumb: [{ label: 'Sales', href: '#' }, { label: 'Orders' }], pageSize: 5, searchable: true, filters: [{ key: 'kind', type: 'select', label: 'Kind', options: ['a', 'b'] }], columns: [{ key: 'sku', label: 'SKU' }, { key: 'title', label: 'Title' }] }; // ?phone=1: the phone list page of #1912 (cards, search, Filters, a pager)
+// ?slotted=1 (#1942): toolbarInHeader with the host's own slotted actions and a badge, and a home crumb, no config.actions.
+if (slotted) { list.append(mk('pk-button', { slot: 'actions' }, 'Export'), mk('pk-button', { slot: 'actions' }, 'Import'), mk('pk-badge', { slot: 'badges' }, 'Beta')); }
 list.load = () => ({ rows: phone ? ROWS.slice(0, 5) : ROWS, total: 200 });
 let top = list;
 if (overlay) { const o = mk('pk-loading-overlay', { fill: '', busy: '', label: 'Saving' }); o.append(list); top = o; }

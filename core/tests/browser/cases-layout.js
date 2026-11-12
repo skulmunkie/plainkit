@@ -877,6 +877,41 @@ layoutCases.push(
     }],
 );
 
+// #1942: toolbarInHeader with the host's slotted actions, a badges slot and a home crumb, at 390. One case per defect.
+const slottedFrame = async (t, width = 390) => {
+    const host = t.stage(''), fr = document.createElement('iframe');
+    fr.title = `toolbar in header, slotted, ${width}px`; fr.style.cssText = `width:${width}px;height:700px;border:0;display:block`;
+    fr.src = new URL('./list-fill-frame.html', import.meta.url).href + '?slotted=1';
+    await new Promise(resolve => { fr.addEventListener('load', resolve, { once: true }); host.append(fr); });
+    const win = fr.contentWindow, d = win.document, wait = ms => new Promise(r => setTimeout(r, ms));
+    await Promise.all(['pk-list-page', 'pk-data-table', 'pk-table', 'pk-breadcrumb', 'pk-heading', 'pk-table-filters', 'pk-button', 'pk-badge'].map(tag => win.customElements.whenDefined(tag)));
+    const list = d.querySelector('pk-list-page'), dt = list.part('table');
+    for (let i = 0; i < 150 && !dt.part('table')?.shadowRoot?.querySelector('[part=body] tr'); i++) await wait(40);
+    await wait(300);
+    return { fr, d, list, dt, rect: el => el.getBoundingClientRect() };
+};
+layoutCases.push(
+    ['list page toolbarInHeader at 390: slotted actions keep their intrinsic width and share a row, not a 44px column (#1942)', async t => {
+        const { fr, d, rect } = await slottedFrame(t), [a, b] = d.querySelectorAll('pk-list-page > pk-button[slot=actions]');
+        t.ok(rect(a).width >= 60 && rect(b).width >= 60, `each action keeps its intrinsic width (${Math.round(rect(a).width)}, ${Math.round(rect(b).width)})`);
+        t.ok(Math.abs(rect(a).top - rect(b).top) < 4, `the two actions share one row (${Math.round(rect(a).top)}, ${Math.round(rect(b).top)})`);
+        fr.remove();
+    }],
+    ['list page toolbarInHeader at 390: a slot=badges chip is drawn in the toolbar lead (#1942)', async t => {
+        const { fr, d, dt, rect } = await slottedFrame(t), chip = d.querySelector('pk-list-page > pk-badge[slot=badges]');
+        t.ok(rect(chip).width > 0 && rect(chip).height > 0, `the badge has a box (${Math.round(rect(chip).width)} x ${Math.round(rect(chip).height)})`);
+        t.ok(rect(chip).bottom <= rect(dt.part('filters').shadowRoot.querySelector('[part=search]')).top + 1, 'it sits in the lead, above the search box');
+        fr.remove();
+    }],
+    ['list page toolbarInHeader at 390: homeHref, homeLabel and homeIcon draw the icon home crumb in the toolbar breadcrumb (#1942)', async t => {
+        const { fr, dt, rect } = await slottedFrame(t), home = dt.querySelector('pk-breadcrumb a[aria-label="Start"]');
+        t.ok(!!home, 'the home crumb is in the toolbar breadcrumb with the configured label');
+        t.ok(!!home && rect(home).width > 0 && home.getAttribute('href') === '#', 'it is drawn and links to homeHref');
+        t.ok(!!home && !!home.querySelector('pk-icon[name="dashboard"]'), 'it carries the configured icon');
+        fr.remove();
+    }],
+);
+
 // #1912: on a phone the list page is compact: the search box and Filters share one row, the title bar, the toolbar and the first card are one small step apart (a --space-3 gap each), and the pager footer is about as tall as its content.
 layoutCases.push(
     ['list page on a phone (375 and 390): search and Filters share one row, one --space-3 step between the title bar, the toolbar and the first card, a compact pager footer; at 1280 the search and Filters keep their row', async t => {
