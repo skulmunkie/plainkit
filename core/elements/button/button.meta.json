@@ -143,10 +143,11 @@
       "values": [
         "none",
         "phone",
-        "tablet"
+        "tablet",
+        "always"
       ],
       "reflect": true,
-      "description": "Folds the label into the icon at and below that breakpoint (phone: icon only on a phone; tablet: icon only on a tablet and a phone; above it, icon and text). The words stay the accessible name. Needs an icon (icon-name or a start-slot icon): a button without one never collapses."
+      "description": "Folds the label into the icon at and below that breakpoint (phone: icon only on a phone; tablet: icon only on a tablet and a phone; above it, icon and text; always: icon only at every width, the words kept as the accessible name and the tooltip). The words stay the accessible name. Needs an icon (icon-name or a start-slot icon): a button without one never collapses."
     },
     {
       "name": "iconName",
