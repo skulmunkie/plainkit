@@ -51,6 +51,21 @@ export default Base => class extends Base {
     show() { this.open = true; }
     hide() { this.open = false; }
     toggle() { this.open = !this.open; }
+    // The page's own openers (data-open / data-toggle naming this tray, a header or footer button when launcher-variant is none) report the state like the launcher does:
+    // aria-expanded, aria-controls (when the tray has an id) and the hotkey in the title, unless the author set a title (#1941). Read when the tray updates.
+    syncControls() {
+        const title = launcherTitle(this.launcherLabel, this.hotkey), was = this.$title;
+        this.$title = title;
+        for (const c of this.ownerDocument.querySelectorAll('[data-open], [data-toggle]')) {
+            const sel = c.getAttribute('data-toggle') || c.getAttribute('data-open');
+            let hit = false;
+            try { hit = this.matches(sel); } catch (error) { this.log.debug('an opener selector is not valid', { sel, error }); }
+            if (!hit) continue;
+            c.setAttribute('aria-expanded', String(!!this.open));
+            if (this.id) c.setAttribute('aria-controls', this.id);
+            if (this.hotkey) { c.setAttribute('aria-keyshortcuts', this.hotkey); if (!c.hasAttribute('title') || c.getAttribute('title') === was) c.setAttribute('title', title); }
+        }
+    }
     updated() {
         for (const b of this.part('sizes').children) b.pressed = b.getAttribute('value') === this.size;
         const launcher = this.part('launcher');
@@ -58,6 +73,7 @@ export default Base => class extends Base {
         const icon = this.launcherVariant === 'icon'; launcher.toggleAttribute('icon', icon); if (icon) launcher.setAttribute('label', this.launcherLabel); else launcher.removeAttribute('label'); // an icon launcher is named by launcher-label
         if (this.hotkey) { launcher.setAttribute('title', launcherTitle(this.launcherLabel, this.hotkey)); launcher.setAttribute('aria-keyshortcuts', this.hotkey); }
         else { launcher.removeAttribute('title'); launcher.removeAttribute('aria-keyshortcuts'); }
+        this.syncControls();
         if (!this.label) this.warnOnce('label', 'has no label: the panel has no accessible name');
         if (!this.launcherLabel) this.warnOnce('launcherLabel', 'has no launcher-label: the launcher button has no name');
     }
