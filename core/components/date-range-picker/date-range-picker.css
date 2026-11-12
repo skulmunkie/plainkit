@@ -5,6 +5,6 @@
 [part="popover"] { flex: none; --pk-popover-w: max-content; }
 [part="popover"][hidden] { display: none; }
 [part="popover"] pk-calendar { display: block; padding: 0; border: 0; }
-[part="presets"] pk-button { --pk-button-radius: var(--radius-round); }
+[part="presets"] pk-button { --pk-button-radius: var(--pk-date-range-picker-preset-radius, var(--radius-pill)); }
 [part="presets"][hidden], [part="error"][hidden] { display: none; }
 [part="error"] { margin: 0; color: var(--field-error); }

@@ -680,6 +680,17 @@ export const formCases = [
         }
     }],
 
+    ['date-range-picker: the preset buttons are pills (straight top and bottom edges, semicircular ends), not ellipses, and --pk-date-range-picker-preset-radius themes them (#1950)', async t => {
+        const host = await t.mount('<div><pk-date-range-picker start="2026-09-08" end="2026-09-17"></pk-date-range-picker><pk-date-range-picker id="pk-drp-sq" start="2026-09-08" end="2026-09-17"></pk-date-range-picker></div>');
+        const el = host.querySelector('pk-date-range-picker'); await t.load(el.shadowRoot); await t.settle(); await t.settle();
+        const btn = el.part('presets').querySelector('pk-button'); await t.load(btn.shadowRoot); await t.settle();
+        const ctl = btn.part('control'), r = ctl.getBoundingClientRect(), br = getComputedStyle(ctl).borderTopLeftRadius;
+        t.ok(r.width > r.height, 'the preset is wider than tall (' + r.width.toFixed(0) + ' x ' + r.height.toFixed(0) + ')');
+        t.ok(br !== '50%' && parseFloat(br) >= r.height / 2, 'the corner radius is a pill (at least half the height, not a percentage): ' + br + ' for height ' + r.height.toFixed(0));
+        const sq = document.getElementById('pk-drp-sq'); sq.style.setProperty('--pk-date-range-picker-preset-radius', '2px');
+        await t.load(sq.shadowRoot); await t.settle(); const b2 = sq.part('presets').querySelector('pk-button'); await t.load(b2.shadowRoot); await t.settle();
+        t.eq(getComputedStyle(b2.part('control')).borderTopLeftRadius, '2px');
+    }],
     ['date-range-picker calendar: the opener opens a range calendar under the field, focus moves in, two picks set the range, commit once and close', async t => {
         const el = await t.mount('<pk-date-range-picker calendar start="2026-09-08" end="2026-09-17"></pk-date-range-picker>');
         await ready(t); const pop = el.part('popover'), cal = el.part('calendar'), opener = el.part('opener'), day = d => cal.shadowRoot.querySelector(`.day[data-date="${d}"]`);
