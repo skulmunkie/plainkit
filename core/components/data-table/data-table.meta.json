@@ -273,6 +273,7 @@
   "slots": [
     { "name": "breadcrumb", "description": "Breadcrumb at the start of the toolbar row; wraps when narrow." },
     { "name": "title", "description": "Heading beside it." },
+    { "name": "badges", "description": "Badges after the title, in the same lead (a list page with toolbarInHeader forwards its badges here)." },
     { "name": "actions", "description": "Toolbar buttons at the end of the search row. On a phone a slotted field (a select, an input) takes the full toolbar width; buttons keep their size." },
     { "name": "empty", "description": "Content shown instead of the built-in empty state when load() returns no rows and no search or filter is active (an illustration, a call to action). With a search active the no-results slot, else the built-in state, shows." },
     { "name": "no-results", "description": "Content shown instead of the built-in no-results state when a search or filter is active and nothing matches." },
