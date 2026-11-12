@@ -458,7 +458,8 @@
       "members": {
         "text": "Text, sorted alphabetically.",
         "number": "A number, sorted numerically.",
-        "date": "A date, sorted chronologically."
+        "date": "A date, sorted chronologically.",
+        "media": "An image: the row value is its URL, drawn in a box reserved before it loads (see Ratio, Fit, Size, Alt); not sortable or filterable."
       }
     },
     "PkTableColumnAlign": {
@@ -467,6 +468,23 @@
       "members": {
         "start": "The start edge (left in left-to-right text); the default.",
         "end": "The end edge; use it for numeric columns."
+      }
+    },
+    "PkTableColumnFit": {
+      "key": "fit",
+      "doc": "How the image of a Media PkTableColumn fills its box.",
+      "members": {
+        "cover": "Fill the box and crop the overflow; the default.",
+        "contain": "Show the whole image inside the box."
+      }
+    },
+    "PkTableColumnSize": {
+      "key": "size",
+      "doc": "The floor height of the box of a Media PkTableColumn.",
+      "members": {
+        "sm": "3rem.",
+        "md": "4.5rem; the default.",
+        "lg": "6rem."
       }
     },
     "PkTableEditor": {
@@ -574,6 +592,26 @@
       "name": "Width",
       "type": "int?",
       "doc": "The column width in pixels; the resizable table keeps it after a drag."
+    },
+    {
+      "name": "Ratio",
+      "type": "string?",
+      "doc": "Media column: the box width over its height, \"1/1\" (default), \"4/3\", \"16/9\" or a number."
+    },
+    {
+      "name": "Fit",
+      "type": "PkTableColumnFit?",
+      "doc": "Media column: cover (default) or contain."
+    },
+    {
+      "name": "Size",
+      "type": "PkTableColumnSize?",
+      "doc": "Media column: the floor height of the box (Sm 3rem, Md 4.5rem, Lg 6rem); a taller row crops the image."
+    },
+    {
+      "name": "Alt",
+      "type": "string?",
+      "doc": "Media column: the row key that holds the image text; empty (decorative) by default."
     }
   ],
   "notes": "PkTable<TItem> (generated, tableModel; shares its chrome parameters with PkTableBase). Attributes down: the columns and the rows are JSON attributes (camelCase) rebuilt when the parameters are set, never per render and never through JavaScript. Events up: pk-sort, pk-filter, pk-select, pk-select-all, pk-row-click and pk-row-expand reach the callbacks; the two-way parameters Sort, SortDirection, Filters, Selected and Expanded follow them (@bind-Sort and so on). Manual mode: the host owns the order, the filter and the page; the component shows Items as given and reports OnSort and OnFilter, and a PkPagination in FooterContent does the paging. Cell content: a column's Cell template is rendered as <span slot=\"cell-<rowId>-<key>\"> per row, and DetailTemplate as <div slot=\"detail-<rowId>\">; Blazor renders these as ordinary children of the element (the element reads them and never rewrites them), so a change of rows re-renders them together with the rows attribute. Without manual the element sorts, filters and pages its own rows. The toolbar slot lays its items out in a wrapping row; the item that should sit at the far end (an action beside a search box) takes the attribute data-end, which the wrapper can pass through on the element it renders into HeaderActionsTemplate. A column's type only decides how it sorts and filters (cells show the value the row holds, text as given, with no locale or time zone formatting), so a wrapper that sends dates or numbers as display strings should sort on the source data. The Blazor PkTable keeps owning the data source. It renders the element with manual set, so the element does not sort, filter or page by itself: it reacts to pk-sort, pk-filter and the pk-page and pk-page-size events of the pagination in its footer by fetching the matching rows and assigning them to the rows property. Each column is passed in columns as { key, label, sortable, align: end } (align end for numeric columns); a hidden column is left out. Row template cells become slots named cell-<rowId>-<key>, one per cell. Without manual the element sorts, filters and pages its own rows. EmptyText is the emptyText prop (the empty slot still replaces it). Expandable rows: the wrapper sets expandable, renders the DetailTemplate of each expandable row as a slot named detail-<rowId>, and follows pk-row-expand ({ id, index, expanded }) to keep ExpandedKeys, which it assigns back to the expanded property. Windowing (issue 131): at 500 rows or more, a non-expandable element draws only the rows near the scroll frame's viewport (core/js/table-vw.js); it is a fixed constant, not a parameter, so the element's own module stays inside its gzip budget. Sort, filter and selection still act on every row."
