@@ -55,6 +55,13 @@
       "description": "Hides the search box."
     },
     {
+      "name": "filterPanel",
+      "type": "string",
+      "default": "inline",
+      "reflect": false,
+      "description": "Where the open filter panel goes: inline (the default; it takes its own row above the table and pushes the rows down) or flyout (it overlays the top of the table from the inline-start edge, 22rem wide, without moving the rows). Sets pk-table-filters placement."
+    },
+    {
       "name": "search",
       "type": "string",
       "default": "",
@@ -345,8 +352,11 @@
   ],
   "parts": [
     { "name": "table", "description": "The pk-table, in manual mode." },
+    { "name": "area", "description": "Wraps the table; the area the flyout filter panel covers." },
     { "name": "toolbar", "description": "Holds the filters and the actions, above the table." },
     { "name": "filters", "description": "The pk-table-filters search/filter panel, in the toolbar above the table (it stays shown and focused while rows load and when nothing matches)." },
+    { "name": "filters-panel", "description": "The filter panel of pk-table-filters (exported), for page CSS." },
+    { "name": "filters-body", "description": "The filter panel body (exported)." },
     { "name": "actions", "description": "Holds the actions slot, at the end of the toolbar." },
     { "name": "add", "description": "The primary add button, after the actions slot (shown when addLabel is set)." },
     { "name": "pagination", "description": "The pk-pagination, in the table's footer." },

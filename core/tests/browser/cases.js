@@ -444,3 +444,4 @@ cases.push(['pk-field marks a control invalid when the control is defined after 
     t.eq(c.invalid, false, 'clearing the error clears it');
 }]);
 import { siteToolCases } from './cases-site-tools.js'; cases.push(...siteToolCases);
+import { dataTableFlyoutCases } from './cases-data-table-flyout.js'; cases.push(...dataTableFlyoutCases);

@@ -4,7 +4,7 @@ import { filterControl, setFilterOptions } from '../../js/filter-controls.js';
 
 // The one query/load/selection machine of a paged list (#801): pk-list-page, the lookup picker and Blazor's PkDataTable all sit on this element.
 // The settings are plain props; an unset one reads its default. The defaults are the meta's (a test holds them together).
-export const DEFAULTS = { columns: [], filters: [], pageSize: 25, pageSizeOptions: null, sort: '', sortDir: 'ascending', hideSearch: false, search: '', filterValues: {}, page: 1, searchLabel: '', searchPlaceholder: '', searchDebounce: 250, pagerLabel: '', label: '', caption: '', empty: null, noResults: null, loadError: '' };
+export const DEFAULTS = { columns: [], filters: [], pageSize: 25, pageSizeOptions: null, sort: '', sortDir: 'ascending', hideSearch: false, filterPanel: 'inline', search: '', filterValues: {}, page: 1, searchLabel: '', searchPlaceholder: '', searchDebounce: 250, pagerLabel: '', label: '', caption: '', empty: null, noResults: null, loadError: '' };
 const SETTINGS = Object.keys(DEFAULTS);
 
 export default Base => class extends Base {
@@ -118,6 +118,7 @@ export default Base => class extends Base {
         this.forwardSlots();
         // The labels and inputs of the parts (each one's own prop; searchLabel is the accessible name of the search box and its placeholder unless searchPlaceholder says more).
         filters.label = this.opt('searchLabel') || 'Search'; filters.placeholder = this.opt('searchPlaceholder'); filters.debounce = this.opt('searchDebounce'); filters.toggleAttribute('data-nosearch', !!this.hideSearch);
+        filters.placement = this.opt('filterPanel') === 'flyout' ? 'start' : 'inline';
         pagination.sizes = this.opt('pageSizeOptions') ?? []; pagination.label = this.opt('pagerLabel') || 'Pagination';
         if (this.opt('search') !== this.$seed) filters.value = this.$seed = this.opt('search');
         table.label = this.opt('label'); table.caption = this.opt('caption'); table.toggleAttribute('data-nocaption', !this.opt('caption'));
