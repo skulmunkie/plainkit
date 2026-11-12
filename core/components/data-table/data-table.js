@@ -146,7 +146,9 @@ export default Base => class extends Base {
     // with Retry if it rejects, the configured empty state for zero rows, or the table itself. A request started while an older one is still
     // in flight is the only one that gets to draw (a token, the same guard js/app/module.js's own request cancellation makes at the module level).
     async refresh() {
-        const table = this.part('table'), state = this.part('state'), q = this.query;
+        const table = this.part('table'), state = this.part('state');
+        if (this.hasAttribute('url-state')) (await (this.$us ??= import('../../js/url-state.js'))).sync(this); // the view in the address (#1946): read before the first load, written after each change
+        const q = this.query;
         this.sync();
         const token = (this.$token = {});
         // A new request cancels the one still in flight: load(query, { signal }) can pass the signal on to fetch.
