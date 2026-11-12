@@ -204,6 +204,11 @@
       "name": "--pk-control-radius",
       "description": "Corner radius.",
       "default": "var(--radius-sm)"
+    },
+    {
+      "name": "--pk-date-range-picker-preset-radius",
+      "description": "Corner radius of the preset buttons.",
+      "default": "var(--radius-pill)"
     }
   ],
   "methods": [
