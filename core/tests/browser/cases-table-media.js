@@ -33,6 +33,13 @@ export const tableMediaCases = [
         t.eq(getComputedStyle(img).objectFit, 'cover', 'cover crops');
         t.eq(getComputedStyle(first(await mount(t, '{"fit":"contain"}')).img).objectFit, 'contain', 'fit contain');
     }],
+    ['table media column: a header wider than the box does not stretch the box (the width stays the floor times the ratio)', async t => {
+        const { td, img } = first(await mount(t, '{"label":"Cover image for the title"}'));
+        t.ok(Math.abs(rect(td).width - 4.5 * rem()) < 1.5 && Math.abs(rect(td).height - 4.5 * rem()) < 1.5, 'a 1/1 box stays square under a long header, got ' + rect(td).width + 'x' + rect(td).height);
+        t.ok(Math.abs(rect(img).width - rect(td).width) < 2, 'the img fills the box');
+        const wide = first(await mount(t, '{"label":"Cover image for the title","ratio":"16/9","size":"sm"}'));
+        t.ok(Math.abs(rect(wide.td).width - 3 * rem() * 16 / 9) < 1.5, 'a 16/9 box keeps its ratio width, got ' + rect(wide.td).width);
+    }],
     ['table media column: no layout shift, the box is the same size before the image loads, after it loads and when it fails', async t => {
         const slow = await mount(t, '{}', 1, '/__no_such_image__.png?' + Date.now()); const a = first(slow);
         const failed = [rect(a.td).width, rect(a.td).height, rect(a.tr).height];
