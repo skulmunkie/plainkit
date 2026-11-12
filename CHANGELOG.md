@@ -5,6 +5,40 @@ The format follows [Keep a Changelog](https://keepachangelog.com/) and the proje
 
 ## [Unreleased]
 
+## [0.29.0] - 2026-11-12
+
+### Added
+
+- pk-list-page config takes density, striped and maxHeight and hands them to its data table, so a list page can have compact rows, a striped body or a height cap without leaving the config. (#1938)
+- pk-table has a media column: a column with type "media" draws the row value as an image in a box reserved before it loads (floor height from size sm, md or lg, width from ratio, fit cover or contain, empty alt unless alt names a row key), filling the row height and cropping when a row is taller; the code loads only when a table uses one. (#1938)
+- In the phone cards layout a pk-table media column is the leading image of each card, beside the stacked title and values with no layout shift as it loads; Blazor column definitions take it too (PkTableColumnType.Media with Ratio, Fit, Size and Alt), in PkTable, PkDataTable and PkListPage. (#1938)
+- With `filterPanel: "flyout"` (`placement="start"` on `pk-table-filters`) the open filter panel overlays the table area from the inline-start edge without moving the rows, stays inside the area (its body scrolls, Close and Clear filters stay in view), and Escape closes it and returns focus to the Filters trigger; the trigger now carries `aria-controls`. New hook `--pk-table-filters-max`. (#1939)
+- The filter flyout (`filterPanel: "flyout"`) now slides in from the inline-start edge (from the right in right-to-left), with no motion under `prefers-reduced-motion: reduce`; at 640px and below it is a full-width sheet over the table area; and it re-bounds itself when the window is resized while open. Blazor: `PkDataTable` takes `FilterPanel` (`PkFilterPanel.Inline` or `Flyout`); `PkListPage` takes `filterPanel` in its `Config`. (#1939)
+- `pk-data-table` and `pk-list-page` take `filterPanel` (`inline`, the default, or `flyout`), which sets the new `placement` on `pk-table-filters`; with `flyout` the open filter panel overlays the top of the table (22rem wide, `--pk-table-filters-w`) instead of pushing the rows down. The table sits in a new `area` part, and the panel parts are exported as `filters-panel` and `filters-body`. Escape handling and the phone sheet follow. (#1939)
+- pk-button collapse="always" shows the icon only at every width (the words stay the accessible name and the tooltip); a pk-list-page config action or bulk action takes collapse: "always" the same way. PkButton Collapse gains ButtonCollapse.Always. (#1940)
+- pk-tray launcher-variant="none" draws no floating launcher: the tray opens from a control the page already has (data-toggle or data-open, as on pk-drawer), and every such opener gets aria-expanded, aria-controls (when the tray has an id) and the hotkey in its title. PkTray LauncherVariant gains None. (#1941)
+- PkListPage and PkDataTable take UrlState (null off, empty = the plain names q, sort, desc, page, f.<key>, a value = prefix) to keep the list view in the address, and OnUrlChange reports the address (Url). New lab page /lab/url-state and a real-browser case: search, open a row, Back restores the view. (#1946)
+- The list view in the address (urlState) works in a hash-routed app: the query is written inside the hash (#/path?q=...), the route and other parameters are kept, and a reload restores the view. A gallery example and the SDK skill describe it. (#1946)
+- pk-data-table and the pk-list-page config take urlState: the search, sort, page and filters are kept in the address (q, sort, desc, page, f.<key>; a value is a prefix for two lists on one page) with history.replaceState, so a reload or Back restores the view. Opt-in, query mode; pk-url-change reports the address. (#1946)
+
+### Changed
+
+- The static slotted nav of `pk-doc-page` is sticky and height-capped above the tablet width: beside a long article it stays in view and scrolls itself. `--pk-doc-page-nav-max` sets the cap (default `100dvh`; smaller inside a shell with a header and footer). (#1878)
+- Behaviour change: pk-list-page with toolbarInHeader keeps slotted actions at their intrinsic width on a phone instead of stacking them in a column. It also draws slot="badges" content (and config.badges) in the table toolbar after the title, and honours homeHref, homeLabel and homeIcon as an icon home crumb. pk-data-table gains a badges slot in its toolbar lead. (#1942)
+- Behaviour change: a busy pk-button with an icon shows one icon instead of two: the spinner replaces the button's own icon (icon-name or start slot) rather than being drawn beside it. (#1945)
+- Behaviour change: a pk-button whose label is folded into its icon at any collapse breakpoint (phone, tablet or always) now gets the label as its tooltip, not only icon-only buttons. The button code is a few bytes smaller, back under its page-weight ceiling. (#1940)
+
+### Fixed
+
+- A `pk-list-page` (or any filling page) inside `pk-fill-column` now fills the rest region and scrolls its own rows instead of growing to its content; the docs say a `contain` shell needs no wrapper, or `pk-stack fill`. (#1675)
+- The `pk-tray` launcher button shows as pressed after a real mouse click as well as after a script click, and goes back to unpressed when the tray closes. (#1924)
+- The pk-table-filters panel (so pk-data-table and PkListPage filters) is clamped to 60% of the viewport height and scrolls its fields, with the header and Clear filters always reachable on a short phone viewport. (#1935)
+- pk-app-shell no longer draws an empty footer bar when every slotted footer child is hidden at the current breakpoint (for example data-show-above="phone" on a phone); it looks again when a breakpoint is crossed. (#1936)
+- The conformance audit no longer reports PkReconnect, PkScripts and the other public PlainKit.Blazor components without a pk-* mapping as unknown (B3), skips PageTitle, HeadContent and SectionContent when looking for a page's PkListPage or PkRecordPage (B4), and treats an error or not-found page whose only service is NavigationManager and whose handlers navigate as static (B4). (#1944)
+- pk-loading-overlay with fill now dims the whole scrollable content while busy, not only the first screenful, and its panel stays in view as the scroller is scrolled. (#1947)
+- pk-date-range-picker preset buttons are true pills (straight top and bottom edges, semicircular ends) instead of ellipses; the new `--pk-date-range-picker-preset-radius` custom property sets their corner radius. (#1950)
+- A tab-param (pk-tabs, pk-detail-layout, pk-record-form) in a hash-routed app now reads and writes the tab inside the hash (#/path?tab=b) instead of location.search, so a reload restores it and the route and other parameters are kept. (#1958)
+
 ## [0.28.0] - 2026-11-06
 
 ### Added
