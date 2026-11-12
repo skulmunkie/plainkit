@@ -48,6 +48,20 @@ export const dataTableUrlCases = [
         t.ok(h.calls()[0].search === 'init' && h.calls()[0].page === 2, 'an empty address leaves the initial props');
         h.fr.remove();
     }],
+    ['data-table urlState in a hash-routed app (#/path?query): the view is written inside the hash, search and the hash path stay, a reload restores it (#1946)', async t => {
+        const f = await open(t, '?_us=&keep=1', '#/orders?x=1'), before = f.win.history.length;
+        await f.search(null, 'ebay'); await f.sort(null, 'name', 'descending'); await f.page(null, 3);
+        const h = f.win.location.hash, hp = new URLSearchParams(h.slice(h.indexOf('?') + 1));
+        t.ok(h.startsWith('#/orders?') && hp.get('x') === '1' && hp.get('q') === 'ebay' && hp.get('sort') === 'name' && hp.get('desc') === '1' && hp.get('page') === '3', `the view is inside the hash, the route and x kept (${h})`);
+        t.eq(f.win.location.search, '?_us=&keep=1', 'location.search is untouched');
+        t.ok(f.win.history.length === before, 'no history entry is added');
+        t.eq(f.win.urlEvents.at(-1), f.win.location.pathname + f.win.location.search + f.win.location.hash, 'pk-url-change carries the address');
+        const loaded = new Promise(r => f.fr.addEventListener('load', r, { once: true })); f.win.location.reload(); await loaded;
+        await until(() => f.fr.contentWindow.calls?.length >= 1, 'the load after the reload'); await wait(150);
+        const c = f.fr.contentWindow.calls[0];
+        t.ok(c.search === 'ebay' && c.page === 3 && c.sort === 'name' && c.sortDir === 'descending', `the reload restores the view from the hash (${JSON.stringify(c)})`);
+        f.fr.remove();
+    }],
     ['data-table urlState: two lists with prefixes a and b keep their own parameters, and urlState off writes nothing (#1946)', async t => {
         const f = await open(t, '?_two=1&a.page=2&b.q=x', '', 2), c = f.calls();
         t.ok(c.find(x => x.id === 'a').page === 2 && c.find(x => x.id === 'b').search === 'x', 'each list reads only its own prefix');
