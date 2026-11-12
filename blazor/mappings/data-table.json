@@ -291,6 +291,18 @@
       "doc": "The cell padding step; null leaves the element's default."
     },
     {
+      "name": "FilterPanel",
+      "type": "PkFilterPanel",
+      "enum": {
+        "Inline": "inline",
+        "Flyout": "flyout"
+      },
+      "default": "Inline",
+      "map": "prop",
+      "prop": "filterPanel",
+      "doc": "Where the open filter panel goes: Inline (its own row, pushing the rows down) or Flyout (overlays the top of the table from the inline-start edge; a sheet on a phone; Escape closes it)."
+    },
+    {
       "name": "MaxHeight",
       "prop": "maxHeight",
       "type": "string?",

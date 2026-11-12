@@ -370,4 +370,12 @@ public sealed class PkDataTableTests : BunitContext, IAsyncLifetime
         await cut.Find("pk-data-table").TriggerEventAsync("onpk-url-change", new PkUrlChangeEventArgs { Url = "/customers?page=2" });
         Assert.Equal("/customers?page=2", got);
     }
+
+    [Fact]
+    public void FilterPanel_sets_the_filter_panel_attribute()
+    {
+        Assert.Equal("inline", Render<PkDataTable<Customer>>().Find("pk-data-table").GetAttribute("filter-panel"));
+        var cut = Render<PkDataTable<Customer>>(p => p.Add(x => x.FilterPanel, PkFilterPanel.Flyout));
+        Assert.Equal("flyout", cut.Find("pk-data-table").GetAttribute("filter-panel"));
+    }
 }

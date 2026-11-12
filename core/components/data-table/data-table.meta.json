@@ -56,8 +56,9 @@
     },
     {
       "name": "filterPanel",
-      "type": "string",
+      "type": "enum",
       "default": "inline",
+      "values": ["inline", "flyout"],
       "reflect": false,
       "description": "Where the open filter panel goes: inline (the default; it takes its own row above the table and pushes the rows down) or flyout (it overlays the top of the table from the inline-start edge, 22rem wide, without moving the rows; it is bounded by the table area, scrolls its own body, and Escape closes it and returns focus to the Filters trigger). Sets pk-table-filters placement."
     },
@@ -379,6 +380,10 @@
     {
       "title": "Orders (set load from script: an inline script cannot run under this site's CSP; with none, the empty state shows)",
       "html": "<pk-data-table selectable columns='[{\"key\":\"sku\",\"label\":\"SKU\"},{\"key\":\"name\",\"label\":\"Name\"}]' empty='{\"heading\":\"No orders yet\",\"description\":\"Orders you receive show here.\"}'></pk-data-table>"
+    },
+    {
+      "title": "Flyout filters (filter-panel=flyout: the open panel slides in over the table instead of pushing the rows down; Escape closes it; a sheet on a phone)",
+      "html": "<pk-data-table filter-panel=\"flyout\" columns='[{\"key\":\"sku\",\"label\":\"SKU\"}]' filters='[{\"key\":\"name\",\"type\":\"text\",\"label\":\"Name\"},{\"key\":\"city\",\"type\":\"text\",\"label\":\"City\"}]'></pk-data-table>"
     },
     {
       "title": "Preset search (from a link) and no Select all offer",
