@@ -2,7 +2,7 @@ import { showTitleBar } from '../../js/page-shell.js';
 import { loadElements } from '../../js/loader.js';
 import { safeHref } from '../../js/safe-url.js';
 
-const TABLE_KEYS = ['columns', 'filters', 'pageSize', 'pageSizeOptions', 'sort', 'sortDir', 'search', 'filterValues', 'page', 'searchDebounce', 'pagerLabel', 'label', 'caption', 'empty', 'noResults', 'loadError', 'stickyHeader', 'density', 'striped', 'maxHeight', 'selectPageOnly', 'expandable', 'expander'];
+const TABLE_KEYS = ['columns', 'filters', 'filterPanel', 'pageSize', 'pageSizeOptions', 'sort', 'sortDir', 'search', 'filterValues', 'page', 'searchDebounce', 'pagerLabel', 'label', 'caption', 'empty', 'noResults', 'loadError', 'stickyHeader', 'density', 'striped', 'maxHeight', 'selectPageOnly', 'expandable', 'expander'];
 
 // The page frame around a pk-data-table, which owns the query, load and states (#801).
 export default Base => class extends Base {
