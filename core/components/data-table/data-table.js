@@ -33,8 +33,8 @@ export default Base => class extends Base {
         table.addEventListener('pk-select', e => { e.stopPropagation(); this.selected = e.detail.selected; this.selectScope = 'page'; this.announce(); });
         table.addEventListener('pk-select-all', e => { e.stopPropagation(); if (e.detail.scope === 'all') { this.selectScope = 'all'; this.announce(); } });
         // A flyout panel is bounded by the table area (its body scrolls, the header and Clear filters stay in view); the area is measured as it opens.
-        this.$b = () => filters.style.setProperty('--pk-table-filters-max', this.part('area').clientHeight + 'px');
-        filters.addEventListener('pk-toggle', e => e.detail.open && (window.addEventListener('resize', this.$b), this.$b()));
+        this.$z = () => filters.style.setProperty('--pk-table-filters-max', this.part('area').clientHeight + 'px');
+        filters.addEventListener('pk-toggle', e => e.detail.open && (window.addEventListener('resize', this.$z), this.$z()));
         filters.addEventListener('pk-search', e => go({ search: e.detail.query, page: 1 }, true));
         filters.addEventListener('pk-value-change', e => {
             const key = e.target?.dataset?.key;
@@ -52,7 +52,7 @@ export default Base => class extends Base {
         this.buildFilters();
         this.refresh();
     }
-    disconnected() { globalThis.window?.removeEventListener('resize', this.$b); this.$mo?.disconnect(); this.$abort?.abort(); }
+    disconnected() { globalThis.window?.removeEventListener('resize', this.$z); this.$mo?.disconnect(); this.$abort?.abort(); }
     forwardSlots() {
         const table = this.part('table'), names = [...this.children].map(c => c.slot).filter(s => /^(cell|header|detail)-/.test(s)), have = [...table.children].filter(c => /^(cell|header|detail)-/.test(c.name));
         if (names.join() === have.map(c => c.name).join()) return;
