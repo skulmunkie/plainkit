@@ -103,6 +103,19 @@
       "doc": "Sort InitialSortKey descending first. Initial only."
     },
     {
+      "name": "UrlState",
+      "map": "param",
+      "configKey": "urlState",
+      "type": "string?",
+      "doc": "Keeps the search, sort, page and filters in the address (q, sort, desc, page, f.<key>; never the page size) with history.replaceState: no history entry, other parameters and the hash kept, so a reload or Back restores the view. Null is off, an empty string uses those names, a value is a prefix for two lists on one page. The address is read on the first client render and wins over the Initial values (a prerendered page renders page 1 first). Needs Load."
+    },
+    {
+      "name": "OnUrlChange",
+      "event": "pk-url-change",
+      "type": "EventCallback<PkUrlChangeEventArgs>",
+      "note": "The address was written: Url is the path, query and hash as the browser shows it, to keep as a back target (for example RowHrefTemplate=\"/rows/{id}?back={encoded}\"). The list never asks NavigationManager."
+    },
+    {
       "name": "InitialPage",
       "map": "param",
       "configKey": "page",

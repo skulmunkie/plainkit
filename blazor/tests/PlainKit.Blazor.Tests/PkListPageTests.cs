@@ -185,4 +185,23 @@ public sealed class PkListPageTests : BunitContext, IAsyncLifetime
         Assert.Empty(cut.FindAll("[slot='actions']"));
         Assert.Empty(cut.FindAll("[slot='toolbar']"));
     }
+
+    // #1946: UrlState is a config key (null is off, an empty string is on with the plain names, a value is a prefix), and pk-url-change reaches OnUrlChange with the address.
+    [Fact]
+    public async Task UrlState_goes_to_the_config_and_OnUrlChange_gets_the_address()
+    {
+        string? got = null;
+        var off = Render<PkListPage<Order>>(p => p.Add(x => x.InitialPage, 1));
+        Assert.False(ConfigOf(off).TryGetProperty("urlState", out _));
+
+        var cut = Render<PkListPage<Order>>(p => p
+            .Add(x => x.UrlState, "")
+            .Add(x => x.OnUrlChange, EventCallback.Factory.Create<PkUrlChangeEventArgs>(this, e => got = e.Url)));
+        Assert.Equal("", ConfigOf(cut).GetProperty("urlState").GetString());
+        await cut.Find("pk-list-page").TriggerEventAsync("onpk-url-change", new PkUrlChangeEventArgs { Url = "/orders?q=ebay&page=3#top" });
+        Assert.Equal("/orders?q=ebay&page=3#top", got);
+
+        var prefixed = Render<PkListPage<Order>>(p => p.Add(x => x.UrlState, "a"));
+        Assert.Equal("a", ConfigOf(prefixed).GetProperty("urlState").GetString());
+    }
 }
