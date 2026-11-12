@@ -49,6 +49,9 @@ export default Base => class extends Base {
         else if ('filter' in d && e.type === 'input') { clearTimeout(this.$t); this.$t = setTimeout(() => { const filters = { ...this.filters, [d.filter]: t.value }; if (this.emit('pk-filter', { filters })) this.filters = filters; }, 250); }
     }
 
+    // A lazy part (#1938): load it once, keep its module on this[mod], draw again; a failure is logged once.
+    lz(mod, load) { this['_' + mod] ??= load().then(m => { this[mod] = m; this.requestUpdate(); }, e => this.log.error(mod, e)); }
+
     updated() {
         const own = this.slotted().some(e => e.localName === 'table'), tb = this.part('table');
         this.part('toolbar').hidden = !this.slotted('toolbar').length; this.part('footer').toggleAttribute('data-bar', this.slotted('footer').length > 0);
@@ -56,11 +59,11 @@ export default Base => class extends Base {
         if (own) { this.part('bulk').hidden = this.part('empty').hidden = true; return; }
         if (this.selectScope === 'all' && !this.selected.length) this.selectScope = 'page';
         const k = this.list('columns'), r = V.view(this), ids = rowIds(r, this.rowKey), s =this.chosen(ids), sel = boxState(ids.filter(i => s.has(i)), r.length);
-        if (this.expandable || this.clickable || this.rowHrefTemplate) this.$x ??= import('../../js/table-expand.js').then(m => { this.$m = m; this.requestUpdate(); }, e => this.log.error('table-expand failed', e));
-        if (this.total) this.$p ??= import('../../js/table-scope.js').then(m => { this.$s = m; this.requestUpdate(); }, e => this.log.error('table-scope failed', e));
-        if (this.editable) this.$w ??= import('../../js/table-edit.js').then(m => { this.$e = m; this.requestUpdate(); }, e => this.log.error('table-edit failed', e));
-        if (this.resizable || this.reorderable) this.$cxw ??= import('../../js/table-cols.js').then(m => { this.$cx = m; this.requestUpdate(); }, e => this.log.error('table-cols failed', e));
-        if (k.some(c => c.shed && ![1, 2, 3].includes(+c.shed))) this.$sh ??= import('../../js/table-shed.js').then(m => { this.$sd = m; this.requestUpdate(); }, e => this.log.error('table-shed failed', e));
+        if (this.expandable || this.clickable || this.rowHrefTemplate) this.lz('$m', () => import('../../js/table-expand.js'));
+        if (this.total) this.lz('$s', () => import('../../js/table-scope.js'));
+        if (this.editable) this.lz('$e', () => import('../../js/table-edit.js'));
+        if (this.resizable || this.reorderable) this.lz('$cx', () => import('../../js/table-cols.js'));
+        if (k.some(c => c.type == 'media' || c.shed && ![1, 2, 3].includes(+c.shed))) this.lz('$sd', () => import('../../js/table-shed.js'));
         const x = this.expandable && this.$m, hx = this.expander != 'none' && x, lead = +this.selectable + !!hx;
         V.frame(this, tb, k.length + lead, r.length);
 
