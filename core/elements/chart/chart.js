@@ -121,7 +121,7 @@ export default Base => class extends Base {
     connected() {
         for (const s of ['', 'caption']) this.watchSlot(s, () => this.requestUpdate());
         // Draw at the real width (one unit is one pixel) so tick labels keep their size in any container.
-        if (!this.$r) { this.$r = new ResizeObserver(() => { if (Math.abs(this.part('plot').clientWidth - (this.$w ?? 0)) > 1) this.requestUpdate(); }); this.$r.observe(this.part('plot')); }
+        if (!this.$ro) { this.$ro = new ResizeObserver(() => { if (Math.abs(this.part('plot').clientWidth - (this.$w ?? 0)) > 1) this.requestUpdate(); }); this.$ro.observe(this.part('plot')); }
     }
     updated() {
         const doc = this.ownerDocument;

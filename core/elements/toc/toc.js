@@ -28,12 +28,12 @@ export function slug(text, taken = new Set()) {
 // pk-toc: lists the headings inside `for` and marks the one in view as you scroll (the window, or the `scroller` element).
 export default Base => class extends Base {
     connected() {
-        if (!this.$w) { this.$w = true; this.$f = () => { if (!this.$q) { this.$q = requestAnimationFrame(() => { this.$q = 0; this.spy(); }); } }; }
+        if (!this.$w) { this.$w = true; this.$f = () => { if (!this.$raf) { this.$raf = requestAnimationFrame(() => { this.$raf = 0; this.spy(); }); } }; }
         this.refresh();
-        if (!this.$h?.length) this.$r = setTimeout(() => this.refresh(), 300);
+        if (!this.$h?.length) this.$rt = setTimeout(() => this.refresh(), 300);
         this.bind();
     }
-    disconnected() { clearTimeout(this.$r); cancelAnimationFrame(this.$q); this.$q = 0; this.unbind(); }
+    disconnected() { clearTimeout(this.$rt); cancelAnimationFrame(this.$raf); this.$raf = 0; this.unbind(); }
     bind() { (this.$sc = this.scrollerEl ?? window).addEventListener('scroll', this.$f, { passive: true }); window.addEventListener('resize', this.$f); }
     unbind() { this.$sc?.removeEventListener('scroll', this.$f); this.$sc = null; window.removeEventListener('resize', this.$f); }
     changed(name) { if (name === 'for' || name === 'levels') this.refresh(); else if (name === 'scroller' && this.$sc) { this.unbind(); this.bind(); } }

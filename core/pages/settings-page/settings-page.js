@@ -5,7 +5,7 @@ import { buildField, read, write } from '../../js/page-fields.js';
 export default Base => class extends Base {
     connected() {
         // The scroll spy (outside this element's subtree, so added here and removed in disconnected()): a scroll in any container reaches the document in the capture phase.
-        this.$scroll ||= () => { if (!this.$q) this.$q = requestAnimationFrame(() => { this.$q = 0; this.spy(); }); };
+        this.$scroll ||= () => { if (!this.$raf) this.$raf = requestAnimationFrame(() => { this.$raf = 0; this.spy(); }); };
         this.ownerDocument.addEventListener('scroll', this.$scroll, { capture: true, passive: true });
         if (this.$w) return;
         this.$w = true;
@@ -21,8 +21,8 @@ export default Base => class extends Base {
     }
     disconnected() {
         this.ownerDocument.removeEventListener('scroll', this.$scroll, { capture: true });
-        if (this.$q) cancelAnimationFrame(this.$q);
-        this.$q = 0;
+        if (this.$raf) cancelAnimationFrame(this.$raf);
+        this.$raf = 0;
     }
     changed(name) { if (name === 'config') { this.buildTitleBar(); this.buildSections(); } else if (name === 'values') this.applyValues(); }
 
