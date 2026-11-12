@@ -50,6 +50,13 @@
       "detailProps": { "selected": "string[]", "scope": "string", "query": "object" }
     },
     {
+      "name": "pk-url-change",
+      "detail": { "url": "string" },
+      "description": "The data table's pk-url-change, passed through (url: the address written).",
+      "cancelable": false,
+      "detailProps": { "url": "string" }
+    },
+    {
       "name": "pk-row-click",
       "detail": { "id": "string", "row": "object" },
       "description": "A row was activated (clickable): id is the rowKey value, row the row object from load(). The data table's own event, passed through.",
