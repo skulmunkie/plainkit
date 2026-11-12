@@ -1054,6 +1054,16 @@ export const dataDisplayCases = [
         }
     }],
 
+    ['table-filters: the filter count badge is a circle for 1 and a pill (never a percentage ellipse) for 10 and 100 (#1970)', async t => {
+        const host = t.stage('<div><pk-table-filters id="pk-tf1" label="Search" filter-count="1"><pk-input label="A"></pk-input></pk-table-filters><pk-table-filters id="pk-tf10" label="Search" filter-count="10"><pk-input label="A"></pk-input></pk-table-filters><pk-table-filters id="pk-tf100" label="Search" filter-count="100"><pk-input label="A"></pk-input></pk-table-filters></div>');
+        await t.load(host); await t.settle(); await t.settle(); let prev = 0;
+        for (const n of ['1', '10', '100']) {
+            const el = document.getElementById('pk-tf' + n); await t.settle();
+            const c = el.part('count'), b = c.getBoundingClientRect(), br = getComputedStyle(c).borderTopLeftRadius;
+            t.ok(br.indexOf('%') < 0 ? parseFloat(br) >= b.height / 2 - 0.5 : Math.abs(b.width - b.height) < 0.5, 'count ' + n + ': radius ' + br + ' on ' + b.width.toFixed(1) + 'x' + b.height.toFixed(1) + ' is a circle or pill, not an ellipse');
+            t.ok(b.width >= b.height - 0.5 && b.width >= prev, 'count ' + n + ' is at least as wide as tall and as the previous count'); prev = b.width;
+        }
+    }],
     ['table-filters: the Filters trigger is a filter-icon button; its word folds into the icon on a phone (name and count badge kept) and shows beside it on a wide screen (#1704)', async t => {
         const { sampleDoc } = await import('../../site/gallery/frame.js');
         const html = '<pk-table-filters label="Search products" filter-count="3"><pk-select label="Category"><option>A</option></pk-select></pk-table-filters>';
