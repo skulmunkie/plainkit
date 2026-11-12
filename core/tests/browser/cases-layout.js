@@ -18,6 +18,17 @@ const tops = el => new Set([...el.children].map(c => Math.round(c.getBoundingCli
 const lefts = el => [...el.children].map(c => Math.round(c.getBoundingClientRect().left));
 
 export const layoutCases = [
+    ['loading-overlay fill: a busy scrim covers the whole scrollable content and the panel stays in the scroller viewport after scrolling (#1947)', async t => {
+        const host = t.stage('<div id="sc" style="display:flex;flex-direction:column;block-size:300px;overflow:auto"><pk-loading-overlay fill busy label="Loading"><div id="tall" style="block-size:1500px;flex-shrink:0">Tall body</div></pk-loading-overlay></div>');
+        await t.load(host); await t.settle(); await new Promise(r => setTimeout(r, 200));
+        const sc = host.querySelector('#sc'), o = host.querySelector('pk-loading-overlay'), tall = host.querySelector('#tall');
+        const ov = o.shadowRoot.querySelector('[part="overlay"]'), panel = o.shadowRoot.querySelector('[part="panel"]');
+        t.ok(sc.scrollHeight >= 1500, `the scroller really overflows (${sc.scrollHeight})`);
+        t.ok(ov.getBoundingClientRect().height >= tall.getBoundingClientRect().height - 1, `the scrim is as tall as the content (${Math.round(ov.getBoundingClientRect().height)} vs ${Math.round(tall.getBoundingClientRect().height)})`);
+        sc.scrollTop = 1000; await new Promise(r => setTimeout(r, 100));
+        const s = sc.getBoundingClientRect(), p = panel.getBoundingClientRect();
+        t.ok(p.top >= s.top - 1 && p.bottom <= s.bottom + 1, `scrolled to 1000, the panel is inside the scroller's visible box (${Math.round(p.top - s.top)}..${Math.round(p.bottom - s.top)} of ${Math.round(s.height)})`);
+    }],
     ['cluster: a horizontal row wraps at the container edge, nowrap keeps one line, and the gap is the default token', async t => {
         const el = await layout(t, 'pk-cluster', '', 4, 200, 80);
         t.eq(el.direction, 'horizontal'); t.eq(el.gap, 'sm');
