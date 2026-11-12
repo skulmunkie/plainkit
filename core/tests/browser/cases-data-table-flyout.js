@@ -66,6 +66,42 @@ export const dataTableFlyoutCases = [
         const a = m.area.getBoundingClientRect(), p = m.panel.getBoundingClientRect();
         t.ok(Math.abs(p.right - a.right) <= 1 && p.left >= a.left - 1, `panel right ${Math.round(p.right)} is the area right ${Math.round(a.right)}`);
     }],
+    ['data-table flyout: opening runs a slide-in animation from the inline-start edge, and a reduced-motion rule switches it off (#1939)', async t => {
+        const m = await mount(t, 'filter-panel="flyout"');
+        m.f.toggle(true); await t.settle();
+        t.ok(getComputedStyle(m.panel).animationName !== 'none', `the open panel animates (${getComputedStyle(m.panel).animationName})`);
+        const css = await (await fetch(new URL('../../elements/table-filters/table-filters.css', import.meta.url))).text();
+        t.ok(/prefers-reduced-motion:\s*reduce\)[^}]*\{[^}]*animation:\s*none/.test(css), 'a prefers-reduced-motion: reduce rule sets animation: none');
+    }],
+    ['data-table flyout in right to left slides in from the right edge (#1939)', async t => {
+        const m = await mount(t, 'filter-panel="flyout"', 1000, { dir: 'rtl' });
+        m.f.toggle(true); await t.settle();
+        const a = m.area.getBoundingClientRect(), p = m.panel.getBoundingClientRect(), tr = getComputedStyle(m.panel).transform;
+        t.ok(p.left > a.left + 100, 'panel sits at the right edge');
+        t.ok(tr !== 'none' && parseFloat(tr.split(',')[4]) > 0, `the first frames start offset to the right (transform ${tr})`);
+    }],
+    ['data-table flyout at 390: the panel is a sheet as wide as the table area (#1939)', async t => {
+        const { sampleDoc } = await import('../../site/gallery/frame.js');
+        const host = t.stage(''), f = document.createElement('iframe');
+        f.title = 'sample'; f.style.width = '390px'; f.style.height = '520px'; f.style.border = '0';
+        const loaded = new Promise(r => f.addEventListener('load', r, { once: true })); host.append(f);
+        f.srcdoc = sampleDoc(`<pk-data-table columns='[{"key":"sku","label":"SKU"}]' filter-panel="flyout" filters='${filters}'></pk-data-table>`); await loaded;
+        const w = f.contentWindow, dt = await until(() => f.contentDocument.querySelector('pk-data-table'), 'the table');
+        await until(() => w.customElements.get('pk-data-table'), 'pk-data-table defined');
+        const ff = await until(() => typeof dt.part === 'function' && dt.part('filters')?.children.length > 0 && dt.part('filters'), 'the filters'); await until(() => w.customElements.get('pk-table-filters'), 'pk-table-filters defined');
+        ff.toggle(true); await wait(500);
+        const a = dt.shadowRoot.querySelector('[part="area"]').getBoundingClientRect(), p = ff.shadowRoot.querySelector('[part="panel"]').getBoundingClientRect();
+        t.eq(w.innerWidth, 390);
+        t.ok(Math.abs(p.width - a.width) <= 1 && Math.abs(p.left - a.left) <= 1, `panel width ${p.width} equals the area ${a.width}`);
+    }],
+    ['data-table flyout: a viewport resize while open re-bounds the panel to the new area height (#1939)', async t => {
+        const many = JSON.stringify(Array.from({ length: 40 }, (_, i) => ({ key: 'f' + i, type: 'text', label: 'Field ' + i })));
+        const m = await mount(t, 'filter-panel="flyout"', 1000, { height: 520, fields: many });
+        m.f.toggle(true); await t.settle(); await wait(400);
+        m.el.parentElement.style.blockSize = '300px'; window.dispatchEvent(new Event('resize')); await wait(100); await t.settle();
+        const a = m.area.getBoundingClientRect(), p = m.panel.getBoundingClientRect();
+        t.ok(p.bottom <= a.bottom + 1, `panel bottom ${Math.round(p.bottom)} stays inside the shrunk area bottom ${Math.round(a.bottom)}`);
+    }],
     ['data-table filterPanel unset: the panel stays inline and pushes the rows down, the area wraps the table without moving it (#1939)', async t => {
         const m = await mount(t, ''), before = m.top();
         t.ok(!m.f.hasAttribute('placement') || m.f.getAttribute('placement') === 'inline', 'no flyout placement by default');
