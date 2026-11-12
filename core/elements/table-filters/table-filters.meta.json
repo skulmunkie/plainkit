@@ -46,7 +46,7 @@
       "type": "string",
       "default": "inline",
       "reflect": true,
-      "description": "Where the open panel goes: inline (the default) wraps onto its own row of the toolbar and pushes what follows down; start overlays it from the inline-start edge, just below the host's toolbar row, without moving anything (a flyout; the host's toolbar must be positioned, as pk-data-table's is). pk-data-table sets it from filterPanel."
+      "description": "Where the open panel goes: inline (the default) wraps onto its own row of the toolbar and pushes what follows down; start overlays it from the inline-start edge, just below the host's toolbar row, without moving anything, sliding in and staying inside the host's table area, with Escape closing it and focus returning to the trigger (a flyout; the host's toolbar must be positioned, as pk-data-table's is). pk-data-table sets it from filterPanel."
     },
     {
       "name": "open",
@@ -142,6 +142,11 @@
       "name": "--pk-table-filters-radius",
       "description": "Corner radius of the search box and trigger; var(--radius-pill) for a pill.",
       "default": "var(--pk-control-radius, var(--radius-sm))"
+    },
+    {
+      "name": "--pk-table-filters-max",
+      "description": "Tallest the flyout panel may grow (placement start); pk-data-table sets it to the table area's height while the panel is open, so the body scrolls inside the area.",
+      "default": "60dvh"
     },
     {
       "name": "--pk-table-filters-w",

@@ -59,7 +59,7 @@
       "type": "string",
       "default": "inline",
       "reflect": false,
-      "description": "Where the open filter panel goes: inline (the default; it takes its own row above the table and pushes the rows down) or flyout (it overlays the top of the table from the inline-start edge, 22rem wide, without moving the rows). Sets pk-table-filters placement."
+      "description": "Where the open filter panel goes: inline (the default; it takes its own row above the table and pushes the rows down) or flyout (it overlays the top of the table from the inline-start edge, 22rem wide, without moving the rows; it is bounded by the table area, scrolls its own body, and Escape closes it and returns focus to the Filters trigger). Sets pk-table-filters placement."
     },
     {
       "name": "search",
