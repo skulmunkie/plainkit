@@ -65,7 +65,7 @@ function frame(el, tb, span, rows) {
 const TONES = new Set(['warning', 'positive', 'accent', 'critical']);
 const mark = row => ({ 'data-tone': TONES.has(row.tone) ? row.tone : null, 'data-indent': row.indent >= 1 ? (row.indent >= 2 ? 2 : 1) : null });
 // One data row, shared by the plain render (table.js) and the windowed one above: a select box, then a td per column (a slotted cell where the host gave one).
-const al = c => c.align ?? (c.type === 'number' ? 'end' : null);
+const al = c => c.align ?? { number: 'end', media: 'm' }[c.type];
 // #1794: a slotted cell with no content is marked data-empty; the phone cards drop it with its label (text-empty cells: td:empty).
 function tr(el, row, id, sel, h) {
     const pick = h('input', { type: 'checkbox', 'data-select': id, 'aria-label': `Select row ${id}` });
