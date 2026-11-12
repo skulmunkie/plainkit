@@ -1,5 +1,6 @@
 // The element tests that need a real browser: shadow DOM, slots, events, keyboard, forms, ElementInternals, strict CSP, theme inheritance.
 import { dataDisplayCases } from './cases-data-display.js';
+import { tableMediaCases } from './cases-table-media.js';
 // Each case is [name, async (t) => void]. t offers mount(html), settle(), key(el, key), and plain assertions.
 
 import { overlaysCases } from './cases-overlays.js';
@@ -350,6 +351,7 @@ export const cases = [
 
     ...overlaysCases,
     ...dataDisplayCases,
+    ...tableMediaCases,
 ];
 import { formCases } from './cases-forms.js';
 cases.push(...formCases);
