@@ -33,7 +33,7 @@ export function checkSchema(l) {
         if (!b.id || ids.has(b.id)) errors.push(`budget id missing or duplicated: ${b.id}`);
         ids.add(b.id);
         if (!['hard', 'ratchet'].includes(b.class)) errors.push(`${b.id}: class must be hard or ratchet`);
-        if (typeof b.limit !== 'number' || !b.unit || !b.source?.file || !b.enforcedBy) errors.push(`${b.id}: needs a numeric limit, unit, source.file and enforcedBy`);
+        if ((b.movedBy ? b.limit !== null : typeof b.limit !== 'number') || !b.unit || !b.source?.file || !b.enforcedBy) errors.push(`${b.id}: needs a numeric limit (null when movedBy names the tool that rewrites its source), unit, source.file and enforcedBy`);
     }
     if (!Array.isArray(l.exceptions)) errors.push('exceptions must be an array');
     for (const e of l.exceptions ?? []) {
@@ -47,10 +47,12 @@ export function checkSchema(l) {
     return errors;
 }
 
+const live = b => (b ? sourceValue(b) : undefined);
+
 export function expiredExceptions(l, today) {
     return (l.exceptions ?? []).filter(e => e.until < today).map(e => {
         const b = l.budgets.find(x => x.id === e.budget);
-        return `the carve-out plan expired: bring ${e.budget} back under ${b?.limit} ${b?.unit ?? ''} or ask the owner to renew with a new date (issue #${e.issue}, until ${e.until}). FIX: carve the code out as planned, or get the owner's renewal on the issue.`;
+        return `the carve-out plan expired: bring ${e.budget} back under ${b?.limit ?? live(b)} ${b?.unit ?? ''} or ask the owner to renew with a new date (issue #${e.issue}, until ${e.until}). FIX: carve the code out as planned, or get the owner's renewal on the issue.`;
     });
 }
 
@@ -61,7 +63,7 @@ test('the ledger is well formed and every exception has an issue, a reason, a pl
 });
 
 test('the ledger agrees with the source of every budget (it is a mirror, never the place to edit a number)', () => {
-    for (const b of ledger.budgets) assert.equal(sourceValue(b), b.limit, `${b.id}: the ledger says ${b.limit} but ${b.source.file} says ${sourceValue(b)}. FIX: edit the number in its source under the budget rules (never raise one without an owner-approved exception), then mirror it here.`);
+    for (const b of ledger.budgets.filter(x => x.limit !== null)) assert.equal(sourceValue(b), b.limit, `${b.id}: the ledger says ${b.limit} but ${b.source.file} says ${sourceValue(b)}. FIX: edit the number in its source under the budget rules (never raise one without an owner-approved exception), then mirror it here.`);
 });
 
 test('no budget exception is past its expiry date', () => {
