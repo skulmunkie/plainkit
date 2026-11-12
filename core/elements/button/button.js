@@ -22,7 +22,7 @@ export default Base => class extends Base {
             this.$c = e => this.press(e); this.addEventListener('click', this.$c);
             // collapse: the viewport and the slotted icon are read here, where a real element is guaranteed; updated() only turns them into attributes.
             this.$mqs = { phone: mediaBelow('phone'), tablet: mediaBelow('tablet') };
-            this.$fit = () => { this.$fits = this.collapse !== 'none' && Boolean(this.$mqs[this.collapse]?.matches); this.requestUpdate(); };
+            this.$fit = () => { this.$fits = this.collapse === 'always' || (this.collapse !== 'none' && Boolean(this.$mqs[this.collapse]?.matches)); this.requestUpdate(); };
             const slots = () => { this.$slotIcon = this.slotted('start').length > 0 || this.slotted().some(n => n.localName === 'pk-icon'); this.requestUpdate(); };
             this.watchSlot('start', slots); this.watchSlot('', slots);
         }
@@ -64,7 +64,7 @@ export default Base => class extends Base {
         icon.toggleAttribute('hidden', !this.iconName); // an svg has no hidden property, so the template's data-if cannot do it
         drawIcon(icon.firstChild, this.iconName, (k, m, d) => this.warnOnce(k, m, d));
         // The tooltip: the native title, mirrored from the name, unless a pk-tooltip wraps the button or the author set a title.
-        const tip = !this.hasAttribute('title') && !this.closest('pk-tooltip') ? tipText(this, this.textContent) : '';
+        const tip = !this.hasAttribute('title') && !this.closest('pk-tooltip') ? tipText({ icon: this.icon || (this.collapse === 'always' && hasIcon), label: this.label }, this.textContent) : ''; // always: the words are never shown, so they are the tooltip
         if (tip) { c.setAttribute('title', tip); c.setAttribute('aria-description', ''); } else { c.removeAttribute('title'); c.removeAttribute('aria-description'); } // the empty description stops the title being read a second time after the name
     }
 };

@@ -912,6 +912,27 @@ layoutCases.push(
     }],
 );
 
+// #1940: a config action with collapse "always" is icon only at every width (the words kept as the accessible name and the tooltip); "phone" still shows its words on a desktop.
+layoutCases.push(
+    ['list page config actions: collapse "always" is icon only at 1280 with the label as name and tooltip; "phone" keeps its words there (#1940)', async t => {
+        const host = t.stage(''), fr = document.createElement('iframe');
+        fr.title = 'config actions, collapse always'; fr.style.cssText = 'width:1280px;height:700px;border:0;display:block';
+        fr.src = new URL('./list-fill-frame.html', import.meta.url).href + '?always=1';
+        await new Promise(resolve => { fr.addEventListener('load', resolve, { once: true }); host.append(fr); });
+        const win = fr.contentWindow, wait = ms => new Promise(r => setTimeout(r, ms));
+        await Promise.all(['pk-list-page', 'pk-data-table', 'pk-button'].map(tag => win.customElements.whenDefined(tag)));
+        const list = win.document.querySelector('pk-list-page');
+        for (let i = 0; i < 150 && list.part('actions').querySelectorAll('pk-button').length < 2; i++) await wait(40);
+        await wait(300);
+        const [a, b] = list.part('actions').querySelectorAll('pk-button'), ctl = x => x.shadowRoot.querySelector('[part=control]');
+        t.ok(a.getBoundingClientRect().width <= 56, `the always action is icon only (${Math.round(a.getBoundingClientRect().width)}px wide)`);
+        t.ok(a.hasAttribute('collapsed') && a.textContent.trim() === 'New order', 'it is collapsed and the label stays its text (the accessible name)');
+        t.eq(ctl(a).getAttribute('title'), 'New order', 'the label is its tooltip');
+        t.ok(b.getBoundingClientRect().width > 80 && !b.hasAttribute('collapsed'), `the phone action keeps its words on a desktop (${Math.round(b.getBoundingClientRect().width)}px)`);
+        fr.remove();
+    }],
+);
+
 // #1912: on a phone the list page is compact: the search box and Filters share one row, the title bar, the toolbar and the first card are one small step apart (a --space-3 gap each), and the pager footer is about as tall as its content.
 layoutCases.push(
     ['list page on a phone (375 and 390): search and Filters share one row, one --space-3 step between the title bar, the toolbar and the first card, a compact pager footer; at 1280 the search and Filters keep their row', async t => {
