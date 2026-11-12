@@ -55,9 +55,9 @@ function frame(el, tb, span, rows) {
     if (el.maxHeight) el.style.setProperty('--pk-table-max-height', el.maxHeight); else el.style.removeProperty('--pk-table-max-height');
     const foot = el.part('foot'); foot.colSpan = span; foot.closest('tfoot').hidden = !el.querySelector(':scope > [slot="foot"]');
     el.part('empty').hidden = el.loading || rows > 0;
-    el.part('scroll').tabIndex = rows > 0 ? 0 : -1; // an empty frame has nothing to scroll: not a tab stop or a tap target
+    el.part('scroll').tabIndex = rows ? 0 : -1; // an empty frame has nothing to scroll: not a tab stop or a tap target
     const n = idSet(el.selected).size;
-    el.part('bulk').hidden = n === 0; el.part('bulk-count').textContent = `${n} selected`;
+    el.part('bulk').hidden = !n; el.part('bulk-count').textContent = `${n} selected`;
 }
 
 
@@ -65,14 +65,14 @@ function frame(el, tb, span, rows) {
 const TONES = new Set(['warning', 'positive', 'accent', 'critical']);
 const mark = row => ({ 'data-tone': TONES.has(row.tone) ? row.tone : null, 'data-indent': row.indent >= 1 ? (row.indent >= 2 ? 2 : 1) : null });
 // One data row, shared by the plain render (table.js) and the windowed one above: a select box, then a td per column (a slotted cell where the host gave one).
-const al = c => c.align ?? (c.type === 'number' ? 'end' : null);
+const al = c => c.align ?? { number: 'end', media: 'm' }[c.type];
 // #1794: a slotted cell with no content is marked data-empty; the phone cards drop it with its label (text-empty cells: td:empty).
 function tr(el, row, id, sel, h) {
     const pick = h('input', { type: 'checkbox', 'data-select': id, 'aria-label': `Select row ${id}` });
-    pick.checked = sel.has(id);
-    return h('tr', { 'data-pk-context': id, 'data-selected': sel.has(id), 'data-clickable': el.clickable, ...mark(row), 'aria-current': el.currentRow && el.currentRow === id ? 'true' : null },
+    const on = pick.checked = sel.has(id);
+    return h('tr', { 'data-pk-context': id, 'data-selected': on, 'data-clickable': el.clickable, ...mark(row), 'aria-current': el.currentRow && el.currentRow === id ? 'true' : null },
         ...(el.selectable ? [h('td', { 'data-check': true }, pick)] : []),
-        ...el.list('columns').map(c => { const name = `cell-${id}-${c.key}`, s = el.querySelector(`:scope > [slot="${CSS.escape(name)}"]`); return h('td', { 'data-key': c.key, 'data-label': c.title ? null : c.label ?? c.key, 'data-title': c.title, 'data-align': al(c), 'data-hide-phone': c.hidePhone, 'data-shed': c.shed, 'data-nowrap': c.noWrap, 'data-empty': s && (s.assignedElements?.({ flatten: true }) ?? [s]).every(x => !x.childElementCount && !x.textContent.trim()) }, s ? h('slot', { name }) : String(row[c.key] ?? '')); }));
+        ...el.list('columns').map(c => { if (c.type == 'media') return el.$mm?.cell(c, row, h) ?? h('td'); const name = `cell-${id}-${c.key}`, s = el.querySelector(`:scope > [slot="${CSS.escape(name)}"]`); return h('td', { 'data-key': c.key, 'data-label': c.title ? null : c.label ?? c.key, 'data-title': c.title, 'data-align': al(c), 'data-hide-phone': c.hidePhone, 'data-shed': c.shed, 'data-nowrap': c.noWrap, 'data-empty': s && (s.assignedElements?.({ flatten: true }) ?? [s]).every(x => !x.childElementCount && !x.textContent.trim()) }, s ? h('slot', { name }) : String(row[c.key] ?? '')); }));
 }
 
 // The header rows (the titles, and the filter row when filterable) for table.js, which has no room for them in its gzip budget.

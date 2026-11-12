@@ -6,6 +6,10 @@ import { mediaBelow } from '../../js/breakpoints.js';
 // persist key, remembers the choice under that key plus ':nav-hidden'.
 export default Base => class extends Base {
     connected() {
+        // A child hidden by data-show-above or a media query changes the footer's content without a slotchange: look again when a breakpoint is crossed.
+        this.$mqf ??= () => this.requestUpdate();
+        this.$mqs = ['phone', 'tablet'].map(n => mediaBelow(n));
+        for (const q of this.$mqs) q.addEventListener('change', this.$mqf);
         if (this.$w) return;
         this.$w = true;
         this.addEventListener('click', e => {
@@ -20,6 +24,7 @@ export default Base => class extends Base {
         for (const slot of ['header', 'footer']) this.watchSlot(slot, () => this.requestUpdate());
         this.watchSlot('nav', () => this.restoreNav());
     }
+    disconnected() { for (const q of this.$mqs ?? []) q.removeEventListener('change', this.$mqf); this.$mqs = null; }
     // Not slotted('nav')[0]: a host framework's own wrapper element (Blazor's generated <span slot="nav"> for a multi-root RenderFragment,
     // issue 212) is the assigned element, not the pk-side-nav inside it, so the unfiltered first assigned element would silently be a span
     // with no `open`. See STANDARDS.md, "Blazor", rule 15.
@@ -45,7 +50,7 @@ export default Base => class extends Base {
     // The back link goes only to a same-site path or an http(s) address; anything else (a script or data address) is dropped and said once.
     updated() {
         this.restoreNav();
-        this.part('footer').hidden = this.slotted('footer').length === 0; // a strip with nothing in it is not drawn (the header's own check is below, once the back link is known)
+        this.part('footer').hidden = !this.slotted('footer').some(e => getComputedStyle(e).display !== 'none'); // a strip with nothing drawn in it (none slotted, or every child hidden at this breakpoint, #1936) is not drawn (the header's own check is below, once the back link is known)
         const a = this.part('back'), href = this.backHref, go = safeLink(href);
         if (go) a.setAttribute('href', go); else a.removeAttribute('href');
         this.part('header').hidden = !go && this.slotted('header').length === 0;

@@ -139,6 +139,17 @@
       "doc": "Raised when Load throws (not for a cancelled request), so you can log it."
     },
     {
+      "name": "UrlState",
+      "prop": "urlState",
+      "type": "string?",
+      "doc": "Keeps the search, sort, page and filters in the address (q, sort, desc, page, f.<key>; never the page size) with history.replaceState: no history entry, so a reload or Back restores the view. Null is off, an empty string uses those names, a value is a prefix for two lists on one page. Read on the first client render; it wins over the Initial values. Needs Load."
+    },
+    {
+      "name": "OnUrlChange",
+      "event": "pk-url-change",
+      "doc": "The address was written: Url is the path, query and hash as the browser shows it, to keep as a back target. The list never asks NavigationManager."
+    },
+    {
       "name": "AddLabel",
       "prop": "addLabel",
       "type": "string?",
@@ -278,6 +289,18 @@
       "nullable": true,
       "attrExpr": "@(Density?.ToAttr())",
       "doc": "The cell padding step; null leaves the element's default."
+    },
+    {
+      "name": "FilterPanel",
+      "type": "PkFilterPanel",
+      "enum": {
+        "Inline": "inline",
+        "Flyout": "flyout"
+      },
+      "default": "Inline",
+      "map": "prop",
+      "prop": "filterPanel",
+      "doc": "Where the open filter panel goes: Inline (its own row, pushing the rows down) or Flyout (overlays the top of the table from the inline-start edge; a sheet on a phone; Escape closes it)."
     },
     {
       "name": "MaxHeight",

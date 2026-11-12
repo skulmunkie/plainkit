@@ -3,7 +3,7 @@
 This file is for developer agents changing this repository. (Agents *using* Plainkit in another project want the skills, generated into `dist-skills/` by
 the bootstrap, served on the Pages site at `skills/`, or taken from a release; see the README, "Using the skills with an agent".) People: `CONTRIBUTING.md` is the same flow with the reasons.
 
-Read first: `CONTRIBUTING.md`, `core/STANDARDS.md` (especially "Ownership and reactivity"), and the issue you were given.
+Read first: `CONTRIBUTING.md`, `core/STANDARDS.md` (especially "Ownership and reactivity"), and the issue you were given. An orchestrator starting a fresh agent per task hands it `docs/agent-brief.md` (setup, checks, known traps, delivery).
 
 ## The flow
 

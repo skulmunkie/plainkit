@@ -50,6 +50,7 @@
 
 :host([edge="top"]) [part="body"] { padding-block-end: var(--space-3); }
 
+:host([launcher-variant="none"]) [part="launcher"] { display: none; }
 [part="launcher"] { position: fixed; z-index: var(--pk-tray-launcher-z, var(--z-pop)); inset-block-end: var(--pk-tray-launcher-inset-block-end, var(--space-3)); inset-inline-end: var(--pk-tray-launcher-inset-inline-end, var(--space-3)); }
 
 :host([edge="start"]) [part="launcher"] { inset-inline: var(--pk-tray-launcher-inset-inline-end, var(--space-3)) auto; }

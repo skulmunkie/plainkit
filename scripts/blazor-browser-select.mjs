@@ -28,6 +28,7 @@ const ROWS = [
     [['no-console-errors'], ['Overview', 'OrdersList', 'OrderRecord', 'ReportsSummary', 'SecureAudit', 'Status'], ['shell']],
     [['wasm-lazy-module-assembly', 'wasm-lazy-module-deep-link'], [], ['wasm']],
     [['page-type-panes-are-slots'], ['LabPanes'], []],
+    [['list-url-state-back-restores-the-view'], ['LabUrlState', 'LabTicket'], []],
     [['list-load-search-refresh', 'list-filter-option-labels-from-the-result', 'list-before-list-slot', 'list-abort-on-navigation', 'list-row-click-callback'], ['LabTickets'], []],
     [['table-named-detail-panels'], ['LabDetailPanels'], []],
     [['list-row-href-template'], ['OrdersList', 'OrderRecord'], []],

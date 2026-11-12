@@ -55,6 +55,14 @@
       "description": "Hides the search box."
     },
     {
+      "name": "filterPanel",
+      "type": "enum",
+      "default": "inline",
+      "values": ["inline", "flyout"],
+      "reflect": false,
+      "description": "Where the open filter panel goes: inline (the default; it takes its own row above the table and pushes the rows down) or flyout (it overlays the top of the table from the inline-start edge, 22rem wide, without moving the rows; it is bounded by the table area, scrolls its own body, and Escape closes it and returns focus to the Filters trigger). Sets pk-table-filters placement."
+    },
+    {
       "name": "search",
       "type": "string",
       "default": "",
@@ -211,6 +219,13 @@
       "description": "Row height, as pk-table's density."
     },
     {
+      "name": "urlState",
+      "type": "string",
+      "default": "",
+      "reflect": true,
+      "description": "Opt-in: keeps the view in the address, with history.replaceState (no history entry, other parameters and the hash kept, defaults omitted). No url-state attribute = off; an empty one uses the plain names q (search), sort (column key), desc (1 when descending), page and f.<key> (one per filter, a list repeats the key); a value is a prefix for two lists on one page (a.q, a.page). The page size is not in the address. The first load reads the address, and it wins over page, sort, search and filterValues; after each change the address is written. Query-string mode only: a hash-routed app is not handled yet. Needs a load."
+    },
+    {
       "name": "maxHeight",
       "type": "string",
       "default": "",
@@ -273,6 +288,7 @@
   "slots": [
     { "name": "breadcrumb", "description": "Breadcrumb at the start of the toolbar row; wraps when narrow." },
     { "name": "title", "description": "Heading beside it." },
+    { "name": "badges", "description": "Badges after the title, in the same lead (a list page with toolbarInHeader forwards its badges here)." },
     { "name": "actions", "description": "Toolbar buttons at the end of the search row. On a phone a slotted field (a select, an input) takes the full toolbar width; buttons keep their size." },
     { "name": "empty", "description": "Content shown instead of the built-in empty state when load() returns no rows and no search or filter is active (an illustration, a call to action). With a search active the no-results slot, else the built-in state, shows." },
     { "name": "no-results", "description": "Content shown instead of the built-in no-results state when a search or filter is active and nothing matches." },
@@ -293,6 +309,13 @@
       "description": "load() rejected: the built-in error state with Retry is showing. error is what it rejected with (not raised for a response a newer request overtook).",
       "cancelable": true,
       "detailProps": { "error": "unknown" }
+    },
+    {
+      "name": "pk-url-change",
+      "detail": { "url": "string" },
+      "description": "urlState wrote the address: url is the path, query and hash as the browser shows it, so a host can keep it as a back target. Not cancelable.",
+      "cancelable": false,
+      "detailProps": { "url": "string" }
     },
     {
       "name": "pk-query-change",
@@ -330,8 +353,11 @@
   ],
   "parts": [
     { "name": "table", "description": "The pk-table, in manual mode." },
+    { "name": "area", "description": "Wraps the table; the area the flyout filter panel covers." },
     { "name": "toolbar", "description": "Holds the filters and the actions, above the table." },
     { "name": "filters", "description": "The pk-table-filters search/filter panel, in the toolbar above the table (it stays shown and focused while rows load and when nothing matches)." },
+    { "name": "filters-panel", "description": "The filter panel of pk-table-filters (exported), for page CSS." },
+    { "name": "filters-body", "description": "The filter panel body (exported)." },
     { "name": "actions", "description": "Holds the actions slot, at the end of the toolbar." },
     { "name": "add", "description": "The primary add button, after the actions slot (shown when addLabel is set)." },
     { "name": "pagination", "description": "The pk-pagination, in the table's footer." },
@@ -356,12 +382,20 @@
       "html": "<pk-data-table selectable columns='[{\"key\":\"sku\",\"label\":\"SKU\"},{\"key\":\"name\",\"label\":\"Name\"}]' empty='{\"heading\":\"No orders yet\",\"description\":\"Orders you receive show here.\"}'></pk-data-table>"
     },
     {
+      "title": "Flyout filters (filter-panel=flyout: the open panel slides in over the table instead of pushing the rows down; Escape closes it; a sheet on a phone)",
+      "html": "<pk-data-table filter-panel=\"flyout\" columns='[{\"key\":\"sku\",\"label\":\"SKU\"}]' filters='[{\"key\":\"name\",\"type\":\"text\",\"label\":\"Name\"},{\"key\":\"city\",\"type\":\"text\",\"label\":\"City\"}]'></pk-data-table>"
+    },
+    {
       "title": "Preset search (from a link) and no Select all offer",
       "html": "<pk-data-table selectable select-page-only columns='[{\"key\":\"sku\",\"label\":\"SKU\"}]' search=\"acme\" no-results='{\"heading\":\"Nothing matches acme\"}'></pk-data-table>"
     },
     {
       "title": "Page size, add button, labels and empty states (set load from script)",
       "html": "<pk-data-table selectable columns='[{\"key\":\"sku\",\"label\":\"SKU\"},{\"key\":\"name\",\"label\":\"Name\"}]' page-size=\"10\" add-label=\"+ Add product\" search-label=\"Find a product\" label=\"Products\" empty='{\"heading\":\"No products yet\"}' no-results='{\"heading\":\"No product matches\"}'></pk-data-table>"
+    },
+    {
+      "title": "The view in the address (url-state): reload or Back restores the search, sort, page and filters; a value is a prefix for two lists on one page (set load from script)",
+      "html": "<pk-data-table url-state columns='[{\"key\":\"sku\",\"label\":\"SKU\",\"sortable\":true},{\"key\":\"name\",\"label\":\"Name\"}]' page-size=\"10\" label=\"Products\"></pk-data-table>"
     }
   ]
 }

@@ -18,6 +18,17 @@ const tops = el => new Set([...el.children].map(c => Math.round(c.getBoundingCli
 const lefts = el => [...el.children].map(c => Math.round(c.getBoundingClientRect().left));
 
 export const layoutCases = [
+    ['loading-overlay fill: a busy scrim covers the whole scrollable content and the panel stays in the scroller viewport after scrolling (#1947)', async t => {
+        const host = t.stage('<div id="sc" style="display:flex;flex-direction:column;block-size:300px;overflow:auto"><pk-loading-overlay fill busy label="Loading"><div id="tall" style="block-size:1500px;flex-shrink:0">Tall body</div></pk-loading-overlay></div>');
+        await t.load(host); await t.settle(); await new Promise(r => setTimeout(r, 200));
+        const sc = host.querySelector('#sc'), o = host.querySelector('pk-loading-overlay'), tall = host.querySelector('#tall');
+        const ov = o.shadowRoot.querySelector('[part="overlay"]'), panel = o.shadowRoot.querySelector('[part="panel"]');
+        t.ok(sc.scrollHeight >= 1500, `the scroller really overflows (${sc.scrollHeight})`);
+        t.ok(ov.getBoundingClientRect().height >= tall.getBoundingClientRect().height - 1, `the scrim is as tall as the content (${Math.round(ov.getBoundingClientRect().height)} vs ${Math.round(tall.getBoundingClientRect().height)})`);
+        sc.scrollTop = 1000; await new Promise(r => setTimeout(r, 100));
+        const s = sc.getBoundingClientRect(), p = panel.getBoundingClientRect();
+        t.ok(p.top >= s.top - 1 && p.bottom <= s.bottom + 1, `scrolled to 1000, the panel is inside the scroller's visible box (${Math.round(p.top - s.top)}..${Math.round(p.bottom - s.top)} of ${Math.round(s.height)})`);
+    }],
     ['cluster: a horizontal row wraps at the container edge, nowrap keeps one line, and the gap is the default token', async t => {
         const el = await layout(t, 'pk-cluster', '', 4, 200, 80);
         t.eq(el.direction, 'horizontal'); t.eq(el.gap, 'sm');
@@ -863,6 +874,86 @@ layoutCases.push(
             t.ok(d.documentElement.scrollWidth <= width, `${at}: the page does not scroll sideways`);
             fr.remove();
         }
+    }],
+);
+
+// #1942: toolbarInHeader with the host's slotted actions, a badges slot and a home crumb, at 390. One case per defect.
+const slottedFrame = async (t, width = 390) => {
+    const host = t.stage(''), fr = document.createElement('iframe');
+    fr.title = `toolbar in header, slotted, ${width}px`; fr.style.cssText = `width:${width}px;height:700px;border:0;display:block`;
+    fr.src = new URL('./list-fill-frame.html', import.meta.url).href + '?slotted=1';
+    await new Promise(resolve => { fr.addEventListener('load', resolve, { once: true }); host.append(fr); });
+    const win = fr.contentWindow, d = win.document, wait = ms => new Promise(r => setTimeout(r, ms));
+    await Promise.all(['pk-list-page', 'pk-data-table', 'pk-table', 'pk-breadcrumb', 'pk-heading', 'pk-table-filters', 'pk-button', 'pk-badge'].map(tag => win.customElements.whenDefined(tag)));
+    const list = d.querySelector('pk-list-page'), dt = list.part('table');
+    for (let i = 0; i < 150 && !dt.part('table')?.shadowRoot?.querySelector('[part=body] tr'); i++) await wait(40);
+    await wait(300);
+    return { fr, d, list, dt, rect: el => el.getBoundingClientRect() };
+};
+layoutCases.push(
+    ['list page toolbarInHeader at 390: slotted actions keep their intrinsic width and share a row, not a 44px column (#1942)', async t => {
+        const { fr, d, rect } = await slottedFrame(t), [a, b] = d.querySelectorAll('pk-list-page > pk-button[slot=actions]');
+        t.ok(rect(a).width >= 60 && rect(b).width >= 60, `each action keeps its intrinsic width (${Math.round(rect(a).width)}, ${Math.round(rect(b).width)})`);
+        t.ok(Math.abs(rect(a).top - rect(b).top) < 4, `the two actions share one row (${Math.round(rect(a).top)}, ${Math.round(rect(b).top)})`);
+        fr.remove();
+    }],
+    ['list page toolbarInHeader at 390: a slot=badges chip is drawn in the toolbar lead (#1942)', async t => {
+        const { fr, d, dt, rect } = await slottedFrame(t), chip = d.querySelector('pk-list-page > pk-badge[slot=badges]');
+        t.ok(rect(chip).width > 0 && rect(chip).height > 0, `the badge has a box (${Math.round(rect(chip).width)} x ${Math.round(rect(chip).height)})`);
+        t.ok(rect(chip).bottom <= rect(dt.part('filters').shadowRoot.querySelector('[part=search]')).top + 1, 'it sits in the lead, above the search box');
+        fr.remove();
+    }],
+    ['list page toolbarInHeader at 390: homeHref, homeLabel and homeIcon draw the icon home crumb in the toolbar breadcrumb (#1942)', async t => {
+        const { fr, dt, rect } = await slottedFrame(t), home = dt.querySelector('pk-breadcrumb a[aria-label="Start"]');
+        t.ok(!!home, 'the home crumb is in the toolbar breadcrumb with the configured label');
+        t.ok(!!home && rect(home).width > 0 && home.getAttribute('href') === '#', 'it is drawn and links to homeHref');
+        t.ok(!!home && !!home.querySelector('pk-icon[name="dashboard"]'), 'it carries the configured icon');
+        fr.remove();
+    }],
+);
+
+// #1940: a config action with collapse "always" is icon only at every width (the words kept as the accessible name and the tooltip); "phone" still shows its words on a desktop.
+layoutCases.push(
+    ['list page config actions: collapse "always" is icon only at 1280 with the label as name and tooltip; "phone" keeps its words there (#1940)', async t => {
+        const host = t.stage(''), fr = document.createElement('iframe');
+        fr.title = 'config actions, collapse always'; fr.style.cssText = 'width:1280px;height:700px;border:0;display:block';
+        fr.src = new URL('./list-fill-frame.html', import.meta.url).href + '?always=1';
+        await new Promise(resolve => { fr.addEventListener('load', resolve, { once: true }); host.append(fr); });
+        const win = fr.contentWindow, wait = ms => new Promise(r => setTimeout(r, ms));
+        await Promise.all(['pk-list-page', 'pk-data-table', 'pk-button'].map(tag => win.customElements.whenDefined(tag)));
+        const list = win.document.querySelector('pk-list-page');
+        for (let i = 0; i < 150 && list.part('actions').querySelectorAll('pk-button').length < 2; i++) await wait(40);
+        await wait(300);
+        const [a, b] = list.part('actions').querySelectorAll('pk-button'), ctl = x => x.shadowRoot.querySelector('[part=control]');
+        t.ok(a.getBoundingClientRect().width <= 56, `the always action is icon only (${Math.round(a.getBoundingClientRect().width)}px wide)`);
+        t.ok(a.hasAttribute('collapsed') && a.textContent.trim() === 'New order', 'it is collapsed and the label stays its text (the accessible name)');
+        t.eq(ctl(a).getAttribute('title'), 'New order', 'the label is its tooltip');
+        t.ok(b.getBoundingClientRect().width > 80 && !b.hasAttribute('collapsed'), `the phone action keeps its words on a desktop (${Math.round(b.getBoundingClientRect().width)}px)`);
+        fr.remove();
+    }],
+);
+
+// #1938: density, striped and maxHeight go through pk-list-page config to its data table (compact rows are shorter than comfortable ones), and a config without them leaves the table's defaults.
+layoutCases.push(
+    ['list page config: density compact and comfortable change the row height, striped and maxHeight reach the table, an absent key changes nothing (#1938)', async t => {
+        const open = async search => {
+            const host = t.stage(''), fr = document.createElement('iframe');
+            fr.title = `list page ${search}`; fr.style.cssText = 'width:1280px;height:800px;border:0;display:block';
+            fr.src = new URL('./list-fill-frame.html', import.meta.url).href + search;
+            await new Promise(resolve => { fr.addEventListener('load', resolve, { once: true }); host.append(fr); });
+            const win = fr.contentWindow, wait = ms => new Promise(r => setTimeout(r, ms));
+            await Promise.all(['pk-list-page', 'pk-data-table', 'pk-table'].map(tag => win.customElements.whenDefined(tag)));
+            const dt = win.document.querySelector('pk-list-page').part('table');
+            for (let i = 0; i < 150 && !dt.part('table')?.shadowRoot?.querySelector('[part=body] tr'); i++) await wait(40);
+            await wait(300);
+            return { fr, dt, row: dt.part('table').shadowRoot.querySelector('[part=body] tr').getBoundingClientRect().height };
+        };
+        const compact = await open('?density=compact&striped=1&maxh=300px'), comfy = await open('?density=comfortable'), plain = await open('?x=1');
+        t.ok(compact.row < comfy.row - 4, `compact rows are shorter than comfortable ones (${compact.row} vs ${comfy.row})`);
+        t.eq(compact.dt.density, 'compact', 'the data table has density compact');
+        t.ok(compact.dt.striped === true && compact.dt.maxHeight === '300px', `striped and maxHeight reach the data table (${compact.dt.striped}, ${compact.dt.maxHeight})`);
+        t.ok(plain.dt.density === 'default' && !plain.dt.striped && !plain.dt.maxHeight, `without the keys the defaults stay (${plain.dt.density}, ${plain.dt.striped}, "${plain.dt.maxHeight}")`);
+        for (const x of [compact, comfy, plain]) x.fr.remove();
     }],
 );
 
