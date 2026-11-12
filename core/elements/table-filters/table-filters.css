@@ -33,7 +33,7 @@
     :host([placement="start"]) [part="panel"] { inline-size: 100%; }
     [part="search"] { inline-size: 100%; min-block-size: var(--touch-target); font-size: 16px; }
     [part="trigger"], [part="close"], [part="clear"] { min-block-size: var(--touch-target); }
-    [part="close"] { min-inline-size: var(--touch-target); }
+    [part="close"] { min-inline-size: var(--touch-target); text-align: end; }
     /* icon only on a phone: the word folds into the icon (font-size 0 keeps it the accessible name); the active count stays as a badge on the corner. */
     [part="trigger"] { min-inline-size: var(--touch-target); justify-content: center; padding-inline: 0; gap: 0; }
     [part="trigger-label"] { font-size: 0; line-height: 0; }

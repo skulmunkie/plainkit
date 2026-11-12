@@ -117,4 +117,23 @@ export const dataTableFlyoutCases = [
         const dt = el.shadowRoot.querySelector('pk-data-table');
         t.eq(dt.filterPanel, 'flyout', 'config.filterPanel is forwarded');
     }],
+    ['data-table flyout on a phone: the Close glyph sits at the same inline-end offset as on desktop, at 375 and 390, left to right and right to left (#1978)', async t => {
+        const { sampleDoc } = await import('../../site/gallery/frame.js');
+        const gap = async (width, dir) => {
+            const host = t.stage(''), f = document.createElement('iframe');
+            f.title = 'sample'; f.style.width = width + 'px'; f.style.height = '520px'; f.style.border = '0';
+            const loaded = new Promise(r => f.addEventListener('load', r, { once: true })); host.append(f);
+            f.srcdoc = sampleDoc(`<div dir="${dir}"><pk-data-table columns='[{"key":"sku","label":"SKU"}]' filter-panel="flyout" filters='${filters}'></pk-data-table></div>`); await loaded;
+            const w = f.contentWindow, dt = await until(() => f.contentDocument.querySelector('pk-data-table'), 'the table');
+            const ff = await until(() => typeof dt.part === 'function' && dt.part('filters')?.children.length > 0 && dt.part('filters'), 'the filters'); await until(() => w.customElements.get('pk-table-filters'), 'pk-table-filters defined');
+            ff.toggle(true); await wait(500);
+            const p = ff.shadowRoot.querySelector('[part="panel"]').getBoundingClientRect(), c = ff.shadowRoot.querySelector('[part="close"]'), r = w.document.createRange();
+            r.selectNodeContents(c); const g = r.getBoundingClientRect();
+            return dir === 'rtl' ? g.left - p.left : p.right - g.right;
+        };
+        for (const dir of ['ltr', 'rtl']) {
+            const desk = await gap(1000, dir);
+            for (const width of [375, 390]) { const g = await gap(width, dir); t.ok(Math.abs(g - desk) <= 3, `${dir} ${width}: Close glyph is ${Math.round(g)}px from the panel inline-end edge, desktop ${Math.round(desk)}px`); }
+        }
+    }],
 ];
