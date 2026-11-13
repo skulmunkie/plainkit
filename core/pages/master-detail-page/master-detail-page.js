@@ -6,7 +6,7 @@ import { loadElements } from '../../js/loader.js';
 export default Base => class extends Base {
     connected() {
         // Static slotted mode (#1829, the convention in STANDARDS.md): the host wrote a list in slot=list and config has no list, so its list and record render as given, nothing is built, moved or written, and record-id only picks which pane a phone shows. Decided once, at connect.
-        if (this.$static || (!this.$w && this.querySelector?.(':scope > [slot="list"]') && !this.config?.list)) { this.$static = true; this.view(); return; }
+        if (this.$static || (!this.$w && this.querySelector?.(':scope > [slot="list"]') && !this.config?.list)) { this.$static = true; this.menuOn(); this.view(); return; }
         if (!this.$w) {
             this.$w = true;
             const list = this.part('list');
@@ -20,7 +20,7 @@ export default Base => class extends Base {
     // Run load() again (the Blazor bridge sets it after the first draw).
     refresh() { if (this.$w && this.isConnected) this.part('list').refresh?.(); }
     // The record's handle is destroyed when the element leaves the page, so a route change never leaves its content running.
-    disconnected() { this.stop(); }
+    disconnected() { this.stop(); if (this.$static) this.menuSet(false); }
     changed(name) {
         if (this.$static) { if (name === 'recordId') this.view(); return; }
         if (this.$w && this.isConnected && (name === 'config' || name === 'recordId')) this.sync(name === 'recordId');
@@ -30,6 +30,28 @@ export default Base => class extends Base {
         const layout = this.part('layout');
         layout.dataset.static = '';
         layout.dataset.view = this.recordId ? 'detail' : 'list';
+        if (!this.recordId) this.menuSet(false);
+    }
+    // Static mode on a phone: this shadow's own Menu button opens the author's list as a drawer (the one pane shown beside it is the record); a row chosen, Escape or the backdrop closes it.
+    menuOn() {
+        const btn = this.part('menu');
+        btn.hidden = false;
+        btn.controls = this.querySelector(':scope > [slot="list"]');
+        if (this.$menuWired) return;
+        this.$menuWired = true;
+        loadElements(this.shadowRoot);
+        btn.addEventListener('pk-toggle', e => this.menuSet(e.detail.pressed));
+        this.part('backdrop').addEventListener('click', () => this.menuSet(false, true));
+        this.addEventListener('keydown', e => { if (e.key === 'Escape' && this.part('layout').hasAttribute('data-menu')) this.menuSet(false, true); });
+        this.addEventListener('click', e => { if (e.target.closest?.('[slot="list"] a, [slot="list"] button')) this.menuSet(false); });
+    }
+    menuSet(on, refocus) {
+        const btn = this.part('menu');
+        this.part('layout').toggleAttribute('data-menu', on);
+        this.part('backdrop').hidden = !on;
+        btn.pressed = on;
+        if (on) this.querySelector(':scope > [slot="list"] a, :scope > [slot="list"] button')?.focus();
+        else if (refocus) btn.focus();
     }
 
     sync(moved) {

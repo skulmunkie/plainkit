@@ -1,0 +1,16 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Static master-detail page with a flat list (browser case fixture)</title>
+<link rel="stylesheet" href="../../plainkit.css">
+</head>
+<body>
+<pk-master-detail-page>
+<pk-list-group slot="list" variant="action" label="Orders"><a href="#o1">Order 1</a><a href="#o2" aria-current="page">Order 2</a><a href="#o3">Order 3</a></pk-list-group>
+<article slot="detail" id="static-record"><h2 id="static-title">Order 2</h2><p>Static record text.</p><a id="static-back" href="#list">Back to the orders</a></article>
+</pk-master-detail-page>
+<script type="module" src="master-detail-static-frame.js"></script>
+</body>
+</html>

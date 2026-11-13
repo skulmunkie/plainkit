@@ -714,6 +714,49 @@ export const appCases = [
         t.ok(listOnly.el.children.length === 2 && recOnly.el.children.length === 2, 'phone: still exactly the two children the author wrote');
     }],
 
+    ['pk-master-detail-page: static slotted mode with a flat pk-list-group - the list has a real box wide, marks the current row with aria-current, and on a phone a Menu button in the page\'s own shadow opens it as a drawer that choosing a row closes (#1878)', async t => {
+        const open = async (query, width) => {
+            const host = t.stage(''), fr = document.createElement('iframe');
+            fr.title = `flat-list master-detail ${width}`; fr.style.cssText = `width:${width}px;height:800px;border:0;display:block`;
+            fr.src = new URL(`./master-detail-list-frame.html${query}`, import.meta.url).href;
+            await new Promise(resolve => { fr.addEventListener('load', resolve, { once: true }); host.append(fr); });
+            const win = fr.contentWindow, d = win.document;
+            await until(() => win.customElements.get('pk-master-detail-page') && win.customElements.get('pk-list-group'), 'the elements to upgrade');
+            await d.fonts.ready; await new Promise(r => win.requestAnimationFrame(() => win.requestAnimationFrame(r)));
+            return { win, d, el: d.querySelector('pk-master-detail-page') };
+        };
+        const shown = n => { const r = n.getBoundingClientRect(), s = n.ownerDocument.defaultView.getComputedStyle(n); return r.width > 0 && r.height > 0 && s.visibility !== 'hidden' && s.display !== 'none'; };
+        const wide = await open('', 1280), list = wide.el.querySelector('pk-list-group'), rec = wide.el.querySelector('#static-record');
+        const lr = list.getBoundingClientRect();
+        t.ok(lr.width >= 150 && lr.height >= 100, `wide: the master list has a real box (${lr.width} x ${lr.height})`);
+        t.ok(lr.right <= rec.getBoundingClientRect().left + 1 && shown(rec), 'wide: the list sits beside the record');
+        const cur = list.querySelector('a[aria-current="page"]');
+        t.ok(cur && wide.win.getComputedStyle(cur).backgroundColor !== 'rgba(0, 0, 0, 0)', 'wide: the current row is marked by aria-current and looks selected');
+        const wbtn = wide.el.shadowRoot.querySelector('[part="menu"]');
+        t.ok(!wbtn || !shown(wbtn), 'wide: no Menu button');
+        const p = await open('?record', 375), pl = p.el.querySelector('pk-list-group'), btn = p.el.shadowRoot.querySelector('[part="menu"]'), before = [...p.el.children].map(k => k.outerHTML).join('');
+        t.ok(!shown(pl), 'phone with a record: the list is closed to begin with');
+        t.ok(btn && shown(btn) && /menu/i.test(btn.textContent), 'phone: a visible Menu button is drawn in the page\'s own shadow tree');
+        const inner = () => btn.shadowRoot.querySelector('button'), vw = p.win.innerWidth;
+        t.eq(inner().getAttribute('aria-expanded'), 'false', 'the Menu button reports aria-expanded=false while closed');
+        btn.focus(); inner().click();
+        await until(() => shown(pl), 'the list drawer to open');
+        const dr = pl.getBoundingClientRect();
+        t.ok(dr.left >= -1 && dr.right <= vw + 1 && dr.width >= 150, `phone: the open list is a real box inside the viewport (${dr.left}..${dr.right} of ${vw})`);
+        t.eq(inner().getAttribute('aria-expanded'), 'true', 'the Menu button reports aria-expanded=true while open');
+        pl.querySelector('a').dispatchEvent(new p.win.KeyboardEvent('keydown', { key: 'Escape', bubbles: true, composed: true }));
+        await until(() => !shown(pl), 'Escape to close the drawer');
+        t.ok(p.el.shadowRoot.activeElement === btn, 'after Escape focus is back on the Menu button');
+        inner().click(); await until(() => shown(pl), 'the drawer to reopen');
+        const row = pl.querySelectorAll('a')[2]; row.addEventListener('click', e => e.preventDefault(), { once: true }); row.click();
+        await until(() => !shown(pl), 'choosing a row to close the drawer');
+        t.eq([...p.el.children].map(k => k.outerHTML).join(''), before, 'no attribute or content of the author\'s markup changed');
+        const lo = await open('', 375);
+        t.ok(shown(lo.el.querySelector('pk-list-group')), 'phone, no record-id: the list shows in place');
+        const lbtn = lo.el.shadowRoot.querySelector('[part="menu"]');
+        t.ok(!lbtn || !shown(lbtn), 'phone, no record-id: no Menu button (the list is already the page)');
+    }],
+
     ['pk-doc-page: the article body and the pk-toc it owns are light DOM the toc can address by id, a same-page link scrolls and emits pk-navigate without touching history, and mounting/unmounting 100 times leaves no listener behind (#353)', async t => {
         const el = document.createElement('pk-doc-page');
         el.config = { items: [{ id: 'a', title: 'Guide A', summary: 'About A' }, { id: 'b', title: 'Guide B' }], id: 'a', search: true };
