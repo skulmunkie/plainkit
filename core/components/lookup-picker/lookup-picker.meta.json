@@ -184,7 +184,9 @@
   ],
   "slots": [
     { "name": "empty", "description": "Content for the popup's empty state (no rows, nothing searched); replaces the empty prop. Read when the popup first opens." },
-    { "name": "no-results", "description": "Content for the popup when a search or filter matches nothing; replaces the noResults prop. Read when the popup first opens." }
+    { "name": "no-results", "description": "Content for the popup when a search or filter matches nothing; replaces the noResults prop. Read when the popup first opens." },
+    { "name": "cell-<rowId>-<key>", "dynamic": true, "description": "Custom content for one cell of the popup table, exactly as pk-data-table's cell slots: the row's id (its rowKey field) and the column key. A row with no such child shows the plain value." },
+    { "name": "header-<key>", "dynamic": true, "description": "Content beside one popup column header's title, exactly as pk-data-table's header slots." }
   ],
   "events": [
     {

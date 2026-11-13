@@ -97,7 +97,7 @@
       "name": "Columns",
       "map": "columns",
       "prop": "columns",
-      "doc": "The columns of the popup table."
+      "doc": "The columns of the popup table. A column Cell template fills that cell of every loaded row, as on PkDataTable (needs IdOf)."
     },
     {
       "name": "IdOf",
@@ -165,6 +165,7 @@
     }
   ],
   "typeparam": "TItem",
+  "cells": { "load": "Load", "slotsOnly": true },
   "listenedNative": true,
   "staticAttrs": {
     "data-pk-ranges": true,
