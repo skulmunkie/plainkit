@@ -5,6 +5,19 @@ The format follows [Keep a Changelog](https://keepachangelog.com/) and the proje
 
 ## [Unreleased]
 
+## [0.30.0] - 2026-11-13
+
+### Fixed
+
+- The static slotted master-detail page now takes a flat `pk-list-group` of links (`aria-current` on the current row) as its master list instead of a `pk-side-nav`, and on a phone with a record open it draws its own Menu button that opens the list as a drawer over the record; choosing a row, Escape or a tap outside closes it (#1878).
+- A popover panel (and so the lookup picker results) opened low on the page is cut to the room on its side or flips upward, scrolls its own rows and stays inside the viewport, also when its list loads after it opens. (#1966)
+- The table filters count badge and the pk-tray icon launcher use the pill radius instead of the circle radius, so a multi-digit filter count and a launcher wider than tall are pills, not ellipses. (#1970)
+- A column `Cell` template (Blazor) or a `cell-<id>-<key>` child (SDK) of `pk-lookup-picker` now fills that cell of the popup table, as on `pk-data-table`; before, the cell stayed empty. (#1971)
+- A Blazor Server circuit that closes while a Pk element is running its first-render initialisation no longer logs an unhandled JSDisconnectedException; a disconnect or cancelled call during init is ignored, and any other JavaScript error still surfaces. (#1972)
+- The filter flyout's Close icon on a phone now sits at the header's inline-end padding, aligned with Clear filters and matching the desktop panel, in both text directions, instead of about 33 px further in (#1978).
+- pk-toc, pk-chart, pk-accordion-item and pk-settings-page no longer reuse the base class private fields $q and $r, which could suppress a render or ignore an attribute change; a new test guards against it. (#1980)
+- pk-date-range-picker keeps its start and end date fields at least 9.3rem wide, so on a phone the whole year (09/08/2026) shows next to the picker icon instead of being clipped to 09/08/202; the calendar button wraps to the next line when the row is too narrow. (#1982)
+
 ## [0.29.0] - 2026-11-12
 
 ### Added
