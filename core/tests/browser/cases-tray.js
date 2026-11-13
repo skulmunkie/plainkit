@@ -202,5 +202,15 @@ export const trayCases = [
         const moved = rect(l); t.ok(near(win(doc).innerWidth - moved.right, 30, 4) && near(win(doc).innerHeight - moved.bottom, 40, 4), `the inset hooks move it (${Math.round(win(doc).innerWidth - moved.right)}, ${Math.round(win(doc).innerHeight - moved.bottom)})`);
         t.ok(l.getAttribute('label') === 'Help' || l.getAttribute('aria-label') === 'Help', 'the launcher keeps its name');
     }],
+    ['tray launcher-variant="icon" (#1970): the corner radius is never a percentage: square icon stays a circle, a wider slotted glyph or padding gives a pill, not an ellipse', async t => {
+        const { doc, tray, launcher } = await frame(t, '<pk-tray label="Help" launcher-label="Help" launcher-variant="icon"><pk-icon slot="launcher" name="search"></pk-icon><p>Help content.</p></pk-tray>', 900, 600);
+        const ctl = () => launcher().shadowRoot.querySelector('[part="control"]'), check = what => {
+            const b = rect(ctl()), br = getComputedStyle(ctl()).borderTopLeftRadius;
+            t.ok(br.indexOf('%') < 0 ? parseFloat(br) >= Math.min(b.width, b.height) / 2 - 1 : Math.abs(b.width - b.height) < 0.5, what + ': radius ' + br + ' on ' + b.width.toFixed(0) + 'x' + b.height.toFixed(0) + ' is a circle (square) or a pill, never a percentage ellipse');
+        };
+        check('default');
+        const icon = doc.querySelector('pk-icon'); icon.style.inlineSize = '56px'; await wait(60); check('with a wide slotted icon (' + Math.round(rect(ctl()).width) + 'px wide)');
+        tray.style.setProperty('--pk-tray-launcher-padding', '12px 24px'); await wait(60); check('with a wider padding');
+    }],
 
 ];

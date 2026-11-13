@@ -5,7 +5,7 @@
 [part="trigger"] { position: relative; display: inline-flex; align-items: center; gap: var(--space-2); min-block-size: var(--ctl-h); padding-inline: var(--space-3); border: 1px solid var(--color-border); border-radius: var(--pk-table-filters-radius, var(--pk-control-radius, var(--radius-sm))); background: var(--color-panel); color: inherit; font: inherit; cursor: pointer; }
 [part="trigger"]:hover { background: var(--color-surface-alt); }
 [part="trigger"]:focus-visible { outline: var(--focus-ring); outline-offset: 2px; }
-[part="count"] { min-inline-size: 1.2em; padding: 0 0.3em; border-radius: var(--radius-round); background: var(--color-accent); color: var(--color-panel); font-size: var(--text-meta); line-height: 1.2em; text-align: center; }
+[part="count"] { min-inline-size: 1.2em; padding: 0 0.3em; border-radius: var(--radius-pill); background: var(--color-accent); color: var(--color-panel); font-size: var(--text-meta); line-height: 1.2em; text-align: center; }
 [part="panel"] { flex-basis: 100%; margin-block-start: var(--space-2); border: 1px solid var(--color-border); border-radius: var(--radius-md); background: var(--color-panel); }
 /* A panel taller than the viewport scrolls its own body (header and Clear filters stay in view), so a short phone viewport never clips the lower fields. */
 [part="panel"]:not([hidden]) { display: flex; flex-direction: column; max-block-size: 60dvh; }
@@ -33,7 +33,7 @@
     :host([placement="start"]) [part="panel"] { inline-size: 100%; }
     [part="search"] { inline-size: 100%; min-block-size: var(--touch-target); font-size: 16px; }
     [part="trigger"], [part="close"], [part="clear"] { min-block-size: var(--touch-target); }
-    [part="close"] { min-inline-size: var(--touch-target); }
+    [part="close"] { min-inline-size: var(--touch-target); text-align: end; }
     /* icon only on a phone: the word folds into the icon (font-size 0 keeps it the accessible name); the active count stays as a badge on the corner. */
     [part="trigger"] { min-inline-size: var(--touch-target); justify-content: center; padding-inline: 0; gap: 0; }
     [part="trigger-label"] { font-size: 0; line-height: 0; }

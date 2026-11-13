@@ -56,7 +56,7 @@
 :host([edge="start"]) [part="launcher"] { inset-inline: var(--pk-tray-launcher-inset-inline-end, var(--space-3)) auto; }
 
 /* launcher-variant="icon": a bare circle around one icon, transparent while the tray is closed and filled while it is open (the host's open attribute). */
-:host([launcher-variant="icon"]) [part="launcher"] { --pk-button-border: transparent; --pk-button-radius: var(--radius-round); --pk-button-padding: var(--pk-tray-launcher-padding, var(--space-1)); --pk-button-bg: transparent; --pk-button-bg-hover: var(--color-surface-alt); --pk-button-fg: var(--color-muted); }
+:host([launcher-variant="icon"]) [part="launcher"] { --pk-button-border: transparent; --pk-button-radius: var(--radius-pill); --pk-button-padding: var(--pk-tray-launcher-padding, var(--space-1)); --pk-button-bg: transparent; --pk-button-bg-hover: var(--color-surface-alt); --pk-button-fg: var(--color-muted); }
 
 :host([launcher-variant="icon"][open]) [part="launcher"] { --pk-button-bg: var(--color-accent-fill); --pk-button-bg-hover: var(--color-accent-fill-hover); --pk-button-fg: var(--btn-primary-fg); }
 
