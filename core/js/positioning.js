@@ -6,7 +6,7 @@
 //     anchor    an element, or a point/rect { x, y, width?, height? } (a context menu passes the pointer)
 //     placement top | bottom | left | right, each optionally -start or -end (default centred). On top and bottom, start and end are inline edges: they mirror in
 //               right-to-left (read from the anchor's computed direction; pass rtl: true or false to override).
-//   Sets left/top from the CSSOM and data-placement (the side actually used) on the floating element.
+//   Option fit: true cuts a top or bottom layer to the room on its side (max-height), so it scrolls itself. Sets left/top from the CSSOM and data-placement (the side actually used) on the floating element.
 //   autoUpdate(anchor, floating, options) re-places on scroll and resize and returns a stop function.
 //   onOutside(elements, close) closes on a pointerdown outside all of them or on Escape; returns a stop function.
 
@@ -58,9 +58,12 @@ const rectOf = anchor => {
     return { left: anchor.x, top: anchor.y, right: anchor.x + (anchor.width ?? 0), bottom: anchor.y + (anchor.height ?? 0) };
 };
 
+const placement2 = p => (p ?? 'bottom').split('-')[1] ?? 'center';
+
 export function place(anchor, floating, options = {}) {
     const style = floating.style;
     style.position = 'fixed'; style.left = '0px'; style.top = '0px';
+    if (options.fit) style.maxHeight = '';
     const box = floating.getBoundingClientRect();
     const view = { width: document.documentElement.clientWidth, height: document.documentElement.clientHeight };
     // Only a real element has a direction to read; a synthetic anchor (a point, or badge-popover's phone-width virtual box) is
@@ -68,7 +71,13 @@ export function place(anchor, floating, options = {}) {
     // floating share an ancestor's direction in practice). nodeType === 1 (ELEMENT_NODE) duck-types this without relying on
     // a global Element constructor, which some test environments do not provide.
     const rtl = options.rtl ?? getComputedStyle(anchor.nodeType === 1 ? anchor : floating).direction === 'rtl';
-    const r = computePosition(rectOf(anchor), { width: box.width, height: box.height }, view, { ...options, rtl });
+    const rect = rectOf(anchor), opts = { ...options, rtl };
+    let r = computePosition(rect, { width: box.width, height: box.height }, view, opts);
+    // fit: a layer taller than the room on its side (the side it flips to included) is cut to that room, so it scrolls itself instead of leaving the viewport.
+    if (options.fit && (r.side === 'top' || r.side === 'bottom')) {
+        const room = (r.side === 'top' ? rect.top : view.height - rect.bottom) - (options.offset ?? 4) - (options.padding ?? 8);
+        if (box.height > room) { style.maxHeight = `${Math.max(0, Math.floor(room))}px`; r = computePosition(rect, { width: box.width, height: room }, view, { ...opts, placement: `${r.side}-${placement2(options.placement)}`, flip: false }); }
+    }
     style.left = `${Math.round(r.x)}px`; style.top = `${Math.round(r.y)}px`;
     floating.setAttribute('data-placement', r.side);
     return r;
@@ -80,7 +89,9 @@ export function autoUpdate(anchor, floating, options = {}) {
     const queue = () => { if (!st.frame) st.frame = requestAnimationFrame(run); };
     window.addEventListener('scroll', queue, true);
     window.addEventListener('resize', queue);
-    return () => { window.removeEventListener('scroll', queue, true); window.removeEventListener('resize', queue); if (st.frame) cancelAnimationFrame(st.frame); };
+    const ro = options.fit && typeof ResizeObserver === 'function' ? new ResizeObserver(queue) : null; // content that arrives after opening (a loaded list) changes the size to fit
+    ro?.observe(floating);
+    return () => { ro?.disconnect(); window.removeEventListener('scroll', queue, true); window.removeEventListener('resize', queue); if (st.frame) cancelAnimationFrame(st.frame); };
 }
 
 // Whether a target lies inside any of the layers.

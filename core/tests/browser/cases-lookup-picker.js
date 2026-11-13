@@ -180,4 +180,19 @@ export const lookupPickerCases = [
         host.querySelector('form').reset(); await t.settle();
         t.eq(el.values.length, 0, 'a reset restores the initial (empty) values');
     }],
+
+    ['lookup-picker: opened low on the page the panel stays inside the viewport and its rows are reachable by scrolling it (#1966)', async t => {
+        const el = await mount(t); el.pageSize = 25;
+        el.style.position = 'fixed'; el.style.insetInline = '16px'; el.style.insetBlockStart = `${Math.round(innerHeight * 0.7)}px`;
+        el.open = true;
+        await until(() => rowEls(el).length === 25, 'twenty-five rows');
+        const panel = popoverOf(el).part('panel');
+        await until(() => panel.getBoundingClientRect().bottom <= innerHeight + 1, 'the panel to fit the viewport').catch(() => {}); await t.settle();
+        const r = panel.getBoundingClientRect();
+        t.ok(r.top >= 0 && r.bottom <= innerHeight + 1, `the panel is inside the viewport (placement ${panel.dataset.placement}, max-height ${panel.style.maxHeight}, top ${Math.round(r.top)}, bottom ${Math.round(r.bottom)} of ${innerHeight})`);
+        t.ok(panel.scrollHeight > panel.clientHeight, 'the panel scrolls its own overflow');
+        panel.scrollTop = panel.scrollHeight; await t.settle();
+        const last = rowEls(el).at(-1).getBoundingClientRect(), pr = panel.getBoundingClientRect();
+        t.ok(last.bottom <= pr.bottom + 1 && last.top >= pr.top, 'the last row is reachable inside the panel');
+    }],
 ];

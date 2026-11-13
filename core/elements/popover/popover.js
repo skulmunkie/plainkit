@@ -53,7 +53,7 @@ export default Base => class extends Base {
         const panel = this.part('panel');
         panel.setAttribute('role', this.variant === 'confirm' ? 'alertdialog' : 'dialog');
         if (!this.open) return;
-        const options = { placement: this.placement, offset: 6 };
+        const options = { placement: this.placement, offset: 6, fit: true };
         place(this.triggerEl ?? this, panel, options);
         this.$au = autoUpdate(this.triggerEl ?? this, panel, options);
         this.$o = onOutside([this], e => this.request(e.type === 'keydown' ? 'escape' : 'outside'));
