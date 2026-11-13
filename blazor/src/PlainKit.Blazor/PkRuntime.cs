@@ -41,12 +41,11 @@ public sealed partial class PkRuntime(IJSRuntime js, PkOptions? options = null, 
         return _init ??= InitAsync();
     }
 
+    // A circuit that closes while the first-render interop is in flight (tab closed, navigation) is not an error: there is no page left to wire (#1972).
     private async Task InitAsync()
     {
-        await EnsureLoggingAsync();
-        var bridge = await Bridge;
-        await WarnOnVersionMismatchAsync(bridge); PkExtraCheck.Run(_options, services, loggerFactory?.CreateLogger(PkLogMapping.Category("blazor")));
-        await bridge.InvokeVoidAsync("init", (object?)_options.Extras.Names);
+        try { await EnsureLoggingAsync(); var bridge = await Bridge; await WarnOnVersionMismatchAsync(bridge); PkExtraCheck.Run(_options, services, loggerFactory?.CreateLogger(PkLogMapping.Category("blazor"))); await bridge.InvokeVoidAsync("init", (object?)_options.Extras.Names); }
+        catch (Exception e) when (e is JSDisconnectedException or OperationCanceledException) { loggerFactory?.CreateLogger(PkLogMapping.Category("blazor")).LogDebug(e, "The circuit disconnected during Plainkit initialisation"); }
     }
 
     // The package and the JavaScript it serves are one version (core/VERSION). A page that loads a different copy (a stale cache, a CDN or self-hosted copy of
