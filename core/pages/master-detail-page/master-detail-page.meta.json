@@ -5,7 +5,7 @@
   "tier": "page",
   "pageType": "master-detail",
   "preUpgrade": "visible",
-  "summary": "Static slotted mode (for server-rendered, JavaScript-optional sites): write your own list as a child in slot=\"list\" (a pk-side-nav of links, a plain list) and the record as a child in slot=\"detail\", with no config.list. The page lays them out as written (side by side wide; one pane at a time on a phone: the list, or the record when you wrote record-id), takes the current row from your own markup (aria-current / current), and never creates, moves or changes your elements; load, open, close, mountDetail and config do nothing, and the record keeps its own back link. A list or record is real markup even without JavaScript. Dynamic mode: A list of records and the record the route selected. Wide, they sit side by side (a pk-list-page and the record pane); narrow, one shows at a time and the record has a Back button. The host owns the selection: set recordId from the route (a deep link works), and the element reports what the reader did through callback properties. load(query) feeds the list exactly as pk-list-page's does; open(row) is called when a row is chosen and close() when Back is pressed, so the host changes the route. mountDetail(pane, id) draws the record into the pane and returns a cleanup function or a { destroy() } handle, called when the record changes or the element leaves the page. While mountDetail is pending the built-in loading state shows over the record, a rejection shows the error state with Retry. Focus moves to the record once it is drawn, and back to the row that was open when the selection clears.",
+  "summary": "Static slotted mode (for server-rendered, JavaScript-optional sites): write your own list as a child in slot=\"list\" (a flat pk-list-group variant=\"action\" of links with aria-current on the current one, or a nav of links; not a pk-side-nav, which is the shell column and a drawer on a phone) and the record as a child in slot=\"detail\", with no config.list. The page lays them out as written (side by side wide; one pane at a time on a phone: the list, or the record when you wrote record-id), takes the current row from your own markup (aria-current / current), and never creates, moves or changes your elements; load, open, close, mountDetail and config do nothing, and the record keeps its own back link; on a phone with a record, the page draws its own Menu button that opens your list as a drawer over the record (a row chosen, Escape or a tap outside closes it). A list or record is real markup even without JavaScript. Dynamic mode: A list of records and the record the route selected. Wide, they sit side by side (a pk-list-page and the record pane); narrow, one shows at a time and the record has a Back button. The host owns the selection: set recordId from the route (a deep link works), and the element reports what the reader did through callback properties. load(query) feeds the list exactly as pk-list-page's does; open(row) is called when a row is chosen and close() when Back is pressed, so the host changes the route. mountDetail(pane, id) draws the record into the pane and returns a cleanup function or a { destroy() } handle, called when the record changes or the element leaves the page. While mountDetail is pending the built-in loading state shows over the record, a rejection shows the error state with Retry. Focus moves to the record once it is drawn, and back to the row that was open when the selection clears.",
   "props": [
     {
       "name": "config",
@@ -31,7 +31,7 @@
   ],
   "slots": [
     { "name": "badges", "description": "Status chips beside the title." },
-    { "name": "list", "description": "Static slotted mode: your own list of records (a pk-side-nav, a plain list of links), shown as written; its presence with no config.list selects the mode, decided when the element connects." },
+    { "name": "list", "description": "Static slotted mode: your own list of records (a pk-list-group of links, a plain list of links), shown as written; its presence with no config.list selects the mode, decided when the element connects." },
     { "name": "detail", "description": "The record (mountDetail not set), shown only while recordId is set. Static slotted mode: your own record markup, shown as written; on a phone it shows instead of the list while record-id is set." }
   ],
   "events": [
@@ -45,6 +45,8 @@
     { "name": "bar", "description": "Holds the Back button." },
     { "name": "detail", "description": "The record pane (focused once its record is drawn)." },
     { "name": "back", "description": "The Back button; shown only when one pane shows at a time." },
+    { "name": "menu", "description": "Static slotted mode, a phone with a record: the Menu button that opens your list as a drawer." },
+    { "name": "backdrop", "description": "Static slotted mode: the tap-to-close layer behind the open list drawer." },
     { "name": "none", "description": "The nothing-selected message." },
     { "name": "record", "description": "The record's content; mountDetail draws into it." },
     { "name": "state", "description": "Shows the loading or error state in place of the record." }
@@ -54,7 +56,7 @@
   "examples": [
     {
       "title": "Static slotted mode: your own list and record as plain markup, no script",
-      "html": "<pk-master-detail-page record-id=\"2\"><pk-side-nav slot=\"list\" label=\"Orders\"><pk-nav-item href=\"#o1\"><a href=\"#o1\">Order 1</a></pk-nav-item><pk-nav-item href=\"#o2\" current><a href=\"#o2\" aria-current=\"page\">Order 2</a></pk-nav-item></pk-side-nav><article slot=\"detail\"><h2>Order 2</h2><p>Shown as written.</p><a href=\"#o1\">Back to the orders</a></article></pk-master-detail-page>"
+      "html": "<pk-master-detail-page record-id=\"2\"><pk-list-group slot=\"list\" variant=\"action\" label=\"Orders\"><a href=\"#o1\">Order 1</a><a href=\"#o2\" aria-current=\"page\">Order 2</a></pk-list-group><article slot=\"detail\"><h2>Order 2</h2><p>Shown as written.</p><a href=\"#o1\">Back to the orders</a></article></pk-master-detail-page>"
     },
     {
       "title": "Things and their record (set config, load and mountDetail from script: an inline script cannot run under this site's CSP, so wire it the way pk-list-page's load is wired)",

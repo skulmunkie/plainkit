@@ -26,6 +26,8 @@ export function tableProps(el) {
 export default Base => class extends Base {
     connected() {
         if (this.hasAttribute('config') || Object.hasOwn(this, 'config')) this.warnOnce('config', 'config was removed: set columns, page-size, filters, empty ... as plain props (see the changelog)');
+        // The host's cell-<id>-<key> and header-<key> children fill the popup table's cells (#1971): they are re-slotted into it, as pk-data-table does for its own.
+        (this.$mo ??= new MutationObserver(() => this.forwardCells())).observe(this, { childList: true });
         if (this.$init) return;
         this.$init = true; this.$initial = this.value; this.$initialValues = [...(this.values ?? [])];
         // The popover and the button of the field (the table waits for the first open).
@@ -44,6 +46,15 @@ export default Base => class extends Base {
         this.part('chips').addEventListener('pk-remove', e => { e.stopPropagation(); this.removeKey(e.detail.value); focusTrigger(this.part('control')); });
         this.part('control').addEventListener('keydown', e => { if (!this.open && (e.key === 'ArrowDown' || e.key === 'ArrowUp') && !this.readonly && !this.disabled) { e.preventDefault(); this.mirror(true); } });
         pop.addEventListener('keydown', e => this.rowKeys(e));
+    }
+    disconnected() { this.$mo?.disconnect(); }
+    forwardCells() {
+        const dt = this.$dt;
+        if (!dt) return;
+        const names = [...this.children].map(c => c.slot).filter(n => /^(cell|header)-/.test(n)), have = [...dt.children].filter(c => /^(cell|header)-/.test(c.name));
+        if (names.join() === have.map(c => c.name).join()) return;
+        for (const c of have) c.remove();
+        for (const name of names) { const s = this.ownerDocument.createElement('slot'); s.name = s.slot = name; dt.append(s); }
     }
     get labels() { return this.$labels ??= new Map(); }
     show() { if (!this.disabled && !this.readonly) this.open = true; }
@@ -75,6 +86,7 @@ export default Base => class extends Base {
         };
         dt.addEventListener('pk-row-click', e => { e.stopPropagation(); this.pick(e.detail); });
         for (const s of dt.querySelectorAll('slot')) if (!this.querySelector(`:scope > [slot="${s.name}"]`)) s.remove(); // the table sees only the states the host fills
+        this.forwardCells();
         const first = tableProps(this);
         this.$cfg = JSON.stringify(first);
         Object.assign(dt, first); // before it is connected: the table's first load already has its columns, page size and states

@@ -18,6 +18,19 @@ const search = el => { const d = dt(el); return typeof d?.part === 'function' ? 
 const key = (target, k) => target.dispatchEvent(new KeyboardEvent('keydown', { key: k, bubbles: true, composed: true, cancelable: true }));
 
 export const lookupPickerCases = [
+    ['lookup-picker: a cell-<id>-<key> child fills that cell of the popup row, also when added after the first open (#1971)', async t => {
+        const el = await mount(t, '', '<span slot="cell-C1-name" id="c1">Custom one</span>');
+        el.open = true;
+        await until(() => rowEls(el).length === 5, 'the first page of five rows');
+        const cell = (r, k) => rowEls(el)[r].querySelector(`td[data-key="${k}"]`);
+        await until(() => cell(0, 'name')?.querySelector('slot'), 'the slotted cell');
+        const host = el.querySelector('#c1'), r = host.getBoundingClientRect();
+        t.ok(r.width > 0 && cell(0, 'name').getBoundingClientRect().left <= r.left + 1, 'the custom content is drawn inside the first row name cell');
+        t.eq(cell(1, 'name').textContent.trim(), 'Customer 2', 'a row with no slot child shows its plain value');
+        const late = document.createElement('span'); late.slot = 'cell-C2-name'; late.id = 'c2'; late.textContent = 'Late two'; el.append(late);
+        await until(() => late.getBoundingClientRect().width > 0, 'the late cell drawn');
+        t.ok(true, 'a cell child added while the popup is open is drawn');
+    }],
     ['lookup-picker: empty and no-results slots replace the popup states (#1421)', async t => {
         const el = await t.mount(`<pk-lookup-picker label="Customer" ${CFG}><p slot="empty" id="e">Nobody yet</p><p slot="no-results" id="n">No match</p></pk-lookup-picker>`);
         await t.load(el.shadowRoot);
@@ -166,5 +179,20 @@ export const lookupPickerCases = [
         t.ok(el.checkValidity(), 'valid with values');
         host.querySelector('form').reset(); await t.settle();
         t.eq(el.values.length, 0, 'a reset restores the initial (empty) values');
+    }],
+
+    ['lookup-picker: opened low on the page the panel stays inside the viewport and its rows are reachable by scrolling it (#1966)', async t => {
+        const el = await mount(t); el.pageSize = 25;
+        el.style.position = 'fixed'; el.style.insetInline = '16px'; el.style.insetBlockStart = `${Math.round(innerHeight * 0.7)}px`;
+        el.open = true;
+        await until(() => rowEls(el).length === 25, 'twenty-five rows');
+        const panel = popoverOf(el).part('panel');
+        await until(() => panel.getBoundingClientRect().bottom <= innerHeight + 1, 'the panel to fit the viewport').catch(() => {}); await t.settle();
+        const r = panel.getBoundingClientRect();
+        t.ok(r.top >= 0 && r.bottom <= innerHeight + 1, `the panel is inside the viewport (placement ${panel.dataset.placement}, max-height ${panel.style.maxHeight}, top ${Math.round(r.top)}, bottom ${Math.round(r.bottom)} of ${innerHeight})`);
+        t.ok(panel.scrollHeight > panel.clientHeight, 'the panel scrolls its own overflow');
+        panel.scrollTop = panel.scrollHeight; await t.settle();
+        const last = rowEls(el).at(-1).getBoundingClientRect(), pr = panel.getBoundingClientRect();
+        t.ok(last.bottom <= pr.bottom + 1 && last.top >= pr.top, 'the last row is reachable inside the panel');
     }],
 ];
