@@ -1,6 +1,6 @@
 :host { position: relative; display: block; inline-size: 100%; min-inline-size: 0; container-type: inline-size; }
 :host([fill]) { --pk-fill-shrink: 1; flex: 1 1 auto; align-self: stretch; block-size: 100%; min-block-size: 0; }
-[part="layout"] { display: grid; grid-template-columns: minmax(0, 1fr); gap: var(--space-4); align-items: start; }
+[part="layout"] { position: relative; display: grid; grid-template-columns: minmax(0, 1fr); gap: var(--space-4); align-items: start; }
 [part="master"], [part="detail"] { position: relative; min-inline-size: 0; }
 [part="detail"]:focus-visible { outline: var(--focus-ring); outline-offset: 2px; }
 [part="layout"][data-view="list"] [part="detail"], [part="layout"][data-view="detail"] [part="master"] { display: none; }
@@ -16,4 +16,9 @@
 }
 :host([fill]) pk-page-shell { block-size: 100%; }
 /* Static slotted mode (issue 1829): the author's list and record are in the slots; the dynamic list page, Back bar and messages are not used. */
-[data-static] pk-list-page, [data-static] [part="bar"], [data-static] [part="none"] { display: none; }
+[data-static] pk-list-page, [data-static] [part="back"], [data-static] [part="none"], [part="menu"][hidden], [part="backdrop"][hidden] { display: none; }
+/* Static mode on a phone with a record: the Menu button opens the author's list as a drawer over it (data-menu on this layout part; nothing is written to the author's list). */
+@container (max-width: 47.99rem) {
+    [data-static][data-menu] [part="master"] { display: block; position: absolute; inset: 0 auto auto 0; z-index: var(--z-flyout); inline-size: min(20rem, 100%); max-block-size: 100dvh; overflow-y: auto; background: var(--color-panel); box-shadow: var(--shadow-lg); }
+    [part="backdrop"] { position: absolute; inset: 0; z-index: var(--z-flyout-backdrop); background: var(--flyout-backdrop-bg); }
+}

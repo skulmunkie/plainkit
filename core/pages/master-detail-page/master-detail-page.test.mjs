@@ -12,15 +12,18 @@ const fakeEl = (tag = 'div') => ({
     replaceChildren(...k) { this.children = k; },
     addEventListener(type, fn) { (this.listeners[type] ??= []).push(fn); },
     focus() { this.focused++; },
+    toggleAttribute(k, on) { if (on) this.attrs[k] = ''; else delete this.attrs[k]; },
+    hasAttribute(k) { return k in this.attrs; },
     set textContent(v) { this._t = v; }, get textContent() { return this._t; },
 });
 const tick = () => new Promise(r => setTimeout(r));
 
 const make = () => {
-    const parts = Object.fromEntries(['header', 'layout', 'list', 'back', 'none', 'record', 'state', 'detail'].map(p => [p, fakeEl()]));
+    const parts = Object.fromEntries(['header', 'layout', 'list', 'back', 'none', 'record', 'state', 'detail', 'menu', 'backdrop'].map(p => [p, fakeEl()]));
     const errors = [];
     const el = new (behaviour(class {
         part(n) { return parts[n]; }
+        addEventListener(type, fn) { (this.listeners ??= {})[type] = fn; }
         get shadowRoot() { return { querySelectorAll: () => [], matches: () => false }; }
         get isConnected() { return true; }
         get log() { return { error: (...a) => errors.push(a) }; }
@@ -115,6 +118,32 @@ test('static mode (#1829): a host child in slot=list and no config.list -> no li
     assert.equal(parts.record.children.length, 0);
     el.config = { list: { columns: [] } }; el.changed('config'); el.refresh();
     assert.equal(parts.list.config, undefined);
+});
+
+test('static mode on a phone (#1878): the Menu button opens the host-written list as a drawer through data-menu on the layout part; a chosen row, Escape or the backdrop closes it; no record closes it', () => {
+    const { el, parts } = make(), list = { focused: 0, focus() { this.focused++; } };
+    el.querySelector = sel => (sel === ':scope > [slot="list"]' ? list : sel.includes('a') ? list : null);
+    el.recordId = '2';
+    el.connected();
+    assert.equal(parts.menu.hidden, false);
+    assert.equal(parts.menu.controls, list);
+    parts.menu.listeners['pk-toggle'][0]({ detail: { pressed: true } });
+    assert.ok(parts.layout.hasAttribute('data-menu'));
+    assert.equal(parts.backdrop.hidden, false);
+    assert.equal(list.focused, 1);
+    el.listeners.click({ target: { closest: () => ({}) } });
+    assert.ok(!parts.layout.hasAttribute('data-menu'));
+    assert.equal(parts.menu.pressed, false);
+    parts.menu.listeners['pk-toggle'][0]({ detail: { pressed: true } });
+    parts.backdrop.listeners.click[0]();
+    assert.ok(!parts.layout.hasAttribute('data-menu'));
+    assert.equal(parts.menu.focused, 1, 'the backdrop returns focus to the button');
+    parts.menu.listeners['pk-toggle'][0]({ detail: { pressed: true } });
+    el.listeners.keydown({ key: 'Escape' });
+    assert.ok(!parts.layout.hasAttribute('data-menu'));
+    parts.menu.listeners['pk-toggle'][0]({ detail: { pressed: true } });
+    el.recordId = ''; el.changed('recordId');
+    assert.ok(!parts.layout.hasAttribute('data-menu'), 'no record: the list is the page, the drawer closes');
 });
 
 test('static mode needs a slot=list child and no config.list: otherwise the dynamic page is built as before', () => {
