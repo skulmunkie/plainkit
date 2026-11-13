@@ -42,6 +42,19 @@ public sealed class PkLookupPickerTests : BunitContext, IAsyncLifetime
 
     private object CallbackRef(string name) => _bridge.Invocations["setCallback"].Single(i => (string)i.Arguments[1]! == name).Arguments[2]!;
 
+    // #1971: a column's Cell template fills the element's cell-<id>-<key> slot of each loaded row, which the element forwards into its popup table.
+    [Fact]
+    public async Task A_column_Cell_template_renders_in_the_cell_slot_of_each_loaded_row()
+    {
+        PkTableColumn<Customer>[] cols = [new() { Key = "logo", Label = "", Cell = c => b => b.AddContent(0, "logo:" + c.Name) }, new() { Key = "name", Label = "Name", Text = c => c.Name }];
+        var cut = Render<PkLookupPicker<Customer>>(p => p.Add(x => x.Load, r => Task.FromResult(new PkListResult<Customer>([new(1, "Acme", "Leeds"), new(2, "Globex", "Oslo")], 12))).Add(x => x.Columns, cols).Add(x => x.IdOf, c => c.Id.ToString()));
+        var host = Assert.IsType<DotNetObjectReference<PkCallbackHost<PkListPageQuery>>>(CallbackRef("load")).Value;
+        await cut.InvokeAsync(() => host.Invoke(new PkListPageQuery(1, 10, null, null, "")));
+        Assert.Equal("logo:Acme", cut.Find("[slot='cell-1-logo']").TextContent);
+        Assert.Equal("logo:Globex", cut.Find("[slot='cell-2-logo']").TextContent);
+        Assert.Empty(cut.FindAll("[slot='cell-1-name']"));
+    }
+
     // Description, SearchDebounce, OnInput and OnChange come from the generated companion (blazor/mappings/lookup-picker.json "extra": true, #1407).
     [Fact]
     public void Description_and_SearchDebounce_reach_the_element_and_an_unset_description_is_left_off()

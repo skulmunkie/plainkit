@@ -337,6 +337,8 @@ export function modelElement(el, mapping, reg) {
         out.cells = { load: mapping.cells.load };
         // `columns: true`: the mapping's Columns parameter (map cells, PkTableColumn<TItem>) replaces config.columns, and each column's Cell template fills its cell slots.
         if (mapping.cells.columns) out.cells.columns = true;
+        // `slotsOnly`: the Columns parameter is the element's own columns attribute (map columns) and IdOf names the rows; only the cell slots of the loaded rows are rendered (the lookup picker).
+        if (mapping.cells.slotsOnly) out.cells.slotsOnly = true;
     }
 
     // ---- 2a'. `recordModel`: a typed record. The mapping's Fields (PkFieldSpec<TItem>) and Model (the new record) parameters (map cells) become config.fields and config.values
@@ -650,8 +652,8 @@ export function renderComponent(m, mappingName, ns = 'PlainKit.Blazor') {
     // this element is the assigned element for the slot, and its own box must dissolve the way a single-root fragment's would.
     const slottedChild = c => `@if (!string.IsNullOrEmpty(${c.name})) {<${c.slotted.tag} slot=${lit(c.slotted.slot)}${Object.entries(c.slotted.attrs ?? {}).map(([k, v]) => ` ${k}=${String(v).startsWith('@') ? `"${v}"` : lit(v)}`).join('')}>@${c.name}</${c.slotted.tag}>}`;
     const children0 = m.children.map(c => (c.slotted ? slottedChild(c) : c.slot === '' ? `@${c.name}` : `@if (${c.name} is not null${c.unless ? ` && ${c.unless} is not { Count: > 0 }` : ''}${c.when ? ` && ${c.when}` : ''}) {<${c.tag ?? 'span'} slot=${lit(c.slot)}${c.plain ? '' : ' class="u-contents"'}>@${c.name}</${c.tag ?? 'span'}>}`)).join('');
-    const colCells = m.cells?.columns ? '@if (Columns is not null) {foreach (var row in _cellRows) {foreach (var col in Columns) {if (col.Cell is not null) {<span slot="@($"cell-{row.Id}-{col.Key}")" class="u-contents" @key="@($"cell-{row.Id}-{col.Key}")">@col.Cell(row.Item)</span>}}}}' : '';
-    const cells = colCells + (m.cells ? '@if (Cells is not null) {foreach (var row in _cellRows) {foreach (var cell in Cells) {<span slot="@($"cell-{row.Id}-{cell.Key}")" class="u-contents" @key="@($"cell-{row.Id}-{cell.Key}")">@cell.Value(row.Item)</span>}}}' : '');
+    const colCells = m.cells?.columns || m.cells?.slotsOnly ? '@if (Columns is not null) {foreach (var row in _cellRows) {foreach (var col in Columns) {if (col.Cell is not null) {<span slot="@($"cell-{row.Id}-{col.Key}")" class="u-contents" @key="@($"cell-{row.Id}-{col.Key}")">@col.Cell(row.Item)</span>}}}}' : '';
+    const cells = colCells + (m.cells && !m.cells.slotsOnly ? '@if (Cells is not null) {foreach (var row in _cellRows) {foreach (var cell in Cells) {<span slot="@($"cell-{row.Id}-{cell.Key}")" class="u-contents" @key="@($"cell-{row.Id}-{cell.Key}")">@cell.Value(row.Item)</span>}}}' : '');
     const slotMaps = (m.slotMaps ?? []).map(s => `@if (${s.name} is not null) {foreach (var item in ${s.name}) {<span slot="@($"${s.prefix}{item.Key}")" class="u-contents" @key="@($"${s.prefix}{item.Key}")">@item.Value</span>}}`).join('');
     // recordModel: a spec's Editor template is the body of its custom field in edit mode (the element forwards slot editor-<key> into its field group).
     const editors = m.recordModel ? '@if (Fields is not null && (_loaded ?? Model) is { } editing) {foreach (var f in Fields) {if (f.Editor is not null) {<span slot="@($"editor-{f.Key}")" class="u-contents" @key="@($"editor-{f.Key}")">@f.Editor(editing)</span>}}}' : '';
@@ -775,12 +777,12 @@ export function renderComponent(m, mappingName, ns = 'PlainKit.Blazor') {
     }
     if (m.cells) L.push('', '    private List<(string Id, TItem Item)> _cellRows = [];', '',
         '    private async Task<object?> ShowCellsAsync(IReadOnlyList<TItem> items)', '    {',
-        `        if ((Cells is null${m.cells.columns ? ' && Columns is null' : ''}${m.params.some(d => d.name === 'DetailTemplate') ? ' && DetailTemplate is null && DetailPanels is null' : ''}) || IdOf is null) return null;`,
+        `        if ((${m.cells.slotsOnly ? 'Columns is null' : `Cells is null${m.cells.columns ? ' && Columns is null' : ''}`}${m.params.some(d => d.name === 'DetailTemplate') ? ' && DetailTemplate is null && DetailPanels is null' : ''}) || IdOf is null) return null;`,
         '        await InvokeAsync(() => { _cellRows = items.Select(i => (IdOf!(i), i)).ToList(); StateHasChanged(); });',
         '        return null;', '    }');
     // Typed columns: a column's Text (and the property fallback, as PkDataTable) fills the row it names, so the rows the callback returns are built through the same PkTableRows as PkDataTable's.
-    if (m.cells?.columns) L.push('', '    private object RowsOf(IReadOnlyList<TItem> items)', '    {', '        if (Columns is null) return items;', '        var rows = new System.Text.Json.Nodes.JsonArray();', '        foreach (var item in items) rows.Add(PkTableRows.Serialize(item, Columns));', '        return rows;', '    }');
-    if (m.cells?.columns) L.push('', '    private string ConfigWithColumns()', '    {',
+    if (m.cells?.columns && !m.cells.slotsOnly) L.push('', '    private object RowsOf(IReadOnlyList<TItem> items)', '    {', '        if (Columns is null) return items;', '        var rows = new System.Text.Json.Nodes.JsonArray();', '        foreach (var item in items) rows.Add(PkTableRows.Serialize(item, Columns));', '        return rows;', '    }');
+    if (m.cells?.columns && !m.cells.slotsOnly) L.push('', '    private string ConfigWithColumns()', '    {',
         `        if (Columns is null${m.configKeys.map(k => ` && !(${k.when})`).join('')}) return PkAttr.JsonText(Config) ?? "{}";`,
         '        var node = System.Text.Json.Nodes.JsonNode.Parse(PkAttr.JsonText(Config) ?? "{}") as System.Text.Json.Nodes.JsonObject ?? new System.Text.Json.Nodes.JsonObject();',
         '        if (Columns is not null) node["columns"] = System.Text.Json.Nodes.JsonNode.Parse(PkAttr.Json(Columns.Select(c => c.ToColumn()))!);',
