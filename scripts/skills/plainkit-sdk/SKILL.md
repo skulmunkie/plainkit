@@ -213,4 +213,4 @@ Import by the package's `exports` map, not by filesystem path: `import "plainkit
 
 ## What is not built
 
-`references/known-gaps.md` lists what does not exist and what not to assume (the Guides are a first set of seven with no search yet, no reactive template layer, no reordering inside a layout builder container by drag, ).
+`references/known-gaps.md` lists what does not exist and what not to assume (the Guides are a first set of seven with no search yet, no reactive template layer).
