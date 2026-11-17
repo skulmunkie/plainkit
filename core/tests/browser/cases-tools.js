@@ -467,6 +467,42 @@ export const toolCases = [
         } finally { URL.createObjectURL = realCreate; HTMLAnchorElement.prototype.click = realClick; }
         editor.destroy();
     }],
+    ['theme editor Custom SDK tab: with plainkit.css absent from the dist manifest the export still rewrites the widths and the theme in plainkit.min.css (#1985)', async t => {
+        await t.load(t.stage('<pk-unit-input></pk-unit-input><pk-colour-input></pk-colour-input><pk-input></pk-input><pk-select></pk-select><pk-button></pk-button><pk-tabs></pk-tabs><pk-table></pk-table><pk-stat></pk-stat><pk-card></pk-card><pk-toolbar></pk-toolbar><pk-textarea></pk-textarea><pk-badge></pk-badge><pk-alert></pk-alert>'));
+        const { mountThemeEditor } = await dist('theme-editor');
+        const host = t.stage('');
+        const editor = await mountThemeEditor(host, { target: t.stage('<div data-theme="dark"></div>').firstElementChild, preview: false, savedKey: false, initial: ':root, [data-theme="dark"] { --color-accent: #123456; }' });
+        const inputs = await until(() => { const l = host.querySelectorAll('.te-sdk [data-breakpoint-input]'); return l.length === 3 ? [...l] : null; }, 'the breakpoint inputs');
+        await t.load(host); await t.settle();
+        const type = (el, v) => { el.value = String(v); el.dispatchEvent(new Event('input', { bubbles: true, composed: true })); };
+        type(inputs[0], 700); await t.settle();
+        const got = [], realCreate = URL.createObjectURL, realClick = HTMLAnchorElement.prototype.click, realFetch = window.fetch;
+        URL.createObjectURL = b => { got.push({ blob: b }); return 'blob:test'; };
+        HTMLAnchorElement.prototype.click = function () { got.at(-1).name = this.download; };
+        // the dist as the package will ship it: no plainkit.css in the manifest, and the file is not served
+        window.fetch = async (input, init) => {
+            const url = String(input?.url ?? input);
+            if (/\/plainkit\.css$/.test(url)) return new Response('', { status: 404 });
+            const r = await realFetch(input, init);
+            if (/\/manifest\.json$/.test(url) && !/modules\//.test(url)) { const m = await r.json(); m.files = m.files.filter(f => f.path !== 'plainkit.css'); return new Response(JSON.stringify(m), { status: 200 }); }
+            return r;
+        };
+        let files;
+        try {
+            host.querySelector('.te-sdk [data-sdk="export"]').click();
+            await until(() => got.length, 'the export');
+            files = unzip(new Uint8Array(await got[0].blob.arrayBuffer()), true);
+        } finally { URL.createObjectURL = realCreate; HTMLAnchorElement.prototype.click = realClick; window.fetch = realFetch; }
+        const text = p => new TextDecoder().decode(files.get(p));
+        t.ok(!files.has('dist/plainkit.css') && files.has('dist/plainkit.min.css'), 'only the minified page layer is in the export');
+        const min = text('dist/plainkit.min.css');
+        t.ok(/--pk-bp-phone:700px;--pk-bp-tablet:1024px/.test(min) && /--color-accent:#123456/.test(min), 'widths and theme are in plainkit.min.css');
+        t.ok(/@media\(max-width:700px\)/.test(min) && !/@media\(max-width:640px\)/.test(min) && /@media\(min-width:701px\)/.test(min), 'the media conditions follow the new width');
+        const manifest = JSON.parse(text('dist/manifest.json'));
+        const digest = new Uint8Array(await crypto.subtle.digest('SHA-256', files.get('dist/plainkit.min.css')));
+        t.eq(manifest.files.find(f => f.path === 'plainkit.min.css').integrity, 'sha256-' + btoa(String.fromCharCode(...digest)), 'the minified file hash matches the manifest');
+        editor.destroy();
+    }],
     ['theme editor Custom SDK tab: the full export is the dist with the widths and the theme, a recomputed manifest whose hashes match, and the settings import back', async t => {
         await t.load(t.stage('<pk-unit-input></pk-unit-input><pk-colour-input></pk-colour-input><pk-input></pk-input><pk-select></pk-select><pk-button></pk-button><pk-tabs></pk-tabs><pk-table></pk-table><pk-stat></pk-stat><pk-card></pk-card><pk-toolbar></pk-toolbar><pk-textarea></pk-textarea><pk-badge></pk-badge><pk-alert></pk-alert>')); // the editor's elements load on demand: define them first, so the case also passes on its own (--elements)
         const { mountThemeEditor } = await dist('theme-editor');

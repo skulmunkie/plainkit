@@ -150,6 +150,43 @@ test('nothing is rewritten silently: an unrecognised or missing width is an erro
     assert.equal(rewriteMedia('@media (pointer: coarse), (max-width: 640px) and (orientation: portrait) {}', DEFAULTS, { ...DEFAULTS, phone: 700 }).text, '@media (pointer: coarse), (max-width: 700px) and (orientation: portrait) {}');
 });
 
+test('minified-only dist (no plainkit.css, #1985): the widths, the theme and the manifest come from plainkit.min.css alone', async () => {
+    const files = load(); files.delete('plainkit.css');
+    const m = JSON.parse(text(files, 'manifest.json')); m.files = m.files.filter(f => f.path !== 'plainkit.css'); files.set('manifest.json', enc.encode(JSON.stringify(m)));
+    assert.ok(!files.has('plainkit.css') && files.has('plainkit.min.css'));
+    const to = { phone: 700, tablet: 1100, wide: 1300 };
+    const { files: out, summary } = await customizeDist(files, { include: { breakpoints: true, theme: true }, breakpoints: to, theme });
+    assert.deepEqual(summary.shipped, DEFAULTS); assert.deepEqual(summary.breakpoints, to);
+    assert.ok(!out.has('plainkit.css'));
+    const css = text(out, 'plainkit.min.css');
+    assert.deepEqual(readShippedBreakpoints(css), to);
+    assert.equal(conditionsWith(css, 640), 0); assert.equal(conditionsWith(css, 1024), 0);
+    assert.equal(conditionsWith(css, 700), 5); assert.equal(conditionsWith(css, 1100), 2);
+    assert.match(css, /@media\(max-width:700px\)\{/); assert.match(css, /@media\(min-width:701px\)\{/); assert.match(css, /--color-accent:#123456;/);
+    const entry = JSON.parse(text(out, 'manifest.json')).files.find(f => f.path === 'plainkit.min.css');
+    assert.equal(entry.integrity, await integrityOf(out.get('plainkit.min.css')));
+    // with both files present the two agree
+    const both = await customizeDist(load(), { include: { breakpoints: true }, breakpoints: to });
+    assert.equal(text(both.files, 'plainkit.min.css'), text(await customizeDist(files, { include: { breakpoints: true }, breakpoints: to }).then(r => r.files), 'plainkit.min.css'));
+    await assert.rejects(customizeDist(new Map([...files].filter(([p]) => p !== 'plainkit.min.css')), { include: { breakpoints: true }, breakpoints: to }), /neither plainkit\.css nor plainkit\.min\.css/);
+});
+
+test('rewriteMedia on minified CSS: min/max, both orders, with and without spaces, range syntax refused, unrelated rules untouched', () => {
+    const to = { ...DEFAULTS, phone: 700, tablet: 1100 };
+    const go = css => rewriteMedia(css, DEFAULTS, to);
+    assert.equal(go('@media(max-width:640px){a{b:c}}@media(min-width:641px){d{e:f}}').text, '@media(max-width:700px){a{b:c}}@media(min-width:701px){d{e:f}}');
+    assert.equal(go('@media(min-width:641px) and (max-width:1024px){a{b:c}}').text, '@media(min-width:701px) and (max-width:1100px){a{b:c}}');
+    assert.equal(go('@media(max-width:1024px) and (min-width:641px){a{b:c}}').text, '@media(max-width:1100px) and (min-width:701px){a{b:c}}');
+    assert.equal(go('@media screen and (max-width:640px),print and (min-width:1025px){a{b:c}}').text, '@media screen and (max-width:700px),print and (min-width:1101px){a{b:c}}');
+    const same = '@media(prefers-reduced-motion:reduce){a{width:640px}}@media(max-width:500px){b{c:d}}.x{max-width:640px}@media(hover:hover){.y{margin:0}}';
+    assert.equal(go(same).text, same);
+    for (const q of ['@media(width<=640px){a{b:c}}', '@media(641px<=width<=1024px){a{b:c}}']) { const r = go(q); assert.equal(r.unhandled.length, 1, q); assert.equal(r.text, q); }
+    // the real minified file: every shipped condition is found, nothing else changes
+    const min = text(load(), 'plainkit.min.css');
+    const r = go(min); assert.deepEqual(r.unhandled, []);
+    assert.equal(go(min).text.split('@media').length, min.split('@media').length);
+});
+
 test('hostile theme input is refused, never written', async () => {
     const files = load();
     for (const css of [':root { --a: url(x); }\n', 'body { color: red }\n', ':root,\n[data-theme="dark"] {\n    --a: 1px;\n}\n</style><script>alert(1)</script>', ':root,\n[data-theme="dark"] {\n    --a: 1px; } body { x: y;\n}\n', ':root,\n[data-theme="dark"] {\n    --a: red; /* c */\n}\n']) {
