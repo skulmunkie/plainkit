@@ -1,0 +1,6 @@
+/* The layout builder page (#1996): the builder is the whole window under one slim bar, with no page scroll of its own. Tokens only. */
+body { display: flex; flex-direction: column; block-size: 100dvh; margin: 0; overflow: hidden; }
+
+body > header { flex: none; padding: var(--space-1) var(--space-3); font-size: var(--text-sm); }
+
+body > main { flex: 1 1 auto; min-block-size: 0; min-inline-size: 0; }
