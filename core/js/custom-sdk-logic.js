@@ -71,10 +71,10 @@ export async function customizeDist(files, { include, breakpoints, theme }) {
     const manifestBytes = files.get('manifest.json');
     if (!manifestBytes) throw new Error('the dist has no manifest.json');
     const manifest = JSON.parse(dec.decode(manifestBytes));
-    const page = files.get('plainkit.css');
-    if (!page) throw new Error('the dist has no plainkit.css');
+    const page = files.get('plainkit.css') ?? files.get('plainkit.min.css'); // the unminified page layer may be left out of the package (#1985): the minified one carries the same --pk-bp-* block
+    if (!page) throw new Error('the dist has neither plainkit.css nor plainkit.min.css');
     const shipped = readShippedBreakpoints(dec.decode(page));
-    if (!Object.keys(shipped).length) throw new Error('plainkit.css has no --pk-bp-* block: not a Plainkit release with named breakpoints');
+    if (!Object.keys(shipped).length) throw new Error('the page stylesheet has no --pk-bp-* block: not a Plainkit release with named breakpoints');
     const to = include.breakpoints ? { ...shipped, ...breakpoints } : { ...shipped };
     const changed = !sameWidths(shipped, to);
     const themeCss = include.theme && theme?.css ? theme.css : '';
