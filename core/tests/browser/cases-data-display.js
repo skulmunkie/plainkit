@@ -2015,10 +2015,11 @@ export const dataDisplayCases = [
     ['frame: the default sandbox is allow-scripts alone, a preset caps the width to the named breakpoint, and the framed document loads', async t => {
         const { breakpoint } = await import('../../js/breakpoints.js');
         const host = t.stage(`<pk-frame title="Preview" html="&lt;!doctype html&gt;&lt;body&gt;hi&lt;/body&gt;"></pk-frame>`);
-        await t.load(host);
         const el = host.querySelector('pk-frame');
         const frame = () => el.shadowRoot.querySelector('[part="frame"]');
+        // Listen before t.load: it ends in two message hops, and on a busy runner the srcdoc load can fire inside them.
         const loaded = new Promise(r => el.addEventListener('pk-frame-load', r, { once: true }));
+        await t.load(host);
         await loaded;
         t.eq(frame().getAttribute('sandbox'), 'allow-scripts', 'the default sandbox never carries allow-same-origin');
         t.eq(frame().hasAttribute('src'), false, 'an inline document sets srcdoc, not src');
