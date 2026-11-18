@@ -5,7 +5,7 @@
 export const PAGE_TYPE = {
     id: 'tool',
     summary: 'Input fields, a Run action and an outcome panel.',
-    configKeys: ['heading', 'breadcrumb', 'actions', 'badges', 'actionsOverflow', 'overflowLabel', 'homeHref', 'homeLabel', 'homeIcon', 'input', 'outcome', 'runLabel', 'run'],
+    configKeys: ['heading', 'breadcrumb', 'actions', 'badges', 'newAction', 'actionsCollapse', 'actionsOverflow', 'overflowLabel', 'homeHref', 'homeLabel', 'homeIcon', 'input', 'outcome', 'runLabel', 'run'],
     states: [],
     useWhen: 'A single-purpose utility: fill inputs, run, see a result.',
 };

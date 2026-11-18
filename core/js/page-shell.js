@@ -8,6 +8,7 @@
 //   showState(box, 'ready');
 import { renderState } from './page-states.js';
 import { loadElements } from './loader.js';
+import { actionItems, renderActions } from './page-actions.js';
 
 /** renderState(box, state, opts) then loadElements(box). `opts.error` (a caught value) becomes the description when none is given. */
 export function showState(box, state, opts = {}) {
@@ -18,7 +19,7 @@ export function showState(box, state, opts = {}) {
 }
 
 /** The title bar keys of a page factory's config that the page element forwards to its shell (showTitleBar). */
-export const titleBarKeys = c => Object.fromEntries(['badges', 'actionsOverflow', 'overflowLabel', 'homeHref', 'homeLabel', 'homeIcon'].filter(k => c[k] !== undefined).map(k => [k, c[k]]));
+export const titleBarKeys = c => Object.fromEntries(['badges', 'newAction', 'actionsCollapse', 'actionsOverflow', 'overflowLabel', 'homeHref', 'homeLabel', 'homeIcon'].filter(k => c[k] !== undefined).map(k => [k, c[k]]));
 
 /** The page title as the SDK's heading element: a pk-heading level 1 for the page element's light DOM (slot "title"; `plain` keeps the heading's own size; the factory that creates the page appends it, so it is findable under main and focusable with tabindex -1). */
 export function titleHeading(doc, text, { focusable = true, plain = false } = {}) {
@@ -49,9 +50,9 @@ export function mountTitled(host, el, text, opts) {
 }
 
 /**
- * The title bar, filled into the page's pk-page-shell `shell` (a child of the page's shadow tree) from `host.config` { heading?, breadcrumb?: [{ label, href? }], actions?: [{ key, label, href?, variant?, hint? }], badges?: [{ label, variant? }], actionsOverflow?, overflowLabel?, homeHref?, homeLabel?, homeIcon? }:
+ * The title bar, filled into the page's pk-page-shell `shell` (a child of the page's shadow tree) from `host.config` { heading?, breadcrumb?: [{ label, href? }], actions?: [{ key, label, icon?, href?, variant?, disabled?, busy?, hint? }], newAction? (one item, drawn first as the primary), actionsCollapse? ('always' | 'phone' | 'tablet' | 'none', one value for the bar), badges?: [{ label, variant? }], actionsOverflow?, overflowLabel?, homeHref?, homeLabel?, homeIcon? }:
  * the shell draws the pk-page-header; the breadcrumb, actions and title are its slotted children. `cfg` overrides `host.config` for a page whose own config already uses `heading` or `actions` for something else (record, list).
- * Nothing is drawn when none is set (the shell hides an empty header). An action's `hint` shows as a tooltip on the button. A click on an action fires `pk-action` on the host with { key }; the host never owns the markup.
+ * Nothing is drawn when none is set (the shell hides an empty header). An action's `hint` shows as a tooltip on the button; the items are drawn by js/page-actions.js. A click on an action fires `pk-action` on the host with { key }; the host never owns the markup.
  */
 export function showTitleBar(host, shell, cfg = host.config) {
     const { heading, breadcrumb = [], actions = [], badges = [] } = cfg ?? {};
@@ -63,7 +64,7 @@ export function showTitleBar(host, shell, cfg = host.config) {
         const a = k.replace(/[A-Z]/g, c => '-' + c.toLowerCase());
         if (cfg?.[k]) shell.setAttribute(a, cfg[k]); else shell.removeAttribute?.(a);
     }
-    shell.setAttribute('data-bare', String(!titled && !breadcrumb.length && !actions.length && !badges.length)); // nothing to draw: the shell drops its empty header
+    shell.setAttribute('data-bare', String(!titled && !breadcrumb.length && !actions.length && !cfg?.newAction && !badges.length)); // nothing to draw: the shell drops its empty header
     for (const b of badges) {
         const chip = doc.createElement('pk-badge');
         chip.slot = 'badges'; chip.textContent = b.label;
@@ -78,20 +79,7 @@ export function showTitleBar(host, shell, cfg = host.config) {
         for (const c of breadcrumb) { const a = doc.createElement('a'); a.textContent = c.label; if (c.href) a.href = c.href; nav.append(a); }
         kids.push(nav);
     }
-    for (const a of actions) {
-        const btn = doc.createElement('pk-button');
-        btn.slot = 'actions';
-        btn.textContent = a.label ?? a.key;
-        if (a.variant) btn.variant = a.variant;
-        if (a.href) btn.href = a.href;
-        else btn.addEventListener('click', () => host.dispatchEvent(new CustomEvent('pk-action', { bubbles: true, detail: { key: a.key } })));
-        if (a.hint) {
-            const tip = doc.createElement('pk-tooltip');
-            tip.text = a.hint; tip.slot = 'actions'; btn.removeAttribute('slot');
-            tip.append(btn);
-            kids.push(tip);
-        } else kids.push(btn);
-    }
+    kids.push(...renderActions(host, actionItems(actions, cfg?.newAction, (k, m) => host.warnOnce?.(k, m)), { collapse: cfg?.actionsCollapse, warn: (k, m) => host.warnOnce?.(k, m) }));
     if (titled) { // the host's own pk-heading (titleHeading, appended by the page factory) fills this slot; used on its own, the fallback draws the same title
         const fwd = doc.createElement('slot');
         fwd.setAttribute('name', 'title'); fwd.slot = 'title';
