@@ -169,3 +169,26 @@ test('the template has a before-list slot ahead of the table (#1603)', () => {
     const html = readFileSync(new URL('./list-page.html', import.meta.url), 'utf8');
     assert.ok(html.indexOf('<slot name="before-list">') > 0 && html.indexOf('<slot name="before-list">') < html.indexOf('<pk-data-table'));
 });
+
+test('toolbarActions and newAction go through the shared renderer: newAction first and primary, a key press raises pk-action, an href item is a link, collapse follows actionsCollapse (#1943)', () => {
+    const { el, parts } = make(), seen = [];
+    el.dispatchEvent = e => seen.push([e.type, e.detail]);
+    el.config = { newAction: { key: 'new', label: 'New order', icon: 'plus' }, toolbarActions: [{ key: 'export', label: 'Export', icon: 'download' }, { label: 'Docs', href: '#/docs' }], actionsCollapse: 'tablet' };
+    el.connected();
+    const [n, e, d] = parts.actions.children;
+    assert.deepEqual([n, e, d].map(b => b.textContent), ['New order', 'Export', 'Docs']);
+    assert.equal(n.variant, 'primary'); assert.equal(n.iconName, 'plus'); assert.equal(n.collapse, 'tablet');
+    assert.equal(d.href, '#/docs');
+    n.click(); e.click();
+    assert.deepEqual(seen, [['pk-action', { key: 'new' }], ['pk-action', { key: 'export' }]]);
+});
+
+test('addLabel still reaches the table and warns once that it is deprecated; an item collapse is read as a deprecated override (#1943)', () => {
+    const { el, parts } = make(), warned = [];
+    el.warnOnce = (k, m) => warned.push(k);
+    el.config = { addLabel: '+ Add', actions: [{ key: 'a', label: 'A', icon: 'plus', collapse: 'always' }] };
+    el.connected();
+    assert.equal(parts.table.addLabel, '+ Add');
+    assert.ok(warned.includes('addLabel') && warned.includes('action:collapse'));
+    assert.equal(parts.actions.children[0].collapse, 'always');
+});

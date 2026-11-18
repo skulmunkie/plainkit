@@ -32,6 +32,7 @@ const make = () => {
         get isConnected() { return true; }
         get log() { return { error: (...a) => errors.push(a) }; }
         emit(name, detail) { events.push([name, detail]); }
+        dispatchEvent(e) { events.push([e.type, e.detail]); }
     }))();
     el.config = { review: true, steps: [{ id: 'a', label: 'Account', fields: [{ name: 'email', label: 'Email', required: true }] }, { id: 'b', label: 'Plan', fields: [{ name: 'plan', label: 'Plan', type: 'select', options: [{ value: 'f', label: 'Free' }] }] }] };
     return { el, parts, events, errors, win };
@@ -176,12 +177,14 @@ test('footerActions draw one button each and emit pk-wizard-action; submitEarly 
     el.submit = async v => { submitted = v; };
     el.connected(); await tick();
     assert.equal(parts.actions.children.length, 2);
-    assert.equal(parts.actions.children[0].attrs['icon-name'], 'save');
+    assert.equal(parts.actions.children[0].iconName, 'save');
+    assert.equal(parts.actions.children[0].collapse, 'phone', 'an icon folds on a phone, as before');
+    assert.equal(parts.actions.children[1].variant, 'ghost', 'ghost unless the item names a variant');
     assert.equal(parts.submit.hidden, false, 'early Submit shows on step one of two');
     const btn = parts.actions.children[1];
-    btn.closest = () => btn;
-    parts.actions.listeners.click[0]({ target: btn });
+    btn.listeners.click[0]();
     assert.deepEqual(events.find(([n]) => n === 'pk-wizard-action')[1], { key: 'discard', values: {}, step: 'a' });
+    assert.deepEqual(events.find(([n]) => n === 'pk-action')[1], { key: 'discard' }, 'the shared pk-action follows the wizard event');
     parts.submit.listeners.click[0]();
     await tick();
     assert.deepEqual(submitted, {}, 'submit ran from step one');
