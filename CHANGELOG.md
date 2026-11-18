@@ -5,6 +5,18 @@ The format follows [Keep a Changelog](https://keepachangelog.com/) and the proje
 
 ## [Unreleased]
 
+## [0.33.0] - 2026-11-18
+
+### Added
+
+- The shared title bar of every page type that uses it (tool, record, sections, settings, dashboard, master-detail) draws its `actions` with one renderer (`js/page-actions.js`). An action takes `icon`, `disabled` and `busy` beside `key`, `label`, `href`, `variant` and `hint`; the new `newAction` (the same shape) is drawn first as the primary action; the new bar-wide `actionsCollapse` (`always`, `phone`, `tablet` or `none`, default `phone`) folds icon actions to the icon alone while the label stays the accessible name and tooltip. A press raises one `pk-action { key }`. Existing configs draw as before. The list toolbar, the wizard footer and grouped menus follow in later steps; `addLabel` and `pk-add` are deprecated in favour of `newAction` and removed after one minor. (#1943)
+- pk-wizard-page config.liveValidate runs validate(stepId, values, { live, key }) when an answer is committed, marking the field at once without Next, and the named controls of slotted steps (slot="step-<id>") are now collected into the answers and validated. refresh() re-runs load() for a resumed draft. (#2011)
+- `pk-markdown` has a JS-only `resolveUrl(url, kind)` hook to rewrite link and image addresses (the result still has to pass the scheme allow-list). (#2012)
+
+### Changed
+
+- The list page toolbar and the wizard footer draw their buttons with the same renderer as the title bar. `pk-list-page` takes `toolbarActions` (the older `actions` still works) and `newAction` (drawn first, primary) in the one item shape, `actionsCollapse` folds icon buttons for the whole toolbar, and a press raises `pk-action { key }`; an item with only a label takes its label as its key. `addLabel` and the `pk-add` event are deprecated in favour of `newAction` (a warning is logged once; `pk-add` also raises `pk-action { key: 'new' }`) and go after one minor, and a per-item `collapse` is a deprecated override. The wizard footer looks and behaves as before: `footerActions` and `pk-wizard-action { key, values, step }` are unchanged, and `pk-action { key }` is raised after it. (#1943)
+
 ## [0.32.0] - 2026-11-18
 
 ### Added
