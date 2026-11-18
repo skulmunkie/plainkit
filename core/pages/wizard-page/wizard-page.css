@@ -5,6 +5,7 @@
 [part="panes"] form { display: flex; flex-direction: column; gap: var(--space-4); }
 [part="panes"] > div { display: flex; flex-direction: column; gap: var(--space-4); }
 [part="panes"] > div[hidden] { display: none; }
-[part="bar"] { display: flex; justify-content: space-between; gap: var(--space-2); margin-block-start: var(--space-4); }
+[part="bar"] { display: flex; flex-wrap: wrap; justify-content: space-between; gap: var(--space-2); margin-block-start: var(--space-4); }
 [part="bar"] pk-button[hidden] { display: none; }
-[part="next"] { margin-inline-start: auto; }
+[part="end"] { display: flex; flex-wrap: wrap; justify-content: flex-end; gap: var(--space-2); margin-inline-start: auto; }
+[part="actions"] { display: contents; }
