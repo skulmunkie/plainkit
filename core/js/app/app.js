@@ -53,7 +53,7 @@ export function mountApp(container, config) {
     const cfg = readConfig(config);
     const doc = container.ownerDocument, root = doc.documentElement, win = doc.defaultView;
     const entries = new Map(cfg.modules.map(m => [m.id, m]));
-    let router, footerCustom = false, status = '', dead = false, first = true, seq = 0, sseq = 0, active = null, nav = [], routes = [], rows = null, found = new Map(), timer = 0;
+    let router, status = '', dead = false, first = true, seq = 0, sseq = 0, active = null, nav = [], routes = [], rows = null, found = new Map(), timer = 0;
     const hrefOf = path => router.href(path);
     const moduleHref = (id, path = '/') => hrefOf(`/${id}${path === '/' ? '' : path}`);
 
@@ -137,8 +137,8 @@ export function mountApp(container, config) {
         const a = host.current();
         // a page that failed leaves the module (and its trail) as it was; nothing mounted shows the error crumb
         status = result === 'error' && a ? 'ok' : result;
-        if (a?.id !== active) { active = a?.id ?? null; drawNav(); if (a?.def.footer !== undefined || footerCustom) drawFooter(a); footerCustom = a?.def.footer !== undefined; }
-        mark();
+        if (a?.id !== active) { active = a?.id ?? null; drawNav(); drawFooter(a); }
+        ui.shell.toggleAttribute('bare', ui.crumbs.hidden = a?.def.chrome === false); mark();
         const crumbs = trail(a).map((c, i, all) => (i === all.length - 1 ? { label: c.label } : c));
         const label = crumbs[crumbs.length - 1].label;
         page.setBreadcrumbs(crumbs);

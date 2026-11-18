@@ -13,7 +13,7 @@
 //                                                        // a route tree: a record route goes in its list's `children` (full paths), `label` is its breadcrumb
 //       // a route may add `context: { ids?, crumbs?, title? }` (or ({ path, params, query }) => that): where the page is when its address cannot say (ids: nav ids top to current; crumbs: [{ label, href? }]; title), #670
 //       state: { version: 1, defaults: { q: '' }, persist: ['q'] },   // a store.module() spec (js/store.js): ctx.store is this module's own namespace
-//       footer: { text: 'Run by Finance', links: [] },                // optional: replaces the app footer (config.footer) while this module is active; false draws none (#373)
+//       footer: { text: 'Run by Finance', links: [] },                // optional: replaces the app footer (config.footer) while this module is active; false draws none (#373); `chrome: false` (a sibling key) draws no bar, menu or breadcrumb either, so the page owns the viewport and draws its own way back (#1996)
 //       can: ctx => ctx.auth?.has('orders.read') ?? true,             // access hook; true or { allow: false, redirect }; else, or a throw, denies (fail closed)
 //       mount(ctx) { return () => {}; }, unmount(ctx) {},             // optional; a function returned from mount is cleanup
 //       pageTypes: { kanban: (host, config, ctx) => ({ destroy() {} }) },  // page types only this module has (below); layouts: { name: (host, ctx) => element }

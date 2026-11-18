@@ -1,0 +1,5 @@
+/* The chrome-less Layout builder module (#1996): the shell hides its bar, menu and breadcrumb (chrome: false), so the module's host is the viewport: a link row of one tap target on top, the builder in the rest. Tokens only. */
+.lb-back { display: flex; align-items: center; box-sizing: border-box; block-size: var(--touch-target); padding-inline: var(--space-3); font-size: var(--text-sm); }
+.lb-area { block-size: calc(100dvh - var(--touch-target)); min-inline-size: 0; }
+/* The app's screen-reader live region sits just under the shell and adds 1px of page scroll; the builder owns the viewport, so the page does not scroll while this sheet is attached. */
+html { overflow: hidden; }

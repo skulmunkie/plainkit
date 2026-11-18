@@ -32,6 +32,10 @@
 :host([contain]) [part="body"] { container: var(--pk-app-shell-container, page) / inline-size; overflow-x: clip; }
 :host([contain]) [part="body"] > slot:not([name])::slotted(*) { flex: 1 1 auto; min-block-size: 0; }
 
+:host([bare]) { grid-template-columns: minmax(0, 1fr); overflow: clip; }
+:host([bare]) [part="header"], :host([bare]) [part="footer"], :host([bare]) slot[name="nav"] { display: none; }
+:host([bare]) [part="body"] { padding: 0; scrollbar-gutter: auto; overflow: hidden; }
+
 :host([flush]) [part="body"] { --pk-page-header-sticky-top: 0px; padding: 0; padding-inline: env(safe-area-inset-left) env(safe-area-inset-right); }
 
 [part="footer"] { flex: none; display: flex; align-items: center; gap: var(--space-3); min-height: var(--app-footer-h); padding: var(--pad-footer); padding-bottom: env(safe-area-inset-bottom); padding-inline: max(var(--space-4), env(safe-area-inset-left)) max(var(--space-4), env(safe-area-inset-right)); background: var(--color-panel); border-top: 1px solid var(--color-border); color: var(--color-muted); font-size: var(--text-meta); }
