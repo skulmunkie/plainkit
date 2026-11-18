@@ -482,7 +482,7 @@ export const toolCases = [
         // the dist as the package will ship it: no plainkit.css in the manifest, and the file is not served
         window.fetch = async (input, init) => {
             const url = String(input?.url ?? input);
-            if (/\/plainkit\.css$/.test(url)) return new Response('', { status: 404 });
+            if (/\/plainkit\.css$/.test(url) || url.endsWith('/manifest.extras.json')) return new Response('', { status: 404 }); // the npm shape: no unminified page layer and no extras manifest
             const r = await realFetch(input, init);
             if (/\/manifest\.json$/.test(url) && !/modules\//.test(url)) { const m = await r.json(); m.files = m.files.filter(f => f.path !== 'plainkit.css'); return new Response(JSON.stringify(m), { status: 200 }); }
             return r;
@@ -525,9 +525,10 @@ export const toolCases = [
         t.ok(/^plainkit-custom-.+\.zip$/.test(got[0].name) && files.has('README.md') && files.has('plainkit.custom.json') && files.has('dist/manifest.json') && files.has('dist/elements/button.js'), got[0].name);
         t.ok(/--pk-bp-phone:700px;--pk-bp-tablet:1024px/.test(text('dist/plainkit.css')) && /--color-accent: #123456/.test(text('dist/plainkit.css')) && /max-width:\s*700px/.test(text('dist/elements/table.js') + text('dist/elements/tabs.js')), 'widths and theme are in the page layer and the elements');
         const manifest = JSON.parse(text('dist/manifest.json'));
-        for (const p of ['plainkit.css', 'plainkit.min.css', 'elements/tabs.js', 'icons.svg']) {
+        const extras = JSON.parse(text('dist/manifest.extras.json')); // the unminified page layer is listed in the extras manifest (#2032)
+        for (const [p, unit] of [['plainkit.css', extras], ['plainkit.min.css', manifest], ['elements/tabs.js', manifest], ['icons.svg', manifest]]) {
             const digest = new Uint8Array(await crypto.subtle.digest('SHA-256', files.get(`dist/${p}`)));
-            t.eq(manifest.files.find(f => f.path === p).integrity, 'sha256-' + btoa(String.fromCharCode(...digest)), `${p} hash matches the manifest`);
+            t.eq(unit.files.find(f => f.path === p).integrity, 'sha256-' + btoa(String.fromCharCode(...digest)), `${p} hash matches the manifest`);
         }
         // the modules unit travels with its own manifest, whose hashes match the rewritten tool files
         const tools = JSON.parse(text('dist/modules/manifest.json'));
