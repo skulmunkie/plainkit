@@ -1,7 +1,7 @@
 // Pure logic behind the layout builder module (modules/layout-builder): what the palette lists, where a new element goes, what the arrow and Alt+arrow keys do,
 // and which fields the inspector shows for an element. No DOM, so node tests cover it. The document model is js/layout-model.js.
 
-import { flatten, locate, findNode, kebab } from './layout-model.js';
+import { flatten, locate, findNode, kebab, walk } from './layout-model.js';
 import { moveTarget as treeMoveTarget } from './tree-reorder.js';
 
 const isText = c => typeof c === 'string';
@@ -58,6 +58,53 @@ export function insertionCandidates(doc, selectedId, registry) {
     const out = [];
     if (entry && !entry.void && entry.slots.some(s => s.name === '')) out.push({ parent: at.node.id, slot: '', index: undefined, where: `inside <${at.node.tag}>` });
     out.push({ parent: at.parent?.id ?? null, slot: at.slot ?? '', index: at.index + 1, where: `after <${at.node.tag}>` });
+    return out;
+}
+
+// ---------------------------------------------------------------- nesting: drop zones
+
+// A node a page can be put inside: it has a default slot and is not void or text-like (a paragraph, a button, a badge take text, not blocks).
+const TEXTISH = /^(h[1-6]|p|pre|li|dt|dd|th|td|caption|figcaption|summary|legend|label|button|a|option|pk-(button|badge|tag|link|text|heading|hint|stat|avatar|checkbox|switch|select|local-time|skip-link|menu-item|nav-item|tab|step|divider))$/;
+export const isContainer = entry => Boolean(entry && !entry.void && !entry.phrasing && !TEXTISH.test(entry.tag) && entry.slots.some(s => s.name === '' && !s.dynamic));
+
+/** The zone under the pointer, from the node it is over (null: the page): the innermost container (the node itself or the nearest ancestor), in the slot the path to
+ *  the pointer runs through. `skip` (a node being moved) and everything in it is never a zone; `up` (Alt) takes the next container out. Returns { parent, slot }. */
+export function dropZone(doc, registry, hitId, { skip = null, up = false } = {}) {
+    const chain = [];
+    for (let at = hitId && locate(doc, hitId); at; at = at.parent && locate(doc, at.parent.id)) chain.push(at);
+    const cut = chain.findIndex(a => a.node.id === skip);
+    let skipUp = up, via = null;
+    for (const at of cut < 0 ? chain : chain.slice(cut + 1)) {
+        if (via === null && cut >= 0) via = skip;
+        if (isContainer(registry.entry(at.node.tag))) {
+            if (skipUp) skipUp = false;
+            else return { parent: at.node.id, slot: via ? locate(doc, via).slot ?? '' : '' };
+        }
+        via = at.node.id;
+    }
+    return { parent: null, slot: '' };
+}
+
+/** Where in a zone's list the pointer would insert (an index into the list without `skip`): before the first child whose middle is past the pointer, along the row
+ *  when the children share one, else down the column. `rectOf(id)` gives a child's rectangle (null when it is not drawn). */
+export function dropIndex(list, rectOf, x, y, skip = null) {
+    const kept = list.filter(c => isText(c) || c.id !== skip);
+    const rects = kept.map(c => (isText(c) ? null : rectOf(c.id)));
+    const known = rects.filter(Boolean);
+    const row = known.length > 1 && known.every(r => Math.abs(r.top - known[0].top) < 2);
+    const at = rects.findIndex(r => r && (row ? x < r.left + r.width / 2 : y < r.top + r.height / 2));
+    return at < 0 ? kept.length : at;
+}
+
+/** Every place the node `id` can be moved to by name: the page, and each container (not inside the node itself) with each slot it declares. [{ value: 'parentId|slot', label }]. */
+export function moveZones(doc, registry, id) {
+    const out = [{ value: '|', label: 'The page (top level)' }];
+    walk(doc, n => {
+        const entry = registry.entry(n.tag);
+        if (n.id === id || !isContainer(entry)) return n.id === id ? false : undefined;
+        for (const slot of entry.slots.filter(s => !s.dynamic).map(s => s.name)) out.push({ value: `${n.id}|${slot}`, label: `${nodeLabel(n)}${slot ? ` / ${slot}` : ''}` });
+        return undefined;
+    });
     return out;
 }
 

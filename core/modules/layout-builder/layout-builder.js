@@ -16,6 +16,10 @@
 // Down reorder, Left moves it out of its parent, Right into the element before it), Delete removes, Ctrl+D duplicates, Ctrl+Z undoes, Ctrl+Y or Ctrl+Shift+Z redoes,
 // Ctrl+S saves. The toolbar's File and Edit menus (and the canvas's right-click menu) run the same functions and show these keys: neither is replaced by drag-and-drop (issue #174).
 //
+// Nesting (#1997): a palette button or the Move chip drags with the zone under the pointer (dropZone/dropIndex in js/layout-builder-logic.js: the innermost container, in the
+// slot the pointer is over, any depth; Alt takes the zone one level out), an overlay line marks the insertion, and the properties form has a Move into list as the keyboard and
+// touch path. The older text below (issue #174) describes the top-level pk-sortable, which still orders the page rows.
+//
 // Pointer/touch drag-and-drop (issue #174, built on pk-sortable, core/elements/sortable/): the top-level page order is a real pk-sortable of pk-sortable-item rows,
 // each with its own 44px drag handle; dragging one reorders the page for real (a pk-reorder event drives M.moveNode, same as Alt+arrows). A palette button is a second
 // drag source, using pk-sortable's external-drop API (beginExternalDrag/externalDragOver/endExternalDrag): dropped between top-level rows it inserts there; dropped on
@@ -68,7 +72,7 @@ export async function mountLayoutBuilder(container, options = {}) {
 
     // ---- state
     let history = M.createHistory(M.emptyDoc());
-    const state = { selected: null, hover: null, dropTarget: null, chip: null, query: '', internal: false };
+    const state = { selected: null, hover: null, dropTarget: null, zone: null, chip: null, query: '', internal: false };
     const elements = new Map();
     const listeners = new Map();
     const cleanups = [];
@@ -103,6 +107,7 @@ export async function mountLayoutBuilder(container, options = {}) {
     // stay Edit menu items, context-menu items and keyboard shortcuts rather than more icons (a decision recorded on #174).
     const canvas = h(doc, 'pk-design-surface', { label: 'Page preview. Select with the arrow keys or the structure tree; the page itself is not interactive here.' }, empty,
         h(doc, 'pk-button', { slot: 'chip', size: 'mini', variant: 'ghost', icon: true, 'icon-name': 'edit', 'data-node-action': 'edit', label: 'Edit' }, 'Edit'),
+        h(doc, 'pk-button', { slot: 'chip', size: 'mini', variant: 'ghost', icon: true, 'icon-name': 'sort', 'data-node-action': 'drag', label: 'Move: drag onto a container or between elements' }, 'Move'),
         h(doc, 'pk-button', { slot: 'chip', size: 'mini', variant: 'warn', icon: true, 'icon-name': 'trash', 'data-node-action': 'trash', label: 'Delete' }, 'Delete'));
     const widths = h(doc, 'pk-button-group', { label: 'Canvas width', mode: 'single' },
         h(doc, 'pk-button', { 'data-width': 'phone', size: 'mini', variant: 'ghost', toggle: true, value: 'phone' }, '375px'),
@@ -121,12 +126,19 @@ export async function mountLayoutBuilder(container, options = {}) {
     const dock = h(doc, 'pk-dock', { label: 'Layout builder panels' }, ...menus,
         panel('palette', 'Palette', 'left', search, paletteMenu), panel('structure', 'Structure', 'left', tree), panel('html', 'HTML', 'left', code),
         panel('canvas', 'Canvas', 'center', widths, canvasMenu), props);
-    const root = h(doc, 'section', { class: 'lb', 'aria-label': 'Layout builder' }, status, hint, dock);
+    // The insertion mark of a drag (a line between elements, or a bar in an empty container): the builder's own overlay, never part of the page.
+    const dropLine = h(doc, 'div', { class: 'lb-drop-line', hidden: true });
+    const root = h(doc, 'section', { class: 'lb', 'aria-label': 'Layout builder' }, status, hint, dock, dropLine);
     if (options.height) { root.dataset.dyn = `height:${options.height}`; applyDynamic(root); }
     container.replaceChildren(root);
     loadElements(root);
 
     const say = (text, kind = 'info') => { status.textContent = text; status.setAttribute('data-kind', kind); };
+
+    // Whether the model accepts a move of the node to the end of that parent (null: the page) and slot.
+    function canPlace(id, parent, slot) {
+        try { M.moveNode(current(), { id, parent: parent || null, slot, index: undefined }, registry); return true; } catch (error) { if (error instanceof M.ModelError) return false; throw error; }
+    }
 
     // Run an edit; a refused edit is logged, shown and reported instead of throwing into the page.
     function attempt(label, fn) {
@@ -254,6 +266,10 @@ export async function mountLayoutBuilder(container, options = {}) {
             if (!names.includes(at.slot ?? '')) names.push(at.slot ?? '');
             if (names.length > 1) rows.push(field(`Slot in <${at.parent.tag}>`, 'Which slot of the parent this element fills.', h(doc, 'pk-select', { 'data-role': 'slot', value: at.slot ?? '' }, ...names.map(n => h(doc, 'option', { value: n }, n || '(default)')))));
         }
+        // Move into: the keyboard, touch and screen-reader way of the drop (every container and slot the element may go into, or the page).
+        const here = `${at.parent?.id ?? ''}|${at.slot ?? ''}`;
+        const zones = L.moveZones(current(), registry, node.id).filter(z => z.value === here || canPlace(node.id, ...z.value.split('|')));
+        if (zones.length > 1) rows.push(field('Move into', 'Put this element inside another one, or back on the page.', h(doc, 'pk-select', { 'data-role': 'parent', value: here }, ...zones.map(z => h(doc, 'option', { value: z.value }, z.label)))));
         for (const f of L.fieldsFor(entry, node)) {
             const meta = { 'data-attr': f.attr, 'data-type': f.type };
             const help = f.description.split('. ')[0].slice(0, 110);
@@ -371,6 +387,11 @@ export async function mountLayoutBuilder(container, options = {}) {
                 if (M.normalizeText(raw) === ((node.slots[''] ?? []).find(isText) ?? '')) return;
                 const r = attempt('Cannot set the text', () => M.setText(current(), { id, text: raw }));
                 if (r) commit(r.doc, 'text', { key: `text:${id}`, keepForm: true });
+            } else if (role === 'parent') {
+                const [parent, slot] = String(raw).split('|'), at = M.locate(current(), id);
+                if (raw === `${at.parent?.id ?? ''}|${at.slot ?? ''}`) return;
+                const r = attempt('Cannot move', () => M.moveNode(current(), { id, parent: parent || null, slot, index: undefined }, registry));
+                if (r) { commit(r.doc, 'move', { select: id }); say(parent ? `Moved inside <${M.findNode(current(), parent)?.tag}>` : 'Moved to the page'); }
             } else if (role === 'slot') {
                 if (raw === (M.locate(current(), id).slot ?? '')) return;
                 const r = attempt('Cannot change the slot', () => M.setSlot(current(), { id, slot: raw }, registry));
@@ -415,21 +436,36 @@ export async function mountLayoutBuilder(container, options = {}) {
     on(paletteMenu, 'pk-select', e => { if (e.target.localName === 'pk-menu-item' && paletteTag) insert(paletteTag); });
     on(paletteList, 'click', e => { const b = e.target.closest?.('pk-button[data-tag]'); if (b) insert(b.getAttribute('data-tag')); });
 
-    // ---- drag-and-drop: canvas reorder (the top-level pk-sortable) and palette -> canvas insert (its external-drop API)
-    function clearDropTarget() { state.dropTarget = null; canvas.dropTarget = null; }
+    // ---- drag-and-drop (nesting): the top-level page order is a pk-sortable; a palette button and the Move chip drag with the zone under the pointer
+    // (js/layout-builder-logic.js dropZone: the innermost container, in the slot the pointer is in, any depth; Alt takes the zone one level out). The insertion mark is
+    // the builder's own overlay line, not a wrapper around the page's nodes, so the elements' ::slotted() stylesheets stay intact.
+    function clearDropTarget() { state.dropTarget = null; canvas.dropTarget = null; state.zone = null; dropLine.hidden = true; }
     function setDropTarget(id) {
         if (id === state.dropTarget) return;
-        clearDropTarget();
         state.dropTarget = id;
         canvas.dropTarget = (id && elements.get(id)) || null;
     }
-    // A container a dropped element can go inside: it declares a default slot, is not void, and is not the dragged node's own ancestor (checked by the caller).
-    function containerAt(x, y) {
-        const id = hit(x, y);
-        if (!id) return null;
-        const node = M.findNode(current(), id);
-        const entry = node && registry.entry(node.tag);
-        return entry && !entry.void && entry.slots.some(s => s.name === '' && !s.dynamic) ? id : null;
+    function zoneAt(x, y, skip, up) {
+        const d = current(), z = L.dropZone(d, registry, hit(x, y), { skip, up });
+        const list = z.parent ? M.findNode(d, z.parent).slots[z.slot] ?? [] : d.nodes;
+        const rectOf = id => { const r = elements.get(id)?.getBoundingClientRect(); return r && r.width + r.height > 0 ? r : null; };
+        return { ...z, list, rectOf, index: L.dropIndex(list, rectOf, x, y, skip) };
+    }
+    // The mark: a line before the child the drop lands in front of, after the last one, or across an empty container.
+    function drawZone(z, skip, ok) {
+        const kept = z.list.filter(c => isText(c) || c.id !== skip), rects = kept.map(c => (isText(c) ? null : z.rectOf(c.id)));
+        const known = rects.filter(Boolean), row = known.length > 1 && known.every(r => Math.abs(r.top - known[0].top) < 2);
+        const next = rects[z.index] ?? null, prev = rects.slice(0, z.index).reverse().find(Boolean) ?? null, box = elements.get(z.parent)?.getBoundingClientRect();
+        let at = null;
+        if (next) at = row ? { left: next.left - 2, top: next.top, width: 3, height: next.height } : { left: next.left, top: next.top - 2, width: next.width, height: 3 };
+        else if (prev) at = row ? { left: prev.right - 1, top: prev.top, width: 3, height: prev.height } : { left: prev.left, top: prev.bottom - 1, width: prev.width, height: 3 };
+        else if (box) at = { left: box.left + 4, top: box.top + box.height / 2 - 1, width: Math.max(box.width - 8, 8), height: 3 };
+        if (!at) { dropLine.hidden = true; return; }
+        const o = root.getBoundingClientRect();
+        dropLine.dataset.dyn = `left:${at.left - o.left}px; top:${at.top - o.top}px; width:${at.width}px; height:${at.height}px`;
+        dropLine.toggleAttribute('data-invalid', !ok);
+        dropLine.hidden = false;
+        applyDynamic(dropLine);
     }
     on(canvas, 'pk-reorder', e => {
         const { order, item, to, external, payload } = e.detail;
@@ -439,51 +475,76 @@ export async function mountLayoutBuilder(container, options = {}) {
         const r = attempt('Cannot move', () => M.moveNode(current(), target, registry));
         if (r) { commit(r.doc, 'move', { select: item }); say('Moved'); }
     });
+    // A palette drop between top-level rows (pk-sortable reports where).
     function handleExternalInsert(payload, at) {
         const tag = payload?.tag;
         if (!tag) return;
         const entry = registry.entry(tag);
         if (!entry) { log.warn(`insert: <${tag}> is not an element the builder knows`); say(`<${tag}> is not an element the builder knows`, 'warn'); return; }
-        const parent = state.dropTarget;
-        const seed = L.seedSpec(tag, entry.meta);
-        const r = attempt(`Cannot add <${tag}>`, () => M.insertNode(current(), parent ? { parent, slot: '', node: seed } : { parent: null, slot: '', index: at, node: seed }, registry));
-        if (r) { commit(r.doc, 'insert', { select: r.id }); say(parent ? `Added <${tag}> inside <${M.findNode(current(), parent)?.tag}>` : `Added <${tag}>`); }
+        const r = attempt(`Cannot add <${tag}>`, () => M.insertNode(current(), { parent: null, slot: '', index: at, node: L.seedSpec(tag, entry.meta) }, registry));
+        if (r) { commit(r.doc, 'insert', { select: r.id }); say(`Added <${tag}>`); }
     }
-    function startExternalDrag(tag, downEvent) {
-        const sortable = canvasSortable();
-        if (!sortable) return;
-        let dragging = false;
+    // source: { tag } (a palette button: a new element) or { id } (the Move chip: a node of the page).
+    function startDrag(source) {
+        const sortable = canvasSortable(), win = doc.defaultView ?? window, skip = source.id ?? null;
+        let dragging = false, live = false, last = '';
+        const place = z => ({ parent: z.parent, slot: z.slot, index: z.index });
+        const run = z => (skip ? M.moveNode(current(), { id: skip, ...place(z) }, registry) : M.insertNode(current(), { ...place(z), node: L.seedSpec(source.tag, registry.entry(source.tag)?.meta) }, registry));
+        const accepts = z => { try { run(z); return true; } catch (error) { if (error instanceof M.ModelError) return false; throw error; } };
+        // The page's own pk-sortable draws the top-level insertion for a palette element (its external-drop API); inside a container this overlay does.
+        const sortableOn = yes => {
+            if (!sortable || yes === live || !source.tag) return;
+            live = yes;
+            if (yes) sortable.beginExternalDrag({ tag: source.tag }); else sortable.endExternalDrag(false);
+        };
         const over = ev => {
             dragging = true;
             canvas.dragging = true;
-            // The move/up listeners are on the window (a drag started on a palette button, outside the canvas, has to be tracked past its
-            // own bounds), so the event's target is whatever the pointer is really over, or window itself past the document edge: geometry
-            // against the canvas's own rectangle is what decides this, not a Node.contains() check (window is not a Node, and throws one).
+            // The listeners are on the window (a drag started outside the canvas is tracked past its bounds): geometry decides whether the pointer is over the canvas.
             const r = canvas.getBoundingClientRect();
-            const inCanvas = ev.clientX >= r.left && ev.clientX <= r.right && ev.clientY >= r.top && ev.clientY <= r.bottom;
-            if (!inCanvas) { clearDropTarget(); return; }
-            sortable.externalDragOver(ev.clientX, ev.clientY);
-            setDropTarget(containerAt(ev.clientX, ev.clientY));
+            if (!(ev.clientX >= r.left && ev.clientX <= r.right && ev.clientY >= r.top && ev.clientY <= r.bottom)) { clearDropTarget(); return; }
+            const z = zoneAt(ev.clientX, ev.clientY, skip, ev.altKey);
+            state.zone = z;
+            if (z.parent === null && source.tag) { setDropTarget(null); dropLine.hidden = true; sortableOn(true); sortable?.externalDragOver(ev.clientX, ev.clientY); return; }
+            sortableOn(false);
+            setDropTarget(z.parent);
+            const ok = accepts(z);
+            drawZone(z, skip, ok);
+            const key = `${z.parent}|${z.slot}|${z.index}|${ok}`;
+            if (key !== last) { last = key; say(`${ok ? 'Drop' : 'Cannot drop'} ${z.parent ? `inside <${M.findNode(current(), z.parent)?.tag}>${z.slot ? ` (${z.slot})` : ''}` : 'on the page'}`); }
         };
-        const up = ev => {
+        const end = (ev, cancelled) => {
             win.removeEventListener('pointermove', over);
             win.removeEventListener('pointerup', up);
-            const droppedInContainer = Boolean(state.dropTarget);
-            if (dragging) sortable.endExternalDrag(!droppedInContainer);
-            else sortable.endExternalDrag(false);
-            if (dragging && droppedInContainer) handleExternalInsert({ tag }, null);
-            clearDropTarget();
+            win.removeEventListener('pointercancel', cancel);
+            const z = state.zone;
             canvas.dragging = false;
+            if (dragging && !cancelled && live && !z?.parent) { sortable.endExternalDrag(true); clearDropTarget(); return; }
+            sortableOn(false);
+            clearDropTarget();
+            if (!dragging || cancelled || !z) return;
+            const r = attempt(skip ? 'Cannot move' : `Cannot add <${source.tag}>`, () => run(z));
+            if (!r) return;
+            commit(r.doc, skip ? 'move' : 'insert', { select: r.id });
+            say(`${skip ? 'Moved' : `Added <${source.tag}>`} ${z.parent ? `inside <${M.findNode(current(), z.parent)?.tag}>${z.slot ? ` (${z.slot})` : ''}` : 'on the page'}`);
         };
-        const win = doc.defaultView ?? window;
-        sortable.beginExternalDrag({ tag });
+        const up = ev => end(ev, false);
+        const cancel = ev => end(ev, true);
+        if (source.tag) sortableOn(true);
         on(win, 'pointermove', over);
         on(win, 'pointerup', up, { once: true });
+        on(win, 'pointercancel', cancel, { once: true });
     }
     on(paletteList, 'pointerdown', e => {
         if (e.button > 0) return;
         const b = e.target.closest?.('pk-button[data-tag]');
-        if (b) startExternalDrag(b.getAttribute('data-tag'), e);
+        if (b) startDrag({ tag: b.getAttribute('data-tag') });
+    });
+    // The Move chip drags the hovered or selected node (touch-action none in the stylesheet keeps a touch drag from scrolling the page).
+    on(canvas, 'pointerdown', e => {
+        if (e.button > 0 || !e.target.closest?.('pk-button[data-node-action="drag"]') || !state.chip) return;
+        e.preventDefault();
+        startDrag({ id: state.chip });
     });
     on(search, 'input', () => { state.query = search.value ?? ''; paintPalette(); });
     on(search, 'pk-search', () => { state.query = search.value ?? ''; paintPalette(); });

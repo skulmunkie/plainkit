@@ -21,6 +21,7 @@ The rules every change to `core/` follows. The tests enforce most of them; this 
 - Each tool is a JavaScript module with one entry point, `mountX(container, options)`, that returns a small handle (`destroy()` at least). A custom element wrapper is optional and only added when it is a thin layer over the module (`<pk-gallery>`).
 - Source lives in `modules/<name>/` (the gallery in `site/gallery/`); pure logic sits in `js/` so node tests can import it without a DOM.
 - No new runtime dependencies. Reuse SDK components; do not rebuild them.
+- An app module that must own the viewport (a workbench such as the layout builder) sets `chrome: false` in `defineModule` rather than becoming a second app entry (`core/tests/app-dogfood.test.mjs`): `mountApp` sets `bare` on `pk-app-shell` and hides the breadcrumb while that module is active, and the module draws its own way back (#1996).
 
 ## Composition: check before you build
 

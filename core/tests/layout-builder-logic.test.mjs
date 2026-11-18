@@ -6,7 +6,7 @@ import fs from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { createRegistry, emptyDoc, insertNode, moveNode, validateDoc, errorsOf, findNode, flatten } from '../js/layout-model.js';
-import { paletteGroups, seedSpec, insertionCandidates, moveTarget, nextSelection, selectionAfterRemove, fieldsFor, propFromControl, nodeLabel, nativeMeta, NATIVE_GROUP } from '../js/layout-builder-logic.js';
+import { paletteGroups, seedSpec, insertionCandidates, moveTarget, nextSelection, selectionAfterRemove, fieldsFor, propFromControl, nodeLabel, nativeMeta, dropZone, dropIndex, moveZones, isContainer, NATIVE_GROUP } from '../js/layout-builder-logic.js';
 
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 const api = JSON.parse(fs.readFileSync(path.join(root, 'dist', 'elements', 'api.json'), 'utf8'));
@@ -157,4 +157,41 @@ test('labels and native metadata for the tree and the inspector', () => {
     const meta = nativeMeta('a', registry.entry('a'));
     assert.deepEqual([meta.tag, meta.props.map(p => p.name)], ['a', ['href', 'target', 'rel', 'download']]);
     assert.equal(meta.slots[0].name, '');
+});
+test('nesting: the drop zone is the innermost container under the pointer, in the slot the pointer is in, and never inside the node being moved', () => {
+    const { doc, stack, h2, card, p, button } = page();
+    assert.deepEqual(dropZone(doc, registry, p, {}), { parent: card, slot: '' }, 'a paragraph is text-like: its card is the zone');
+    assert.deepEqual(dropZone(doc, registry, button, {}), { parent: card, slot: 'footer' }, 'a node of a named slot drops into that slot');
+    assert.deepEqual(dropZone(doc, registry, card, {}), { parent: card, slot: '' }, 'a container under the pointer is the zone itself');
+    assert.deepEqual(dropZone(doc, registry, p, { up: true }), { parent: stack, slot: '' }, 'Alt takes the zone one level out');
+    assert.deepEqual(dropZone(doc, registry, p, { skip: card }), { parent: stack, slot: '' }, 'a node cannot drop into itself or its own content');
+    assert.deepEqual(dropZone(doc, registry, null, {}), { parent: null, slot: '' }, 'nothing under the pointer is the page');
+    assert.deepEqual(dropZone(doc, registry, h2, {}), { parent: stack, slot: '' });
+});
+
+test('nesting: the drop index is the first child whose middle is past the pointer, along a row or down a column, without the moved node', () => {
+    const list = [{ id: 'a' }, 'text', { id: 'b' }, { id: 'c' }];
+    const column = { a: { top: 0, left: 0, width: 100, height: 20 }, b: { top: 20, left: 0, width: 100, height: 20 }, c: { top: 40, left: 0, width: 100, height: 20 } };
+    assert.equal(dropIndex(list, id => column[id], 50, 5), 0);
+    assert.equal(dropIndex(list, id => column[id], 50, 25), 2);
+    assert.equal(dropIndex(list, id => column[id], 50, 59), 4);
+    assert.equal(dropIndex(list, id => column[id], 50, 25, 'a'), 1, 'the moved node is not counted');
+    const row = { a: { top: 0, left: 0, width: 40, height: 20 }, b: { top: 0, left: 40, width: 40, height: 20 }, c: { top: 0, left: 80, width: 40, height: 20 } };
+    assert.equal(dropIndex(list, id => row[id], 70, 10), 3, 'along the row the pointer x decides');
+    assert.equal(dropIndex([], () => null, 0, 0), 0, 'an empty zone takes it first');
+});
+
+test('nesting: move zones list the page and each container slot, none inside the node itself, and moving there is accepted by the model', () => {
+    const { doc, stack, card, h2, alert } = page();
+    const values = moveZones(doc, registry, card).map(z => z.value);
+    assert.ok(values.includes('|') && values.includes(`${stack}|`), 'the page and the stack');
+    assert.ok(!values.some(v => v.startsWith(`${card}|`)), 'not inside the card itself');
+    const zones = moveZones(doc, registry, h2).map(z => z.value);
+    assert.ok(zones.includes(`${card}|footer`) && zones.includes(`${card}|`), 'every slot of a container');
+    const [parent, slot] = `${card}|footer`.split('|');
+    const moved = moveNode(doc, { id: alert, parent, slot, index: 0 }, registry);
+    assert.equal(findNode(moved.doc, card).slots.footer[0].id, alert);
+    assert.equal(errorsOf(validateDoc(moved.doc, registry)).length, 0);
+    assert.equal(isContainer(registry.entry('pk-button')), false);
+    assert.equal(isContainer(registry.entry('pk-stack')), true);
 });

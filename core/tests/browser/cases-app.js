@@ -737,7 +737,7 @@ export const appCases = [
         const p = await open('?record', 375), pl = p.el.querySelector('pk-list-group'), btn = p.el.shadowRoot.querySelector('[part="menu"]'), before = [...p.el.children].map(k => k.outerHTML).join('');
         t.ok(!shown(pl), 'phone with a record: the list is closed to begin with');
         t.ok(btn && shown(btn) && /menu/i.test(btn.textContent), 'phone: a visible Menu button is drawn in the page\'s own shadow tree');
-        const inner = () => btn.shadowRoot.querySelector('button'), vw = p.win.innerWidth;
+        await until(() => btn.shadowRoot, 'the Menu button to upgrade'); const inner = () => btn.shadowRoot.querySelector('button'), vw = p.win.innerWidth;
         t.eq(inner().getAttribute('aria-expanded'), 'false', 'the Menu button reports aria-expanded=false while closed');
         btn.focus(); inner().click();
         await until(() => shown(pl), 'the list drawer to open');
