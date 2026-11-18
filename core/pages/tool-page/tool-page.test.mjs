@@ -5,7 +5,7 @@ import assert from 'node:assert/strict';
 import behaviour from './tool-page.js';
 
 const fakeEl = tag => ({
-    localName: tag, attrs: {}, children: [], listeners: {},
+    remove() {}, removeAttribute(k) { delete this.attrs[k]; }, localName: tag, attrs: {}, children: [], listeners: {},
     setAttribute(k, v) { this.attrs[k] = String(v); },
     append(...k) { this.children.push(...k); },
     replaceChildren(...k) { this.children = k; },
@@ -132,4 +132,16 @@ test('content in the default slot hides the generated form and outcome, and its 
     parts.custom.nodes = [{ nodeType: 3, textContent: '\n' }];
     parts.custom.fire('slotchange');
     assert.equal(parts.form.hidden, false); assert.equal(parts.outcome.hidden, false);
+});
+
+test('the actionsOverflow and overflowLabel attributes reach the title bar unless config sets them (#2010)', () => {
+    const { el, parts } = make();
+    el.actionsOverflow = 'phone'; el.overflowLabel = 'Actions';
+    el.config = { heading: 'T' };
+    el.connected();
+    assert.equal(parts.header.attrs['actions-overflow'], 'phone');
+    assert.equal(parts.header.attrs['overflow-label'], 'Actions');
+    el.config = { heading: 'T', actionsOverflow: 'tablet' };
+    el.changed('config');
+    assert.equal(parts.header.attrs['actions-overflow'], 'tablet');
 });

@@ -847,3 +847,10 @@ test('extras: every hand-written wrapper that mounts a tools module says so in h
     }
     assert.match(load().files.get('PkExtraRequirements.cs'), /public partial class PkCodeExplorer/);
 });
+
+test('PkToolPage carries ActionsOverflow and OverflowLabel as extra parameters (#2010)', () => {
+    const razor = fs.readFileSync(path.join(generatedDir, 'PkToolPage.razor'), 'utf8');
+    assert.match(razor, /actions-overflow="@\(ActionsOverflow\?\.ToAttr\(\)\)"/);
+    assert.match(razor, /\[Parameter\] public PageHeaderActionsOverflow\? ActionsOverflow/);
+    assert.match(razor, /\[Parameter\] public string\? OverflowLabel/);
+});

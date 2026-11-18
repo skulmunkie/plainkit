@@ -13,7 +13,7 @@ export default Base => class extends Base {
         // The Run button is a real pk-* element in this shadow tree from the start (the static template, build-time bundled with this
         // element - core/components/detail-layout does the same for its own strip and Next button); load it once here.
         loadElements(this.shadowRoot);
-        showTitleBar(this, this.part('header'));
+        showTitleBar(this, this.part('header'), this.bar());
         this.buildFields();
         // Content the app puts in the default slot (#1604) takes the place of the generated input, Run button and outcome.
         const custom = this.part('custom');
@@ -26,7 +26,8 @@ export default Base => class extends Base {
         this.part('outcome').hidden = on;
     }
     // The shared shell's title bar (js/page-shell.js): config.heading, breadcrumb, actions, badges; nothing drawn when none is set.
-    changed(name) { if (name === 'config') { showTitleBar(this, this.part('header')); this.buildFields(); } }
+    changed(name) { if (name !== 'runLabel') { showTitleBar(this, this.part('header'), this.bar()); this.buildFields(); } }
+    bar() { return { actionsOverflow: this.actionsOverflow, overflowLabel: this.overflowLabel, ...this.config }; }
     updated() { this.part('run').textContent = this.runLabel || 'Run'; }
 
     // Rebuilt only when config.input itself changes (a JSON prop, so a cheap string compare is the dirty check): every other prop change
