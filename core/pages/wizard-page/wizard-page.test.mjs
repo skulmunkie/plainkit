@@ -188,3 +188,31 @@ test('footerActions draw one button each and emit pk-wizard-action; submitEarly 
     assert.equal(events.some(([n]) => n === 'pk-wizard-submit'), true);
     el.show(1); assert.equal(parts.submit.hidden, true, 'hidden on the last step');
 });
+
+test('config.liveValidate runs validate on a committed answer with { live, key }, marks the field and clears it; a stale result is dropped (#2011)', async () => {
+    const { el, parts } = make();
+    el.config = { ...el.config, liveValidate: true };
+    let out; const seen = [];
+    el.validate = async (id, values, opts) => { seen.push([id, values, opts]); return out; };
+    el.connected(); await tick();
+    const field = fakeEl('pk-field'), ctl = fakeEl('pk-input'); ctl.attrs.name = 'email'; ctl.value = 'x'; field.append(ctl);
+    el.controls = () => [ctl];
+    const up = ctl.closest.bind(ctl); ctl.closest = sel => sel === '[name]' ? ctl : up(sel);
+    out = { errors: { email: 'Taken' } };
+    parts.panes.listeners.change.at(-1)({ target: ctl }); await tick();
+    assert.deepEqual(seen[0][2], { live: true, key: 'email' }); assert.equal(field.attrs.error, 'Taken'); assert.equal(el.$i, 0);
+    out = undefined;
+    parts.panes.listeners.change.at(-1)({ target: ctl }); await tick();
+    assert.equal(field.attrs.error, undefined);
+});
+
+test('without liveValidate a committed answer does not call validate; controls() reaches slotted step controls', async () => {
+    const { el, parts } = make();
+    let n = 0; el.validate = async () => { n++; };
+    el.connected(); await tick();
+    const ctl = fakeEl('pk-input'); ctl.attrs.name = 'code'; ctl.hasAttribute = k => k in ctl.attrs; ctl.closest = () => ctl; ctl.querySelectorAll = () => [];
+    parts.panes.querySelectorAll = sel => sel === 'slot' ? [{ assignedElements: () => [ctl] }] : [];
+    assert.deepEqual(el.controls(), [ctl]);
+    parts.panes.listeners.change.at(-1)({ target: ctl }); await tick();
+    assert.equal(n, 0);
+});

@@ -552,6 +552,37 @@ export const appCases = [
         page.destroy();
     }],
 
+    ['wizard page type (#2011): config.liveValidate marks a field as the answer is committed (no Next), and the named controls of a slotted step are collected and validated', async t => {
+        const { mountPage } = await dist('js/app.js');
+        const box = document.createElement('div'); t.stage('').append(box);
+        const seen = [];
+        const page = await mountPage(box, { type: 'wizard', config: {
+            liveValidate: true,
+            steps: [{ id: 'a', label: 'Account', fields: [{ name: 'email', label: 'Email' }] }, { id: 'c', label: 'Code' }],
+            validate: async (id, values, ctx, opts) => { seen.push([id, values, opts]); return values.email === 'taken@x.y' ? { errors: { email: 'Already taken' } } : values.code === 'bad' ? { errors: { code: 'Bad code' } } : null; },
+            submit: async () => {},
+        } });
+        const el = box.querySelector('pk-wizard-page');
+        const slotted = document.createElement('div'); slotted.slot = 'step-c';
+        slotted.innerHTML = '<pk-field label="Code"><pk-input name="code"></pk-input></pk-field>';
+        el.append(slotted);
+        await t.load(box);
+        await until(() => el.part('panes').querySelector('[name=email]'), 'the first step');
+        const email = el.part('panes').querySelector('[name=email]'), inner = email.part('control');
+        inner.value = 'taken@x.y'; inner.dispatchEvent(new Event('input', { bubbles: true, composed: true })); inner.dispatchEvent(new Event('change', { bubbles: true, composed: true }));
+        await until(() => el.part('panes').querySelector('pk-field[error]'), 'the live message');
+        t.eq(el.part('panes').querySelector('pk-field').getAttribute('error'), 'Already taken'); t.eq(el.part('heading').textContent, 'Account', 'still on step one');
+        t.ok(seen[0][2].live === true && seen[0][2].key === 'email', 'validate is told it is live');
+        inner.value = 'free@x.y'; inner.dispatchEvent(new Event('input', { bubbles: true, composed: true })); inner.dispatchEvent(new Event('change', { bubbles: true, composed: true }));
+        await until(() => !el.part('panes').querySelector('pk-field[error]'), 'the message clears');
+        el.part('next').click(); await until(() => el.part('heading').textContent === 'Code', 'step two');
+        const code = slotted.querySelector('pk-input'), ci = code.part('control');
+        ci.value = 'bad'; ci.dispatchEvent(new Event('input', { bubbles: true, composed: true })); ci.dispatchEvent(new Event('change', { bubbles: true, composed: true }));
+        await until(() => slotted.querySelector('pk-field').getAttribute('error') === 'Bad code', 'the slotted control is validated live');
+        t.eq(seen.at(-1)[1].code, 'bad', 'the slotted value is collected');
+        page.destroy();
+    }],
+
     ['wizard page type (#1415): refresh() runs a load set after the first draw: the wizard starts again at step one with the draft answers in its fields', async t => {
         const { mountPage } = await dist('js/app.js');
         const box = document.createElement('div'); t.stage('').append(box);

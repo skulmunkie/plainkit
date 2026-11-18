@@ -19,7 +19,9 @@ export default Base => class extends Base {
             // A committed answer (a blur or a choice, not each keystroke), as pk-record-change: an app autosaves a draft from it.
             panes.addEventListener('change', e => {
                 const c = e.target?.closest?.('[name]'), key = c?.getAttribute('name');
-                if (key) this.emit('pk-wizard-change', { key, value: this.collect()[key], values: this.collect(), step: this.steps[this.$i]?.id });
+                if (!key) return;
+                this.emit('pk-wizard-change', { key, value: this.collect()[key], values: this.collect(), step: this.steps[this.$i]?.id });
+                if (this.config?.liveValidate) this.live(key);
             });
             this.part('submit').addEventListener('click', () => this.next(true));
             this.part('actions').addEventListener('click', e => {
@@ -141,7 +143,25 @@ export default Base => class extends Base {
         }));
         loadElements(pane);
     }
-    controls() { return [...this.part('panes').querySelectorAll('[name]')]; }
+    // Named controls of the panes, including the ones a slotted step projects (light DOM children of the host).
+    controls() {
+        const panes = this.part('panes'), out = [...panes.querySelectorAll('[name]')];
+        for (const slot of panes.querySelectorAll('slot')) for (const el of slot.assignedElements({ flatten: true })) out.push(...(el.hasAttribute('name') ? [el] : []), ...el.querySelectorAll('[name]'));
+        return out;
+    }
+    // config.liveValidate: a committed answer runs validate(stepId, values, { live: true, key }) without Next; { errors } marks fields, anything else clears the field.
+    async live(key) {
+        const gen = this.$gen, tok = this.$lv = (this.$lv ?? 0) + 1, step = this.steps[this.$i];
+        if (!step || step.review || typeof this.validate !== 'function') return;
+        let r;
+        try { r = await this.validate(step.id, this.collect(), { live: true, key }); } catch (err) { this.log.warn('live validate failed', err); return; }
+        if (gen !== this.$gen || tok !== this.$lv) return;
+        for (const c of this.controls()) {
+            const n = c.getAttribute('name'), f = c.closest('pk-field'), m = r?.errors?.[n];
+            if (!f || (n !== key && m == null)) continue;
+            if (m == null) f.removeAttribute('error'); else f.setAttribute('error', text(m));
+        }
+    }
     collect() {
         const out = { ...this.$draft }, fields = this.steps.flatMap(s => s.fields ?? []);
         for (const c of this.controls()) {
@@ -165,7 +185,7 @@ export default Base => class extends Base {
         const gen = this.$gen, step = this.steps[this.$i], last = early || this.$i === this.steps.length - 1, btn = this.part('next'), values = this.collect();
         this.$busy = true; btn.busy = true;
         renderState(this.part('notice'), 'ready');
-        for (const f of this.part('panes').querySelectorAll('pk-field[error]')) f.removeAttribute('error');
+        for (const c of this.controls()) c.closest('pk-field')?.removeAttribute('error');
         try {
             if (!step.review && typeof this.validate === 'function') { const r = await this.validate(step.id, values); if (r?.errors) throw r; }
             if (gen !== this.$gen) return;
