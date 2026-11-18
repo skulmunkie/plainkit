@@ -3,7 +3,8 @@
 // installed, waits for the page to post its report (core/tests/browser/report.json, local scratch output, not committed), prints the passed and failed
 // counts, then stops the server and the browser and deletes the temporary profile.
 //
-//   node scripts/attest-browser.mjs [--port 5341] [--timeout 420] [--width 1280] [--height 900] [--filter a,b] [--elements x,y]
+//   node scripts/attest-browser.mjs [--port 5341] [--timeout 420] [--width 1280] [--height 900] [--filter a,b] [--elements x,y] [--shard k/n] [--out file]
+//   --shard k/n: one of n disjoint parts of the (selected) cases, for running the full suite as parallel CI jobs; a sharded run never writes the "browser" run stamp (the merge does: scripts/browser-shard-merge.mjs). --out writes the run's own record of every case.
 //   --filter / --elements: a targeted run (the inner loop). Only the cases whose name contains a --filter substring or names an --elements element run (core/tests/browser/case-filter.js);
 //   the output says "N of M cases selected", and a filter that matches nothing exits 1. The full suite stays the integration-batch and release check.
 //
@@ -24,7 +25,7 @@ import { fileURLToPath } from 'node:url';
 import { ensureGenerated } from './generated.mjs';
 import { writeRunStamp } from './verify-guard.mjs';
 import { cpuScale } from '../core/tests/browser/cpu-scale.js';
-import { parseList } from '../core/tests/browser/case-filter.js';
+import { parseList, parseShard } from '../core/tests/browser/case-filter.js';
 import { makeTempDir, removeTree, removeTreeAsync, tempRoot } from '../core/tools/tempdir.mjs';
 
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
@@ -82,11 +83,13 @@ export function isNewRun(previousRan, current) {
 
 // Command line -> options; an unknown flag or a too-small window is an error message (the second value), not a silent default.
 export function parseArgs(argv) {
-    const o = { port: 5341, timeout: 1800, width: 1280, height: 900, filter: [], elements: [] };
+    const o = { port: 5341, timeout: 1800, width: 1280, height: 900, filter: [], elements: [] }; // shard and out exist only when given
     const num = (flag, v) => { const n = Number(v); if (!Number.isInteger(n) || n <= 0) throw new Error(`${flag} needs a positive whole number`); return n; };
     for (let i = 0; i < argv.length; i++) {
         const a = argv[i];
         if (['--port', '--timeout', '--width', '--height'].includes(a)) o[a.slice(2)] = num(a, argv[++i]);
+        else if (a === '--shard') { o.shard = parseShard(argv[++i]); if (!o.shard) throw new Error('--shard needs k/n with 1 <= k <= n, for example 2/4'); }
+        else if (a === '--out') { o.out = argv[++i]; if (!o.out || o.out.startsWith('--')) throw new Error('--out needs a file name'); }
         else if (a === '--filter' || a === '--elements') {
             const v = argv[++i];
             if (v === undefined || v.startsWith('--')) throw new Error(`${a} needs a value`);
@@ -120,6 +123,8 @@ export function applyProgress(run, ev, now = Date.now()) {
     else if (ev.step) run.step = ev.step;
     return run;
 }
+/** A shard's record for the merge: { shard: {k,n}|null, totalCases, results }. Pure. */
+export const shardRecord = ({ results, shard, totalCases }) => ({ shard, totalCases, results });
 export const FREEZE_MS = 30000;
 /** The case the page froze in (a case is open and no event, not even the 3 s beat, for FREEZE_MS), or null. */
 export const frozenCase = (run, now = Date.now(), freezeMs = FREEZE_MS) => (run.open && now - run.beatAt > freezeMs ? run.open : null);
@@ -207,6 +212,9 @@ async function main() {
     const query = new URLSearchParams();
     if (options.filter.length) query.set('filter', options.filter.join(','));
     if (options.elements.length) query.set('elements', options.elements.join(','));
+    if (options.shard) query.set('shard', `${options.shard.k}/${options.shard.n}`);
+    // --out: this run's own record of every case (the page's report covers only its last part after a restart), for scripts/browser-shard-merge.mjs
+    const writeOut = (results, totalCases) => { if (options.out) fs.writeFileSync(options.out, JSON.stringify(shardRecord({ results, shard: options.shard ?? null, totalCases }), null, 2)); };
     const urlFrom = from => { const q = new URLSearchParams(query); if (from > 1) q.set('from', String(from)); return `http://localhost:${options.port}/tests/browser/${q.size ? `?${q}` : ''}`; };
     const url = urlFrom(1);
     const run = newProgress();
@@ -271,6 +279,7 @@ async function main() {
             console.log(`browser run (page restarted ${restarts} time${restarts === 1 ? '' : 's'}): ${sum.passed} passed, ${sum.failed} failed, ${sum.total} of ${run.n} cases, ${took} s`);
             for (const [i, r] of [...run.results].sort((a, b) => a[0] - b[0])) if (!r.ok) console.log(`  FAIL ${r.name}: ${r.error ?? ''}`);
             code = sum.ok ? 0 : 1;
+            writeOut([...run.results].sort((a, b) => a[0] - b[0]).map(([, r]) => ({ name: r.name, ok: r.ok, ms: r.ms, ...(r.error && { error: r.error }) })), current?.totalCases ?? null);
             return code;
         }
         const sum = summarizeReport(current);
@@ -279,6 +288,7 @@ async function main() {
         if (current.filter && sum.total === 0) { console.error('The filter matched no case: check --filter / --elements against the case names in core/tests/browser/cases*.js.'); return 1; }
         for (const r of current.results.filter(r => !r.ok)) console.log(`  FAIL ${r.name}: ${r.error ?? ''}`);
         code = sum.ok ? 0 : 1;
+        writeOut(current.results, current.totalCases ?? null);
         if (code === 1 && !current.results.some(r => !r.ok)) console.error(`The run failed without a failing case: ${sum.passed} passed + ${sum.failed} failed of ${sum.total} recorded results (the suite may have stopped part way).`);
     } catch (e) {
         console.error(e.message);
@@ -286,7 +296,7 @@ async function main() {
     } finally {
         killTree(browser);
         killTree(server);
-        if (code < 2 && !options.filter.length && !options.elements.length) writeRunStamp(root, 'browser', code === 0); // which tree this full run belongs to (scripts/gate-check.mjs, #1754)
+        if (code < 2 && !options.filter.length && !options.elements.length && !options.shard) writeRunStamp(root, 'browser', code === 0); // which tree this full run belongs to (scripts/gate-check.mjs, #1754)
         await sleep(500);
         if (!(await removeDir(profile))) console.error(`Could not delete the temporary profile ${profile}; delete it by hand.`);
         if (code === 0) { try { fs.rmSync(tracePath, { force: true }); } catch (e) { console.error(`Could not delete the trace ${tracePath}: ${e.message}`); } } else if (fs.existsSync(tracePath)) console.error(`trace of this run: ${tracePath}`);

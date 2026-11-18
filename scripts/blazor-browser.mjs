@@ -41,7 +41,7 @@ let scale = 1, measuredAt = -Infinity;
 export const loadScale = () => { if (Date.now() - measuredAt > 5000) { scale = cpuScale(); measuredAt = Date.now(); } return scale; };
 
 export function parseArgs(argv) {
-    const o = { out: path.join(root, 'review-output'), shots: true, cases: [], timeout: 120, publishTimeout: 600, keepPublish: false, wasm: true, changed: false, base: null };
+    const o = { out: path.join(root, 'review-output'), shots: true, cases: [], timeout: 120, publishTimeout: 600, keepPublish: false, wasm: true, changed: false, base: null, publishCache: null };
     for (let i = 0; i < argv.length; i++) {
         const a = argv[i], v = () => { const x = argv[++i]; if (x === undefined || x.startsWith('--')) throw new Error(`${a} needs a value`); return x; };
         if (a === '--out') o.out = path.resolve(v());
@@ -50,6 +50,7 @@ export function parseArgs(argv) {
         else if (a === '--timeout') { o.timeout = Number(v()); if (!Number.isInteger(o.timeout) || o.timeout <= 0) throw new Error('--timeout needs a positive whole number'); }
         else if (a === '--publish-timeout') { o.publishTimeout = Number(v()); if (!Number.isInteger(o.publishTimeout) || o.publishTimeout <= 0) throw new Error('--publish-timeout needs a positive whole number of seconds'); }
         else if (a === '--keep-publish') o.keepPublish = true;
+        else if (a === '--publish-cache') o.publishCache = path.resolve(v());
         else if (a === '--no-wasm') o.wasm = false;
         else if (a === '--changed') o.changed = true;
         else if (a === '--base') o.base = v();
@@ -71,6 +72,14 @@ export function publish(dir, project = SAMPLE, timeoutSec = 600) {
         throw new Error(`dotnet publish of ${path.basename(project)} did not finish within ${timeoutSec} s and was stopped. A stale dotnet build server or a locked bin/obj folder is the usual cause: run "dotnet build-server shutdown", end leftover dotnet processes, and run again (--publish-timeout <seconds> raises the limit).`);
     }
     if (r.status !== 0) throw new Error(`dotnet publish failed (${r.status}): ${(r.stdout + r.stderr).split('\n').filter(l => /error/i.test(l)).slice(0, 8).join('\n') || r.error}`);
+}
+
+/** The publish into `dir`, skipped when a previous run left a finished publish there (the marker is written only after a successful one). CI restores `dir` with actions/cache keyed on a hash of every source the publish reads (#2027); a key miss is an empty folder, so the publish runs. Returns true when it published. */
+export function publishCached(dir, project, timeoutSec, { publishFn = publish, marker = '.pk-published' } = {}) {
+    if (fs.existsSync(path.join(dir, marker))) return false;
+    publishFn(dir, project, timeoutSec);
+    fs.writeFileSync(path.join(dir, marker), new Date().toISOString());
+    return true;
 }
 
 /** Starts the published host on a free port and resolves once `/` answers 200. Rejects if it exits first or is not up in `timeout` seconds.
@@ -296,7 +305,9 @@ async function main() {
         }
     }
 
-    const pub = makeTempDir('pk-blazor-pub-'), wasmPub = makeTempDir('pk-blazor-wasm-'), profile = makeTempDir('pk-blazor-chrome-');
+    // --publish-cache <dir>: the two publishes live in <dir>/server and <dir>/wasm, are reused when present and are never deleted by this run (the cache owns them)
+    const cacheSub = name => { if (!o.publishCache) return null; const d = path.join(o.publishCache, name); fs.mkdirSync(d, { recursive: true }); return d; };
+    const pub = cacheSub('server') ?? makeTempDir('pk-blazor-pub-'), wasmPub = cacheSub('wasm') ?? makeTempDir('pk-blazor-wasm-'), profile = makeTempDir('pk-blazor-chrome-');
     let host = null, wasmHost = null, session = null, code = 2;
     guard = createRunGuard({ ms: runWatchdogMs(process.env) });
     const stop = async () => {
@@ -314,8 +325,8 @@ async function main() {
                 catch (e) { results.cases.push({ name: c.name, ok: false, error: e.message }); console.log(`  FAIL ${c.name} ${took()}: ${e.message}`); }
             }
         };
-        if (serverCases.length || (o.shots && shotPlan.length)) { console.log('publishing the sample ...'); publish(pub, SAMPLE, o.publishTimeout); host = await startHost(pub, o.timeout); }
-        if (wasmCases.length) { console.log('publishing the WebAssembly sample ...'); publish(wasmPub, SAMPLE_WASM, o.publishTimeout); wasmHost = await startStaticHost(wasmPub); }
+        if (serverCases.length || (o.shots && shotPlan.length)) { console.log('publishing the sample ...'); (o.publishCache ? publishCached : publish)(pub, SAMPLE, o.publishTimeout); host = await startHost(pub, o.timeout); }
+        if (wasmCases.length) { console.log('publishing the WebAssembly sample ...'); (o.publishCache ? publishCached : publish)(wasmPub, SAMPLE_WASM, o.publishTimeout); wasmHost = await startStaticHost(wasmPub); }
         console.log(`host on ${host?.base}${wasmHost ? `, WebAssembly host on ${wasmHost.base}` : ''}; browser ${chrome}`);
         session = await openBrowser(chrome, profile);
         const ctx = makeContext({ host, session, out: o.out, shots: o.shots, results });
@@ -341,10 +352,9 @@ async function main() {
         await sleep(500);
         guard.phase('cleaning temp folders');
         killUsing(profile);
-        killUsing(pub);
-        killUsing(wasmPub);
+        if (!o.publishCache) { killUsing(pub); killUsing(wasmPub); }
         await sleep(1000); killUsing(profile); // a browser child can still be spawning or exiting after the first pass (#1764: an orphaned renderer kept the profile locked)
-        for (const d of o.keepPublish ? [profile] : [pub, wasmPub, profile]) if (!(await withTimeout(removeDir(d), 60000, `deleting ${d}`).catch(() => false)) && (killUsing(d), !(await withTimeout(removeDir(d), 60000, `deleting ${d}`).catch(() => false)))) console.error(`Could not delete ${d}; delete it by hand.`);
+        for (const d of o.keepPublish || o.publishCache ? [profile] : [pub, wasmPub, profile]) if (!(await withTimeout(removeDir(d), 60000, `deleting ${d}`).catch(() => false)) && (killUsing(d), !(await withTimeout(removeDir(d), 60000, `deleting ${d}`).catch(() => false)))) console.error(`Could not delete ${d}; delete it by hand.`);
     }
     guard.disarm();
     return code;
