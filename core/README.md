@@ -65,7 +65,7 @@ It reads headings, paragraphs, lists, fenced code (the language becomes the labe
 Plain HTML, no build step:
 
 ```html
-<link rel="stylesheet" href="dist/plainkit.css">
+<link rel="stylesheet" href="dist/plainkit.min.css">
 <script type="module">
   import { initPlainkit } from './dist/plainkit.js';
   initPlainkit();

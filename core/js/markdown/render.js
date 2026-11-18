@@ -6,8 +6,8 @@ import { parseMarkdown, safeMdUrl } from './parse.js';
 export const MAX_PREVIEW = 200_000;
 const BLOCK = { p: 'p', q: 'blockquote' };
 
-/** An AST to a DocumentFragment owned by `doc`. */
-export function renderAst(ast, doc = document) {
+/** An AST to a DocumentFragment owned by `doc`. `ext(node, el, inl)` may return the element for a node type this file does not know (docs.js adds tables, images, heading ids). */
+export function renderAst(ast, doc = document, ext) {
     const el = (tag, kids) => { const e = doc.createElement(tag); for (const k of kids) e.appendChild(k); return e; };
     const inl = nodes => nodes.map(n => {
         if (n.t === 'text') return doc.createTextNode(n.v);
@@ -18,14 +18,14 @@ export function renderAst(ast, doc = document) {
             a.setAttribute('href', n.href); a.setAttribute('rel', 'noopener noreferrer');
             return a;
         }
-        return el(n.t === 'b' ? 'strong' : 'em', inl(n.c));
+        return ext?.(n, el, inl) ?? el(n.t === 'b' ? 'strong' : 'em', inl(n.c));
     });
     const list = l => el(l.t, l.items.map(it => el('li', [...inl(it.c), ...(it.sub ? [list(it.sub)] : [])])));
     const blocks = bs => bs.map(b => {
         if (b.t === 'h') return el('h' + b.n, inl(b.c));
         if (b.t === 'code') { const code = el('code', [doc.createTextNode(b.v)]); if (/^[\w+-]+$/.test(b.lang)) code.setAttribute('class', 'language-' + b.lang); return el('pre', [code]); }
         if (b.t === 'ul' || b.t === 'ol') return list(b);
-        return el(BLOCK[b.t], b.t === 'q' ? blocks(b.c) : inl(b.c));
+        return ext?.(b, el, inl) ?? el(BLOCK[b.t], b.t === 'q' ? blocks(b.c) : inl(b.c));
     });
     const frag = doc.createDocumentFragment();
     for (const n of blocks(ast.c)) frag.appendChild(n);

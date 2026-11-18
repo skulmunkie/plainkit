@@ -1,6 +1,6 @@
 name: Browser suite (nightly)
 
-# The in-browser element suite (core/tests/browser/, about 3 minutes) on main, every night and on demand. Not required, not a pull request gate (issue
+# The in-browser element suite (core/tests/browser/, run as 4 parallel shards since #2027: each shard job runs every 4th case, the merge job puts the records back together) on main, every night and on demand. Not required, not a pull request gate (issue
 # #451: a committed report went stale). It exists because the suite rotted unseen between local runs (issue #752). On a failure it opens or updates ONE
 # tracking issue titled "In-browser suite failing on main" (run URL and failing case names); on a later green run it comments that it is green again.
 # It never closes the issue: the owner does. Text and rules: scripts/browser-suite-issue.mjs. Release pull requests run the suite in ci.yml.
@@ -13,15 +13,16 @@ permissions:
   contents: read
 
 jobs:
-  browser:
-    name: Browser suite (nightly)
+  shard:
+    name: Browser suite shard ${{ matrix.shard }}/4
     # The schedule always runs on the default branch; a manual run on another branch would report to the main tracking issue, so it is kept to main.
     if: github.ref == 'refs/heads/main'
     runs-on: ubuntu-latest
     timeout-minutes: 20
-    permissions:
-      contents: read
-      issues: write
+    strategy:
+      fail-fast: false
+      matrix:
+        shard: [1, 2, 3, 4]
     env:
       PK_CHROME: /usr/bin/google-chrome
       PK_CHROME_FLAGS: --no-sandbox
@@ -38,17 +39,71 @@ jobs:
       - name: Install build dependencies (esbuild)
         run: npm ci
 
-      # continue-on-error: the issue is filed or updated below whatever happened here; the last step then fails the run.
-      - name: In-browser suite (node scripts/verify.mjs --only browser)
+      - name: Bootstrap
+        run: node scripts/bootstrap.mjs
+
+      # continue-on-error: the record is uploaded and the merge job files the issue whatever happened here; the last step then fails the job.
+      # Exit 1 is a failing case (the record names it), exit 2 a run that could not finish (no record: the merge job reports the shard missing).
+      - name: In-browser suite, shard ${{ matrix.shard }}/4
         id: suite
         continue-on-error: true
-        run: node scripts/verify.mjs --only browser
+        env:
+          SHARD: ${{ matrix.shard }}
+        run: node scripts/attest-browser.mjs --shard "$SHARD/4" --out "$RUNNER_TEMP/shard-$SHARD.json"
+
+      - name: Keep the shard record
+        if: always()
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        with:
+          name: browser-shard-${{ matrix.shard }}
+          path: ${{ runner.temp }}/shard-${{ matrix.shard }}.json
+          if-no-files-found: ignore
+
+      - name: Fail the job when the shard failed
+        if: steps.suite.outcome != 'success'
+        env:
+          SHARD: ${{ matrix.shard }}
+        run: |
+          echo "shard $SHARD/4 did not pass (see the step log; the merge job lists every failing case)"
+          exit 1
+
+  merge:
+    name: Browser suite (nightly)
+    needs: shard
+    if: always() && github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    permissions:
+      contents: read
+      issues: write
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          fetch-depth: 1
+          persist-credentials: false
+
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
+        with:
+          node-version: '22'
+
+      - uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333 # v8.0.2
+        with:
+          pattern: browser-shard-*
+          path: shards
+          merge-multiple: true
+
+      # Writes core/tests/browser/report.json when every shard 1..4 is present and together hold every case; exit 1 = failing cases, exit 2 = incomplete (no report:
+      # the issue then says the suite could not finish). --no-stamp: this runner's tree is not a tree anyone gates on.
+      - name: Merge the shards (node scripts/browser-shard-merge.mjs)
+        id: merge
+        continue-on-error: true
+        run: node scripts/browser-shard-merge.mjs shards --no-stamp
 
       - name: Open or update the tracking issue
         if: always()
         uses: actions/github-script@3a2844b7e9c422d3c10d287c895573f7108da1b3 # v9.0.0
         env:
-          SUITE_OUTCOME: ${{ steps.suite.outcome }}
+          SUITE_OUTCOME: ${{ steps.merge.outcome }}
         with:
           script: |
             const m = await import(`${process.env.GITHUB_WORKSPACE}/scripts/browser-suite-issue.mjs`);
@@ -58,7 +113,7 @@ jobs:
             await m.reportToIssue({ github, context, core, failed, report, sha: context.sha, runUrl });
 
       - name: Fail the run when the suite failed
-        if: steps.suite.outcome != 'success'
+        if: steps.merge.outcome != 'success'
         run: |
-          echo "the in-browser suite did not pass (see the tracking issue and the suite step's log)"
+          echo "the in-browser suite did not pass (see the tracking issue and the merge step's log)"
           exit 1

@@ -30,7 +30,8 @@ const conditionsWith = (s, w) => [...s.matchAll(/@media([^{;]*)\{/g)].reduce((n,
 const total = (files, w) => [...files].filter(([p]) => /\.css$|^elements\/[^/]+\.js$/.test(p)).reduce((n, [, b]) => n + conditionsWith(dec.decode(b), w), 0);
 
 test('the shipped dist declares 640, 1024 and 1280 and validation accepts them', () => {
-    assert.deepEqual(readShippedBreakpoints(text(load(), 'plainkit.css')), DEFAULTS);
+    assert.deepEqual(readShippedBreakpoints(text(loadFull(), 'plainkit.css')), DEFAULTS); // plainkit.css is an extra now (#1985)
+    assert.deepEqual(readShippedBreakpoints(text(load(), 'plainkit.min.css')), DEFAULTS);
     assert.equal(validateBreakpoints(DEFAULTS, NAMES).ok, true);
 });
 
@@ -93,21 +94,21 @@ test('a new width that equals another old one is not rewritten twice (one pass, 
 });
 
 test('theme and breakpoints are independent: each alone, and together', async () => {
-    const files = load();
+    const files = loadFull(); // plainkit.css is an extra now (#1985)
     const bp = { include: { theme: false, breakpoints: true }, breakpoints: { ...DEFAULTS, phone: 700, wide: 1400 }, theme };
     const th = { include: { theme: true, breakpoints: false }, breakpoints: { ...DEFAULTS, phone: 700, wide: 1400 }, theme };
     const both = { include: { theme: true, breakpoints: true }, breakpoints: bp.breakpoints, theme };
     const a = (await customizeDist(files, bp)).files, b = (await customizeDist(files, th)).files, c = (await customizeDist(files, both)).files;
     // breakpoints only: the theme is nowhere; theme only: no width moved and only the two page stylesheets and the manifest differ
     assert.ok(![...a.values()].some(v => dec.decode(v).includes('#123456')), 'no theme in a breakpoints-only export');
-    assert.deepEqual(changedPaths(files, b), ['manifest.json', 'plainkit.css', 'plainkit.min.css']);
+    assert.deepEqual(changedPaths(files, b), ['manifest.extras.json', 'manifest.json', 'plainkit.css', 'plainkit.min.css']);
     assert.equal(readShippedBreakpoints(text(b, 'plainkit.css')).phone, 640);
     assert.equal(total(b, 640), total(files, 640), 'a theme-only export leaves every breakpoint condition alone');
     assert.match(text(b, 'plainkit.css'), /--color-accent: #123456;/); assert.match(text(b, 'plainkit.min.css'), /--color-accent:#123456;/);
     // both: everything either alone changed, and the page sheets carry both
     assert.deepEqual(changedPaths(files, c), [...new Set([...changedPaths(files, a), ...changedPaths(files, b)])].sort());
     assert.match(text(c, 'plainkit.css'), /--pk-bp-phone:700px[\s\S]*--color-accent: #123456;/);
-    for (const p of [...files.keys()].filter(p => !['plainkit.css', 'plainkit.min.css', 'manifest.json'].includes(p))) assert.ok(same(c.get(p), a.get(p)), `${p} in both equals breakpoints only`);
+    for (const p of [...files.keys()].filter(p => !['plainkit.css', 'plainkit.min.css', 'manifest.json', 'manifest.extras.json'].includes(p))) assert.ok(same(c.get(p), a.get(p)), `${p} in both equals breakpoints only`);
     assert.equal(text(c, 'plainkit.css').replace(text(a, 'plainkit.css'), ''), text(b, 'plainkit.css').replace(text(files, 'plainkit.css'), '').replace(/^/, ''), 'the theme block added is the same one');
     // the theme keeps the file's line endings
     assert.ok(!/[^\r]\n/.test(text(b, 'plainkit.css').slice(text(files, 'plainkit.css').length)), 'the appended block is CRLF like the file');
@@ -128,7 +129,7 @@ test('the manifest is recomputed: every hash matches the bundle, the manifest li
     const changed = manifest.files.filter(f => shippedManifest.files.find(s => s.path === f.path)?.integrity !== f.integrity).map(f => f.path);
     const extrasShipped = JSON.parse(fs.readFileSync(dist + 'manifest.extras.json', 'utf8'));
     const extrasChanged = extrasOut.files.filter(f => extrasShipped.files.find(s => s.path === f.path)?.integrity !== f.integrity).map(f => f.path);
-    assert.ok(changed.includes('plainkit.css') && !changed.includes('icons.svg') && extrasChanged.includes('breakpoints.report.json'));
+    assert.ok(extrasChanged.includes('plainkit.css') && changed.includes('plainkit.min.css') && !changed.includes('icons.svg') && extrasChanged.includes('breakpoints.report.json'));
     assert.match(manifest.provenance, /Customised export of Plainkit/);
     assert.equal(await integrityOf(enc.encode('abc')), 'sha256-' + crypto.createHash('sha256').update('abc').digest('base64'));
     // the build uses the same function: the shipped manifest text is what manifestText makes of the shipped files
@@ -220,7 +221,7 @@ function unzip(bytes) {
 test('a full export unzips to the dist layout with the settings and a README that name the version and the settings used', async () => {
     const { files, summary } = await buildBundle(load(), { include: { theme: true, breakpoints: true }, breakpoints: { phone: 700, tablet: 1100, wide: 1500 }, theme });
     const back = unzip(zipStore([...files].map(([path, data]) => ({ path, data }))));
-    assert.ok(back.has('dist/plainkit.css') && back.has('dist/elements/button.js') && back.has('dist/manifest.json') && back.has('plainkit.custom.json') && back.has('README.md'));
+    assert.ok(back.has('dist/plainkit.min.css') && back.has('dist/elements/button.js') && back.has('dist/manifest.json') && back.has('plainkit.custom.json') && back.has('README.md'));
     const readme = dec.decode(back.get('README.md'));
     assert.match(readme, new RegExp(`based on ${shippedManifest.version.replaceAll('.', '\\.')}`));
     assert.match(readme, /phone 700px, tablet 1100px, wide 1500px \(the release ships phone 640px, tablet 1024px, wide 1280px\)/);

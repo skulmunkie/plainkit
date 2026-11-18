@@ -484,3 +484,45 @@ test('page below 1 or fractional reads as a whole page of at least 1', () => {
     el.$query = null; el.page = 2.7;
     assert.equal(el.query.page, 2);
 });
+
+test('settings changed one after another load once, and a columns-only change does not load (#2017)', async () => {
+    const { el, parts } = make();
+    let loads = 0;
+    el.load = async () => { loads++; return rowsOf(1); };
+    el.connected();
+    await el.refresh();
+    loads = 0;
+    el.pageSize = 10; el.changed('pageSize');
+    el.sort = 'a'; el.changed('sort');
+    el.label = 'L'; el.changed('label');
+    await Promise.resolve(); await Promise.resolve();
+    assert.equal(loads, 1, 'three changed options, one load');
+    loads = 0;
+    el.columns = [{ key: 'z', label: 'Z' }]; el.changed('columns');
+    await Promise.resolve(); await Promise.resolve();
+    assert.equal(loads, 0, 'columns only: no load');
+    assert.deepEqual(parts.table.columns, [{ key: 'z', label: 'Z' }], 'but the new columns are drawn');
+});
+
+test('an explicit refresh() right after an option change is the only load: the pending deferred one is dropped (#2017)', async () => {
+    const { el } = make();
+    let loads = 0;
+    el.connected();
+    el.empty = { heading: 'x' }; el.changed('empty');
+    el.load = async () => { loads++; throw new Error('boom'); };
+    const p = el.refresh();
+    await p; await Promise.resolve(); await Promise.resolve();
+    assert.equal(loads, 1, 'no second load from the deferred refresh');
+});
+
+test('columns alone load while nothing is drawn yet (empty or error first draw), so config set after connecting still shows the rows or the error (#2017)', async () => {
+    const { el } = make();
+    let loads = 0;
+    el.load = async () => { loads++; return { rows: [], total: 0 }; };
+    el.connected();
+    await el.refresh();
+    loads = 0;
+    el.columns = [{ key: 'z', label: 'Z' }]; el.changed('columns');
+    await Promise.resolve(); await Promise.resolve();
+    assert.equal(loads, 1, 'nothing drawn: columns load');
+});

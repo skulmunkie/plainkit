@@ -46,12 +46,22 @@ jobs:
       - name: Bootstrap
         run: node scripts/bootstrap.mjs
 
+      # The two sample publishes (the slow part of the run, #2027) are cached in a folder keyed on a hash of everything they read: the Blazor and core sources, the
+      # build props, the SDK version and the scripts that generate into them. Any change misses the cache and publishes in full; a hit skips the publishes
+      # (scripts/blazor-browser.mjs --publish-cache). No NuGet cache: PlainKit.Blazor has no package references.
+      - name: Restore the cached sample publishes
+        id: pubcache
+        uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
+        with:
+          path: ${{ runner.temp }}/pk-publish-cache
+          key: blazor-publish-${{ runner.os }}-${{ hashFiles('blazor/**', 'core/**', 'tokens/**', 'scripts/**', 'global.json', 'Directory.*', 'package-lock.json') }}
+
       # continue-on-error: the issue is filed or updated below whatever happened here; the last step then fails the run.
       # --publish-timeout is the harness default (600 s per publish), stated so a change of the default does not shorten this job silently.
       - name: Blazor harness (node scripts/blazor-browser.mjs)
         id: harness
         continue-on-error: true
-        run: node scripts/blazor-browser.mjs --publish-timeout 600
+        run: node scripts/blazor-browser.mjs --publish-timeout 600 --publish-cache "$RUNNER_TEMP/pk-publish-cache"
 
       - name: Keep the screenshots
         if: always()

@@ -24,6 +24,18 @@
       "note": "A title-bar action (Config actions entry without an href) was clicked; Key is its key."
     },
     {
+      "name": "ActionsOverflow",
+      "type": "PageHeaderActionsOverflow",
+      "prop": "actionsOverflow",
+      "extra": true
+    },
+    {
+      "name": "OverflowLabel",
+      "type": "string",
+      "prop": "overflowLabel",
+      "extra": true
+    },
+    {
       "name": "Config",
       "type": "object",
       "jsonText": true,

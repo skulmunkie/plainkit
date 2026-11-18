@@ -5,7 +5,7 @@
 // Filter: /tests/browser/?only=<text>[&times=N] runs only the cases whose name contains <text> (N times over, default 1) and posts no report, to hammer one intermittent case.
 import { loadElements } from '../../js/loader.js';
 import { cases } from './cases.js';
-import { parseList, selectCases } from './case-filter.js';
+import { parseList, parseShard, shardOf, selectCases } from './case-filter.js';
 
 const stageEl = document.getElementById('stage');
 const registryUrl = new URL('../../elements/registry.js', import.meta.url).href;
@@ -54,7 +54,8 @@ const CASE_TIMEOUT_MS = 60000;
 const BEAT_MS = 3000;
 const params = new URLSearchParams(location.search); const only = params.get('only'); const times = only ? Math.max(1, Number(params.get('times')) || 1) : 1;
 const filterList = parseList(params.get('filter')); const elementList = parseList(params.get('elements'));
-const all = only ? Array.from({ length: times }, () => cases.filter(([n]) => n.includes(only))).flat() : selectCases(cases, { filter: filterList, elements: elementList });
+const shard = parseShard(params.get('shard')); // ?shard=k/n: every n-th selected case from the k-th (CI runs the full suite as parallel shards, scripts/browser-shard-merge.mjs puts the reports back together)
+const all = only ? Array.from({ length: times }, () => cases.filter(([n]) => n.includes(only))).flat() : shardOf(selectCases(cases, { filter: filterList, elements: elementList }), shard);
 const from = Math.max(1, Number(params.get('from')) || 1); // resume after a restart: the cases before this number (1-based, of the selected ones) were already run
 const chosen = all.slice(from - 1);
 // Case isolation (#1127): every case starts from, and leaves, empty storage. The demo apps and theme cases write to the harness origin's
@@ -88,7 +89,7 @@ document.title = `${failed ? 'FAIL' : 'PASS'} - SDK element tests`;
 document.documentElement.dataset.done = failed ? 'fail' : 'pass';
 
 const targeted = Boolean(filterList.length || elementList.length);
-const report = { ran: new Date().toISOString(), browser: navigator.userAgent, passed, failed, selected: results.length, totalCases: cases.length, filter: targeted ? { filter: filterList, elements: elementList } : null, results, sources: await sources() };
+const report = { ran: new Date().toISOString(), browser: navigator.userAgent, passed, failed, selected: results.length, totalCases: cases.length, filter: targeted ? { filter: filterList, elements: elementList } : null, shard, results, sources: await sources() };
 window.__report = report;
 try {
     const res = await fetch('/__report?kind=browser', { method: 'POST', body: JSON.stringify(report) });

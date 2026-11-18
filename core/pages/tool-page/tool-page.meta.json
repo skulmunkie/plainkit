@@ -14,6 +14,21 @@
       "description": "Optional title bar from the shared page shell: heading?, breadcrumb?: [{ label, href? }], actions?: [{ key, label, href?, variant?, hint? }] (an action without href fires pk-action), and the title bar keys of pk-page-header: badges [{ label, variant? }], actionsOverflow, overflowLabel, homeHref, homeLabel, homeIcon; nothing is drawn when none is set. { input: [{ key, type: 'text'|'email'|'number'|'date'|'textarea'|'select', label, placeholder?, required?, options?, hint? }], outcome: 'stat'|'table'|'code'|'text' }. input builds one labelled control per field (a hint, or help, adds an info button beside the label that opens a tooltip) (a select's options are [{ value, label? }] or plain strings; styled?: true on a select draws the themed list, the combobox in select mode, as pk-field-group does; type 'combobox' takes mode?: 'select' | 'autocomplete'); outcome picks what the run() result draws as: stat (Object.assign onto pk-stat: value, label, ...), table ({ columns, rows } onto pk-table), code (a string, or { code } onto pk-code-block), text (a string, or { text })."
     },
     {
+      "name": "actionsOverflow",
+      "type": "enum",
+      "default": "never",
+      "values": ["never", "phone", "tablet", "always"],
+      "reflect": false,
+      "description": "Menu width; see config."
+    },
+    {
+      "name": "overflowLabel",
+      "type": "string",
+      "default": "",
+      "reflect": false,
+      "description": "Menu name; see config."
+    },
+    {
       "name": "runLabel",
       "type": "string",
       "default": "",

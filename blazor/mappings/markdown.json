@@ -12,6 +12,11 @@
       "type": "bool"
     },
     {
+      "name": "BaseUrl",
+      "prop": "baseUrl",
+      "type": "string"
+    },
+    {
       "name": "OnLinkClick",
       "event": "pk-link-click",
       "type": "EventCallback<PkLinkClickEventArgs>"

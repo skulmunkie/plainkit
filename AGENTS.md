@@ -72,7 +72,7 @@ Green CI does not say a layout looks right (the record header in #311 and a chev
 
 Still not gated on ordinary pull requests (issue #451: the committed attestation report went stale on almost every branch touching an
 element, causing constant conflicts and re-runs for little benefit on a shared runner), but it no longer rots unseen (issue #752): the workflow
-`browser-nightly.yml` runs it on `main` every night and files or updates one issue, "In-browser suite failing on main" (comments with the run URL and the
+`browser-nightly.yml` runs it on `main` every night as 4 parallel shards (`attest-browser --shard k/n --out`, merged by `scripts/browser-shard-merge.mjs`, which writes the report and the run stamp only when every shard ran and together hold every case; #2027) and files or updates one issue, "In-browser suite failing on main" (comments with the run URL and the
 failing cases, and a comment when it is green again; the owner closes it), and the job "Browser suite (release)" runs it on a release pull request (head
 branch `release/*`), where the owner's branch rule requires it. Run it locally when you want the real-DOM coverage a change needs: `node scripts/attest-browser.mjs` (or `node core/tools/serve.mjs 5341 --write-reports`, open `http://localhost:5341/tests/browser/`
 in a visible tab, wait for "report saved"). The report it writes, `core/tests/browser/report.json`, is local scratch output — gitignored, never
