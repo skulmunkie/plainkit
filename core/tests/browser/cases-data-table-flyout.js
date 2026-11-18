@@ -66,6 +66,22 @@ export const dataTableFlyoutCases = [
         const a = m.area.getBoundingClientRect(), p = m.panel.getBoundingClientRect();
         t.ok(Math.abs(p.right - a.right) <= 1 && p.left >= a.left - 1, `panel right ${Math.round(p.right)} is the area right ${Math.round(a.right)}`);
     }],
+    ['data-table filterPanel flyout-end: the panel is flush with the area inline-end edge, scrolls on overflow, the actions stay on the toolbar row, and right to left mirrors it (#2039)', async t => {
+        const many = JSON.stringify(Array.from({ length: 40 }, (_, i) => ({ key: 'f' + i, type: 'text', label: 'Field ' + i })));
+        for (const dir of ['', 'rtl']) {
+            const m = await mount(t, 'filter-panel="flyout-end"', 1000, { dir, height: 420, fields: many });
+            const act = document.createElement('button'); act.slot = 'actions'; act.textContent = 'Actions'; m.el.append(act); await t.settle();
+            const tb = m.el.shadowRoot.querySelector('[part="toolbar"]'), before = act.getBoundingClientRect();
+            t.eq(m.f.getAttribute('placement'), 'end', 'flyout-end sets placement=end');
+            m.f.toggle(true); await t.settle(); await wait(400);
+            const a = m.area.getBoundingClientRect(), p = m.panel.getBoundingClientRect(), body = m.f.shadowRoot.querySelector('[part="body"]'), tbr = tb.getBoundingClientRect(), after = act.getBoundingClientRect();
+            const label = dir || 'ltr';
+            t.ok(dir ? Math.abs(p.left - a.left) <= 1 && p.right <= a.right + 1 : Math.abs(p.right - a.right) <= 1 && p.left >= a.left - 1, `${label}: panel ${Math.round(p.left)}-${Math.round(p.right)} is flush with the area ${Math.round(a.left)}-${Math.round(a.right)} inline-end edge`);
+            t.ok(p.bottom <= a.bottom + 1 && p.top >= a.top - 1, `${label}: panel stays inside the area vertically`);
+            t.ok(body.scrollHeight > body.clientHeight + 20, `${label}: the body scrolls on overflow`);
+            t.ok(after.top === before.top && after.left === before.left && after.bottom <= tbr.bottom + 1, `${label}: the actions stay on the toolbar row`);
+        }
+    }],
     ['data-table flyout: opening runs a slide-in animation from the inline-start edge, and a reduced-motion rule switches it off (#1939)', async t => {
         const m = await mount(t, 'filter-panel="flyout"');
         m.f.toggle(true); await t.settle();

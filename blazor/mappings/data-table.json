@@ -295,12 +295,13 @@
       "type": "PkFilterPanel",
       "enum": {
         "Inline": "inline",
-        "Flyout": "flyout"
+        "Flyout": "flyout",
+        "FlyoutEnd": "flyout-end"
       },
       "default": "Inline",
       "map": "prop",
       "prop": "filterPanel",
-      "doc": "Where the open filter panel goes: Inline (its own row, pushing the rows down) or Flyout (overlays the top of the table from the inline-start edge; a sheet on a phone; Escape closes it)."
+      "doc": "Where the open filter panel goes: Inline (its own row, pushing the rows down) Flyout (overlays the top of the table from the inline-start edge; a sheet on a phone; Escape closes it) or FlyoutEnd (the same from the inline-end edge)."
     },
     {
       "name": "MaxHeight",

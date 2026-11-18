@@ -46,7 +46,7 @@
       "type": "string",
       "default": "inline",
       "reflect": true,
-      "description": "Where the open panel goes: inline (the default) wraps onto its own row of the toolbar and pushes what follows down; start overlays it from the inline-start edge, just below the host's toolbar row, without moving anything, sliding in and staying inside the host's table area, with Escape closing it and focus returning to the trigger (a flyout; the host's toolbar must be positioned, as pk-data-table's is). pk-data-table sets it from filterPanel."
+      "description": "Where the open panel goes: inline (the default) wraps onto its own row of the toolbar and pushes what follows down; start overlays it from the inline-start edge, just below the host's toolbar row, without moving anything, sliding in and staying inside the host's table area, with Escape closing it and focus returning to the trigger (a flyout; the host's toolbar must be positioned, as pk-data-table's is). end is the same from the inline-end edge. pk-data-table sets it from filterPanel."
     },
     {
       "name": "open",
