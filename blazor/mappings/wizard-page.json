@@ -16,7 +16,7 @@
       "default": "{}",
       "map": "prop",
       "prop": "config",
-      "note": "Sent as a JSON attribute: { steps, review?, reviewLabel?, submitLabel?, doneHeading?, doneDescription?, label? }."
+      "note": "Sent as a JSON attribute: { steps, review?, reviewLabel?, submitLabel?, doneHeading?, doneDescription?, label?, submitEarly?, footerActions? }."
     },
     {
       "name": "OnAction",
@@ -27,6 +27,18 @@
       "name": "OnDirty",
       "event": "pk-wizard-dirty",
       "note": "The unsent-answers state changed (Dirty): confirm before leaving the page."
+    },
+    {
+      "name": "OnChange",
+      "event": "pk-wizard-change",
+      "extra": true,
+      "note": "An answer was committed (not each keystroke): Key and Value are the field, Values every answer so far, Step the current step id. Autosave a draft from it."
+    },
+    {
+      "name": "OnFooterAction",
+      "event": "pk-wizard-action",
+      "extra": true,
+      "note": "A Config footerActions button was clicked: Key, Values and Step."
     },
     {
       "name": "OnSubmit",

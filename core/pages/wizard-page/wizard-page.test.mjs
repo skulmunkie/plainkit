@@ -5,7 +5,7 @@ import assert from 'node:assert/strict';
 import behaviour from './wizard-page.js';
 
 const fakeEl = (tag = 'div') => ({
-    localName: tag, attrs: {}, children: [], connected: true, listeners: {}, hidden: false, value: '',
+    localName: tag, attrs: {}, dataset: {}, children: [], connected: true, listeners: {}, hidden: false, value: '',
     ownerDocument: { createElement: fakeEl },
     setAttribute(k, v) { this.attrs[k] = String(v); }, getAttribute(k) { return this.attrs[k] ?? null; }, removeAttribute(k) { delete this.attrs[k]; },
     append(...k) { this.children.push(...k); for (const c of k) c.parent = this; },
@@ -21,7 +21,7 @@ const fakeEl = (tag = 'div') => ({
 const tick = () => new Promise(r => setTimeout(r));
 
 const make = () => {
-    const parts = Object.fromEntries(['header', 'state', 'stepper', 'notice', 'card', 'heading', 'panes', 'bar', 'back', 'next'].map(n => [n, fakeEl()]));
+    const parts = Object.fromEntries(['header', 'state', 'stepper', 'notice', 'card', 'heading', 'panes', 'bar', 'back', 'next', 'submit', 'actions'].map(n => [n, fakeEl()]));
     const events = [], errors = [];
     const win = { added: [], removed: [], addEventListener(t, f) { this.added.push([t, f]); }, removeEventListener(t, f) { this.removed.push([t, f]); } };
     globalThis.window = win;
@@ -156,4 +156,35 @@ test('a step without fields projects slot="step-<id>" unless mountStep draws it 
     const drawn = el.build(step);
     assert.equal(drawn.children.length, 0, 'mountStep owns the pane: no slot');
     assert.deepEqual([got[0] === drawn, got[1]], [true, step]);
+});
+
+test('a committed answer emits pk-wizard-change with key, value, values and step (#2011)', async () => {
+    const { el, parts, events } = make();
+    el.connected(); await tick();
+    const ctl = fakeEl('pk-input'); ctl.attrs.name = 'email'; ctl.value = 'a@b.c';
+    el.controls = () => [ctl];
+    ctl.closest = () => ctl;
+    parts.panes.listeners.change.at(-1)({ target: ctl });
+    const ev = events.find(([n]) => n === 'pk-wizard-change');
+    assert.deepEqual(ev[1], { key: 'email', value: 'a@b.c', values: { email: 'a@b.c' }, step: 'a' });
+});
+
+test('footerActions draw one button each and emit pk-wizard-action; submitEarly shows Submit before the last step and submits after validating the step (#2011)', async () => {
+    const { el, parts, events } = make();
+    el.config = { ...el.config, review: false, submitEarly: true, footerActions: [{ key: 'draft', label: 'Save draft', icon: 'save' }, { key: 'discard', label: 'Discard' }] };
+    let submitted;
+    el.submit = async v => { submitted = v; };
+    el.connected(); await tick();
+    assert.equal(parts.actions.children.length, 2);
+    assert.equal(parts.actions.children[0].attrs['icon-name'], 'save');
+    assert.equal(parts.submit.hidden, false, 'early Submit shows on step one of two');
+    const btn = parts.actions.children[1];
+    btn.closest = () => btn;
+    parts.actions.listeners.click[0]({ target: btn });
+    assert.deepEqual(events.find(([n]) => n === 'pk-wizard-action')[1], { key: 'discard', values: {}, step: 'a' });
+    parts.submit.listeners.click[0]();
+    await tick();
+    assert.deepEqual(submitted, {}, 'submit ran from step one');
+    assert.equal(events.some(([n]) => n === 'pk-wizard-submit'), true);
+    el.show(1); assert.equal(parts.submit.hidden, true, 'hidden on the last step');
 });
