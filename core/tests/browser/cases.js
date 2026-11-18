@@ -365,6 +365,7 @@ import { workspaceCases } from './cases-workspace.js'; cases.push(...workspaceCa
 import { lookupPickerCases } from './cases-lookup-picker.js'; cases.push(...lookupPickerCases);
 import { markdownEditorCases } from './cases-markdown-editor.js'; cases.push(...markdownEditorCases);
 import { settingsNavCases } from './cases-settings-nav.js'; cases.push(...settingsNavCases);
+import { sectionsPageCases } from './cases-sections-page.js'; cases.push(...sectionsPageCases);
 import { fieldGroupCases } from './cases-field-group.js'; cases.push(...fieldGroupCases);
 import { recordFormCases } from './cases-record-form.js'; cases.push(...recordFormCases);
 import { moduleMountCases, zeroGapCases, markdownInBuilderCases } from './cases-modules-mount.js'; cases.push(...moduleMountCases, ...zeroGapCases, ...markdownInBuilderCases);

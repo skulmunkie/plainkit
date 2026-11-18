@@ -1,0 +1,86 @@
+{
+  "tag": "pk-sections-page",
+  "title": "Sections page",
+  "group": "Page types",
+  "tier": "page",
+  "pageType": "sections",
+  "summary": "A read-mostly record page with no data lifecycle: the shared title bar (heading, breadcrumb, badges, a primary action and an actions menu that collapses on a phone), docked section tabs in the header, and a two-column pk-detail-layout of your own panels, one section at a time. Name the sections in config.sections ({ id, label, count?, visible? }); each section's panel is a light-DOM child with slot=\"section-<id>\" (the main column) and, optionally, slot=\"side-<id>\" (that section's summary card). The tabs and the layout stay in step both ways; with config.tabParam the chosen section is kept in the address. It loads, saves and validates nothing: a host with a record to edit uses pk-record-page, one with a list beside the record pk-master-detail-page.",
+  "props": [
+    {
+      "name": "config",
+      "type": "json",
+      "default": {},
+      "reflect": false,
+      "description": "{ sections: [{ id, label, count?, visible? }], section?: id (selected, default the first visible), tabParam?: string (keeps the section in the address, for example 'tab'), sidebarFirst?, sidebarTwoUp? (as pk-detail-layout), heading?, breadcrumb?: [{ label, href? }], actions?: [{ key, label, href?, variant?, hint? }] (the first with variant 'primary' is the page's primary action; an action without href fires pk-action), badges: [{ label, variant? }], actionsOverflow: 'never' | 'phone' | 'tablet' | 'always', overflowLabel, homeHref, homeLabel, homeIcon } as on pk-page-header. A section with visible false has no tab and no panel."
+    },
+    {
+      "name": "section",
+      "type": "string",
+      "default": "",
+      "reflect": false,
+      "description": "The selected section id. Set it to choose a section from script; it follows the tabs when the reader chooses one."
+    }
+  ],
+  "slots": [
+    {
+      "name": "badges",
+      "description": "Status chips beside the title."
+    },
+    {
+      "name": "section-<id>",
+      "dynamic": true,
+      "description": "The main column of the section with that id in config.sections (for example slot=\"section-details\")."
+    },
+    {
+      "name": "side-<id>",
+      "dynamic": true,
+      "description": "The summary card beside that section (for example slot=\"side-details\"); a section with none draws no side column."
+    },
+    {
+      "name": "actions",
+      "description": "Your own actions after those from config.actions (a pk-button, or a pk-dropdown or pk-card-menu: under actionsOverflow its items become rows of the overflow menu)."
+    }
+  ],
+  "events": [
+    {
+      "name": "pk-action",
+      "detail": "{ key }",
+      "detailProps": {
+        "key": "string"
+      },
+      "description": "A title-bar action (config.actions entry without an href) was clicked."
+    },
+    {
+      "name": "pk-section-change",
+      "detail": "{ section, previous }",
+      "detailProps": {
+        "section": "string",
+        "previous": "string"
+      },
+      "description": "The reader chose another section (the layout's own event, composed so it reaches this element; cancelable: a cancelled change keeps the old tab)."
+    }
+  ],
+  "parts": [
+    {
+      "name": "header",
+      "description": "The shared title bar: a pk-page-shell holding the breadcrumb, badges, actions and the section tabs."
+    },
+    {
+      "name": "tabs",
+      "description": "The docked section tabs (a pk-tabs in the header); hidden with fewer than two sections."
+    },
+    {
+      "name": "layout",
+      "description": "The pk-detail-layout around the panels (hide-tabs, tabs-from always: one section shows at a time)."
+    }
+  ],
+  "cssProperties": [],
+  "a11y": "The tabs are pk-tabs (a real tablist with arrow-key movement); only the chosen section's panel is shown. Give each panel's content its own headings; the page title is the level-1 heading.",
+  "examples": [
+    {
+      "title": "Record with sections and a summary card",
+      "html": "<pk-sections-page config='{\"heading\":\"Blue mug\",\"breadcrumb\":[{\"label\":\"Products\",\"href\":\"#\"},{\"label\":\"Blue mug\"}],\"actionsOverflow\":\"phone\",\"sections\":[{\"id\":\"details\",\"label\":\"Details\"},{\"id\":\"orders\",\"label\":\"Orders\",\"count\":3}],\"actions\":[{\"key\":\"edit\",\"label\":\"Edit\",\"variant\":\"primary\"},{\"key\":\"archive\",\"label\":\"Archive\",\"variant\":\"ghost\"}]}'><pk-badge slot=\"badges\" variant=\"ok\">Active</pk-badge><pk-card slot=\"section-details\" heading=\"Details\"><p>Blue mug, 350 ml, ceramic.</p></pk-card><pk-card slot=\"side-details\" heading=\"Status\"><p>Active, 12 on hand.</p></pk-card><pk-card slot=\"section-orders\" heading=\"Orders\"><p>Three open orders.</p></pk-card></pk-sections-page>"
+    }
+  ],
+  "methods": []
+}
