@@ -42,3 +42,24 @@ test('whenUpgraded gives up after the limit and names the tags', async () => {
     assert.deepEqual(left, ['pk-ghost']);
     assert.match(warned[0], /pk-ghost/);
 });
+
+// #2025: pk-markdown draws after a lazy chunk loads, so the review waits for its pk-markdown-render event
+const md = (markdown, drawn) => {
+    const listeners = [];
+    return { localName: 'pk-markdown', markdown, shadowRoot: { querySelector: () => ({ hasChildNodes: () => drawn }), querySelectorAll: () => [] }, addEventListener: (_t, f) => listeners.push(f), fire: () => listeners.forEach(f => f()) };
+};
+test('whenMarkdownDrawn waits for the render event of an undrawn pk-markdown only', async () => {
+    const { undrawnMarkdown, whenMarkdownDrawn } = await import('../../core/tests/review/ready.js');
+    const a = md('# hi', false), b = md('# done', true), c = md('', false);
+    const root = tree(a, b, c);
+    assert.deepEqual(undrawnMarkdown(root), [a]);
+    setTimeout(() => a.fire(), 10);
+    assert.equal(await whenMarkdownDrawn(root, { pause: () => new Promise(() => {}) }), 0);
+});
+test('whenMarkdownDrawn gives up after the limit and says so', async () => {
+    const { whenMarkdownDrawn } = await import('../../core/tests/review/ready.js');
+    const warned = [];
+    const left = await whenMarkdownDrawn(tree(md('x', false)), { limit: 5, pause: ms => new Promise(r => setTimeout(r, ms)), log: { warn: m => warned.push(m) } });
+    assert.equal(left, 1);
+    assert.match(warned[0], /did not draw/);
+});
