@@ -145,7 +145,7 @@
     },
     {
       "name": "--pk-table-filters-max",
-      "description": "Tallest the flyout panel may grow (placement start); pk-data-table sets it to the table area's height while the panel is open, so the body scrolls inside the area.",
+      "description": "Height of the flyout panel (placement start or end): the panel measures the area after its toolbar row (the host's parent's next sibling) while open and fills it, so the body scrolls inside the area and Clear filters stays pinned at the bottom; stacked one control per row.",
       "default": "60dvh"
     },
     {
