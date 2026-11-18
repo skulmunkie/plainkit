@@ -5,6 +5,14 @@ The format follows [Keep a Changelog](https://keepachangelog.com/) and the proje
 
 ## [Unreleased]
 
+## [0.32.0] - 2026-11-18
+
+### Added
+
+- `pk-sections-page` (page type `sections`, Blazor `PkSectionsPage`) is a read-mostly record page: the shared title bar with a primary action and an actions menu that folds on a phone, section tabs docked in the header, and a two-column layout of your own panels (`slot="section-<id>"`, with an optional `slot="side-<id>"` summary card), one section at a time and kept in the address with `tabParam`. It loads and saves nothing. The tab-to-section sync is the shared helper `bindSections` in `js/page-sections.js`. (#2010)
+- pk-wizard-page raises pk-wizard-change for each committed answer (so an app can autosave a draft), config.footerActions adds buttons such as Save draft and Discard to every step (pk-wizard-action), and config.submitEarly adds a Submit before the last step. Blazor: PkWizardPage OnChange and OnFooterAction. (#2011)
+- `pk-data-table` and `pk-list-page` take `filterPanel="flyout-end"` (Blazor `PkFilterPanel.FlyoutEnd`, `pk-table-filters` `placement="end"`): the open filter panel flies out from the inline-end edge of the table area, scrolling its body when it overflows, with the toolbar actions staying on the toolbar row; it mirrors in right to left. (#2039)
+
 ## [0.31.0] - 2026-11-18
 
 ### Added
