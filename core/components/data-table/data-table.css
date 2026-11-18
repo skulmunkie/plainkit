@@ -2,24 +2,23 @@
 :host { display: flex; flex-direction: column; flex: 1 1 auto; inline-size: 100%; min-inline-size: 0; min-block-size: 0; }
 [part="toolbar"], [part="state"], [part="empty"] { flex: none; }
 /* The flyout panel (filterPanel) is placed against the toolbar, which is its containing block (the area is a sibling, and the filters host has no box). */
-[part="toolbar"] { position: relative; }
-[part="area"] { position: relative; flex: 1 1 auto; display: flex; flex-direction: column; min-block-size: 0; }
-[part="table"] { flex: 1 1 auto; min-block-size: 0; }
+[part="area"] { --_r: calc(var(--pk-table-filters-w, 22rem) + var(--space-3)); position: relative; display: flex; flex-direction: column; }
+[part="area"], [part="table"] { flex: 1 1 auto; min-block-size: 0; }
+/* filterPanelReflow: an open flyout reserves its width on the area (wide viewports only; a phone keeps the overlay). */
+@media (--above-phone) { :host([filter-panel-reflow]) [part=toolbar]:has([open][placement=start]) + [part=area] { padding-inline-start: var(--_r); } :host([filter-panel-reflow]) [part=toolbar]:has([open][placement=end]) + [part=area] { padding-inline-end: var(--_r); } }
 /* The search, filters and actions sit above the table, not in its toolbar slot: a load or an empty result hides only the table, so the search box keeps its focus and stays clearable (issue 836). */
-[part="toolbar"] { min-block-size: calc(var(--space-8) + var(--space-2)); display: flex; flex-wrap: wrap; align-items: center; gap: var(--gap-control) var(--space-3); margin-block-end: var(--space-3); }
+[part="toolbar"] { position: relative; min-block-size: calc(var(--space-8) + var(--space-2)); display: flex; flex-wrap: wrap; align-items: center; gap: var(--gap-control) var(--space-3); margin-block-end: var(--space-3); }
 /* The lead slot (1723): a page title at the start of the toolbar row; wraps when narrow. */
 [data-lead] { flex: 1 1 24rem; display: flex; flex-wrap: wrap; align-items: center; gap: var(--space-1) var(--space-3); min-inline-size: 0; }
 [data-lead][hidden] { display: none; }
 [part="actions"] { display: flex; flex-wrap: wrap; max-inline-size: 100%; gap: var(--space-2); align-items: center; margin-inline-start: auto; }
 /* On a phone the actions row takes the full width and a slotted field (a pk-select, an input) fills it instead of keeping half its width; buttons keep their size and the add button stays an icon (issue 1848). */
 /* On a phone the search grows and Filters (an icon button there) stays beside it on the same row, and the pager footer is as tall as its content plus a small step. */
-@media (--phone) { [part="filters"]::part(search) { flex: 1 1 8rem; inline-size: auto; } [part="table"]::part(toolbar) { margin-block-end: 0; } [part="table"][data-nocaption]::part(caption) { display: none; } :host { --pk-table-footer-padding: var(--space-1); } [part="actions"] { flex: var(--pk-data-table-actions-flex, 1 1 100%); } [part="actions"] ::slotted(:not(button, pk-button)) { flex: 1 1 100%; min-inline-size: 0; } }
-[part="filters"][data-nosearch]::part(search) { display: none; }
+@media (--phone) { [part="table"]::part(toolbar) { margin-block-end: 0; } [part="table"][data-nocaption]::part(caption) { display: none; } :host { --pk-table-footer-padding: var(--space-1); } [part="actions"] { flex: var(--pk-data-table-actions-flex, 1 1 100%); } [part="actions"] ::slotted(:not(button, pk-button)) { flex: 1 1 100%; min-inline-size: 0; } }
 [part="state"], [part="empty"] { margin-block-start: var(--space-4); }
 /* An idle state part has no content and takes no space: its margin would leave a gap under the table (issue 1711). */
 [part="state"]:empty { margin: 0; }
 /* The loading skeleton stands in for the rows that replace it: it reserves a typical page of rows, so the table arriving does not push what follows it down (CLS, issue 1304). */
 [part="state"]:has(> pk-skeleton) { min-block-size: calc(var(--space-12) * 5); }
 /* A multiselect filter (issue 1025): a legend over a wrapping row of checkboxes, one fieldset in the filter panel. */
-[part="filters"] > fieldset { display: flex; flex-wrap: wrap; gap: var(--space-1) var(--space-3); margin: 0; padding: 0; border: 0; min-inline-size: 0; }
 [part="filters"] > fieldset > legend { padding: 0; margin-block-end: var(--space-1); font-size: var(--text-sm); color: var(--color-muted-strong); inline-size: 100%; }

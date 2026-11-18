@@ -152,4 +152,32 @@ export const dataTableFlyoutCases = [
             for (const width of [375, 390]) { const g = await gap(width, dir); t.ok(Math.abs(g - desk) <= 3, `${dir} ${width}: Close glyph is ${Math.round(g)}px from the panel inline-end edge, desktop ${Math.round(desk)}px`); }
         }
     }],
+    ['data-table flyout fills the list height with the footer pinned at the bottom, and its controls stack one per row at the panel width (#2055)', async t => {
+        const six = JSON.stringify(Array.from({ length: 6 }, (_, i) => ({ key: 'f' + i, type: i % 2 ? 'text' : 'select', label: 'Field ' + i, options: ['a', 'b'] })));
+        for (const placement of ['flyout', 'flyout-end']) {
+            const m = await mount(t, `filter-panel="${placement}"`, 1000, { height: 620, fields: six });
+            m.f.toggle(true); await t.settle(); await wait(400);
+            const a = m.area.getBoundingClientRect(), p = m.panel.getBoundingClientRect(), foot = m.f.shadowRoot.querySelector('[part="footer"]').getBoundingClientRect(), body = m.f.shadowRoot.querySelector('[part="body"]').getBoundingClientRect();
+            t.ok(Math.abs(p.height - a.height) <= 1 && Math.abs(p.top - a.top) <= 1, `${placement}: panel ${Math.round(p.top)}+${Math.round(p.height)} fills the area ${Math.round(a.top)}+${Math.round(a.height)}`);
+            t.ok(Math.abs(foot.bottom - p.bottom) <= 2, `${placement}: the footer is pinned at the panel bottom`);
+            const rects = [...m.f.children].map(c => c.getBoundingClientRect()).filter(r => r.height > 0);
+            t.ok(rects.length >= 6, `${placement}: the controls render`);
+            t.ok(rects.every((r, i) => i === 0 || r.top >= rects[i - 1].bottom - 1), `${placement}: one control per row`);
+            t.ok(rects.every(r => r.width >= body.width - 2 * 16 - 2), `${placement}: each control takes the full panel width (${rects.map(r => Math.round(r.width))} of ${Math.round(body.width)})`);
+        }
+    }],
+    ['data-table filterPanelReflow: the open flyout reserves its width on the table area, the table narrows beside it and closing restores it (#2055)', async t => {
+        for (const [placement, attr] of [['flyout', 'start'], ['flyout-end', 'end']]) {
+            const off = await mount(t, `filter-panel="${placement}"`), full = off.el.part('table').getBoundingClientRect();
+            off.f.toggle(true); await t.settle(); await wait(400);
+            t.ok(Math.abs(off.el.part('table').getBoundingClientRect().width - full.width) <= 1, `${placement}: without the option the table keeps its width`);
+            const m = await mount(t, `filter-panel="${placement}" filter-panel-reflow`), w0 = m.el.part('table').getBoundingClientRect().width;
+            m.f.toggle(true); await t.settle(); await wait(400);
+            const tr = m.el.part('table').getBoundingClientRect(), p = m.panel.getBoundingClientRect();
+            t.ok(attr === 'end' ? tr.right <= p.left + 1 : tr.left >= p.right - 1, `${placement}: the table (${Math.round(tr.left)}-${Math.round(tr.right)}) does not run under the panel (${Math.round(p.left)}-${Math.round(p.right)})`);
+            t.ok(tr.width < w0 - 200, `${placement}: the table narrowed (${Math.round(w0)} -> ${Math.round(tr.width)})`);
+            m.f.toggle(false); await t.settle(); await wait(100);
+            t.ok(Math.abs(m.el.part('table').getBoundingClientRect().width - w0) <= 1, `${placement}: closing restores the full width`);
+        }
+    }],
 ];

@@ -63,6 +63,13 @@
       "description": "Where the open filter panel goes: inline (the default; it takes its own row above the table and pushes the rows down) or flyout (it overlays the top of the table from the inline-start edge, 22rem wide, without moving the rows; it is bounded by the table area, scrolls its own body, and Escape closes it and returns focus to the Filters trigger) or flyout-end (the same from the inline-end edge, beside the toolbar actions, which stay on the toolbar row; mirrored in right to left). Sets pk-table-filters placement (inline, start, end)."
     },
     {
+      "name": "filterPanelReflow",
+      "type": "boolean",
+      "default": false,
+      "reflect": true,
+      "description": "With a flyout filterPanel: while the panel is open the table area reserves its width, so the table narrows beside it (its own overflow scrolls) and the pager stays usable; closing restores the full width. Phones keep the overlay. The open flyout always fills the list height (Clear filters pinned at the bottom) and stacks its controls one per row."
+    },
+    {
       "name": "search",
       "type": "string",
       "default": "",
@@ -369,7 +376,7 @@
     { "name": "noResults", "description": "Holds the no-results slot while shown." },
     { "name": "state", "description": "Holds the loading/empty/error state while load() is in flight or the result is empty; the table is hidden while this is shown." }
   ],
-  "cssProperties": [{ "name": "--pk-data-table-actions-flex", "description": "The flex of the actions row on a phone (the actions take a row of their own). pk-list-page sets 0 0 0 while it has no actions or toolbar content so that no empty row leaves a gap under the search; set it the same way when your own actions slot is empty.", "default": "1 1 100%" }],
+  "cssProperties": [{ "name": "--pk-data-table-actions-flex", "description": "The flex of the actions row on a phone (the actions take a row of their own). pk-list-page sets 0 0 0 while it has no actions or toolbar content so that no empty row leaves a gap under the search; set it the same way when your own actions slot is empty.", "default": "1 1 100%" }, { "name": "--pk-table-filters-w", "description": "Width of the flyout filter panel (22rem); with filterPanelReflow the table area reserves this width plus a gap while the panel is open.", "default": "22rem" }],
   "methods": [
     { "name": "focus(where?)", "description": "Moves focus from the host. No argument: the search box, or the first row when the search is hidden. \"search\": the search box only (nothing while it is hidden or not drawn yet). \"next\": the row after the focused one, the first when no row has focus. \"previous\", \"first\", \"last\": only while a row has focus (the call does nothing otherwise, so Home and the arrows stay the search box's own). Returns whether focus moved." },
     { "name": "refresh()", "description": "Runs load(query) again for the current query, for example after a bulk action. Returns a promise." },
@@ -388,6 +395,10 @@
     {
       "title": "Flyout filters from the end (filter-panel=flyout-end: the same, from the inline-end edge beside the toolbar actions; the open panel slides in over the table instead of pushing the rows down; Escape closes it; a sheet on a phone)",
       "html": "<pk-data-table filter-panel=\"flyout-end\" columns='[{\"key\":\"sku\",\"label\":\"SKU\"}]' filters='[{\"key\":\"name\",\"type\":\"text\",\"label\":\"Name\"},{\"key\":\"city\",\"type\":\"text\",\"label\":\"City\"}]'></pk-data-table>"
+    },
+    {
+      "title": "Flyout filters that reflow the table (filter-panel=flyout-end with filter-panel-reflow: the open panel takes its width from the table area instead of covering the right-most columns and the pager; a phone keeps the overlay)",
+      "html": "<pk-data-table filter-panel=\"flyout-end\" filter-panel-reflow columns='[{\"key\":\"sku\",\"label\":\"SKU\"}]' filters='[{\"key\":\"name\",\"type\":\"text\",\"label\":\"Name\"},{\"key\":\"city\",\"type\":\"text\",\"label\":\"City\"}]'></pk-data-table>"
     },
     {
       "title": "Preset search (from a link) and no Select all offer",

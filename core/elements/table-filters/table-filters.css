@@ -1,6 +1,9 @@
 :host { position: relative; display: contents; }
 [part="search"] { min-inline-size: 0; inline-size: 14rem; min-block-size: var(--ctl-h); padding-inline: var(--space-3); background: var(--color-input); border: 1px solid var(--color-input-border); border-radius: var(--pk-table-filters-radius, var(--pk-control-radius, var(--radius-sm))); color: var(--color-text); font: inherit; font-size: var(--text-read); }
 [part="search"]:focus-visible { border-color: var(--color-accent-hover); outline: var(--focus-ring); outline-offset: 2px; }
+:host([data-nosearch]) [part="search"] { display: none; }
+/* A multiselect filter (a fieldset of checkboxes, its legend styled by the data table) wraps its options. */
+::slotted(fieldset) { display: flex; flex-wrap: wrap; gap: var(--space-1) var(--space-3); margin: 0; padding: 0; border: 0; min-inline-size: 0; }
 [part="search"]::-webkit-search-cancel-button { display: none; }
 [part="trigger"] { position: relative; display: inline-flex; align-items: center; gap: var(--space-2); min-block-size: var(--ctl-h); padding-inline: var(--space-3); border: 1px solid var(--color-border); border-radius: var(--pk-table-filters-radius, var(--pk-control-radius, var(--radius-sm))); background: var(--color-panel); color: inherit; font: inherit; cursor: pointer; }
 [part="trigger"]:hover { background: var(--color-surface-alt); }
@@ -10,7 +13,9 @@
 /* A panel taller than the viewport scrolls its own body (header and Clear filters stay in view), so a short phone viewport never clips the lower fields. */
 [part="panel"]:not([hidden]) { display: flex; flex-direction: column; max-block-size: 60dvh; }
 /* placement="start" (the flyout): the panel leaves the toolbar flow and overlays the table area, from the toolbar's bottom edge down (the data table's toolbar is the containing block). */
-:host(:is([placement="start"], [placement="end"])) [part="panel"] { position: absolute; z-index: 1; inset-block-start: calc(100% + var(--space-3)); inset-inline: var(--_in, 0 auto); inline-size: min(var(--pk-table-filters-w, 22rem), 100%); flex-basis: auto; margin: 0; box-shadow: var(--shadow-pop); max-block-size: max(var(--pk-table-filters-max, 60dvh), 15rem); }
+:host(:is([placement="start"], [placement="end"])) [part="panel"] { position: absolute; z-index: 1; inset-block-start: calc(100% + var(--space-3)); inset-inline: var(--_in, 0 auto); inline-size: min(var(--pk-table-filters-w, 22rem), 100%); flex-basis: auto; margin: 0; box-shadow: var(--shadow-pop); block-size: max(var(--pk-table-filters-max, 60dvh), 15rem); max-block-size: max(var(--pk-table-filters-max, 60dvh), 15rem); }
+/* The flyout fills the list height (the footer stays pinned at the bottom) and stacks its controls one per row at the panel width. */
+:host(:is([placement="start"], [placement="end"])) [part="body"] { flex: 1 1 auto; flex-direction: column; flex-wrap: nowrap; }
 :host([placement="end"]) [part="panel"] { --_in: auto 0; --_from: 1.5rem; }
 :host([placement="end"]) [part="panel"]:dir(rtl) { --_from: -1.5rem; }
 :host(:is([placement="start"], [placement="end"])) [part="panel"]:not([hidden]) { animation: flyout-in var(--duration-base) var(--ease); }
@@ -33,7 +38,7 @@
 @media (--phone) {
     /* the flyout is a sheet over the table area on a phone */
     :host(:is([placement="start"], [placement="end"])) [part="panel"] { inline-size: 100%; }
-    [part="search"] { inline-size: 100%; min-block-size: var(--touch-target); font-size: 16px; }
+    [part="search"] { flex: 1 1 8rem; inline-size: 100%; min-block-size: var(--touch-target); font-size: 16px; }
     [part="trigger"], [part="close"], [part="clear"] { min-block-size: var(--touch-target); }
     [part="close"] { min-inline-size: var(--touch-target); text-align: end; }
     /* icon only on a phone: the word folds into the icon (font-size 0 keeps it the accessible name); the active count stays as a badge on the corner. */
