@@ -40,3 +40,13 @@
 }
 
 .lb-status:empty { display: none; }
+
+/* The insertion mark of a drag (positioned by the module, see drawZone): a line between elements, or across an empty container. */
+.lb-drop-line { position: absolute; z-index: var(--z-sticky); border-radius: var(--radius-sm); background: var(--color-accent); pointer-events: none; }
+
+.lb-drop-line[hidden] { display: none; }
+
+.lb-drop-line[data-invalid] { background: var(--chip-danger-fg); }
+
+/* The Move chip is dragged: a touch drag on it must not scroll the page. */
+.lb-canvas-menu pk-button[data-node-action="drag"] { cursor: grab; touch-action: none; }

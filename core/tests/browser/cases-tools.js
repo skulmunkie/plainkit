@@ -467,6 +467,42 @@ export const toolCases = [
         } finally { URL.createObjectURL = realCreate; HTMLAnchorElement.prototype.click = realClick; }
         editor.destroy();
     }],
+    ['theme editor Custom SDK tab: with plainkit.css absent from the dist manifest the export still rewrites the widths and the theme in plainkit.min.css (#1985)', async t => {
+        await t.load(t.stage('<pk-unit-input></pk-unit-input><pk-colour-input></pk-colour-input><pk-input></pk-input><pk-select></pk-select><pk-button></pk-button><pk-tabs></pk-tabs><pk-table></pk-table><pk-stat></pk-stat><pk-card></pk-card><pk-toolbar></pk-toolbar><pk-textarea></pk-textarea><pk-badge></pk-badge><pk-alert></pk-alert>'));
+        const { mountThemeEditor } = await dist('theme-editor');
+        const host = t.stage('');
+        const editor = await mountThemeEditor(host, { target: t.stage('<div data-theme="dark"></div>').firstElementChild, preview: false, savedKey: false, initial: ':root, [data-theme="dark"] { --color-accent: #123456; }' });
+        const inputs = await until(() => { const l = host.querySelectorAll('.te-sdk [data-breakpoint-input]'); return l.length === 3 ? [...l] : null; }, 'the breakpoint inputs');
+        await t.load(host); await t.settle();
+        const type = (el, v) => { el.value = String(v); el.dispatchEvent(new Event('input', { bubbles: true, composed: true })); };
+        type(inputs[0], 700); await t.settle();
+        const got = [], realCreate = URL.createObjectURL, realClick = HTMLAnchorElement.prototype.click, realFetch = window.fetch;
+        URL.createObjectURL = b => { got.push({ blob: b }); return 'blob:test'; };
+        HTMLAnchorElement.prototype.click = function () { got.at(-1).name = this.download; };
+        // the dist as the package will ship it: no plainkit.css in the manifest, and the file is not served
+        window.fetch = async (input, init) => {
+            const url = String(input?.url ?? input);
+            if (/\/plainkit\.css$/.test(url)) return new Response('', { status: 404 });
+            const r = await realFetch(input, init);
+            if (/\/manifest\.json$/.test(url) && !/modules\//.test(url)) { const m = await r.json(); m.files = m.files.filter(f => f.path !== 'plainkit.css'); return new Response(JSON.stringify(m), { status: 200 }); }
+            return r;
+        };
+        let files;
+        try {
+            host.querySelector('.te-sdk [data-sdk="export"]').click();
+            await until(() => got.length, 'the export');
+            files = unzip(new Uint8Array(await got[0].blob.arrayBuffer()), true);
+        } finally { URL.createObjectURL = realCreate; HTMLAnchorElement.prototype.click = realClick; window.fetch = realFetch; }
+        const text = p => new TextDecoder().decode(files.get(p));
+        t.ok(!files.has('dist/plainkit.css') && files.has('dist/plainkit.min.css'), 'only the minified page layer is in the export');
+        const min = text('dist/plainkit.min.css');
+        t.ok(/--pk-bp-phone:700px;--pk-bp-tablet:1024px/.test(min) && /--color-accent:#123456/.test(min), 'widths and theme are in plainkit.min.css');
+        t.ok(/@media\(max-width:700px\)/.test(min) && !/@media\(max-width:640px\)/.test(min) && /@media\(min-width:701px\)/.test(min), 'the media conditions follow the new width');
+        const manifest = JSON.parse(text('dist/manifest.json'));
+        const digest = new Uint8Array(await crypto.subtle.digest('SHA-256', files.get('dist/plainkit.min.css')));
+        t.eq(manifest.files.find(f => f.path === 'plainkit.min.css').integrity, 'sha256-' + btoa(String.fromCharCode(...digest)), 'the minified file hash matches the manifest');
+        editor.destroy();
+    }],
     ['theme editor Custom SDK tab: the full export is the dist with the widths and the theme, a recomputed manifest whose hashes match, and the settings import back', async t => {
         await t.load(t.stage('<pk-unit-input></pk-unit-input><pk-colour-input></pk-colour-input><pk-input></pk-input><pk-select></pk-select><pk-button></pk-button><pk-tabs></pk-tabs><pk-table></pk-table><pk-stat></pk-stat><pk-card></pk-card><pk-toolbar></pk-toolbar><pk-textarea></pk-textarea><pk-badge></pk-badge><pk-alert></pk-alert>')); // the editor's elements load on demand: define them first, so the case also passes on its own (--elements)
         const { mountThemeEditor } = await dist('theme-editor');
@@ -815,5 +851,96 @@ export const toolCases = [
             root.querySelector('pk-tab[value="events"]').click();
             await until(() => { document.dispatchEvent(new CustomEvent(rare, { bubbles: true, composed: true, detail: 1 })); return (root.querySelectorAll('pk-table')[1]?.getAttribute('rows') ?? '').includes(rare); }, 'the Events tab to list ' + rare);
         } finally { tools.destroy(); }
+    }],
+    // Nesting phase of the layout builder workbench (#1997 part 1): drop zones at any depth, per slot, for palette drags and for existing nodes.
+    ['layout builder nesting: a palette drag lands in the deepest container under the pointer (depth 2 and 3, a named slot), and undo takes it out again', async t => {
+        const { mountLayoutBuilder } = await dist('layout-builder');
+        const host = t.stage('');
+        const start = '<pk-stack><pk-card heading="A"><pk-stack><p>Deep</p></pk-stack><pk-button slot="footer">Go</pk-button></pk-card></pk-stack>';
+        const builder = await mountLayoutBuilder(host, { html: start });
+        await t.load(host);
+        const pick = (pred) => { let found = null; const seek = list => { for (const n of list) { if (typeof n === 'string') continue; if (pred(n)) found = n; for (const l of Object.values(n.slots)) seek(l); } }; seek(builder.getModel().nodes); return found; };
+        const kids = (node, slot = '') => (node.slots[slot] ?? []).filter(c => typeof c !== 'string').map(c => c.tag);
+        const drop = async (tag, el, where) => {
+            const r = el.getBoundingClientRect(), edge = where === 'edge', x = edge ? r.left + 4 : r.left + r.width / 2, y = where === 'bottom' ? r.bottom - 2 : edge ? r.top + 4 : r.top + r.height / 2;
+            const b = host.querySelector(`.lb-palette pk-button[data-tag="${tag}"]`), br = b.getBoundingClientRect();
+            b.dispatchEvent(new PointerEvent('pointerdown', { pointerId: 51, clientX: br.left + 4, clientY: br.top + 4, button: 0, bubbles: true, composed: true }));
+            window.dispatchEvent(new PointerEvent('pointermove', { pointerId: 51, clientX: x, clientY: y, bubbles: true, composed: true })); await t.settle();
+            window.dispatchEvent(new PointerEvent('pointerup', { pointerId: 51, clientX: x, clientY: y, bubbles: true, composed: true })); await t.settle();
+        };
+        const surface = () => host.querySelector('pk-design-surface');
+        await drop('pk-badge', surface().querySelector('pk-card pk-stack p'), 'bottom');
+        t.eq(kids(pick(n => n.tag === 'pk-stack' && (n.slots[''] ?? []).some(c => c.tag === 'p'))).join(), 'p,pk-badge', 'depth 3: a leaf under the pointer drops into its container, after it');
+        await drop('pk-alert', surface().querySelector('pk-card'), 'edge');
+        t.ok(kids(pick(n => n.tag === 'pk-card')).includes('pk-alert'), 'depth 2: dropping on the card itself drops into its default slot');
+        await drop('pk-badge', surface().querySelector('pk-card pk-button[slot=footer]'), 'middle');
+        t.ok(kids(pick(n => n.tag === 'pk-card'), 'footer').includes('pk-badge'), 'dropping on a node of a named slot drops into that slot');
+        builder.undo(); builder.undo(); builder.undo();
+        t.eq(builder.toHtml({ compact: true }), start, 'undo takes the three drops out again');
+        builder.destroy();
+    }],
+    ['layout builder nesting: the Move chip drags an existing node into a container at depth 2, reorders inside it, undo restores, and the export nests', async t => {
+        const { mountLayoutBuilder } = await dist('layout-builder');
+        const host = t.stage('');
+        const start = '<pk-stack><h2>Title</h2><pk-card heading="A"><p>One</p><p>Two</p></pk-card></pk-stack>';
+        const builder = await mountLayoutBuilder(host, { html: start });
+        await t.load(host);
+        const surface = () => host.querySelector('pk-design-surface');
+        const idOf = text => { let id = null; const seek = list => { for (const n of list) { if (typeof n === 'string') continue; if ((n.slots[''] ?? []).includes(text)) id = n.id; for (const l of Object.values(n.slots)) seek(l); } }; seek(builder.getModel().nodes); return id; };
+        const move = async (id, el, where) => {
+            builder.select(id); await t.settle();
+            const chip = host.querySelector('pk-design-surface pk-button[data-node-action=drag]'); const cr = chip.getBoundingClientRect();
+            const r = el.getBoundingClientRect(), x = r.left + r.width / 2, y = where === 'top' ? r.top + 2 : r.bottom - 2;
+            chip.dispatchEvent(new PointerEvent('pointerdown', { pointerId: 61, clientX: cr.left + 4, clientY: cr.top + 4, button: 0, bubbles: true, composed: true }));
+            window.dispatchEvent(new PointerEvent('pointermove', { pointerId: 61, clientX: x, clientY: y, bubbles: true, composed: true })); await t.settle();
+            window.dispatchEvent(new PointerEvent('pointerup', { pointerId: 61, clientX: x, clientY: y, bubbles: true, composed: true })); await t.settle();
+        };
+        await move(idOf('Title'), surface().querySelectorAll('pk-card p')[0], 'top');
+        t.eq(builder.toHtml({ compact: true }), '<pk-stack><pk-card heading="A"><h2>Title</h2><p>One</p><p>Two</p></pk-card></pk-stack>', 'the heading moved into the card, before the first paragraph, and the export nests it');
+        await move(idOf('Two'), surface().querySelector('pk-card h2'), 'top');
+        t.eq(builder.toHtml({ compact: true }), '<pk-stack><pk-card heading="A"><p>Two</p><h2>Title</h2><p>One</p></pk-card></pk-stack>', 'a pointer drag reorders inside the container');
+        builder.undo(); builder.undo();
+        t.eq(builder.toHtml({ compact: true }), start, 'undo restores the original page');
+        builder.select(idOf('Title')); await t.settle();
+        t.ok(host.querySelector('pk-select[data-role=parent]'), 'the properties form offers Move into, the touch and screen-reader path');
+        builder.destroy();
+    }],
+    ['layout builder nesting (375px): a node moves into a container by drag on a phone, and by the Move into list', async t => {
+        const host = t.stage('');
+        const f = document.createElement('iframe');
+        f.title = 'layout builder, phone width'; f.style.width = '375px'; f.style.height = '640px'; f.style.border = '0';
+        const base = new URL('../../', import.meta.url).href;
+        host.append(f);
+        f.srcdoc = `<!doctype html><html><head><meta charset="utf-8"><base href="${base}"><link rel="stylesheet" href="plainkit.css"></head><body><div id="host"></div>`
+            + `<script type="module">try { const { mountLayoutBuilder } = await import('./modules/layout-builder/layout-builder.js');`
+            + `window.__builder = await mountLayoutBuilder(document.getElementById('host'), { html: '<h2>One</h2><pk-card heading="A"><p>Two</p></pk-card>' }); window.__ready = true;`
+            + `} catch (error) { window.__error = String(error && error.stack || error); }</script></body></html>`;
+        await until(() => f.contentWindow?.__ready || f.contentWindow?.__error, 'the layout builder to mount in the phone frame');
+        const win = f.contentWindow, fdoc = f.contentDocument;
+        if (win.__error) throw new Error(`mountLayoutBuilder failed in the phone frame: ${win.__error}`);
+        const dock = fdoc.querySelector('.lb > pk-dock');
+        await until(() => dock.shadowRoot?.querySelector('[data-node="phone"] pk-tab'), 'the dock to draw its phone strip');
+        const canvasTab = dock.shadowRoot.querySelector('pk-tab[value="canvas"]');
+        await until(() => { const shown = fdoc.querySelector('pk-design-surface p')?.getBoundingClientRect().width > 0; if (!shown) canvasTab.click(); return shown; }, 'the Canvas panel to show');
+        await t.settle();
+        win.__builder.select(win.__builder.getModel().nodes[0].id); await t.settle();
+        const chip = fdoc.querySelector('pk-design-surface pk-button[data-node-action=drag]'); const cr = chip.getBoundingClientRect();
+        t.ok(cr.width >= 24 && cr.height >= 24, 'the Move chip is on screen and usable');
+        const p = fdoc.querySelector('pk-design-surface pk-card p').getBoundingClientRect();
+        chip.dispatchEvent(new win.PointerEvent('pointerdown', { pointerId: 71, pointerType: 'touch', clientX: cr.left + 4, clientY: cr.top + 4, button: 0, bubbles: true, composed: true }));
+        win.dispatchEvent(new win.PointerEvent('pointermove', { pointerId: 71, clientX: p.left + p.width / 2, clientY: p.bottom - 2, bubbles: true }));
+        await t.settle();
+        win.dispatchEvent(new win.PointerEvent('pointerup', { pointerId: 71, clientX: p.left + p.width / 2, clientY: p.bottom - 2, bubbles: true }));
+        await t.settle();
+        t.eq(win.__builder.toHtml({ compact: true }), '<pk-card heading="A"><p>Two</p><h2>One</h2></pk-card>', 'a touch drag nests the heading in the card');
+        win.__builder.undo();
+        win.__builder.select(win.__builder.getModel().nodes[0].id); await t.settle();
+        const pickBox = fdoc.querySelector('pk-select[data-role=parent]');
+        t.ok(pickBox, 'the Move into list is in the properties form');
+        pickBox.value = `${win.__builder.getModel().nodes[1].id}|`;
+        pickBox.dispatchEvent(new win.Event('change', { bubbles: true }));
+        await t.settle();
+        t.eq(win.__builder.toHtml({ compact: true }), '<pk-card heading="A"><p>Two</p><h2>One</h2></pk-card>', 'choosing the card in Move into nests the heading, no drag needed');
+        win.__builder.destroy();
     }],
 ];

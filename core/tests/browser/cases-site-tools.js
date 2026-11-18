@@ -1,4 +1,4 @@
-// The Theme editor and the Layout builder as lazy modules of the site app (#355, step 6b): core/app.html#/theme and #/layout-builder. Each layout expectation is a measurement:
+// The Theme editor and the Layout builder as lazy modules of the site app (#355, step 6b): core/app.html#/theme, and the Layout builder as a chrome-less module (#1996). Each layout expectation is a measurement:
 // the tool fills the content area beside or under the bar, never wider than it, never clipped, and the page does not scroll sideways.
 const wait = ms => new Promise(r => setTimeout(r, ms));
 const until = async (fn, what, tries = 200) => { for (let i = 0; i < tries; i++) { const v = fn(); if (v) return v; await wait(50); } throw new Error(`timed out waiting for ${what}`); };
@@ -29,14 +29,22 @@ export const siteToolCases = [
             t.ok(p.d.querySelector('pk-nav-item[current], pk-tab[aria-current], [aria-current="page"]'), `${width}: the bar marks the Theme editor as current`);
         }
     }],
-    ['layout builder module (app, 1280px and 375px): the builder fills the content area with its palette, canvas and properties, and the page does not scroll sideways', async t => {
+    ['layout builder module (app, chrome: false, 1280px and 375px): the builder takes the whole viewport with no bar, breadcrumb, menu or toast, a link leads back, and the chrome returns on leaving (#1996)', async t => {
+        const shown = el => !!el && el.getBoundingClientRect().height > 0 && getComputedStyle(el).visibility !== 'hidden';
         for (const width of [1280, 375]) {
-            const p = await openApp(t, '#/layout-builder', width, '#pk-main pk-dock');
-            fits(t, p, 'the builder', width);
-            const r = p.tool.getBoundingClientRect();
-            t.ok(r.height >= 400, `${width}: the dock is tall enough to work in (${Math.round(r.height)}px)`);
-            t.ok(p.d.querySelector('#pk-main pk-design-surface'), `${width}: the canvas is drawn`);
-            t.ok(r.bottom <= 800 + 1, `${width}: the dock ends inside the screen (${Math.round(r.bottom)})`);
+            const p = await openApp(t, '#/layout-builder', width, 'pk-dock'), { d } = p;
+            const dock = p.tool.getBoundingClientRect(), root = d.querySelector('.lb').getBoundingClientRect();
+            t.ok(root.width >= width - 1 && root.left <= 1, `${width}: the builder spans the viewport width (${Math.round(root.left)}..${Math.round(root.right)})`);
+            t.ok(Math.abs(root.bottom - 800) <= 1, `${width}: the builder ends at the bottom of the viewport (${Math.round(root.bottom)})`);
+            t.ok(dock.height >= 600, `${width}: the dock is tall (${Math.round(dock.height)}px)`);
+            for (const sel of ['pk-navbar', 'pk-breadcrumb', 'pk-side-nav', '[data-nav-toggle]', 'pk-app-shell > [slot="footer"]']) t.ok(!shown(d.querySelector(sel)), `${width}: ${sel} is not laid out while the builder is active`);
+            t.ok(!d.querySelector('pk-toast, pk-toast-stack > *'), `${width}: no toast over the builder`);
+            t.ok(d.documentElement.scrollHeight <= 800 + 1 && d.documentElement.scrollWidth <= width + 1, `${width}: the page itself does not scroll (${d.documentElement.scrollHeight} x ${d.documentElement.scrollWidth})`);
+            const back = d.querySelector('#pk-main a[href$="#/gallery"]');
+            t.ok(back && shown(back), `${width}: a visible link leads back to the gallery`);
+            p.win.location.hash = '#/gallery';
+            await until(() => shown(d.querySelector('pk-navbar')) && shown(d.querySelector('pk-breadcrumb')), `${width}: the chrome after leaving the builder`);
+            t.ok(!d.querySelector('pk-dock'), `${width}: the builder is gone after navigating away`);
         }
     }],
     ['files module (app): a deep link #/files?path=&line= opens that file at that line', async t => {
@@ -49,9 +57,9 @@ export const siteToolCases = [
         const key = 'pk-layout-builder-draft', old = localStorage.getItem(key);
         localStorage.setItem(key, JSON.stringify({ version: 1, seq: 2, nodes: [{ id: 'n1', tag: 'h2', props: {}, slots: { '': ['Restored draft heading'] } }] }));
         try {
-            const p = await openApp(t, '#/layout-builder', 1280, '#pk-main pk-dock');
-            t.ok(p.main.textContent.includes('Restored draft heading') || (p.main.querySelector('pk-design-surface')?.textContent ?? '').includes('Restored draft heading'), 'the saved heading is on the canvas');
-            t.ok(!p.main.textContent.includes('Team overview'), 'the sample page is not shown');
+            const { d } = await openApp(t, '#/layout-builder', 1280, 'pk-dock'), text = d.querySelector('pk-design-surface')?.textContent ?? '';
+            t.ok(text.includes('Restored draft heading'), 'the saved heading is on the canvas');
+            t.ok(!text.includes('Team overview'), 'the sample page is not shown');
         } finally { if (old === null) localStorage.removeItem(key); else localStorage.setItem(key, old); }
     }],
 ];
