@@ -442,3 +442,11 @@ test('a config that only changes the fields patches the groups in place; a chang
     el.changed('config');
     assert.notEqual(parts.main.children, kids, 'a change outside fields draws again');
 });
+
+test('toolbar buttons use a size pk-button accepts (#2013)', async () => {
+    const { readFileSync } = await import('node:fs');
+    const html = readFileSync(new URL('./record-page.html', import.meta.url), 'utf8');
+    const sizes = [...html.matchAll(/<pk-button\b[^>]*\ssize="([^"]*)"/g)].map(m => m[1]);
+    assert.ok(sizes.length >= 4);
+    for (const s of sizes) assert.ok(['md', 'mini', 'lg'].includes(s), `invalid pk-button size "${s}"`);
+});
