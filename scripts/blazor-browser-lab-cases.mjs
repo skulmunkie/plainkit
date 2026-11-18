@@ -22,6 +22,26 @@ export const LAB_CASES = [
         }
         await ctx.noErrors(ctx.openMark, BENIGN);
       } },
+    // #2010: the sections page through the real dispatcher: a deep link (?tab=) picks the section, a tab click reaches OnSectionChange, the slot maps project, and OnAction still fires after Config is re-sent with another action key.
+    { name: 'sections-page-slots-actions-tabs',
+      async run(ctx) {
+        const shown = id => `(() => { const e = document.getElementById(${JSON.stringify(id)}); return !!e && e.getBoundingClientRect().width > 0; })()`;
+        await ctx.open('/lab/sections?tab=activity');
+        await ctx.waitInteractive();
+        await ctx.waitFor(shown('lab-activity'), 'the Activity panel from the ?tab= deep link');
+        ctx.ok(await ctx.eval(`!${shown('lab-overview')}`), 'the Overview panel is shown beside the deep-linked Activity one');
+        await ctx.clickDeep('pk-sections-page >>> pk-tab', 'Overview');
+        await ctx.waitFor(shown('lab-overview'), 'the Overview panel after the tab click');
+        await ctx.waitFor(shown('lab-side'), 'the Overview side card');
+        await waitText(ctx, 'section:overview;', ALL);
+        await ctx.clickDeep('pk-sections-page >>> pk-button', 'Act first');
+        await waitText(ctx, 'action:first;', ALL);
+        await ctx.clickDeep('pk-button', 'Rename action');
+        await ctx.waitFor(`window.__deep.text(document.body).includes('Act second')`, 'the title bar to show the re-sent action');
+        await ctx.clickDeep('pk-sections-page >>> pk-button', 'Act second');
+        await waitText(ctx, 'action:second;', ALL);
+        await ctx.noErrors(ctx.openMark, BENIGN);
+      } },
     { name: 'list-load-search-refresh',
       async run(ctx) {
         await ctx.open('/lab/tickets');
@@ -590,6 +610,7 @@ export const LAB_SHOTS = [
         await ctx.clickDeep('pk-record-page >>> pk-button[part="edit"]'); await ctx.sleep(600);
         await ctx.shot('lab-record-sections-editing', vp, theme);
     },
+    async (ctx, vp, theme) => { await ctx.open('/lab/sections?tab=overview'); await ctx.sleep(1000); await ctx.shot('lab-sections', vp, theme); },
     async (ctx, vp, theme) => {
         await ctx.open('/lab/fields');
         await ctx.clickDeep('pk-button', 'Ask'); await ctx.sleep(600);
