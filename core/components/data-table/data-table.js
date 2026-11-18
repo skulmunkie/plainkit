@@ -12,7 +12,7 @@ export default Base => class extends Base {
     connected() {
         // Cell and detail content (#817, #1913): the host's `cell-<id>-<key>`, `header-<key>` and `detail-<id>` children are re-slotted into the inner pk-table, which finds them as its own children.
         (this.$mo ??= new MutationObserver(() => this.forwardSlots())).observe(this, { childList: true });
-        if (this.hasAttribute('config') || Object.hasOwn(this, 'config')) this.warnOnce('config', 'config was removed: use props');
+        if (this.hasAttribute('config') || Object.hasOwn(this, 'config')) this.warnOnce('config', 'config was removed');
         if (this.$w) return;
         this.$w = true;
         loadElements(this.shadowRoot);
@@ -62,8 +62,9 @@ export default Base => class extends Base {
     }
     changed(name) {
         if (!this.$w) return;
+        // Columns alone only redraw drawn rows (#2017); while no row has been drawn yet (loading, empty, error) they load, as every other setting does.
         // A setting that arrives after the first draw (a wrapper sets props after connecting) still decides the initial page size and sort, until the reader changes the query.
-        if (name !== 'columns' && SETTINGS.includes(name)) { const s = this.opt('search'); if (!this.$touched) this.$query = null; else if (s !== this.$seed) this.$query = { ...this.query, search: s, page: 1 }; this.buildFilters(); if (!this.$touched) this.seedFilters(); const t = this.$rq = {}; queueMicrotask(() => this.$rq === t && this.refresh()); }
+        if (SETTINGS.includes(name) && (name !== 'columns' || !this.part('table').rows?.length)) { const s = this.opt('search'); if (!this.$touched) this.$query = null; else if (s !== this.$seed) this.$query = { ...this.query, search: s, page: 1 }; this.buildFilters(); if (!this.$touched) this.seedFilters(); this.$rq ||= (queueMicrotask(() => this.$rq && this.refresh()), 1); }
         else this.sync();
     }
 
@@ -79,7 +80,7 @@ export default Base => class extends Base {
         let to;
         if (where === 'next') to = rows[Math.min(at + 1, rows.length - 1)];
         else if (where === 'search') to = box;
-        else if (typeof where === 'string') to = at < 0 ? undefined : rows[where === 'previous' ? Math.max(at - 1, 0) : where === 'first' ? 0 : where === 'last' ? rows.length - 1 : at];
+        else if (typeof where === 'string') to = at < 0 ? undefined : rows[Math.max({ previous: at - 1, first: 0, last: rows.length - 1 }[where] ?? at, 0)];
         else to = box ?? rows[0];
         to?.focus();
         return Boolean(to);
@@ -112,7 +113,8 @@ export default Base => class extends Base {
         for (const [key, el] of Object.entries(this.$controls ?? {})) if (values[key] !== undefined) el.value = values[key];
         this.updateFilterCount();
     }
-    updateFilterCount() { this.part('filters').filterCount = Object.values(this.query.filters).filter(v => String(v ?? '').trim() !== '').length; }
+    used(q) { return Object.values(q.filters).filter(v => String(v ?? '').trim()).length; }
+    updateFilterCount() { this.part('filters').filterCount = this.used(this.query); }
 
     // The table's own props follow the query and the selection state.
     sync() {
@@ -136,7 +138,7 @@ export default Base => class extends Base {
 
     // Zero rows: while a search or filter is active `noResults` (when set), else `empty`; with nothing active a host child in the `empty` slot (`no-results` while searching) replaces the built-in state.
     showEmpty(q) {
-        const state = this.part('state'), noResults = this.opt('noResults'), searching = q.search || Object.values(q.filters).some(v => String(v ?? '').trim() !== '');
+        const state = this.part('state'), noResults = this.opt('noResults'), searching = q.search || this.used(q);
         const slot = searching ? 'no-results' : 'empty';
         if (this.querySelector(`:scope > [slot="${slot}"]`)) { showState(state, 'ready'); this.part(searching ? 'noResults' : 'empty').hidden = false; }
         else showState(state, 'empty', searching && noResults ? noResults : this.opt('empty') ?? undefined);
@@ -146,6 +148,7 @@ export default Base => class extends Base {
     // with Retry if it rejects, the configured empty state for zero rows, or the table itself. A request started while an older one is still
     // in flight is the only one that gets to draw (a token, the same guard js/app/module.js's own request cancellation makes at the module level).
     async refresh() {
+        this.$rq = 0; // a load now makes a deferred one redundant
         const table = this.part('table'), state = this.part('state');
         if (this.hasAttribute('url-state')) (await (this.$us ??= import('../../js/url-state.js'))).sync(this); // the view in the address (#1946): read before the first load, written after each change
         const q = this.query;
