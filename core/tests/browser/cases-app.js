@@ -552,14 +552,14 @@ export const appCases = [
         page.destroy();
     }],
 
-    ['wizard page type (#2011): config.liveValidate marks a field as the answer is committed (no Next), and a slotted step's named controls are collected and validated', async t => {
+    ['wizard page type (#2011): config.liveValidate marks a field as the answer is committed (no Next), and the named controls of a slotted step are collected and validated', async t => {
         const { mountPage } = await dist('js/app.js');
         const box = document.createElement('div'); t.stage('').append(box);
         const seen = [];
         const page = await mountPage(box, { type: 'wizard', config: {
             liveValidate: true,
             steps: [{ id: 'a', label: 'Account', fields: [{ name: 'email', label: 'Email' }] }, { id: 'c', label: 'Code' }],
-            validate: async (id, values, opts) => { seen.push([id, values, opts]); return values.email === 'taken@x.y' ? { errors: { email: 'Already taken' } } : values.code === 'bad' ? { errors: { code: 'Bad code' } } : null; },
+            validate: async (id, values, ctx, opts) => { seen.push([id, values, opts]); return values.email === 'taken@x.y' ? { errors: { email: 'Already taken' } } : values.code === 'bad' ? { errors: { code: 'Bad code' } } : null; },
             submit: async () => {},
         } });
         const el = box.querySelector('pk-wizard-page');
@@ -573,7 +573,7 @@ export const appCases = [
         await until(() => el.part('panes').querySelector('pk-field[error]'), 'the live message');
         t.eq(el.part('panes').querySelector('pk-field').getAttribute('error'), 'Already taken'); t.eq(el.part('heading').textContent, 'Account', 'still on step one');
         t.ok(seen[0][2].live === true && seen[0][2].key === 'email', 'validate is told it is live');
-        inner.value = 'free@x.y'; inner.dispatchEvent(new Event('change', { bubbles: true, composed: true }));
+        inner.value = 'free@x.y'; inner.dispatchEvent(new Event('input', { bubbles: true, composed: true })); inner.dispatchEvent(new Event('change', { bubbles: true, composed: true }));
         await until(() => !el.part('panes').querySelector('pk-field[error]'), 'the message clears');
         el.part('next').click(); await until(() => el.part('heading').textContent === 'Code', 'step two');
         const code = slotted.querySelector('pk-input'), ci = code.part('control');
