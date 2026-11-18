@@ -1,6 +1,7 @@
 import { showState, showTitleBar } from '../../js/page-shell.js';
 import { renderState } from '../../js/page-states.js';
 import { loadElements } from '../../js/loader.js';
+import { actionItems, renderActions } from '../../js/page-actions.js';
 
 const CONTROL = { textarea: 'pk-textarea', select: 'pk-select' };
 const text = v => (v == null ? '' : String(v));
@@ -24,10 +25,6 @@ export default Base => class extends Base {
                 if (this.config?.liveValidate) this.live(key);
             });
             this.part('submit').addEventListener('click', () => this.next(true));
-            this.part('actions').addEventListener('click', e => {
-                const key = e.target?.closest?.('pk-button')?.dataset?.key;
-                if (key) this.emit('pk-wizard-action', { key, values: this.collect(), step: this.steps[this.$i]?.id });
-            });
             // A click on a reached step goes back (no validation); moving forward is Next's job, so the stepper's own move is always cancelled.
             this.part('stepper').addEventListener('pk-step-change', e => { e.preventDefault(); if (e.detail.index < this.$i) this.go(e.detail.index); });
         }
@@ -66,12 +63,9 @@ export default Base => class extends Base {
         renderState(box, 'ready'); this.setDirty(false);
         const doc = this.ownerDocument, stepper = this.part('stepper');
         stepper.replaceChildren(...this.steps.map(s => { const st = doc.createElement('pk-step'); st.setAttribute('heading', s.label ?? s.id); if (s.description) st.setAttribute('description', s.description); return st; }));
-        this.part('actions').replaceChildren(...(this.config?.footerActions ?? []).map(a => {
-            const b = doc.createElement('pk-button');
-            b.dataset.key = a.key; b.setAttribute('variant', a.variant || 'ghost'); b.textContent = a.label ?? a.key;
-            if (a.icon) { b.setAttribute('icon-name', a.icon); b.setAttribute('collapse', 'phone'); }
-            return b;
-        }));
+        // The footer actions are the shared renderer's (#1943); a press keeps its own event, pk-wizard-action with the answers so far, and also raises pk-action { key }.
+        const warn = (k, m) => this.warnOnce?.(k, m);
+        this.part('actions').replaceChildren(...renderActions(this, actionItems((this.config?.footerActions ?? []).map(a => ({ variant: 'ghost', ...a })), null, warn), { slot: null, warn, onPress: (a, fire) => { this.emit('pk-wizard-action', { key: a.key, values: this.collect(), step: this.steps[this.$i]?.id }); fire(); } }));
         stepper.errors = ''; stepper.current = 0;
         stepper.hidden = false; this.part('card').hidden = false;
         loadElements(this.shadowRoot);

@@ -1,6 +1,7 @@
 import { showTitleBar } from '../../js/page-shell.js';
 import { loadElements } from '../../js/loader.js';
 import { safeHref } from '../../js/safe-url.js';
+import { actionItems, renderActions } from '../../js/page-actions.js';
 
 const TABLE_KEYS = ['columns', 'filters', 'filterPanel', 'pageSize', 'pageSizeOptions', 'sort', 'sortDir', 'search', 'filterValues', 'page', 'searchDebounce', 'pagerLabel', 'label', 'caption', 'empty', 'noResults', 'loadError', 'stickyHeader', 'density', 'striped', 'maxHeight', 'selectPageOnly', 'expandable', 'expander'];
 
@@ -14,6 +15,7 @@ export default Base => class extends Base {
         // Host `cell-<id>-<key>` and `detail-<id>` children are re-slotted into the table (#1000, #817, #1913).
         (this.$mo = new MutationObserver(() => { this.forwardSlots(); this.showHeaderSlot(); })).observe(this, { childList: true });
         this.forwardSlots();
+        this.part('table').addEventListener('pk-add', () => { if (this.config?.addLabel) this.emit('pk-action', { key: 'new' }); }); // the addLabel button also raises pk-action
         const slot = this.shadowRoot?.querySelector?.('slot[name="before-list"]'), before = this.part('before');
         if (slot && before) { const show = () => { before.hidden = !slot.assignedNodes().length; }; slot.addEventListener('slotchange', show); show(); }
     }
@@ -57,8 +59,20 @@ export default Base => class extends Base {
         showTitleBar(this, this.part('header'), inBar ? {} : { ...this.config, actions: [], newAction: undefined });
         this.buildLead(inBar);
         this.showHeaderSlot();
-        this.fill('actions', this.config?.actions);
+        this.drawToolbar();
         this.fill('bulk', this.config?.selectable ? this.config?.bulkActions : null);
+    }
+
+    // The toolbar buttons go through the shared renderer (#1943): config `toolbarActions` (or `actions`, its older name), one item shape, a press raises pk-action { key };
+    // an item with only a label (valid before, drawn but inert) takes its label as its key. `newAction` is drawn first as the primary. `addLabel` (the table's pk-add button) is deprecated for newAction.
+    drawToolbar() {
+        const { toolbarActions, actions, newAction, actionsCollapse, addLabel } = this.config ?? {}, list = toolbarActions ?? actions, key = JSON.stringify([list ?? [], newAction ?? null, actionsCollapse ?? null]);
+        if (addLabel) { this.warnOnce?.('addLabel', 'addLabel is replaced by newAction { key, label, icon? } and goes after the next minor'); this.part('table').addLabel = addLabel; }
+        if (key === this.$actions) return;
+        this.$actions = key;
+        const box = this.part('actions'), warn = (k, m) => this.warnOnce?.(k, m);
+        box.replaceChildren(...renderActions(this, actionItems((list ?? []).map(a => (a && !a.key && !a.href && a.label ? { key: a.label, ...a } : a)), newAction, warn), { collapse: actionsCollapse, slot: null, warn }));
+        loadElements(box);
     }
 
     // toolbarInHeader (#1723): the title goes to the table's lead slots, the host actions to its actions slot; the shell header stays bare.

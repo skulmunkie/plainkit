@@ -152,7 +152,7 @@
       "type": "string",
       "default": "",
       "reflect": false,
-      "description": "The text of a primary action button after the search box and the actions slot (for example \"+ Add customer\"); pressing it raises pk-add. Empty shows no button."
+      "description": "The text of a primary action button after the search box and the actions slot (for example \"+ Add customer\"); pressing it raises pk-add. Empty shows no button. Deprecated: see newAction."
     },
     {
       "name": "selectable",
@@ -301,7 +301,7 @@
     {
       "name": "pk-add",
       "detail": null,
-      "description": "The add button (addLabel) was pressed."
+      "description": "The addLabel button was pressed (deprecated)."
     },
     {
       "name": "pk-load-error",

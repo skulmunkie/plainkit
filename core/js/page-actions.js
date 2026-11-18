@@ -16,23 +16,23 @@ export function actionItems(list = [], newAction, warn = () => {}) {
     });
 }
 
-/** The nodes for `items` (pk-button, or pk-tooltip around it when there is a `hint`), each with slot `slot`; a press of a key item fires pk-action on `host`. */
-export function renderActions(host, items, { collapse, slot = 'actions', warn = () => {} } = {}) {
+/** The nodes for `items` (pk-button, or pk-tooltip around it when there is a `hint`), each with slot `slot`; a press of a key item fires pk-action on `host` (`onPress(item, fire)` takes over the press: a page with its own event calls `fire()` for the shared one). */
+export function renderActions(host, items, { collapse, slot = 'actions', warn = () => {}, onPress } = {}) {
     const doc = host.ownerDocument, mode = COLLAPSES.includes(collapse) ? collapse : 'phone';
     if (collapse !== undefined && mode !== collapse) warn('actionsCollapse', `actionsCollapse=${JSON.stringify(collapse)} is not one of ${COLLAPSES.join(', ')}: using phone`);
     return items.map(a => {
         const btn = doc.createElement('pk-button');
-        btn.slot = slot;
+        if (slot) btn.slot = slot;
         btn.textContent = a.label ?? a.key;
         if (a.variant) btn.variant = a.variant;
         if (a.href) btn.href = a.href;
         if (a.icon) { btn.iconName = a.icon; btn.collapse = a.collapse ?? mode; } else if (mode === 'always') warn('action:icon', `action "${a.key ?? a.href}" has no icon: actionsCollapse cannot fold it`);
         if (a.disabled) btn.disabled = true;
         if (a.busy) btn.busy = true;
-        if (!a.href && !a.disabled && !a.busy) btn.addEventListener('click', () => host.dispatchEvent(new CustomEvent('pk-action', { bubbles: true, composed: true, detail: { key: a.key } })));
+        if (!a.href && !a.disabled && !a.busy) btn.addEventListener('click', () => { const fire = () => host.dispatchEvent(new CustomEvent('pk-action', { bubbles: true, composed: true, detail: { key: a.key } })); if (onPress) onPress(a, fire); else fire(); });
         if (!a.hint) return btn;
         const tip = doc.createElement('pk-tooltip');
-        tip.text = a.hint; tip.slot = slot; btn.removeAttribute('slot');
+        tip.text = a.hint; if (slot) tip.slot = slot; btn.removeAttribute('slot');
         tip.append(btn);
         return tip;
     });
