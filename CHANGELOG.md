@@ -5,6 +5,26 @@ The format follows [Keep a Changelog](https://keepachangelog.com/) and the proje
 
 ## [Unreleased]
 
+## [0.31.0] - 2026-11-18
+
+### Added
+
+- An app module can set `chrome: false` in `defineModule`: while it is active the shell draws no bar, menu, breadcrumb or footer and the module owns the whole viewport (it draws its own way back). The gallery's Layout builder uses it, so the builder fills the window with its palette, canvas and properties and no gallery chrome around it; `mountLayoutBuilder` still mounts the same builder in any host. (#1996)
+- `pk-tool-page` takes `actions-overflow` and `overflow-label` attributes (Blazor: `ActionsOverflow` and `OverflowLabel` on `PkToolPage`), the same as the title bar keys of its config, so the title bar actions can collapse into a menu on a phone without a config key. (#2010)
+- `pk-markdown` renders a documentation page: pipe tables (with column alignment, scrolling sideways inside the element), images, headings 4 to 6, a slug `id` on every heading (a `#anchor` link scrolls to it), a `baseUrl` property (Blazor `BaseUrl`) that resolves relative links and images so the DOM carries the final address, and a `pk-markdown-render` event with the content root so a page can replace diagram fences. Inline HTML stays text. Part of `plainkit.markdown`. (#2012)
+
+### Changed
+
+- The npm package no longer ships the unminified `dist/plainkit.css` (31 KB smaller); `plainkit/plainkit.css` and `plainkit/css` both resolve to `dist/plainkit.min.css`. A plain-HTML page links `dist/plainkit.min.css`; the release zip and the Pages site still carry both files, and the custom-SDK tool works from the minified file alone. (#1985)
+- The layout builder accepts nested components at any depth. A palette element, or an existing element dragged by its new Move chip, drops into the innermost container under the pointer, in the slot it is over (a card's footer, say), at the position an insertion line shows; Alt drops one container out, and a drop the page would refuse is marked and explained. Properties gains a Move into list (the page, or any container and slot) as the keyboard and touch way to do the same. (#1997)
+
+### Fixed
+
+- `pk-record-page` renders its Edit, Cancel, Save and Delete toolbar with the compact `mini` button size, so it no longer logs an invalid-size warning for each button. (#2013)
+- pk-data-table: an explicit `refresh()` right after an option change no longer runs a second, deferred load that cancelled it (a first-load error never showed), and a columns change while no row is drawn yet (the first load came back empty or failed) loads again, as before, so a list page whose config arrives after it connects shows its rows or its error. A columns change over drawn rows still only redraws. The removed-`config` warning is shorter. (#2017)
+- A pk-list-page config update loads the table once, however many options changed, and a change to the columns alone redraws the table without calling load again. (#2017)
+- A pk-grid nested in another pk-grid and given no tracks, ratio or tablet-tracks lays out its own auto-fit columns instead of inheriting the parent grid tracks. (#2019)
+
 ## [0.30.0] - 2026-11-13
 
 ### Fixed
