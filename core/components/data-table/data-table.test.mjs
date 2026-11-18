@@ -484,3 +484,22 @@ test('page below 1 or fractional reads as a whole page of at least 1', () => {
     el.$query = null; el.page = 2.7;
     assert.equal(el.query.page, 2);
 });
+
+test('settings changed one after another load once, and a columns-only change does not load (#2017)', async () => {
+    const { el, parts } = make();
+    let loads = 0;
+    el.load = async () => { loads++; return rowsOf(1); };
+    el.connected();
+    await el.refresh();
+    loads = 0;
+    el.pageSize = 10; el.changed('pageSize');
+    el.sort = 'a'; el.changed('sort');
+    el.label = 'L'; el.changed('label');
+    await Promise.resolve(); await Promise.resolve();
+    assert.equal(loads, 1, 'three changed options, one load');
+    loads = 0;
+    el.columns = [{ key: 'z', label: 'Z' }]; el.changed('columns');
+    await Promise.resolve(); await Promise.resolve();
+    assert.equal(loads, 0, 'columns only: no load');
+    assert.deepEqual(parts.table.columns, [{ key: 'z', label: 'Z' }], 'but the new columns are drawn');
+});

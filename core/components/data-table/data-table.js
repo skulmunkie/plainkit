@@ -12,7 +12,7 @@ export default Base => class extends Base {
     connected() {
         // Cell and detail content (#817, #1913): the host's `cell-<id>-<key>`, `header-<key>` and `detail-<id>` children are re-slotted into the inner pk-table, which finds them as its own children.
         (this.$mo ??= new MutationObserver(() => this.forwardSlots())).observe(this, { childList: true });
-        if (this.hasAttribute('config') || Object.hasOwn(this, 'config')) this.warnOnce('config', 'config was removed: set columns, page-size, filters, empty ... as plain props (see the changelog)');
+        if (this.hasAttribute('config') || Object.hasOwn(this, 'config')) this.warnOnce('config', 'config was removed: use props');
         if (this.$w) return;
         this.$w = true;
         loadElements(this.shadowRoot);
@@ -63,7 +63,7 @@ export default Base => class extends Base {
     changed(name) {
         if (!this.$w) return;
         // A setting that arrives after the first draw (a wrapper sets props after connecting) still decides the initial page size and sort, until the reader changes the query.
-        if (SETTINGS.includes(name)) { const s = this.opt('search'); if (!this.$touched) this.$query = null; else if (s !== this.$seed) this.$query = { ...this.query, search: s, page: 1 }; this.buildFilters(); if (!this.$touched) this.seedFilters(); this.refresh(); }
+        if (name !== 'columns' && SETTINGS.includes(name)) { const s = this.opt('search'); if (!this.$touched) this.$query = null; else if (s !== this.$seed) this.$query = { ...this.query, search: s, page: 1 }; this.buildFilters(); if (!this.$touched) this.seedFilters(); const t = this.$rq = {}; queueMicrotask(() => this.$rq === t && this.refresh()); }
         else this.sync();
     }
 
@@ -126,15 +126,11 @@ export default Base => class extends Base {
         if (this.opt('search') !== this.$seed) filters.value = this.$seed = this.opt('search');
         table.label = this.opt('label'); table.caption = this.opt('caption'); table.toggleAttribute('data-nocaption', !this.opt('caption'));
         table.columns = this.opt('columns');
-        table.rowKey = this.rowKey;
         table.clickable = this.clickable || typeof this.rowHref === 'function';
-        table.currentRow = this.currentRow;
         table.sort = q.sort ?? '';
         table.sortDir = q.sortDir;
-        table.selectable = this.selectable;
         table.selected = this.selected ?? [];
-        table.selectScope = this.selectScope;
-        for (const k of ['rowHrefTemplate', 'navigate', 'selectPageOnly', 'cards', 'striped', 'density', 'maxHeight', 'stickyHeader', 'expandable', 'expander']) table[k] = this[k];
+        for (const k of ['rowKey', 'currentRow', 'selectable', 'selectScope', 'rowHrefTemplate', 'navigate', 'selectPageOnly', 'cards', 'striped', 'density', 'maxHeight', 'stickyHeader', 'expandable', 'expander']) table[k] = this[k];
         table.expanded = this.expanded ?? [];
     }
 
