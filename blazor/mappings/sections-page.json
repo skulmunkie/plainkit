@@ -1,0 +1,48 @@
+{
+  "component": "PkSectionsPage",
+  "params": [
+    {
+      "name": "BadgesContent",
+      "map": "slot",
+      "slot": "badges",
+      "type": "RenderFragment?",
+      "extra": true,
+      "doc": "Status chips (PkBadge) beside the title, after any Config badges."
+    },
+    {
+      "name": "Config",
+      "type": "object",
+      "jsonText": true,
+      "prop": "config",
+      "note": "Sent as a JSON attribute: { sections: [{ id, label, count?, visible? }], section?, tabParam?, sidebarFirst?, sidebarTwoUp?, heading?, breadcrumb?, actions?: [{ key, label, href?, variant?, hint? }], actionsOverflow?, ... }."
+    },
+    {
+      "name": "Section",
+      "prop": "section",
+      "doc": "The selected section id (a section the reader chose is reported by OnSectionChange)."
+    },
+    {
+      "name": "SectionContent",
+      "map": "slotMap",
+      "slotPrefix": "section-",
+      "type": "IReadOnlyDictionary<string, RenderFragment>?",
+      "doc": "The main column by section id (the Config sections id): one panel per section, shown when that section is chosen."
+    },
+    {
+      "name": "SideContent",
+      "map": "slotMap",
+      "slotPrefix": "side-",
+      "type": "IReadOnlyDictionary<string, RenderFragment>?",
+      "doc": "The summary card beside a section, by section id; a section with none draws no side column."
+    },
+    {
+      "name": "OnAction",
+      "event": "pk-action",
+      "note": "A title-bar action (config.actions entry without an href) was clicked; Key is its key."
+    },
+    {
+      "name": "OnSectionChange",
+      "event": "pk-section-change"
+    }
+  ]
+}
