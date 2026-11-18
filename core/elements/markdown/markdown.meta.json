@@ -4,7 +4,7 @@
   "group": "Data display",
   "tier": "element",
   "package": "plainkit.markdown",
-  "summary": "A read-only view of Markdown text, drawn with the toolkit's own parser and renderer (the one behind pk-markdown-editor's preview): DOM calls only, so raw HTML is shown as text, a link must be http, https, mailto or a relative address, and nothing from the source becomes markup. The Markdown subset is paragraphs, bold, italic, code, fenced code, headings 1 to 3, quotes, lists and links. A click on a relative link raises pk-link-click, so the app routes or rewrites it. Use it instead of writing rendered HTML into the page yourself.",
+  "summary": "A read-only view of Markdown text, drawn with the toolkit's own parser and renderer (the one behind pk-markdown-editor's preview): DOM calls only, so raw HTML is shown as text, a link must be http, https, mailto or a relative address, and nothing from the source becomes markup. The Markdown subset is paragraphs, bold, italic, code, fenced code, headings 1 to 6 (each with a slug id, so a #anchor link scrolls to it), quotes, lists, links, images and pipe tables (a table scrolls sideways inside the element). A click on a relative link raises pk-link-click, so the app routes or rewrites it; set baseUrl and every relative link and image carries its final address in the DOM. After each draw pk-markdown-render hands the page the content root, so it can replace a diagram fence (pre > code.language-mermaid) with its own rendered node. Use it instead of writing rendered HTML into the page yourself.",
   "props": [
     {
       "name": "markdown",
@@ -19,6 +19,13 @@
       "default": false,
       "reflect": true,
       "description": "Cancel the click on a relative link (not an #anchor, not an absolute address) so the page does not navigate; pk-link-click still reports its address. Without it the link navigates unless a pk-link-click listener calls preventDefault. A click with a modifier key or a middle click is left to the browser."
+    },
+    {
+      "name": "baseUrl",
+      "type": "string",
+      "default": "",
+      "reflect": false,
+      "description": "The address relative links and images are resolved against (http, https or a path relative to the page), for example the folder of the Markdown file: the DOM then carries the final address, so hover, copy link, middle click and crawlers work. An #anchor is left alone. Empty keeps addresses as written. A link whose address was resolved is no longer relative, so it does not raise pk-link-click."
     }
   ],
   "slots": [],
@@ -30,6 +37,14 @@
       },
       "description": "A relative link was clicked: href is its address as written. Cancel it (preventDefault), or set interceptLinks, to route or rewrite it yourself.",
       "cancelable": true
+    },
+    {
+      "name": "pk-markdown-render",
+      "detail": {
+        "root": "Element"
+      },
+      "description": "The text was drawn: root is the content element (the shadow part content), for example to replace pre > code.language-mermaid blocks with a rendered diagram. Fires after every draw.",
+      "cancelable": false
     }
   ],
   "parts": [
@@ -45,6 +60,10 @@
     {
       "title": "Basic",
       "html": "<pk-markdown markdown=\"## Release notes\n\nThe **spring** update adds *two* things:\n\n- a [guide](guide/intro)\n- `code` samples\"></pk-markdown>"
+    },
+    {
+      "title": "Documentation page",
+      "html": "<pk-markdown base-url=\"https://example.test/docs/guide/\" markdown=\"## Setup\n\nSee [the API](../api/intro.md) or [below](#options).\n\n| Key | Meaning |\n|:---|---:|\n| `a` | first |\n\n#### Options\n\nPlain text under a fourth-level heading.\"></pk-markdown>"
     }
   ]
 }
