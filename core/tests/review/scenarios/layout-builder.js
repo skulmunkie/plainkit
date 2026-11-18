@@ -19,6 +19,15 @@ export default {
             const h2 = host.querySelector('pk-design-surface h2'), r = h2.getBoundingClientRect();
             host.querySelector('pk-design-surface').dispatchEvent(new MouseEvent('contextmenu', { clientX: r.left + r.width / 2, clientY: r.top + r.height / 2, bubbles: true, composed: true, cancelable: true }));
         } });
+        // Nesting (#1997): a drag of the selected heading by its Move chip, held over the last paragraph of the "Next step" card (no pointer up until demoDragEnd).
+        const pointer = (target, type, x, y) => target.dispatchEvent(new PointerEvent(type, { pointerId: 9, clientX: x, clientY: y, button: 0, bubbles: true, composed: true }));
+        Object.defineProperty(host, 'demoDrag', { set() {
+            const chip = host.querySelector('pk-design-surface pk-button[data-node-action="drag"]'), c = chip.getBoundingClientRect();
+            const p = [...host.querySelectorAll('pk-design-surface pk-card p')].find(n => n.textContent.includes('Waiting')).getBoundingClientRect();
+            pointer(chip, 'pointerdown', c.left + 4, c.top + 4);
+            pointer(window, 'pointermove', p.left + p.width / 2, p.bottom - 2);
+        } });
+        Object.defineProperty(host, 'demoDragEnd', { set() { pointer(window, 'pointercancel', 0, 0); } });
     },
     steps: [
         { wait: 'settle' }, 
@@ -33,6 +42,9 @@ export default {
         { key: 'Escape' },
         { click: '#host pk-design-surface h2' },
         { shot: 'selected-chip' },
+        { set: '#host', prop: 'demoDrag', value: true },
+        { shot: 'drag-into-card' },
+        { set: '#host', prop: 'demoDragEnd', value: true },
         { click: '#host pk-button[data-width="phone"]' },
         { shot: 'width-phone' },
         { click: '#host pk-button[data-width="tablet"]' },
@@ -76,6 +88,11 @@ export default {
             t.within('#host pk-design-surface >>> [part=chip]', '#host pk-design-surface');
             t.visible('#host pk-design-surface >>> [part=mark-hidden]', 'the hidden note is veiled');
             t.visible('#host pk-design-surface >>> [part=mark-empty]', 'the empty card has its placeholder frame');
+        }
+        if (t.shot === 'drag-into-card') {
+            t.visible('#host .lb-drop-line', 'the insertion line is drawn');
+            t.within('#host .lb-drop-line', '#host pk-design-surface pk-card:nth-of-type(1)');
+            t.visible('#host pk-design-surface >>> [part=mark-drop]', 'the card taking the drop is outlined');
         }
         if (t.shot === 'width-phone' || t.shot === 'width-tablet') t.within('#host pk-design-surface >>> [part=page]', '#host pk-design-surface >>> [part=frame]');
         if (t.shot === 'context-menu') {
