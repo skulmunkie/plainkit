@@ -41,10 +41,10 @@ export const tableMediaCases = [
         t.ok(Math.abs(rect(wide.td).width - 3 * rem() * 16 / 9) < 1.5, 'a 16/9 box keeps its ratio width, got ' + rect(wide.td).width);
     }],
     ['table media column: no layout shift, the box is the same size before the image loads, after it loads and when it fails', async t => {
-        const slow = await mount(t, '{}', 1, '/__no_such_image__.png?' + Date.now()); const a = first(slow);
+        const slow = await mount(t, '{}', 1, '/__no_such_image__.png?' + Date.now()); await until(() => slow.$sd, 'the lazy table-shed module'); await t.settle(); const a = first(slow);
         const failed = [rect(a.td).width, rect(a.td).height, rect(a.tr).height];
-        const ok = await mount(t); const b = first(ok);
-        await until(() => b.img.complete, 'the image'); const done = [rect(b.td).width, rect(b.td).height, rect(b.tr).height];
+        const ok = await mount(t); await until(() => ok.$sd, 'the lazy table-shed module'); await t.settle();
+        first(ok).img.loading = 'eager'; /* the stage sits off screen, a lazy image there never loads */ await until(() => first(ok).img.complete, 'the image'); const b = first(ok); const done = [rect(b.td).width, rect(b.td).height, rect(b.tr).height];
         t.ok(failed.every((v, i) => Math.abs(v - done[i]) < 1), 'a failed image keeps the box: ' + failed + ' vs ' + done);
         b.img.src = PIX + '#2'; const now = rect(b.td); t.ok(Math.abs(now.width - done[0]) < 1 && Math.abs(now.height - done[1]) < 1, 'swapping the image keeps the box');
     }],

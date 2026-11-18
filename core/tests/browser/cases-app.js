@@ -523,6 +523,35 @@ export const appCases = [
         page.destroy();
     }],
 
+    ['wizard page type (#2011): a committed answer emits pk-wizard-change, footer actions emit pk-wizard-action on every step, and the early Submit validates its step then submits without reaching the last', async t => {
+        const { mountPage } = await dist('js/app.js');
+        const box = document.createElement('div'); t.stage('').append(box);
+        let sent;
+        const page = await mountPage(box, { type: 'wizard', config: {
+            submitEarly: true, footerActions: [{ key: 'draft', label: 'Save draft' }],
+            steps: [{ id: 'a', label: 'Account', fields: [{ name: 'email', label: 'Email', required: true }] }, { id: 'b', label: 'Plan', fields: [{ name: 'plan', label: 'Plan' }] }],
+            submit: async v => { sent = v; },
+        } });
+        const el = box.querySelector('pk-wizard-page');
+        await t.load(box);
+        await until(() => el.part('panes').querySelector('[name=email]'), 'the first step');
+        const changes = [], actions = [];
+        el.addEventListener('pk-wizard-change', e => changes.push(e.detail)); el.addEventListener('pk-wizard-action', e => actions.push(e.detail));
+        const email = el.part('panes').querySelector('[name=email]'), inner = email.part('control');
+        inner.value = 'a@b.c'; inner.dispatchEvent(new Event('input', { bubbles: true, composed: true })); inner.dispatchEvent(new Event('change', { bubbles: true, composed: true }));
+        await until(() => changes.length, 'the change event');
+        t.eq(changes[0].key, 'email'); t.eq(changes[0].values.email, 'a@b.c'); t.eq(changes[0].step, 'a');
+        el.part('actions').querySelector('pk-button').click();
+        t.eq(actions[0].key, 'draft'); t.eq(actions[0].step, 'a');
+        const r = s => el.part(s).getBoundingClientRect();
+        t.ok(!el.part('submit').hidden && Math.abs((r('submit').top + r('submit').bottom) / 2 - (r('next').top + r('next').bottom) / 2) < 4 && r('submit').right <= r('next').left + 1, 'the early Submit sits left of Next on one row');
+        await t.settle();
+        el.part('submit').click();
+        await until(() => sent, 'the early submit');
+        t.eq(sent.email, 'a@b.c'); t.eq(el.part('heading').textContent, 'Account', 'it never reached step two');
+        page.destroy();
+    }],
+
     ['wizard page type (#1415): refresh() runs a load set after the first draw: the wizard starts again at step one with the draft answers in its fields', async t => {
         const { mountPage } = await dist('js/app.js');
         const box = document.createElement('div'); t.stage('').append(box);

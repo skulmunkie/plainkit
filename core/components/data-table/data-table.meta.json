@@ -58,9 +58,9 @@
       "name": "filterPanel",
       "type": "enum",
       "default": "inline",
-      "values": ["inline", "flyout"],
+      "values": ["inline", "flyout", "flyout-end"],
       "reflect": false,
-      "description": "Where the open filter panel goes: inline (the default; it takes its own row above the table and pushes the rows down) or flyout (it overlays the top of the table from the inline-start edge, 22rem wide, without moving the rows; it is bounded by the table area, scrolls its own body, and Escape closes it and returns focus to the Filters trigger). Sets pk-table-filters placement."
+      "description": "Where the open filter panel goes: inline (the default; it takes its own row above the table and pushes the rows down) or flyout (it overlays the top of the table from the inline-start edge, 22rem wide, without moving the rows; it is bounded by the table area, scrolls its own body, and Escape closes it and returns focus to the Filters trigger) or flyout-end (the same from the inline-end edge, beside the toolbar actions, which stay on the toolbar row; mirrored in right to left). Sets pk-table-filters placement (inline, start, end)."
     },
     {
       "name": "search",
@@ -384,6 +384,10 @@
     {
       "title": "Flyout filters (filter-panel=flyout: the open panel slides in over the table instead of pushing the rows down; Escape closes it; a sheet on a phone)",
       "html": "<pk-data-table filter-panel=\"flyout\" columns='[{\"key\":\"sku\",\"label\":\"SKU\"}]' filters='[{\"key\":\"name\",\"type\":\"text\",\"label\":\"Name\"},{\"key\":\"city\",\"type\":\"text\",\"label\":\"City\"}]'></pk-data-table>"
+    },
+    {
+      "title": "Flyout filters from the end (filter-panel=flyout-end: the same, from the inline-end edge beside the toolbar actions; the open panel slides in over the table instead of pushing the rows down; Escape closes it; a sheet on a phone)",
+      "html": "<pk-data-table filter-panel=\"flyout-end\" columns='[{\"key\":\"sku\",\"label\":\"SKU\"}]' filters='[{\"key\":\"name\",\"type\":\"text\",\"label\":\"Name\"},{\"key\":\"city\",\"type\":\"text\",\"label\":\"City\"}]'></pk-data-table>"
     },
     {
       "title": "Preset search (from a link) and no Select all offer",

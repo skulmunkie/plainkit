@@ -1,0 +1,3 @@
+:host { display: block; inline-size: 100%; min-inline-size: 0; }
+[part="tabs"][hidden] { display: none; }
+[part="layout"][data-bare] { --pk-detail-layout-sidebar: 0px; --pk-detail-layout-gap: 0px; }

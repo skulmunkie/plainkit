@@ -11,7 +11,7 @@
       "type": "json",
       "default": {},
       "reflect": false,
-      "description": "{ steps, review?, reviewLabel?, submitLabel?, doneHeading?, doneDescription?, label? }. steps is [{ id, label, description?, fields? }]: fields is [{ name, label?, type?, required?, help?, options? }] (type is a pk-input type, 'textarea' or 'select'); a step without fields is drawn by mountStep. review: true adds a last step that lists all answers. Optional title bar from the shared page shell: heading?: string, breadcrumb?: [{ label, href? }], actions?: [{ key, label, href?, variant?, hint? }] (a hint shows as a tooltip on the button) (an action without href fires pk-action). Nothing is drawn when none is set."
+      "description": "{ steps, review?, reviewLabel?, submitLabel?, doneHeading?, doneDescription?, label?, submitEarly?, footerActions? }. submitEarly: true adds a Submit button to every step before the last (it validates the current step only, then submits every answer given so far); footerActions is [{ key, label, icon?, variant? }], buttons on every step that fire pk-wizard-action (an icon collapses the label on a phone). steps is [{ id, label, description?, fields? }]: fields is [{ name, label?, type?, required?, help?, options? }] (type is a pk-input type, 'textarea' or 'select'); a step without fields is drawn by mountStep. review: true adds a last step that lists all answers. Optional title bar from the shared page shell: heading?: string, breadcrumb?: [{ label, href? }], actions?: [{ key, label, href?, variant?, hint? }] (a hint shows as a tooltip on the button) (an action without href fires pk-action). Nothing is drawn when none is set."
     },
     {
       "name": "dirty",
@@ -27,6 +27,18 @@
   ],
   "events": [
     { "name": "pk-action", "detail": "{ key }", "detailProps": { "key": "string" }, "description": "A title-bar action (config.actions entry without an href) was clicked." },
+    {
+      "name": "pk-wizard-change",
+      "detail": "{ key, value, values, step }",
+      "detailProps": { "key": "string", "value": "string", "step": "string" },
+      "description": "A field's answer was committed (a blur or a choice, not each keystroke): key and value are the field, values every answer so far, step the current step id. An app autosaves a draft from it; fields of a step drawn by mountStep or a slot are not collected."
+    },
+    {
+      "name": "pk-wizard-action",
+      "detail": "{ key, values, step }",
+      "detailProps": { "key": "string", "step": "string" },
+      "description": "A config.footerActions button was clicked (Save draft, Discard); values are the answers so far."
+    },
     {
       "name": "pk-wizard-dirty",
       "detail": "{ dirty }",
@@ -48,6 +60,9 @@
     { "name": "panes", "description": "One pane per visited step; the others are hidden, not removed." },
     { "name": "bar", "description": "Wraps Back and Next or Submit." },
     { "name": "back", "description": "The Back button." },
+    { "name": "end", "description": "Groups the footer actions, the early Submit and Next at the end of the bar." },
+    { "name": "actions", "description": "The config.footerActions buttons, before Submit and Next (display: contents)." },
+    { "name": "submit", "description": "The early Submit button (config.submitEarly), hidden on the last step." },
     { "name": "next", "description": "The Next button (Submit on the last step); busy while validate() or submit() runs." },
     { "name": "notice", "description": "The step or submit error, above the card." },
     { "name": "state", "description": "The loading or load error state before the first step, and the done message after Submit." }

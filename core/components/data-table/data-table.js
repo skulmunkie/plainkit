@@ -34,7 +34,7 @@ export default Base => class extends Base {
         table.addEventListener('pk-select-all', e => { e.stopPropagation(); if (e.detail.scope === 'all') { this.selectScope = 'all'; this.announce(); } });
         // A flyout panel is bounded by the table area (its body scrolls, the header and Clear filters stay in view); the area is measured as it opens.
         this.$z = () => filters.style.setProperty('--pk-table-filters-max', this.part('area').clientHeight + 'px');
-        filters.addEventListener('pk-toggle', e => e.detail.open && (window.addEventListener('resize', this.$z), this.$z()));
+        filters.addEventListener('pk-toggle', e => e.detail.open && (addEventListener('resize', this.$z), this.$z()));
         filters.addEventListener('pk-search', e => go({ search: e.detail.query, page: 1 }, true));
         filters.addEventListener('pk-value-change', e => {
             const key = e.target?.dataset?.key;
@@ -46,7 +46,7 @@ export default Base => class extends Base {
         this.part('add').addEventListener('click', () => this.emit('pk-add', null));
         pagination.addEventListener('pk-page', e => go({ page: e.detail.page }));
         pagination.addEventListener('pk-page-size', e => go({ pageSize: e.detail.pageSize, page: 1 }));
-        const lead = this.shadowRoot?.querySelector?.('[data-lead]'), slots = lead?.querySelectorAll?.('slot') ?? [];
+        const lead = this.shadowRoot?.querySelector?.('[data-lead]'), slots = lead?.querySelectorAll('slot') ?? [];
         const showLead = () => { lead.hidden = ![...slots].some(x => x.assignedNodes().length); };
         for (const x of slots) x.addEventListener('slotchange', showLead);
         this.buildFilters();
@@ -69,24 +69,24 @@ export default Base => class extends Base {
     }
 
     /** The current query { page, pageSize, sort, sortDir, search, filters }: what load() last received, and what a bulk action for scope 'all' runs against. */
-    get query() { return { ...(this.$query ??= { page: Math.max(1, Math.trunc(this.opt('page')) || 1), pageSize: this.opt('pageSize') || 25, sort: this.opt('sort') || null, sortDir: this.opt('sortDir') || 'ascending', search: this.opt('search'), filters: { ...this.opt('filterValues') } }) }; }
+    get query() { return { ...(this.$query ??= { page: Math.max(1, this.opt('page') | 0 || 1), pageSize: this.opt('pageSize') || 25, sort: this.opt('sort') || null, sortDir: this.opt('sortDir') || 'ascending', search: this.opt('search'), filters: { ...this.opt('filterValues') } }) }; }
 
     // Focus from the host (#885), so a host never reaches into the search box or the rows. focus(): the search box, the first row when the search is hidden; 'search': the search box only;
     // 'next': the row after the focused one (the first when no row has focus); 'previous', 'first', 'last': only while a row has focus, so Home and the arrows stay the
     // search box's own. Returns whether focus moved. (focus({ preventScroll }), the standard call, means focus().)
     focus(where) {
         const tbl = this.part('table').shadowRoot, rows = [...(tbl?.querySelectorAll('tbody tr[data-pk-context]') ?? [])], at = rows.indexOf(tbl?.activeElement);
-        const found = this.part('filters').shadowRoot?.querySelector('[part="search"]'), box = found?.getBoundingClientRect().width ? found : null; // drawn and shown
+        const found = this.part('filters').shadowRoot?.querySelector('[part="search"]'), box = found?.offsetWidth ? found : null; // drawn and shown
         let to;
         if (where === 'next') to = rows[Math.min(at + 1, rows.length - 1)];
         else if (where === 'search') to = box;
         else if (typeof where === 'string') to = at < 0 ? undefined : rows[Math.max({ previous: at - 1, first: 0, last: rows.length - 1 }[where] ?? at, 0)];
         else to = box ?? rows[0];
         to?.focus();
-        return Boolean(to);
+        return !!to;
     }
 
-    announce() { this.emit('pk-select', { selected: [...(this.selected ?? [])], scope: this.selectScope, query: this.query }); }
+    announce() { this.emit('pk-select', { selected: [...this.selected ?? []], scope: this.selectScope, query: this.query }); }
 
     // Rebuilt only when `filters` itself changes (a JSON prop, so a cheap string compare is the dirty check): every other prop change
     // must never wipe what the reader already typed into a filter.
@@ -123,7 +123,7 @@ export default Base => class extends Base {
         this.forwardSlots();
         // The labels and inputs of the parts (each one's own prop; searchLabel is the accessible name of the search box and its placeholder unless searchPlaceholder says more).
         filters.label = this.opt('searchLabel') || 'Search'; filters.placeholder = this.opt('searchPlaceholder'); filters.debounce = this.opt('searchDebounce'); filters.toggleAttribute('data-nosearch', !!this.hideSearch);
-        filters.placement = this.opt('filterPanel') === 'flyout' ? 'start' : 'inline';
+        filters.placement = { flyout: 'start', 'flyout-end': 'end' }[this.opt('filterPanel')] ?? 'inline';
         pagination.sizes = this.opt('pageSizeOptions') ?? []; pagination.label = this.opt('pagerLabel') || 'Pagination';
         if (this.opt('search') !== this.$seed) filters.value = this.$seed = this.opt('search');
         table.label = this.opt('label'); table.caption = this.opt('caption'); table.toggleAttribute('data-nocaption', !this.opt('caption'));

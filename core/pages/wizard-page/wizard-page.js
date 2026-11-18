@@ -16,6 +16,16 @@ export default Base => class extends Base {
             panes.addEventListener('submit', e => e.preventDefault());
             panes.addEventListener('pk-valid', () => this.advance());
             for (const t of ['input', 'change']) panes.addEventListener(t, () => this.setDirty(true));
+            // A committed answer (a blur or a choice, not each keystroke), as pk-record-change: an app autosaves a draft from it.
+            panes.addEventListener('change', e => {
+                const c = e.target?.closest?.('[name]'), key = c?.getAttribute('name');
+                if (key) this.emit('pk-wizard-change', { key, value: this.collect()[key], values: this.collect(), step: this.steps[this.$i]?.id });
+            });
+            this.part('submit').addEventListener('click', () => this.next(true));
+            this.part('actions').addEventListener('click', e => {
+                const key = e.target?.closest?.('pk-button')?.dataset?.key;
+                if (key) this.emit('pk-wizard-action', { key, values: this.collect(), step: this.steps[this.$i]?.id });
+            });
             // A click on a reached step goes back (no validation); moving forward is Next's job, so the stepper's own move is always cancelled.
             this.part('stepper').addEventListener('pk-step-change', e => { e.preventDefault(); if (e.detail.index < this.$i) this.go(e.detail.index); });
         }
@@ -54,6 +64,12 @@ export default Base => class extends Base {
         renderState(box, 'ready'); this.setDirty(false);
         const doc = this.ownerDocument, stepper = this.part('stepper');
         stepper.replaceChildren(...this.steps.map(s => { const st = doc.createElement('pk-step'); st.setAttribute('heading', s.label ?? s.id); if (s.description) st.setAttribute('description', s.description); return st; }));
+        this.part('actions').replaceChildren(...(this.config?.footerActions ?? []).map(a => {
+            const b = doc.createElement('pk-button');
+            b.dataset.key = a.key; b.setAttribute('variant', a.variant || 'ghost'); b.textContent = a.label ?? a.key;
+            if (a.icon) { b.setAttribute('icon-name', a.icon); b.setAttribute('collapse', 'phone'); }
+            return b;
+        }));
         stepper.errors = ''; stepper.current = 0;
         stepper.hidden = false; this.part('card').hidden = false;
         loadElements(this.shadowRoot);
@@ -72,6 +88,8 @@ export default Base => class extends Base {
         this.part('heading').textContent = step.label ?? step.id;
         this.part('stepper').current = i;
         this.part('back').hidden = i === 0;
+        this.part('submit').textContent = this.config?.submitLabel || 'Submit';
+        this.part('submit').hidden = Boolean(last || !this.config?.submitEarly || step.review);
         this.part('next').textContent = last ? this.config?.submitLabel || 'Submit' : 'Next';
         renderState(this.part('notice'), 'ready');
         if (focus) this.part('heading').focus();
@@ -134,14 +152,17 @@ export default Base => class extends Base {
     }
 
     // Next validates the step: the pane's own form first (pk-form focuses the first problem), then validate(stepId, values) through advance().
-    next() {
+    // next(true) is the early submit (config.submitEarly): it validates this step only, then submits every answer given so far.
+    next(early = false) {
         if (this.$busy) return;
+        this.$early = early === true;
         const form = this.$panes.get(this.steps[this.$i]?.id)?.querySelector('form');
         if (form) form.requestSubmit(); else this.advance();
     }
     async advance() {
         if (this.$busy) return;
-        const gen = this.$gen, step = this.steps[this.$i], last = this.$i === this.steps.length - 1, btn = this.part('next'), values = this.collect();
+        const early = this.$early; this.$early = false;
+        const gen = this.$gen, step = this.steps[this.$i], last = early || this.$i === this.steps.length - 1, btn = this.part('next'), values = this.collect();
         this.$busy = true; btn.busy = true;
         renderState(this.part('notice'), 'ready');
         for (const f of this.part('panes').querySelectorAll('pk-field[error]')) f.removeAttribute('error');

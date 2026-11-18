@@ -15,7 +15,8 @@ export default {
         el.submit = () => Promise.reject(Object.assign(new Error('not saved'), { errors: { email: 'That email is already registered.' } }));
         el.config = {
             heading: 'Orders', breadcrumb: [{ label: 'Home', href: '#' }, { label: 'Orders', href: '#' }], actions: [{ key: 'export', label: 'Export', variant: 'secondary' }],
-            review: true, submitLabel: 'Create account',
+            review: true, submitLabel: 'Create account', submitEarly: true,
+            footerActions: [{ key: 'draft', label: 'Save draft', icon: 'save' }, { key: 'discard', label: 'Discard' }],
             steps: [
                 { id: 'account', label: 'Account', description: 'Who you are', fields: [{ name: 'email', label: 'Email', type: 'email', required: true }, { name: 'name', label: 'Name', required: true }] },
                 { id: 'plan', label: 'Plan', description: 'What you get', fields: [{ name: 'plan', label: 'Plan', type: 'select', options: ['Free', 'Team'] }, { name: 'seats', label: 'Seats', type: 'number' }] },
@@ -34,6 +35,9 @@ export default {
         t.inViewport(WP);
         t.visible(`${P}[part=header] >>> [part=header]`, 'the shared title bar');
         t.noOverlap(`${P}[part=header] >>> [part=header]`, `${P}[part=card]`);
+        // #2011: footer actions and the early Submit share the bar's row with Back and Next, inside the card, without overlapping.
+        t.within(`${P}[part=end]`, `${P}[part=card]`); t.sameRow(`${P}[part=actions] > pk-button`, `${P}[part=next]`); t.noOverlap(`${P}[part=actions] > pk-button`, `${P}[part=next]`);
+        if (t.shot === 'step-two') { t.visible(`${P}[part=submit]`, 'the early Submit'); t.noOverlap(`${P}[part=submit]`, `${P}[part=next]`); }
         if (t.shot === 'blocked') t.hasText(`${P}[part=heading]`, 'Account');
         if (t.shot === 'step-two') t.hasText(`${P}[part=heading]`, 'Plan');
         if (t.shot === 'review') { t.hasText(`${P}[part=heading]`, 'Review'); t.hasText(`${P}[part=next]`, 'Create account'); }

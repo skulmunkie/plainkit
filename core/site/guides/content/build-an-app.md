@@ -69,6 +69,7 @@ Pick the page type for the job before you write any markup. Each draws a finishe
 | Data | `dashboard` | `widgets`, `tabs`, `sections`, `filters`, `empty` | `load(key, ctx)` returns what the widget shows |
 | Data | `master-detail` | `list`, `backLabel`, `none`, `param` | `load(query, ctx)`, `rowHref(row)`, `listHref`, `mountDetail(pane, id, ctx)` |
 | Forms | `record` | `fields`, `sidebar`, `heading`, `editable` | `load(id, ctx)`, `save(values, ctx)` |
+| Forms | `sections` | `sections` (`[{ id, label, count?, visible? }]`), `section`, `tabParam`, `sidebarFirst`, `heading`, `breadcrumb`, `actions` | `render(ctx)` returns the panels by section id (a node, or `{ main, side }`); nothing is loaded or saved |
 | Forms | `settings` | `sections`, `values` | `save(values, ctx)` |
 | Forms | `tool` | `heading`, `breadcrumb`, `actions`, `input`, `outcome`, `runLabel` | `run(values, ctx)` |
 | Forms | `wizard` | `steps`, `review`, `submitLabel` | `validate(stepId, values, ctx)`, `submit(values, ctx)`, `load(ctx)` |
