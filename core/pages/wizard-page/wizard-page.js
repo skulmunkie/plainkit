@@ -1,6 +1,7 @@
 import { showState, showTitleBar } from '../../js/page-shell.js';
 import { renderState } from '../../js/page-states.js';
 import { loadElements } from '../../js/loader.js';
+import { actionItems, renderActions } from '../../js/page-actions.js';
 
 const CONTROL = { textarea: 'pk-textarea', select: 'pk-select' };
 const text = v => (v == null ? '' : String(v));
@@ -19,13 +20,11 @@ export default Base => class extends Base {
             // A committed answer (a blur or a choice, not each keystroke), as pk-record-change: an app autosaves a draft from it.
             panes.addEventListener('change', e => {
                 const c = e.target?.closest?.('[name]'), key = c?.getAttribute('name');
-                if (key) this.emit('pk-wizard-change', { key, value: this.collect()[key], values: this.collect(), step: this.steps[this.$i]?.id });
+                if (!key) return;
+                this.emit('pk-wizard-change', { key, value: this.collect()[key], values: this.collect(), step: this.steps[this.$i]?.id });
+                if (this.config?.liveValidate) this.live(key);
             });
             this.part('submit').addEventListener('click', () => this.next(true));
-            this.part('actions').addEventListener('click', e => {
-                const key = e.target?.closest?.('pk-button')?.dataset?.key;
-                if (key) this.emit('pk-wizard-action', { key, values: this.collect(), step: this.steps[this.$i]?.id });
-            });
             // A click on a reached step goes back (no validation); moving forward is Next's job, so the stepper's own move is always cancelled.
             this.part('stepper').addEventListener('pk-step-change', e => { e.preventDefault(); if (e.detail.index < this.$i) this.go(e.detail.index); });
         }
@@ -64,12 +63,9 @@ export default Base => class extends Base {
         renderState(box, 'ready'); this.setDirty(false);
         const doc = this.ownerDocument, stepper = this.part('stepper');
         stepper.replaceChildren(...this.steps.map(s => { const st = doc.createElement('pk-step'); st.setAttribute('heading', s.label ?? s.id); if (s.description) st.setAttribute('description', s.description); return st; }));
-        this.part('actions').replaceChildren(...(this.config?.footerActions ?? []).map(a => {
-            const b = doc.createElement('pk-button');
-            b.dataset.key = a.key; b.setAttribute('variant', a.variant || 'ghost'); b.textContent = a.label ?? a.key;
-            if (a.icon) { b.setAttribute('icon-name', a.icon); b.setAttribute('collapse', 'phone'); }
-            return b;
-        }));
+        // The footer actions are the shared renderer's (#1943); a press keeps its own event, pk-wizard-action with the answers so far, and also raises pk-action { key }.
+        const warn = (k, m) => this.warnOnce?.(k, m);
+        this.part('actions').replaceChildren(...renderActions(this, actionItems((this.config?.footerActions ?? []).map(a => ({ variant: 'ghost', ...a })), null, warn), { slot: null, warn, onPress: (a, fire) => { this.emit('pk-wizard-action', { key: a.key, values: this.collect(), step: this.steps[this.$i]?.id }); fire(); } }));
         stepper.errors = ''; stepper.current = 0;
         stepper.hidden = false; this.part('card').hidden = false;
         loadElements(this.shadowRoot);
@@ -141,7 +137,25 @@ export default Base => class extends Base {
         }));
         loadElements(pane);
     }
-    controls() { return [...this.part('panes').querySelectorAll('[name]')]; }
+    // Named controls of the panes, including the ones a slotted step projects (light DOM children of the host).
+    controls() {
+        const panes = this.part('panes'), out = [...panes.querySelectorAll('[name]')];
+        for (const slot of panes.querySelectorAll('slot')) for (const el of slot.assignedElements({ flatten: true })) out.push(...(el.hasAttribute('name') ? [el] : []), ...el.querySelectorAll('[name]'));
+        return out;
+    }
+    // config.liveValidate: a committed answer runs validate(stepId, values, { live: true, key }) without Next; { errors } marks fields, anything else clears the field.
+    async live(key) {
+        const gen = this.$gen, tok = this.$lv = (this.$lv ?? 0) + 1, step = this.steps[this.$i];
+        if (!step || step.review || typeof this.validate !== 'function') return;
+        let r;
+        try { r = await this.validate(step.id, this.collect(), { live: true, key }); } catch (err) { this.log.warn('live validate failed', err); return; }
+        if (gen !== this.$gen || tok !== this.$lv) return;
+        for (const c of this.controls()) {
+            const n = c.getAttribute('name'), f = c.closest('pk-field'), m = r?.errors?.[n];
+            if (!f || (n !== key && m == null)) continue;
+            if (m == null) f.removeAttribute('error'); else f.setAttribute('error', text(m));
+        }
+    }
     collect() {
         const out = { ...this.$draft }, fields = this.steps.flatMap(s => s.fields ?? []);
         for (const c of this.controls()) {
@@ -165,7 +179,7 @@ export default Base => class extends Base {
         const gen = this.$gen, step = this.steps[this.$i], last = early || this.$i === this.steps.length - 1, btn = this.part('next'), values = this.collect();
         this.$busy = true; btn.busy = true;
         renderState(this.part('notice'), 'ready');
-        for (const f of this.part('panes').querySelectorAll('pk-field[error]')) f.removeAttribute('error');
+        for (const c of this.controls()) c.closest('pk-field')?.removeAttribute('error');
         try {
             if (!step.review && typeof this.validate === 'function') { const r = await this.validate(step.id, values); if (r?.errors) throw r; }
             if (gen !== this.$gen) return;

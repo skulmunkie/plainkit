@@ -3,7 +3,7 @@
 // DOM steps (focus, scroll, set), check(shot, ctx) runs the scenario's expect(t) and measures the frame for the audits. The pointer and key
 // events themselves are real ones sent by the runner over the DevTools protocol (so :hover, :focus-visible and the top layer behave as for a person).
 import { createExpectations } from './scenario.js';
-import { whenUpgraded } from './ready.js';
+import { whenUpgraded, whenMarkdownDrawn } from './ready.js';
 
 /** One selector to its first element; `a >>> b` looks for b in the shadow tree of the first a. */
 export function findIn(frame, sel, all = false) {
@@ -64,6 +64,7 @@ export async function startScenario({ name, root, state, measure, settle, pendin
     if (scenario.setup) await scenario.setup(frame); // wires behaviour the markup cannot carry (CSP: no inline handlers), before the elements are loaded
     await loadElements(frame, { registry });
     await whenUpgraded(frame, { load: n => loadElements(n, { registry }), log }); // shadow trees included (ready.js)
+    await whenMarkdownDrawn(frame, { log }); // the lazy renderer of pk-markdown (#2025)
     const quiet = async () => {
         await settle(0); // the loop below is the wait for quiet
         let prev = signature(frame);

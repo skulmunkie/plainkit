@@ -11,7 +11,7 @@
       "type": "json",
       "default": {},
       "reflect": false,
-      "description": "{ steps, review?, reviewLabel?, submitLabel?, doneHeading?, doneDescription?, label?, submitEarly?, footerActions? }. submitEarly: true adds a Submit button to every step before the last (it validates the current step only, then submits every answer given so far); footerActions is [{ key, label, icon?, variant? }], buttons on every step that fire pk-wizard-action (an icon collapses the label on a phone). steps is [{ id, label, description?, fields? }]: fields is [{ name, label?, type?, required?, help?, options? }] (type is a pk-input type, 'textarea' or 'select'); a step without fields is drawn by mountStep. review: true adds a last step that lists all answers. Optional title bar from the shared page shell: heading?: string, breadcrumb?: [{ label, href? }], actions?: [{ key, label, href?, variant?, hint? }] (a hint shows as a tooltip on the button) (an action without href fires pk-action). Nothing is drawn when none is set."
+      "description": "{ steps, review?, reviewLabel?, submitLabel?, doneHeading?, doneDescription?, label?, submitEarly?, footerActions?, liveValidate? }. liveValidate: true runs validate(stepId, values, { live: true, key }) when an answer is committed (a blur or a choice), without Next: { errors } marks that field at once and a pass clears it (the same validate that Next calls; check opts?.live to run only the cheap or remote check). Controls with a name in slotted steps (slot=\"step-<id>\") are collected into the answers and validated like the built-in fields. load() runs again on refresh() (call it when the app resumes a stored draft by route parameter: the wizard restarts at step one with that draft in the fields). submitEarly: true adds a Submit button to every step before the last (it validates the current step only, then submits every answer given so far); footerActions is [{ key, label, icon?, variant? }], buttons on every step that fire pk-wizard-action (an icon collapses the label on a phone). steps is [{ id, label, description?, fields? }]: fields is [{ name, label?, type?, required?, help?, options? }] (type is a pk-input type, 'textarea' or 'select'); a step without fields is drawn by mountStep. review: true adds a last step that lists all answers. Optional title bar from the shared page shell: heading?: string, breadcrumb?: [{ label, href? }], actions?: [{ key, label, href?, variant?, hint? }] (a hint shows as a tooltip on the button) (an action without href fires pk-action). Nothing is drawn when none is set."
     },
     {
       "name": "dirty",
@@ -23,7 +23,7 @@
   ],
   "slots": [
     { "name": "badges", "description": "Status chips beside the title." },
-    { "name": "step-<id>", "dynamic": true, "description": "The step with that id (no fields, no mountStep). The app owns it; its controls are not collected or validated." }
+    { "name": "step-<id>", "dynamic": true, "description": "The step with that id (no fields, no mountStep). The app owns it; its controls that carry a name are collected into the answers and covered by validate, live validation and the inline errors (a pk-field around the control shows the message)." }
   ],
   "events": [
     { "name": "pk-action", "detail": "{ key }", "detailProps": { "key": "string" }, "description": "A title-bar action (config.actions entry without an href) was clicked." },

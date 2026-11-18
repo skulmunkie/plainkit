@@ -1,0 +1,32 @@
+@page "/lab/sections"
+
+@* Lab (#2010): a sections page. The Config is re-sent when the action list changes (OnAction must still fire), a tab click reaches OnSectionChange, SectionContent and SideContent are light-DOM panels the element projects, and ?tab= picks the section on a deep link (config.tabParam). *@
+<PkSectionsPage Config="@Config" SectionContent="_panels" SideContent="_side" OnAction="Acted" OnSectionChange="Changed" />
+<PkButton OnClick="Rename">Rename action</PkButton>
+<p id="lab-log">@_log</p>
+
+@code {
+    private string _key = "first";
+    private string _log = "";
+    private object Config => new
+    {
+        heading = "Sections lab",
+        tabParam = "tab",
+        sections = new[] { new { id = "overview", label = "Overview" }, new { id = "activity", label = "Activity" } },
+        actions = new[] { new { key = _key, label = "Act " + _key } },
+    };
+
+    private readonly IReadOnlyDictionary<string, RenderFragment> _panels = new Dictionary<string, RenderFragment>
+    {
+        ["overview"] = b => b.AddMarkupContent(0, "<p id=\"lab-overview\">Overview panel</p>"),
+        ["activity"] = b => b.AddMarkupContent(0, "<p id=\"lab-activity\">Activity panel</p>"),
+    };
+    private readonly IReadOnlyDictionary<string, RenderFragment> _side = new Dictionary<string, RenderFragment>
+    {
+        ["overview"] = b => b.AddMarkupContent(0, "<p id=\"lab-side\">Overview summary</p>"),
+    };
+
+    private void Rename() => _key = "second";
+    private void Acted(PkActionEventArgs e) => _log += "action:" + e.Key + ";";
+    private void Changed(PkSectionChangeEventArgs e) => _log += "section:" + e.Section + ";";
+}
