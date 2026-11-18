@@ -1,5 +1,5 @@
 {
- "release": "0.32.0",
+ "release": "0.33.0",
  "classes": [
   "btn-ghost",
   "btn-group",
@@ -1001,6 +1001,9 @@
   "js/notify.js:createNotify",
   "js/overlay.js:focusTrigger",
   "js/overlay.js:triggerControl",
+  "js/page-actions.js:COLLAPSES",
+  "js/page-actions.js:actionItems",
+  "js/page-actions.js:renderActions",
   "js/page-context.js:bindPageContext",
   "js/page-context.js:createPageContext",
   "js/page-context.js:nestUnder",
@@ -3758,6 +3761,7 @@
   "pk-list-group:slot:(default)",
   "pk-list-page",
   "pk-list-page:css:--pk-list-page-table-min",
+  "pk-list-page:event:pk-action",
   "pk-list-page:event:pk-bulk",
   "pk-list-page:event:pk-row-click",
   "pk-list-page:event:pk-row-expand",
