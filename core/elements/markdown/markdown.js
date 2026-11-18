@@ -19,6 +19,9 @@ const resolver = (el, base) => {
 };
 
 export default Base => class extends Base {
+    get resolveUrl() { return this.$ru ?? null; }
+    set resolveUrl(f) { this.$ru = typeof f === 'function' ? f : null; this.$v = null; this.requestUpdate(); }
+    $hook() { return this.$ru && ((u, k) => { try { return this.$ru(u, k); } catch (e) { this.warnOnce('resolveUrl', 'resolveUrl threw', { e }); return u; } }); }
     connected() {
         if (this.$w) return;
         this.$w = true;
@@ -42,7 +45,7 @@ export default Base => class extends Base {
         this.$rm.then(m => {
             if (!m || !this.isConnected || key !== this.$v) return;
             const root = this.part('content');
-            root.replaceChildren(m.renderDocs(text, this.ownerDocument, { ids: true, resolve: resolver(this, this.baseUrl) }));
+            root.replaceChildren(m.renderDocs(text, this.ownerDocument, { ids: true, resolve: this.$hook() ?? resolver(this, this.baseUrl) }));
             this.emit('pk-markdown-render', { root });
         });
     }

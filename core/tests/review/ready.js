@@ -37,3 +37,26 @@ export async function whenUpgraded(root, { load, whenDefined = t => customElemen
         await Promise.race([Promise.all(tags.map(t => Promise.resolve(whenDefined(t)).catch(() => null))), pause(50)]);
     }
 }
+
+/** The pk-markdown elements under `root` (shadow trees included) that have text but have not drawn it yet: its renderer is a lazy chunk (#2025). */
+export function undrawnMarkdown(root) {
+    const out = [];
+    const walk = node => {
+        for (const el of node.querySelectorAll('*')) {
+            if (el.localName === 'pk-markdown' && el.markdown && !el.shadowRoot?.querySelector('[part=content]')?.hasChildNodes()) out.push(el);
+            if (el.shadowRoot) walk(el.shadowRoot);
+        }
+    };
+    walk(root);
+    return out;
+}
+
+/** Waits for the pk-markdown-render event of every pk-markdown that has not drawn yet, or `limit` ms (then it says so); returns how many never drew. */
+export async function whenMarkdownDrawn(root, { limit = 5000, pause = ms => new Promise(r => setTimeout(r, ms)), log } = {}) {
+    const waits = undrawnMarkdown(root).map(el => new Promise(r => el.addEventListener('pk-markdown-render', r, { once: true })).then(() => 1));
+    if (!waits.length) return 0;
+    let done = 0;
+    await Promise.race([Promise.all(waits.map(w => w.then(() => { done++; }))), pause(limit)]);
+    if (done < waits.length) log?.warn(`pk-markdown did not draw within ${limit} ms (${waits.length - done} left)`);
+    return waits.length - done;
+}
