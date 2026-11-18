@@ -109,6 +109,7 @@
       ],
       "js": [
         "markdown/commands.js",
+        "markdown/docs.js",
         "markdown/parse.js",
         "markdown/render.js"
       ],

@@ -1,35 +1,18 @@
 // Markdown (a small CommonMark subset) to a plain AST. Pure, no DOM, linear-ish. Raw HTML is not special: it stays text.
-// Blocks: p, h (1-6), table, ul/ol (items hold inlines and one nested list), q (blockquote), code (fenced). Inlines: text, b, i, code, a.
-// Nodes: {t:'p'|'q'|'doc', c}, {t:'h', n, c}, {t:'ul'|'ol', items:[{c, sub}]}, {t:'code', v, lang}, {t:'text'|'code', v}, {t:'b'|'i', c}, {t:'a', href, c}, {t:'img', alt, src},
-// {t:'table', align:[null|'left'|'center'|'right'], head:[cell], rows:[[cell]]} where a cell is an inline list.
+// Blocks: p, h (1-3), ul/ol (items hold inlines and one nested list), q (blockquote), code (fenced). Inlines: text, b, i, code, a.
+// Nodes: {t:'p'|'q'|'doc', c}, {t:'h', n, c}, {t:'ul'|'ol', items:[{c, sub}]}, {t:'code', v, lang}, {t:'text'|'code', v}, {t:'b'|'i', c}, {t:'a', href, c}.
 import { isSafeUrl } from '../safe-url.js';
 
 const MAX_DEPTH = 6;
 /** The schemes a rendered link may use; a relative address is always allowed. */
 export const LINK_SCHEMES = ['http', 'https', 'mailto'];
 export const safeMdUrl = u => isSafeUrl(u, LINK_SCHEMES);
-/** An image source: http, https or relative (never mailto). */
-export const safeImgUrl = u => isSafeUrl(u, ['http', 'https']);
 
 /** Inline text to nodes. A delimiter that finds no partner is text; a search that failed once is never repeated (keeps it linear). */
 export function parseInline(s, depth = 0) {
     const out = [];
     let text = '', i = 0;
     const dead = new Set();
-    let pairs = null;
-    /** The index of the `]` that closes the `[` at `open` (nesting counted), or -1; one pass, built on first use. */
-    const closer = open => {
-        if (!pairs) {
-            pairs = new Map();
-            const stack = [];
-            for (let k = 0; k < s.length; k++) {
-                if (s[k] === String.fromCharCode(92)) k++;
-                else if (s[k] === '[') stack.push(k);
-                else if (s[k] === ']' && stack.length) pairs.set(stack.pop(), k);
-            }
-        }
-        return pairs.get(open) ?? -1;
-    };
     const find = (tok, from) => { if (dead.has(tok)) return -1; const k = s.indexOf(tok, from); if (k < 0) dead.add(tok); return k; };
     const flush = () => { if (text) out.push({ t: 'text', v: text }); text = ''; };
     while (i < s.length) {
@@ -48,14 +31,12 @@ export function parseInline(s, depth = 0) {
             }
             if (end > i + tok.length) { flush(); out.push({ t: dbl ? 'b' : 'i', c: parseInline(s.slice(i + tok.length, end), depth + 1) }); i = end + tok.length; continue; }
         }
-        const img = ch === '!' && s[i + 1] === '[';
-        if ((ch === '[' || img) && depth < MAX_DEPTH) {
-            const open = i + (img ? 1 : 0), mid = closer(open), close = mid > 0 && s[mid + 1] === '(' ? find(')', mid + 2) : -1;
-            if (close > 0 && !s.slice(open + 1, mid).includes('\n')) {
-                const href = s.slice(mid + 2, close).trim().split(/\s+"/)[0], c = parseInline(s.slice(open + 1, mid), depth + 1);
+        if (ch === '[' && depth < MAX_DEPTH) {
+            const mid = find('](', i + 1), close = mid > 0 ? find(')', mid + 2) : -1;
+            if (close > 0 && !s.slice(i + 1, mid).includes('\n')) {
+                const href = s.slice(mid + 2, close).trim(), c = parseInline(s.slice(i + 1, mid), depth + 1);
                 flush();
-                if (img) out.push(safeImgUrl(href) ? { t: 'img', alt: plain(c), src: href } : { t: 'text', v: plain(c) });
-                else if (safeMdUrl(href)) out.push({ t: 'a', href, c }); else out.push(...c);
+                if (safeMdUrl(href)) out.push({ t: 'a', href, c }); else out.push(...c);
                 i = close + 1; continue;
             }
         }
@@ -64,22 +45,6 @@ export function parseInline(s, depth = 0) {
     flush();
     return out;
 }
-
-/** The text of an inline list, markup dropped (an image's alt, a heading's slug). */
-export const plain = nodes => nodes.map(n => (n.v ?? (n.src ? n.alt : plain(n.c ?? [])))).join('');
-
-const DELIM = /^ {0,3}\|?\s*:?-+:?\s*(?:\|\s*:?-+:?\s*)*\|?\s*$/;
-/** A table row's cells: outer pipes dropped, \| is a literal pipe. */
-const cells = line => {
-    const s = line.trim().replace(/^\|/, ''), out = [];
-    let cur = '';
-    for (let k = 0; k < s.length; k++) {
-        if (s[k] === '\\' && s[k + 1] === '|') { cur += '|'; k++; } else if (s[k] === '|') { out.push(cur.trim()); cur = ''; } else cur += s[k];
-    }
-    if (cur.trim() || !out.length) out.push(cur.trim());
-    return out;
-};
-const isTableAt = (lines, i) => lines[i].includes('|') && i + 1 < lines.length && lines[i + 1].includes('-') && DELIM.test(lines[i + 1]) && cells(lines[i]).length === cells(lines[i + 1]).length;
 
 const LI = /^( *)([-*+]|\d{1,9}[.)]) +(.*)$/;
 const FENCE = /^ {0,3}(`{3,})\s*([\w+-]*)\s*$/;
@@ -100,15 +65,7 @@ export function parseMarkdown(src, depth = 0) {
             c.push({ t: 'code', v: body.join('\n'), lang: m[2] });
             continue;
         }
-        if (isTableAt(lines, i)) {
-            const align = cells(lines[i + 1]).map(d => (d.startsWith(':') ? (d.endsWith(':') ? 'center' : 'left') : d.endsWith(':') ? 'right' : null));
-            const row = l => { const cs = cells(l); return align.map((_, k) => parseInline(cs[k] ?? '')); };
-            const t = { t: 'table', align, head: row(lines[i]), rows: [] };
-            for (i += 2; i < lines.length && lines[i].trim() && lines[i].includes('|'); i++) t.rows.push(row(lines[i]));
-            c.push(t);
-            continue;
-        }
-        if ((m = /^ {0,3}(#{1,6})\s+(.*?)\s*#*\s*$/.exec(line))) { c.push({ t: 'h', n: m[1].length, c: parseInline(m[2]) }); i++; continue; }
+        if ((m = /^ {0,3}(#{1,3})\s+(.*?)\s*#*\s*$/.exec(line))) { c.push({ t: 'h', n: m[1].length, c: parseInline(m[2]) }); i++; continue; }
         if (/^ {0,3}>/.test(line)) {
             const body = [];
             for (; i < lines.length && /^ {0,3}>/.test(lines[i]); i++) body.push(lines[i].replace(/^ {0,3}> ?/, ''));
@@ -132,7 +89,7 @@ export function parseMarkdown(src, depth = 0) {
             continue;
         }
         const para = [];
-        for (; i < lines.length && lines[i].trim() && !FENCE.test(lines[i]) && !/^ {0,3}(#{1,6}\s|>)/.test(lines[i]) && !(para.length && (LI.test(lines[i]) || isTableAt(lines, i))); i++) para.push(lines[i].trim());
+        for (; i < lines.length && lines[i].trim() && !FENCE.test(lines[i]) && !/^ {0,3}(#{1,3}\s|>)/.test(lines[i]) && !(para.length && LI.test(lines[i])); i++) para.push(lines[i].trim());
         c.push({ t: 'p', c: parseInline(para.join('\n')) });
     }
     return { t: 'doc', c };

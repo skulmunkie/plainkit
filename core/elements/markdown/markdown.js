@@ -38,11 +38,11 @@ export default Base => class extends Base {
         const text = this.markdown, key = (this.baseUrl ?? '') + '\n' + text;
         if (this.$v === key) return;
         this.$v = key;
-        this.$rm ??= import('../../js/markdown/render.js').catch(e => { this.$rm = null; this.log.error('markdown renderer failed to load', e); });
+        this.$rm ??= import('../../js/markdown/docs.js').catch(e => { this.$rm = null; this.log.error('markdown renderer failed to load', e); });
         this.$rm.then(m => {
             if (!m || !this.isConnected || key !== this.$v) return;
             const root = this.part('content');
-            root.replaceChildren(m.renderMarkdown(text, this.ownerDocument, { ids: true, resolve: resolver(this, this.baseUrl) }));
+            root.replaceChildren(m.renderDocs(text, this.ownerDocument, { ids: true, resolve: resolver(this, this.baseUrl) }));
             this.emit('pk-markdown-render', { root });
         });
     }

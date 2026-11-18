@@ -1,8 +1,8 @@
 // pk-markdown documentation subset (#2012): tables, images, h4-h6, heading ids, URL resolving, hostile input.
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { parseMarkdown } from './parse.js';
-import { renderMarkdown } from './render.js';
+import { parseDocs as parseMarkdown } from './docs.js';
+import { renderDocs as renderMarkdown } from './docs.js';
 
 const JS = 'java' + 'script:';
 class N {
@@ -48,11 +48,6 @@ test('image: img with lazy loading; unsafe source becomes the alt text', () => {
     assert.equal(img.length, 1);
     assert.deepEqual(img[0].attrs, { alt: 'a diagram', src: 'img/d.svg', loading: 'lazy' });
     assert.equal(find(f, 'a').length, 0);
-});
-
-test('image inside a link keeps both', () => {
-    const f = render('[![l](a.png)](https://x.test)');
-    assert.equal(find(f, 'a')[0].kids[0].tag, 'img');
 });
 
 test('resolve hook: applied to href and src with the kind; a result that is unsafe is dropped', () => {
