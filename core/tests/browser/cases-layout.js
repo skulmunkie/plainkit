@@ -144,6 +144,13 @@ export const layoutCases = [
         t.eq(Math.round(host.querySelector('pk-grid').getBoundingClientRect().width), 500);
     }],
 
+    ['grid: a nested grid with no tracks lays out its own auto-fit columns, not the parent grid tracks (#2019)', async t => {
+        const host = t.stage('<pk-grid tracks="repeat(12, minmax(0, 1fr))"><pk-grid data-col-span="9" min="6rem"><div></div><div></div><div></div></pk-grid></pk-grid>');
+        host.style.inlineSize = '800px'; await t.load(host); await t.settle();
+        const inner = host.querySelector('pk-grid pk-grid');
+        const w = [...inner.children].map(c => Math.round(c.getBoundingClientRect().width));
+        t.ok(new Set(w).size === 1 && w[0] > 150, 'three equal auto-fit columns (' + w + ' px), not 12-track fractions');
+    }],
     ['splitter: lays out two panes by size, the separator follows the window splitter pattern, keys and a pointer drag resize and raise pk-resize once', async t => {
         const host = t.stage('<pk-splitter size="30" min="10" max="80" step="5" label="Resize the list"><div slot="start">A</div><div slot="end">B</div></pk-splitter>');
         host.style.inlineSize = '500px'; await t.load(host); await t.settle();
