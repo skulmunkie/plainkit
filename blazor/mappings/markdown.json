@@ -22,5 +22,5 @@
       "type": "EventCallback<PkLinkClickEventArgs>"
     }
   ],
-  "notes": "A read-only Markdown view, drawn with DOM nodes only: no MarkupString. A Blazor callback cannot cancel an event, so set InterceptLinks when OnLinkClick routes or rewrites a relative link."
+  "notes": "A read-only Markdown view, drawn with DOM nodes only: no MarkupString. A Blazor callback cannot cancel an event, so set InterceptLinks when OnLinkClick routes or rewrites a relative link. The JS-only resolveUrl hook (a function) has no parameter: use BaseUrl."
 }

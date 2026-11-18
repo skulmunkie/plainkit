@@ -4,7 +4,7 @@
 // screenshots each rect. The rules that judge the facts are in audit.js (pure, tested in Node).
 import { loadElement } from '../../site/gallery/gallery.data.js';
 import { loadElements, observeElements } from '../../js/loader.js';
-import { whenUpgraded } from './ready.js';
+import { whenUpgraded, whenMarkdownDrawn } from './ready.js';
 import { applyDynamic } from '../../js/dynamic.js';
 import { createLogger } from '../../js/log.js';
 
@@ -208,6 +208,7 @@ try {
         applyDynamic(stage);
         await loadElements(stage, { registry });
         await whenUpgraded(stage, { load: n => loadElements(n, { registry }), log }); // shadow trees included (ready.js)
+        await whenMarkdownDrawn(stage, { log }); // the lazy renderer of pk-markdown (#2025)
         await idle();
     }
     await idle();

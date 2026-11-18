@@ -25,7 +25,7 @@
       "type": "string",
       "default": "",
       "reflect": false,
-      "description": "The address relative links and images are resolved against (http, https or a path relative to the page), for example the folder of the Markdown file: the DOM then carries the final address, so hover, copy link, middle click and crawlers work. An #anchor is left alone. Empty keeps addresses as written. A link whose address was resolved is no longer relative, so it does not raise pk-link-click."
+      "description": "The address relative links and images are resolved against (http, https or a path relative to the page), for example the folder of the Markdown file: the DOM then carries the final address, so hover, copy link, middle click and crawlers work. An #anchor is left alone. Empty keeps addresses as written. A link whose address was resolved is no longer relative, so it does not raise pk-link-click. JS only: resolveUrl = (url, kind) => address | null replaces it; the result is still checked."
     }
   ],
   "slots": [],
