@@ -525,8 +525,8 @@ headerCases.push(
         for (let i = 0; i < 40 && page.part('edit').hidden; i++) await wait(50);
         await t.load(page.shadowRoot); await t.settle();
         page.part('edit').click(); await t.settle();
-        const group = page.part('main').querySelector('pk-field-group');
-        await t.load(group.shadowRoot); await t.settle(); await t.settle();
+        let group = null; for (let i = 0; i < 60 && !(group = page.part('main').querySelector('pk-field-group')); i++) await wait(50);
+        await t.load(page.part('main')); await t.load(group.shadowRoot); await t.settle(); await t.settle();
         const fields = [...group.shadowRoot.querySelectorAll('pk-field')], sw = page.querySelector('pk-switch'), r = n => n.getBoundingClientRect();
         t.eq(fields.length, 3, 'three fields, the custom one included');
         t.ok(r(sw).width > 0 && r(sw).top >= r(fields[0]).bottom - 1 && r(sw).bottom <= r(fields[2]).top + 1, 'the editor child sits between the first and third field');
