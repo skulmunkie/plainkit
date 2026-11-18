@@ -1,4 +1,6 @@
 :host {
+    --pk-grid-ratio: initial; /* tracks belong to the grid itself: a nested grid must not inherit its parent's (the inline value set by the element wins) */
+    --pk-grid-tablet: initial;
     --_g: var(--space-4);
     --_share: calc((100% - (var(--pk-grid-columns) - 1) * var(--_g)) / var(--pk-grid-columns));
     display: grid;
