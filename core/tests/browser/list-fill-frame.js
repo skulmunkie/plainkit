@@ -3,7 +3,7 @@
 import { loadElements } from '../../js/loader.js';
 
 const ROWS = Array.from({ length: 50 }, (_, i) => ({ id: i + 1, sku: `AC-${1000 + i}`, title: `Widget number ${i + 1}` }));
-const q = new URLSearchParams(location.search), overlay = q.has('overlay'), wrap = q.get('wrap'), tall = q.has('tall'), bar = q.has('bar'), phone = q.has('phone'), slotted = q.has('slotted'), always = q.has('always');
+const q = new URLSearchParams(location.search), overlay = q.has('overlay'), wrap = q.get('wrap'), tall = q.has('tall'), bar = q.has('bar'), phone = q.has('phone'), slotted = q.has('slotted'), always = q.has('always'), flow = q.has('flow'), overflow = q.get('overflow');
 const mk = (tag, attrs = {}, text) => { const e = document.createElement(tag); for (const [k, v] of Object.entries(attrs)) e.setAttribute(k, v); if (text) e.textContent = text; return e; };
 
 if (q.get('theme')) document.documentElement.setAttribute('data-theme', q.get('theme'));
@@ -20,7 +20,7 @@ list.config = {
     heading: 'Orders', breadcrumb: [{ label: 'Sales', href: '#' }, { label: 'Orders' }], stickyHeader: true, selectable: true, pageSize: 50,
     ...(always ? { searchable: true, actions: [{ label: 'New order', icon: 'plus', collapse: 'always' }, { label: 'Export', icon: 'download', collapse: 'phone' }] } : {}),
     ...(slotted ? { toolbarInHeader: true, searchable: true, homeHref: '#', homeLabel: 'Start', homeIcon: 'dashboard', filters: [{ key: 'kind', type: 'select', label: 'Kind', options: ['a', 'b'] }] } : {}),
-    ...(bar ? { toolbarInHeader: true, searchable: true, actions: [{ label: 'New order' }], filters: [{ key: 'kind', type: 'select', label: 'Kind', options: ['a', 'b'] }] } : {}),
+    ...(bar ? { toolbarInHeader: true, searchable: true, actions: flow ? [{ label: 'New order', key: 'new', icon: 'plus' }, { label: 'Export', key: 'export', icon: 'download' }] : [{ label: 'New order' }], ...(overflow ? { actionsOverflow: overflow } : {}), filters: [{ key: 'kind', type: 'select', label: 'Kind', options: ['a', 'b'] }] } : {}),
     columns: [{ key: 'sku', label: 'SKU' }, { key: 'title', label: 'Title' }], bulkActions: [{ id: 'archive', label: 'Archive' }],
 };
 if (phone) list.config = { heading: 'Orders', breadcrumb: [{ label: 'Sales', href: '#' }, { label: 'Orders' }], pageSize: 5, searchable: true, filters: [{ key: 'kind', type: 'select', label: 'Kind', options: ['a', 'b'] }], columns: [{ key: 'sku', label: 'SKU' }, { key: 'title', label: 'Title' }] }; // ?phone=1: the phone list page of #1912 (cards, search, Filters, a pager)
@@ -33,7 +33,11 @@ let top = list;
 if (overlay) { const o = mk('pk-loading-overlay', { fill: '', busy: '', label: 'Saving' }); o.append(list); top = o; }
 // wrap=main: the <main id="pk-main"> that the Blazor PkApp draws around the page (a block, not a flex column) (#1716).
 if (wrap) { const w = mk(wrap); w.append(top); top = w; }
-shell.append(top);
-document.body.append(shell);
-shell.style.blockSize = `${innerHeight}px`;
+// ?flow=1 (#1956): no contained shell, the page itself scrolls, so a sticky toolbar is measured against the viewport.
+if (flow) document.body.append(top);
+else {
+    shell.append(top);
+    document.body.append(shell);
+    shell.style.blockSize = `${innerHeight}px`;
+}
 loadElements(document);
