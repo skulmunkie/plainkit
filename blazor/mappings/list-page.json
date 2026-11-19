@@ -55,6 +55,28 @@
       "note": "Row links: an address like /orders/{id} (or #/orders/{id}); {id} is the row key and any {field} a camel-case row property, URL-encoded. The first cell of each row becomes a real link (new tab, middle click, copy address) and a plain click navigates through the app router without a reload. Use it for a routed list-to-record pair; OnRowClick stays for an imperative handler."
     },
     {
+      "name": "RowActions",
+      "map": "param",
+      "configKey": "rowActions",
+      "configJson": true,
+      "type": "IReadOnlyList<PkRowAction>?",
+      "doc": "Row actions: an icon column pinned at the inline end, one icon button per action (accessible name: the label plus the row title, so \"Edit Order 1042\"; Hint is the tooltip). More than RowActionsMax actions, or any with a Group, fold into one row menu. An action with Variant \"warn\" asks for confirmation first (Confirm opens it for any action, Confirm = false opts out). A row's own state is its \"_actions\" property, keyed by action key ({ disabled?, hidden?, hint? }), so no callback crosses the wire. Pressing one raises OnRowAction once, after any confirmation. Rows opened with OnRowClick or RowHrefTemplate keep working; the action cell never raises OnRowClick. Needs IdOf to give OnRowAction the item (without it the item is read back from the row the element sent)."
+    },
+    {
+      "name": "RowActionsMax",
+      "map": "param",
+      "configKey": "rowActionsMax",
+      "type": "int?",
+      "doc": "How many row actions show as buttons before they fold into one menu. Default 3. Needs RowActions."
+    },
+    {
+      "name": "OnRowAction",
+      "event": "pk-action",
+      "type": "EventCallback<PkRowActionArgs<TItem>>",
+      "custom": true,
+      "doc": "A row action was pressed (and confirmed, when it asks): its Key, the row Id and the Item of that row. Not raised for a title-bar action."
+    },
+    {
       "name": "Navigate",
       "type": "string?",
       "map": "prop",
