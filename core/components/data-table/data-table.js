@@ -33,9 +33,6 @@ export default Base => class extends Base {
         // pk-table's own selection events stop here: the host hears one pk-select with the ids, the scope and the query.
         table.addEventListener('pk-select', e => { e.stopPropagation(); this.selected = e.detail.selected; this.selectScope = 'page'; this.announce(); });
         table.addEventListener('pk-select-all', e => { e.stopPropagation(); if (e.detail.scope === 'all') { this.selectScope = 'all'; this.announce(); } });
-        // A flyout panel is bounded by the table area (its body scrolls, the header and Clear filters stay in view); the area is measured as it opens.
-        this.$z = () => filters.style.setProperty('--pk-table-filters-max', this.part('area').clientHeight + 'px');
-        filters.addEventListener('pk-toggle', e => e.detail.open && (addEventListener('resize', this.$z), this.$z()));
         filters.addEventListener('pk-search', e => go({ search: e.detail.query, page: 1 }, true));
         filters.addEventListener('pk-value-change', e => {
             const key = e.target?.dataset?.key;

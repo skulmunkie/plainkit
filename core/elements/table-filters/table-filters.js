@@ -10,6 +10,9 @@ import { drawIcon } from '../../js/icon-sprite.js';
 
 export default Base => class extends Base {
     connected() {
+        // A flyout panel fills the list area, the toolbar's next sibling (its body scrolls, the header and Clear filters stay in view); the area is measured as it opens and when the window resizes.
+        this.$f = () => { const a = this.open && this.placement !== 'inline' && this.parentElement?.nextElementSibling; a && this.part('panel').style.setProperty('--pk-table-filters-max', a.clientHeight + 'px'); };
+        this.ownerDocument.defaultView.addEventListener('resize', this.$f);
         if (this.$c) return;
         this.$c = 1;
         this.part('search').addEventListener('input', () => {
@@ -36,5 +39,7 @@ export default Base => class extends Base {
         this.part('count').hidden = !this.filterCount;
         this.part('count').textContent = String(this.filterCount ?? 0);
         this.part('panel').hidden = !has || !this.open;
+        this.$f?.();
     }
+    disconnected() { this.ownerDocument.defaultView.removeEventListener('resize', this.$f); }
 };

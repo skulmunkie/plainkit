@@ -304,6 +304,13 @@
       "doc": "Where the open filter panel goes: Inline (its own row, pushing the rows down) Flyout (overlays the top of the table from the inline-start edge; a sheet on a phone; Escape closes it) or FlyoutEnd (the same from the inline-end edge)."
     },
     {
+      "name": "FilterPanelReflow",
+      "prop": "filterPanelReflow",
+      "type": "bool",
+      "default": false,
+      "doc": "With a flyout FilterPanel, the open panel reserves its width on the table area so the table narrows beside it and the pager stays usable (a phone keeps the overlay)."
+    },
+    {
       "name": "MaxHeight",
       "prop": "maxHeight",
       "type": "string?",
