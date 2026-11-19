@@ -40,6 +40,29 @@
       "doc": "Your own content by section key (the Config section key): each shows inside that section's card after its fields, so the section nav and the save bar cover it. An edit in it (a control raising pk-value-change, pk-change or change, or a PkFieldGroup's pk-field-change) shows the save bar; its values are not in Save's dictionary, keep them in your own state, and Discard does not reset them."
     },
     {
+      "name": "NewAction",
+      "map": "param",
+      "configKey": "newAction",
+      "configJson": true,
+      "type": "PkAction?",
+      "doc": "The primary title bar action, drawn first. Its press raises OnAction with its Key."
+    },
+    {
+      "name": "Actions",
+      "map": "param",
+      "configKey": "actions",
+      "configJson": true,
+      "type": "IReadOnlyList<PkAction>?",
+      "doc": "Title bar actions: one typed item (PkAction) each; a Group makes a menu. A press raises OnAction with the Key; an item with a Href is a link."
+    },
+    {
+      "name": "ActionsCollapse",
+      "map": "param",
+      "configKey": "actionsCollapse",
+      "type": "string?",
+      "doc": "One value for the whole bar: \"always\", \"phone\" (the default), \"tablet\" or \"none\". An item with an Icon folds to the icon alone."
+    },
+    {
       "name": "OnAction",
       "event": "pk-action",
       "note": "A title-bar action (config.actions entry without an href) was clicked; Key is its key."

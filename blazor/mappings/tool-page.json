@@ -18,6 +18,29 @@
       "doc": "Title bar buttons, beside any Config actions."
     },
     {
+      "name": "NewAction",
+      "map": "param",
+      "configKey": "newAction",
+      "configJson": true,
+      "type": "PkAction?",
+      "doc": "The primary title bar action, drawn first. Its press raises OnAction with its Key."
+    },
+    {
+      "name": "Actions",
+      "map": "param",
+      "configKey": "actions",
+      "configJson": true,
+      "type": "IReadOnlyList<PkAction>?",
+      "doc": "Title bar actions: one typed item (PkAction) each; a Group makes a menu. A press raises OnAction with the Key; an item with a Href is a link."
+    },
+    {
+      "name": "ActionsCollapse",
+      "map": "param",
+      "configKey": "actionsCollapse",
+      "type": "string?",
+      "doc": "One value for the whole bar: \"always\", \"phone\" (the default), \"tablet\" or \"none\". An item with an Icon folds to the icon alone."
+    },
+    {
       "name": "OnAction",
       "event": "pk-action",
       "extra": true,

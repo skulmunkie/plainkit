@@ -19,6 +19,14 @@
       "note": "Sent as a JSON attribute: { steps, review?, reviewLabel?, submitLabel?, doneHeading?, doneDescription?, label?, submitEarly?, footerActions?, liveValidate? }. A step takes fields or specs (pk-field-group field specs with optionsBy, whenExpr) for fields that depend on each other."
     },
     {
+      "name": "FooterActions",
+      "map": "param",
+      "configKey": "footerActions",
+      "configJson": true,
+      "type": "IReadOnlyList<PkAction>?",
+      "doc": "Buttons of the footer, before Submit and Next: one typed item (PkAction) each. A press raises OnFooterAction (Key, Values, Step) and OnAction with the Key."
+    },
+    {
       "name": "OnAction",
       "event": "pk-action",
       "note": "A title-bar action (config.actions entry without an href) was clicked; Key is its key."
