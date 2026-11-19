@@ -5,6 +5,18 @@ The format follows [Keep a Changelog](https://keepachangelog.com/) and the proje
 
 ## [Unreleased]
 
+## [0.34.0] - 2026-11-19
+
+### Added
+
+- `PkDataTable` and `PkListPage` take `RowActions` (a list of `PkRowAction`: key, label, icon, variant, group, hint, confirm), `RowActionsMax` and a typed `OnRowAction` (`PkRowActionArgs<TItem>`: `Key`, `Id`, `Item`), the Blazor surface of row actions: an icon column, named per row, a confirm for `warn` actions, a row's `_actions` for per-row state. No render fragment and no per-item callback cross the wire. (#2046)
+- `pk-data-table` takes `rowActions`, and `pk-list-page` forwards it in its config: an icon action column pinned at the inline end, drawn from the shared action item (key, label, icon, variant, group, hint, confirm) with the row title in each accessible name. A press raises one `pk-action { key, id, row }`; a `warn` action asks for confirmation first; more than `rowActionsMax` (3) actions, or a grouped one, fold into a row menu; a row's `_actions` hides, disables or re-words an action as plain data. The Blazor typed surface follows in a later step. (#2046)
+- The open flyout filter panel of pk-data-table and pk-list-page fills the list height with Clear filters pinned at the bottom and stacks its controls one per row at the panel width. New filterPanelReflow (Blazor FilterPanelReflow) makes the table narrow beside the open panel on wide viewports so the right-most columns and the pager stay usable; a phone keeps the overlay. (#2055)
+
+### Notes
+
+- Inside `pk-app-shell` pages already sit in the shell body's inline gutter (`--pad-page`, 16px on a phone); the missing gutter was only in the UI review scenarios, whose `rv-page` frame now gives the same inline padding, so cards and focus rings are measured where a real page puts them. A browser case pins the gutter at 375px in both directions. (#2038)
+
 ## [0.33.0] - 2026-11-18
 
 ### Added
