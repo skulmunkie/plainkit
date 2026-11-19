@@ -27,7 +27,9 @@ const PIN = ('td[data-pin],th[data-pin]{position:sticky;inset-inline-end:0;z-ind
 
 let pinSheet; // built on first use (the sheet needs a browser)
 export function after(t) {
-    if (t.list('columns').some(c => c.pin)) { pinSheet ??= (x => (x.replaceSync(PIN), x))(new CSSStyleSheet()); if (!t.shadowRoot.adoptedStyleSheets.includes(pinSheet)) t.shadowRoot.adoptedStyleSheets = [...t.shadowRoot.adoptedStyleSheets, pinSheet]; }
+    const pins = t.list('columns').filter(c => c.pin).map(c => c.key); // data-pin is set here, not in table-vw.js: the sheet below is its only reader
+    for (const e of t.shadowRoot.querySelectorAll('th[data-key],td[data-key]')) e.toggleAttribute('data-pin', pins.includes(e.dataset.key));
+    if (pins.length) { pinSheet ??= (x => (x.replaceSync(PIN), x))(new CSSStyleSheet()); if (!t.shadowRoot.adoptedStyleSheets.includes(pinSheet)) t.shadowRoot.adoptedStyleSheets = [...t.shadowRoot.adoptedStyleSheets, pinSheet]; }
     if (t.list('columns').some(c => c.type === 'media')) t.lz('$mm', () => import('./table-media.js')); // the media column kind (#1938) rides on this part's load
     t.$mm?.after(t);
     const css = shedCss(t.list('columns')), root = t.shadowRoot;
