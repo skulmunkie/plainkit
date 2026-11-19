@@ -1167,3 +1167,51 @@ layoutCases.push(
         f.fr.remove();
     }],
 );
+
+// #1956: toolbarInHeader keeps what pk-page-header gives. actionsOverflow folds the actions into one menu on a phone (the buttons stay in the page, hidden), and the toolbar row is sticky.
+const barFrame = async (t, width, query) => {
+    const host = t.stage(''), fr = document.createElement('iframe');
+    fr.title = `toolbar in header ${query} at ${width}px`; fr.style.cssText = `width:${width}px;height:700px;border:0;display:block`;
+    fr.src = new URL('./list-fill-frame.html', import.meta.url).href + `?bar=1&flow=1&${query}`;
+    await new Promise(resolve => { fr.addEventListener('load', resolve, { once: true }); host.append(fr); });
+    const win = fr.contentWindow, d = win.document, wait = ms => new Promise(r => setTimeout(r, ms));
+    await Promise.all(['pk-list-page', 'pk-data-table', 'pk-table', 'pk-table-filters', 'pk-button'].map(tag => win.customElements.whenDefined(tag)));
+    const list = d.querySelector('pk-list-page'), dt = list.part('table');
+    for (let i = 0; i < 150 && !dt.part('table')?.shadowRoot?.querySelector('[part=body] tr'); i++) await wait(40);
+    await wait(500);
+    return { fr, win, d, list, dt, wait, rect: el => el.getBoundingClientRect(), search: dt.part('filters').shadowRoot.querySelector('[part=search]'), trigger: list.part('actions').querySelector('pk-dropdown') };
+};
+layoutCases.push(
+    ['list page toolbarInHeader + actionsOverflow "phone": at 1280 the actions are buttons on the toolbar row and there is no overflow menu (#1956)', async t => {
+        const { fr, list, rect, search, trigger } = await barFrame(t, 1280, 'overflow=phone'), [a, b] = list.part('actions').querySelectorAll('pk-button:not([slot=trigger])');
+        t.ok(rect(a).width > 0 && rect(b).width > 0, 'both actions are drawn');
+        t.ok(Math.abs(rect(a).top + rect(a).height / 2 - (rect(search).top + rect(search).height / 2)) < 24, 'they share the search box row');
+        t.ok(!trigger || rect(trigger).width === 0, 'no overflow trigger is drawn');
+        fr.remove();
+    }],
+    ['list page toolbarInHeader + actionsOverflow "phone": at 390 the buttons fold into one menu trigger on the search row; the menu lists both and an item raises pk-action (#1956)', async t => {
+        const { fr, d, list, rect, search, trigger, wait } = await barFrame(t, 390, 'overflow=phone');
+        t.ok(!!trigger && rect(trigger).width > 0, 'an overflow trigger is drawn');
+        const [a, b] = list.part('actions').querySelectorAll(':scope > pk-button');
+        t.ok(rect(a).width === 0 && rect(b).width === 0, 'the action buttons are hidden');
+        t.ok(!!trigger && Math.abs(rect(trigger).top + rect(trigger).height / 2 - (rect(search).top + rect(search).height / 2)) < 30, 'the trigger shares the search row');
+        t.ok(!!trigger && rect(trigger).left >= 0 && rect(trigger).right <= 390 + 1, 'the trigger is inside the window');
+        let key = null; d.addEventListener('pk-action', e => { key = e.detail.key; });
+        trigger?.querySelector('pk-button')?.click(); await wait(300);
+        const items = [...trigger.querySelectorAll('pk-menu-item')];
+        t.eq(items.map(i => i.textContent.trim()).join('|'), 'New order|Export', 'the menu holds one item per action, in order');
+        items[1]?.click(); await wait(200);
+        t.eq(key, 'export', 'choosing an item raises pk-action with its key');
+        fr.remove();
+    }],
+    ['list page toolbarInHeader: the toolbar row stays visible after the page scrolls 800px, at 1280 and 390 (#1956)', async t => {
+        for (const width of [1280, 390]) {
+            const { fr, win, dt, rect } = await barFrame(t, width, 'overflow=phone'), bar = dt.shadowRoot.querySelector('[part=toolbar]');
+            t.ok(win.document.documentElement.scrollHeight > 800 + 700, `${width}: the page is tall enough to scroll (${win.document.documentElement.scrollHeight})`);
+            win.scrollTo(0, 800); await new Promise(r => setTimeout(r, 300));
+            t.ok(win.scrollY >= 790, `${width}: the page scrolled (${Math.round(win.scrollY)})`);
+            t.ok(rect(bar).top >= -1 && rect(bar).top <= 2 && rect(bar).height > 20, `${width}: the toolbar row is pinned at the top of the window (top ${Math.round(rect(bar).top)}, ${Math.round(rect(bar).height)}px tall)`);
+            fr.remove();
+        }
+    }],
+);
