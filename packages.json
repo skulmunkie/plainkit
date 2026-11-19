@@ -69,7 +69,7 @@
         "zip-store.js"
       ],
       "maxPackedBytes": null,
-      "maxUnpackedBytes": 858778,
+      "maxUnpackedBytes": 867654,
       "maxZipBytes": 280360,
       "files": [
         "breakpoints.report.json",
@@ -219,6 +219,6 @@
   ],
   "blazorPayload": {
     "coreOnly": 745062,
-    "full": 1097550
+    "full": 1110513
   }
 }

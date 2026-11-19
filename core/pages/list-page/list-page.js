@@ -19,7 +19,7 @@ export default Base => class extends Base {
         const slot = this.shadowRoot?.querySelector?.('slot[name="before-list"]'), before = this.part('before');
         if (slot && before) { const show = () => { before.hidden = !slot.assignedNodes().length; }; slot.addEventListener('slotchange', show); show(); }
     }
-    disconnected() { this.$mo?.disconnect(); this.$w = false; }
+    disconnected() { this.$mo?.disconnect(); this.$unfold?.(); this.$unfold = this.$actions = null; this.$w = false; }
     // The bridge calls this when `load` is set after the first (empty) draw (#1401).
     refresh() { return this.part('table')?.refresh?.(); }
     forwardSlots() {
@@ -71,8 +71,13 @@ export default Base => class extends Base {
         if (key === this.$actions) return;
         this.$actions = key;
         const box = this.part('actions'), warn = (k, m) => this.warnOnce?.(k, m);
-        box.replaceChildren(...renderActions(this, actionItems((list ?? []).map(a => (a && !a.key && !a.href && a.label ? { key: a.label, ...a } : a)), newAction, warn), { collapse: actionsCollapse, slot: null, warn }));
+        const items = actionItems((list ?? []).map(a => (a && !a.key && !a.href && a.label ? { key: a.label, ...a } : a)), newAction, warn), nodes = renderActions(this, items, { collapse: actionsCollapse, slot: null, warn });
+        this.$unfold?.(); this.$unfold = null;
+        box.replaceChildren(...nodes);
         loadElements(box);
+        // toolbarInHeader + actionsOverflow (#1956): the page-header contract, drawn by a chunk that only this combination loads.
+        const { actionsOverflow: mode, overflowLabel } = this.config ?? {};
+        if (this.config?.toolbarInHeader && mode) import('../../js/page-actions-overflow.js').then(m => { if (this.$actions === key) this.$unfold = m.overflowActions(box, items, nodes, { mode, label: overflowLabel }); });
     }
 
     // toolbarInHeader (#1723): the title goes to the table's lead slots, the host actions to its actions slot; the shell header stays bare.

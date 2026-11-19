@@ -5,6 +5,7 @@ import { until } from './wait.js';
 const rect = el => el.getBoundingClientRect();
 const ACTIONS = [{ key: 'export', label: 'Export', icon: 'download', variant: 'ghost' }, { key: 'share', label: 'Share', icon: 'share' }, { key: 'plain', label: 'Plain words' }];
 const NEW = { key: 'new', label: 'New order', icon: 'plus' };
+const GROUPED = { actions: [ACTIONS[0], { key: 'copy', label: 'Copy', group: 'More' }, { key: 'archive', label: 'Archive', group: 'More', disabled: true }, { key: 'delete', label: 'Delete', group: 'More', variant: 'warn' }, ACTIONS[1]] };
 
 async function frame(t, width, config, dir = 'ltr') {
     const { sampleDoc } = await import('../../site/gallery/frame.js');
@@ -132,5 +133,62 @@ export const pageActionsPhase2Cases = [
         t.eq(got.join(), 'wizard:discard:a,action:discard', 'the wizard event, then the shared one');
         const p = await wizReady(t, 390), pb = p.buttons();
         t.ok(pb[0].hasAttribute('collapsed') && rect(pb[0]).width <= 48, 'icon only on a phone');
+    }],
+    ['tool-page actions: items sharing a group are one menu where the first of them stands; the trigger is named for the group and the rest stay buttons', async t => {
+        const { page } = await frame(t, 1280, { actionsCollapse: 'none', ...GROUPED });
+        const kids = [...page.part('header').children].filter(n => n.slot === 'actions' && n.localName !== 'slot');
+        t.eq(kids.map(n => n.localName).join(), 'pk-button,pk-button,pk-dropdown,pk-button', 'new, export, the menu, share');
+        const menu = kids[2], items = [...menu.querySelectorAll('pk-menu-item')];
+        t.eq(menu.querySelector('[slot=trigger]').textContent.trim(), 'More', 'the trigger is the group name');
+        t.eq(items.map(i => i.textContent.trim()).join(), 'Copy,Archive,Delete', 'the items in array order');
+        t.ok(items[1].disabled && !items[0].disabled, 'disabled carries to the item');
+        t.ok(items[2].danger, 'a warn item is danger');
+        t.eq(kids.filter(n => n.localName === 'pk-button').map(x => x.textContent.trim()).join(), 'New order,Export,Share', 'the group items are not bar buttons');
+    }],
+    ['tool-page actions: choosing a group item raises one pk-action with its key; a disabled item raises nothing; Escape returns focus to the trigger', async t => {
+        const { page, win } = await frame(t, 1280, { actionsCollapse: 'none', ...GROUPED });
+        const menu = page.part('header').querySelector('pk-dropdown'), trigger = menu.querySelector('[slot=trigger]'), keys = [];
+        page.addEventListener('pk-action', e => keys.push(e.detail.key));
+        trigger.click(); await until(() => menu.open, 'the menu opens');
+        await t.settle();
+        const items = [...menu.querySelectorAll('pk-menu-item')];
+        t.ok(items.every(i => rect(i).height > 0), 'the items are drawn');
+        items[1].click(); await t.settle();
+        t.eq(keys.length, 0, 'a disabled item raises nothing');
+        items[0].click(); await t.settle(); await new Promise(r => setTimeout(r, 100));
+        t.eq(keys.join(), 'copy', 'one pk-action with the key');
+        t.ok(!menu.open, 'the menu closes');
+        trigger.click(); await until(() => menu.open, 'reopened');
+        win.document.activeElement?.dispatchEvent(new win.KeyboardEvent('keydown', { key: 'Escape', bubbles: true, composed: true }));
+        await until(() => !menu.open, 'Escape closes');
+        await new Promise(r => setTimeout(r, 100));
+        t.ok(trigger.shadowRoot.activeElement || win.document.activeElement === trigger, 'focus is back on the trigger');
+    }],
+    ['tool-page actions: a group menu is never folded by actionsCollapse always (its trigger is words) and stays inside the viewport open at 390 and in rtl', async t => {
+        for (const dir of ['ltr', 'rtl']) {
+            const { page, win } = await frame(t, 390, { actionsCollapse: 'always', ...GROUPED }, dir);
+            const menu = page.part('header').querySelector('pk-dropdown'), trigger = menu.querySelector('[slot=trigger]');
+            t.ok(!trigger.hasAttribute('collapsed') && rect(trigger).width > 48, `${dir}: the trigger keeps its words (${rect(trigger).width} x ${rect(trigger).height}, collapsed=${trigger.hasAttribute('collapsed')})`);
+            trigger.click(); await until(() => menu.open, 'open'); await t.settle(); await new Promise(r => setTimeout(r, 200));
+            const items = [...menu.querySelectorAll('pk-menu-item')], r0 = rect(items[0]);
+            t.ok(r0.left >= 0 && r0.right <= win.innerWidth + 1, `${dir}: the open menu is inside the viewport (${Math.round(r0.left)} to ${Math.round(r0.right)} of ${win.innerWidth})`);
+        }
+    }],
+    ['tool-page actions: a group of one item is still a menu; a busy item cannot be chosen', async t => {
+        const { page } = await frame(t, 1280, { actionsCollapse: 'none', actions: [{ key: 'x', label: 'Run', group: 'Tools', busy: true }] });
+        const items = [...page.part('header').querySelectorAll('pk-dropdown pk-menu-item')];
+        t.eq(items.length, 1, 'one menu item'); t.ok(items[0].disabled, 'busy is not choosable');
+    }],
+    ['list-page toolbar and wizard-page footer: grouped items are one menu and choosing one raises pk-action with its key (the wizard also its own event)', async t => {
+        const group = [{ key: 'copy', label: 'Copy', group: 'More' }, { key: 'archive', label: 'Archive', group: 'More' }];
+        const l = await framePage(t, 1280, 'pk-list-page', { columns: LIST.columns, toolbarActions: group }, page => [...page.part('actions').querySelectorAll('pk-dropdown pk-menu-item')]);
+        const got = []; l.page.addEventListener('pk-action', e => got.push(e.detail.key));
+        const lm = l.page.part('actions').querySelector('pk-dropdown');
+        t.eq(lm.querySelector('[slot=trigger]').textContent.trim(), 'More', 'the list toolbar menu is named for the group');
+        lm.querySelectorAll('pk-menu-item')[1].click(); await t.settle();
+        const w = await framePage(t, 1280, 'pk-wizard-page', { ...WIZ, footerActions: group }, page => [...page.part('actions').querySelectorAll('pk-dropdown pk-menu-item')]);
+        w.page.addEventListener('pk-wizard-action', e => got.push('wizard:' + e.detail.key)); w.page.addEventListener('pk-action', e => got.push(e.detail.key));
+        w.page.part('actions').querySelector('pk-dropdown').querySelectorAll('pk-menu-item')[0].click(); await t.settle();
+        t.eq(got.join(), 'archive,wizard:copy,copy', 'one key each; the wizard event first, then the shared one');
     }],
 ];

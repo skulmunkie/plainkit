@@ -1,7 +1,7 @@
 // Row actions of pk-data-table (#2046), a lazy part: loaded only when `rowActions` is set. For each drawn row it builds the cell `cell-<id>-_actions` from the shared
 // action item ({ key, label, icon?, variant?, disabled?, group?, hint?, confirm? }, js/page-actions.js) and raises one `pk-action { key, id, row }` from the table per press.
 // Per-row state is data: a row's `_actions` is { [key]: { disabled?, hidden?, hint? } }. A warn action (or `confirm`) asks first; focus comes back to the row's action after a redraw.
-import { renderActions, actionItems } from './page-actions.js';
+import { renderActions, actionItems, menuItem } from './page-actions.js';
 import { rowId } from './rowset.js';
 import { loadElements } from './loader.js';
 
@@ -54,7 +54,7 @@ export default function draw(host) {
             for (const a of items) {
                 if (a.group && a.group !== group) dd.append(el(doc, 'pk-menu-item', { type: 'header', textContent: a.group }));
                 group = a.group;
-                dd.append(el(doc, 'pk-menu-item', { value: a.key, textContent: a.label, disabled: !!a.disabled, danger: a.variant === 'warn' }));
+                dd.append(menuItem(doc, a));
             }
             dd.addEventListener('pk-select', e => { e.stopPropagation(); const a = items.find(x => x.key === e.detail?.value); if (a) press(a); });
             cell.append(dd);
