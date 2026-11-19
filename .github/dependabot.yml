@@ -31,3 +31,6 @@ updates:
     groups:
       test-packages:
         patterns: ["*"]
+    # #2061: the PKB001 analyzer references the lowest Roslyn it needs (VersionOverride in PlainKit.Blazor.Analyzers.csproj); a newer one breaks it on older SDKs (CS9057).
+    ignore:
+      - dependency-name: "Microsoft.CodeAnalysis.CSharp"

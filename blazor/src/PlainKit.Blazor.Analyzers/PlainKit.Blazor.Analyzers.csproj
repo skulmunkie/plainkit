@@ -10,7 +10,11 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="Microsoft.CodeAnalysis.CSharp" PrivateAssets="all" />
+    <!-- #2061: the analyzer is loaded by the consumer's compiler, which is older than the newest Roslyn package: a reference above the compiler's own fails with CS9057 and the analyzer is dropped (0.33.0 shipped 5.12 and broke on SDK 10.0.400, whose compiler is 5.9).
+         So it references the LOWEST Roslyn it needs (the APIs used are all in 3.11: DiagnosticAnalyzer, RegisterCompilationStartAction, AnalyzerConfigOptionsProvider, SymbolEqualityComparer).
+         VersionOverride keeps it off the central version (Directory.Packages.props, which the tests use and Dependabot may raise; dependabot.yml ignores this package). node scripts/check-package.mjs reads this
+         number as the ceiling for the packed DLL's Microsoft.CodeAnalysis reference. Raise it only with a stated minimum SDK. -->
+    <PackageReference Include="Microsoft.CodeAnalysis.CSharp" VersionOverride="3.11.0" PrivateAssets="all" />
   </ItemGroup>
 
 </Project>
