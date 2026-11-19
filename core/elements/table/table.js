@@ -63,7 +63,7 @@ export default Base => class extends Base {
         if (this.total) this.lz('$s', () => import('../../js/table-scope.js'));
         if (this.editable) this.lz('$e', () => import('../../js/table-edit.js'));
         if (this.resizable || this.reorderable) this.lz('$cx', () => import('../../js/table-cols.js'));
-        if (k.some(c => c.type == 'media' || c.shed && ![1, 2, 3].includes(+c.shed))) this.lz('$sd', () => import('../../js/table-shed.js'));
+        if (k.some(c => c.type == 'media' || c.shed && ![1, 2, 3].includes(+c.shed) || c.pin)) this.lz('$sd', () => import('../../js/table-shed.js'));
         const x = this.expandable && this.$m, hx = this.expander != 'none' && x, lead = +this.selectable + !!hx;
         V.frame(this, tb, k.length + lead, r.length);
 

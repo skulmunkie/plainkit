@@ -447,3 +447,4 @@ cases.push(['pk-field marks a control invalid when the control is defined after 
 }]);
 import { siteToolCases } from './cases-site-tools.js'; cases.push(...siteToolCases);
 import { dataTableFlyoutCases } from './cases-data-table-flyout.js'; cases.push(...dataTableFlyoutCases);
+import { rowActionsCases } from './cases-row-actions.js'; cases.push(...rowActionsCases);

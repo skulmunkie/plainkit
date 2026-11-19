@@ -21,7 +21,13 @@ export function shedCss(columns) {
     return [...seen].map(([shed, w]) => `@container (max-width:${w}){[data-shed="${shed}"]{display:none}}`).join('');
 }
 
+// A pinned column (`pin`, the row-actions column of pk-data-table, #2046): sticky at the inline end on an opaque ground, header text for screen readers only, one footer line in a phone card, not printed.
+const PIN = ('td[data-pin],th[data-pin]{position:sticky;inset-inline-end:0;z-index:1;background:var(--color-panel);inline-size:1%;white-space:nowrap}td[data-pin] slot::slotted(span){display:flex;gap:var(--space-1);justify-content:flex-end}th[data-pin]{font-size:0}@media print{[data-pin]{display:none}}'
+    + '@media (max-width:640px){:host([cards]) td[data-pin]{position:static;inline-size:auto;background:none;justify-content:flex-end;margin-block-start:var(--space-1);padding-block-start:var(--space-2);border-block-start:1px solid var(--color-border)}:host([cards]) td[data-pin]::before{content:none}}');
+
+let pinSheet; // built on first use (the sheet needs a browser)
 export function after(t) {
+    if (t.list('columns').some(c => c.pin)) { pinSheet ??= (x => (x.replaceSync(PIN), x))(new CSSStyleSheet()); if (!t.shadowRoot.adoptedStyleSheets.includes(pinSheet)) t.shadowRoot.adoptedStyleSheets = [...t.shadowRoot.adoptedStyleSheets, pinSheet]; }
     if (t.list('columns').some(c => c.type === 'media')) t.lz('$mm', () => import('./table-media.js')); // the media column kind (#1938) rides on this part's load
     t.$mm?.after(t);
     const css = shedCss(t.list('columns')), root = t.shadowRoot;
