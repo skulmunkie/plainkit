@@ -20,16 +20,6 @@ function view(el) {
     return c && v.every((x, i) => x === c.v[i]) ? c.result : (el.$vc = { v, result: el.view }).result;
 }
 
-// The first time a render windows: listens on the scroll frame (the table's own shadow node, built once in the constructor, never
-// replaced), re-rendering only while windowing stays active.
-function attach(el) {
-    el.part('scroll').addEventListener('scroll', () => {
-        if (!el.$virtual || el.$sq) return;
-        el.$sq = true;
-        requestAnimationFrame(() => { el.$sq = false; el.requestUpdate(); });
-    }, { passive: true });
-}
-
 // The rows to draw, or null when this render should not window (table.js then draws every row itself): never for an expandable table (a detail row
 // changes its row's height) or a host-supplied one. Sets el.$virtual for the scroll listener above. Otherwise only the rows near the viewport, plus a buffer,
 // flanked by spacers. el.$rowH (32 is a first guess) is refined from the previous render's real row height. h is table.js's element-builder, passed through
@@ -38,11 +28,18 @@ function body(el, rowsAll, h) {
     const prev = el.part('body').querySelector('tr[data-pk-context]');
     el.$rowH = prev?.getBoundingClientRect().height || el.$rowH;
     if (el.expandable || rowsAll.length <= THRESHOLD) return el.$virtual = false, null;
-    if (!el.$vs) { el.$vs = 1; attach(el); }
+    if (!el.$vs) { // the first windowed render: listen on the scroll frame (the table's own shadow node, never replaced), re-rendering only while windowing stays active
+        el.$vs = 1;
+        el.part('scroll').addEventListener('scroll', () => {
+            if (!el.$virtual || el.$sq) return;
+            el.$sq = true;
+            requestAnimationFrame(() => { el.$sq = false; el.requestUpdate(); });
+        }, { passive: true });
+    }
     el.$virtual = true;
     const sel = el.chosen?.() ?? idSet(el.selected);
     const s = el.part('scroll'), rowH = el.$rowH || 32, vh = s.clientHeight || 400, span = el.part('foot').colSpan; // frame() has just set it to the column count
-    const win = Math.ceil(vh / rowH) + 20, start = Math.max(0, Math.min(Math.floor(s.scrollTop / rowH) - 10, rowsAll.length - win)); // never past the last window (the frame's own overhead lets scrollTop / rowH run past the rows); 10 extra rows above and below the viewport, so a fast scroll or a focus move does not flash empty rows
+    const win = Math.ceil(vh / rowH) + 20, start = Math.max(0, Math.min((s.scrollTop / rowH | 0) - 10, rowsAll.length - win)); // never past the last window (the frame's own overhead lets scrollTop / rowH run past the rows); 10 extra rows above and below the viewport, so a fast scroll or a focus move does not flash empty rows
     const end = Math.min(rowsAll.length, start + win);
     const bump = (size, place) => { const td = h('td', { colspan: span }); td.style.cssText = `padding:0;border:0;block-size:${size}px`; return h('tr', { 'data-spacer': place }, td); };
     const drawn = rowsAll.slice(start, end).map((row, j) => tr(el, row, rowId(row, start + j, el.rowKey), sel, h));
@@ -52,27 +49,27 @@ function body(el, rowsAll, h) {
 // The frame state of the table: busy flag, the empty state, the bulk bar count, the scroll frame's max height, and the foot cell spanning all `span` columns (#1020). Lives here, not in table.js, to keep that module in its gzip budget.
 function frame(el, tb, span, rows) {
     tb.setAttribute('aria-busy', el.loading);
-    if (el.maxHeight) el.style.setProperty('--pk-table-max-height', el.maxHeight); else el.style.removeProperty('--pk-table-max-height');
-    const foot = el.part('foot'); foot.colSpan = span; foot.closest('tfoot').hidden = !el.querySelector(':scope > [slot="foot"]');
+    el.style.setProperty('--pk-table-max-height', el.maxHeight); // an empty value removes the property
+    const foot = el.part('foot'); foot.colSpan = span; foot.closest('tfoot').hidden = !el.querySelector(':scope > [slot=foot]');
     el.part('empty').hidden = el.loading || rows > 0;
     el.part('scroll').tabIndex = rows ? 0 : -1; // an empty frame has nothing to scroll: not a tab stop or a tap target
     const n = idSet(el.selected).size;
-    el.part('bulk').hidden = !n; el.part('bulk-count').textContent = `${n} selected`;
+    el.part('bulk').hidden = !n; el.part('bulk-count').textContent = n + ' selected';
 }
 
 
 // Issue 1019: a row object may carry tone (warning, positive, accent, critical) and indent (1 or 2); they become data-tone and data-indent on the <tr>.
-const TONES = new Set(['warning', 'positive', 'accent', 'critical']);
-const mark = row => ({ 'data-tone': TONES.has(row.tone) ? row.tone : null, 'data-indent': row.indent >= 1 ? (row.indent >= 2 ? 2 : 1) : null });
+const TONES = ['warning', 'positive', 'accent', 'critical'];
+const mark = row => ({ 'data-tone': TONES.includes(row.tone) ? row.tone : null, 'data-indent': row.indent >= 2 ? 2 : row.indent >= 1 ? 1 : null });
 // One data row, shared by the plain render (table.js) and the windowed one above: a select box, then a td per column (a slotted cell where the host gave one).
 const al = c => c.align ?? { number: 'end', media: 'm' }[c.type];
 // #1794: a slotted cell with no content is marked data-empty; the phone cards drop it with its label (text-empty cells: td:empty).
 function tr(el, row, id, sel, h) {
-    const pick = h('input', { type: 'checkbox', 'data-select': id, 'aria-label': `Select row ${id}` });
+    const pick = h('input', { type: 'checkbox', 'data-select': id, 'aria-label': 'Select row ' + id });
     const on = pick.checked = sel.has(id);
     return h('tr', { 'data-pk-context': id, 'data-selected': on, 'data-clickable': el.clickable, ...mark(row), 'aria-current': el.currentRow && el.currentRow === id ? 'true' : null },
         ...(el.selectable ? [h('td', { 'data-check': true }, pick)] : []),
-        ...el.list('columns').map(c => { if (c.type == 'media') return el.$mm?.cell(c, row, h) ?? h('td'); const name = `cell-${id}-${c.key}`, s = el.querySelector(`:scope > [slot="${CSS.escape(name)}"]`); return h('td', { 'data-key': c.key, 'data-label': c.title ? null : c.label ?? c.key, 'data-title': c.title, 'data-align': al(c), 'data-hide-phone': c.hidePhone, 'data-shed': c.shed, 'data-nowrap': c.noWrap, 'data-pin': c.pin, 'data-empty': s && (s.assignedElements?.({ flatten: true }) ?? [s]).every(x => !x.childElementCount && !x.textContent.trim()) }, s ? h('slot', { name }) : String(row[c.key] ?? '')); }));
+        ...el.list('columns').map(c => { if (c.type == 'media') return el.$mm?.cell(c, row, h) ?? h('td'); const name = 'cell-' + id + '-' + c.key, s = el.querySelector(`:scope > [slot="${CSS.escape(name)}"]`); return h('td', { 'data-key': c.key, 'data-label': c.title ? null : c.label ?? c.key, 'data-title': c.title, 'data-align': al(c), 'data-hide-phone': c.hidePhone, 'data-shed': c.shed, 'data-nowrap': c.noWrap, 'data-empty': s && (s.assignedElements?.({ flatten: true }) ?? [s]).every(x => !x.childElementCount && !x.textContent.trim()) }, s ? h('slot', { name }) : String(row[c.key] ?? '')); }));
 }
 
 // The header rows (the titles, and the filter row when filterable) for table.js, which has no room for them in its gzip budget.
@@ -80,8 +77,8 @@ function head(el, k, x, lead, sel, h) {
     const box = h('input', { type: 'checkbox', 'data-select-all': true, 'aria-label': 'Select all rows' });
     box.checked = sel.checked; box.indeterminate = sel.mixed;
     const head = [h('tr', {}, ...(el.selectable ? [h('th', { 'data-check': true }, box)] : []), ...(x ? [x.head(h)] : []),
-        ...k.map(c => h('th', { 'data-key': c.key, 'data-align': al(c), 'data-hide-phone': c.hidePhone, 'data-shed': c.shed, 'data-nowrap': c.noWrap, 'data-pin': c.pin, scope: 'col', 'aria-sort': c.sortable ? (el.sort === c.key ? el.sortDir : 'none') : null }, c.sortable ? h('button', { type: 'button' }, c.label ?? c.key) : (c.label ?? c.key), h('slot', { name: `header-${c.key}` }))))];
-    if (el.filterable) head.push(h('tr', { 'data-filters': true }, ...(lead ? [h('th', { colspan: lead })] : []), ...k.map(c => h('th', { 'data-hide-phone': c.hidePhone, 'data-shed': c.shed }, h('input', { type: 'search', 'data-filter': c.key, 'aria-label': `Filter ${c.label ?? c.key}`, value: el.filters[c.key] ?? '' })))));
+        ...k.map(c => h('th', { 'data-key': c.key, 'data-align': al(c), 'data-hide-phone': c.hidePhone, 'data-shed': c.shed, 'data-nowrap': c.noWrap, scope: 'col', 'aria-sort': c.sortable ? (el.sort === c.key ? el.sortDir : 'none') : null }, c.sortable ? h('button', { type: 'button' }, c.label ?? c.key) : (c.label ?? c.key), h('slot', { name: 'header-' + c.key }))))];
+    if (el.filterable) head.push(h('tr', { 'data-filters': true }, ...(lead ? [h('th', { colspan: lead })] : []), ...k.map(c => h('th', { 'data-hide-phone': c.hidePhone, 'data-shed': c.shed }, h('input', { type: 'search', 'data-filter': c.key, 'aria-label': 'Filter ' + (c.label ?? c.key), value: el.filters[c.key] ?? '' })))));
     return head;
 }
 
