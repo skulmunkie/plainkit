@@ -58,7 +58,7 @@ export function createDialogs({ container, log = createLogger('dialogs'), load }
             d.append(tpl.content.cloneNode(true));
         }
         const inputs = fieldsOf(kind, c).map(f => {
-            if (f.type === 'checkbox') { const box = el('pk-checkbox', { name: String(f.name), label: clipS(f.label ?? f.name, 200), checked: f.value === true || f.value === 'true' }); d.append(box); return { f, input: box, field: {} }; }
+            if (f.type === 'checkbox') { const box = el('pk-checkbox', { name: String(f.name), label: clipS(f.label ?? f.name, 200), textContent: clipS(f.label ?? f.name, 200), checked: f.value === true || f.value === 'true' }); d.append(box); return { f, input: box, field: {} }; }
             const input = el('pk-input', { name: String(f.name), value: String(f.value ?? ''), placeholder: clipS(f.placeholder, 200) });
             if (['email', 'url', 'tel', 'number', 'password', 'date'].includes(f.type)) input.type = f.type;
             const field = el('pk-field', { label: clipS(f.label ?? f.name, 200), help: clipS(f.help, 300), required: !!f.required });

@@ -1038,4 +1038,25 @@ export const appCases = [
         }
         dialogs.destroy();
     }],
+    // #2058: a prompt checkbox field must show its label text, not only name the input for assistive tech.
+    ['dialogs (#2058): a prompt checkbox field shows its label, and clicking the label toggles it', async t => {
+        const { createDialogs } = await dist('js/dialogs.js');
+        const box = t.stage(''), dialogs = createDialogs({ container: box, load: el => t.load(el) });
+        const p = dialogs.open({ heading: 'Options', fields: [{ name: 'agree', label: 'I agree to the terms', type: 'checkbox' }], actions: [{ label: 'Go', value: 'ok' }] });
+        const dlg = await until(() => box.querySelector('pk-dialog'), 'dialog to open');
+        const cb = await until(() => dlg.querySelector('pk-checkbox'), 'checkbox');
+        const lb = await until(() => cb.shadowRoot?.querySelector('[part="label"]'), 'label part');
+        await until(() => lb.getBoundingClientRect().width > 0, 'label to have a width');
+        const r = lb.getBoundingClientRect();
+        t.ok(r.width > 0 && r.height > 0, 'label rect is non-zero');
+        t.eq(cb.textContent.trim(), 'I agree to the terms', 'label text is present');
+        t.eq(cb.shadowRoot.querySelector('input').getAttribute('aria-label'), 'I agree to the terms', 'accessible name');
+        t.ok(!cb.checked, 'starts unchecked');
+        lb.click();
+        await until(() => cb.checked, 'label click to check');
+        t.ok(cb.checked, 'clicking the label toggles it');
+        [...dlg.querySelectorAll('pk-button')].find(b => b.textContent === 'Go').click();
+        await Promise.race([p, wait(2000)]);
+        dialogs.destroy();
+    }],
 ];
