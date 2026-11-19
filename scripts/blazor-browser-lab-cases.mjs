@@ -112,6 +112,15 @@ export const LAB_CASES = [
         ctx.ok(before >= 1, 'history had entries');
         await ctx.noErrors(ctx.openMark, BENIGN);
       } },
+    { name: 'list-row-action-callback', // #2046: RowActions draws the icon column; a press reaches OnRowAction with the key, the id and the typed item (a callback through the bridge)
+      async run(ctx) {
+        await ctx.open('/lab/row-actions');
+        await waitText(ctx, 'Ticket 2');
+        await ctx.waitFor(`window.__deep.q('pk-list-page >>> pk-button').some(b => b.label === 'Edit Ticket 2')`, 'the row action button named with its row title');
+        await ctx.eval(`window.__deep.q('pk-list-page >>> pk-button').find(b => b.label === 'Edit Ticket 2').click()`);
+        await ctx.waitFor(`document.getElementById('lab-row-action')?.textContent.includes('edit:2:Ticket 2')`, 'OnRowAction to report edit:2:Ticket 2');
+        await ctx.noErrors(ctx.openMark, BENIGN);
+      } },
     { name: 'list-row-click-callback',
       async run(ctx) {
         await ctx.open('/lab/tickets');

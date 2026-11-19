@@ -349,6 +349,26 @@
       "doc": "Row links: an address with {id} (and any {field}, URL-encoded), like /orders/{id}. The first cell of each row becomes a real link; a plain click goes through the router."
     },
     {
+      "name": "RowActions",
+      "prop": "rowActions",
+      "type": "IReadOnlyList<PkRowAction>?",
+      "json": true,
+      "doc": "Row actions: an icon column pinned at the inline end, one icon button per action (accessible name: the label plus the row title, so \"Edit Order 1042\"; Hint is the tooltip). More than RowActionsMax actions, or any with a Group, fold into one row menu. An action with Variant \"warn\" asks for confirmation first (Confirm opens it for any action, Confirm = false opts out). A row's own state is its \"_actions\" property, keyed by action key ({ disabled?, hidden?, hint? }), so no callback crosses the wire. Pressing one raises OnRowAction once, after any confirmation. Rows opened with OnRowClick or RowHrefTemplate keep working; the action cell never raises OnRowClick."
+    },
+    {
+      "name": "RowActionsMax",
+      "prop": "rowActionsMax",
+      "type": "int?",
+      "doc": "How many row actions show as buttons before they fold into one menu. Default 3. Needs RowActions."
+    },
+    {
+      "name": "OnRowAction",
+      "event": "pk-action",
+      "type": "EventCallback<PkRowActionArgs<TItem>>",
+      "custom": true,
+      "doc": "A row action was pressed (and confirmed, when it asks): its Key, the row Id and the Item of that row. Not raised for a title-bar action."
+    },
+    {
       "name": "Filters",
       "prop": "filters",
       "type": "IReadOnlyList<PkFilterField>?",
@@ -373,6 +393,7 @@
     "data-pk-ranges": true
   },
   "dataTableModel": true,
+  "rowActionTypes": true,
   "typeparam": "TItem",
   "notes": "PkDataTable<TItem> (generated, dataTableModel) wraps pk-data-table 1:1: Load is a callback property, so the component hands the element a .NET reference (PkCallbackSlot, bridge setCallback) exactly as PkListPage does; cell templates fill the cell-<id>-<key> slots; AddLabel is the element's add-label and OnAdd its pk-add; EmptyContent, BulkContent and ToolbarContent fill the empty, bulk and actions slots; OnSelect, SelectedChanged and OnRowClick come from pk-select and pk-row-click. A selection of 64 rows or more of the loaded page crosses the wire as runs of row indexes (data-pk-ranges)."
 }

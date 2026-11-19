@@ -31,6 +31,7 @@ const ROWS = [
     [['sections-page-slots-actions-tabs'], ['LabSections'], []],
     [['list-url-state-back-restores-the-view'], ['LabUrlState', 'LabTicket'], []],
     [['list-load-search-refresh', 'list-filter-option-labels-from-the-result', 'list-before-list-slot', 'list-abort-on-navigation', 'list-row-click-callback'], ['LabTickets'], []],
+    [['list-row-action-callback'], ['LabRowActions'], []],
     [['table-named-detail-panels'], ['LabDetailPanels'], []],
     [['list-row-href-template'], ['OrdersList', 'OrderRecord'], []],
     [['record-save-success', 'record-save-failure', 'record-delete'], ['LabTicket'], []],
