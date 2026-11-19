@@ -100,22 +100,11 @@ export default Base => class extends Base {
         else if (tip) tip.setAttribute('text', help);
         else { tip = this.tip(help); (control ?? field.lastElementChild).after(tip); loadElements(this.shadowRoot); }
     }
-    // optionsBy (#2011): a select or combobox whose options follow another field, { field, map: { <value of that field>: [{ value, label }] }, default? }. The options are swapped when that value
-    // changes; an answer no longer on the list is replaced by the first option (the empty one with a placeholder) and announced like any commit.
+    // optionsBy (#2011): js/field-options.js, loaded only when a spec declares it (the fields are drawn again once it has).
     dependent(row) {
-        const { spec, kind, control } = row, by = spec.optionsBy;
-        if (!by || !control || !kind.startsWith('combo') && kind !== 'select') return;
-        const options = list(by.map?.[this.$vals[by.field]] ?? by.default), sig = JSON.stringify(options), key = spec.key;
-        if (row.sig === sig) return;
-        row.sig = sig;
-        if (kind === 'select') control.options = selectOptions({ ...spec, options }); else control.replaceChildren(...this.opts(this.ownerDocument, options));
-        let v = this.$vals[key];
-        if (!options.some(o => same(o.value, v))) {
-            v = spec.placeholder ? '' : String(options[0]?.value ?? '');
-            this.own(this.$vals = { ...this.$vals, [key]: v });
-            queueMicrotask(() => this.emit('pk-field-change', { key, value: v, values: this.$vals }));
-        }
-        writeValue(control, kind, v);
+        if (!row.spec.optionsBy || !row.control) return;
+        if (this.$opt) this.$opt.apply(this, row);
+        else this.$optLoad ??= import('../../js/field-options.js').then(m => { this.$opt = m; if (this.isConnected) this.reconcile(); }, e => this.log.error('field-options failed', e));
     }
     /** Draws the fields again: call it after changing the visible(spec, values) callback property, which nothing watches. */
     refresh() { this.reconcile(); }
