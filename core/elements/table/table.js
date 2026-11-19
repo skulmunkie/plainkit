@@ -24,7 +24,7 @@ export default Base => class extends Base {
     ids() { return rowIds(this.view, this.rowKey); }
     // Selection scope (#801): `selectScope` is 'all' once "Select all <total>" was chosen. The ids stay the loaded page (never 10k ids): the host expands
     // the scope itself. Any change of the ids, and a selection the host empties, leave it. A manual table keeps the ids of other pages (rows are replaced per page).
-    get wide() { return this.selectScope === 'all' && this.selected.length > 0; }
+    get wide() { return this.selectScope == 'all' && this.selected.length > 0; }
     chosen(ids = this.ids()) { return this.wide ? new Set(ids) : idSet(this.selected); }
     pick(ids) { this.selected = ids; this.selectScope = 'page'; this.emit('pk-select', { selected: ids }); }
     sortBy(key, direction) { if (this.emit('pk-sort', { key, direction })) { this.sort = key ?? ''; this.sortDir = direction ?? 'ascending'; } }
@@ -57,7 +57,7 @@ export default Base => class extends Base {
         this.part('toolbar').hidden = !this.slotted('toolbar').length; this.part('footer').toggleAttribute('data-bar', this.slotted('footer').length > 0);
         tb.hidden = own;
         if (own) { this.part('bulk').hidden = this.part('empty').hidden = true; return; }
-        if (this.selectScope === 'all' && !this.selected.length) this.selectScope = 'page';
+        if (!this.selected.length) this.selectScope = 'page';
         const k = this.list('columns'), r = V.view(this), ids = rowIds(r, this.rowKey), s =this.chosen(ids), sel = boxState(ids.filter(i => s.has(i)), r.length);
         if (this.expandable || this.clickable || this.rowHrefTemplate) this.lz('$m', () => import('../../js/table-expand.js'));
         if (this.total) this.lz('$s', () => import('../../js/table-scope.js'));
