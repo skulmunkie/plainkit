@@ -95,6 +95,36 @@
       "doc": "Puts the breadcrumb and heading in the toolbar row with the search box, Filters and the actions, one row that wraps on a phone. The page-shell title bar is then not drawn, and the row itself stays pinned while the page scrolls; ActionsOverflow folds the actions into a menu."
     },
     {
+      "name": "NewAction",
+      "map": "param",
+      "configKey": "newAction",
+      "configJson": true,
+      "type": "PkAction?",
+      "doc": "The primary action, drawn first (the toolbar button; the title bar when the toolbar is hidden). Replaces AddLabel and pk-add. Its press raises OnAction with its Key."
+    },
+    {
+      "name": "ToolbarActions",
+      "map": "param",
+      "configKey": "toolbarActions",
+      "configJson": true,
+      "type": "IReadOnlyList<PkAction>?",
+      "doc": "Toolbar buttons after NewAction: one typed item (PkAction) each, a Group makes a menu. A press raises OnAction with the Key; an item with a Href is a link."
+    },
+    {
+      "name": "ActionsCollapse",
+      "map": "param",
+      "configKey": "actionsCollapse",
+      "type": "string?",
+      "doc": "One value for the whole bar: \"always\", \"phone\" (the default), \"tablet\" or \"none\". An item with an Icon folds to the icon alone (its Label stays its name)."
+    },
+    {
+      "name": "OnAction",
+      "event": "pk-action",
+      "type": "EventCallback<PkActionEventArgs>",
+      "custom": true,
+      "doc": "A toolbar action (NewAction or ToolbarActions, an item without a Href) was pressed: Key is its key. A row action raises OnRowAction instead."
+    },
+    {
       "name": "ActionsOverflow",
       "map": "param",
       "configKey": "actionsOverflow",
@@ -256,6 +286,7 @@
       "doc": "Loads the current page again (page, sort, search and filters stay), for example after the host ran an action that changed the rows."
     }
   ],
+  "actionTypes": true,
   "typeparam": "TItem",
   "cells": { "load": "Load", "columns": true }
 }

@@ -306,7 +306,6 @@ export function modelElement(el, mapping, reg) {
             if (p.modifier) { if (!['stopPropagation', 'preventDefault'].includes(p.modifier) || !p.of) throw new Error(`${comp}.${p.name}: modifier must be stopPropagation or preventDefault, with "of" naming the event`); out.modifiers.push({ name: p.name, event: p.of, modifier: p.modifier }); }
             // `configKey`: the parameter is also written into the config JSON under that key (an initial search, filter or page of a list page; needs a cells mapping with columns, which writes the config); `when` and `value` are C# expressions, by default 'is set' and the parameter itself.
             if (p.configKey) {
-                if (!mapping.cells?.columns) throw new Error(`${comp}.${p.name}: configKey needs a cells mapping with columns`);
                 out.configKeys.push({ name: p.name, key: p.configKey, when: p.when ?? `${p.name} is not null`, value: p.value ?? p.name, json: p.configJson === true });
             }
             if (p.prop !== undefined && p.attrExpr) out.attrs.push({ attr: kebab(p.prop), expr: p.attrExpr });
@@ -634,7 +633,7 @@ export function renderComponent(m, mappingName, ns = 'PlainKit.Blazor') {
     const listened = h => (m.listenedNative && h.native && !h.updates.length) || (h.listened && !h.native && !h.updates.length);
     const custom = live.filter(h => !h.native || listened(h));
     const attrs = [];
-    for (const a of m.attrs) if (a.bare) attrs.push(a.attr); else attrs.push(`${a.attr}="${m.cells?.columns && a.attr === 'config' ? '@ConfigWithColumns()' : m.recordModel && a.attr === 'config' ? '@ConfigWithFields()' : a.expr}"`);
+    for (const a of m.attrs) if (a.bare) attrs.push(a.attr); else attrs.push(`${a.attr}="${m.cells?.columns && a.attr === 'config' ? '@ConfigWithColumns()' : m.configKeys.length && !m.cells && a.attr === 'config' ? '@ConfigWithKeys()' : m.recordModel && a.attr === 'config' ? '@ConfigWithFields()' : a.expr}"`);
     // The element itself (PkElementBase.Element), for PkRuntime.ReadFormValuesAsync and any host that needs a JavaScript handle.
     attrs.push('@ref="Element"');
     // `location` (mapping): the parameter (location.param) wins; unset, the path tracked from NavigationManager is sent (see the code block).
@@ -718,7 +717,7 @@ export function renderComponent(m, mappingName, ns = 'PlainKit.Blazor') {
             '        if (e.Selected is null) return; // pk-select also bubbles from menus and trees in the cell slots', '        Selected = e.Selected;', '        SelectScope = e.Scope ?? "page";',
             '        await SelectedChanged.InvokeAsync(Selected);', '        await OnSelect.InvokeAsync(e);', '    }',
             '', '    private Task HandleRowClickAsync(PkRowClickEventArgs e) => _rows.Find(r => r.Id == e.Id) is { } row ? OnRowClick.InvokeAsync(row.Item) : Task.CompletedTask;',
-            '', ...rowActionHandler('_rows'), '', '    private async Task HandleRowExpandAsync(PkRowExpandEventArgs e)', '    {', '        if (e.Id is null) return;', '        Expanded = (Expanded ?? []).Where(x => x != e.Id).Concat(e.Expanded == true ? [e.Id] : []).ToList();', '        await ExpandedChanged.InvokeAsync(Expanded);',
+            '', ...rowActionHandler('_rows', m.params.some(d => d.name === 'OnAction')), '', '    private async Task HandleRowExpandAsync(PkRowExpandEventArgs e)', '    {', '        if (e.Id is null) return;', '        Expanded = (Expanded ?? []).Where(x => x != e.Id).Concat(e.Expanded == true ? [e.Id] : []).ToList();', '        await ExpandedChanged.InvokeAsync(Expanded);',
             '        if (_rows.Find(r => r.Id == e.Id) is { } row) await OnRowExpand.InvokeAsync(new PkTableRowExpandArgs<TItem>(e.Id, row.Item, e.Expanded == true));', '    }',
             '', '    /// <inheritdoc />', '    public void Dispose() => _load.Dispose();');
     }
@@ -779,13 +778,19 @@ export function renderComponent(m, mappingName, ns = 'PlainKit.Blazor') {
         '    private async Task<object?> ShowCellsAsync(IReadOnlyList<TItem> items)', '    {',
         `        if ((${m.cells.slotsOnly ? 'Columns is null' : `Cells is null${m.cells.columns ? ' && Columns is null' : ''}`}${m.params.some(d => d.name === 'DetailTemplate') ? ' && DetailTemplate is null && DetailPanels is null' : ''}${m.params.some(d => d.name === 'RowActions') ? ' && !(RowActions?.Count > 0)' : ''}) || IdOf is null) return null;`,
         '        await InvokeAsync(() => { _cellRows = items.Select(i => (IdOf!(i), i)).ToList(); StateHasChanged(); });',
-        '        return null;', '    }', ...(m.cells && !m.dataTable && m.params.some(d => d.name === 'OnRowAction') ? ['', ...rowActionHandler('_cellRows')] : []));
+        '        return null;', '    }', ...(m.cells && !m.dataTable && m.params.some(d => d.name === 'OnRowAction') ? ['', ...rowActionHandler('_cellRows', m.params.some(d => d.name === 'OnAction'))] : []));
     // Typed columns: a column's Text (and the property fallback, as PkDataTable) fills the row it names, so the rows the callback returns are built through the same PkTableRows as PkDataTable's.
     if (m.cells?.columns && !m.cells.slotsOnly) L.push('', '    private object RowsOf(IReadOnlyList<TItem> items)', '    {', '        if (Columns is null) return items;', '        var rows = new System.Text.Json.Nodes.JsonArray();', '        foreach (var item in items) rows.Add(PkTableRows.Serialize(item, Columns));', '        return rows;', '    }');
     if (m.cells?.columns && !m.cells.slotsOnly) L.push('', '    private string ConfigWithColumns()', '    {',
         `        if (Columns is null${m.configKeys.map(k => ` && !(${k.when})`).join('')}) return PkAttr.JsonText(Config) ?? "{}";`,
         '        var node = System.Text.Json.Nodes.JsonNode.Parse(PkAttr.JsonText(Config) ?? "{}") as System.Text.Json.Nodes.JsonObject ?? new System.Text.Json.Nodes.JsonObject();',
         '        if (Columns is not null) node["columns"] = System.Text.Json.Nodes.JsonNode.Parse(PkAttr.Json(Columns.Select(c => c.ToColumn()))!);',
+        ...m.configKeys.map(k => k.json ? `        if (${k.when}) node[${lit(k.key)}] = System.Text.Json.Nodes.JsonNode.Parse(PkAttr.Json(${k.value})!);` : `        if (${k.when}) node[${lit(k.key)}] = System.Text.Json.JsonSerializer.SerializeToNode(${k.value});`),
+        '        return node.ToJsonString();', '    }');
+    // Typed keys of a page without a cells mapping (#1943): the parameters are written into the config JSON, as for the list page.
+    if (m.configKeys.length && !m.cells) L.push('', '    private string ConfigWithKeys()', '    {',
+        `        if (${m.configKeys.map(k => `!(${k.when})`).join(' && ')}) return PkAttr.JsonText(Config) ?? "{}";`,
+        '        var node = System.Text.Json.Nodes.JsonNode.Parse(PkAttr.JsonText(Config) ?? "{}") as System.Text.Json.Nodes.JsonObject ?? new System.Text.Json.Nodes.JsonObject();',
         ...m.configKeys.map(k => k.json ? `        if (${k.when}) node[${lit(k.key)}] = System.Text.Json.Nodes.JsonNode.Parse(PkAttr.Json(${k.value})!);` : `        if (${k.when}) node[${lit(k.key)}] = System.Text.Json.JsonSerializer.SerializeToNode(${k.value});`),
         '        return node.ToJsonString();', '    }');
     if (m.recordModel) L.push('', '    private TItem? _loaded;', '    private TItem? _draft;', '    private bool _isNew;', '',
@@ -818,8 +823,8 @@ export function renderComponent(m, mappingName, ns = 'PlainKit.Blazor') {
 }
 
 /** The handler of a row action: the typed OnRowAction, from the pk-action a row's button raises (the title bar's pk-action has no id and is not a row action). `rows` is the list of the loaded (Id, Item) pairs. */
-function rowActionHandler(rows) {
-    return ['    private async Task HandleRowActionAsync(PkActionEventArgs e)', '    {', '        if (e.Key is null || e.Id is null) return;', `        var at = ${rows}.FindIndex(r => r.Id == e.Id);`,
+function rowActionHandler(rows, toolbar) {
+    return ['    private async Task HandleRowActionAsync(PkActionEventArgs e)', '    {', ...(toolbar ? ['        if (e.Key is null) return;', '        if (e.Id is null) { await OnAction.InvokeAsync(e); return; }'] : ['        if (e.Key is null || e.Id is null) return;']), `        var at = ${rows}.FindIndex(r => r.Id == e.Id);`,
         '        var item = at >= 0 ? ' + rows + '[at].Item : e.Row is { ValueKind: System.Text.Json.JsonValueKind.Object } row ? System.Text.Json.JsonSerializer.Deserialize<TItem>(row, new System.Text.Json.JsonSerializerOptions(System.Text.Json.JsonSerializerDefaults.Web)) : default;',
         '        if (item is null) return;', '        await OnRowAction.InvokeAsync(new PkRowActionArgs<TItem>(e.Key, e.Id, item));', '    }'];
 }
@@ -1108,6 +1113,15 @@ export function renderRowActionTypes() {
         'public sealed record PkRowActionArgs<TItem>(string Key, string Id, TItem Item);', ''].join('\n');
 }
 
+/** The page action item (#1943): a record of the `shape` entry on a `config` prop of an element's meta.json (core/pages/list-page), nothing hand-written. */
+export function renderActionTypes(shape) {
+    const ignore = '[property: JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)] ';
+    const cs = { string: 'string', boolean: 'bool' };
+    const fields = shape.fields.map(f => `${f.required ? '' : ignore}${cs[f.type] ?? 'string'}${f.required ? '' : '?'} ${pascal(f.name)}${f.required ? '' : ' = null'}`);
+    return ['// Generated by ' + GENERATOR + ' from the shape of the config prop in core/pages/list-page/list-page.meta.json. Do not edit.', 'using System.Text.Json.Serialization;', '', 'namespace PlainKit.Blazor;', '',
+        `/// <summary>${shape.doc}</summary>`, `public sealed record ${shape.name}(${fields.join(', ')});`, ''].join('\n');
+}
+
 // ---------------------------------------------------------------- the whole run
 
 /**
@@ -1119,6 +1133,9 @@ export function generate(api, mappings, handWritten = new Set(), types = new Set
     const byTag = new Map(api.map(e => [e.tag, e]));
     // The records of rowActionTypes are generated (renderRowActionTypes), so a JSON parameter may name them.
     if (mappings['data-table']?.rowActionTypes) types = new Set([...types, 'PkRowAction', 'PkRowActionConfirm']);
+    const actionShape = mappings['list-page']?.actionTypes ? byTag.get('pk-list-page')?.props.find(x => x.shape)?.shape : null;
+    if (mappings['list-page']?.actionTypes && !actionShape) throw new Error('list-page.json asks for actionTypes but no prop of pk-list-page has a shape in its meta.json');
+    if (actionShape) types = new Set([...types, actionShape.name]);
     const reg = { enums: new Map(), events: new Map(), eventNames: new Set(), types };
     const files = new Map();
     const moved = [], genericMoved = [], generated = [], skipped = [], todo = [], notGenerated = [];
@@ -1192,6 +1209,7 @@ export function generate(api, mappings, handWritten = new Set(), types = new Set
     if (mappings['field-group']?.fieldMembers) files.set('PkFieldGroupMembers.cs', renderFieldMembers(mappings['field-group'].fieldMembers, mappings['field-group'].specMembers, mappings['field-group'].fieldFactories));
     if (mappings.table?.columnMembers) files.set('PkTableColumn.cs', renderTableColumn(api, mappings.table));
     if (mappings['data-table']?.rowActionTypes) files.set('PkRowAction.cs', renderRowActionTypes());
+    if (actionShape) files.set('PkAction.cs', renderActionTypes(actionShape));
     if (schema) files.set('PkModuleManifest.cs', renderManifest(schema));
     files.set('PkGeneratedEnums.cs', renderEnums(reg.enums));
     files.set('PkGeneratedEvents.cs', renderEvents(reg.events, reg.eventNames));
