@@ -61,6 +61,7 @@ export default Base => class extends Base {
             if (!seen) { if (row) this.drop(spec.key, row); continue; }
             if (!row) { row = this.build(doc, spec); built = true; }
             else if (row.control && !same(readValue(row.control, row.kind), this.$vals[spec.key] ?? (isChecked(row.kind) ? false : ''))) writeValue(row.control, row.kind, this.$vals[spec.key]);
+            this.dependent(row);
             shown.push(row.field);
         }
         // Moving a node takes focus out of it (a blur that a form would check), so the fields are only appended when their order is not already right.
@@ -98,6 +99,12 @@ export default Base => class extends Base {
         if (!help) tip?.remove();
         else if (tip) tip.setAttribute('text', help);
         else { tip = this.tip(help); (control ?? field.lastElementChild).after(tip); loadElements(this.shadowRoot); }
+    }
+    // optionsBy (#2011): js/field-options.js, loaded only when a spec declares it (the fields are drawn again once it has).
+    dependent(row) {
+        if (!row.spec.optionsBy || !row.control) return;
+        if (this.$opt) this.$opt.apply(this, row);
+        else this.$optLoad ??= import('../../js/field-options.js').then(m => { this.$opt = m; if (this.isConnected) this.reconcile(); }, e => this.log.error('field-options failed', e));
     }
     /** Draws the fields again: call it after changing the visible(spec, values) callback property, which nothing watches. */
     refresh() { this.reconcile(); }
