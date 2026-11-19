@@ -5,6 +5,13 @@ The format follows [Keep a Changelog](https://keepachangelog.com/) and the proje
 
 ## [Unreleased]
 
+## [0.34.1] - 2026-11-19
+
+### Fixed
+
+- A dialog prompt with a checkbox field shows the field label next to the box; before, the label only named the input for assistive technology. (#2058)
+- The PKB001 analyzer in PlainKit.Blazor loads on every supported .NET SDK again: it references Roslyn 3.11 instead of 5.12 (0.33.0 and 0.34.0 failed with CS9057 on SDK 10.0.400, whose compiler is 5.9), and the package check fails when the packed analyzer references a newer Microsoft.CodeAnalysis than its project declares. (#2061)
+
 ## [0.34.0] - 2026-11-19
 
 ### Added
