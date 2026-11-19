@@ -5,6 +5,14 @@ The format follows [Keep a Changelog](https://keepachangelog.com/) and the proje
 
 ## [Unreleased]
 
+## [0.35.0] - 2026-11-19
+
+### Added
+
+- Page actions can be grouped: items with the same `group` in `actions`, `toolbarActions` or a wizard's `footerActions` now draw as one menu button named for the group (a `pk-dropdown`) instead of separate buttons, drawn where the group's first item stands. Choosing an item raises the same `pk-action { key }`; `disabled`, `busy`, `hint` and `variant: "warn"` carry to the menu item. Row menus share the same menu item builder; their behaviour is unchanged. (#1943)
+- `pk-list-page` with `toolbarInHeader` keeps what the title bar gave: the toolbar row stays pinned while the page scrolls (`--pk-list-page-sticky-top` offsets it under an app bar), and `actionsOverflow` (`phone`, `tablet` or `always`, with `overflowLabel`) folds the toolbar actions into one menu at that width, the same setting and shared action items as `pk-page-header`. The menu is a separate chunk loaded only then. Blazor: `PkListPage.ActionsOverflow`. (#1956)
+- A wizard step can be drawn from `pk-field-group` field specs (`specs`) instead of `fields`, so steps whose fields depend on each other work: a new `optionsBy: { field, map }` on a select or combobox spec swaps its options when another field changes (and replaces an answer that is no longer listed), next to `whenExpr` and `requiredExpr`. The answers are collected, validated, marked inline, live-validated and reviewed like any wizard field. In Blazor, `Config` takes the same JSON. (#2011)
+
 ## [0.34.1] - 2026-11-19
 
 ### Fixed

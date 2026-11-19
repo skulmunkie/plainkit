@@ -1,5 +1,5 @@
 {
- "release": "0.34.1",
+ "release": "0.35.0",
  "classes": [
   "btn-ghost",
   "btn-group",
@@ -721,6 +721,7 @@
   "js/field-kinds.js:selectOptions",
   "js/field-kinds.js:valuesFromEntries",
   "js/field-kinds.js:writeValue",
+  "js/field-options.js:apply",
   "js/filter-controls.js:filterControl",
   "js/filter-controls.js:setFilterOptions",
   "js/framework-checks.js:SURFACE_KINDS",
@@ -1001,8 +1002,10 @@
   "js/notify.js:createNotify",
   "js/overlay.js:focusTrigger",
   "js/overlay.js:triggerControl",
+  "js/page-actions-overflow.js:overflowActions",
   "js/page-actions.js:COLLAPSES",
   "js/page-actions.js:actionItems",
+  "js/page-actions.js:menuItem",
   "js/page-actions.js:renderActions",
   "js/page-context.js:bindPageContext",
   "js/page-context.js:createPageContext",
@@ -3774,6 +3777,7 @@
   "pk-list-group:prop:variant:value=plain",
   "pk-list-group:slot:(default)",
   "pk-list-page",
+  "pk-list-page:css:--pk-list-page-sticky-top",
   "pk-list-page:css:--pk-list-page-table-min",
   "pk-list-page:event:pk-action",
   "pk-list-page:event:pk-bulk",
