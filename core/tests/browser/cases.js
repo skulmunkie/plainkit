@@ -389,6 +389,7 @@ import { landingCases } from './cases-landing.js'; cases.push(...landingCases);
 import { appCases } from './cases-app.js'; cases.push(...appCases);
 import { navbarCases } from './cases-navbar.js'; cases.push(...navbarCases);
 import { appFrameCases } from './cases-app-frame.js'; cases.push(...appFrameCases);
+import { pageGutterCases } from './cases-page-gutter.js'; cases.push(...pageGutterCases);
 import { galleryCases, galleryAppCases } from './cases-gallery.js'; cases.push(...galleryCases, ...galleryAppCases);
 import { appShellCases } from './cases-app-shell.js'; cases.push(...appShellCases);
 

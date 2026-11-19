@@ -5,6 +5,8 @@
 /* A scenario fills the viewport: the page under review sits in the frame with no review chrome around it. */
 .rv-scenario .rv-root { padding: 0; }
 .rv-frame { background: var(--color-bg); }
+/* A scenario that shows a page as an app shell holds it (rv-page) gets the shell body's inline gutter, so cards and focus rings are measured where a real page puts them. */
+.rv-page { padding-inline: max(var(--pad-page), env(safe-area-inset-left)) max(var(--pad-page), env(safe-area-inset-right)); }
 /* A scenario that stacks tall pieces (several pk-dock instances, a long list) wraps them in this instead of letting the page itself grow past the
    viewport and scroll: the wrapper is the one that scrolls, so the review still screenshots the viewport and a real page never gets a document-level
    scrollbar just because a demo used more than one example. */
