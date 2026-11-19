@@ -32,6 +32,7 @@ export default {
         const phone = t.viewport.name === 'phone';
         t.ok(t.metric('html', 'scrollWidth') <= t.metric('html', 'clientWidth') + 1, 'the page scrolls sideways');
         t.visible(TABS, 'the docked section tabs');
+        if (phone) t.ok(t.rect('#sp').x >= parseFloat(t.style('#wrap', 'padding-left')) - 0.5 && t.rect('#sp').x > 0, 'the page is inset from the viewport edge by the page gutter (--pad-page)');
         if (t.shot === 'resting') {
             t.visible('#d', 'the Details section'); t.hidden('#o', 'the Orders section');
             if (!phone) { t.visible('#ds', 'the summary card'); t.noOverlap('#d', '#ds', 'the main column and the summary card'); }

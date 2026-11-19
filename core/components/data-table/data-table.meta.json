@@ -63,6 +63,13 @@
       "description": "Where the open filter panel goes: inline (the default; it takes its own row above the table and pushes the rows down) or flyout (it overlays the top of the table from the inline-start edge, 22rem wide, without moving the rows; it is bounded by the table area, scrolls its own body, and Escape closes it and returns focus to the Filters trigger) or flyout-end (the same from the inline-end edge, beside the toolbar actions, which stay on the toolbar row; mirrored in right to left). Sets pk-table-filters placement (inline, start, end)."
     },
     {
+      "name": "filterPanelReflow",
+      "type": "boolean",
+      "default": false,
+      "reflect": true,
+      "description": "With a flyout filterPanel: while the panel is open the table area reserves its width, so the table narrows beside it (its own overflow scrolls) and the pager stays usable; closing restores the full width. Phones keep the overlay. The open flyout always fills the list height (Clear filters pinned at the bottom) and stacks its controls one per row."
+    },
+    {
       "name": "search",
       "type": "string",
       "default": "",
@@ -190,6 +197,20 @@
       "description": "Who follows a row link: router (default, empty), host or none."
     },
     {
+      "name": "rowActions",
+      "type": "json",
+      "default": null,
+      "reflect": false,
+      "description": "Row actions (#2046): an icon action column pinned at the inline end, drawn from the shared action item { key, label, icon?, variant?, disabled?, group?, hint?, confirm? }[] (the shape of the title-bar actions). Each action is an icon-only button whose accessible name is the label plus the row title (the column marked title, else the first text column, else the row id: \"Edit Order 1042\"); hint is its tooltip. A press raises pk-action with { key, id, row } from the table. An action with variant warn asks for confirmation first (a dialog; confirm: true or { heading?, message?, confirmLabel? } asks for any action, {title} in the text is the row title, confirm: false opts out): pk-action fires only when confirmed. More than rowActionsMax visible actions, or any action with a group, fold into one row menu. A row may carry _actions, an object keyed by action key, { disabled?, hidden?, hint? }, so per-row state is plain data (no callback). The column is not sorted, not printed and never raises pk-row-click; rowHref and clickable keep working beside it. A view action may sit beside rowHref when it does something else (a preview), not a copy of the row link. Icon plus tooltip is a documented exception to icon plus text on large screens (the names are kept)."
+    },
+    {
+      "name": "rowActionsMax",
+      "type": "number",
+      "default": 3,
+      "reflect": false,
+      "description": "How many visible row actions stay buttons; more than this (or any grouped action) fold into one row menu."
+    },
+    {
       "name": "currentRow",
       "type": "string",
       "default": "",
@@ -299,6 +320,12 @@
   ],
   "events": [
     {
+      "name": "pk-action",
+      "detail": { "key": "string", "id": "string", "row": "unknown" },
+      "description": "A row action was pressed (and confirmed, when it asks): key is the action's key, id the row id, row the row object. Bubbles, like the page title bar's pk-action { key }, which a listener can tell apart by detail.id.",
+      "detailProps": { "key": "string", "id": "string", "row": "unknown" }
+    },
+    {
       "name": "pk-add",
       "detail": null,
       "description": "The addLabel button was pressed (deprecated)."
@@ -369,7 +396,7 @@
     { "name": "noResults", "description": "Holds the no-results slot while shown." },
     { "name": "state", "description": "Holds the loading/empty/error state while load() is in flight or the result is empty; the table is hidden while this is shown." }
   ],
-  "cssProperties": [{ "name": "--pk-data-table-actions-flex", "description": "The flex of the actions row on a phone (the actions take a row of their own). pk-list-page sets 0 0 0 while it has no actions or toolbar content so that no empty row leaves a gap under the search; set it the same way when your own actions slot is empty.", "default": "1 1 100%" }],
+  "cssProperties": [{ "name": "--pk-data-table-actions-flex", "description": "The flex of the actions row on a phone (the actions take a row of their own). pk-list-page sets 0 0 0 while it has no actions or toolbar content so that no empty row leaves a gap under the search; set it the same way when your own actions slot is empty.", "default": "1 1 100%" }, { "name": "--pk-table-filters-w", "description": "Width of the flyout filter panel (22rem); with filterPanelReflow the table area reserves this width plus a gap while the panel is open.", "default": "22rem" }],
   "methods": [
     { "name": "focus(where?)", "description": "Moves focus from the host. No argument: the search box, or the first row when the search is hidden. \"search\": the search box only (nothing while it is hidden or not drawn yet). \"next\": the row after the focused one, the first when no row has focus. \"previous\", \"first\", \"last\": only while a row has focus (the call does nothing otherwise, so Home and the arrows stay the search box's own). Returns whether focus moved." },
     { "name": "refresh()", "description": "Runs load(query) again for the current query, for example after a bulk action. Returns a promise." },
@@ -377,6 +404,10 @@
   ],
   "a11y": "Every filter field is a labelled real control; the table, search box, bulk bar and pagination keep their own roles, names and announcements ('Select all N rows' is a named button); loading and error states use pk-skeleton and pk-alert's roles.",
   "examples": [
+    {
+      "title": "Row actions (rowActions: an icon column at the inline end, names carry the row title, delete asks first; set load from script, a row's _actions disables or hides an action; listen for pk-action { key, id, row })",
+      "html": "<pk-data-table label=\"Orders\" columns='[{\"key\":\"po\",\"label\":\"PO\",\"title\":true},{\"key\":\"state\",\"label\":\"State\"}]' row-actions='[{\"key\":\"view\",\"label\":\"View\",\"icon\":\"search\"},{\"key\":\"edit\",\"label\":\"Edit\",\"icon\":\"edit\"},{\"key\":\"delete\",\"label\":\"Delete\",\"icon\":\"trash\",\"variant\":\"warn\"}]'></pk-data-table>"
+    },
     {
       "title": "Orders (set load from script: an inline script cannot run under this site's CSP; with none, the empty state shows)",
       "html": "<pk-data-table selectable columns='[{\"key\":\"sku\",\"label\":\"SKU\"},{\"key\":\"name\",\"label\":\"Name\"}]' empty='{\"heading\":\"No orders yet\",\"description\":\"Orders you receive show here.\"}'></pk-data-table>"
@@ -388,6 +419,10 @@
     {
       "title": "Flyout filters from the end (filter-panel=flyout-end: the same, from the inline-end edge beside the toolbar actions; the open panel slides in over the table instead of pushing the rows down; Escape closes it; a sheet on a phone)",
       "html": "<pk-data-table filter-panel=\"flyout-end\" columns='[{\"key\":\"sku\",\"label\":\"SKU\"}]' filters='[{\"key\":\"name\",\"type\":\"text\",\"label\":\"Name\"},{\"key\":\"city\",\"type\":\"text\",\"label\":\"City\"}]'></pk-data-table>"
+    },
+    {
+      "title": "Flyout filters that reflow the table (filter-panel=flyout-end with filter-panel-reflow: the open panel takes its width from the table area instead of covering the right-most columns and the pager; a phone keeps the overlay)",
+      "html": "<pk-data-table filter-panel=\"flyout-end\" filter-panel-reflow columns='[{\"key\":\"sku\",\"label\":\"SKU\"}]' filters='[{\"key\":\"name\",\"type\":\"text\",\"label\":\"Name\"},{\"key\":\"city\",\"type\":\"text\",\"label\":\"City\"}]'></pk-data-table>"
     },
     {
       "title": "Preset search (from a link) and no Select all offer",

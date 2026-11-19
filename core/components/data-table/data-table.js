@@ -1,5 +1,6 @@
 import { showState } from '../../js/page-shell.js';
 import { loadElements } from '../../js/loader.js';
+import { focusRow } from '../../js/table-focus.js';
 import { filterControl, setFilterOptions } from '../../js/filter-controls.js';
 
 // The one query/load/selection machine of a paged list (#801): pk-list-page, the lookup picker and Blazor's PkDataTable all sit on this element.
@@ -32,9 +33,6 @@ export default Base => class extends Base {
         // pk-table's own selection events stop here: the host hears one pk-select with the ids, the scope and the query.
         table.addEventListener('pk-select', e => { e.stopPropagation(); this.selected = e.detail.selected; this.selectScope = 'page'; this.announce(); });
         table.addEventListener('pk-select-all', e => { e.stopPropagation(); if (e.detail.scope === 'all') { this.selectScope = 'all'; this.announce(); } });
-        // A flyout panel is bounded by the table area (its body scrolls, the header and Clear filters stay in view); the area is measured as it opens.
-        this.$z = () => filters.style.setProperty('--pk-table-filters-max', this.part('area').clientHeight + 'px');
-        filters.addEventListener('pk-toggle', e => e.detail.open && (addEventListener('resize', this.$z), this.$z()));
         filters.addEventListener('pk-search', e => go({ search: e.detail.query, page: 1 }, true));
         filters.addEventListener('pk-value-change', e => {
             const key = e.target?.dataset?.key;
@@ -65,7 +63,7 @@ export default Base => class extends Base {
         // Columns alone only redraw drawn rows (#2017); while no row has been drawn yet (loading, empty, error) they load, as every other setting does.
         // A setting that arrives after the first draw (a wrapper sets props after connecting) still decides the initial page size and sort, until the reader changes the query.
         if (SETTINGS.includes(name) && (name !== 'columns' || !this.part('table').rows?.length)) { const s = this.opt('search'); if (!this.$touched) this.$query = null; else if (s !== this.$seed) this.$query = { ...this.query, search: s, page: 1 }; this.buildFilters(); if (!this.$touched) this.seedFilters(); this.$rq ||= (queueMicrotask(() => this.$rq && this.refresh()), 1); }
-        else this.sync();
+        else { this.sync(); this.acts(); }
     }
 
     /** The current query { page, pageSize, sort, sortDir, search, filters }: what load() last received, and what a bulk action for scope 'all' runs against. */
@@ -74,17 +72,7 @@ export default Base => class extends Base {
     // Focus from the host (#885), so a host never reaches into the search box or the rows. focus(): the search box, the first row when the search is hidden; 'search': the search box only;
     // 'next': the row after the focused one (the first when no row has focus); 'previous', 'first', 'last': only while a row has focus, so Home and the arrows stay the
     // search box's own. Returns whether focus moved. (focus({ preventScroll }), the standard call, means focus().)
-    focus(where) {
-        const tbl = this.part('table').shadowRoot, rows = [...(tbl?.querySelectorAll('tbody tr[data-pk-context]') ?? [])], at = rows.indexOf(tbl?.activeElement);
-        const found = this.part('filters').shadowRoot?.querySelector('[part="search"]'), box = found?.offsetWidth ? found : null; // drawn and shown
-        let to;
-        if (where === 'next') to = rows[Math.min(at + 1, rows.length - 1)];
-        else if (where === 'search') to = box;
-        else if (typeof where === 'string') to = at < 0 ? undefined : rows[Math.max({ previous: at - 1, first: 0, last: rows.length - 1 }[where] ?? at, 0)];
-        else to = box ?? rows[0];
-        to?.focus();
-        return !!to;
-    }
+    focus(where) { return focusRow(this, where); }
 
     announce() { this.emit('pk-select', { selected: [...this.selected ?? []], scope: this.selectScope, query: this.query }); }
 
@@ -127,7 +115,7 @@ export default Base => class extends Base {
         pagination.sizes = this.opt('pageSizeOptions') ?? []; pagination.label = this.opt('pagerLabel') || 'Pagination';
         if (this.opt('search') !== this.$seed) filters.value = this.$seed = this.opt('search');
         table.label = this.opt('label'); table.caption = this.opt('caption'); table.toggleAttribute('data-nocaption', !this.opt('caption'));
-        table.columns = this.opt('columns');
+        table.columns = this.rowActions?.length ? [...this.opt('columns'), { key: '_actions', label: 'Actions', pin: 1 }] : this.opt('columns');
         table.clickable = this.clickable || typeof this.rowHref === 'function';
         table.sort = q.sort ?? '';
         table.sortDir = q.sortDir;
@@ -135,6 +123,8 @@ export default Base => class extends Base {
         for (const k of ['rowKey', 'currentRow', 'selectable', 'selectScope', 'rowHrefTemplate', 'navigate', 'selectPageOnly', 'cards', 'striped', 'density', 'maxHeight', 'stickyHeader', 'expandable', 'expander']) table[k] = this[k];
         table.expanded = this.expanded ?? [];
     }
+    // Row actions (#2046): the cells and the press handling are a lazy part, loaded only for a table that has rowActions.
+    acts() { if (this.rowActions?.length || this.$ra) (this.$ra ??= import('../../js/row-actions.js')).then(m => m.default(this)); }
 
     // Zero rows: while a search or filter is active `noResults` (when set), else `empty`; with nothing active a host child in the `empty` slot (`no-results` while searching) replaces the built-in state.
     showEmpty(q) {
@@ -181,6 +171,7 @@ export default Base => class extends Base {
         table.hidden = false;
         table.total = this.selectable ? total : 0;
         table.rows = rows;
+        this.acts();
         const pagination = this.part('pagination');
         pagination.total = total;
         pagination.pageSize = q.pageSize;

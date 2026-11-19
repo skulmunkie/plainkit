@@ -307,7 +307,7 @@ export function modelElement(el, mapping, reg) {
             // `configKey`: the parameter is also written into the config JSON under that key (an initial search, filter or page of a list page; needs a cells mapping with columns, which writes the config); `when` and `value` are C# expressions, by default 'is set' and the parameter itself.
             if (p.configKey) {
                 if (!mapping.cells?.columns) throw new Error(`${comp}.${p.name}: configKey needs a cells mapping with columns`);
-                out.configKeys.push({ name: p.name, key: p.configKey, when: p.when ?? `${p.name} is not null`, value: p.value ?? p.name });
+                out.configKeys.push({ name: p.name, key: p.configKey, when: p.when ?? `${p.name} is not null`, value: p.value ?? p.name, json: p.configJson === true });
             }
             if (p.prop !== undefined && p.attrExpr) out.attrs.push({ attr: kebab(p.prop), expr: p.attrExpr });
         } else if (map === 'dataTable') {
@@ -718,7 +718,7 @@ export function renderComponent(m, mappingName, ns = 'PlainKit.Blazor') {
             '        if (e.Selected is null) return; // pk-select also bubbles from menus and trees in the cell slots', '        Selected = e.Selected;', '        SelectScope = e.Scope ?? "page";',
             '        await SelectedChanged.InvokeAsync(Selected);', '        await OnSelect.InvokeAsync(e);', '    }',
             '', '    private Task HandleRowClickAsync(PkRowClickEventArgs e) => _rows.Find(r => r.Id == e.Id) is { } row ? OnRowClick.InvokeAsync(row.Item) : Task.CompletedTask;',
-            '', '    private async Task HandleRowExpandAsync(PkRowExpandEventArgs e)', '    {', '        if (e.Id is null) return;', '        Expanded = (Expanded ?? []).Where(x => x != e.Id).Concat(e.Expanded == true ? [e.Id] : []).ToList();', '        await ExpandedChanged.InvokeAsync(Expanded);',
+            '', ...rowActionHandler('_rows'), '', '    private async Task HandleRowExpandAsync(PkRowExpandEventArgs e)', '    {', '        if (e.Id is null) return;', '        Expanded = (Expanded ?? []).Where(x => x != e.Id).Concat(e.Expanded == true ? [e.Id] : []).ToList();', '        await ExpandedChanged.InvokeAsync(Expanded);',
             '        if (_rows.Find(r => r.Id == e.Id) is { } row) await OnRowExpand.InvokeAsync(new PkTableRowExpandArgs<TItem>(e.Id, row.Item, e.Expanded == true));', '    }',
             '', '    /// <inheritdoc />', '    public void Dispose() => _load.Dispose();');
     }
@@ -777,16 +777,16 @@ export function renderComponent(m, mappingName, ns = 'PlainKit.Blazor') {
     }
     if (m.cells) L.push('', '    private List<(string Id, TItem Item)> _cellRows = [];', '',
         '    private async Task<object?> ShowCellsAsync(IReadOnlyList<TItem> items)', '    {',
-        `        if ((${m.cells.slotsOnly ? 'Columns is null' : `Cells is null${m.cells.columns ? ' && Columns is null' : ''}`}${m.params.some(d => d.name === 'DetailTemplate') ? ' && DetailTemplate is null && DetailPanels is null' : ''}) || IdOf is null) return null;`,
+        `        if ((${m.cells.slotsOnly ? 'Columns is null' : `Cells is null${m.cells.columns ? ' && Columns is null' : ''}`}${m.params.some(d => d.name === 'DetailTemplate') ? ' && DetailTemplate is null && DetailPanels is null' : ''}${m.params.some(d => d.name === 'RowActions') ? ' && !(RowActions?.Count > 0)' : ''}) || IdOf is null) return null;`,
         '        await InvokeAsync(() => { _cellRows = items.Select(i => (IdOf!(i), i)).ToList(); StateHasChanged(); });',
-        '        return null;', '    }');
+        '        return null;', '    }', ...(m.cells && !m.dataTable && m.params.some(d => d.name === 'OnRowAction') ? ['', ...rowActionHandler('_cellRows')] : []));
     // Typed columns: a column's Text (and the property fallback, as PkDataTable) fills the row it names, so the rows the callback returns are built through the same PkTableRows as PkDataTable's.
     if (m.cells?.columns && !m.cells.slotsOnly) L.push('', '    private object RowsOf(IReadOnlyList<TItem> items)', '    {', '        if (Columns is null) return items;', '        var rows = new System.Text.Json.Nodes.JsonArray();', '        foreach (var item in items) rows.Add(PkTableRows.Serialize(item, Columns));', '        return rows;', '    }');
     if (m.cells?.columns && !m.cells.slotsOnly) L.push('', '    private string ConfigWithColumns()', '    {',
         `        if (Columns is null${m.configKeys.map(k => ` && !(${k.when})`).join('')}) return PkAttr.JsonText(Config) ?? "{}";`,
         '        var node = System.Text.Json.Nodes.JsonNode.Parse(PkAttr.JsonText(Config) ?? "{}") as System.Text.Json.Nodes.JsonObject ?? new System.Text.Json.Nodes.JsonObject();',
         '        if (Columns is not null) node["columns"] = System.Text.Json.Nodes.JsonNode.Parse(PkAttr.Json(Columns.Select(c => c.ToColumn()))!);',
-        ...m.configKeys.map(k => `        if (${k.when}) node[${lit(k.key)}] = System.Text.Json.JsonSerializer.SerializeToNode(${k.value});`),
+        ...m.configKeys.map(k => k.json ? `        if (${k.when}) node[${lit(k.key)}] = System.Text.Json.Nodes.JsonNode.Parse(PkAttr.Json(${k.value})!);` : `        if (${k.when}) node[${lit(k.key)}] = System.Text.Json.JsonSerializer.SerializeToNode(${k.value});`),
         '        return node.ToJsonString();', '    }');
     if (m.recordModel) L.push('', '    private TItem? _loaded;', '    private TItem? _draft;', '    private bool _isNew;', '',
         '    private string ConfigWithFields() => PkFieldSpecs.RecordConfig(PkAttr.JsonText(Config), Fields, _draft ?? _loaded ?? Model, out _isNew, Sections, Sidebar, TitleOf, _loaded ?? Model);', '',
@@ -803,9 +803,10 @@ export function renderComponent(m, mappingName, ns = 'PlainKit.Blazor') {
     for (const x of m.methods) L.push('', doc(x.doc), `    public ${x.returns ? `Task<${x.returns}>` : 'Task'} ${x.name}(${x.args.map(a => `${a.type} ${a.name}`).join(', ')}) => CallAsync${x.returns ? `<${x.returns}>` : ''}(${[lit(x.method), ...x.args.map(a => a.name)].join(', ')});`);
     if (m.field) L.push('', '    /// <inheritdoc />', `    protected override Expression<Func<${m.field.cs}>>? FieldExpression => ${m.field.expr};`);
     if (m.field?.values) L.push('', '    /// <inheritdoc />', `    protected override Expression<Func<IReadOnlyList<string>?>>? ValuesFieldExpression => ${m.field.values};`);
-    if ((custom.length && !m.fieldGroup) || m.dataTable || m.table) {
+    if ((custom.length && !m.fieldGroup) || m.dataTable || m.table || m.params.some(d => d.name === 'OnRowAction')) {
         // Called once by PkElementBase, not on every parameter change: the handlers do not depend on the parameters.
         L.push('', '    /// <inheritdoc />', '    protected override void AddEventHandlers(Dictionary<string, object> handlers)', '    {');
+        if (m.params.some(d => d.name === 'OnRowAction')) L.push('        handlers["onpk-action"] = EventCallback.Factory.Create<PkActionEventArgs>(this, HandleRowActionAsync);');
         if (m.dataTable) L.push('        handlers["onpk-select"] = EventCallback.Factory.Create<PkTableSelectEventArgs>(this, HandleSelectAsync);', '        handlers["onpk-row-click"] = EventCallback.Factory.Create<PkRowClickEventArgs>(this, HandleRowClickAsync);', '        handlers["onpk-row-expand"] = EventCallback.Factory.Create<PkRowExpandEventArgs>(this, HandleRowExpandAsync);');
         if (m.table) for (const [ev, h, t] of [['sort', 'Sort', 'PkSortEventArgs'], ['filter', 'Filter', 'PkFilterEventArgs'], ['select', 'Select', 'PkTableSelectEventArgs'], ['select-all', 'SelectAll', 'PkSelectAllEventArgs'], ['row-click', 'RowClick', 'PkRowClickEventArgs'], ['row-expand', 'RowExpand', 'PkRowExpandEventArgs'], ['cell-edit', 'CellEdit', 'PkCellEditEventArgs']]) L.push(`        handlers["onpk-${ev}"] = EventCallback.Factory.Create<${t}>(this, Handle${h});`);
         for (const h of custom) L.push(`        ${listened(h) ? `if (${[...h.callbacks.map(c => `${c.name}.HasDelegate`), ...(typeof h.listened === 'string' ? [h.listened] : [])].join(' || ')}) ` : ''}handlers[${lit(h.attr)}] = EventCallback.Factory.Create<${h.args}>(this, ${handlerName(h)});`);
@@ -814,6 +815,13 @@ export function renderComponent(m, mappingName, ns = 'PlainKit.Blazor') {
     L.push(...handlerLines(m, live));
     L.push('}');
     return L.join('\n') + '\n';
+}
+
+/** The handler of a row action: the typed OnRowAction, from the pk-action a row's button raises (the title bar's pk-action has no id and is not a row action). `rows` is the list of the loaded (Id, Item) pairs. */
+function rowActionHandler(rows) {
+    return ['    private async Task HandleRowActionAsync(PkActionEventArgs e)', '    {', '        if (e.Key is null || e.Id is null) return;', `        var at = ${rows}.FindIndex(r => r.Id == e.Id);`,
+        '        var item = at >= 0 ? ' + rows + '[at].Item : e.Row is { ValueKind: System.Text.Json.JsonValueKind.Object } row ? System.Text.Json.JsonSerializer.Deserialize<TItem>(row, new System.Text.Json.JsonSerializerOptions(System.Text.Json.JsonSerializerDefaults.Web)) : default;',
+        '        if (item is null) return;', '        await OnRowAction.InvokeAsync(new PkRowActionArgs<TItem>(e.Key, e.Id, item));', '    }'];
 }
 
 /** The [Parameter] properties of a model, with their docs. */
@@ -1088,6 +1096,18 @@ export function renderManifest(schema) {
         ...record('PkManifestFooterLink', defs.footerLink, 'A footer link.'), ...record('PkManifestContribution', defs.contribution, 'A dashboard widget the module offers.')].join('\n');
 }
 
+/** The records of the row actions surface (#2046): the action item of `rowActions` and the typed args of OnRowAction. Nothing is hand-written. */
+export function renderRowActionTypes() {
+    const ignore = '[property: JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)] ';
+    return ['// Generated by ' + GENERATOR + ' from rowActionTypes in blazor/mappings/data-table.json. Do not edit.', 'using System.Text.Json.Serialization;', '', 'namespace PlainKit.Blazor;', '',
+        '/// <summary>The words of a confirmation a <see cref="PkRowAction"/> asks for before it is raised; <c>{title}</c> in the text stands for the row title.</summary>',
+        `public sealed record PkRowActionConfirm(${ignore}string? Heading = null, ${ignore}string? Message = null, ${ignore}string? ConfirmLabel = null);`, '',
+        '/// <summary>One action of the icon column of a <c>PkDataTable</c> or <c>PkListPage</c> (<c>RowActions</c>), the shared action item of the title bar. The own state of a row (disabled, hidden, a hint) is the row property <c>_actions</c>, keyed by <see cref="Key"/>. <see cref="Confirm"/> is true, false or a <see cref="PkRowActionConfirm"/> (a <c>warn</c> action asks by default).</summary>',
+        `public sealed record PkRowAction(string Key, string Label, ${ignore}string? Icon = null, ${ignore}string? Variant = null, ${ignore}bool? Disabled = null, ${ignore}string? Group = null, ${ignore}string? Hint = null, ${ignore}object? Confirm = null);`, '',
+        '/// <summary>A row action was pressed (and confirmed, when it asks).</summary>', '/// <typeparam name="TItem">The type of a row.</typeparam>', '/// <param name="Key">The key of the <see cref="PkRowAction"/>.</param>', '/// <param name="Id">The row id, as <c>IdOf</c> gave it.</param>', '/// <param name="Item">The item of that row.</param>',
+        'public sealed record PkRowActionArgs<TItem>(string Key, string Id, TItem Item);', ''].join('\n');
+}
+
 // ---------------------------------------------------------------- the whole run
 
 /**
@@ -1097,6 +1117,8 @@ export function renderManifest(schema) {
 export function generate(api, mappings, handWritten = new Set(), types = new Set(), handInfo = new Map(), schema = null, pkgs = null, handExtras = new Map()) {
     const options = extraOptions(pkgs), optionOf = new Map(options.flatMap(o => o.tags.map(t => [t, o.name])));
     const byTag = new Map(api.map(e => [e.tag, e]));
+    // The records of rowActionTypes are generated (renderRowActionTypes), so a JSON parameter may name them.
+    if (mappings['data-table']?.rowActionTypes) types = new Set([...types, 'PkRowAction', 'PkRowActionConfirm']);
     const reg = { enums: new Map(), events: new Map(), eventNames: new Set(), types };
     const files = new Map();
     const moved = [], genericMoved = [], generated = [], skipped = [], todo = [], notGenerated = [];
@@ -1169,6 +1191,7 @@ export function generate(api, mappings, handWritten = new Set(), types = new Set
     if (options.length) { files.set('PkExtra.cs', renderExtraEnum(options)); files.set('plainkit.extras.json', renderExtrasJson(options)); }
     if (mappings['field-group']?.fieldMembers) files.set('PkFieldGroupMembers.cs', renderFieldMembers(mappings['field-group'].fieldMembers, mappings['field-group'].specMembers, mappings['field-group'].fieldFactories));
     if (mappings.table?.columnMembers) files.set('PkTableColumn.cs', renderTableColumn(api, mappings.table));
+    if (mappings['data-table']?.rowActionTypes) files.set('PkRowAction.cs', renderRowActionTypes());
     if (schema) files.set('PkModuleManifest.cs', renderManifest(schema));
     files.set('PkGeneratedEnums.cs', renderEnums(reg.enums));
     files.set('PkGeneratedEvents.cs', renderEvents(reg.events, reg.eventNames));

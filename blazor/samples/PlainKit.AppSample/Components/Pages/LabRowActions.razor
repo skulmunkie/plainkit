@@ -1,0 +1,15 @@
+@page "/lab/row-actions"
+
+@* Lab (#2046): row actions on a list. RowActions draws the icon column (names carry the row title), OnRowAction hands on the key, the id and the typed item. *@
+<PkListPage TItem="Ticket" Config="@Config" Columns="_columns" Load="Load" IdOf="t => t.Id" RowActions="_actions" OnRowAction="Acted" />
+<p id="lab-row-action">Last: @_last</p>
+
+@code {
+    private const string Config = """{"heading":"Tickets (row actions)"}""";
+    private static readonly PkTableColumn<Ticket>[] _columns = [new() { Key = "id", Label = "Ticket" }, new() { Key = "title", Label = "Title", Title = true }];
+    private static readonly PkRowAction[] _actions = [new("view", "View", Icon: "search"), new("edit", "Edit", Icon: "edit")];
+    private string _last = "";
+
+    private void Acted(PkRowActionArgs<Ticket> e) => _last = $"{e.Key}:{e.Id}:{e.Item.Title}";
+    private Task<PkListResult<Ticket>> Load(PkListRequest r) => TicketStore.ListAsync(r, false);
+}

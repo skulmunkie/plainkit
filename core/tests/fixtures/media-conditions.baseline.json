@@ -58,6 +58,7 @@
   "(max-width: 640px)"
  ],
  "data-table": [
+  "(min-width: 641px)",
   "(max-width: 640px)"
  ],
  "design-surface": [
