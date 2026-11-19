@@ -16,7 +16,7 @@
       "default": "{}",
       "map": "prop",
       "prop": "config",
-      "note": "Sent as a JSON attribute: { steps, review?, reviewLabel?, submitLabel?, doneHeading?, doneDescription?, label?, submitEarly?, footerActions?, liveValidate? }."
+      "note": "Sent as a JSON attribute: { steps, review?, reviewLabel?, submitLabel?, doneHeading?, doneDescription?, label?, submitEarly?, footerActions?, liveValidate? }. A step takes fields or specs (pk-field-group field specs with optionsBy, whenExpr) for fields that depend on each other."
     },
     {
       "name": "OnAction",

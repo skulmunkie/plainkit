@@ -61,6 +61,7 @@ export default Base => class extends Base {
             if (!seen) { if (row) this.drop(spec.key, row); continue; }
             if (!row) { row = this.build(doc, spec); built = true; }
             else if (row.control && !same(readValue(row.control, row.kind), this.$vals[spec.key] ?? (isChecked(row.kind) ? false : ''))) writeValue(row.control, row.kind, this.$vals[spec.key]);
+            this.dependent(row);
             shown.push(row.field);
         }
         // Moving a node takes focus out of it (a blur that a form would check), so the fields are only appended when their order is not already right.
@@ -98,6 +99,23 @@ export default Base => class extends Base {
         if (!help) tip?.remove();
         else if (tip) tip.setAttribute('text', help);
         else { tip = this.tip(help); (control ?? field.lastElementChild).after(tip); loadElements(this.shadowRoot); }
+    }
+    // optionsBy (#2011): a select or combobox whose options follow another field, { field, map: { <value of that field>: [{ value, label }] }, default? }. The options are swapped when that value
+    // changes; an answer no longer on the list is replaced by the first option (the empty one with a placeholder) and announced like any commit.
+    dependent(row) {
+        const { spec, kind, control } = row, by = spec.optionsBy;
+        if (!by || !control || !kind.startsWith('combo') && kind !== 'select') return;
+        const options = list(by.map?.[this.$vals[by.field]] ?? by.default), sig = JSON.stringify(options), key = spec.key;
+        if (row.sig === sig) return;
+        row.sig = sig;
+        if (kind === 'select') control.options = selectOptions({ ...spec, options }); else control.replaceChildren(...this.opts(this.ownerDocument, options));
+        let v = this.$vals[key];
+        if (!options.some(o => same(o.value, v))) {
+            v = spec.placeholder ? '' : String(options[0]?.value ?? '');
+            this.own(this.$vals = { ...this.$vals, [key]: v });
+            queueMicrotask(() => this.emit('pk-field-change', { key, value: v, values: this.$vals }));
+        }
+        writeValue(control, kind, v);
     }
     /** Draws the fields again: call it after changing the visible(spec, values) callback property, which nothing watches. */
     refresh() { this.reconcile(); }
