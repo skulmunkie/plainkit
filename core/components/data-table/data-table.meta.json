@@ -197,6 +197,20 @@
       "description": "Who follows a row link: router (default, empty), host or none."
     },
     {
+      "name": "rowActions",
+      "type": "json",
+      "default": null,
+      "reflect": false,
+      "description": "Row actions (#2046): an icon action column pinned at the inline end, drawn from the shared action item { key, label, icon?, variant?, disabled?, group?, hint?, confirm? }[] (the shape of the title-bar actions). Each action is an icon-only button whose accessible name is the label plus the row title (the column marked title, else the first text column, else the row id: \"Edit Order 1042\"); hint is its tooltip. A press raises pk-action with { key, id, row } from the table. An action with variant warn asks for confirmation first (a dialog; confirm: true or { heading?, message?, confirmLabel? } asks for any action, {title} in the text is the row title, confirm: false opts out): pk-action fires only when confirmed. More than rowActionsMax visible actions, or any action with a group, fold into one row menu. A row may carry _actions, an object keyed by action key, { disabled?, hidden?, hint? }, so per-row state is plain data (no callback). The column is not sorted, not printed and never raises pk-row-click; rowHref and clickable keep working beside it. A view action may sit beside rowHref when it does something else (a preview), not a copy of the row link. Icon plus tooltip is a documented exception to icon plus text on large screens (the names are kept)."
+    },
+    {
+      "name": "rowActionsMax",
+      "type": "number",
+      "default": 3,
+      "reflect": false,
+      "description": "How many visible row actions stay buttons; more than this (or any grouped action) fold into one row menu."
+    },
+    {
       "name": "currentRow",
       "type": "string",
       "default": "",
@@ -306,6 +320,12 @@
   ],
   "events": [
     {
+      "name": "pk-action",
+      "detail": { "key": "string", "id": "string", "row": "unknown" },
+      "description": "A row action was pressed (and confirmed, when it asks): key is the action's key, id the row id, row the row object. Bubbles, like the page title bar's pk-action { key }, which a listener can tell apart by detail.id.",
+      "detailProps": { "key": "string", "id": "string", "row": "unknown" }
+    },
+    {
       "name": "pk-add",
       "detail": null,
       "description": "The addLabel button was pressed (deprecated)."
@@ -384,6 +404,10 @@
   ],
   "a11y": "Every filter field is a labelled real control; the table, search box, bulk bar and pagination keep their own roles, names and announcements ('Select all N rows' is a named button); loading and error states use pk-skeleton and pk-alert's roles.",
   "examples": [
+    {
+      "title": "Row actions (rowActions: an icon column at the inline end, names carry the row title, delete asks first; set load from script, a row's _actions disables or hides an action; listen for pk-action { key, id, row })",
+      "html": "<pk-data-table label=\"Orders\" columns='[{\"key\":\"po\",\"label\":\"PO\",\"title\":true},{\"key\":\"state\",\"label\":\"State\"}]' row-actions='[{\"key\":\"view\",\"label\":\"View\",\"icon\":\"search\"},{\"key\":\"edit\",\"label\":\"Edit\",\"icon\":\"edit\"},{\"key\":\"delete\",\"label\":\"Delete\",\"icon\":\"trash\",\"variant\":\"warn\"}]'></pk-data-table>"
+    },
     {
       "title": "Orders (set load from script: an inline script cannot run under this site's CSP; with none, the empty state shows)",
       "html": "<pk-data-table selectable columns='[{\"key\":\"sku\",\"label\":\"SKU\"},{\"key\":\"name\",\"label\":\"Name\"}]' empty='{\"heading\":\"No orders yet\",\"description\":\"Orders you receive show here.\"}'></pk-data-table>"
