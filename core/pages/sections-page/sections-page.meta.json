@@ -80,6 +80,10 @@
     {
       "title": "Record with sections and a summary card",
       "html": "<pk-sections-page config='{\"heading\":\"Blue mug\",\"breadcrumb\":[{\"label\":\"Products\",\"href\":\"#\"},{\"label\":\"Blue mug\"}],\"actionsOverflow\":\"phone\",\"sections\":[{\"id\":\"details\",\"label\":\"Details\"},{\"id\":\"orders\",\"label\":\"Orders\",\"count\":3}],\"actions\":[{\"key\":\"edit\",\"label\":\"Edit\",\"variant\":\"primary\"},{\"key\":\"archive\",\"label\":\"Archive\",\"variant\":\"ghost\"}]}'><pk-badge slot=\"badges\" variant=\"ok\">Active</pk-badge><pk-card slot=\"section-details\" heading=\"Details\"><p>Blue mug, 350 ml, ceramic.</p></pk-card><pk-card slot=\"side-details\" heading=\"Status\"><p>Active, 12 on hand.</p></pk-card><pk-card slot=\"section-orders\" heading=\"Orders\"><p>Three open orders.</p></pk-card></pk-sections-page>"
+    },
+    {
+      "title": "Primary action, an actions menu and icons on a phone",
+      "html": "<pk-sections-page config='{\"heading\":\"Order 1042\",\"breadcrumb\":[{\"label\":\"Orders\",\"href\":\"#\"},{\"label\":\"Order 1042\"}],\"newAction\":{\"key\":\"new\",\"label\":\"New order\",\"icon\":\"plus\"},\"actions\":[{\"key\":\"print\",\"label\":\"Print\",\"icon\":\"printer\",\"group\":\"More\"},{\"key\":\"export\",\"label\":\"Export\",\"icon\":\"download\",\"group\":\"More\"}],\"sections\":[{\"id\":\"summary\",\"label\":\"Summary\"},{\"id\":\"lines\",\"label\":\"Lines\",\"count\":4}],\"tabParam\":\"tab\"}'><pk-card slot=\"section-summary\" heading=\"Summary\"><p>Shipped 12 November.</p></pk-card><pk-card slot=\"section-lines\" heading=\"Lines\"><p>Four lines.</p></pk-card></pk-sections-page>"
     }
   ],
   "methods": []
