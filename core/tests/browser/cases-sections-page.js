@@ -79,6 +79,20 @@ export const sectionsPageCases = [
         t.ok(shown(d) && !shown(o), 'one section at a time');
         t.ok(doc.documentElement.scrollWidth <= doc.documentElement.clientWidth + 1, 'the page does not scroll sideways');
     }],
+    ['sections-page (#2010): newAction is the primary action and a group menu sits beside it at 1280px; at 390px the primary action stays reachable (first row of the overflow menu) and the group items are in the menu', async t => {
+        const cfg = { ...CONFIG, actionsOverflow: 'phone', newAction: { key: 'new', label: 'New order', icon: 'plus' }, actions: [{ key: 'edit', label: 'Edit', group: 'More' }, { key: 'archive', label: 'Archive', group: 'More' }] };
+        const wide = await frame(t, 1280, 700, cfg);
+        const btns = [...wide.page.part('header').querySelectorAll('pk-button[slot=actions]')];
+        t.eq(btns[0].textContent.trim(), 'New order', 'the new action is first');
+        t.eq(btns[0].variant, 'primary', 'and primary');
+        t.ok(shown(btns[0]) && shown(wide.page.part('header').querySelector('pk-dropdown[slot=actions]')), 'the primary action and the group menu are both drawn');
+        const phone = await frame(t, 390, 800, cfg);
+        const more = phone.header.shadowRoot.querySelector('[part~=overflow]');
+        await until(() => shown(more), 'the overflow button');
+        const items = [...more.querySelectorAll('pk-menu-item')].map(i => i.textContent.trim());
+        t.ok(items[0] === 'New order' && items.includes('Edit') && items.includes('Archive'), 'the overflow menu lists the primary action first, then the group items: ' + items.join());
+        t.ok(phone.doc.documentElement.scrollWidth <= phone.doc.documentElement.clientWidth + 1, 'the page does not scroll sideways');
+    }],
     ['sections-page: tab-param writes the chosen section to the query (other parameters and hash kept, no history entry) and opens on the section a link names; a bad value is ignored (#2010)', async t => {
         const make = async () => {
             const el = await t.mount('<pk-sections-page><pk-card id="d" slot="section-details">D</pk-card><pk-card id="o" slot="section-orders">O</pk-card></pk-sections-page>');
