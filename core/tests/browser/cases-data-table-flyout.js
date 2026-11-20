@@ -180,4 +180,21 @@ export const dataTableFlyoutCases = [
             t.ok(Math.abs(m.el.part('table').getBoundingClientRect().width - w0) <= 1, `${placement}: closing restores the full width`);
         }
     }],
+    ['data-table filterPanelReflow: a wide table keeps a usable first column and scrolls inside its own container instead of squeezing a column to a character (#2071)', async t => {
+        const cols = [{ key: 'name', label: 'Item' }, { key: 'date', label: 'Date', noWrap: true }, { key: 'qty', label: 'Quantity', align: 'end', noWrap: true }, { key: 'a', label: 'Net amount', align: 'end', noWrap: true }, { key: 'b', label: 'Tax amount', align: 'end', noWrap: true }, { key: 'c', label: 'Gross amount', align: 'end', noWrap: true }, { key: 'd', label: 'Balance due', align: 'end', noWrap: true }, { key: 'st', label: 'Status', noWrap: true }, { key: 'note', label: 'Reference', noWrap: true }];
+        const row = { id: 1, name: 'INV-2026-0001234567 Quarterly maintenance and support renewal', date: '7 Jan 2026', qty: '1,250', a: '$1,204,500.50', b: '$120,450.05', c: '$1,324,950.55', d: '$1,324,950.55', st: 'Outstanding', note: 'PO-7781' };
+        const box = await t.mount(`<div style="inline-size:1000px"><pk-data-table columns='${JSON.stringify(cols)}' page-size="5" filters='${filters}' filter-panel="flyout" filter-panel-reflow></pk-data-table></div>`);
+        const el = box.firstElementChild;
+        await Promise.all(['pk-table', 'pk-pagination', 'pk-table-filters'].map(n => customElements.whenDefined(n)));
+        el.load = async () => ({ rows: [row, { ...row, id: 2 }], total: 2 });
+        el.refresh();
+        const f = el.part('filters');
+        await until(() => f.children.length > 0, 'the filter controls');
+        await until(() => el.part('table').shadowRoot.querySelector('tbody tr'), 'a row');
+        f.toggle(true); await t.settle(); await wait(400);
+        const sr = el.part('table').shadowRoot, td = sr.querySelector('tbody td'), sc = sr.querySelector('[part=scroll]');
+        const b = td.getBoundingClientRect(); 
+        t.ok(b.width >= 8 * parseFloat(getComputedStyle(document.documentElement).fontSize) - 2, `the first column keeps a usable width (${Math.round(b.width)}px, row ${Math.round(b.height)}px tall)`);
+        t.ok(sc.scrollWidth > sc.clientWidth, `the table scrolls horizontally in its own container (${sc.scrollWidth} > ${sc.clientWidth})`);
+    }],
 ];

@@ -51,6 +51,8 @@ tr[data-skeleton] td::before { content: ""; display: block; block-size: 4.5em; b
 @media (prefers-reduced-motion: reduce) { tr[data-skeleton] td::before { animation: none; } }
 /* Issue 1847: a nowrap column keeps its cell text (a slotted date-time too, white-space is inherited) on one line and sizes to it; the cards layout wraps as before. */
 :host(:not([cards])) td[data-nowrap] { white-space: nowrap; }
+/* A wrapping text cell never shrinks below a readable width: when the siblings (nowrap or fixed columns) leave less room, the table grows past its container and [part=scroll] scrolls sideways instead of squeezing the column to a word or a character (issue 2071). */
+@media (--above-phone) { :host(:not([cards])) td:not([data-nowrap], [data-align=end], [data-media]) { min-inline-size: 8rem; } }
 @media (--phone) {
     th button { display: inline-flex; align-items: center; min-block-size: var(--touch-target); min-inline-size: var(--touch-target); }
     /* A row-select checkbox is itself the touch target (the cell click toggles it too, table.js). */
