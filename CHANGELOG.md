@@ -5,6 +5,17 @@ The format follows [Keep a Changelog](https://keepachangelog.com/) and the proje
 
 ## [Unreleased]
 
+## [0.35.1] - 2026-11-20
+
+### Added
+
+- Blazor gets the typed page actions: the generated `PkAction` record, `NewAction`, `ToolbarActions` and `ActionsCollapse` on `PkListPage`, `Actions`, `NewAction` and `ActionsCollapse` on `PkToolPage`, `PkSettingsPage` and `PkSectionsPage`, `FooterActions` on `PkWizardPage`, and `OnAction` (by key) on the list page. There is no per-item callback. (#1943)
+- `pk-sections-page` has a gallery example and a browser case for a primary `newAction` beside a group menu, which stays reachable in the overflow menu on a phone. (#2010)
+
+### Fixed
+
+- A wrapping text column in `pk-table` and `pk-data-table` keeps a minimum width of 8rem, so narrowing the table (the open filter panel with `filterPanelReflow`) scrolls it sideways inside its own container instead of squeezing the first column to a word or a character. (#2071)
+
 ## [0.35.0] - 2026-11-19
 
 ### Added
