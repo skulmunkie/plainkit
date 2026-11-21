@@ -1,4 +1,4 @@
-import { endRuns, startRun } from '../../js/page-base.js';
+import { decideStatic, endRuns, startRun } from '../../js/page-base.js';
 import { loadElements } from '../../js/loader.js';
 import { showState } from '../../js/page-shell.js';
 import { fillSanitizedHtml } from '../../js/sanitized-html.js';
@@ -31,7 +31,7 @@ export default Base => class extends Base {
     connected() {
         if (this.$w) { if (this.$loading) this.load(this.$currentId, this.config ?? {}); return; } // left mid-load: its run ended, so load again
         // Static mode (#1829): host-written slot content renders as given; nothing is built or moved. On a phone the element's own Menu button (in its shadow) opens the author's nav as a drawer.
-        if (this.$static || (this.firstElementChild && !this.config?.items?.length)) { this.$static = true; this.menuOn(); return; }
+        if (decideStatic(this, () => this.firstElementChild && !this.config?.items?.length)) { this.menuOn(); return; }
         this.$w = true;
         this.$bodyId = `pkdoc-body-${++seq}`;
         this.buildShell();
