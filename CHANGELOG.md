@@ -5,6 +5,13 @@ The format follows [Keep a Changelog](https://keepachangelog.com/) and the proje
 
 ## [Unreleased]
 
+## [0.37.0] - 2026-11-21
+
+### Added
+
+- `pk-page-shell` takes a `fill` option (Blazor `Fill`): the shell takes the height of its parent and its one content child takes what the header leaves, with no wrapper element or `:has` rule (page types step 6 of #1929). (#1675)
+- Page types converge on shared names without removing any old one: `pk-page-shell` also raises `pk-retry` (next to `pk-page-shell-retry`, the name `pk-states-page` already uses), and the master-detail `load(query, ctx)`, doc `loadItem(id, ctx)` and dashboard `load(key, ctx)` callbacks get an `AbortSignal` as a third argument, aborted by a newer call with the same query, id or key and by leaving the page (as list and record already do). Loaders that ignore it are unchanged. (#1929)
+
 ## [0.36.0] - 2026-11-21
 
 ### Added
