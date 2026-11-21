@@ -18,6 +18,9 @@ export function showState(box, state, opts = {}) {
     if (state !== 'ready') loadElements(box);
 }
 
+/** showState into the element's drawn box (`$s`, made in connected); a factory-supplied title (a child in slot "title") is the page's one heading, so none is drawn (except while loading). */
+export const drawState = (el, state, opts) => showState(el.$s, state, { ...opts, heading: [...(el.children ?? [])].some(c => c.getAttribute?.('slot') === 'title') && state !== 'loading' ? null : opts.heading });
+
 /** The title bar keys of a page factory's config that the page element forwards to its shell (showTitleBar). */
 export const titleBarKeys = c => Object.fromEntries(['badges', 'newAction', 'actionsCollapse', 'actionsOverflow', 'overflowLabel', 'homeHref', 'homeLabel', 'homeIcon'].filter(k => c[k] !== undefined).map(k => [k, c[k]]));
 
