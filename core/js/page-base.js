@@ -31,6 +31,9 @@ export const startRun = (host, key, fn, page) => runsOf(host, page).load(key, fn
 /** End every run of `host` (abort, drop late results). The next startRun makes a fresh lifecycle. */
 export const endRuns = host => { lives.get(host)?.destroy(); lives.delete(host); };
 
+/** The one static-mode rule (STANDARDS "Static slotted pages"): `test()` is asked until it says yes; once static, always static. */
+export const decideStatic = (host, test) => host.$static ||= !!test();
+
 export const pageBase = Base => class extends Base {
     once(fn) { return once(this, fn); }
     startRun(key, fn, page) { return startRun(this, key, fn, page); }
