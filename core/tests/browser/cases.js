@@ -367,6 +367,7 @@ import { markdownEditorCases } from './cases-markdown-editor.js'; cases.push(...
 import { settingsNavCases } from './cases-settings-nav.js'; cases.push(...settingsNavCases);
 import { sectionsPageCases } from './cases-sections-page.js'; cases.push(...sectionsPageCases);
 import { pageActionsCases, pageActionsPhase2Cases } from './cases-page-actions.js'; cases.push(...pageActionsCases, ...pageActionsPhase2Cases);
+import { pageStaleCases } from "./cases-page-stale.js"; cases.push(...pageStaleCases);
 import { fieldGroupCases } from './cases-field-group.js'; cases.push(...fieldGroupCases);
 import { recordFormCases } from './cases-record-form.js'; cases.push(...recordFormCases);
 import { moduleMountCases, zeroGapCases, markdownInBuilderCases } from './cases-modules-mount.js'; cases.push(...moduleMountCases, ...zeroGapCases, ...markdownInBuilderCases);
