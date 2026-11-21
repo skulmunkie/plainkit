@@ -1,3 +1,4 @@
+import { endRuns, startRun } from '../../js/page-base.js';
 import { loadElements } from '../../js/loader.js';
 import { showState } from '../../js/page-shell.js';
 import { fillSanitizedHtml } from '../../js/sanitized-html.js';
@@ -28,7 +29,7 @@ const el = (doc, tag, attrs = {}, ...kids) => {
 
 export default Base => class extends Base {
     connected() {
-        if (this.$w) return;
+        if (this.$w) { if (this.$loading) this.load(this.$currentId, this.config ?? {}); return; } // left mid-load: its run ended, so load again
         // Static mode (#1829): host-written slot content renders as given; nothing is built or moved. On a phone the element's own Menu button (in its shadow) opens the author's nav as a drawer.
         if (this.$static || (this.firstElementChild && !this.config?.items?.length)) { this.$static = true; this.menuOn(); return; }
         this.$w = true;
@@ -38,7 +39,7 @@ export default Base => class extends Base {
         this.$first = true;
         this.$pending = this.paint();
     }
-    disconnected() { clearTimeout(this.$settleTimer); if (this.$static) this.menuSet(false); }
+    disconnected() { endRuns(this); clearTimeout(this.$settleTimer); if (this.$static) this.menuSet(false); }
     // Static mode's drawer (#1829): state lives only on this element's shadow parts (data-menu on the shell, pressed on its own button); the author's nav is shown by this shadow's CSS, never by an attribute written to it.
     menuOn() {
         const btn = this.part('menu'), nav = this.slotted('nav')[0];
@@ -157,6 +158,8 @@ export default Base => class extends Base {
     // Loads and paints `id` (null = the home list). Superseded loads (id changed again before this one resolves) are dropped silently.
     async load(id, cfg = this.config ?? {}) {
         this.$currentId = id;
+        this.$loading = false;
+        if (id == null) endRuns(this); // the home list supersedes an item still on its way
         const wasFirst = this.$first;
         this.$first = false;
         const items = Array.isArray(cfg.items) ? cfg.items : [];
@@ -171,15 +174,17 @@ export default Base => class extends Base {
         showState(this.$body, 'loading', { label: 'Loading' });
         this.syncToc();
         loadElements(this.$body);
+        this.$loading = true;
         try {
-            const item = typeof this.loadItem === 'function' ? await this.loadItem(id) : null;
-            if (id !== this.$currentId) return; // a newer load has already taken over
+            // startRun: a newer load, or leaving the document, means this result never arrives (#1929)
+            const item = typeof this.loadItem === 'function' ? await startRun(this, 'item', () => this.loadItem(id)) : null;
+            this.$loading = false;
             if (!item) { this.paintMissing(id); this.settle(cfg.anchor, wasFirst); return; }
             this.paintItem(item, items, id);
             this.settle(cfg.anchor, wasFirst);
             if (!wasFirst) requestAnimationFrame(() => this.$title.focus({ preventScroll: true }));
         } catch (err) {
-            if (id !== this.$currentId) return;
+            this.$loading = false;
             this.log?.error?.('pk-doc-page: loadItem failed', err);
             showState(this.$body, 'error', { error: err, retry: () => this.load(id, this.config ?? {}) });
             this.syncToc();
