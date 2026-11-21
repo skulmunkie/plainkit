@@ -919,6 +919,21 @@ export const appCases = [
         t.eq(mounts, 101, 'every cycle mounted'); t.eq(destroys, 101, 'every record handle was destroyed exactly once');
     }],
 
+    ['page types (#1929 6b): load callbacks also get an AbortSignal (query, ctx, signal); a loader that takes only the query still works, and a newer call aborts the older', async t => {
+        const { mountPage } = await dist('js/app.js');
+        await t.load(t.stage('<pk-master-detail-page></pk-master-detail-page>'));
+        const box = document.createElement('div'); t.stage('').append(box);
+        const seen = [];
+        const page = await mountPage(box, { type: 'master-detail', config: { list: { columns: [{ key: 'name', label: 'Name' }] }, load: (q, ctx, signal) => { seen.push(signal); return { rows: [{ id: '1', name: 'A' }] }; } } });
+        const el = box.querySelector('pk-master-detail-page'); await t.load(box); await until(() => seen.length >= 1, 'the first load', 200);
+        t.ok(seen[0] instanceof AbortSignal && !seen[0].aborted, 'the loader receives a live AbortSignal as its third argument');
+        const old = await mountPage(document.createElement('div'), { type: 'master-detail', config: { list: { columns: [{ key: 'name', label: 'Name' }] }, load: q => ({ rows: [{ id: '2', name: 'B' }] }) } });
+        t.ok(old, 'a query-only loader mounts as before'); old.destroy();
+        el.load('x'); el.load('x');
+        t.ok(seen.length >= 3 && seen[seen.length - 2].aborted && !seen[seen.length - 1].aborted, 'a newer call with the same query aborts the older signal');
+        page.destroy();
+    }],
+
     ['master-detail page type (#353): a failing list shows its error state, a pending record shows loading, a rejected record shows the danger alert and Retry recovers it', async t => {
         const { mountPage } = await dist('js/app.js');
         await t.load(t.stage('<pk-master-detail-page></pk-master-detail-page>'));

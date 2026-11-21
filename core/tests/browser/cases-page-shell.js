@@ -4,6 +4,13 @@ const MARKUP = state => `<pk-page-shell heading="PO 1042"${state}><pk-button slo
 const header = el => el.part('header');
 
 export const pageShellCases = [
+    ['page-shell retry (#1929 6b): Retry raises pk-retry, the one retry event name across page types, and still raises pk-page-shell-retry', async t => {
+        const host = t.stage(MARKUP(' state="error" state-heading="Could not load"')); await t.load(host); await customElements.whenDefined('pk-page-header'); await t.settle();
+        const el = host.firstElementChild, seen = []; el.addEventListener('pk-retry', () => seen.push('pk-retry')); el.addEventListener('pk-page-shell-retry', () => seen.push('pk-page-shell-retry'));
+        el.part('state').querySelector('pk-button').click();
+        t.eq(seen.includes('pk-retry'), true, 'the new name fires'); t.eq(seen.includes('pk-page-shell-retry'), true, 'the old name still fires');
+    }],
+
     ['page-shell fill: the shell takes the height of its parent and its one child takes what the header leaves, with no wrapper (#1675)', async t => {
         for (const flex of [true, false]) {
             const host = t.stage(`<div id="box">${'<pk-page-shell fill heading="Orders"><div id="kid">Rows</div></pk-page-shell>'}</div>`); host.style.width = '600px';

@@ -8,10 +8,10 @@ export const PAGE_TYPE = {
     states: ['empty'],
     useWhen: 'An overview of tiles, charts and sections a user filters, not a single record or a list to open.',
 };
-import { mountTitled, titleBarKeys } from '../../page-shell.js'; import { loadChunk } from '../module.js';
+import { mountTitled, titleBarKeys } from '../../page-shell.js'; import { withSignal } from '../../page-define.js'; import { loadChunk } from '../module.js';
 // The element and its title; `mk(el)` answers the load callback (it may read el.context). A route with a `surface` composes from modules in a lazy chunk (#494), so other dashboards never pay for it.
 export const build = (host, config, ctx, mk) => {
-    const el = host.ownerDocument.createElement('pk-dashboard-page'); el.config = { heading: config.heading, breadcrumb: config.breadcrumb, ...titleBarKeys(config), actions: config.actions, tabs: config.tabs, ...(config.tab && { tab: config.tab }), widgets: config.widgets, sections: config.sections, filters: config.filters, ...(config.values && { values: config.values }), empty: config.empty }; if (config.load || mk) el.load = mk ? mk(el) : key => config.load(key, ctx);
+    const el = host.ownerDocument.createElement('pk-dashboard-page'); el.config = { heading: config.heading, breadcrumb: config.breadcrumb, ...titleBarKeys(config), actions: config.actions, tabs: config.tabs, ...(config.tab && { tab: config.tab }), widgets: config.widgets, sections: config.sections, filters: config.filters, ...(config.values && { values: config.values }), empty: config.empty }; if (config.load || mk) el.load = mk ? mk(el) : withSignal(ctx, (key, signal) => config.load(key, ctx, signal));
     return mountTitled(host, el, config.heading);
 };
 export default (host, config = {}, ctx) => (config.surface ? loadChunk('dashboard-modules').then(m => m.page(host, config, ctx)) : build(host, config, ctx));
