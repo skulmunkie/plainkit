@@ -221,4 +221,13 @@ export const markdownEditorCases = [
             t.ok(de.scrollWidth <= de.clientWidth, `the page scrolls sideways (scrollWidth ${de.scrollWidth}, clientWidth ${de.clientWidth})`);
         } finally { box.remove(); }
     }],
+    ['markdown (#2012): an image inside link text renders one link around one img, and a script address makes no link', async t => {
+        const host = t.stage(`<div><pk-markdown base-url="docs/" markdown="[![logo](l.png)](page.md) and [![x](a.png)](${JS}alert(1))"></pk-markdown></div>`);
+        const el = host.querySelector('pk-markdown'); await t.load(el);
+        const root = await until(() => el.shadowRoot?.querySelector('a img') && el.shadowRoot, 'the linked image');
+        const links = [...root.querySelectorAll('a')].filter(a => a.getAttribute('href'));
+        t.eq(links.length, 1, 'one link with an address');
+        t.ok(links[0].href.endsWith('docs/page.md') && links[0].querySelector('img').src.endsWith('docs/l.png'), 'both addresses resolved against base-url');
+        t.ok(!root.innerHTML.includes('alert'), 'the script address is not in the DOM');
+    }],
 ];

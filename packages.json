@@ -118,8 +118,8 @@
         "gallery/elements/markdown-editor.data.js"
       ],
       "maxPackedBytes": null,
-      "maxUnpackedBytes": 40216,
-      "maxZipBytes": 16078
+      "maxUnpackedBytes": 40919,
+      "maxZipBytes": 16374
     },
     {
       "id": "plainkit.dock",

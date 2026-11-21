@@ -77,3 +77,17 @@ test('hostile table, image and heading input: no script, no event or style attri
     });
     assert.equal(find(f, 'script').length, 0);
 });
+
+test('image inside link text: [![alt](img)](href) is a link around an img; hostile addresses are dropped', () => {
+    const seen = [];
+    const f = render('see [![logo](a/l.png)](https://x.test/p) end', { resolve: (u, k) => { seen.push([u, k]); return u; } });
+    const a = find(f, 'a');
+    assert.equal(a.length, 1);
+    assert.equal(a[0].attrs.href, 'https://x.test/p');
+    assert.deepEqual(a[0].kids.map(k => k.tag), ['img']);
+    assert.equal(a[0].kids[0].attrs.src, 'a/l.png');
+    assert.deepEqual(seen, [['a/l.png', 'image'], ['https://x.test/p', 'link']]);
+    const g = render('[![x](a.png)](' + JS + 'alert(1))');
+    assert.equal(find(g, 'a').filter(n => n.attrs.href).length, 0);
+    assert.equal(find(g, 'a').length === 0 || find(g, 'a').every(n => !n.attrs.href), true);
+});
