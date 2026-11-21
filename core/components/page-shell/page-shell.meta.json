@@ -27,6 +27,7 @@
       "reflect": true,
       "description": "ready shows the content. Any other value shows that whole-page state in its place and hides the content (it stays in the DOM). The header and its tabs stay."
     },
+    { "name": "fill", "type": "boolean", "default": false, "reflect": true, "description": "Fills the height of its parent: the shell takes the height it is given (a definite-height column or block, such as the app shell's body) and its one content child takes what the header leaves, so the child can scroll its own rows. No wrapper element is needed." },
     { "name": "stateHeading", "type": "string", "default": "", "reflect": true, "description": "The state's heading (the loading label for loading). Empty uses a default per state." },
     { "name": "stateDescription", "type": "string", "default": "", "reflect": true, "description": "The line under the state's heading (the error message for error)." }
   ],

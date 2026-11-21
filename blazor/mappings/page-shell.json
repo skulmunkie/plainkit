@@ -16,6 +16,7 @@
     { "name": "ActionsOverflow", "prop": "actionsOverflow", "type": "PageHeaderActionsOverflow" },
     { "name": "OverflowLabel", "prop": "overflowLabel", "type": "string" },
     { "name": "BadgesContent", "slot": "badges", "type": "RenderFragment?" },
+    { "name": "Fill", "prop": "fill", "type": "bool", "extra": true },
     { "name": "State", "prop": "state", "type": "PageShellState" },
     { "name": "StateHeading", "prop": "stateHeading", "type": "string" },
     { "name": "StateDescription", "prop": "stateDescription", "type": "string" },
