@@ -53,8 +53,16 @@ const finish = (ast, { ids, resolve }) => {
     const fix = (u, kind) => { const r = u.startsWith('#') || !resolve ? u : resolve(u, kind); return typeof r === 'string' && (kind === 'image' ? safeImgUrl(r) : safeMdUrl(r)) ? r : null; };
     const inl = nodes => {
         const out = [];
-        for (const n of nodes) {
-            const prev = out[out.length - 1];
+        for (const [k, n] of nodes.entries()) {
+            const prev = out[out.length - 1], nx = nodes[k + 1], lm = n.t === 'a' && n.c.length === 1 && n.c[0].v?.startsWith('![') && nx?.t === 'text' && /^\]\(([^)\s]*)\)/.exec(nx.v);
+            if (lm) {
+                // [![alt](img)](href): the base parser closed the link at the image's "](", so the image is rebuilt here from the two halves
+                const src = fix(n.href, 'image'), h = fix(lm[1], 'link'), alt = n.c[0].v.slice(2);
+                nx.v = nx.v.slice(lm[0].length);
+                const im = src === null ? { t: 'text', v: alt } : { t: 'img', alt, src };
+                if (h === null) out.push(im); else out.push({ t: 'a', href: h, c: [im] });
+                continue;
+            }
             if (n.t === 'a' && prev?.t === 'text' && prev.v.endsWith('!')) {
                 prev.v = prev.v.slice(0, -1);
                 const alt = plain(n.c), src = safeImgUrl(n.href) ? fix(n.href, 'image') : null;
