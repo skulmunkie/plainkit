@@ -6,6 +6,10 @@
 import { mountTitled } from './page-shell.js';
 import { disposeWith } from './page-lifecycle.js';
 
+// withSignal(ctx, fn): the one load signature (#1929 step 6b): fn(...args, signal). `signal` is aborted by the next call with the same first argument (the query, id or key) and by ctx.signal (leaving the page), so a loader may stop its own work.
+// A loader that ignores the extra argument is unchanged.
+export const withSignal = (ctx, fn) => { const runs = new Map(); return (key, ...a) => { runs.get(key)?.abort(); const ac = new AbortController(); runs.set(key, ac); return fn(key, ...a, ctx?.signal ? AbortSignal.any([ac.signal, ctx.signal]) : ac.signal); }; };
+
 export const definePage = ({ tag, data, wire, title = 'heading', plain }) => (host, config = {}, ctx) => {
     const el = host.ownerDocument.createElement(tag);
     el.config = data ? data(config, ctx) : config;

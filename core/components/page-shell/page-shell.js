@@ -10,7 +10,7 @@ export default Base => class extends Base {
         this.part('content').hidden = on;
         if (this.$k === key) return;
         this.$k = key;
-        renderState(box, this.state, { label: this.stateHeading, heading: this.stateHeading, description: this.stateDescription, retry: () => this.emit('pk-page-shell-retry') });
+        renderState(box, this.state, { label: this.stateHeading, heading: this.stateHeading, description: this.stateDescription, retry: () => { this.emit('pk-page-shell-retry'); this.emit('pk-retry'); } });
         loadElements(box);
     }
 };

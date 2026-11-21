@@ -41,7 +41,8 @@
     { "name": "tabs", "description": "A pk-tabs strip (tabs only) docked at the foot of the header." }
   ],
   "events": [
-    { "name": "pk-page-shell-retry", "detail": null, "description": "Retry was pressed in the error state: load again, then set state back to ready." }
+    { "name": "pk-page-shell-retry", "detail": null, "description": "Retry was pressed in the error state: load again, then set state back to ready." },
+    { "name": "pk-retry", "detail": null, "description": "The same moment under the one retry name every page type uses (pk-states-page raises it too); raised right after pk-page-shell-retry, which stays." }
   ],
   "parts": [
     { "name": "header", "description": "The pk-page-header." },
