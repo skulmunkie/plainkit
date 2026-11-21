@@ -1,14 +1,15 @@
 import { showState, showTitleBar } from '../../js/page-shell.js';
 import { renderState } from '../../js/page-states.js';
 import { loadElements } from '../../js/loader.js';
+import { pageBase } from '../../js/page-base.js';
 import { actionItems, renderActions } from '../../js/page-actions.js';
 
 const CONTROL = { textarea: 'pk-textarea', select: 'pk-select' };
 const text = v => (v == null ? '' : String(v));
 
-export default Base => class extends Base {
+export default Base => class extends pageBase(Base) {
     connected() {
-        if (!this.$w) {
+        if (this.once(() => {
             this.$w = true;
             loadElements(this.shadowRoot);
             this.part('back').addEventListener('click', () => this.go(this.$i - 1));
@@ -34,13 +35,13 @@ export default Base => class extends Base {
             this.part('submit').addEventListener('click', () => this.next(true));
             // A click on a reached step goes back (no validation); moving forward is Next's job, so the stepper's own move is always cancelled.
             this.part('stepper').addEventListener('pk-step-change', e => { e.preventDefault(); if (e.detail.index < this.$i) this.go(e.detail.index); });
-        }
+        })) { /* wired once */ }
         // The one subscription outside this element's tree: a reload or a closed tab with unsent answers asks first.
         this.$leave = e => { if (this.dirty) { e.preventDefault(); e.returnValue = ''; } };
         window.addEventListener('beforeunload', this.$leave);
         this.fetch();
     }
-    disconnected() { this.$gen = (this.$gen ?? 0) + 1; window.removeEventListener('beforeunload', this.$leave); }
+    disconnected() { this.$gen = (this.$gen ?? 0) + 1; window.removeEventListener('beforeunload', this.$leave); super.disconnected(); }
     // Run load() again and restart at the first step (the Blazor bridge sets load after the first draw).
     refresh() { if (this.$w && this.isConnected) this.fetch(); }
     changed(name) { if (name === 'config' && this.$w && this.isConnected) this.fetch(); }
@@ -59,7 +60,7 @@ export default Base => class extends Base {
         this.part('card').hidden = this.part('stepper').hidden = true;
         if (typeof this.load === 'function') {
             showState(box, 'loading', { label: this.config?.label });
-            try { this.$draft = { ...(await this.load()) }; } catch (err) {
+            try { this.$draft = { ...(await this.startRun('draft', () => this.load())) }; } catch (err) {
                 if (gen !== this.$gen) return;
                 this.log.error('wizard load failed', err);
                 showState(box, 'error', { error: err, retry: () => this.fetch() });
