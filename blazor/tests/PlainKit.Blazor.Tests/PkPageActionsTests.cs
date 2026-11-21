@@ -96,4 +96,45 @@ public sealed class PkPageActionsTests : BunitContext, IAsyncLifetime
         var config = ConfigOf(cut.Find("pk-wizard-page").GetAttribute("config")!);
         Assert.Equal("draft", config.GetProperty("footerActions")[0].GetProperty("key").GetString());
     }
+
+    [Fact]
+    public void A_record_page_writes_Actions_NewAction_and_ActionsCollapse_next_to_its_fields_config()
+    {
+        var cut = Render<PkRecordPage<Order>>(p => p.Add(x => x.Actions, Items).Add(x => x.NewAction, new PkAction("dup", "Duplicate")).Add(x => x.ActionsCollapse, "always"));
+        var config = ConfigOf(cut.Find("pk-record-page").GetAttribute("config")!);
+        Assert.Equal("always", config.GetProperty("actionsCollapse").GetString());
+        Assert.Equal("dup", config.GetProperty("newAction").GetProperty("key").GetString());
+        Assert.Equal("csv", config.GetProperty("actions")[1].GetProperty("key").GetString());
+    }
+
+    [Fact]
+    public void A_record_page_without_the_parameters_sends_none_of_the_keys()
+    {
+        var config = ConfigOf(Render<PkRecordPage<Order>>().Find("pk-record-page").GetAttribute("config") ?? "{}");
+        Assert.False(config.TryGetProperty("actions", out _));
+        Assert.False(config.TryGetProperty("newAction", out _));
+    }
+
+    [Fact]
+    public async Task A_record_page_pk_action_raises_OnAction_by_key()
+    {
+        string? key = null;
+        var cut = Render<PkRecordPage<Order>>(p => p.Add(x => x.Actions, Items).Add(x => x.OnAction, e => key = e.Key));
+        await cut.Find("pk-record-page").TriggerEventAsync("onpk-action", new PkActionEventArgs { Key = "export" });
+        Assert.Equal("export", key);
+    }
+
+    [Fact]
+    public async Task A_master_detail_page_sends_the_typed_actions_and_raises_OnAction_by_key()
+    {
+        string? key = null;
+        var cut = Render<PkMasterDetailPage>(p => p.Add(x => x.Config, new { heading = "Inbox" }).Add(x => x.Actions, Items).Add(x => x.NewAction, new PkAction("compose", "Compose")).Add(x => x.ActionsCollapse, "tablet").Add(x => x.OnAction, e => key = e.Key));
+        var config = ConfigOf(cut.Find("pk-master-detail-page").GetAttribute("config")!);
+        Assert.Equal("Inbox", config.GetProperty("heading").GetString());
+        Assert.Equal("tablet", config.GetProperty("actionsCollapse").GetString());
+        Assert.Equal("compose", config.GetProperty("newAction").GetProperty("key").GetString());
+        Assert.Equal(3, config.GetProperty("actions").GetArrayLength());
+        await cut.Find("pk-master-detail-page").TriggerEventAsync("onpk-action", new PkActionEventArgs { Key = "compose" });
+        Assert.Equal("compose", key);
+    }
 }

@@ -633,7 +633,7 @@ export function renderComponent(m, mappingName, ns = 'PlainKit.Blazor') {
     const listened = h => (m.listenedNative && h.native && !h.updates.length) || (h.listened && !h.native && !h.updates.length);
     const custom = live.filter(h => !h.native || listened(h));
     const attrs = [];
-    for (const a of m.attrs) if (a.bare) attrs.push(a.attr); else attrs.push(`${a.attr}="${m.cells?.columns && a.attr === 'config' ? '@ConfigWithColumns()' : m.configKeys.length && !m.cells && a.attr === 'config' ? '@ConfigWithKeys()' : m.recordModel && a.attr === 'config' ? '@ConfigWithFields()' : a.expr}"`);
+    for (const a of m.attrs) if (a.bare) attrs.push(a.attr); else attrs.push(`${a.attr}="${m.cells?.columns && a.attr === 'config' ? '@ConfigWithColumns()' : m.configKeys.length && !m.cells && !m.recordModel && a.attr === 'config' ? '@ConfigWithKeys()' : m.recordModel && a.attr === 'config' ? '@ConfigWithFields()' : a.expr}"`);
     // The element itself (PkElementBase.Element), for PkRuntime.ReadFormValuesAsync and any host that needs a JavaScript handle.
     attrs.push('@ref="Element"');
     // `location` (mapping): the parameter (location.param) wins; unset, the path tracked from NavigationManager is sent (see the code block).
@@ -788,13 +788,13 @@ export function renderComponent(m, mappingName, ns = 'PlainKit.Blazor') {
         ...m.configKeys.map(k => k.json ? `        if (${k.when}) node[${lit(k.key)}] = System.Text.Json.Nodes.JsonNode.Parse(PkAttr.Json(${k.value})!);` : `        if (${k.when}) node[${lit(k.key)}] = System.Text.Json.JsonSerializer.SerializeToNode(${k.value});`),
         '        return node.ToJsonString();', '    }');
     // Typed keys of a page without a cells mapping (#1943): the parameters are written into the config JSON, as for the list page.
-    if (m.configKeys.length && !m.cells) L.push('', '    private string ConfigWithKeys()', '    {',
+    if (m.configKeys.length && !m.cells && !m.recordModel) L.push('', '    private string ConfigWithKeys()', '    {',
         `        if (${m.configKeys.map(k => `!(${k.when})`).join(' && ')}) return PkAttr.JsonText(Config) ?? "{}";`,
         '        var node = System.Text.Json.Nodes.JsonNode.Parse(PkAttr.JsonText(Config) ?? "{}") as System.Text.Json.Nodes.JsonObject ?? new System.Text.Json.Nodes.JsonObject();',
         ...m.configKeys.map(k => k.json ? `        if (${k.when}) node[${lit(k.key)}] = System.Text.Json.Nodes.JsonNode.Parse(PkAttr.Json(${k.value})!);` : `        if (${k.when}) node[${lit(k.key)}] = System.Text.Json.JsonSerializer.SerializeToNode(${k.value});`),
         '        return node.ToJsonString();', '    }');
     if (m.recordModel) L.push('', '    private TItem? _loaded;', '    private TItem? _draft;', '    private bool _isNew;', '',
-        '    private string ConfigWithFields() => PkFieldSpecs.RecordConfig(PkAttr.JsonText(Config), Fields, _draft ?? _loaded ?? Model, out _isNew, Sections, Sidebar, TitleOf, _loaded ?? Model);', '',
+        ...(m.configKeys.length ? ['    private string ConfigWithFields()', '    {', `        var json = PkFieldSpecs.RecordConfig(PkAttr.JsonText(Config), Fields, _draft ?? _loaded ?? Model, out _isNew, Sections, Sidebar, TitleOf, _loaded ?? Model);`, '        var node = System.Text.Json.Nodes.JsonNode.Parse(json) as System.Text.Json.Nodes.JsonObject ?? new System.Text.Json.Nodes.JsonObject();', ...m.configKeys.map(k => k.json ? `        if (${k.when}) node[${lit(k.key)}] = System.Text.Json.Nodes.JsonNode.Parse(PkAttr.Json(${k.value})!);` : `        if (${k.when}) node[${lit(k.key)}] = System.Text.Json.JsonSerializer.SerializeToNode(${k.value});`), '        return node.ToJsonString();', '    }'] : [`    private string ConfigWithFields() => PkFieldSpecs.RecordConfig(PkAttr.JsonText(Config), Fields, _draft ?? _loaded ?? Model, out _isNew, Sections, Sidebar, TitleOf, _loaded ?? Model);`]), '',
         '    private object? KeepLoaded(TItem? item)', '    {', '        _loaded = item;', '        _draft = default;', '        _ = InvokeAsync(StateHasChanged);', '        return item is null ? null : PkFieldSpecs.Values(Fields ?? [], item);', '    }', '',
         '    private async Task<TItem> ApplySavedAsync(IReadOnlyDictionary<string, JsonElement> values)', '    {',
         '        var item = (_isNew ? Model : _loaded) ?? throw new InvalidOperationException("A new record needs the Model parameter (the instance to fill); a loaded one is what Load returned.");',
