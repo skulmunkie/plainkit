@@ -234,6 +234,7 @@
  ],
  "table": [
   "(prefers-reduced-motion: reduce)",
+  "(min-width: 641px)",
   "(max-width: 640px)",
   "print"
  ],
