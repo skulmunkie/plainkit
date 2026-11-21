@@ -1,5 +1,5 @@
 {
- "release": "0.35.1",
+ "release": "0.36.0",
  "classes": [
   "btn-ghost",
   "btn-group",
@@ -1007,10 +1007,16 @@
   "js/page-actions.js:actionItems",
   "js/page-actions.js:menuItem",
   "js/page-actions.js:renderActions",
+  "js/page-base.js:endRuns",
+  "js/page-base.js:once",
+  "js/page-base.js:pageBase",
+  "js/page-base.js:runsOf",
+  "js/page-base.js:startRun",
   "js/page-context.js:bindPageContext",
   "js/page-context.js:createPageContext",
   "js/page-context.js:nestUnder",
   "js/page-context.js:pageContext",
+  "js/page-define.js:definePage",
   "js/page-fields.js:buildField",
   "js/page-fields.js:hintTip",
   "js/page-fields.js:read",
