@@ -1,6 +1,7 @@
 import { showState, showTitleBar } from '../../js/page-shell.js';
 import { renderState } from '../../js/page-states.js';
 import { loadElements } from '../../js/loader.js';
+import { pageBase } from '../../js/page-base.js';
 
 const CONTROLS = 'pk-input,pk-textarea,pk-select,pk-checkbox,pk-switch,pk-range,pk-combobox';
 const text = v => (v == null ? '' : String(v));
@@ -11,9 +12,9 @@ const kindOf = f => f.kind ?? f.type ?? 'text';
 // A field def as pk-field-group reads it; in the older name/type spelling, help is the line under the control (the group's hint).
 const spec = f => ({ ...f, key: key(f), kind: kindOf(f), ...(f.key == null && f.help ? { hint: f.help, help: undefined } : {}), options: f.options?.map(o => (typeof o === 'object' ? o : { value: String(o), label: String(o) })) });
 
-export default Base => class extends Base {
+export default Base => class extends pageBase(Base) {
     connected() {
-        if (!this.$w) {
+        if (this.once(() => {
             this.$w = true;
             loadElements(this.shadowRoot);
             this.part('edit').addEventListener('click', () => { this.mode = 'edit'; });
@@ -26,13 +27,13 @@ export default Base => class extends Base {
             for (const t of ['input', 'change']) for (const part of [main, this.part('side')]) part.addEventListener(t, () => this.track());
             // Each card is its own field group, which evaluates whenExpr, disabledExpr and the rest against its own values: a committed change in one card is handed to the others, so a condition follows an edit made in another card (#1600).
             for (const part of [main, this.part('side')]) part.addEventListener('pk-field-change', e => this.mirror(e));
-        }
+        })) { /* wired once */ }
         // The one subscription outside this element's tree: a reload or a closed tab while edits are unsaved asks first.
         this.$leave = e => { if (this.dirty) { e.preventDefault(); e.returnValue = ''; } };
         window.addEventListener('beforeunload', this.$leave);
         this.fetch();
     }
-    disconnected() { this.$gen = (this.$gen ?? 0) + 1; window.removeEventListener('beforeunload', this.$leave); }
+    disconnected() { this.$gen = (this.$gen ?? 0) + 1; window.removeEventListener('beforeunload', this.$leave); super.disconnected(); }
     changed(name) {
         if (!this.$w || !this.isConnected) return;
         if (name === 'config') { if ((this.config?.id ?? null) !== this.$id) this.fetch(); else { if (this.$id == null && !this.dirty) this.$values = { ...this.config?.values }; this.bar(); if (!this.patch()) this.draw(); } }
@@ -75,7 +76,7 @@ export default Base => class extends Base {
         if (id == null || typeof this.load !== 'function') { this.$values = { ...this.config?.values }; this.done(); return; }
         showState(box, 'loading', { label: this.config?.label });
         try {
-            const rec = await this.load(id);
+            const rec = await this.startRun(id, () => this.load(id));
             if (gen !== this.$gen) return;
             if (rec == null) { showState(box, 'empty', { heading: this.config?.emptyHeading || 'Record not found' }); return; }
             this.$values = { ...rec };
