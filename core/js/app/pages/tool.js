@@ -9,11 +9,10 @@ export const PAGE_TYPE = {
     states: [],
     useWhen: 'A single-purpose utility: fill inputs, run, see a result.',
 };
-import { mountTitled, titleBarKeys } from '../../page-shell.js';
-export default (host, config = {}, ctx) => {
-    const el = host.ownerDocument.createElement('pk-tool-page');
-    el.config = { heading: config.heading, breadcrumb: config.breadcrumb, actions: config.actions, ...titleBarKeys(config), input: config.input, outcome: config.outcome };
-    if (config.runLabel !== undefined) el.runLabel = config.runLabel;
-    if (config.run) el.run = values => config.run(values, ctx);
-    return mountTitled(host, el, config.heading);
-};
+import { titleBarKeys } from '../../page-shell.js';
+import { definePage } from '../../page-define.js';
+export default definePage({
+    tag: 'pk-tool-page',
+    data: c => ({ heading: c.heading, breadcrumb: c.breadcrumb, actions: c.actions, ...titleBarKeys(c), input: c.input, outcome: c.outcome }),
+    wire: (el, c, ctx) => { if (c.runLabel !== undefined) el.runLabel = c.runLabel; if (c.run) el.run = values => c.run(values, ctx); },
+});
