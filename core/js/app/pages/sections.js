@@ -9,16 +9,16 @@ export const PAGE_TYPE = {
     states: [],
     useWhen: 'Showing one record (or any subject) in tabbed sections with a primary action and a menu, where nothing is loaded or saved by the page itself.',
 };
-import { mountTitled, titleBarKeys } from '../../page-shell.js';
-export default (host, config = {}, ctx) => {
-    const el = host.ownerDocument.createElement('pk-sections-page');
-    const { render, section, ...data } = config;
-    el.config = { ...data, ...titleBarKeys(config) };
-    if (section) el.section = section;
-    for (const [id, panel] of Object.entries(typeof render === 'function' ? render(ctx) ?? {} : {})) {
-        const parts = panel instanceof host.ownerDocument.defaultView.Node ? { main: panel } : panel;
-        if (parts.main) { parts.main.slot = 'section-' + id; el.append(parts.main); }
-        if (parts.side) { parts.side.slot = 'side-' + id; el.append(parts.side); }
-    }
-    return mountTitled(host, el, config.heading);
-};
+import { titleBarKeys } from '../../page-shell.js';
+import { definePage } from '../../page-define.js';
+export default definePage({
+    tag: 'pk-sections-page',
+    data: ({ render, section, ...data }) => ({ ...data, ...titleBarKeys(data) }),
+    wire: (el, { render, section }, ctx, host) => {
+        if (section) el.section = section;
+        for (const [id, panel] of Object.entries(typeof render === 'function' ? render(ctx) ?? {} : {})) {
+            const parts = panel instanceof host.ownerDocument.defaultView.Node ? { main: panel } : panel;
+            for (const [k, p] of [['main', 'section-'], ['side', 'side-']]) if (parts[k]) { parts[k].slot = p + id; el.append(parts[k]); }
+        }
+    },
+});
