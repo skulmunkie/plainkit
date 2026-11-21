@@ -5,6 +5,17 @@ The format follows [Keep a Changelog](https://keepachangelog.com/) and the proje
 
 ## [Unreleased]
 
+## [0.36.0] - 2026-11-21
+
+### Added
+
+- `PkRecordPage` and `PkMasterDetailPage` take the typed page actions: `Actions`, `NewAction` (the generated `PkAction`) and `ActionsCollapse`, and raise `OnAction` by key, as the tool, settings and sections pages do. (#1943)
+- pk-markdown shows an image inside link text, `[![alt](img.png)](https://example.com)`, as a linked image; both addresses go through `baseUrl` and `resolveUrl` and are checked again. (#2012)
+
+### Fixed
+
+- A slow run in pk-tool-page, or a slow item load in pk-doc-page, that is answered after a newer run or load, or after the page left the document, no longer draws over the newer result. (#1929)
+
 ## [0.35.1] - 2026-11-20
 
 ### Added
