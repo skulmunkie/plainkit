@@ -620,6 +620,23 @@ public sealed class PkPageCallbackTests : BunitContext, IAsyncLifetime
         Assert.Equal("A-1", json.GetProperty("rows")[0].GetProperty("OrderNo").GetString());
     }
 
+    // Issue 2086: RowHrefOf puts each row's address in its _href (null: no link) and turns the row links on without a template.
+    [Fact]
+    public async Task ListPage_RowHrefOf_sends_each_row_its_address_and_null_for_a_row_without_a_link()
+    {
+        var cut = Render<PkListPage<Order>>(p => p
+            .Add(x => x.Config, "{\"columns\":[{\"key\":\"orderNo\",\"label\":\"No\"}]}")
+            .Add(x => x.RowHrefOf, o => o.Total > 0 ? "/orders/" + o.OrderNo : null)
+            .Add(x => x.Load, r => Task.FromResult(new PkListResult<Order>([new("A-1", 5), new("B-2", 0)], 2))));
+
+        Assert.Equal("/{id}", cut.Find("pk-list-page").GetAttribute("row-href-template"));
+        var host = Assert.IsType<DotNetObjectReference<PkCallbackHost<PkListPageQuery>>>(Assert.Single(_bridge.Invocations["setCallback"]).Arguments[2]);
+        var query = JsonSerializer.Deserialize<PkListPageQuery>("{\"page\":1,\"pageSize\":10}", new JsonSerializerOptions(JsonSerializerDefaults.Web))!;
+        var rows = JsonSerializer.SerializeToElement(await cut.InvokeAsync(() => host.Value.Invoke(query))).GetProperty("rows");
+        Assert.Equal("/orders/A-1", rows[0].GetProperty("_href").GetString());
+        Assert.Equal(JsonValueKind.Null, rows[1].GetProperty("_href").ValueKind);
+    }
+
     // Issue 1683: the filter options of a result go back to the element beside rows and total.
     [Fact]
     public async Task ListPage_load_returns_the_filter_options_of_the_result()

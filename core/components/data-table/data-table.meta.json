@@ -187,7 +187,7 @@
       "type": "string",
       "default": "",
       "reflect": false,
-      "description": "Row links: an address with {id} (and any {field}, URL-encoded), like /orders/{id} or #/orders/{id}. The first cell of each row becomes a real link; a plain click on it or the row goes through the router (pk-navigate). Plain data, so a wrapper can set it (rowHref is a callback)."
+      "description": "Row links: an address with {id} (and any {field}, URL-encoded), like /orders/{id} or #/orders/{id}. The first cell of each row becomes a real link; a plain click on it or the row goes through the router (pk-navigate). A row with its own _href property (a path or hash; null or empty for no link) uses that instead: a row without a link is not a link and not clickable. Plain data, so a wrapper can set it (rowHref is a callback)."
     },
     {
       "name": "navigate",
