@@ -323,6 +323,38 @@ y
         editor.destroy();
     }],
 
+    ['theme editor module: the export gate lists failing pairs first and needs "Export anyway" (Go back copies nothing, a passing theme is not asked, gate:false skips it), and the contrast tab declares forced colors', async t => {
+        await t.load(t.stage('<pk-unit-input></pk-unit-input><pk-colour-input></pk-colour-input><pk-input></pk-input><pk-select></pk-select><pk-button></pk-button><pk-tabs></pk-tabs><pk-table></pk-table><pk-stat></pk-stat><pk-card></pk-card><pk-dialog></pk-dialog><pk-alert></pk-alert>'));
+        const { mountThemeEditor } = await dist('theme-editor');
+        const copied = [];
+        Object.defineProperty(navigator, 'clipboard', { value: { writeText: async text => { copied.push(text); } }, configurable: true });
+        const failing = { shared: { '--color-text': '#101010' }, dark: {}, light: {} };
+        const mount = async options => { const host = t.stage(''); const editor = await mountThemeEditor(host, { preview: false, savedKey: false, target: host, ...options }); return { host, editor }; };
+        const press = (host, label) => [...host.querySelectorAll('pk-button')].find(b => b.textContent === label).click();
+        const answer = async (host, value) => { await until(() => host.querySelector('pk-dialog[open]'), 'the confirm'); [...host.querySelectorAll('pk-dialog pk-button')].find(b => b.dataset.result === value).click(); };
+
+        const ok = await mount({});
+        t.ok(ok.host.querySelector('[data-forced-colors]'), 'the contrast tab declares forced colors');
+        t.eq(ok.host.querySelector('[data-export-gate]').children.length, 0, 'a passing theme lists nothing');
+        press(ok.host, 'Copy CSS'); await until(() => copied.length === 1, 'a passing theme copies at once');
+        t.ok(!ok.host.querySelector('pk-dialog'), 'a passing theme is not asked');
+        ok.editor.destroy();
+
+        const bad = await mount({ initial: failing });
+        t.ok(bad.host.querySelector('[data-export-gate] pk-alert')?.textContent.includes('--color-text'), 'the failing pairs are listed on the export tab');
+        press(bad.host, 'Copy CSS'); await answer(bad.host, '');
+        await new Promise(r => setTimeout(r, 100));
+        t.eq(copied.length, 1, 'Go back copies nothing');
+        press(bad.host, 'Copy CSS'); await answer(bad.host, 'ok');
+        await until(() => copied.length === 2, 'Export anyway copies');
+        bad.editor.destroy();
+
+        const off = await mount({ initial: failing, gate: false });
+        t.eq(off.host.querySelector('[data-export-gate]').children.length, 0, 'gate:false lists nothing');
+        press(off.host, 'Copy CSS'); await until(() => copied.length === 3, 'gate:false copies at once');
+        t.ok(!off.host.querySelector('pk-dialog'), 'gate:false asks nothing');
+        off.editor.destroy();
+    }],
     ['theme editor module: contrast swatches render the chosen colours from an adopted stylesheet (no style attribute with a colour), and destroy removes the sheet', async t => {
         await t.load(t.stage('<pk-unit-input></pk-unit-input><pk-colour-input></pk-colour-input><pk-input></pk-input><pk-select></pk-select><pk-button></pk-button><pk-tabs></pk-tabs><pk-table></pk-table><pk-stat></pk-stat><pk-card></pk-card><pk-toolbar></pk-toolbar><pk-textarea></pk-textarea><pk-badge></pk-badge><pk-alert></pk-alert>'));
         const { mountThemeEditor } = await dist('theme-editor');
@@ -576,7 +608,7 @@ y
         await t.load(t.stage('<pk-unit-input></pk-unit-input><pk-colour-input></pk-colour-input><pk-input></pk-input><pk-select></pk-select><pk-button></pk-button><pk-tabs></pk-tabs><pk-table></pk-table><pk-stat></pk-stat><pk-card></pk-card><pk-toolbar></pk-toolbar><pk-textarea></pk-textarea><pk-badge></pk-badge><pk-alert></pk-alert>')); // the editor's elements load on demand: define them first, so the case also passes on its own (--elements)
         const { mountThemeEditor } = await dist('theme-editor');
         const host = t.stage('');
-        const editor = await mountThemeEditor(host, { target: t.stage('<div data-theme="dark"></div>').firstElementChild, preview: false, savedKey: false, initial: ':root, [data-theme="dark"] { --color-accent: #123456; }' });
+        const editor = await mountThemeEditor(host, { gate: false, target: t.stage('<div data-theme="dark"></div>').firstElementChild, preview: false, savedKey: false, initial: ':root, [data-theme="dark"] { --color-accent: #123456; }' });
         const inputs = await until(() => { const l = host.querySelectorAll('.te-sdk [data-breakpoint-input]'); return l.length === 3 ? [...l] : null; }, 'the three breakpoint inputs');
         await t.load(host); await t.settle();
         const sdk = s => host.querySelector(`.te-sdk [data-sdk="${s}"]`);
@@ -618,7 +650,7 @@ y
         await t.load(t.stage('<pk-unit-input></pk-unit-input><pk-colour-input></pk-colour-input><pk-input></pk-input><pk-select></pk-select><pk-button></pk-button><pk-tabs></pk-tabs><pk-table></pk-table><pk-stat></pk-stat><pk-card></pk-card><pk-toolbar></pk-toolbar><pk-textarea></pk-textarea><pk-badge></pk-badge><pk-alert></pk-alert>'));
         const { mountThemeEditor } = await dist('theme-editor');
         const host = t.stage('');
-        const editor = await mountThemeEditor(host, { target: t.stage('<div data-theme="dark"></div>').firstElementChild, preview: false, savedKey: false, initial: ':root, [data-theme="dark"] { --color-accent: #123456; }' });
+        const editor = await mountThemeEditor(host, { gate: false, target: t.stage('<div data-theme="dark"></div>').firstElementChild, preview: false, savedKey: false, initial: ':root, [data-theme="dark"] { --color-accent: #123456; }' });
         const inputs = await until(() => { const l = host.querySelectorAll('.te-sdk [data-breakpoint-input]'); return l.length === 3 ? [...l] : null; }, 'the breakpoint inputs');
         await t.load(host); await t.settle();
         const type = (el, v) => { el.value = String(v); el.dispatchEvent(new Event('input', { bubbles: true, composed: true })); };
@@ -654,7 +686,7 @@ y
         await t.load(t.stage('<pk-unit-input></pk-unit-input><pk-colour-input></pk-colour-input><pk-input></pk-input><pk-select></pk-select><pk-button></pk-button><pk-tabs></pk-tabs><pk-table></pk-table><pk-stat></pk-stat><pk-card></pk-card><pk-toolbar></pk-toolbar><pk-textarea></pk-textarea><pk-badge></pk-badge><pk-alert></pk-alert>')); // the editor's elements load on demand: define them first, so the case also passes on its own (--elements)
         const { mountThemeEditor } = await dist('theme-editor');
         const host = t.stage('');
-        const editor = await mountThemeEditor(host, { target: t.stage('<div data-theme="dark"></div>').firstElementChild, preview: false, savedKey: false, initial: ':root, [data-theme="dark"] { --color-accent: #123456; }' });
+        const editor = await mountThemeEditor(host, { gate: false, target: t.stage('<div data-theme="dark"></div>').firstElementChild, preview: false, savedKey: false, initial: ':root, [data-theme="dark"] { --color-accent: #123456; }' });
         const inputs = await until(() => { const l = host.querySelectorAll('.te-sdk [data-breakpoint-input]'); return l.length === 3 ? [...l] : null; }, 'the breakpoint inputs');
         await t.load(host); await t.settle();
         const type = (el, v) => { el.value = String(v); el.dispatchEvent(new Event('input', { bubbles: true, composed: true })); };

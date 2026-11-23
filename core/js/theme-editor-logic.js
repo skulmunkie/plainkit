@@ -94,9 +94,18 @@ export function evaluatePairs(pairs, read, min = MIN_CONTRAST) {
 export function auditPairs(overrides, tokens, pairs = AA_PAIRS, min = MIN_CONTRAST) {
     return ['dark', 'light'].flatMap(theme => {
         const read = name => effectiveValue(overrides, tokens, theme, name);
-        return evaluatePairs(pairs, read, min).map(r => ({ theme, fg: r.fg, bg: r.bg, fgValue: read(r.fg), bgValue: read(r.bg), ratio: r.ratio, grade: r.grade, bad: r.bad }));
+        return evaluatePairs(pairs, read, min).map(r => ({ theme, fg: r.fg, bg: r.bg, fgValue: read(r.fg), bgValue: read(r.bg), ratio: r.ratio, grade: r.grade, bad: r.bad, forced: FORCED_COLORS }));
     });
 }
+
+// Forced colors (Windows high contrast): the browser replaces every colour token with a system colour, so a generated ratio is not claimed there. Every audit row declares it ('replaced').
+// The generated theme.css carries no forced-colors block: the SDK's token stylesheet has none either (the elements map their own parts to system colours).
+export const FORCED_COLORS = 'replaced';
+export const FORCED_COLORS_NOTE = 'In forced colors the browser replaces these colours with system colours, so the ratios here are not claimed there.';
+
+// The export gate: the failing pairs (below the minimum, both themes), worst first, as lines for a confirm; an empty list means the export needs no confirm.
+export const gateFailures = (overrides, tokens, pairs = AA_PAIRS, min = MIN_CONTRAST) => auditPairs(overrides, tokens, pairs, min).filter(r => r.bad)
+    .sort((a, b) => a.ratio - b.ratio).map(r => `${r.theme}: ${r.fg} on ${r.bg} is ${r.ratio.toFixed(2)}:1 (needs ${min}:1)`);
 
 // The audit as a sentence for a status line: how many pairs are below the minimum and in which themes.
 export function auditSummary(rows, min = MIN_CONTRAST) {

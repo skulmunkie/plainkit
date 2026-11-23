@@ -20,9 +20,10 @@ export const DIST = '../../dist/';
 
 /**
  * createSdkTab({ doc, win, theme, importTheme, dist }) -> { panel, refresh(), widths(), include(), setWidths(w), destroy() }.
+ * confirmExport(what) resolves true when the export may go on (the editor's contrast gate: failing pairs are listed and need "Export anyway").
  * theme() gives { overrides, css } (the editor's edits and the override block it writes); importTheme(overrides) replaces the edits; dist is the folder URL of the shipped files.
  */
-export function createSdkTab({ doc, win, theme, importTheme, dist = runtimeUrl(DIST, import.meta.url) }) {
+export function createSdkTab({ doc, win, theme, importTheme, confirmExport = async () => true, dist = runtimeUrl(DIST, import.meta.url) }) {
     const state = { report: null, names: [], shipped: {}, busy: false, distPromise: null };
     const listeners = [];
     const on = (el, type, fn) => { listeners.push(listen(el, type, fn)); };
@@ -99,6 +100,7 @@ export function createSdkTab({ doc, win, theme, importTheme, dist = runtimeUrl(D
     }
 
     async function run() {
+        if (!(await confirmExport('Export the Custom SDK'))) return;
         const inc = include(); const t = theme();
         state.busy = true; paint();
         try {
@@ -123,7 +125,7 @@ export function createSdkTab({ doc, win, theme, importTheme, dist = runtimeUrl(D
     on(chkTheme, 'change', paint); on(chkBp, 'change', paint);
     on(inputsBox, 'input', paint); on(inputsBox, 'change', paint);
     on(exportBtn, 'click', () => { if (!exportBtn.hasAttribute('disabled')) run(); });
-    on(cssBtn, 'click', () => { const t = theme(); if (themeCount()) { const r = exportTheme({ version: PK_VERSION, theme: t, shipped: state.shipped }); download(r.css, 'plainkit-theme.css', 'text/css'); msg(status, 'success', 'Downloaded plainkit-theme.css: load it after plainkit.css.'); } });
+    on(cssBtn, 'click', async () => { if (!(await confirmExport('Download the theme CSS'))) return; const t = theme(); if (themeCount()) { const r = exportTheme({ version: PK_VERSION, theme: t, shipped: state.shipped }); download(r.css, 'plainkit-theme.css', 'text/css'); msg(status, 'success', 'Downloaded plainkit-theme.css: load it after plainkit.css.'); } });
     on(importBtn, 'click', () => {
         const r = readSettings(String(importBox.value ?? ''), state.names);
         if (r.error) { log.warn(`settings import refused: ${r.error}`); msg(importMsg, 'error', r.error); return; }
