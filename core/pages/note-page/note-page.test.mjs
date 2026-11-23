@@ -82,3 +82,26 @@ test('missing config fields default to empty strings', () => {
     assert.equal(heading.textContent, '');
     assert.equal(card.children[0].textContent, '');
 });
+
+test('static slotted mode: a child element and an empty config build nothing', () => {
+    const { el, body } = make();
+    el.querySelector = sel => (sel === ':scope > :not([slot])' ? {} : null);
+    el.connected();
+    assert.equal(el.$static, true);
+    assert.equal(body.children.length, 0, 'nothing built (the template slot is already there)');
+    el.config = { heading: 'Late', body: 'x' };
+    el.changed('config');
+    assert.equal(body.children.length, 0, 'config does nothing in static mode');
+});
+
+test('a config, or no child element, keeps the dynamic page', () => {
+    const a = make();
+    a.el.querySelector = () => ({});
+    a.el.config = { heading: 'A' };
+    a.el.connected();
+    assert.equal(a.body.children[0].localName, 'pk-stack');
+    const b = make();
+    b.el.querySelector = () => null;
+    b.el.connected();
+    assert.equal(b.body.children[0].localName, 'pk-stack');
+});
