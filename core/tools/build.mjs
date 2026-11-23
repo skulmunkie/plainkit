@@ -218,7 +218,10 @@ export const PK_VERSION = '${version}';
         // version.js keeps its own unminified write above (versioning.mjs and the Blazor VersionTests read its exact text).
         if (fs.statSync(src).isFile() && f.endsWith('.js') && !/^code-explorer[\\/]/.test(f) && f !== 'version.js') w(`dist/js/${f.replace(/\\/g, '/')}`, minifyJs(distSource(f, read(src)).replace("'../site/gallery/embed.html'", "'../gallery/embed.html'"))); // in dist the gallery sits next to js/, not under site/
     }
+    // The sprite and its name list belong to the plainkit.icons package (packages.json, #111); core/package.json does not pack them.
     w('dist/icons.svg', read(path.join(root, 'icons.svg')));
+    w('dist/icons.json', read(path.join(root, 'icons/icons.json')));
+    w('dist/icons.d.ts', read(path.join(root, 'icons/icons.d.ts')));
     // Optional themes (tokens/themes/<name>.css): each ships as its own dist/themes/<name>.css, in the manifest, linked by the app on purpose; never imported by plainkit.css and not part of page weight.
     const themesDir = path.join(root, 'tokens/themes');
     if (fs.existsSync(themesDir)) for (const f of fs.readdirSync(themesDir).filter(n => n.endsWith('.css')).sort()) w(`dist/themes/${f}`, read(path.join(themesDir, f)));
