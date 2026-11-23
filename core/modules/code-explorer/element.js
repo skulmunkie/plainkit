@@ -16,7 +16,7 @@
 
 import { createProvider, wordSpans, matcherFor } from './providers.js';
 import { buildSegments, tokenize, wordAt, languageOf } from './tokenize.js';
-import { patternReport, largestFilesReport, longestMethodsReport, duplicateBlocksReport } from './reports.js';
+import { patternReport, statsReport, largestFilesReport, longestMethodsReport, duplicateBlocksReport } from './reports.js';
 import { ensureStyles, styleUrls, on } from '../../js/mount-support.js';
 import { loadElements } from '../../js/loader.js';
 import { applyDynamic } from '../../js/dynamic.js';
@@ -68,6 +68,7 @@ export class CodeExplorerElement extends Base {
     #search = null;
     #patterns = [];
     #reports = null;
+    #statsInPane = false; // the statistics view fills the main pane until a file is opened or the reports close
     #reading = false;
     #inspector = null;
     #folders = new Set();
@@ -132,14 +133,15 @@ export class CodeExplorerElement extends Base {
         on($('[data-ce-query]'), 'keydown', e => { if (e.key === 'Enter') runSearch(); });
         on($('[data-ce-search]'), 'click', runSearch);
         on($('[data-ce-reports]'), 'click', () => this.#toggleReports());
-        on($('[data-ce-clear]'), 'click', () => { this.#search = null; this.#reports = null; this.#renderTree(); });
+        on($('[data-ce-clear]'), 'click', () => { this.#search = null; this.#reports = null; this.#statsInPane = false; this.#renderTree(); this.#renderPane(); });
         on($('[data-ce-inspector-close]'), 'click', () => { this.#inspector = null; this.#renderInspector(); this.#showPane('main'); });
         const tree = $('[data-ce-tree]');
         on(tree, 'click', e => this.#onHitClick(e));
         on(tree, 'pk-select', e => this.#onTreeSelect(e));
+        on($('[data-ce-pane]'), 'pk-row-click', e => { const row = e.detail?.row; if (row?.path) this.openFile(row.path, { line: row.line }); });
         on(tree, 'pk-toggle', e => this.#onTreeToggle(e));
         const tabs = $('[data-ce-tabs]');
-        on(tabs, 'pk-tab-change', e => { if (e.detail.fallback) return; this.#active = e.detail.value; this.#focus = null; this.#renderPane(); this.#syncTree(); });
+        on(tabs, 'pk-tab-change', e => { if (e.detail.fallback) return; this.#active = e.detail.value; this.#focus = null; this.#statsInPane = false; this.#renderPane(); this.#syncTree(); });
         on(tabs, 'pk-tab-close', e => this.#closeTab(e.detail.value));
         on(tabs, 'keydown', e => { const tab = e.target.closest?.('pk-tab'); if (tab && e.key === 'Delete') this.#closeTab(tab.value, true); });
         on($('[data-ce-pane]'), 'click', e => this.#onPaneClick(e));
@@ -193,7 +195,7 @@ export class CodeExplorerElement extends Base {
     #renderTree() {
         const host = this.querySelector('[data-ce-tree]');
         this.querySelector('[data-ce-clear]').hidden = !this.#search && !this.#reports;
-        if (this.#reports) { fill(host, this.#reportsHtml()); return; }
+        if (this.#reports) { fill(host, this.#reportsHtml()); this.#upgrade(); return; }
         if (this.#search) { fill(host, this.#searchHtml()); return; }
         const root = buildTree(this.#files, this.#filter);
         this.#nodes = new Map();
@@ -272,7 +274,7 @@ export class CodeExplorerElement extends Base {
     // (providers.js, #needAll). Three built-in reports (largest files, longest methods, duplicate blocks) are always
     // available; the host-defined pattern report is a fourth choice when `patterns` was set.
     async #toggleReports() {
-        if (this.#reports) { this.#reports = null; this.#renderTree(); return; }
+        if (this.#reports) { this.#reports = null; this.#statsInPane = false; this.#renderTree(); this.#renderPane(); return; }
         if (this.#reading) return; // a second click while the files are still being read
         this.#reading = true;
         const button = this.querySelector('[data-ce-reports]');
@@ -298,7 +300,8 @@ export class CodeExplorerElement extends Base {
             if (!files.length && skipped.length) throw new Error(`none of the ${skipped.length} files could be read (${skipped[0].path}: ${skipped[0].reason})`);
             this.#reports = {
                 skipped,
-                kind: this.#patterns.length ? 'pattern' : 'files',
+                kind: 'stats',
+                stats: statsReport(files),
                 pattern: this.#patterns.length ? patternReport(files, this.#patterns) : null,
                 files: largestFilesReport(files),
                 methods: longestMethodsReport(files),
@@ -306,18 +309,22 @@ export class CodeExplorerElement extends Base {
             };
         } catch (error) {
             log.warn('the reports could not be computed', error);
-            this.#reports = { kind: 'files', pattern: null, files: [], methods: [], duplicates: [], skipped, error: `The reports could not be computed: ${error.message}` };
+            this.#reports = { kind: 'files', stats: null, pattern: null, files: [], methods: [], duplicates: [], skipped, error: `The reports could not be computed: ${error.message}` };
         }
         this.#reading = false;
         button.textContent = 'Reports';
         this.#search = null;
+        this.#statsInPane = this.#reports.kind === 'stats' && !this.#reports.error;
         this.#renderTree();
+        this.#renderPane();
+        if (this.#statsInPane) this.#showPane('main');
     }
 
     // The choices shown by the reports picker: only "Patterns" is conditional (needs host-defined patterns).
     #reportKinds() {
         const r = this.#reports;
         return [
+            { key: 'stats', label: 'Statistics' },
             r.pattern && { key: 'pattern', label: 'Patterns' },
             { key: 'files', label: 'Largest files' },
             { key: 'methods', label: 'Longest methods' },
@@ -331,7 +338,15 @@ export class CodeExplorerElement extends Base {
         const kinds = this.#reportKinds();
         const picker = `<pk-cluster gap="xs">${kinds.map(k => `<pk-button size="mini" variant="ghost" toggle${k.key === r.kind ? ' pressed' : ''} data-kind="${k.key}">${k.label}</pk-button>`).join('')}</pk-cluster>`;
         const left = r.skipped?.length ? `<pk-alert kind="warning">${r.skipped.length} ${r.skipped.length === 1 ? 'file' : 'files'} could not be read and ${r.skipped.length === 1 ? 'is' : 'are'} left out: ${esc(r.skipped.slice(0, 3).map(s => s.path).join(', '))}${r.skipped.length > 3 ? ` and ${r.skipped.length - 3} more` : ''} (the logs say why).</pk-alert>` : '';
-        return `<pk-stack gap="sm">${picker}${left}${this.#reportRowsHtml(r.kind, r[r.kind] ?? [])}</pk-stack>`;
+        return `<pk-stack gap="sm">${picker}${left}${r.kind === 'stats' ? '<pk-text tone="muted">The statistics are in the Code pane.</pk-text>' : this.#reportRowsHtml(r.kind, r[r.kind] ?? [])}</pk-stack>`;
+    }
+
+    // The summary: totals, then folders, languages, largest files and most-referenced types as pk-tables. A row with a path opens that file (pk-row-click).
+    #statsHtml(st) {
+        if (!st.files) return '<pk-text tone="muted">No files.</pk-text>';
+        const table = (label, columns, rows, open) => `<pk-stack gap="xs"><pk-text weight="semibold">${label}</pk-text><pk-table label="${label}" density="compact"${open ? " clickable" : ""} columns="${esc(JSON.stringify(columns))}" rows="${esc(JSON.stringify(rows))}"></pk-table></pk-stack>`;
+        const group = (title, label, rows) => table(title, [{ key: 'name', label }, { key: 'files', label: 'Files', align: 'end' }, { key: 'lines', label: 'Lines', align: 'end' }], rows);
+        return `<pk-stack gap="sm"><pk-text data-ce-stats-total>${st.files} files, ${st.lines} lines</pk-text>${group('By folder', 'Folder', st.folders)}${group('By language', 'Type', st.languages)}${table('Largest files', [{ key: 'path', label: 'File' }, { key: 'lines', label: 'Lines', align: 'end' }], st.largest.map(x => ({ ...x, line: 1 })), true)}${st.types.length ? table('Most referenced types', [{ key: 'name', label: 'Type' }, { key: 'refs', label: 'References', align: 'end' }, { key: 'path', label: 'File' }], st.types, true) : ''}</pk-stack>`;
     }
 
     #reportRowsHtml(kind, rows) {
@@ -362,7 +377,7 @@ export class CodeExplorerElement extends Base {
     // A search or report hit in the nav pane opens its file at that line; a report-kind button switches which report is shown.
     #onHitClick(e) {
         const kindBtn = e.target.closest?.('[data-kind]');
-        if (kindBtn) { this.#reports.kind = kindBtn.dataset.kind; this.#renderTree(); return; }
+        if (kindBtn) { this.#reports.kind = kindBtn.dataset.kind; this.#statsInPane = this.#reports.kind === 'stats'; this.#renderTree(); this.#renderPane(); return; }
         const hit = e.target.closest?.('pk-list-group > button[data-path]');
         if (hit) this.openFile(hit.dataset.path, { line: hit.dataset.line ? Number(hit.dataset.line) : undefined });
     }
@@ -400,7 +415,7 @@ export class CodeExplorerElement extends Base {
         }
         const isNew = !this.#open.includes(path);
         if (isNew) this.#open.push(path);
-        this.#active = path; this.#focus = line ?? null; this.#word = '';
+        this.#active = path; this.#focus = line ?? null; this.#word = ''; this.#statsInPane = false;
         if (isNew) this.#renderTabs(); else this.querySelector('[data-ce-tabs]').setAttribute('value', path);
         this.#renderPane(); this.#syncTree(); this.#showPane('main');
         if (this.#inspector?.kind === 'outline') this.#showOutline(false);
@@ -410,6 +425,7 @@ export class CodeExplorerElement extends Base {
     // ---- viewer ----------------------------------------------------------
     #renderPane() {
         const pane = this.querySelector('[data-ce-pane]');
+        if (this.#statsInPane && this.#reports?.stats) { fill(pane, `<pk-container size="full" padding="none">${this.#statsHtml(this.#reports.stats)}</pk-container>`); this.#upgrade(); this.#renderInspector(); return; }
         const doc = this.#docs.get(this.#active);
         if (!doc) { fill(pane, '<pk-empty-state heading="No file open" description="Pick a file from the tree."></pk-empty-state>'); this.#upgrade(); this.#renderInspector(); return; }
         const max = Number(this.getAttribute('max-lines')) || 2000;
