@@ -1,6 +1,6 @@
 // Built-in page type factory, loaded on demand by js/app/module.js (#346): a route pays only for the types it uses.
 // 'list' (#352): <pk-list-page> (filterable, sortable, paginated pk-table). config: { columns, filters, actions, empty, pageSize,
-// load(query)->{rows,total}, rowHref(row), selectable, rowKey, bulkActions, onSelect(detail, ctx), onBulk(detail, ctx) } - load/rowHref are callback properties; rowHref is routed through ctx.navigate, not the element.
+// load(query)->{rows,total}, rowHref(row), rowHrefTemplate (a string, or a function (row) => address | null for no link on that row), selectable, rowKey, bulkActions, onSelect(detail, ctx), onBulk(detail, ctx) } - load/rowHref are callback properties; rowHref is routed through ctx.navigate, not the element.
 // A newer load aborts the older one (load gets the AbortSignal as its third argument; js/page-lifecycle.js, #1022).
 // With selectable, onSelect gets the pk-select detail { selected, scope, query } and each bulkActions entry ({ id, label, variant? }) calls onBulk with { action, selected, scope, query } (return a promise: the list reloads, selection cleared, when it settles).
 // PAGE_TYPE: read at build time by core/tools/audit/data.mjs (design section 3.2); not used at runtime.
@@ -17,8 +17,8 @@ import { createLifecycle, disposeWith } from '../../page-lifecycle.js';
 export default (host, config = {}, ctx) => {
     const el = host.ownerDocument.createElement('pk-list-page'), toast = toaster(config, ctx), life = createLifecycle({ signal: ctx?.signal });
     el.config = { heading: config.heading, breadcrumb: config.breadcrumb, ...titleBarKeys(config), columns: config.columns, filters: config.filters, actions: config.actions, ...(config.toolbarActions ? { toolbarActions: config.toolbarActions } : {}), empty: config.empty, pageSize: config.pageSize, selectable: config.selectable, rowKey: config.rowKey, bulkActions: config.bulkActions };
-    if (config.load) el.load = query => life.load(query, signal => config.load(query, ctx, signal));
-    if (config.rowHrefTemplate) el.rowHrefTemplate = config.rowHrefTemplate; if (config.rowHref) el.rowHref = row => ctx.navigate(config.rowHref(row));
+    const tpl = config.rowHrefTemplate, link = typeof tpl === 'function' ? tpl : null; if (config.load) el.load = query => life.load(query, signal => config.load(query, ctx, signal)).then(r => link && r?.rows ? { ...r, rows: r.rows.map(row => ({ ...row, _href: link(row) ?? null })) } : r);
+    if (tpl) el.rowHrefTemplate = link ? '/{id}' : tpl; if (config.rowHref) el.rowHref = row => ctx.navigate(config.rowHref(row));
     if (config.onSelect) el.addEventListener('pk-select', e => config.onSelect(e.detail, ctx));
     // The bulk action may return a promise; when it settles the selection is cleared and the list reloads, so the result shows.
     if (config.onBulk) el.addEventListener('pk-bulk', async e => { try { await life.run('bulk', () => config.onBulk(e.detail, ctx)); toast('done', e.detail); } catch (err) { toast('bulkFailed', err); throw err; } const table = el.part?.('table'); if (table) { table.selected = []; table.selectScope = 'page'; table.refresh(); } });

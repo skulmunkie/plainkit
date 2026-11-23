@@ -1,5 +1,6 @@
 import { showState, showTitleBar } from '../../js/page-shell.js';
 import { renderState } from '../../js/page-states.js';
+import { endRuns, startRun } from '../../js/page-base.js';
 import { loadElements } from '../../js/loader.js';
 import { buildField, read } from '../../js/page-fields.js';
 
@@ -20,6 +21,8 @@ export default Base => class extends Base {
         custom.addEventListener('slotchange', () => this.showCustom());
         this.showCustom();
     }
+    // Leaving the document ends a run in flight (its result never draws); a page put back mid-run shows no stuck spinner.
+    disconnected() { if (this.$running) { endRuns(this); this.$running = false; renderState(this.part('outcome'), 'ready'); } }
     showCustom() {
         const on = this.part('custom').assignedNodes().some(n => n.nodeType === 1 || (n.nodeType === 3 && n.textContent.trim()));
         this.part('form').hidden = on;
@@ -61,9 +64,14 @@ export default Base => class extends Base {
         const outcome = this.part('outcome');
         showState(outcome, 'loading', { label: this.runLabel ? `${this.runLabel}…` : 'Working' });
         try {
-            const result = await this.run(this.values());
+            this.$running = true;
+            const values = this.values();
+            // startRun: a newer run supersedes this one, which then never settles (#1929)
+            const result = await startRun(this, 'run', () => this.run(values));
+            this.$running = false;
             this.drawOutcome(result);
         } catch (err) {
+            this.$running = false;
             showState(outcome, 'error', { error: err, retry: () => this.runNow() });
         }
     }

@@ -53,3 +53,13 @@ test('the title bar is the shared one: heading, and the actions as the same item
     const btn = parts.header.children.find(c => c.localName === 'pk-button');
     assert.equal(btn.variant, 'primary');
 });
+test('tabsFrom, sticky and side (#2084): the vocabulary goes to the shell and layout; a side section sits in the sidebar column only above the breakpoint', () => {
+    const none = make({ sections });
+    assert.equal(none.parts.layout.attrs['tabs-from'], 'always');
+    assert.equal('sticky' in none.parts.header.attrs, false);
+    const { parts } = make({ sections: [...sections.slice(0, 2), { id: 'status', label: 'Status', side: true }], tabsFrom: 'bogus', stickyFrom: 'tablet' });
+    assert.equal(parts.layout.attrs['tabs-from'], 'always');
+    assert.equal(parts.header.attrs['sticky-from'], 'tablet');
+    assert.ok('sticky' in parts.header.attrs);
+    assert.equal(parts.layout.children.find(w => w.dataset.pkSection === 'status').slot, undefined, 'a width that always shows tabs keeps the side section a plain tab');
+});

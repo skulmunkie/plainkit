@@ -9,17 +9,17 @@ export const PAGE_TYPE = {
     states: ['none'],
     useWhen: 'A record opened beside its list on one route, such as an inbox. Not the default: a list and its record are usually two routes (the list and record page types).',
 };
-import { mountTitled, titleBarKeys } from '../../page-shell.js';
-export default (host, config = {}, ctx) => {
-    const el = host.ownerDocument.createElement('pk-master-detail-page');
-    const { list, backLabel, none, label, param = 'id', rowHref, listHref, load, mountDetail, fill } = config;
-    el.config = { heading: config.heading, breadcrumb: config.breadcrumb, ...titleBarKeys(config), actions: config.actions, list, backLabel, none, label };
-    const id = ctx.route?.params?.[param];
-    if (id) el.recordId = String(id);
-    if (fill) el.fill = true;
-    if (load) el.load = query => load(query, ctx);
-    if (rowHref) el.open = row => ctx.navigate(rowHref(row));
-    if (listHref) el.close = () => ctx.navigate(listHref);
-    if (mountDetail) el.mountDetail = (pane, rid) => mountDetail(pane, rid, ctx);
-    return mountTitled(host, el, config.heading);
-};
+import { titleBarKeys } from '../../page-shell.js';
+import { definePage, withSignal } from '../../page-define.js';
+export default definePage({
+    tag: 'pk-master-detail-page',
+    data: c => ({ heading: c.heading, breadcrumb: c.breadcrumb, ...titleBarKeys(c), actions: c.actions, list: c.list, backLabel: c.backLabel, none: c.none, label: c.label }),
+    wire: (el, { param = 'id', rowHref, listHref, load, mountDetail, fill }, ctx) => {
+        const id = ctx.route?.params?.[param];
+        if (id) el.recordId = String(id); if (fill) el.fill = true;
+        if (load) el.load = withSignal(ctx, (query, signal) => load(query, ctx, signal));
+        if (rowHref) el.open = row => ctx.navigate(rowHref(row));
+        if (listHref) el.close = () => ctx.navigate(listHref);
+        if (mountDetail) el.mountDetail = (pane, rid) => mountDetail(pane, rid, ctx);
+    },
+});

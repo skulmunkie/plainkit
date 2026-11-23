@@ -718,6 +718,27 @@ export const appCases = [
         t.ok(nav.right <= title.left + 1, `the nav sits beside the article (${nav.right} vs ${title.left})`);
     }],
 
+    ['pk-note-page: static slotted mode - the authors markup renders in the default slot with and without JavaScript, and the element builds nothing next to it (#1929)', async t => {
+        const open = async query => {
+            const host = t.stage(''), fr = document.createElement('iframe');
+            fr.title = 'static note page'; fr.style.cssText = 'width:800px;height:500px;border:0;display:block';
+            fr.src = new URL(`./note-page-static-frame.html${query}`, import.meta.url).href;
+            await new Promise(resolve => { fr.addEventListener('load', resolve, { once: true }); host.append(fr); });
+            return { win: fr.contentWindow, d: fr.contentWindow.document };
+        };
+        const shown = n => { const r = n.getBoundingClientRect(); return r.width > 0 && r.height > 0; };
+        const plain = await open('?nojs');
+        t.ok(!plain.win.customElements.get('pk-note-page'), 'the no-JS view leaves the page un-upgraded');
+        t.ok([...plain.d.querySelectorAll('#note-title, #note-text')].every(shown), 'un-upgraded: the authors title and text are visible');
+        const { win, d } = await open(''), el = d.querySelector('pk-note-page');
+        await until(() => win.customElements.get('pk-note-page') && win.customElements.get('pk-card'), 'the elements to upgrade');
+        await d.fonts.ready; await new Promise(r => win.requestAnimationFrame(() => win.requestAnimationFrame(r)));
+        t.eq(el.children.length, 2, 'the host children are exactly the ones the author wrote (none added)');
+        t.ok(!el.shadowRoot.querySelector('pk-stack, pk-heading, pk-card'), 'the element built no stack, heading or card of its own');
+        t.eq(el.querySelector('#note-title').assignedSlot?.parentElement.getAttribute('part'), 'body', 'the authors markup is slotted into the body part');
+        t.ok([...el.querySelectorAll('#note-title, #note-text')].every(shown), 'upgraded: the authors title and text are visible');
+    }],
+
     ['pk-doc-page: static slotted mode on a phone draws its own Menu button in its shadow tree that opens the author\'s nav as a drawer (Escape, outside tap and a nav tap close it, focus returns to the button), and the author\'s children are never touched; a desktop width has no Menu button (#1829)', async t => {
         const open = async width => {
             const host = t.stage(''), fr = document.createElement('iframe');
@@ -917,6 +938,21 @@ export const appCases = [
         t.eq(after.observers, before.observers, 'live observers are back to the baseline');
         t.eq(after.timers, before.timers, 'timers are back to the baseline');
         t.eq(mounts, 101, 'every cycle mounted'); t.eq(destroys, 101, 'every record handle was destroyed exactly once');
+    }],
+
+    ['page types (#1929 6b): load callbacks also get an AbortSignal (query, ctx, signal); a loader that takes only the query still works, and a newer call aborts the older', async t => {
+        const { mountPage } = await dist('js/app.js');
+        await t.load(t.stage('<pk-master-detail-page></pk-master-detail-page>'));
+        const box = document.createElement('div'); t.stage('').append(box);
+        const seen = [];
+        const page = await mountPage(box, { type: 'master-detail', config: { list: { columns: [{ key: 'name', label: 'Name' }] }, load: (q, ctx, signal) => { seen.push(signal); return { rows: [{ id: '1', name: 'A' }] }; } } });
+        const el = box.querySelector('pk-master-detail-page'); await t.load(box); await until(() => seen.length >= 1, 'the first load', 200);
+        t.ok(seen[0] instanceof AbortSignal && !seen[0].aborted, 'the loader receives a live AbortSignal as its third argument');
+        const old = await mountPage(document.createElement('div'), { type: 'master-detail', config: { list: { columns: [{ key: 'name', label: 'Name' }] }, load: q => ({ rows: [{ id: '2', name: 'B' }] }) } });
+        t.ok(old, 'a query-only loader mounts as before'); old.destroy();
+        el.load('x'); el.load('x');
+        t.ok(seen.length >= 3 && seen[seen.length - 2].aborted && !seen[seen.length - 1].aborted, 'a newer call with the same query aborts the older signal');
+        page.destroy();
     }],
 
     ['master-detail page type (#353): a failing list shows its error state, a pending record shows loading, a rejected record shows the danger alert and Retry recovers it', async t => {

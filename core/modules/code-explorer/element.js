@@ -14,9 +14,11 @@
 // Events: "pk-code-explorer-open" (detail { path }), "pk-code-explorer-error" (detail { error }).
 // Phone: below 640px pk-workspace shows one pane at a time (Files, Code, Inspector) with its own tab strip.
 
+import { createHistory } from './history.js';
+import { extensionsOf, filterGroups } from './scope.js';
 import { createProvider, wordSpans, matcherFor } from './providers.js';
 import { buildSegments, tokenize, wordAt, languageOf } from './tokenize.js';
-import { patternReport, largestFilesReport, longestMethodsReport, duplicateBlocksReport } from './reports.js';
+import { patternReport, statsReport, largestFilesReport, longestMethodsReport, duplicateBlocksReport } from './reports.js';
 import { ensureStyles, styleUrls, on } from '../../js/mount-support.js';
 import { loadElements } from '../../js/loader.js';
 import { applyDynamic } from '../../js/dynamic.js';
@@ -63,11 +65,14 @@ export class CodeExplorerElement extends Base {
     #active = NAV;
     #docs = new Map();
     #focus = null;
+    #history = createHistory();
     #word = '';
     #filter = '';
     #search = null;
+    #scope = { folder: '', ext: '', skipTests: false };
     #patterns = [];
     #reports = null;
+    #statsInPane = false; // the statistics view fills the main pane until a file is opened or the reports close
     #reading = false;
     #inspector = null;
     #folders = new Set();
@@ -108,8 +113,17 @@ export class CodeExplorerElement extends Base {
         fill(this, `
 <pk-workspace fill active-pane="nav" nav-label="Files" main-label="Code" aside-label="Inspector" data-ce-root>
   <pk-container slot="nav" size="full" padding="sm"><pk-stack gap="sm">
+    <pk-cluster gap="xs">
+      <pk-button size="mini" variant="ghost" icon icon-name="arrow-left" label="Back" disabled data-ce-back></pk-button>
+      <pk-button size="mini" variant="ghost" icon icon-name="arrow-right" label="Forward" disabled data-ce-forward></pk-button>
+    </pk-cluster>
     <pk-input type="search" label="Filter files" placeholder="Filter files by path" data-ce-filter></pk-input>
     <pk-input type="search" label="Search code" placeholder="Search code: text or /regex/" data-ce-query data-ce-searchbox></pk-input>
+    <pk-stack gap="sm" data-ce-scope hidden>
+      <pk-select label="File type" show-label data-ce-ext></pk-select>
+      <pk-input label="Folder" placeholder="Limit search to a folder" data-ce-folder></pk-input>
+      <pk-checkbox data-ce-skip-tests>Skip test files</pk-checkbox>
+    </pk-stack>
     <pk-cluster gap="sm">
       <pk-button size="mini" icon-name="search" collapse="phone" data-ce-search hidden>Search</pk-button>
       <pk-button size="mini" variant="ghost" icon-name="chart" collapse="phone" data-ce-reports>Reports</pk-button>
@@ -131,20 +145,30 @@ export class CodeExplorerElement extends Base {
         const runSearch = () => this.#runSearch($('[data-ce-query]').value);
         on($('[data-ce-query]'), 'keydown', e => { if (e.key === 'Enter') runSearch(); });
         on($('[data-ce-search]'), 'click', runSearch);
+        const rescope = patch => { Object.assign(this.#scope, patch); if (this.#search) this.#renderTree(); };
+        on($('[data-ce-ext]'), 'pk-value-change', e => rescope({ ext: e.detail.value ?? '' }));
+        on($('[data-ce-folder]'), 'input', e => rescope({ folder: e.target.value }));
+        on($('[data-ce-skip-tests]'), 'pk-change', e => rescope({ skipTests: e.detail?.checked === true }));
+        on($('[data-ce-back]'), 'click', () => this.#step(this.#history.back()));
+        on($('[data-ce-forward]'), 'click', () => this.#step(this.#history.forward()));
         on($('[data-ce-reports]'), 'click', () => this.#toggleReports());
-        on($('[data-ce-clear]'), 'click', () => { this.#search = null; this.#reports = null; this.#renderTree(); });
+        on($('[data-ce-clear]'), 'click', () => { this.#search = null; this.#reports = null; this.#statsInPane = false; this.#renderTree(); this.#renderPane(); });
         on($('[data-ce-inspector-close]'), 'click', () => { this.#inspector = null; this.#renderInspector(); this.#showPane('main'); });
         const tree = $('[data-ce-tree]');
         on(tree, 'click', e => this.#onHitClick(e));
         on(tree, 'pk-select', e => this.#onTreeSelect(e));
+        on($('[data-ce-pane]'), 'pk-row-click', e => { const row = e.detail?.row; if (row?.path) this.openFile(row.path, { line: row.line }); });
         on(tree, 'pk-toggle', e => this.#onTreeToggle(e));
         const tabs = $('[data-ce-tabs]');
-        on(tabs, 'pk-tab-change', e => { if (e.detail.fallback) return; this.#active = e.detail.value; this.#focus = null; this.#renderPane(); this.#syncTree(); });
+        on(tabs, 'pk-tab-change', e => { if (e.detail.fallback) return; this.#active = e.detail.value; this.#focus = null; this.#statsInPane = false; this.#renderPane(); this.#syncTree(); });
         on(tabs, 'pk-tab-close', e => this.#closeTab(e.detail.value));
         on(tabs, 'keydown', e => { const tab = e.target.closest?.('pk-tab'); if (tab && e.key === 'Delete') this.#closeTab(tab.value, true); });
         on($('[data-ce-pane]'), 'click', e => this.#onPaneClick(e));
         on($('[data-ce-inspector-body]'), 'click', e => this.#onInspectorClick(e));
-        on(this, 'keydown', e => { if (e.key === 'Escape' && this.#inspector) { this.#inspector = null; this.#renderInspector(); this.#showPane('main'); } });
+        on(this, 'keydown', e => {
+            if (e.altKey && !e.ctrlKey && !e.metaKey && (e.key === 'ArrowLeft' || e.key === 'ArrowRight')) { e.preventDefault(); this.#step(e.key === 'ArrowLeft' ? this.#history.back() : this.#history.forward()); return; }
+            if (e.key === 'Escape' && this.#inspector) { this.#inspector = null; this.#renderInspector(); this.#showPane('main'); }
+        });
         // Load every element the explorer writes before the first tree is drawn: a pk-tree that defines before its items would
         // update against items that are not upgraded yet.
         const scratch = this.ownerDocument.createElement('div');
@@ -162,6 +186,7 @@ export class CodeExplorerElement extends Base {
             const caps = this.#provider.capabilities ?? {};
             this.querySelector('[data-ce-searchbox]').hidden = !caps.search;
             this.querySelector('[data-ce-search]').hidden = !caps.search;
+            this.querySelector('[data-ce-scope]').hidden = !caps.search;
             await this.#reload();
             if (this.isConnected && caps.live && this.#provider.subscribe) { this.#unsubscribe?.(); this.#unsubscribe = this.#provider.subscribe(ev => this.#onFeed(ev)); }
             const initial = this.getAttribute('initial');
@@ -177,13 +202,14 @@ export class CodeExplorerElement extends Base {
 
     async #reload() {
         this.#files = await this.#provider.listFiles();
+        this.querySelector('[data-ce-ext]').options = [{ value: '', label: 'All types' }, ...extensionsOf(this.#files).map(x => ({ value: x, label: `.${x}` }))];
         this.#renderTree();
     }
 
     async #onFeed(ev) {
         if (ev?.path) this.#docs.delete(ev.path);
         await this.#reload();
-        if (ev?.path && ev.path === this.#active) await this.openFile(ev.path, { line: this.#focus ?? undefined });
+        if (ev?.path && ev.path === this.#active) await this.openFile(ev.path, { line: this.#focus ?? undefined, history: false });
     }
 
     // The pane pk-workspace shows on a phone (on a wider screen every pane shows).
@@ -193,7 +219,7 @@ export class CodeExplorerElement extends Base {
     #renderTree() {
         const host = this.querySelector('[data-ce-tree]');
         this.querySelector('[data-ce-clear]').hidden = !this.#search && !this.#reports;
-        if (this.#reports) { fill(host, this.#reportsHtml()); return; }
+        if (this.#reports) { fill(host, this.#reportsHtml()); this.#upgrade(); return; }
         if (this.#search) { fill(host, this.#searchHtml()); return; }
         const root = buildTree(this.#files, this.#filter);
         this.#nodes = new Map();
@@ -272,7 +298,7 @@ export class CodeExplorerElement extends Base {
     // (providers.js, #needAll). Three built-in reports (largest files, longest methods, duplicate blocks) are always
     // available; the host-defined pattern report is a fourth choice when `patterns` was set.
     async #toggleReports() {
-        if (this.#reports) { this.#reports = null; this.#renderTree(); return; }
+        if (this.#reports) { this.#reports = null; this.#statsInPane = false; this.#renderTree(); this.#renderPane(); return; }
         if (this.#reading) return; // a second click while the files are still being read
         this.#reading = true;
         const button = this.querySelector('[data-ce-reports]');
@@ -298,7 +324,8 @@ export class CodeExplorerElement extends Base {
             if (!files.length && skipped.length) throw new Error(`none of the ${skipped.length} files could be read (${skipped[0].path}: ${skipped[0].reason})`);
             this.#reports = {
                 skipped,
-                kind: this.#patterns.length ? 'pattern' : 'files',
+                kind: 'stats',
+                stats: statsReport(files),
                 pattern: this.#patterns.length ? patternReport(files, this.#patterns) : null,
                 files: largestFilesReport(files),
                 methods: longestMethodsReport(files),
@@ -306,18 +333,22 @@ export class CodeExplorerElement extends Base {
             };
         } catch (error) {
             log.warn('the reports could not be computed', error);
-            this.#reports = { kind: 'files', pattern: null, files: [], methods: [], duplicates: [], skipped, error: `The reports could not be computed: ${error.message}` };
+            this.#reports = { kind: 'files', stats: null, pattern: null, files: [], methods: [], duplicates: [], skipped, error: `The reports could not be computed: ${error.message}` };
         }
         this.#reading = false;
         button.textContent = 'Reports';
         this.#search = null;
+        this.#statsInPane = this.#reports.kind === 'stats' && !this.#reports.error;
         this.#renderTree();
+        this.#renderPane();
+        if (this.#statsInPane) this.#showPane('main');
     }
 
     // The choices shown by the reports picker: only "Patterns" is conditional (needs host-defined patterns).
     #reportKinds() {
         const r = this.#reports;
         return [
+            { key: 'stats', label: 'Statistics' },
             r.pattern && { key: 'pattern', label: 'Patterns' },
             { key: 'files', label: 'Largest files' },
             { key: 'methods', label: 'Longest methods' },
@@ -331,7 +362,15 @@ export class CodeExplorerElement extends Base {
         const kinds = this.#reportKinds();
         const picker = `<pk-cluster gap="xs">${kinds.map(k => `<pk-button size="mini" variant="ghost" toggle${k.key === r.kind ? ' pressed' : ''} data-kind="${k.key}">${k.label}</pk-button>`).join('')}</pk-cluster>`;
         const left = r.skipped?.length ? `<pk-alert kind="warning">${r.skipped.length} ${r.skipped.length === 1 ? 'file' : 'files'} could not be read and ${r.skipped.length === 1 ? 'is' : 'are'} left out: ${esc(r.skipped.slice(0, 3).map(s => s.path).join(', '))}${r.skipped.length > 3 ? ` and ${r.skipped.length - 3} more` : ''} (the logs say why).</pk-alert>` : '';
-        return `<pk-stack gap="sm">${picker}${left}${this.#reportRowsHtml(r.kind, r[r.kind] ?? [])}</pk-stack>`;
+        return `<pk-stack gap="sm">${picker}${left}${r.kind === 'stats' ? '<pk-text tone="muted">The statistics are in the Code pane.</pk-text>' : this.#reportRowsHtml(r.kind, r[r.kind] ?? [])}</pk-stack>`;
+    }
+
+    // The summary: totals, then folders, languages, largest files and most-referenced types as pk-tables. A row with a path opens that file (pk-row-click).
+    #statsHtml(st) {
+        if (!st.files) return '<pk-text tone="muted">No files.</pk-text>';
+        const table = (label, columns, rows, open) => `<pk-stack gap="xs"><pk-text weight="semibold">${label}</pk-text><pk-table label="${label}" density="compact"${open ? " clickable" : ""} columns="${esc(JSON.stringify(columns))}" rows="${esc(JSON.stringify(rows))}"></pk-table></pk-stack>`;
+        const group = (title, label, rows) => table(title, [{ key: 'name', label }, { key: 'files', label: 'Files', align: 'end' }, { key: 'lines', label: 'Lines', align: 'end' }], rows);
+        return `<pk-stack gap="sm"><pk-text data-ce-stats-total>${st.files} files, ${st.lines} lines</pk-text>${group('By folder', 'Folder', st.folders)}${group('By language', 'Type', st.languages)}${table('Largest files', [{ key: 'path', label: 'File' }, { key: 'lines', label: 'Lines', align: 'end' }], st.largest.map(x => ({ ...x, line: 1 })), true)}${st.types.length ? table('Most referenced types', [{ key: 'name', label: 'Type' }, { key: 'refs', label: 'References', align: 'end' }, { key: 'path', label: 'File' }], st.types, true) : ''}</pk-stack>`;
     }
 
     #reportRowsHtml(kind, rows) {
@@ -350,9 +389,10 @@ export class CodeExplorerElement extends Base {
     #searchHtml() {
         const s = this.#search;
         if (s.error) return `<pk-alert kind="danger">${esc(s.error)}</pk-alert>`;
-        if (!s.groups.length) return '<pk-text tone="muted">No matches.</pk-text>';
+        const groups = filterGroups(s.groups, this.#scope);
+        if (!groups.length) return `<pk-text tone="muted">${s.groups.length ? 'No matches in this scope.' : 'No matches.'}</pk-text>`;
         const match = matcherFor(s.query);
-        return `<pk-stack gap="sm">${s.groups.map(g => hitGroup(`${esc(g.path)} <pk-text inline tone="muted">(${g.hits.length})</pk-text>`, g.hits.map(h => {
+        return `<pk-stack gap="sm">${groups.map(g => hitGroup(`${esc(g.path)} <pk-text inline tone="muted">(${g.hits.length})</pk-text>`, g.hits.map(h => {
             const t = h.text.trim(); const shift = h.text.length - h.text.trimStart().length;
             const spans = (h.spans ?? match(h.text)).map(x => ({ start: x.start - shift, length: x.length }));
             return hitRow(g.path, h.line, h.line, buildSegments(t, [], spans, []).map(x => x.match ? `<mark>${esc(x.text)}</mark>` : esc(x.text)).join(''));
@@ -362,7 +402,7 @@ export class CodeExplorerElement extends Base {
     // A search or report hit in the nav pane opens its file at that line; a report-kind button switches which report is shown.
     #onHitClick(e) {
         const kindBtn = e.target.closest?.('[data-kind]');
-        if (kindBtn) { this.#reports.kind = kindBtn.dataset.kind; this.#renderTree(); return; }
+        if (kindBtn) { this.#reports.kind = kindBtn.dataset.kind; this.#statsInPane = this.#reports.kind === 'stats'; this.#renderTree(); this.#renderPane(); return; }
         const hit = e.target.closest?.('pk-list-group > button[data-path]');
         if (hit) this.openFile(hit.dataset.path, { line: hit.dataset.line ? Number(hit.dataset.line) : undefined });
     }
@@ -386,7 +426,14 @@ export class CodeExplorerElement extends Base {
         if (refocus) requestAnimationFrame(() => this.querySelector('pk-tab[selected]')?.focus());
     }
 
-    async openFile(path, { line } = {}) {
+    // Move to a history entry (Back / Forward) without recording a new one.
+    #step(loc) { if (loc) this.openFile(loc.path, { line: loc.line ?? undefined, history: false }); else this.#syncHistory(); }
+
+    #syncHistory() {
+        for (const [sel, ok] of [['[data-ce-back]', this.#history.canBack], ['[data-ce-forward]', this.#history.canForward]]) this.querySelector(sel)?.toggleAttribute('disabled', !ok);
+    }
+
+    async openFile(path, { line, history = true } = {}) {
         try {
             if (!this.#docs.has(path)) {
                 const doc = await this.#provider.readFile(path);
@@ -400,9 +447,10 @@ export class CodeExplorerElement extends Base {
         }
         const isNew = !this.#open.includes(path);
         if (isNew) this.#open.push(path);
-        this.#active = path; this.#focus = line ?? null; this.#word = '';
+        if (history) { if (this.#active === this.#history.current?.path) this.#history.replace({ path: this.#active, line: this.#focus }); this.#history.push({ path, line }); }
+        this.#active = path; this.#focus = line ?? null; this.#word = ''; this.#statsInPane = false;
         if (isNew) this.#renderTabs(); else this.querySelector('[data-ce-tabs]').setAttribute('value', path);
-        this.#renderPane(); this.#syncTree(); this.#showPane('main');
+        this.#renderPane(); this.#syncTree(); this.#showPane('main'); this.#syncHistory();
         if (this.#inspector?.kind === 'outline') this.#showOutline(false);
         this.dispatchEvent(new CustomEvent('pk-code-explorer-open', { detail: { path } }));
     }
@@ -410,6 +458,7 @@ export class CodeExplorerElement extends Base {
     // ---- viewer ----------------------------------------------------------
     #renderPane() {
         const pane = this.querySelector('[data-ce-pane]');
+        if (this.#statsInPane && this.#reports?.stats) { fill(pane, `<pk-container size="full" padding="none">${this.#statsHtml(this.#reports.stats)}</pk-container>`); this.#upgrade(); this.#renderInspector(); return; }
         const doc = this.#docs.get(this.#active);
         if (!doc) { fill(pane, '<pk-empty-state heading="No file open" description="Pick a file from the tree."></pk-empty-state>'); this.#upgrade(); this.#renderInspector(); return; }
         const max = Number(this.getAttribute('max-lines')) || 2000;
@@ -421,7 +470,8 @@ export class CodeExplorerElement extends Base {
         const note = start > 1 || end < total ? `<pk-text slot="header-start" inline tone="muted" size="read">Showing lines ${start}-${end} of ${total}.</pk-text>` : '';
         const outline = caps.outline ? '<pk-button slot="actions" size="mini" variant="ghost" data-ce-outline>Outline</pk-button>' : '';
         const usages = caps.references && this.#word ? `<pk-button slot="actions" size="mini" variant="ghost" data-ce-usages>Usages of ${esc(this.#word)}</pk-button>` : '';
-        fill(pane, `<pk-code-view header copy fill label="${esc(doc.path)}" language="${esc(doc.language)}">${note}${outline}${usages}</pk-code-view>`);
+        const define = caps.definitions && this.#word ? `<pk-button slot="actions" size="mini" variant="ghost" data-ce-definition>Go to definition of ${esc(this.#word)}</pk-button>` : '';
+        fill(pane, `<pk-code-view header copy fill label="${esc(doc.path)}" language="${esc(doc.language)}">${note}${outline}${define}${usages}</pk-code-view>`);
         const view = pane.querySelector('pk-code-view'), shown = doc.lines.slice(start - 1, end);
         Object.assign(view, { start, lines: shown, highlight: this.#focus ? String(this.#focus) : '', segments: shown.map((text, i) => buildSegments(text, doc.tokens[start - 1 + i] ?? [], [], wordSpans(text, this.#word))) });
         on(view, 'pk-line-click', e => this.#onLineClick(e.detail));
@@ -432,6 +482,7 @@ export class CodeExplorerElement extends Base {
     #onPaneClick(e) {
         if (e.target.closest('[data-ce-outline]')) return this.#showOutline();
         if (e.target.closest('[data-ce-usages]')) return this.#showUsages();
+        if (e.target.closest('[data-ce-definition]')) return this.#goToDefinition();
     }
 
     // A click in the code viewer: toggle the word under the caret as the selected word and focus its line.
@@ -452,17 +503,28 @@ export class CodeExplorerElement extends Base {
         this.#renderInspector(); this.#showPane('aside');
     }
 
+    // One declaration opens at once; several are listed as candidates (never guessed); none says so.
+    async #goToDefinition() {
+        const word = this.#word;
+        let items = [];
+        try { items = await this.#provider.definitions(word); } catch (e) { log.warn('the definition could not be looked up', e); this.#inspector = { kind: 'definitions', word, items: [], error: e.message }; this.#renderInspector(); this.#showPane('aside'); return; }
+        if (items.length === 1) return this.openFile(items[0].path, { line: items[0].line });
+        this.#inspector = { kind: 'definitions', word, items };
+        this.#renderInspector(); this.#showPane('aside');
+    }
+
     #renderInspector() {
         const i = this.#inspector;
         const shown = Boolean(i) && Boolean(this.#docs.get(this.#active));
         this.querySelector('[data-ce-root]').toggleAttribute('aside-open', shown);
         if (!shown) return;
-        this.querySelector('[data-ce-inspector-title]').textContent = i.kind === 'outline' ? 'Outline' : `Usages of ${i.word}`;
+        this.querySelector('[data-ce-inspector-title]').textContent = i.kind === 'outline' ? 'Outline' : i.kind === 'definitions' ? `Definitions of ${i.word}` : `Usages of ${i.word}`;
         const body = this.querySelector('[data-ce-inspector-body]');
         if (i.error) { fill(body, `<pk-alert kind="danger">${esc(i.error)}</pk-alert>`); return; }
-        if (!i.items.length) { fill(body, `<pk-text tone="muted">${i.kind === 'outline' ? 'Nothing to outline in this file.' : 'No usages found.'}</pk-text>`); return; }
+        if (!i.items.length) { fill(body, `<pk-text tone="muted">${i.kind === 'outline' ? 'Nothing to outline in this file.' : i.kind === 'definitions' ? 'No declaration found.' : 'No usages found.'}</pk-text>`); return; }
         fill(body, i.kind === 'outline'
             ? hitList(i.items.map(x => { const d = Math.min(Math.max(x.depth ?? 0, 0), 3); return `<button type="button"${d ? ` data-depth="${d}"` : ''} data-line="${x.line}"><pk-text inline size="meta" weight="semibold">${esc(x.kind)}</pk-text><pk-text inline font="mono" size="read">${esc(x.name)}</pk-text><pk-text inline font="mono" size="meta">${x.line}</pk-text></button>`; }).join(''), 'Outline')
+            : i.kind === 'definitions' ? hitList(i.items.map(x => hitRow(x.path, x.line, x.line, `${esc(x.path)}: ${esc(x.kind)} ${esc(x.name)}`)).join(''), 'Definitions')
             : hitList(i.items.map(x => hitRow(x.path, x.line, x.line, `${esc(x.path)}: ${esc(x.text.trim())}`)).join(''), 'Usages'));
     }
 

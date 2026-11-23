@@ -10,9 +10,5 @@ export const PAGE_TYPE = {
     states: [],
     useWhen: 'A static informational page: About, Overview, a one-off summary - no data to load, save or browse.',
 };
-import { mountTitled } from '../../page-shell.js';
-export default (host, config = {}, ctx) => {
-    const el = host.ownerDocument.createElement('pk-note-page');
-    el.config = { heading: config.heading, body: config.body, cardHeading: config.cardHeading };
-    return mountTitled(host, el, config.heading, { plain: true });
-};
+import { definePage } from '../../page-define.js';
+export default definePage({ tag: 'pk-note-page', plain: true, data: c => ({ heading: c.heading, body: c.body, cardHeading: c.cardHeading }) });

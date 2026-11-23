@@ -55,6 +55,13 @@ test('loadJson fetches a URL, passes an object through and reports a failed fetc
     await assert.rejects(loadJson('u', async () => ({ ok: false, status: 404 })), /u: 404/);
 });
 
+test('symbolsOf outlines C# members and a Razor file (directives, @code members, component tags)', () => {
+    const cs = ['public sealed class A', '{', '    public const int Max = 3;', '    public string Name { get; set; }', '    public async Task<int> Run(int x)', '    {', '        return Foo(x);', '    }', '}'].join('\n');
+    assert.deepEqual(symbolsOf(cs, 'cs').map(s => `${s.kind} ${s.name}@${s.line}/${s.depth}`), ['class A@1/0', 'const Max@3/1', 'property Name@4/1', 'method Run@5/1']);
+    const razor = ['@page "/x"', '@inject IFoo Foo', '<PkButton />', '<PkButton>', '@code {', '    [Parameter] public int V { get; set; }', '    void Go() { }', '}'].join('\n');
+    assert.deepEqual(symbolsOf(razor, 'razor').map(s => `${s.kind} ${s.name}@${s.line}/${s.depth}`), ['page "/x"@1/0', 'inject Foo@2/0', 'component PkButton@3/0', 'code @code@5/0', 'property V@6/1', 'method Go@7/1']);
+});
+
 test('symbolsOf lists top-level JS declarations and CSS class rules, nothing else', () => {
     assert.deepEqual(symbolsOf('export function a() {}\n  const inner = 1;\nclass B {}\nexport const c = 2;', 'js').map(s => [s.kind, s.name, s.line]), [['function', 'a', 1], ['class', 'B', 3], ['const', 'c', 4]]);
     assert.deepEqual(symbolsOf('.a, .b { x: 1 }\n#id { }', 'css').map(s => s.name), ['.a']);

@@ -40,6 +40,118 @@ export const toolCases = [
         handle.destroy(); t.ok(!host.contains(el));
     }],
 
+    ['code explorer module: scoped search narrows the results by folder, file type and test files (issue 121)', async t => {
+        const { mountCodeExplorer } = await dist('code-explorer');
+        const host = t.stage('');
+        const snap = { version: 1, files: [
+            { path: 'src/a.cs', language: 'cs', content: `needle
+` },
+            { path: 'src/a.test.cs', language: 'cs', content: `needle
+` },
+            { path: 'src/b.js', language: 'js', content: `needle
+` },
+            { path: 'docs/c.md', language: 'md', content: `needle
+` },
+        ] };
+        const handle = await mountCodeExplorer(host, { snapshot: snap, search: 'needle', height: '24rem' });
+        const el = handle.element;
+        const paths = () => [...el.querySelectorAll('pk-list-group > button[data-path]')].map(b => b.dataset.path).sort();
+        await until(() => paths().length === 4, 'all four hits');
+        const folder = el.querySelector('[data-ce-folder]');
+        folder.value = 'src'; folder.dispatchEvent(new Event('input', { bubbles: true })); await t.settle();
+        t.eq(paths().join(), 'src/a.cs,src/a.test.cs,src/b.js', 'folder src');
+        el.querySelector('[data-ce-ext]').dispatchEvent(new CustomEvent('pk-value-change', { detail: { value: 'cs' } })); await t.settle();
+        t.eq(paths().join(), 'src/a.cs,src/a.test.cs', 'type cs');
+        el.querySelector('[data-ce-skip-tests]').dispatchEvent(new CustomEvent('pk-change', { detail: { checked: true } })); await t.settle();
+        t.eq(paths().join(), 'src/a.cs', 'test files skipped');
+        folder.value = 'docs'; folder.dispatchEvent(new Event('input', { bubbles: true })); await t.settle();
+        t.ok(/No matches in this scope/.test(el.textContent), 'an empty scope says so');
+        handle.destroy();
+    }],
+
+    ['code explorer module: go to definition opens a single declaration, a Razor component by file name, and lists candidates when ambiguous (issue 121)', async t => {
+        const { mountCodeExplorer } = await dist('code-explorer');
+        const host = t.stage('');
+        const snap = { version: 1, files: [
+            { path: 'src/Use.razor', language: 'razor', content: `<Card />
+var a = Build();
+Dup();
+` },
+            { path: 'src/Card.razor', language: 'razor', content: `<p>card</p>
+` },
+            { path: 'src/A.cs', language: 'cs', content: `class A
+{
+    public void Build() { }
+    public void Dup() { }
+}
+`, symbols: [{ kind: 'method', name: 'Build', line: 3, depth: 1 }, { kind: 'method', name: 'Dup', line: 4, depth: 1 }] },
+            { path: 'src/B.cs', language: 'cs', content: `class B
+{
+    public void Dup() { }
+}
+`, symbols: [{ kind: 'method', name: 'Dup', line: 3, depth: 1 }] },
+        ] };
+        const handle = await mountCodeExplorer(host, { snapshot: snap, file: 'src/Use.razor', theme: 'light', height: '20rem' });
+        const el = handle.element;
+        const view = () => el.querySelector('[data-ce-pane] > pk-code-view');
+        await until(view, 'the viewer');
+        const pick = async (line, column) => {
+            view().dispatchEvent(new CustomEvent('pk-line-click', { detail: { line, column } }));
+            await until(() => el.querySelector('[data-ce-definition]'), 'the definition button');
+            el.querySelector('[data-ce-definition]').click(); await t.settle();
+        };
+        const titleOf = () => view().shadowRoot.querySelector('.title')?.textContent;
+        await pick(1, 2);
+        await until(() => titleOf() === 'src/Card.razor', 'the component file');
+        t.ok(true, 'a component tag opens Foo.razor');
+        await handle.openFile('src/Use.razor'); await t.settle();
+        await pick(2, 12);
+        await until(() => titleOf() === 'src/A.cs', 'the method declaration');
+        await handle.openFile('src/Use.razor'); await t.settle();
+        await pick(3, 2);
+        const rows = () => el.querySelectorAll('[data-ce-inspector-body] button[data-path]');
+        await until(() => rows().length === 2, 'two candidates');
+        t.eq(titleOf(), 'src/Use.razor', 'an ambiguous name opens nothing');
+        t.ok(/Definitions of Dup/.test(el.querySelector('[data-ce-inspector-title]').textContent));
+        handle.destroy();
+    }],
+
+    ['code explorer module: Back and Forward return to earlier opened locations, with Alt+Left / Alt+Right (issue 121)', async t => {
+        const { mountCodeExplorer } = await dist('code-explorer');
+        const host = t.stage('');
+        const snap = { version: 1, files: [
+            { path: 'a.js', language: 'js', content: `one
+two
+three
+` },
+            { path: 'b.js', language: 'js', content: `x
+y
+` },
+        ] };
+        const handle = await mountCodeExplorer(host, { snapshot: snap, file: 'a.js', height: '20rem' });
+        const el = handle.element;
+        const view = () => el.querySelector('[data-ce-pane] > pk-code-view');
+        const titleOf = () => view().shadowRoot.querySelector('.title')?.textContent;
+        const back = el.querySelector('[data-ce-back]'), fwd = el.querySelector('[data-ce-forward]');
+        await until(view, 'the viewer');
+        t.ok(back.hasAttribute('disabled') && fwd.hasAttribute('disabled'), 'both start disabled');
+        await handle.openFile('b.js', { line: 2 });
+        await until(() => titleOf() === 'b.js', 'b.js');
+        t.ok(!back.hasAttribute('disabled') && fwd.hasAttribute('disabled'), 'back enabled after a second location');
+        t.eq(back.getAttribute('label'), 'Back', 'icon-only button keeps an aria name');
+        back.click();
+        await until(() => titleOf() === 'a.js', 'back to a.js');
+        t.ok(back.hasAttribute('disabled') && !fwd.hasAttribute('disabled'), 'forward enabled at the start');
+        el.dispatchEvent(new KeyboardEvent('keydown', { key: 'ArrowRight', altKey: true, bubbles: true }));
+        await until(() => titleOf() === 'b.js', 'Alt+Right goes forward');
+        el.dispatchEvent(new KeyboardEvent('keydown', { key: 'ArrowLeft', altKey: true, bubbles: true }));
+        await until(() => titleOf() === 'a.js', 'Alt+Left goes back');
+        await handle.openFile('a.js', { line: 3 });
+        await t.settle();
+        t.ok(fwd.hasAttribute('disabled'), 'a new location drops the forward entries');
+        handle.destroy();
+    }],
+
     ['code explorer module: the viewer is one pk-code-view with its own header (path, language, line count, copy, actions) that fills the pane (issue 1523, no hand-built header)', async t => {
         const { mountCodeExplorer } = await dist('code-explorer');
         const host = t.stage('');
@@ -97,10 +209,45 @@ export const toolCases = [
         await until(() => el.querySelector('[data-ce-tree] pk-tree-item'), 'the file tree');
         el.querySelector('[data-ce-reports]').click();
         await until(() => el.querySelector('[data-kind="files"]'), 'the reports picker');
+        el.querySelector('[data-kind="files"]').click();
+        await until(() => el.querySelector('pk-list-group > button[data-path]'), 'the largest files list');
         const rows = () => [...el.querySelectorAll('pk-list-group > button[data-path]')].map(b => b.dataset.path);
         t.eq(rows().join(), 'src/big.js,src/a#b.js,notes/100%.md,src/small.js', 'the largest files, from the files that could be read');
         t.ok(/src\/gone\.js/.test(el.querySelector('[data-ce-tree]').textContent), 'the report says which file could not be read');
         t.eq(reads.filter(p => p === 'src/big.js').length, 1, 'each file is read once');
+        handle.destroy();
+    }],
+
+    ['code explorer module: the Reports landing view is the statistics (totals, by folder, by language, largest files, most referenced types) and a row opens its file', async t => {
+        const { mountCodeExplorer } = await dist('code-explorer');
+        const text = (...lines) => lines.join(String.fromCharCode(10));
+        const snapshot = { version: 1, files: [
+            { path: 'src/App.cs', language: 'cs', content: text('public class App', '{', '}') },
+            { path: 'src/Use.cs', language: 'cs', content: text('public class Use', '{', '    App a; App b;', '}') },
+            { path: 'docs/guide.md', language: 'md', content: text('# Guide', 'text') },
+        ] };
+        const host = t.stage('');
+        const handle = await mountCodeExplorer(host, { snapshot, height: '36rem' });
+        const el = handle.element;
+        await until(() => el.querySelector('[data-ce-tree] pk-tree-item'), 'the file tree');
+        el.querySelector('[data-ce-reports]').click();
+        await until(() => el.querySelector('[data-ce-stats-total]'), 'the statistics view');
+        const total = el.querySelector('[data-ce-stats-total]').textContent;
+        t.ok(total.includes('3 files, 9 lines'), `totals: ${total}`);
+        const rowsOf = label => JSON.parse(el.querySelector(`pk-table[label="${label}"]`).getAttribute('rows'));
+        t.eq(rowsOf('By folder').map(r => `${r.name}:${r.lines}`).join(), 'src:7,docs:2', 'lines by folder');
+        t.eq(rowsOf('By language').map(r => r.name).join(), 'cs,md', 'by extension');
+        t.eq(rowsOf('Most referenced types').map(r => `${r.name}:${r.refs}`).join(), 'App:2', 'the most referenced type');
+        const pane = el.querySelector('[data-ce-pane]').getBoundingClientRect();
+        for (const label of ['By folder', 'By language', 'Largest files', 'Most referenced types']) {
+            const tb = el.querySelector(`pk-table[label="${label}"]`).getBoundingClientRect();
+            t.ok(tb.left >= pane.left - 1 && tb.right <= pane.right + 1 && tb.width > 150, `${label} sits inside the main pane (${Math.round(tb.left)}-${Math.round(tb.right)} in ${Math.round(pane.left)}-${Math.round(pane.right)})`);
+        }
+        const table = el.querySelector('pk-table[label="Largest files"]');
+        const row = () => table.querySelector('tr[data-pk-context]') || table.shadowRoot?.querySelector('tr[data-pk-context]');
+        await until(row, 'the largest files rows');
+        row().click();
+        await until(() => el.querySelector('pk-tab[value="src/Use.cs"]'), 'the clicked file (the largest) opens in a tab');
         handle.destroy();
     }],
 
@@ -525,8 +672,8 @@ export const toolCases = [
         t.ok(/^plainkit-custom-.+\.zip$/.test(got[0].name) && files.has('README.md') && files.has('plainkit.custom.json') && files.has('dist/manifest.json') && files.has('dist/elements/button.js'), got[0].name);
         t.ok(/--pk-bp-phone:700px;--pk-bp-tablet:1024px/.test(text('dist/plainkit.css')) && /--color-accent: #123456/.test(text('dist/plainkit.css')) && /max-width:\s*700px/.test(text('dist/elements/table.js') + text('dist/elements/tabs.js')), 'widths and theme are in the page layer and the elements');
         const manifest = JSON.parse(text('dist/manifest.json'));
-        const extras = JSON.parse(text('dist/manifest.extras.json')); // the unminified page layer is listed in the extras manifest (#2032)
-        for (const [p, unit] of [['plainkit.css', extras], ['plainkit.min.css', manifest], ['elements/tabs.js', manifest], ['icons.svg', manifest]]) {
+        const extras = JSON.parse(text('dist/manifest.extras.json')); // the unminified page layer is listed in the extras manifest (#2032), and so are the icons (#111)
+        for (const [p, unit] of [['plainkit.css', extras], ['plainkit.min.css', manifest], ['elements/tabs.js', manifest], ['icons.svg', extras]]) {
             const digest = new Uint8Array(await crypto.subtle.digest('SHA-256', files.get(`dist/${p}`)));
             t.eq(unit.files.find(f => f.path === p).integrity, 'sha256-' + btoa(String.fromCharCode(...digest)), `${p} hash matches the manifest`);
         }

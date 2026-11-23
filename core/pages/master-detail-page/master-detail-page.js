@@ -1,3 +1,4 @@
+import { decideStatic } from '../../js/page-base.js';
 import { showState, showTitleBar } from '../../js/page-shell.js';
 import { renderState } from '../../js/page-states.js';
 import { loadElements } from '../../js/loader.js';
@@ -6,7 +7,7 @@ import { loadElements } from '../../js/loader.js';
 export default Base => class extends Base {
     connected() {
         // Static slotted mode (#1829, the convention in STANDARDS.md): the host wrote a list in slot=list and config has no list, so its list and record render as given, nothing is built, moved or written, and record-id only picks which pane a phone shows. Decided once, at connect.
-        if (this.$static || (!this.$w && this.querySelector?.(':scope > [slot="list"]') && !this.config?.list)) { this.$static = true; this.menuOn(); this.view(); return; }
+        if (decideStatic(this, () => !this.$w && this.querySelector?.(':scope > [slot="list"]') && !this.config?.list)) { this.menuOn(); this.view(); return; }
         if (!this.$w) {
             this.$w = true;
             const list = this.part('list');

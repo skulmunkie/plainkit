@@ -7,4 +7,8 @@
 /* Until the page header upgrades its slotted title is bare text; it holds the block padding the upgraded header draws, so the header arriving late moves nothing under it (CLS, issue 1510). */
 [part="header"]:not(:defined) { display: block; padding-block: var(--space-1); }
 [part="state"] { min-inline-size: 0; }
+/* fill: the shell takes the height of its parent (a definite-height column or block) and its one child takes what the header leaves, so no host wrapper or :has rule is needed. */
+:host([fill]) { --pk-fill-shrink: 1; flex: 1 1 auto; align-self: stretch; block-size: 100%; }
+:host([fill]) [part="content"] { display: flex; flex-direction: column; }
+:host([fill]) ::slotted(:not([slot])) { flex: 1 1 auto; min-block-size: 0; }
 @media (--phone) { :host { gap: var(--pk-page-shell-gap, var(--space-3)); } }
