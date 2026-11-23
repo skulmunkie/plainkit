@@ -14,6 +14,7 @@
 // Events: "pk-code-explorer-open" (detail { path }), "pk-code-explorer-error" (detail { error }).
 // Phone: below 640px pk-workspace shows one pane at a time (Files, Code, Inspector) with its own tab strip.
 
+import { createHistory } from './history.js';
 import { extensionsOf, filterGroups } from './scope.js';
 import { createProvider, wordSpans, matcherFor } from './providers.js';
 import { buildSegments, tokenize, wordAt, languageOf } from './tokenize.js';
@@ -64,6 +65,7 @@ export class CodeExplorerElement extends Base {
     #active = NAV;
     #docs = new Map();
     #focus = null;
+    #history = createHistory();
     #word = '';
     #filter = '';
     #search = null;
@@ -111,6 +113,10 @@ export class CodeExplorerElement extends Base {
         fill(this, `
 <pk-workspace fill active-pane="nav" nav-label="Files" main-label="Code" aside-label="Inspector" data-ce-root>
   <pk-container slot="nav" size="full" padding="sm"><pk-stack gap="sm">
+    <pk-cluster gap="xs">
+      <pk-button size="mini" variant="ghost" icon icon-name="arrow-left" label="Back" disabled data-ce-back></pk-button>
+      <pk-button size="mini" variant="ghost" icon icon-name="arrow-right" label="Forward" disabled data-ce-forward></pk-button>
+    </pk-cluster>
     <pk-input type="search" label="Filter files" placeholder="Filter files by path" data-ce-filter></pk-input>
     <pk-input type="search" label="Search code" placeholder="Search code: text or /regex/" data-ce-query data-ce-searchbox></pk-input>
     <pk-stack gap="sm" data-ce-scope hidden>
@@ -143,6 +149,8 @@ export class CodeExplorerElement extends Base {
         on($('[data-ce-ext]'), 'pk-value-change', e => rescope({ ext: e.detail.value ?? '' }));
         on($('[data-ce-folder]'), 'input', e => rescope({ folder: e.target.value }));
         on($('[data-ce-skip-tests]'), 'pk-change', e => rescope({ skipTests: e.detail?.checked === true }));
+        on($('[data-ce-back]'), 'click', () => this.#step(this.#history.back()));
+        on($('[data-ce-forward]'), 'click', () => this.#step(this.#history.forward()));
         on($('[data-ce-reports]'), 'click', () => this.#toggleReports());
         on($('[data-ce-clear]'), 'click', () => { this.#search = null; this.#reports = null; this.#statsInPane = false; this.#renderTree(); this.#renderPane(); });
         on($('[data-ce-inspector-close]'), 'click', () => { this.#inspector = null; this.#renderInspector(); this.#showPane('main'); });
@@ -157,7 +165,10 @@ export class CodeExplorerElement extends Base {
         on(tabs, 'keydown', e => { const tab = e.target.closest?.('pk-tab'); if (tab && e.key === 'Delete') this.#closeTab(tab.value, true); });
         on($('[data-ce-pane]'), 'click', e => this.#onPaneClick(e));
         on($('[data-ce-inspector-body]'), 'click', e => this.#onInspectorClick(e));
-        on(this, 'keydown', e => { if (e.key === 'Escape' && this.#inspector) { this.#inspector = null; this.#renderInspector(); this.#showPane('main'); } });
+        on(this, 'keydown', e => {
+            if (e.altKey && !e.ctrlKey && !e.metaKey && (e.key === 'ArrowLeft' || e.key === 'ArrowRight')) { e.preventDefault(); this.#step(e.key === 'ArrowLeft' ? this.#history.back() : this.#history.forward()); return; }
+            if (e.key === 'Escape' && this.#inspector) { this.#inspector = null; this.#renderInspector(); this.#showPane('main'); }
+        });
         // Load every element the explorer writes before the first tree is drawn: a pk-tree that defines before its items would
         // update against items that are not upgraded yet.
         const scratch = this.ownerDocument.createElement('div');
@@ -198,7 +209,7 @@ export class CodeExplorerElement extends Base {
     async #onFeed(ev) {
         if (ev?.path) this.#docs.delete(ev.path);
         await this.#reload();
-        if (ev?.path && ev.path === this.#active) await this.openFile(ev.path, { line: this.#focus ?? undefined });
+        if (ev?.path && ev.path === this.#active) await this.openFile(ev.path, { line: this.#focus ?? undefined, history: false });
     }
 
     // The pane pk-workspace shows on a phone (on a wider screen every pane shows).
@@ -415,7 +426,14 @@ export class CodeExplorerElement extends Base {
         if (refocus) requestAnimationFrame(() => this.querySelector('pk-tab[selected]')?.focus());
     }
 
-    async openFile(path, { line } = {}) {
+    // Move to a history entry (Back / Forward) without recording a new one.
+    #step(loc) { if (loc) this.openFile(loc.path, { line: loc.line ?? undefined, history: false }); else this.#syncHistory(); }
+
+    #syncHistory() {
+        for (const [sel, ok] of [['[data-ce-back]', this.#history.canBack], ['[data-ce-forward]', this.#history.canForward]]) this.querySelector(sel)?.toggleAttribute('disabled', !ok);
+    }
+
+    async openFile(path, { line, history = true } = {}) {
         try {
             if (!this.#docs.has(path)) {
                 const doc = await this.#provider.readFile(path);
@@ -429,9 +447,10 @@ export class CodeExplorerElement extends Base {
         }
         const isNew = !this.#open.includes(path);
         if (isNew) this.#open.push(path);
+        if (history) { if (this.#active === this.#history.current?.path) this.#history.replace({ path: this.#active, line: this.#focus }); this.#history.push({ path, line }); }
         this.#active = path; this.#focus = line ?? null; this.#word = ''; this.#statsInPane = false;
         if (isNew) this.#renderTabs(); else this.querySelector('[data-ce-tabs]').setAttribute('value', path);
-        this.#renderPane(); this.#syncTree(); this.#showPane('main');
+        this.#renderPane(); this.#syncTree(); this.#showPane('main'); this.#syncHistory();
         if (this.#inspector?.kind === 'outline') this.#showOutline(false);
         this.dispatchEvent(new CustomEvent('pk-code-explorer-open', { detail: { path } }));
     }

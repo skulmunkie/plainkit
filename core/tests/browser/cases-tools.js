@@ -116,6 +116,42 @@ Dup();
         handle.destroy();
     }],
 
+    ['code explorer module: Back and Forward return to earlier opened locations, with Alt+Left / Alt+Right (issue 121)', async t => {
+        const { mountCodeExplorer } = await dist('code-explorer');
+        const host = t.stage('');
+        const snap = { version: 1, files: [
+            { path: 'a.js', language: 'js', content: `one
+two
+three
+` },
+            { path: 'b.js', language: 'js', content: `x
+y
+` },
+        ] };
+        const handle = await mountCodeExplorer(host, { snapshot: snap, file: 'a.js', height: '20rem' });
+        const el = handle.element;
+        const view = () => el.querySelector('[data-ce-pane] > pk-code-view');
+        const titleOf = () => view().shadowRoot.querySelector('.title')?.textContent;
+        const back = el.querySelector('[data-ce-back]'), fwd = el.querySelector('[data-ce-forward]');
+        await until(view, 'the viewer');
+        t.ok(back.hasAttribute('disabled') && fwd.hasAttribute('disabled'), 'both start disabled');
+        await handle.openFile('b.js', { line: 2 });
+        await until(() => titleOf() === 'b.js', 'b.js');
+        t.ok(!back.hasAttribute('disabled') && fwd.hasAttribute('disabled'), 'back enabled after a second location');
+        t.eq(back.getAttribute('label'), 'Back', 'icon-only button keeps an aria name');
+        back.click();
+        await until(() => titleOf() === 'a.js', 'back to a.js');
+        t.ok(back.hasAttribute('disabled') && !fwd.hasAttribute('disabled'), 'forward enabled at the start');
+        el.dispatchEvent(new KeyboardEvent('keydown', { key: 'ArrowRight', altKey: true, bubbles: true }));
+        await until(() => titleOf() === 'b.js', 'Alt+Right goes forward');
+        el.dispatchEvent(new KeyboardEvent('keydown', { key: 'ArrowLeft', altKey: true, bubbles: true }));
+        await until(() => titleOf() === 'a.js', 'Alt+Left goes back');
+        await handle.openFile('a.js', { line: 3 });
+        await t.settle();
+        t.ok(fwd.hasAttribute('disabled'), 'a new location drops the forward entries');
+        handle.destroy();
+    }],
+
     ['code explorer module: the viewer is one pk-code-view with its own header (path, language, line count, copy, actions) that fills the pane (issue 1523, no hand-built header)', async t => {
         const { mountCodeExplorer } = await dist('code-explorer');
         const host = t.stage('');
