@@ -44,9 +44,7 @@ import { buildSnippet, encodeShare, decodeShare, SHARE_KEY } from '../../js/them
 import { ensureStyles, styleUrls, runtimeUrl, h, loadText, on as listen, storedText, storeText, addressOf } from '../../js/mount-support.js';
 import { applyDynamic } from '../../js/dynamic.js';
 import { loadElements } from '../../js/loader.js';
-import { createSdkTab } from './sdk-tab.js';
 import { createLogger } from '../../js/log.js';
-import { createDialogs } from '../../js/dialogs.js';
 const log = createLogger('theme-editor');
 
 const STYLES = ['../../plainkit.css'];
@@ -219,12 +217,24 @@ export async function mountThemeEditor(container, options = {}) {
     const presetMsg = h(doc, 'div');
 
     // The Custom SDK tab (sdk-tab.js): theme and breakpoints as independent choices, and the export. It reads the edits through these two closures.
-    const sdk = options.sdk === false ? null : createSdkTab({
-        doc, win, dist: options.dist,
-        theme: () => ({ overrides: { shared: { ...state.overrides.shared }, dark: { ...state.overrides.dark }, light: { ...state.overrides.light } }, css: outputCss().css }),
-        importTheme: next => replaceOverrides(next, null),
-        confirmExport: what => confirmExport(what),
-    });
+    // It loads when its tab is first opened, or once the mount is done and the browser is idle (sdk-tab.js and the export code it pulls in stay out of the first load).
+    const sdkHost = options.sdk === false ? null : h(doc, 'div');
+    let sdk = null;
+    let sdkLoad = null;
+    let gone = false;
+    let idleHandle = null;
+    const loadSdk = () => sdkLoad ??= import('./sdk-tab.js').then(({ createSdkTab }) => {
+        if (gone) return;
+        sdk = createSdkTab({
+            doc, win, dist: options.dist,
+            theme: () => ({ overrides: { shared: { ...state.overrides.shared }, dark: { ...state.overrides.dark }, light: { ...state.overrides.light } }, css: outputCss().css }),
+            importTheme: next => replaceOverrides(next, null),
+            confirmExport: what => confirmExport(what),
+        });
+        sdkHost.replaceChildren(sdk.panel);
+        loadElements(sdkHost);
+        sdk.refresh();
+    }).catch(error => { sdkLoad = null; log.warn('the Custom SDK tab could not be loaded', error); });
     const tabs = h(doc, 'pk-tabs', { value: 'tokens', label: 'Theme editor' },
         h(doc, 'pk-tab', { value: 'tokens' }, 'Tokens'), h(doc, 'pk-tab-panel', { value: 'tokens' }, list),
         changesTab, h(doc, 'pk-tab-panel', { value: 'changes' }, changesBox),
@@ -247,7 +257,7 @@ export async function mountThemeEditor(container, options = {}) {
             h(doc, 'p', { class: 'te-caption' }, 'The same as a file: save it as theme.css and load it after the SDK stylesheets (a strict style-src cannot use an inline style element)'), snippetBox, h(doc, 'pk-cluster', { class: 'u-mt-3' }, copySnippet),
             h(doc, 'p', { class: 'te-caption' }, 'A link to this theme: the edits travel in the link fragment (compressed when the browser can, at most 4096 characters, text only), and whoever opens it gets them as ordinary edits'),
             h(doc, 'div', { class: 'te-palette-inputs' }, linkBox, h(doc, 'pk-cluster', {}, linkBtn, copyLink)), h(doc, 'div', { class: 'te-palette-inputs u-mt-3' }, linkIn, h(doc, 'pk-cluster', {}, importLinkBtn)), shareMsg, h(doc, 'p', { class: 'te-caption' }, 'JSON { version, shared, dark, light } of token to value: the C# helper input (editable, then Import)'), jsonBox, h(doc, 'pk-cluster', { class: 'u-mt-3' }, importBtn, copyBtn, downloadBtn), message),
-        ...(sdk ? [h(doc, 'pk-tab', { value: 'sdk' }, 'Custom SDK'), h(doc, 'pk-tab-panel', { value: 'sdk' }, sdk.panel)] : []));
+        ...(sdkHost ? [h(doc, 'pk-tab', { value: 'sdk' }, 'Custom SDK'), h(doc, 'pk-tab-panel', { value: 'sdk' }, sdkHost)] : []));
 
     const root = h(doc, 'section', { class: 'te', 'aria-label': 'Theme editor' },
         h(doc, 'div', { class: 'te-toolbar' }, find, kindSelect, themeSelect, scopeSelect),
@@ -473,6 +483,11 @@ export async function mountThemeEditor(container, options = {}) {
     on(themeSelect, 'change', e => { if (e.target.value !== theme()) api.setTheme(e.target.value); });
     on(resetAll, 'click', () => api.reset());
     on(auditBox, 'click', e => { const b = e.target.closest?.('[data-jump]'); if (b) jumpTo(b.dataset.jump, b.dataset.jumpTheme); });
+    if (sdkHost) {
+        on(tabs, 'pk-tab-change', e => { if (e.detail?.value === 'sdk') loadSdk(); });
+        const soon = () => { if (!gone) loadSdk(); };
+        if (win.requestIdleCallback) idleHandle = win.requestIdleCallback(soon, { timeout: 1000 }); else Promise.resolve().then(soon);
+    }
     on(undoBtn, 'click', () => api.undo());
     on(redoBtn, 'click', () => api.redo());
     on(changesBox, 'click', e => {
@@ -566,7 +581,7 @@ export async function mountThemeEditor(container, options = {}) {
     async function confirmExport(what) {
         const failing = gate ? gateFailures(state.overrides, tokens, pairs) : [];
         if (!failing.length) return true;
-        dialogs ??= createDialogs({ container: root, log, load: d => loadElements(d) });
+        if (!dialogs) { const { createDialogs } = await import('../../js/dialogs.js'); dialogs ??= createDialogs({ container: root, log, load: d => loadElements(d) }); }
         const shown = failing.slice(0, 6).join('; ') + (failing.length > 6 ? `; and ${failing.length - 6} more` : '');
         const ok = await dialogs.confirm({ heading: `${what} with ${failing.length} failing text pair${failing.length === 1 ? '' : 's'}?`, message: `${shown}. Text on these pairs is below 4.5:1 (AA).`, confirmLabel: 'Export anyway', cancelLabel: 'Go back', danger: true });
         if (!ok) log.debug('export cancelled at the contrast gate', { what });
@@ -628,6 +643,8 @@ export async function mountThemeEditor(container, options = {}) {
         destroy() {
             observer.disconnect();
             doc.adoptedStyleSheets = doc.adoptedStyleSheets.filter(x => x !== swatchSheet);
+            gone = true;
+            if (idleHandle !== null) win.cancelIdleCallback?.(idleHandle);
             sdk?.destroy();
             dialogs?.destroy();
             for (const off of listeners) off();
