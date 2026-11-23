@@ -456,4 +456,34 @@ export const dockDeclCases = [
         t.ok(root.scrollWidth <= root.clientWidth + 1, 'no horizontal overflow');
         t.ok(sel === null || sel.textContent.trim() === 'Canvas', 'the selected tab is Canvas');
     }],
+
+    ['dock: a panel built on first show (#590): an empty declared panel is filled when its tab is first active, and a panel node appended after first draw repairs the layout and keeps its slot', async t => {
+        const LAZY = `<pk-dock label="Lazy">
+  <div slot="files" data-heading="Files" data-group="left">Files</div>
+  <div slot="editor" data-heading="Editor">Editor</div>
+  <div slot="log" data-heading="Log" data-group="bottom" id="log"></div>
+  <div slot="out" data-heading="Output" data-group="bottom" id="out"></div>
+</pk-dock>`;
+        const { doc } = await frame(t, LAZY, 1200);
+        const dock = doc.querySelector('pk-dock'), root = dock.shadowRoot.querySelector('[part=root]');
+        // The documented pattern: collect the active panel of every tab group from the layout, and build a panel's content the first time it is active.
+        const activeIds = n => n.type === 'tabs' ? [n.active] : [...activeIds(n.a), ...activeIds(n.b)];
+        const built = [], build = id => { const el = doc.querySelector('[slot="' + id + '"]'); if (el && !el.dataset.built) { el.dataset.built = '1'; el.append(doc.createTextNode(id + ' built')); built.push(id); } };
+        const show = layout => activeIds(layout.root).forEach(build);
+        dock.addEventListener('pk-layout-change', e => show(e.detail.layout));
+        show(JSON.parse(dock.getLayout()));
+        t.ok(built.includes('log') && !built.includes('out'), 'at first draw only the active tab of the bottom group is built (' + built.join(',') + ')');
+        t.eq(doc.getElementById('out').childNodes.length, 0, 'the hidden panel stayed empty');
+        [...root.querySelectorAll('pk-tab')].find(x => x.textContent === 'Output').click();
+        await t.settle(); await wait(60);
+        t.ok(built.includes('out'), 'choosing the Output tab builds it');
+        t.eq(built.filter(id => id === 'out').length, 1, 'built once');
+        // A panel node added after the first draw: the dock picks it up and repairs the layout, and the node keeps its slot.
+        const late = doc.createElement('div'); late.slot = 'notes'; late.dataset.heading = 'Notes'; late.dataset.group = 'right'; late.textContent = 'Late';
+        dock.append(late); await t.settle(); await wait(120);
+        t.ok(late.slot === 'notes' && late.parentElement === dock, 'the appended node keeps its slot and its place');
+        t.ok(JSON.stringify(JSON.parse(dock.getLayout()).root).includes('"notes"'), 'the layout now holds the panel');
+        [...root.querySelectorAll('pk-tab')].find(x => x.textContent === 'Notes').click(); await t.settle(); await wait(60);
+        t.ok(rect(late).width > 20, 'a new panel joins an existing group as a tab, and draws once its tab is chosen');
+    }],
 ];
