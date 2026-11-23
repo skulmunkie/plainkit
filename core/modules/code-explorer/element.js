@@ -421,7 +421,8 @@ export class CodeExplorerElement extends Base {
         const note = start > 1 || end < total ? `<pk-text slot="header-start" inline tone="muted" size="read">Showing lines ${start}-${end} of ${total}.</pk-text>` : '';
         const outline = caps.outline ? '<pk-button slot="actions" size="mini" variant="ghost" data-ce-outline>Outline</pk-button>' : '';
         const usages = caps.references && this.#word ? `<pk-button slot="actions" size="mini" variant="ghost" data-ce-usages>Usages of ${esc(this.#word)}</pk-button>` : '';
-        fill(pane, `<pk-code-view header copy fill label="${esc(doc.path)}" language="${esc(doc.language)}">${note}${outline}${usages}</pk-code-view>`);
+        const define = caps.definitions && this.#word ? `<pk-button slot="actions" size="mini" variant="ghost" data-ce-definition>Go to definition of ${esc(this.#word)}</pk-button>` : '';
+        fill(pane, `<pk-code-view header copy fill label="${esc(doc.path)}" language="${esc(doc.language)}">${note}${outline}${define}${usages}</pk-code-view>`);
         const view = pane.querySelector('pk-code-view'), shown = doc.lines.slice(start - 1, end);
         Object.assign(view, { start, lines: shown, highlight: this.#focus ? String(this.#focus) : '', segments: shown.map((text, i) => buildSegments(text, doc.tokens[start - 1 + i] ?? [], [], wordSpans(text, this.#word))) });
         on(view, 'pk-line-click', e => this.#onLineClick(e.detail));
@@ -432,6 +433,7 @@ export class CodeExplorerElement extends Base {
     #onPaneClick(e) {
         if (e.target.closest('[data-ce-outline]')) return this.#showOutline();
         if (e.target.closest('[data-ce-usages]')) return this.#showUsages();
+        if (e.target.closest('[data-ce-definition]')) return this.#goToDefinition();
     }
 
     // A click in the code viewer: toggle the word under the caret as the selected word and focus its line.
@@ -452,17 +454,28 @@ export class CodeExplorerElement extends Base {
         this.#renderInspector(); this.#showPane('aside');
     }
 
+    // One declaration opens at once; several are listed as candidates (never guessed); none says so.
+    async #goToDefinition() {
+        const word = this.#word;
+        let items = [];
+        try { items = await this.#provider.definitions(word); } catch (e) { log.warn('the definition could not be looked up', e); this.#inspector = { kind: 'definitions', word, items: [], error: e.message }; this.#renderInspector(); this.#showPane('aside'); return; }
+        if (items.length === 1) return this.openFile(items[0].path, { line: items[0].line });
+        this.#inspector = { kind: 'definitions', word, items };
+        this.#renderInspector(); this.#showPane('aside');
+    }
+
     #renderInspector() {
         const i = this.#inspector;
         const shown = Boolean(i) && Boolean(this.#docs.get(this.#active));
         this.querySelector('[data-ce-root]').toggleAttribute('aside-open', shown);
         if (!shown) return;
-        this.querySelector('[data-ce-inspector-title]').textContent = i.kind === 'outline' ? 'Outline' : `Usages of ${i.word}`;
+        this.querySelector('[data-ce-inspector-title]').textContent = i.kind === 'outline' ? 'Outline' : i.kind === 'definitions' ? `Definitions of ${i.word}` : `Usages of ${i.word}`;
         const body = this.querySelector('[data-ce-inspector-body]');
         if (i.error) { fill(body, `<pk-alert kind="danger">${esc(i.error)}</pk-alert>`); return; }
-        if (!i.items.length) { fill(body, `<pk-text tone="muted">${i.kind === 'outline' ? 'Nothing to outline in this file.' : 'No usages found.'}</pk-text>`); return; }
+        if (!i.items.length) { fill(body, `<pk-text tone="muted">${i.kind === 'outline' ? 'Nothing to outline in this file.' : i.kind === 'definitions' ? 'No declaration found.' : 'No usages found.'}</pk-text>`); return; }
         fill(body, i.kind === 'outline'
             ? hitList(i.items.map(x => { const d = Math.min(Math.max(x.depth ?? 0, 0), 3); return `<button type="button"${d ? ` data-depth="${d}"` : ''} data-line="${x.line}"><pk-text inline size="meta" weight="semibold">${esc(x.kind)}</pk-text><pk-text inline font="mono" size="read">${esc(x.name)}</pk-text><pk-text inline font="mono" size="meta">${x.line}</pk-text></button>`; }).join(''), 'Outline')
+            : i.kind === 'definitions' ? hitList(i.items.map(x => hitRow(x.path, x.line, x.line, `${esc(x.path)}: ${esc(x.kind)} ${esc(x.name)}`)).join(''), 'Definitions')
             : hitList(i.items.map(x => hitRow(x.path, x.line, x.line, `${esc(x.path)}: ${esc(x.text.trim())}`)).join(''), 'Usages'));
     }
 
