@@ -14,6 +14,7 @@
 // Events: "pk-code-explorer-open" (detail { path }), "pk-code-explorer-error" (detail { error }).
 // Phone: below 640px pk-workspace shows one pane at a time (Files, Code, Inspector) with its own tab strip.
 
+import { extensionsOf, filterGroups } from './scope.js';
 import { createProvider, wordSpans, matcherFor } from './providers.js';
 import { buildSegments, tokenize, wordAt, languageOf } from './tokenize.js';
 import { patternReport, statsReport, largestFilesReport, longestMethodsReport, duplicateBlocksReport } from './reports.js';
@@ -66,6 +67,7 @@ export class CodeExplorerElement extends Base {
     #word = '';
     #filter = '';
     #search = null;
+    #scope = { folder: '', ext: '', skipTests: false };
     #patterns = [];
     #reports = null;
     #statsInPane = false; // the statistics view fills the main pane until a file is opened or the reports close
@@ -111,6 +113,11 @@ export class CodeExplorerElement extends Base {
   <pk-container slot="nav" size="full" padding="sm"><pk-stack gap="sm">
     <pk-input type="search" label="Filter files" placeholder="Filter files by path" data-ce-filter></pk-input>
     <pk-input type="search" label="Search code" placeholder="Search code: text or /regex/" data-ce-query data-ce-searchbox></pk-input>
+    <pk-stack gap="sm" data-ce-scope hidden>
+      <pk-select label="File type" show-label data-ce-ext></pk-select>
+      <pk-input label="Folder" placeholder="Limit search to a folder" data-ce-folder></pk-input>
+      <pk-checkbox data-ce-skip-tests>Skip test files</pk-checkbox>
+    </pk-stack>
     <pk-cluster gap="sm">
       <pk-button size="mini" icon-name="search" collapse="phone" data-ce-search hidden>Search</pk-button>
       <pk-button size="mini" variant="ghost" icon-name="chart" collapse="phone" data-ce-reports>Reports</pk-button>
@@ -132,6 +139,10 @@ export class CodeExplorerElement extends Base {
         const runSearch = () => this.#runSearch($('[data-ce-query]').value);
         on($('[data-ce-query]'), 'keydown', e => { if (e.key === 'Enter') runSearch(); });
         on($('[data-ce-search]'), 'click', runSearch);
+        const rescope = patch => { Object.assign(this.#scope, patch); if (this.#search) this.#renderTree(); };
+        on($('[data-ce-ext]'), 'pk-value-change', e => rescope({ ext: e.detail.value ?? '' }));
+        on($('[data-ce-folder]'), 'input', e => rescope({ folder: e.target.value }));
+        on($('[data-ce-skip-tests]'), 'pk-change', e => rescope({ skipTests: e.detail?.checked === true }));
         on($('[data-ce-reports]'), 'click', () => this.#toggleReports());
         on($('[data-ce-clear]'), 'click', () => { this.#search = null; this.#reports = null; this.#statsInPane = false; this.#renderTree(); this.#renderPane(); });
         on($('[data-ce-inspector-close]'), 'click', () => { this.#inspector = null; this.#renderInspector(); this.#showPane('main'); });
@@ -164,6 +175,7 @@ export class CodeExplorerElement extends Base {
             const caps = this.#provider.capabilities ?? {};
             this.querySelector('[data-ce-searchbox]').hidden = !caps.search;
             this.querySelector('[data-ce-search]').hidden = !caps.search;
+            this.querySelector('[data-ce-scope]').hidden = !caps.search;
             await this.#reload();
             if (this.isConnected && caps.live && this.#provider.subscribe) { this.#unsubscribe?.(); this.#unsubscribe = this.#provider.subscribe(ev => this.#onFeed(ev)); }
             const initial = this.getAttribute('initial');
@@ -179,6 +191,7 @@ export class CodeExplorerElement extends Base {
 
     async #reload() {
         this.#files = await this.#provider.listFiles();
+        this.querySelector('[data-ce-ext]').options = [{ value: '', label: 'All types' }, ...extensionsOf(this.#files).map(x => ({ value: x, label: `.${x}` }))];
         this.#renderTree();
     }
 
@@ -365,9 +378,10 @@ export class CodeExplorerElement extends Base {
     #searchHtml() {
         const s = this.#search;
         if (s.error) return `<pk-alert kind="danger">${esc(s.error)}</pk-alert>`;
-        if (!s.groups.length) return '<pk-text tone="muted">No matches.</pk-text>';
+        const groups = filterGroups(s.groups, this.#scope);
+        if (!groups.length) return `<pk-text tone="muted">${s.groups.length ? 'No matches in this scope.' : 'No matches.'}</pk-text>`;
         const match = matcherFor(s.query);
-        return `<pk-stack gap="sm">${s.groups.map(g => hitGroup(`${esc(g.path)} <pk-text inline tone="muted">(${g.hits.length})</pk-text>`, g.hits.map(h => {
+        return `<pk-stack gap="sm">${groups.map(g => hitGroup(`${esc(g.path)} <pk-text inline tone="muted">(${g.hits.length})</pk-text>`, g.hits.map(h => {
             const t = h.text.trim(); const shift = h.text.length - h.text.trimStart().length;
             const spans = (h.spans ?? match(h.text)).map(x => ({ start: x.start - shift, length: x.length }));
             return hitRow(g.path, h.line, h.line, buildSegments(t, [], spans, []).map(x => x.match ? `<mark>${esc(x.text)}</mark>` : esc(x.text)).join(''));

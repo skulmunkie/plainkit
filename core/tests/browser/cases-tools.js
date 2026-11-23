@@ -40,6 +40,35 @@ export const toolCases = [
         handle.destroy(); t.ok(!host.contains(el));
     }],
 
+    ['code explorer module: scoped search narrows the results by folder, file type and test files (issue 121)', async t => {
+        const { mountCodeExplorer } = await dist('code-explorer');
+        const host = t.stage('');
+        const snap = { version: 1, files: [
+            { path: 'src/a.cs', language: 'cs', content: `needle
+` },
+            { path: 'src/a.test.cs', language: 'cs', content: `needle
+` },
+            { path: 'src/b.js', language: 'js', content: `needle
+` },
+            { path: 'docs/c.md', language: 'md', content: `needle
+` },
+        ] };
+        const handle = await mountCodeExplorer(host, { snapshot: snap, search: 'needle', height: '24rem' });
+        const el = handle.element;
+        const paths = () => [...el.querySelectorAll('pk-list-group > button[data-path]')].map(b => b.dataset.path).sort();
+        await until(() => paths().length === 4, 'all four hits');
+        const folder = el.querySelector('[data-ce-folder]');
+        folder.value = 'src'; folder.dispatchEvent(new Event('input', { bubbles: true })); await t.settle();
+        t.eq(paths().join(), 'src/a.cs,src/a.test.cs,src/b.js', 'folder src');
+        el.querySelector('[data-ce-ext]').dispatchEvent(new CustomEvent('pk-value-change', { detail: { value: 'cs' } })); await t.settle();
+        t.eq(paths().join(), 'src/a.cs,src/a.test.cs', 'type cs');
+        el.querySelector('[data-ce-skip-tests]').dispatchEvent(new CustomEvent('pk-change', { detail: { checked: true } })); await t.settle();
+        t.eq(paths().join(), 'src/a.cs', 'test files skipped');
+        folder.value = 'docs'; folder.dispatchEvent(new Event('input', { bubbles: true })); await t.settle();
+        t.ok(/No matches in this scope/.test(el.textContent), 'an empty scope says so');
+        handle.destroy();
+    }],
+
     ['code explorer module: go to definition opens a single declaration, a Razor component by file name, and lists candidates when ambiguous (issue 121)', async t => {
         const { mountCodeExplorer } = await dist('code-explorer');
         const host = t.stage('');

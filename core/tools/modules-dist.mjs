@@ -14,7 +14,7 @@ const minifyJs = code => transformSync(code, { loader: 'js', minify: true }).cod
 
 // files: what the folder holds.
 export const MODULES = {
-    'code-explorer': { files: ['code-explorer.js', 'element.js', 'providers.js', 'symbols.js', 'tokenize.js', 'reports.js', 'code-explorer.css'] },
+    'code-explorer': { files: ['code-explorer.js', 'element.js', 'providers.js', 'symbols.js', 'tokenize.js', 'reports.js', 'scope.js', 'code-explorer.css'] },
     scorecard: { files: ['scorecard.js', 'sections.js', 'measure.js', 'scorecard.css'] },
     performance: { files: ['performance.js'] },
     console: { files: ['console.js'] },
