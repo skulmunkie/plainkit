@@ -1,5 +1,5 @@
 {
-  "_comment": "The budget ledger (#1985). A READ-ONLY mirror of the budgets, one entry per budget: id, class, limit and where it is enforced. Classes: hard = never exceeded, takes no exception; release = ceiling is the last release measured + 5 percent, set by scripts/set-ceilings.mjs; ratchet = moves down, or up only through an exception (what the element, module and package budgets are until migration steps 3 and 4 of docs/superpowers/specs/2026-11-19-budget-policy-rethink.md change them); advisory = reported, with only a backstop. The numbers are edited in their source (the file named in `source`); core/tests/budget-ledger.test.mjs fails when this file and the source disagree, so the ledger is never a second place to edit a number silently. `exceptions` holds approved BUDGET EXCEPTIONS: { budget, pr, approvedBy, reason }, added in the pull request that needs it and approved there by the owner or the orchestrating agent; no issue, plan or expiry. Hard gates take no exception. Optional-package ceilings move only through scripts/set-ceilings.mjs. Entries with `movedBy` carry limit null: scripts/set-ceilings.mjs rewrites their source at the final gates, so the test reads the live value from the source instead of a copy that would go stale.",
+  "_comment": "The budget ledger (#1985). A READ-ONLY mirror of the budgets, one entry per budget: id, class, limit and where it is enforced. Classes: hard = never exceeded, takes no exception; release = ceiling is the last release measured + 5 percent, set only by `node scripts/set-ceilings.mjs --release` (in force since #1985 step 3); ratchet = moves down, or up only through an exception (what the element, module, audit and Blazor analyzer budgets are until migration step 4 of docs/superpowers/specs/2026-11-19-budget-policy-rethink.md change them); advisory = reported, with only a backstop. The numbers are edited in their source (the file named in `source`); core/tests/budget-ledger.test.mjs fails when this file and the source disagree, so the ledger is never a second place to edit a number silently. `exceptions` holds approved BUDGET EXCEPTIONS: { budget, pr, approvedBy, reason }, added in the pull request that needs it and approved there by the owner or the orchestrating agent; no issue, plan or expiry. Hard gates take no exception, and neither does a release entry marked `noException: true` (page weight, the app entry, Blazor coreOnly). Release ceilings move only through scripts/set-ceilings.mjs --release. Entries with `movedBy` carry limit null: scripts/set-ceilings.mjs rewrites their source at the final gates, so the test reads the live value from the source instead of a copy that would go stale.",
   "budgets": [
     {
       "id": "page-layer-css-gz-kb",
@@ -14,18 +14,20 @@
     },
     {
       "id": "app-entry-gz-kb",
-      "class": "hard",
-      "limit": 22,
+      "class": "release",
+      "limit": null,
       "unit": "KB gzip",
       "source": {
         "file": "core/site/scorecard/scoring.data.js",
         "budget": "appEntryGzKb"
       },
-      "enforcedBy": "core/tests/app-budgets.test.mjs"
+      "enforcedBy": "core/tests/app-budgets.test.mjs",
+      "noException": true,
+      "movedBy": "scripts/set-ceilings.mjs --release"
     },
     {
       "id": "page-weight-button-gzip",
-      "class": "hard",
+      "class": "release",
       "limit": null,
       "unit": "bytes gzip",
       "source": {
@@ -36,11 +38,12 @@
         ]
       },
       "enforcedBy": "core/tests/page-weight.test.mjs",
-      "movedBy": "scripts/set-ceilings.mjs (--allow-page-weight)"
+      "movedBy": "scripts/set-ceilings.mjs --release (--allow-page-weight)",
+      "noException": true
     },
     {
       "id": "page-weight-button-brotli",
-      "class": "hard",
+      "class": "release",
       "limit": null,
       "unit": "bytes brotli",
       "source": {
@@ -51,11 +54,12 @@
         ]
       },
       "enforcedBy": "core/tests/page-weight.test.mjs",
-      "movedBy": "scripts/set-ceilings.mjs (--allow-page-weight)"
+      "movedBy": "scripts/set-ceilings.mjs --release (--allow-page-weight)",
+      "noException": true
     },
     {
       "id": "page-weight-form-gzip",
-      "class": "hard",
+      "class": "release",
       "limit": null,
       "unit": "bytes gzip",
       "source": {
@@ -66,11 +70,12 @@
         ]
       },
       "enforcedBy": "core/tests/page-weight.test.mjs",
-      "movedBy": "scripts/set-ceilings.mjs (--allow-page-weight)"
+      "movedBy": "scripts/set-ceilings.mjs --release (--allow-page-weight)",
+      "noException": true
     },
     {
       "id": "page-weight-form-brotli",
-      "class": "hard",
+      "class": "release",
       "limit": null,
       "unit": "bytes brotli",
       "source": {
@@ -81,11 +86,12 @@
         ]
       },
       "enforcedBy": "core/tests/page-weight.test.mjs",
-      "movedBy": "scripts/set-ceilings.mjs (--allow-page-weight)"
+      "movedBy": "scripts/set-ceilings.mjs --release (--allow-page-weight)",
+      "noException": true
     },
     {
       "id": "page-weight-table-gzip",
-      "class": "hard",
+      "class": "release",
       "limit": null,
       "unit": "bytes gzip",
       "source": {
@@ -96,11 +102,12 @@
         ]
       },
       "enforcedBy": "core/tests/page-weight.test.mjs",
-      "movedBy": "scripts/set-ceilings.mjs (--allow-page-weight)"
+      "movedBy": "scripts/set-ceilings.mjs --release (--allow-page-weight)",
+      "noException": true
     },
     {
       "id": "page-weight-table-brotli",
-      "class": "hard",
+      "class": "release",
       "limit": null,
       "unit": "bytes brotli",
       "source": {
@@ -111,12 +118,13 @@
         ]
       },
       "enforcedBy": "core/tests/page-weight.test.mjs",
-      "movedBy": "scripts/set-ceilings.mjs (--allow-page-weight)"
+      "movedBy": "scripts/set-ceilings.mjs --release (--allow-page-weight)",
+      "noException": true
     },
     {
       "id": "blazor-payload-core-only",
-      "class": "hard",
-      "limit": 745062,
+      "class": "release",
+      "limit": null,
       "unit": "bytes gzip",
       "source": {
         "file": "packages.json",
@@ -125,7 +133,9 @@
           "coreOnly"
         ]
       },
-      "enforcedBy": "scripts/blazor-extras-publish.mjs"
+      "enforcedBy": "scripts/blazor-extras-publish.mjs",
+      "noException": true,
+      "movedBy": "scripts/set-ceilings.mjs --release"
     },
     {
       "id": "element-gz-kb",
@@ -208,29 +218,31 @@
     },
     {
       "id": "package-plainkit-packed",
-      "class": "ratchet",
-      "limit": 291492,
+      "class": "release",
+      "limit": null,
       "unit": "bytes packed",
       "source": {
         "file": "core/tests/package-size.test.mjs",
         "const": "MAX_PACKED_BYTES"
       },
-      "enforcedBy": "core/tests/package-size.test.mjs"
+      "enforcedBy": "core/tests/package-size.test.mjs",
+      "movedBy": "scripts/set-ceilings.mjs --release"
     },
     {
       "id": "package-plainkit-unpacked",
-      "class": "ratchet",
-      "limit": 957700,
+      "class": "release",
+      "limit": null,
       "unit": "bytes unpacked",
       "source": {
         "file": "core/tests/package-size.test.mjs",
         "const": "MAX_UNPACKED_BYTES"
       },
-      "enforcedBy": "core/tests/package-size.test.mjs"
+      "enforcedBy": "core/tests/package-size.test.mjs",
+      "movedBy": "scripts/set-ceilings.mjs --release"
     },
     {
       "id": "package-tools-zip",
-      "class": "ratchet",
+      "class": "release",
       "limit": null,
       "unit": "bytes zip",
       "source": {
@@ -241,7 +253,7 @@
         ]
       },
       "enforcedBy": "scripts/check-package.mjs",
-      "movedBy": "scripts/set-ceilings.mjs"
+      "movedBy": "scripts/set-ceilings.mjs --release"
     },
     {
       "id": "package-audit-zip",
@@ -259,7 +271,7 @@
     },
     {
       "id": "package-markdown-zip",
-      "class": "ratchet",
+      "class": "release",
       "limit": null,
       "unit": "bytes zip",
       "source": {
@@ -270,11 +282,11 @@
         ]
       },
       "enforcedBy": "scripts/check-package.mjs",
-      "movedBy": "scripts/set-ceilings.mjs"
+      "movedBy": "scripts/set-ceilings.mjs --release"
     },
     {
       "id": "package-dock-zip",
-      "class": "ratchet",
+      "class": "release",
       "limit": null,
       "unit": "bytes zip",
       "source": {
@@ -285,11 +297,11 @@
         ]
       },
       "enforcedBy": "scripts/check-package.mjs",
-      "movedBy": "scripts/set-ceilings.mjs"
+      "movedBy": "scripts/set-ceilings.mjs --release"
     },
     {
       "id": "package-canvas-zip",
-      "class": "ratchet",
+      "class": "release",
       "limit": null,
       "unit": "bytes zip",
       "source": {
@@ -300,7 +312,7 @@
         ]
       },
       "enforcedBy": "scripts/check-package.mjs",
-      "movedBy": "scripts/set-ceilings.mjs"
+      "movedBy": "scripts/set-ceilings.mjs --release"
     },
     {
       "id": "package-blazor-zip",
@@ -318,7 +330,7 @@
     },
     {
       "id": "package-ide-zip",
-      "class": "ratchet",
+      "class": "release",
       "limit": null,
       "unit": "bytes zip",
       "source": {
@@ -329,11 +341,11 @@
         ]
       },
       "enforcedBy": "scripts/check-package.mjs",
-      "movedBy": "scripts/set-ceilings.mjs"
+      "movedBy": "scripts/set-ceilings.mjs --release"
     },
     {
       "id": "package-icons-zip",
-      "class": "ratchet",
+      "class": "release",
       "limit": null,
       "unit": "bytes zip",
       "source": {
@@ -344,11 +356,11 @@
         ]
       },
       "enforcedBy": "scripts/check-package.mjs",
-      "movedBy": "scripts/set-ceilings.mjs"
+      "movedBy": "scripts/set-ceilings.mjs --release"
     },
     {
       "id": "blazor-payload-full",
-      "class": "ratchet",
+      "class": "release",
       "limit": null,
       "unit": "bytes gzip",
       "source": {
@@ -359,7 +371,7 @@
         ]
       },
       "enforcedBy": "scripts/blazor-extras-publish.mjs",
-      "movedBy": "scripts/set-ceilings.mjs"
+      "movedBy": "scripts/set-ceilings.mjs --release"
     }
   ],
   "exceptions": []
