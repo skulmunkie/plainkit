@@ -1,11 +1,11 @@
-// Icon sprite build tests: lint rules, determinism, the size budget (core/icons/README.md), and that every icon name referenced anywhere in core
+// Icon sprite build tests: lint rules, determinism, and that every icon name referenced anywhere in core
 // (pk-icon name="...", pk-button icon-name="...", h('pk-icon', { name: ... })) exists in the sprite the build produces.
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import fs from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
-import { loadSources, lintOne, build, SPRITE_BUDGET_BYTES } from './build.mjs';
+import { loadSources, lintOne, build } from './build.mjs';
 import { TIER_FOLDERS } from '../tools/element-folders.mjs';
 
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
@@ -15,9 +15,9 @@ test('every source icon passes lint (viewBox, currentColor-only, no id/class/sty
     assert.deepEqual(problems, []);
 });
 
-test('build() succeeds and the sprite stays under the documented budget', () => {
+test('build() succeeds and the sprite builds (no size limit, #111)', () => {
     const { spriteBytes, names } = build();
-    assert.ok(spriteBytes <= SPRITE_BUDGET_BYTES, `${spriteBytes} bytes over the ${SPRITE_BUDGET_BYTES}-byte budget in core/icons/README.md`);
+    assert.ok(spriteBytes > 0);
     assert.ok(names.length >= 60, `expected at least 60 icons after the phase-1 batch, got ${names.length}`);
     assert.deepEqual(names, [...names].sort(), 'icons.json names are sorted');
 });
