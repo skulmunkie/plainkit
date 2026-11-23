@@ -1,11 +1,11 @@
-// Icon sprite build tests: lint rules, determinism, the size budget (core/icons/README.md), and that every icon name referenced anywhere in core
+// Icon sprite build tests: lint rules, determinism, and that every icon name referenced anywhere in core
 // (pk-icon name="...", pk-button icon-name="...", h('pk-icon', { name: ... })) exists in the sprite the build produces.
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import fs from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
-import { loadSources, lintOne, build, SPRITE_BUDGET_BYTES } from './build.mjs';
+import { loadSources, lintOne, build } from './build.mjs';
 import { TIER_FOLDERS } from '../tools/element-folders.mjs';
 
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
@@ -15,9 +15,9 @@ test('every source icon passes lint (viewBox, currentColor-only, no id/class/sty
     assert.deepEqual(problems, []);
 });
 
-test('build() succeeds and the sprite stays under the documented budget', () => {
+test('build() succeeds and the sprite builds (no size limit, #111)', () => {
     const { spriteBytes, names } = build();
-    assert.ok(spriteBytes <= SPRITE_BUDGET_BYTES, `${spriteBytes} bytes over the ${SPRITE_BUDGET_BYTES}-byte budget in core/icons/README.md`);
+    assert.ok(spriteBytes > 0);
     assert.ok(names.length >= 60, `expected at least 60 icons after the phase-1 batch, got ${names.length}`);
     assert.deepEqual(names, [...names].sort(), 'icons.json names are sorted');
 });
@@ -74,4 +74,23 @@ test('every icon name referenced by an element, module, sample, layout or site p
     const missing = [...used].filter(n => !spriteSet.has(n)).sort();
     assert.deepEqual(missing, [], `icon name(s) referenced in core but not in the sprite: ${missing.join(', ')}`);
     assert.ok(used.size >= 5, 'the scan actually found icon usages (a regex regression would silently pass with zero)');
+});
+
+// The design language's 2px safe margin (core/icons/README.md, "Grid"): a stroke centred on the outer edge clips at the 16px size. Checks the
+// primitives whose extent is exact (circle, line, rect, polyline, polygon); path data is judged by eye in the gallery.
+test('every primitive stays inside the 2..22 safe margin of the 24px grid', () => {
+    const at = (a, k) => { const r = a.match(new RegExp('(?:^|\\s)' + k + '="([^"]*)"')); return r ? Number(r[1]) : NaN; };
+    const out = v => v < 2 - 1e-6 || v > 22 + 1e-6;
+    const bad = [];
+    for (const { name, text } of loadSources()) {
+        for (const [el, tag, a] of text.matchAll(/<(circle|line|rect|polyline|polygon)\b([^>]*?)\/?>/g)) {
+            let vals = [];
+            if (tag === 'circle') { const r = at(a, 'r'), x = at(a, 'cx'), y = at(a, 'cy'); vals = [x - r, x + r, y - r, y + r]; }
+            else if (tag === 'line') vals = ['x1', 'x2', 'y1', 'y2'].map(k => at(a, k));
+            else if (tag === 'rect') { const x = at(a, 'x'), y = at(a, 'y'); vals = [x, y, x + at(a, 'width'), y + at(a, 'height')]; }
+            else vals = (a.match(/points="([^"]*)"/)?.[1].match(/-?[\d.]+/g) || []).map(Number);
+            if (!vals.length || vals.some(v => Number.isNaN(v) || out(v))) bad.push(name + ': ' + el);
+        }
+    }
+    assert.deepEqual(bad, []);
 });

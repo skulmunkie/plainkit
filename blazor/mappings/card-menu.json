@@ -13,7 +13,8 @@
       "type": "string",
       "default": "more",
       "map": "prop",
-      "prop": "iconName"
+      "prop": "iconName",
+      "doc": "The icon name; use a PkIconName constant (PkIconName.Search), any string still works."
     },
     {
       "name": "Placement",

@@ -8,6 +8,9 @@ import { sheetFor } from './element.js'; import { rowAt } from './rowset.js';
 const STYLES = 'a[data-row-link]{color:var(--color-link);text-underline-offset:0.15em}a[data-row-link]:hover{color:var(--color-link-hover)}a[data-row-link]:focus-visible{outline:var(--focus-ring)}';
 let sheet;
 
+// A row's own address (#2086): the row property "_href" wins over the template; null or '' means this row has no link (quietly: no anchor, not clickable), any other invalid address warns.
+const own = (tpl, row, id) => row && typeof row === 'object' && '_href' in row ? (row._href == null || row._href === '' ? [null, true] : [href(String(row._href).replace(/[{}]/g, ''), row, id), false]) : [href(tpl, row, id), false];
+
 // The address of one row: every {name} is the row's field of that name, URL-encoded ({id} is the row's id); the result must be a same-site path or a hash, else null.
 export const href = (tpl, row, id) => {
     const u = String(tpl).replace(/\{(\w+)\}/g, (_, k) => encodeURIComponent(k === 'id' ? id : row?.[k] ?? ''));
@@ -38,8 +41,8 @@ export function after(table) {
     if (!root.adoptedStyleSheets.includes(sheet)) root.adoptedStyleSheets = [...root.adoptedStyleSheets, sheet];
     const view = table.view, ids = table.ids();
     for (const tr of table.part('body').querySelectorAll('tr[data-pk-context]')) {
-        const td = tr.querySelector('td[data-key]'), url = td && !td.querySelector('slot') && href(tpl, rowAt(view, ids, tr.dataset.pkContext), tr.dataset.pkContext);
-        if (td && !url && !td.querySelector('slot')) table.warnOnce('rowHrefTemplate', `rowHrefTemplate "${tpl}" must be a path ("/orders/{id}") or a hash ("#/orders/{id}")`);
+        const td = tr.querySelector('td[data-key]'), [url, none] = td && !td.querySelector('slot') ? own(tpl, rowAt(view, ids, tr.dataset.pkContext), tr.dataset.pkContext) : [null, true];
+        if (td && !url && !none) table.warnOnce('rowHrefTemplate', `rowHrefTemplate "${tpl}" must be a path ("/orders/{id}") or a hash ("#/orders/{id}")`);
         if (!url) continue;
         const a = table.ownerDocument.createElement('a');
         a.setAttribute('href', url); a.setAttribute('data-row-link', '');

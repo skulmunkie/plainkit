@@ -37,7 +37,7 @@ import { loadJson, loadText, every } from '../../js/mount-support.js';
 
 const log = createLogger('code-explorer');
 
-export const NO_CAPABILITIES = Object.freeze({ search: false, outline: false, references: false, live: false });
+export const NO_CAPABILITIES = Object.freeze({ search: false, outline: false, references: false, definitions: false, live: false });
 
 const WORD = /[A-Za-z0-9_$]/;
 
@@ -98,12 +98,25 @@ function referencesIn(files, word) {
     return out;
 }
 
+// Where a name is declared: files whose outline symbols hold it (types, members, functions, consts), plus a Razor file named for it
+// (Foo -> Foo.razor, a component tag's declaration). Usages and directives are not declarations. Several hits are returned, never guessed between.
+const NOT_DECLARATIONS = new Set(['component', 'using', 'inject', 'inherits', 'implements', 'page', 'code']);
+export function definitionsIn(entries, word) {
+    const out = [];
+    for (const { path, symbols } of entries) {
+        const base = path.split('/').pop();
+        if (base === `${word}.razor`) out.push({ path, line: 1, kind: 'component', name: word });
+        for (const s of symbols) if (s.name === word && !NOT_DECLARATIONS.has(s.kind)) out.push({ path, line: s.line, kind: s.kind, name: word });
+    }
+    return out;
+}
+
 export class SnapshotProvider {
     constructor(snapshot) {
         this.files = new Map((snapshot.files ?? []).map(f => [f.path, { ...f, lines: f.lines ?? toLines(f.content ?? '') }]));
         this.generated = snapshot.generated;
         const anySymbols = [...this.files.values()].some(f => f.symbols?.length);
-        this.capabilities = { search: true, outline: anySymbols, references: true, live: false };
+        this.capabilities = { search: true, outline: anySymbols, references: true, definitions: true, live: false };
     }
 
     static async load(url, fetchFn = globalThis.fetch) {
@@ -125,6 +138,8 @@ export class SnapshotProvider {
     async outline(path) { return this.files.get(path)?.symbols ?? []; }
 
     async references(path, word) { return referencesIn(this.files, word); }
+
+    async definitions(word) { return definitionsIn([...this.files.values()].map(f => ({ path: f.path, symbols: f.symbols ?? symbolsOf(f.lines.join('\n'), f.language) })), word); }
 }
 
 // A lean file list up front (path, language, line count -- no content), each file's real text fetched same-origin, lazily, only
@@ -138,7 +153,7 @@ export class LazyProvider {
         this.raw = String(raw).replace(/\/+$/, '');
         this.fetch = fetchFn;
         this.files = new Map(files.map(f => [f.path, { path: f.path, language: f.language, lineCount: f.lines, lines: null }]));
-        this.capabilities = { search: true, outline: true, references: true, live: false };
+        this.capabilities = { search: true, outline: true, references: true, definitions: true, live: false };
     }
 
     // list: the URL of the lean file list (site/files/index.json). raw: the same-origin base the real files sit under (the page's
@@ -176,6 +191,8 @@ export class LazyProvider {
     }
 
     async references(path, word) { await this.#needAll(); return referencesIn(this.files, word); }
+
+    async definitions(word) { await this.#needAll(); return definitionsIn([...this.files.values()].map(f => ({ path: f.path, symbols: symbolsOf(f.lines.join('\n'), f.language) })), word); }
 }
 
 export class ApiProvider {

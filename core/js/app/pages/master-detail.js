@@ -10,14 +10,14 @@ export const PAGE_TYPE = {
     useWhen: 'A record opened beside its list on one route, such as an inbox. Not the default: a list and its record are usually two routes (the list and record page types).',
 };
 import { titleBarKeys } from '../../page-shell.js';
-import { definePage } from '../../page-define.js';
+import { definePage, withSignal } from '../../page-define.js';
 export default definePage({
     tag: 'pk-master-detail-page',
     data: c => ({ heading: c.heading, breadcrumb: c.breadcrumb, ...titleBarKeys(c), actions: c.actions, list: c.list, backLabel: c.backLabel, none: c.none, label: c.label }),
     wire: (el, { param = 'id', rowHref, listHref, load, mountDetail, fill }, ctx) => {
         const id = ctx.route?.params?.[param];
         if (id) el.recordId = String(id); if (fill) el.fill = true;
-        if (load) el.load = query => load(query, ctx);
+        if (load) el.load = withSignal(ctx, (query, signal) => load(query, ctx, signal));
         if (rowHref) el.open = row => ctx.navigate(rowHref(row));
         if (listHref) el.close = () => ctx.navigate(listHref);
         if (mountDetail) el.mountDetail = (pane, rid) => mountDetail(pane, rid, ctx);

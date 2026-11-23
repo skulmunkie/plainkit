@@ -4,14 +4,14 @@
   "group": "Page types",
   "tier": "page",
   "pageType": "sections",
-  "summary": "A read-mostly record page with no data lifecycle: the shared title bar (heading, breadcrumb, badges, a primary action and an actions menu that collapses on a phone), docked section tabs in the header, and a two-column pk-detail-layout of your own panels, one section at a time. Name the sections in config.sections ({ id, label, count?, visible? }); each section's panel is a light-DOM child with slot=\"section-<id>\" (the main column) and, optionally, slot=\"side-<id>\" (that section's summary card). The tabs and the layout stay in step both ways; with config.tabParam the chosen section is kept in the address. It loads, saves and validates nothing: a host with a record to edit uses pk-record-page, one with a list beside the record pk-master-detail-page.",
+  "summary": "A read-mostly record page with no data lifecycle: the shared title bar (heading, breadcrumb, badges, a primary action and an actions menu that collapses on a phone), docked section tabs in the header, and a two-column pk-detail-layout of your own panels, one section at a time. Name the sections in config.sections ({ id, label, count?, visible? }); each section's panel is a light-DOM child with slot=\"section-<id>\" (the main column) and, optionally, slot=\"side-<id>\" (that section's summary card). The tabs and the layout stay in step both ways; with config.tabParam the chosen section is kept in the address. It loads, saves and validates nothing: a host with a record to edit uses pk-record-page, one with a list beside the record pk-master-detail-page. With config.tabsFrom the page shows every section together above that width (a section with side: true in the sidebar column) and keeps the tab strip below it; config.stickyFrom pins the title bar.",
   "props": [
     {
       "name": "config",
       "type": "json",
       "default": {},
       "reflect": false,
-      "description": "{ sections: [{ id, label, count?, visible? }], section?: id (selected, default the first visible), tabParam?: string (keeps the section in the address, for example 'tab'), sidebarFirst?, sidebarTwoUp? (as pk-detail-layout), heading?, breadcrumb?: [{ label, href? }], actions?: [{ key, label, icon?, href?, variant?, disabled?, busy?, group?, hint? }], newAction? (one item of that shape, drawn first as the primary action), actionsCollapse? ('always' | 'phone' | 'tablet' | 'none', one value for the whole bar, default 'phone': an item with an icon folds to the icon alone and its label stays the name) (the first with variant 'primary' is the page's primary action; an action without href fires pk-action), badges: [{ label, variant? }], actionsOverflow: 'never' | 'phone' | 'tablet' | 'always', overflowLabel, homeHref, homeLabel, homeIcon } as on pk-page-header. A section with visible false has no tab and no panel."
+      "description": "{ sections: [{ id, label, count?, visible?, side? }], tabsFrom?: 'phone' | 'tablet' (every section shows together above that width, a section with side true in the sidebar column; the tab strip and one section at a time at or below it; default one section at every width), sticky?, stickyFrom?: 'phone' | 'tablet' (pins the title bar, as pk-page-header), section?: id (selected, default the first visible), tabParam?: string (keeps the section in the address, for example 'tab'), sidebarFirst?, sidebarTwoUp? (as pk-detail-layout), heading?, breadcrumb?: [{ label, href? }], actions?: [{ key, label, icon?, href?, variant?, disabled?, busy?, group?, hint? }], newAction? (one item of that shape, drawn first as the primary action), actionsCollapse? ('always' | 'phone' | 'tablet' | 'none', one value for the whole bar, default 'phone': an item with an icon folds to the icon alone and its label stays the name) (the first with variant 'primary' is the page's primary action; an action without href fires pk-action), badges: [{ label, variant? }], actionsOverflow: 'never' | 'phone' | 'tablet' | 'always', overflowLabel, homeHref, homeLabel, homeIcon } as on pk-page-header. A section with visible false has no tab and no panel."
     },
     {
       "name": "section",
@@ -25,6 +25,15 @@
     {
       "name": "badges",
       "description": "Status chips beside the title."
+    },
+    {
+      "name": "meta",
+      "description": "A line under the title (an updated-at time, an owner, a short summary)."
+    },
+    {
+      "name": "badge-<id>",
+      "dynamic": true,
+      "description": "The body of the popover of the config.badges entry with that id (config.badges[].popover): the badge becomes a pk-badge-popover that opens it."
     },
     {
       "name": "section-<id>",
@@ -84,6 +93,14 @@
     {
       "title": "Primary action, an actions menu and icons on a phone",
       "html": "<pk-sections-page config='{\"heading\":\"Order 1042\",\"breadcrumb\":[{\"label\":\"Orders\",\"href\":\"#\"},{\"label\":\"Order 1042\"}],\"newAction\":{\"key\":\"new\",\"label\":\"New order\",\"icon\":\"plus\"},\"actions\":[{\"key\":\"print\",\"label\":\"Print\",\"icon\":\"printer\",\"group\":\"More\"},{\"key\":\"export\",\"label\":\"Export\",\"icon\":\"download\",\"group\":\"More\"}],\"sections\":[{\"id\":\"summary\",\"label\":\"Summary\"},{\"id\":\"lines\",\"label\":\"Lines\",\"count\":4}],\"tabParam\":\"tab\"}'><pk-card slot=\"section-summary\" heading=\"Summary\"><p>Shipped 12 November.</p></pk-card><pk-card slot=\"section-lines\" heading=\"Lines\"><p>Four lines.</p></pk-card></pk-sections-page>"
+    },
+    {
+      "title": "Every section at once on wide screens, tabs on a phone",
+      "html": "<pk-sections-page config='{\"heading\":\"Blue mug\",\"tabsFrom\":\"tablet\",\"stickyFrom\":\"tablet\",\"sections\":[{\"id\":\"details\",\"label\":\"Details\"},{\"id\":\"orders\",\"label\":\"Orders\",\"count\":3},{\"id\":\"status\",\"label\":\"Status\",\"side\":true}]}'><pk-card slot=\"section-details\" heading=\"Details\"><p>Blue mug, 350 ml, ceramic.</p></pk-card><pk-card slot=\"section-orders\" heading=\"Orders\"><p>Three open orders.</p></pk-card><pk-card slot=\"section-status\" heading=\"Status\"><p>Active, 12 on hand.</p></pk-card></pk-sections-page>"
+    },
+    {
+      "title": "Reassign the primary action per state, a meta line and a badge popover",
+      "html": "<pk-sections-page config='{\"heading\":\"Order 1042\",\"badges\":[{\"id\":\"late\",\"label\":\"2 late\",\"variant\":\"warn\",\"popover\":{\"heading\":\"Late lines\"}}],\"newAction\":{\"key\":\"approve\",\"label\":\"Approve\",\"variant\":\"primary\"},\"sections\":[{\"id\":\"summary\",\"label\":\"Summary\"}]}'><span slot=\"meta\">Updated 12 November by Sam</span><p slot=\"badge-late\">Lines 2 and 4 are past their ship date.</p><pk-card slot=\"section-summary\" heading=\"Summary\"><p>Waiting for approval. Assign a new config.newAction (for example Ship) when the state changes: the title bar redraws.</p></pk-card></pk-sections-page>"
     }
   ],
   "methods": []

@@ -1,7 +1,9 @@
 // Code-explorer reports: pure functions over file content already loaded by a provider ({ path, lines: string[] }[]), each
 // returning rows with the { path, line } an existing pk-code-explorer already knows how to open via openFile(path, { line }).
 // Kept framework-free (no DOM) so they are unit-testable as plain functions over a fake file list.
-//
+
+import { symbolsOf } from './symbols.js';
+
 // A PkCodePattern: { name, pattern, label? }. `pattern` is either a JS RegExp (vanilla JS only), or a string: either a literal
 // substring, or the same "/source/flags" convention the search box already uses (providers.js: matcherFor) so a host that can
 // only pass plain strings (Blazor's PkCodePattern) can still supply a regex. A "count of a directive per file" report (e.g.
@@ -124,4 +126,50 @@ export function duplicateBlocksReport(files, minLines = 4) {
         results.push({ key, length: minLines, locations });
     }
     return results.sort((a, b) => (b.length * b.locations.length) - (a.length * a.locations.length));
+}
+
+// ---- statistics -------------------------------------------------------------------------------------------------------------
+
+const TYPE_KINDS = new Set(['class', 'record', 'interface', 'enum', 'struct']);
+const IDENT = /[A-Za-z_$][\w$]*/g;
+const byLines = (a, b) => b.lines - a.lines || a.name.localeCompare(b.name);
+
+// Totals and breakdowns over the loaded files: { files, lines, folders, languages, largest, types }. `files` is [{ path, language?, lines: string[] }].
+// folders: one row per top-level folder ('(root)' for files outside any), languages: one row per file extension, each { name, files, lines },
+// biggest first. largest: the ten longest files { path, lines }. types: the ten most-referenced declared types (C# class, record, interface,
+// enum, struct; JS class), { name, path, line, refs } where refs counts the word's other appearances in any file (a name mention, not a
+// resolved reference: two types with one name share a count, and a mention in a comment or string counts).
+export function statsReport(files) {
+    const list = files ?? [];
+    const folders = new Map(), languages = new Map(), words = new Map(), declared = new Map();
+    for (const f of list) {
+        const n = f.lines.length;
+        const parts = f.path.split('/');
+        const folder = parts.length > 1 ? parts[0] : '(root)';
+        const ext = parts[parts.length - 1].includes('.') ? parts[parts.length - 1].split('.').pop().toLowerCase() : '';
+        const lang = ext || '(none)';
+        for (const [map, key] of [[folders, folder], [languages, lang]]) {
+            const row = map.get(key) ?? { name: key, files: 0, lines: 0 };
+            row.files++; row.lines += n; map.set(key, row);
+        }
+        for (const text of f.lines) for (const w of text.match(IDENT) ?? []) words.set(w, (words.get(w) ?? 0) + 1);
+        for (const s of symbolsOf(f.lines.join('\n'), ext)) {
+            if (TYPE_KINDS.has(s.kind)) {
+                const prev = declared.get(s.name);
+                if (prev) prev.decls++; else declared.set(s.name, { name: s.name, path: f.path, line: s.line, decls: 1 });
+            }
+        }
+    }
+    const types = [...declared.values()]
+        .map(d => ({ name: d.name, path: d.path, line: d.line, refs: (words.get(d.name) ?? 0) - d.decls }))
+        .filter(d => d.refs > 0)
+        .sort((a, b) => b.refs - a.refs || a.name.localeCompare(b.name)).slice(0, 10);
+    return {
+        files: list.length,
+        lines: list.reduce((sum, f) => sum + f.lines.length, 0),
+        folders: [...folders.values()].sort(byLines),
+        languages: [...languages.values()].sort(byLines),
+        largest: largestFilesReport(list).slice(0, 10).map(r => ({ path: r.path, lines: r.count })),
+        types,
+    };
 }

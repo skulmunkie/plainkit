@@ -332,6 +332,21 @@
       "movedBy": "scripts/set-ceilings.mjs"
     },
     {
+      "id": "package-icons-zip",
+      "class": "ratchet",
+      "limit": null,
+      "unit": "bytes zip",
+      "source": {
+        "file": "packages.json",
+        "package": "plainkit.icons",
+        "path": [
+          "maxZipBytes"
+        ]
+      },
+      "enforcedBy": "scripts/check-package.mjs",
+      "movedBy": "scripts/set-ceilings.mjs"
+    },
+    {
       "id": "blazor-payload-full",
       "class": "ratchet",
       "limit": null,

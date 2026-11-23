@@ -69,8 +69,8 @@
         "zip-store.js"
       ],
       "maxPackedBytes": null,
-      "maxUnpackedBytes": 867654,
-      "maxZipBytes": 280360,
+      "maxUnpackedBytes": 876637,
+      "maxZipBytes": 283240,
       "files": [
         "breakpoints.report.json",
         "elements/api.json",
@@ -212,6 +212,23 @@
       "maxPackedBytes": null,
       "maxUnpackedBytes": 965522,
       "maxZipBytes": 204861
+    },
+    {
+      "id": "plainkit.icons",
+      "title": "Icons",
+      "built": true,
+      "requires": [
+        "plainkit"
+      ],
+      "blazorOption": "icons",
+      "files": [
+        "icons.d.ts",
+        "icons.json",
+        "icons.svg"
+      ],
+      "maxPackedBytes": null,
+      "maxUnpackedBytes": 23284,
+      "maxZipBytes": 5932
     }
   ],
   "siteOnly": [

@@ -5,6 +5,51 @@ The format follows [Keep a Changelog](https://keepachangelog.com/) and the proje
 
 ## [Unreleased]
 
+## [0.38.0] - 2026-11-23
+
+### Added
+
+- Blazor: `PkIconName` has a constant for every icon in the sprite (`PkIconName.Search`), generated from the icon list, so a mistyped icon name fails the build; the icon parameters stay strings. (#111)
+- Seven new icons in the sprite: `home`, `arrow-up`, `arrow-down`, `check`, `print`, `expand` and `collapse`. (#111)
+- Ten new icons: star, heart, tag, folder, cart, globe, map-pin, list, grid and table. `users` and `file` already exist as `customers` and `document`. (#111)
+- The icon sprite gains 18 symbols: phone, cloud, terminal, folder-open, video, music, archive, unlock, more-vertical, columns, rows, panel-left, panel-right, panel-bottom, file-pdf, file-code, file-image and file-archive. (#111)
+- The code explorer has Back and Forward buttons (and Alt+Left / Alt+Right) that return to the files and lines you opened before, for example after go to definition or a search hit. (#121)
+- The code explorer's outline lists C# methods, properties and constants under their types, and a Razor file gets an outline of its directives (`@page`, `@inject`, `@inherits`, `@implements`, `@using`), the members of its `@code` block and the components it uses. `PkSnapshot` and the toolkit's snapshot tool apply the same rules. (#121)
+- The code explorer has Go to definition: select a word in the viewer and the button opens its declaration across the snapshot (types, members, functions; a Razor component tag opens its `.razor` file), or lists the candidates when the name is ambiguous. (#121)
+- The code explorer's search can be scoped: a file type, a folder and a Skip test files option under the search box narrow the shown results without searching again. (#121)
+- The code explorer's Reports button now opens a statistics view first, in the main pane: totals, files and lines by top-level folder and by file extension, the ten largest files and the most referenced types (clicking a file row opens it). The other reports are one click away. `statsReport(files)` in the module computes it. (#121)
+- A list row can have no link: a row carrying `_href` null or empty is not a link and not clickable (no pointer, no tab stop), the list page type's `rowHrefTemplate` config may be a function returning an address or null, and `PkListPage` has `RowHrefOf` (`Func<TItem, string?>`), which wins over `RowHrefTemplate`. (#2086)
+
+### Changed
+
+- An icon sprite that cannot be loaded (not found, offline) now logs one warning per page, naming the address and the fix (add the `plainkit.icons` package, or set `<meta name="pk-icons">`); nothing is drawn and icon boxes keep their size, so the layout does not move. (#111)
+- Blazor: the icon sprite is now the optional `icons` extra (`PlainKitExtras`, `PkExtra.Icons`). Apps that choose no extras, or `full`, serve it as before; `core` and an explicit list without `icons` leave it out of the published app. (#111)
+- The icon sprite (`icons.svg`) and its name list and types (`icons.json`, `icons.d.ts`) move out of the `plainkit` npm package into the new `plainkit.icons` package (zip and Pages folder, same version as core). Unzip it beside the SDK or point `<meta name="pk-icons">` at the sprite; the repository, Pages site and gallery are unchanged. (#111)
+- The icon sprite and individual icon sources no longer have a size limit (owner decision); the design lints (grid, stroke, margin, currentColor, no ids or fills) still apply. (#111)
+
+### Fixed
+
+- The custom SDK export keeps the icon sprite (`icons.svg`, `icons.json`, `icons.d.ts`, listed in the extras manifest since the icons became their own package) and can leave it out with `include.icons: false` in `plainkit.custom.json`; `bundle-page.mjs --no-icons` omits `plainkit-icons.svg` from a `--flat` bundle. The default output is unchanged. (#111)
+- The icon sprite now enforces its 2px safe margin: a test fails when a circle, line, rect, polyline or polygon in `core/icons/src/` reaches outside the 2..22 range of the 24px grid, and `refresh`, `eye-off`, `finance` and `stock` are redrawn inside it so no stroke clips at the 16px size. (#111)
+
+## [0.37.0] - 2026-11-21
+
+### Added
+
+- `pk-page-shell` takes a `fill` option (Blazor `Fill`): the shell takes the height of its parent and its one content child takes what the header leaves, with no wrapper element or `:has` rule (page types step 6 of #1929). (#1675)
+- Page types converge on shared names without removing any old one: `pk-page-shell` also raises `pk-retry` (next to `pk-page-shell-retry`, the name `pk-states-page` already uses), and the master-detail `load(query, ctx)`, doc `loadItem(id, ctx)` and dashboard `load(key, ctx)` callbacks get an `AbortSignal` as a third argument, aborted by a newer call with the same query, id or key and by leaving the page (as list and record already do). Loaders that ignore it are unchanged. (#1929)
+
+## [0.36.0] - 2026-11-21
+
+### Added
+
+- `PkRecordPage` and `PkMasterDetailPage` take the typed page actions: `Actions`, `NewAction` (the generated `PkAction`) and `ActionsCollapse`, and raise `OnAction` by key, as the tool, settings and sections pages do. (#1943)
+- pk-markdown shows an image inside link text, `[![alt](img.png)](https://example.com)`, as a linked image; both addresses go through `baseUrl` and `resolveUrl` and are checked again. (#2012)
+
+### Fixed
+
+- A slow run in pk-tool-page, or a slow item load in pk-doc-page, that is answered after a newer run or load, or after the page left the document, no longer draws over the newer result. (#1929)
+
 ## [0.35.1] - 2026-11-20
 
 ### Added

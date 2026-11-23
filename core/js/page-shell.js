@@ -18,6 +18,9 @@ export function showState(box, state, opts = {}) {
     if (state !== 'ready') loadElements(box);
 }
 
+/** showState into the element's drawn box (`$s`, made in connected); a factory-supplied title (a child in slot "title") is the page's one heading, so none is drawn (except while loading). */
+export const drawState = (el, state, opts) => showState(el.$s, state, { ...opts, heading: [...(el.children ?? [])].some(c => c.getAttribute?.('slot') === 'title') && state !== 'loading' ? null : opts.heading });
+
 /** The title bar keys of a page factory's config that the page element forwards to its shell (showTitleBar). */
 export const titleBarKeys = c => Object.fromEntries(['badges', 'newAction', 'actionsCollapse', 'actionsOverflow', 'overflowLabel', 'homeHref', 'homeLabel', 'homeIcon'].filter(k => c[k] !== undefined).map(k => [k, c[k]]));
 
@@ -50,7 +53,7 @@ export function mountTitled(host, el, text, opts) {
 }
 
 /**
- * The title bar, filled into the page's pk-page-shell `shell` (a child of the page's shadow tree) from `host.config` { heading?, breadcrumb?: [{ label, href? }], actions?: [{ key, label, icon?, href?, variant?, disabled?, busy?, hint? }], newAction? (one item, drawn first as the primary), actionsCollapse? ('always' | 'phone' | 'tablet' | 'none', one value for the bar), badges?: [{ label, variant? }], actionsOverflow?, overflowLabel?, homeHref?, homeLabel?, homeIcon? }:
+ * The title bar, filled into the page's pk-page-shell `shell` (a child of the page's shadow tree) from `host.config` { heading?, breadcrumb?: [{ label, href? }], actions?: [{ key, label, icon?, href?, variant?, disabled?, busy?, hint? }], newAction? (one item, drawn first as the primary), actionsCollapse? ('always' | 'phone' | 'tablet' | 'none', one value for the bar), badges?: [{ label, variant?, id?, popover?: true | { heading? } (with an id: a pk-badge-popover; its body is the host child slot="badge-<id>") }], actionsOverflow?, overflowLabel?, homeHref?, homeLabel?, homeIcon? }:
  * the shell draws the pk-page-header; the breadcrumb, actions and title are its slotted children. `cfg` overrides `host.config` for a page whose own config already uses `heading` or `actions` for something else (record, list).
  * Nothing is drawn when none is set (the shell hides an empty header). An action's `hint` shows as a tooltip on the button; the items are drawn by js/page-actions.js. A click on an action fires `pk-action` on the host with { key }; the host never owns the markup.
  */
@@ -66,9 +69,16 @@ export function showTitleBar(host, shell, cfg = host.config) {
     }
     shell.setAttribute('data-bare', String(!titled && !breadcrumb.length && !actions.length && !cfg?.newAction && !badges.length)); // nothing to draw: the shell drops its empty header
     for (const b of badges) {
-        const chip = doc.createElement('pk-badge');
+        const pop = b.popover && b.id != null; // a popover: a pk-badge-popover whose panel is the host child slot="badge-<id>" (forwarded through a slot of this tree)
+        const chip = doc.createElement(pop ? 'pk-badge-popover' : 'pk-badge');
         chip.slot = 'badges'; chip.textContent = b.label;
         if (b.variant) chip.variant = b.variant;
+        if (pop) {
+            if (b.popover.heading) chip.setAttribute('heading', b.popover.heading);
+            const body = doc.createElement('slot');
+            body.name = 'badge-' + b.id; body.slot = 'details';
+            chip.append(body);
+        }
         kids.push(chip);
     }
     // The header draws a home crumb only for its own crumbs list, so a homeHref sends the trail there (as crumbs) instead of a slotted pk-breadcrumb.

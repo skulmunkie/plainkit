@@ -65,38 +65,6 @@ public sealed partial class PkSnapshot
             });
         }
     }
-
-    // Declarations worth listing in the outline, like the toolkit's own snapshot tool: top-level JS/TS declarations and CSS class rules,
-    // plus types for C#.
-    internal static List<PkSnapshotSymbol> SymbolsOf(string content, string language)
-    {
-        var (regex, kindGroup, nameGroup) = language switch
-        {
-            "js" or "ts" or "tsx" or "jsx" => (JsDeclaration(), 3, 4),
-            "css" => (CssRule(), 0, 1),
-            "cs" => (CsType(), 1, 2),
-            _ => (null, 0, 0),
-        };
-        var symbols = new List<PkSnapshotSymbol>();
-        if (regex is null) return symbols;
-        var lines = content.Split('\n');
-        for (var i = 0; i < lines.Length; i++)
-        {
-            var m = regex.Match(lines[i]);
-            if (!m.Success) continue;
-            symbols.Add(new PkSnapshotSymbol { Kind = language == "css" ? "rule" : m.Groups[kindGroup].Value, Name = m.Groups[nameGroup].Value, Line = i + 1 });
-        }
-        return symbols;
-    }
-
-    [GeneratedRegex(@"^(export )?(async )?(function|class|const)\s+([A-Za-z_$][\w$]*)")]
-    private static partial Regex JsDeclaration();
-
-    [GeneratedRegex(@"^(\.[\w-]+)[^{]*\{")]
-    private static partial Regex CssRule();
-
-    [GeneratedRegex(@"^\s*(?:public |internal |private |protected |sealed |static |abstract |partial |readonly )*(class|record|interface|enum|struct)\s+([A-Za-z_]\w*)")]
-    private static partial Regex CsType();
 }
 
 /// <summary>One file of a <see cref="PkSnapshot"/>.</summary>
