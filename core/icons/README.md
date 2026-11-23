@@ -6,7 +6,7 @@ already needs), not the full ~120-icon wishlist; the gallery browse page is defe
 
 ## Grid
 
-Confirmed by inspecting the 39 icons already in the sprite before this change (`search`, `settings`, `trash`,
+Confirmed by inspecting the icons already in the sprite (39 at the time, 69 now) (`search`, `settings`, `trash`,
 `undo`, `edit`, ...): every one of them is drawn on a **24x24 viewBox**, stroke-only, in the Feather-style
 convention already established here. New icons keep that grid exactly — do not introduce a second size.
 
@@ -18,7 +18,7 @@ convention already established here. New icons keep that grid exactly — do not
   `fill` or `stroke` attribute — see "currentColor only" below.
 - Live geometry sits inside a **2px margin** (a stroke centred on the outer edge would clip at small sizes):
   keep coordinates roughly within `[2, 22]` on both axes, the same optical margin the existing icons use
-  (e.g. `search`'s circle is `r="8"` centred at `11,11`, `x`'s diagonals run `6` to `18`).
+  (`core/icons/icons.test.mjs` enforces it for circles, lines, rects, polylines and polygons; e.g. `search`'s circle is `r="8"` centred at `11,11`, `x`'s diagonals run `6` to `18`).
 
 ## Stroke width and joins
 
