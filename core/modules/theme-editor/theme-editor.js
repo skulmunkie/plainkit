@@ -20,7 +20,7 @@
 // stylesheet value (js/theme-history-logic.js), '3 changes', with a reset for each edit and for each group of tokens.
 // Contrast tab (the live audit): every pair in `pairs` in both themes under the current edits, as sample text with its ratio, worst first, and a jump to the token that sets each
 // side (js/theme-editor-logic.js auditPairs); the tab title counts the pairs below 4.5:1.
-// Options for an app: initial (the theme to start from, as JSON { shared, dark, light }, an override CSS block or an object; used when nothing was kept for the
+// Options for an app: initial (the theme to start from, as JSON { version, shared, dark, light } (version optional: older JSON still reads), an override CSS block or an object; used when nothing was kept for the
 // viewer) and presets ([{ name, description?, theme }], theme being the same kinds of value; listed after the built-in presets and applied by name).
 // Export / import tab: the CSS block, a copy-paste snippet (theme.css), the JSON, and a link to the theme (js/theme-share-logic.js): the edits in the fragment as
 // '#pk-theme=z.<compressed>' (plain when the browser has no CompressionStream), at most 4096 characters, validated on the way in like pasted JSON, text only.
@@ -241,7 +241,7 @@ export async function mountThemeEditor(container, options = {}) {
             rejectedBox, h(doc, 'p', { class: 'te-caption' }, 'CSS block (paste into a style element after the SDK stylesheets)'), cssBox,
             h(doc, 'p', { class: 'te-caption' }, 'The same as a file: save it as theme.css and load it after the SDK stylesheets (a strict style-src cannot use an inline style element)'), snippetBox, h(doc, 'pk-cluster', { class: 'u-mt-3' }, copySnippet),
             h(doc, 'p', { class: 'te-caption' }, 'A link to this theme: the edits travel in the link fragment (compressed when the browser can, at most 4096 characters, text only), and whoever opens it gets them as ordinary edits'),
-            h(doc, 'div', { class: 'te-palette-inputs' }, linkBox, h(doc, 'pk-cluster', {}, linkBtn, copyLink)), h(doc, 'div', { class: 'te-palette-inputs u-mt-3' }, linkIn, h(doc, 'pk-cluster', {}, importLinkBtn)), shareMsg, h(doc, 'p', { class: 'te-caption' }, 'JSON { shared, dark, light } of token to value: the C# helper input (editable, then Import)'), jsonBox, h(doc, 'pk-cluster', { class: 'u-mt-3' }, importBtn, copyBtn, downloadBtn), message),
+            h(doc, 'div', { class: 'te-palette-inputs' }, linkBox, h(doc, 'pk-cluster', {}, linkBtn, copyLink)), h(doc, 'div', { class: 'te-palette-inputs u-mt-3' }, linkIn, h(doc, 'pk-cluster', {}, importLinkBtn)), shareMsg, h(doc, 'p', { class: 'te-caption' }, 'JSON { version, shared, dark, light } of token to value: the C# helper input (editable, then Import)'), jsonBox, h(doc, 'pk-cluster', { class: 'u-mt-3' }, importBtn, copyBtn, downloadBtn), message),
         ...(sdk ? [h(doc, 'pk-tab', { value: 'sdk' }, 'Custom SDK'), h(doc, 'pk-tab-panel', { value: 'sdk' }, sdk.panel)] : []));
 
     const root = h(doc, 'section', { class: 'te', 'aria-label': 'Theme editor' },
