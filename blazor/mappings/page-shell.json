@@ -12,7 +12,7 @@
     { "name": "TabsFrom", "prop": "tabsFrom", "type": "PageHeaderTabsFrom" },
     { "name": "HomeHref", "prop": "homeHref", "type": "string" },
     { "name": "HomeLabel", "prop": "homeLabel", "type": "string" },
-    { "name": "HomeIcon", "prop": "homeIcon", "type": "string" },
+    { "name": "HomeIcon", "prop": "homeIcon", "type": "string", "doc": "The home icon name; use a PkIconName constant (PkIconName.Home), any string still works." },
     { "name": "ActionsOverflow", "prop": "actionsOverflow", "type": "PageHeaderActionsOverflow" },
     { "name": "OverflowLabel", "prop": "overflowLabel", "type": "string" },
     { "name": "BadgesContent", "slot": "badges", "type": "RenderFragment?" },

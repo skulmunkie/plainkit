@@ -39,6 +39,16 @@ public sealed class PkSectionsPageTests : BunitContext, IAsyncLifetime
     }
 
     [Fact]
+    public void TabsFrom_Sticky_and_StickyFrom_go_into_the_config_json()
+    {
+        var cut = Render<PkSectionsPage>(p => p.Add(x => x.TabsFrom, "tablet").Add(x => x.Sticky, true).Add(x => x.StickyFrom, "phone"));
+        var cfg = cut.Find("pk-sections-page").GetAttribute("config")!;
+        Assert.Contains("\"tabsFrom\":\"tablet\"", cfg);
+        Assert.Contains("\"sticky\":true", cfg);
+        Assert.Contains("\"stickyFrom\":\"phone\"", cfg);
+    }
+
+    [Fact]
     public void A_section_without_side_content_has_no_side_slot()
     {
         var cut = Render<PkSectionsPage>(p => p.Add(x => x.SectionContent, new Dictionary<string, RenderFragment> { ["a"] = Html("x") }));

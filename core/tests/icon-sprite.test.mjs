@@ -37,3 +37,22 @@ test('a <meta name="pk-icons"> in the page sets the sprite address once, at impo
     } finally { delete globalThis.document; }
     assert.equal(spriteUrl('https://x.test/sdk/js/icon-sprite.js'), 'https://x.test/sdk/icons.svg', 'without the meta nothing changes');
 });
+
+test('an unloadable sprite warns once per page with the install hint, never throws and reports no names', async () => {
+    const { addLogSink } = await import('../js/log.js');
+    const m = await import('../js/icon-sprite.js?pk-missing'); // a fresh module: its own once-per-page sprite read
+    const realFetch = globalThis.fetch; globalThis.fetch = () => Promise.resolve({ ok: false, status: 404 });
+    const seen = []; addLogSink(e => { if (e.scope === 'icon-sprite') seen.push(e); });
+    try {
+        const u = use(), warned = [];
+        m.drawIcon(u, 'plus', k => warned.push(k));
+        m.drawIcon(use(), 'search', k => warned.push(k));
+        await new Promise(r => setTimeout(r, 20));
+        m.drawIcon(use(), 'minus', k => warned.push(k));
+        await new Promise(r => setTimeout(r, 20));
+        assert.equal(seen.filter(e => e.level === 'warn').length, 1, 'exactly one warning');
+        assert.match(seen[0].message, /could not be loaded from .*icons\.svg.*plainkit\.icons.*pk-icons/);
+        assert.deepEqual(warned, [], 'no per-name report when the sprite is absent');
+        assert.equal(u.getAttribute('href'), m.iconHref('plus'), 'the reference is still set; the browser draws nothing for it');
+    } finally { globalThis.fetch = realFetch; }
+});

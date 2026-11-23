@@ -10,6 +10,7 @@ const CONFIG = {
     sections: [{ id: 'details', label: 'Details' }, { id: 'orders', label: 'Orders', count: 3 }, { id: 'audit', label: 'Audit', visible: false }],
     actions: [{ key: 'edit', label: 'Edit', variant: 'primary' }, { key: 'archive', label: 'Archive', variant: 'ghost' }],
 };
+const WIDE = { ...CONFIG, tabsFrom: 'tablet', stickyFrom: 'tablet', sections: [{ id: 'details', label: 'Details' }, { id: 'orders', label: 'Orders' }, { id: 'audit', label: 'Status', side: true }] };
 const MARKUP = '<pk-sections-page><pk-card id="d" slot="section-details" heading="Details">Details body</pk-card><pk-card id="ds" slot="side-details" heading="Status">Active</pk-card><pk-card id="o" slot="section-orders" heading="Orders">Orders body</pk-card><pk-card id="a" slot="section-audit" heading="Audit">Audit body</pk-card><pk-dropdown slot="actions"><pk-button slot="trigger" variant="ghost">More</pk-button><pk-menu-item>Duplicate</pk-menu-item><pk-menu-item>Export</pk-menu-item></pk-dropdown></pk-sections-page>';
 
 async function frame(t, width, height = 700, config = CONFIG) {
@@ -23,7 +24,7 @@ async function frame(t, width, height = 700, config = CONFIG) {
     await until(() => win.customElements.get('pk-sections-page'), 'pk-sections-page to be defined in the frame');
     const doc = f.contentDocument, page = doc.querySelector('pk-sections-page');
     page.config = config;
-    await until(() => page.shadowRoot.querySelectorAll('pk-tab').length === 2 && ['pk-page-shell', 'pk-page-header', 'pk-detail-layout', 'pk-tabs', 'pk-card', 'pk-dropdown'].every(n => win.customElements.get(n)), 'the tabs and the elements the page draws');
+    await until(() => page.shadowRoot.querySelectorAll('pk-tab').length >= 2 && ['pk-page-shell', 'pk-page-header', 'pk-detail-layout', 'pk-tabs', 'pk-card', 'pk-dropdown'].every(n => win.customElements.get(n)), 'the tabs and the elements the page draws');
     await t.settle(); await wait(150);
     const header = page.part('header').shadowRoot.querySelector('pk-page-header');
     return { doc, win, page, header, layout: page.part('layout'), strip: page.part('tabs'), d: doc.getElementById('d'), ds: doc.getElementById('ds'), o: doc.getElementById('o'), a: doc.getElementById('a') };
@@ -113,5 +114,46 @@ export const sectionsPageCases = [
             history.replaceState(null, '', '?tab=nope');
             t.eq((await make()).part('tabs').value, 'details', 'a value matching no section is ignored');
         } finally { history.replaceState(null, '', before); }
+    }],
+    // #2084: every section together above config.tabsFrom, the tab strip and one section below it, the title bar pinned from stickyFrom up.
+    ['sections-page tabsFrom (1280px): every section shows together, the side section sits beside the main column, and no tab strip is drawn (#2084)', async t => {
+        const { strip, d, o, a } = await frame(t, 1280, 700, WIDE);
+        t.ok(shown(d) && shown(o) && shown(a), 'Details, Orders and the side section all show');
+        t.ok(rect(o).top >= rect(d).bottom - 1, 'the main column stacks Details above Orders');
+        t.ok(rect(a).left >= rect(d).right - 1 && rect(a).left >= rect(o).right - 1, `the side section (left ${rect(a).left}) sits beside the main column (right ${rect(d).right})`);
+        t.ok(!shown(strip), 'the tab strip is not drawn at a wide width');
+    }],
+    ['sections-page tabsFrom (600px): below the breakpoint the strip returns and one section shows at a time, the side section as its own tab (#2084)', async t => {
+        const { strip, d, o, a } = await frame(t, 600, 700, WIDE);
+        t.ok(shown(strip), 'the tab strip is drawn');
+        t.eq(strip.querySelectorAll('pk-tab').length, 3, 'a tab per section, the side one included');
+        t.ok(shown(d) && !shown(o) && !shown(a), 'only the first section shows');
+        strip.querySelector('pk-tab[value=audit]').click(); await wait(250);
+        t.ok(shown(a) && !shown(d), 'the side section shows alone when chosen');
+    }],
+    ['sections-page stickyFrom (1280px): the title bar stays at the top after the page scrolls 800px (#2084)', async t => {
+        const { win, doc, d, header } = await frame(t, 1280, 600, WIDE);
+        const pad = doc.createElement('div'); pad.style.height = '2400px'; d.append(pad);
+        doc.documentElement.scrollTop = 800; win.dispatchEvent(new win.Event('scroll')); await wait(250);
+        t.ok(win.scrollY >= 700, `the page scrolled (${win.scrollY})`);
+        t.ok(Math.abs(rect(header).top) <= 2, `the title bar is pinned at the top (top ${rect(header).top})`);
+    }],
+    // #2084 step B: the meta slot, a reassigned primary action, and a badge popover.
+    ['sections-page (1280px): the meta slot sits under the title, config.newAction and config.actions redraw when reassigned, and a badge with a popover opens its slot body (#2084)', async t => {
+        const { doc, page, header } = await frame(t, 1280, 700, { ...CONFIG, badges: [{ id: 'late', label: '2 late', variant: 'warn', popover: { heading: 'Late lines' } }], newAction: { key: 'approve', label: 'Approve', variant: 'primary' } });
+        const meta = doc.createElement('span'); meta.slot = 'meta'; meta.id = 'm'; meta.textContent = 'Updated today';
+        const body = doc.createElement('p'); body.slot = 'badge-late'; body.id = 'bp'; body.textContent = 'Lines 2 and 4 are late.';
+        page.append(meta, body); await t.settle(); await wait(200);
+        const title = header.shadowRoot.querySelector('[part=title]') ?? header;
+        t.ok(shown(meta) && rect(meta).top >= rect(title).bottom - 1, `the meta line (top ${rect(meta).top}) is under the title (bottom ${rect(title).bottom})`);
+        const labels = () => [...page.part('header').querySelectorAll('pk-button')].map(b => b.textContent.trim());
+        t.ok(labels().includes('Approve') && !labels().includes('Ship'), 'the primary action is Approve');
+        page.config = { ...page.config, newAction: { key: 'ship', label: 'Ship', variant: 'primary' }, actions: [{ key: 'edit', label: 'Edit' }] }; await wait(250);
+        t.ok(labels().includes('Ship') && !labels().includes('Approve') && !labels().includes('Archive'), `reassigning config redraws the actions (${labels().join(', ')})`);
+        const pill = page.part('header').querySelector('pk-badge-popover');
+        t.ok(pill, 'the badge with a popover is a pk-badge-popover');
+        t.ok(!shown(body), 'the popover body is closed at rest');
+        pill.open = true; await wait(300);
+        t.ok(shown(body), 'the popover body shows when opened');
     }],
 ];

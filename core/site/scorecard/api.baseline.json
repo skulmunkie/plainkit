@@ -1,5 +1,5 @@
 {
- "release": "0.37.0",
+ "release": "0.38.0",
  "classes": [
   "btn-ghost",
   "btn-group",
@@ -575,6 +575,7 @@
   "js/custom-sdk-files.js:readSettings",
   "js/custom-sdk-files.js:readmeText",
   "js/custom-sdk-files.js:settingsText",
+  "js/custom-sdk-logic.js:ICON_FILES",
   "js/custom-sdk-logic.js:buildBundle",
   "js/custom-sdk-logic.js:customizeDist",
   "js/custom-sdk-logic.js:themeBundle",

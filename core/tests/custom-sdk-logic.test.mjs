@@ -219,7 +219,7 @@ function unzip(bytes) {
 }
 
 test('a full export unzips to the dist layout with the settings and a README that name the version and the settings used', async () => {
-    const { files, summary } = await buildBundle(load(), { include: { theme: true, breakpoints: true }, breakpoints: { phone: 700, tablet: 1100, wide: 1500 }, theme });
+    const { files, summary } = await buildBundle(loadFull(), { include: { theme: true, breakpoints: true }, breakpoints: { phone: 700, tablet: 1100, wide: 1500 }, theme }); // the sprite is an extra since #111 (plainkit.icons), so the full export is built from both manifests
     const back = unzip(zipStore([...files].map(([path, data]) => ({ path, data }))));
     assert.ok(back.has('dist/plainkit.min.css') && back.has('dist/elements/button.js') && back.has('dist/manifest.json') && back.has('plainkit.custom.json') && back.has('README.md'));
     const readme = dec.decode(back.get('README.md'));
@@ -228,8 +228,21 @@ test('a full export unzips to the dist layout with the settings and a README tha
     assert.match(readme, /3 token overrides/);
     const settings = readSettings(dec.decode(back.get('plainkit.custom.json')), NAMES);
     assert.deepEqual(settings.settings, { baseVersion: shippedManifest.version, include: { theme: true, breakpoints: true }, breakpoints: { phone: 700, tablet: 1100, wide: 1500 }, theme: overrides });
-    assert.equal(summary.fileCount, shippedManifest.files.length + 1);
-    assert.ok(same(back.get('dist/icons.svg'), load().get('icons.svg')), 'an untouched file is the shipped one');
+    assert.equal(summary.fileCount, shippedManifest.files.length + 1 + JSON.parse(fs.readFileSync(dist + 'manifest.extras.json', 'utf8')).files.length + 1);
+    assert.ok(same(back.get('dist/icons.svg'), loadFull().get('icons.svg')), 'an untouched file is the shipped one');
+});
+
+test('include.icons false leaves the sprite files out and the manifests list only what is held; the default keeps them (#111)', async () => {
+    const on = await buildBundle(loadFull(), { include: { theme: false, breakpoints: false }, breakpoints: {}, theme });
+    const off = await buildBundle(loadFull(), { include: { theme: false, breakpoints: false, icons: false }, breakpoints: {}, theme });
+    for (const p of ['icons.svg', 'icons.json', 'icons.d.ts']) { assert.ok(on.files.has('dist/' + p), `${p} is in the default export`); assert.ok(!off.files.has('dist/' + p), `${p} is left out`); }
+    assert.equal(off.summary.fileCount, on.summary.fileCount - 3);
+    const extras = JSON.parse(dec.decode(off.files.get('dist/manifest.extras.json')));
+    assert.ok(!extras.files.some(f => f.path.startsWith('icons.')) && extras.files.length === JSON.parse(fs.readFileSync(dist + 'manifest.extras.json', 'utf8')).files.length - 3);
+    assert.ok(same(off.files.get('dist/plainkit.min.css'), on.files.get('dist/plainkit.min.css')), 'the rest is unchanged');
+    const s = readSettings(dec.decode(off.files.get('plainkit.custom.json')), NAMES).settings;
+    assert.equal(s.include.icons, false);
+    assert.equal(readSettings(dec.decode(on.files.get('plainkit.custom.json')), NAMES).settings.include.icons, undefined, 'the default settings file carries no icons key');
 });
 
 test('theme only is small and needs no dist: the CSS, the settings and a README with the link and the Blazor way', () => {

@@ -18,9 +18,9 @@ export const iconHref = (name, sprite = spriteUrl()) => (String(name ?? '').trim
 export const symbolIds = svg => new Set([...String(svg).matchAll(/<symbol\b[^>]*?\sid="([^"]+)"/g)].map(m => m[1]));
 
 // The sprite is read once per page (the browser has it cached from the first <use>); null when it cannot be read (another origin without CORS, offline):
-// then a missing name goes unreported rather than guessed at.
+// then one warning (once per page: the promise is cached) names the address and the fix, and a missing name goes unreported rather than guessed at. The icon box is sized by CSS, so a missing sprite never moves the layout.
 let sprite = null;
-const spriteSymbols = () => (sprite ??= fetch(spriteUrl()).then(r => (r.ok ? r.text() : Promise.reject(new Error(`HTTP ${r.status}`)))).then(symbolIds).catch(error => { log.debug('the icon sprite could not be read: missing icon names are not reported', error); return null; }));
+const spriteSymbols = () => (sprite ??= fetch(spriteUrl()).then(r => (r.ok ? r.text() : Promise.reject(new Error(`HTTP ${r.status}`)))).then(symbolIds).catch(error => { log.warn(`the icon sprite could not be loaded from ${spriteUrl()}: add plainkit.icons or set <meta name=pk-icons>`, error); return null; }));
 
 // Points a <use> at one symbol (or clears it for an empty name). A name the sprite lacks is reported through warnOnce (an element's own, once per element and name).
 export function drawIcon(use, name, warnOnce) {

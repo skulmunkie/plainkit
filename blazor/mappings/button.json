@@ -85,7 +85,8 @@
     {
       "name": "IconName",
       "prop": "iconName",
-      "type": "string"
+      "type": "string",
+      "doc": "The icon name; use a PkIconName constant (PkIconName.Search), any string still works."
     },
     {
       "name": "Toggle",

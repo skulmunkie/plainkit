@@ -22,6 +22,7 @@ const paths = {
     components: path.join(root, 'blazor', 'src', 'PlainKit.Blazor', 'Components'),
     module: path.join(root, 'blazor', 'src', 'PlainKit.Blazor', 'wwwroot', 'PlainKit.Blazor.lib.module.js'),
     schema: path.join(root, 'core', 'js', 'app', 'manifest.schema.json'),
+    icons: path.join(root, 'core', 'icons', 'icons.json'),
 };
 const GENERATOR = 'scripts/generate-blazor.mjs';
 
@@ -633,7 +634,7 @@ export function renderComponent(m, mappingName, ns = 'PlainKit.Blazor') {
     const listened = h => (m.listenedNative && h.native && !h.updates.length) || (h.listened && !h.native && !h.updates.length);
     const custom = live.filter(h => !h.native || listened(h));
     const attrs = [];
-    for (const a of m.attrs) if (a.bare) attrs.push(a.attr); else attrs.push(`${a.attr}="${m.cells?.columns && a.attr === 'config' ? '@ConfigWithColumns()' : m.configKeys.length && !m.cells && !m.recordModel && a.attr === 'config' ? '@ConfigWithKeys()' : m.recordModel && a.attr === 'config' ? '@ConfigWithFields()' : a.expr}"`);
+    for (const a of m.attrs) if (a.bare) attrs.push(a.attr); else attrs.push(`${a.attr}="${m.cells?.columns && a.attr === 'config' ? '@ConfigWithColumns()' : m.configKeys.length && !m.cells && !m.recordModel && a.attr === 'config' ? '@ConfigWithKeys()' : m.recordModel && a.attr === 'config' ? '@ConfigWithFields()' : a.attr === 'row-href-template' && m.params.some(d => d.name === 'RowHrefOf') ? '@(string.IsNullOrEmpty(RowHrefTemplate) && RowHrefOf is not null ? "/{id}" : RowHrefTemplate)' : a.expr}"`);
     // The element itself (PkElementBase.Element), for PkRuntime.ReadFormValuesAsync and any host that needs a JavaScript handle.
     attrs.push('@ref="Element"');
     // `location` (mapping): the parameter (location.param) wins; unset, the path tracked from NavigationManager is sent (see the code block).
@@ -780,7 +781,10 @@ export function renderComponent(m, mappingName, ns = 'PlainKit.Blazor') {
         '        await InvokeAsync(() => { _cellRows = items.Select(i => (IdOf!(i), i)).ToList(); StateHasChanged(); });',
         '        return null;', '    }', ...(m.cells && !m.dataTable && m.params.some(d => d.name === 'OnRowAction') ? ['', ...rowActionHandler('_cellRows', m.params.some(d => d.name === 'OnAction'))] : []));
     // Typed columns: a column's Text (and the property fallback, as PkDataTable) fills the row it names, so the rows the callback returns are built through the same PkTableRows as PkDataTable's.
-    if (m.cells?.columns && !m.cells.slotsOnly) L.push('', '    private object RowsOf(IReadOnlyList<TItem> items)', '    {', '        if (Columns is null) return items;', '        var rows = new System.Text.Json.Nodes.JsonArray();', '        foreach (var item in items) rows.Add(PkTableRows.Serialize(item, Columns));', '        return rows;', '    }');
+    if (m.cells?.columns && !m.cells.slotsOnly) L.push('', '    private object RowsOf(IReadOnlyList<TItem> items)', '    {', ...(m.params.some(d => d.name === 'RowHrefOf')
+        // RowHrefOf (#2086): the address of each row travels as its `_href` (null: no link); the element lets it win over RowHrefTemplate.
+        ? ['        if (Columns is null && RowHrefOf is null) return items;', '        var rows = new System.Text.Json.Nodes.JsonArray();', '        foreach (var item in items)', '        {', '            var row = PkTableRows.Serialize(item, (IEnumerable<PkTableColumn<TItem>>?)Columns ?? []);', '            if (RowHrefOf is not null) row["_href"] = RowHrefOf(item);', '            rows.Add(row);', '        }']
+        : ['        if (Columns is null) return items;', '        var rows = new System.Text.Json.Nodes.JsonArray();', '        foreach (var item in items) rows.Add(PkTableRows.Serialize(item, Columns));']), '        return rows;', '    }');
     if (m.cells?.columns && !m.cells.slotsOnly) L.push('', '    private string ConfigWithColumns()', '    {',
         `        if (Columns is null${m.configKeys.map(k => ` && !(${k.when})`).join('')}) return PkAttr.JsonText(Config) ?? "{}";`,
         '        var node = System.Text.Json.Nodes.JsonNode.Parse(PkAttr.JsonText(Config) ?? "{}") as System.Text.Json.Nodes.JsonObject ?? new System.Text.Json.Nodes.JsonObject();',
@@ -1228,6 +1232,22 @@ export function generate(api, mappings, handWritten = new Set(), types = new Set
     return { files, moduleText: renderModule(reg.eventNames), report: { generated, skipped, todo, notGenerated, enums: reg.enums.size, events: reg.eventNames.size } };
 }
 
+/** "arrow-left" -> "ArrowLeft"; a leading digit is not a C# identifier start, so "3d-rotate" -> "V3dRotate". */
+export function iconMember(name) { const p = pascal(name); return /^[0-9]/.test(p) ? 'V' + p : p; }
+
+/** Generated/PkIconName.cs: one const string per symbol of the icon sprite (core/icons/icons.json), so a mistyped icon name is a compile error. */
+export function renderIconNames(names) {
+    const seen = new Map();
+    const lines = [];
+    for (const n of names) {
+        const m = iconMember(n);
+        if (!m || seen.has(m)) throw new Error('icon names "' + (seen.get(m) ?? n) + '" and "' + n + '" both become PkIconName.' + m + ': rename one icon');
+        seen.set(m, n);
+        lines.push('    /// <summary>The "' + n + '" icon.</summary>\n    public const string ' + m + ' = ' + lit(n) + ';');
+    }
+    return '// Generated by ' + GENERATOR + ' from core/icons/icons.json. Do not edit.\nnamespace PlainKit.Blazor;\n\n/// <summary>The names of the icons in the plainkit.icons sprite. Pass one to <c>Name</c>, <c>IconName</c> or any icon parameter; the parameters stay strings, so a custom icon name still works.</summary>\npublic static class PkIconName\n{\n' + lines.join('\n') + '\n}\n';
+}
+
 export const crlf = s => s.replace(/\r?\n/g, '\r\n');
 
 /** component name -> extra name, from the "extra" field of blazor/handwritten.json (a hand-written wrapper of an optional package, such as the tools). */
@@ -1244,7 +1264,10 @@ export function load() {
         const text = fs.readFileSync(path.join(paths.components, n + '.razor'), 'utf8');
         return [n, { namespace: /^@namespace\s+(\S+)/m.exec(text)?.[1] ?? 'PlainKit.Blazor', generic: /^@typeparam\s/m.test(text), typeparam: /^@typeparam\s+(\S+)/m.exec(text)?.[1] }];
     }));
-    return generate(api, mappings, handWritten, knownTypes(paths.package), handInfo, JSON.parse(fs.readFileSync(paths.schema, 'utf8')), loadPackages(root), handExtras());
+    const result = generate(api, mappings, handWritten, knownTypes(paths.package), handInfo, JSON.parse(fs.readFileSync(paths.schema, 'utf8')), loadPackages(root), handExtras());
+    if (!fs.existsSync(paths.icons)) throw new Error('core/icons/icons.json does not exist: run node scripts/bootstrap.mjs first');
+    result.files.set('PkIconName.cs', renderIconNames(JSON.parse(fs.readFileSync(paths.icons, 'utf8')).names));
+    return result;
 }
 
 /** The files as they belong on disk: absolute path -> CRLF text. */

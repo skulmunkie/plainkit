@@ -83,6 +83,16 @@ test('--flat writes every file into one folder and points the sprite at its copy
     } finally { fs.rmSync(tmp, { recursive: true, force: true }); }
 });
 
+test('--flat --no-icons leaves the sprite out and the rest unchanged (#111)', { skip }, async () => {
+    const tmp = makeTempDir('pk-bundle-noicons-');
+    try {
+        const r = await bundlePage({ tags: ['pk-button'], dist, out: tmp, flat: true, icons: false });
+        const names = fs.readdirSync(tmp);
+        assert.ok(!names.includes('plainkit-icons.svg') && !r.files.includes('plainkit-icons.svg'), 'no sprite written or reported');
+        assert.ok(names.includes('plainkit-registry.js') && names.includes('plainkit.bundle.js'));
+    } finally { fs.rmSync(tmp, { recursive: true, force: true }); }
+});
+
 test('a --flat rewrite whose address is gone from the source is refused with a FIX line (#1808)', async () => {
     const { FLAT_REWRITES } = await import('../tools/bundle-page.mjs');
     for (const [file, [re]] of Object.entries(FLAT_REWRITES)) assert.ok(re.test(fs.readFileSync(path.join(path.dirname(fileURLToPath(import.meta.url)), '..', 'js', file), 'utf8')), `core/js/${file} still holds the address --flat rewrites`);

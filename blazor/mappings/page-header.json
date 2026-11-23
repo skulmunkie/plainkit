@@ -113,7 +113,8 @@
     {
       "name": "HomeIcon",
       "type": "string",
-      "prop": "homeIcon"
+      "prop": "homeIcon",
+      "doc": "The home icon name; use a PkIconName constant (PkIconName.Search), any string still works."
     },
     {
       "name": "Crumbs",
