@@ -672,8 +672,8 @@ y
         t.ok(/^plainkit-custom-.+\.zip$/.test(got[0].name) && files.has('README.md') && files.has('plainkit.custom.json') && files.has('dist/manifest.json') && files.has('dist/elements/button.js'), got[0].name);
         t.ok(/--pk-bp-phone:700px;--pk-bp-tablet:1024px/.test(text('dist/plainkit.css')) && /--color-accent: #123456/.test(text('dist/plainkit.css')) && /max-width:\s*700px/.test(text('dist/elements/table.js') + text('dist/elements/tabs.js')), 'widths and theme are in the page layer and the elements');
         const manifest = JSON.parse(text('dist/manifest.json'));
-        const extras = JSON.parse(text('dist/manifest.extras.json')); // the unminified page layer is listed in the extras manifest (#2032)
-        for (const [p, unit] of [['plainkit.css', extras], ['plainkit.min.css', manifest], ['elements/tabs.js', manifest], ['icons.svg', manifest]]) {
+        const extras = JSON.parse(text('dist/manifest.extras.json')); // the unminified page layer is listed in the extras manifest (#2032), and so are the icons (#111)
+        for (const [p, unit] of [['plainkit.css', extras], ['plainkit.min.css', manifest], ['elements/tabs.js', manifest], ['icons.svg', extras]]) {
             const digest = new Uint8Array(await crypto.subtle.digest('SHA-256', files.get(`dist/${p}`)));
             t.eq(unit.files.find(f => f.path === p).integrity, 'sha256-' + btoa(String.fromCharCode(...digest)), `${p} hash matches the manifest`);
         }
