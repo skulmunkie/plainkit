@@ -69,7 +69,7 @@
         "zip-store.js"
       ],
       "maxPackedBytes": null,
-      "maxUnpackedBytes": 867654,
+      "maxUnpackedBytes": 876637,
       "maxZipBytes": 283240,
       "files": [
         "breakpoints.report.json",
