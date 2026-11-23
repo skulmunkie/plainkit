@@ -1,6 +1,6 @@
 // The budget ledger (#1985): core/tests/budget-ledger.json mirrors every ratchet and hard-gate budget and holds the owner-approved exceptions.
 // It is read-only: a number is edited in its source, and this test fails when the ledger and the source disagree.
-// An exception is { budget, pr, approvedBy, reason }, added in the approving pull request; there is no expiry. Classes: hard (never exceeded, no exception), release (ceiling = last release measured + 5 percent, set only by set-ceilings.mjs --release; in force since step 3), ratchet (moves down; the class of the element, module, audit and Blazor analyzer budgets until step 4 of the policy migration), advisory (reported, backstop only).
+// An exception is { budget, pr, approvedBy, reason }, added in the approving pull request; there is no expiry. Classes: hard (never exceeded, no exception), release (ceiling = last release measured + 5 percent, set only by set-ceilings.mjs --release; in force since step 3), ratchet (moves down; the audit zip and Blazor analyzer budgets), advisory (reported, backstop only; the ledger limit of an advisory row is its backstop, read from the budget's `backstop` field, step 4).
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import fs from 'node:fs';
@@ -17,6 +17,7 @@ export function sourceValue(entry) {
     const s = entry.source;
     if (s.budget) {
         const b = BUDGETS[s.budget];
+        if (s.field) return s.key ? b?.[s.key]?.[s.field] : b?.[s.field];
         return (s.key ? b?.[s.key] : b)?.limit;
     }
     if (s.const) return Number(new RegExp(`const ${s.const} = ([0-9_]+)`).exec(readText(s.file))?.[1].replace(/_/g, ''));
