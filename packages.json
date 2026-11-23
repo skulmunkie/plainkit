@@ -61,6 +61,7 @@
         "quality.js",
         "scoring.js",
         "share-link.js",
+        "theme-document-logic.js",
         "theme-editor-logic.js",
         "theme-history-logic.js",
         "theme-presets-logic.js",

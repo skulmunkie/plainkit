@@ -34,10 +34,11 @@
 // Built only from SDK components (pk-tabs, pk-input, pk-select, pk-colour-input, pk-unit-input, pk-textarea, pk-button, pk-cluster, pk-alert, pk-badge, pk-stat, pk-table).
 
 import { sanitizeOverrides, parseTokenBlocks, currentTheme, setTheme as setThemeAttr, buildOverrides, nameProblem, valueProblem, colourToHex, tokenKind } from '../../js/theme.js';
-import { KINDS, DEFAULT_PAIRS, emptyOverrides, allTokenNames, baseValue, isChanged, effectiveValue, visibleTokens, isLengthToken, LENGTH_UNITS, withEdit, withoutToken, overrideCount, evaluatePairs, inlineEntries, readImport, guardLeaks, AA_PAIRS, auditPairs, auditSummary } from '../../js/theme-editor-logic.js';
+import { KINDS, DEFAULT_PAIRS, emptyOverrides, allTokenNames, baseValue, isChanged, effectiveValue, visibleTokens, isLengthToken, LENGTH_UNITS, withEdit, withoutToken, overrideCount, evaluatePairs, inlineEntries, guardLeaks, AA_PAIRS, auditPairs, auditSummary } from '../../js/theme-editor-logic.js';
 import { generatePalette, applyPalette, paletteRows, normalizeColour } from '../../js/brand-palette-logic.js';
 import { PRESETS, readCustomPresets, readOverridesInput, readSaved, serializeSaved, saveTheme, renameTheme, deleteTheme } from '../../js/theme-presets-logic.js';
 import { createHistory, record, undo, redo, canUndo, canRedo, diffOverrides, changeSummary, changedTokens, withoutGroup, withoutEntry } from '../../js/theme-history-logic.js';
+import { readDocument, writeDocument } from '../../js/theme-document-logic.js';
 import { buildSnippet, encodeShare, decodeShare, SHARE_KEY } from '../../js/theme-share-logic.js';
 import { ensureStyles, styleUrls, runtimeUrl, h, loadText, on as listen, storedText, storeText, addressOf } from '../../js/mount-support.js';
 import { applyDynamic } from '../../js/dynamic.js';
@@ -418,7 +419,7 @@ export async function mountThemeEditor(container, options = {}) {
     function paintExport(css, rejected) {
         cssBox.value = css;
         snippetBox.value = buildSnippet(guardLeaks(state.overrides, tokens));
-        jsonBox.value = JSON.stringify(state.overrides, null, 2);
+        jsonBox.value = JSON.stringify(writeDocument(state.overrides), null, 2);
         const n = overrideCount(state.overrides);
         count.setAttribute('value', String(n));
         rejectedBox.replaceChildren(...(rejected.length ? [h(doc, 'pk-alert', { kind: 'warning' }, ...rejected.flatMap((r, i) => (i ? [h(doc, 'br'), r] : [r])))] : []));
@@ -446,9 +447,9 @@ export async function mountThemeEditor(container, options = {}) {
     }
 
     function importText(text) {
-        const read = readImport(text);
+        const read = readDocument(text);
         if (read.error) { log.warn(`import refused, the overrides are unchanged: ${read.error}`); note('error', read.error); return; }
-        const parsed = read.overrides;
+        const parsed = read.doc.overrides;
         state.overrides = recordStep({ shared: parsed.shared, dark: parsed.dark, light: parsed.light });
         note('success', 'Imported.');
         apply(); paintList(); paintPairs();

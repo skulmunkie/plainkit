@@ -104,7 +104,7 @@ test('an explicit empty JSON section list is the way to clear the overrides', ()
 test('the theme editor module reports a refused import through the alert and the logger at warn, and only then replaces the overrides', () => {
     const src = fs.readFileSync(new URL('../modules/theme-editor/theme-editor.js', import.meta.url), 'utf8');
     const body = src.slice(src.indexOf('function importText'), src.indexOf('// ---- events'));
-    assert.match(body, /readImport\(text\)/);
+    assert.match(body, /readDocument\(text\)/);
     assert.ok(body.indexOf('log.warn') < body.indexOf('state.overrides ='), 'the refusal returns before the overrides are replaced');
     assert.match(body, /note\('error', read\.error\); return;/);
 });
