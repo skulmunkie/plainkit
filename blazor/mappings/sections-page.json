@@ -59,6 +59,30 @@
       "doc": "One value for the whole bar: \"always\", \"phone\" (the default), \"tablet\" or \"none\". An item with an Icon folds to the icon alone."
     },
     {
+      "name": "TabsFrom",
+      "map": "param",
+      "configKey": "tabsFrom",
+      "extra": true,
+      "type": "string?",
+      "doc": "\"phone\" or \"tablet\": every section shows together above that width (a section with Side true in the sidebar column) and becomes the tab strip at or below it. Default: one section at a time at every width."
+    },
+    {
+      "name": "Sticky",
+      "map": "param",
+      "configKey": "sticky",
+      "extra": true,
+      "type": "bool?",
+      "doc": "Pins the title bar (with its tabs) to the top of the scrolling page body."
+    },
+    {
+      "name": "StickyFrom",
+      "map": "param",
+      "configKey": "stickyFrom",
+      "extra": true,
+      "type": "string?",
+      "doc": "\"phone\" or \"tablet\": pins the title bar only above that width (implies Sticky)."
+    },
+    {
       "name": "OnAction",
       "event": "pk-action",
       "note": "A title-bar action (config.actions entry without an href) was clicked; Key is its key."
