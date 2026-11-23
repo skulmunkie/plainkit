@@ -1,6 +1,6 @@
 // The custom SDK, files half (split from custom-sdk-logic.js, #1108): the manifests, the SRI hash, the settings file and the README of an export. Pure; the build uses
 // manifestText too. custom-sdk-logic.js re-exports all of it.
-import { sanitizeOverrides } from './theme.js';
+import { readDocument } from './theme-document-logic.js';
 import { validateBreakpoints } from './custom-sdk-breakpoints.js';
 
 // ---- the manifests (the build writes dist/manifest.json, the runtime unit, and dist/modules/manifest.json, the dev-tool modules unit, with this too)
@@ -60,7 +60,9 @@ export function readSettings(text, names) {
         if (!v.ok) return { error: `The breakpoints in the file are not valid: ${v.problems.map(p => p.message).join('; ')}.` };
         breakpoints = v.widths;
     }
-    const theme = sanitizeOverrides(raw.theme);
+    const read = readDocument(raw.theme ?? {});   // the theme is a document body: one reader, one set of rules
+    if (read.error) return { error: `The theme in the file is not valid: ${read.error}` };
+    const theme = read.doc.overrides;
     return { settings: { baseVersion: String(raw.baseVersion ?? ''), include, breakpoints, theme } };
 }
 

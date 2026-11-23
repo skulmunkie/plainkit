@@ -8,7 +8,8 @@
 // Every override name and value passes the SDK's rules (js/theme.js); the saved list is sanitised on the way in, capped, and never trusted as HTML.
 
 import { sanitizeOverrides, sanitizeDict } from './theme.js';
-import { emptyOverrides, readImport } from './theme-editor-logic.js';
+import { emptyOverrides } from './theme-editor-logic.js';
+import { readDocument } from './theme-document-logic.js';
 
 export const MAX_SAVED = 30;
 export const MAX_NAME = 40;
@@ -74,7 +75,7 @@ export function readSaved(raw) {
     for (const item of parsed) {
         const name = cleanName(item?.name);
         if (!name || list.some(t => same(t.name, name))) continue;
-        list.push({ name, overrides: sanitizeOverrides(item.overrides) });
+        list.push({ name, overrides: readDocument(item.overrides ?? {}).doc?.overrides ?? sanitizeOverrides({}) });
         if (list.length >= MAX_SAVED) break;
     }
     return list;
@@ -122,7 +123,6 @@ export function readCustomPresets(list) {
 
 // The overrides in text (JSON or CSS, read like an import) or in an object: { overrides } or { error }. Text that holds nothing usable is an error.
 export function readOverridesInput(input) {
-    if (input !== null && typeof input === 'object') return { overrides: sanitizeOverrides(input) };
-    const read = readImport(String(input ?? ''));
-    return read.error ? { error: read.error } : { overrides: read.overrides };
+    const read = readDocument(input !== null && typeof input === 'object' ? input : String(input ?? ''));
+    return read.error ? { error: read.error } : { overrides: read.doc.overrides };
 }

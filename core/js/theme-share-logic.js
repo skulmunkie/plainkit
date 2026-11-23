@@ -10,7 +10,8 @@
 // consumer app can share its own JSON-safe state (a filter, a draft, a configuration) the same way.
 
 import { buildOverrides } from './theme.js';
-import { readImport, overrideCount } from './theme-editor-logic.js';
+import { overrideCount } from './theme-editor-logic.js';
+import { readDocument, writeDocument } from './theme-document-logic.js';
 import { encodeShareLink, decodeShareLink, DEFAULT_MAX_HASH, DEFAULT_MAX_DECODED } from './share-link.js';
 
 export const SHARE_KEY = 'pk-theme';
@@ -23,7 +24,7 @@ export function buildSnippet(overrides) {
 }
 
 // The compact JSON of only the sections that hold something, so an empty theme is a short link.
-const payloadOf = overrides => JSON.stringify(Object.fromEntries(['shared', 'dark', 'light'].filter(k => Object.keys(overrides[k]).length).map(k => [k, overrides[k]])));
+const payloadOf = overrides => JSON.stringify(Object.fromEntries(Object.entries(writeDocument(overrides)).filter(([k, v]) => k === 'version' || Object.keys(v).length)));
 
 export async function encodeShare(overrides, options = {}) {
     if (overrideCount(overrides) === 0) return { error: 'There is nothing to share: no token differs from the stylesheet.' };
@@ -40,9 +41,8 @@ export async function decodeShare(input) {
         maxHash: MAX_HASH,
         maxDecoded: MAX_DECODED,
         validate(text) {
-            let read;
-            try { read = readImport(text); } catch (error) { return { error: `The link does not hold a theme: ${error.message}.` }; }   // readImport parses JSON and throws on text that is not
-            return read.error ? { error: read.error } : read.overrides;
+            const read = readDocument(text);   // the same reader as pasted JSON: sections, version and values are checked there
+            return read.error ? { error: read.error } : read.doc.overrides;
         },
     });
     return r.error ? r : { overrides: r.value };

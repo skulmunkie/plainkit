@@ -61,6 +61,7 @@
         "quality.js",
         "scoring.js",
         "share-link.js",
+        "theme-document-logic.js",
         "theme-editor-logic.js",
         "theme-history-logic.js",
         "theme-presets-logic.js",
@@ -70,7 +71,7 @@
       ],
       "maxPackedBytes": null,
       "maxUnpackedBytes": 876637,
-      "maxZipBytes": 283240,
+      "maxZipBytes": 286759,
       "files": [
         "breakpoints.report.json",
         "elements/api.json",
@@ -236,6 +237,6 @@
   ],
   "blazorPayload": {
     "coreOnly": 745062,
-    "full": 1110513
+    "full": 1121903
   }
 }
