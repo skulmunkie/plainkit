@@ -144,10 +144,45 @@ Dup();
         await until(() => el.querySelector('[data-ce-tree] pk-tree-item'), 'the file tree');
         el.querySelector('[data-ce-reports]').click();
         await until(() => el.querySelector('[data-kind="files"]'), 'the reports picker');
+        el.querySelector('[data-kind="files"]').click();
+        await until(() => el.querySelector('pk-list-group > button[data-path]'), 'the largest files list');
         const rows = () => [...el.querySelectorAll('pk-list-group > button[data-path]')].map(b => b.dataset.path);
         t.eq(rows().join(), 'src/big.js,src/a#b.js,notes/100%.md,src/small.js', 'the largest files, from the files that could be read');
         t.ok(/src\/gone\.js/.test(el.querySelector('[data-ce-tree]').textContent), 'the report says which file could not be read');
         t.eq(reads.filter(p => p === 'src/big.js').length, 1, 'each file is read once');
+        handle.destroy();
+    }],
+
+    ['code explorer module: the Reports landing view is the statistics (totals, by folder, by language, largest files, most referenced types) and a row opens its file', async t => {
+        const { mountCodeExplorer } = await dist('code-explorer');
+        const text = (...lines) => lines.join(String.fromCharCode(10));
+        const snapshot = { version: 1, files: [
+            { path: 'src/App.cs', language: 'cs', content: text('public class App', '{', '}') },
+            { path: 'src/Use.cs', language: 'cs', content: text('public class Use', '{', '    App a; App b;', '}') },
+            { path: 'docs/guide.md', language: 'md', content: text('# Guide', 'text') },
+        ] };
+        const host = t.stage('');
+        const handle = await mountCodeExplorer(host, { snapshot, height: '36rem' });
+        const el = handle.element;
+        await until(() => el.querySelector('[data-ce-tree] pk-tree-item'), 'the file tree');
+        el.querySelector('[data-ce-reports]').click();
+        await until(() => el.querySelector('[data-ce-stats-total]'), 'the statistics view');
+        const total = el.querySelector('[data-ce-stats-total]').textContent;
+        t.ok(total.includes('3 files, 9 lines'), `totals: ${total}`);
+        const rowsOf = label => JSON.parse(el.querySelector(`pk-table[label="${label}"]`).getAttribute('rows'));
+        t.eq(rowsOf('By folder').map(r => `${r.name}:${r.lines}`).join(), 'src:7,docs:2', 'lines by folder');
+        t.eq(rowsOf('By language').map(r => r.name).join(), 'cs,md', 'by extension');
+        t.eq(rowsOf('Most referenced types').map(r => `${r.name}:${r.refs}`).join(), 'App:2', 'the most referenced type');
+        const pane = el.querySelector('[data-ce-pane]').getBoundingClientRect();
+        for (const label of ['By folder', 'By language', 'Largest files', 'Most referenced types']) {
+            const tb = el.querySelector(`pk-table[label="${label}"]`).getBoundingClientRect();
+            t.ok(tb.left >= pane.left - 1 && tb.right <= pane.right + 1 && tb.width > 150, `${label} sits inside the main pane (${Math.round(tb.left)}-${Math.round(tb.right)} in ${Math.round(pane.left)}-${Math.round(pane.right)})`);
+        }
+        const table = el.querySelector('pk-table[label="Largest files"]');
+        const row = () => table.querySelector('tr[data-pk-context]') || table.shadowRoot?.querySelector('tr[data-pk-context]');
+        await until(row, 'the largest files rows');
+        row().click();
+        await until(() => el.querySelector('pk-tab[value="src/Use.cs"]'), 'the clicked file (the largest) opens in a tab');
         handle.destroy();
     }],
 
