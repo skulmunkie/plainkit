@@ -1,6 +1,6 @@
 # Budget policy rethink: measure and gate what a consumer feels, and stop making authors fit cracks
 
-Status: proposal for the owner, no code, ceiling or test changed. Date: 2026-11-19. Tree: `main` at `675ecc73` (Release 0.34.1), after `node scripts/bootstrap.mjs`.
+Status: accepted (owner decision 2026-11-23: option B with all ten recommendations: +5 percent release-relative ceilings, app entry re-based to about 23.1 KB, element rule advisory with an 8 KB backstop, other ratchets advisory at 2x, optional packages +5 percent, cheap exception, lazy rule, reserved-name test, trend report, opportunistic cleanup). Migration step 1 (policy text) is docs only; steps 2 to 7 change numbers and tests. Date: 2026-11-19. Tree: `main` at `675ecc73` (Release 0.34.1), after `node scripts/bootstrap.mjs`.
 Follows `2026-11-17-size-budgets-measured.md` (#1985 step 1) and answers the owner direction of 2026-11-19: the budgets are too strict, they push substandard
 workarounds, keep modularity and leanness, remove the stress of "does it fit in this crack".
 
