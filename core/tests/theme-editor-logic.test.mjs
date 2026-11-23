@@ -148,3 +148,13 @@ test('the live audit grades every pair in both themes under the edits in force, 
     assert.equal(auditPairs({ shared: { '--color-bg': '#000000' }, dark: {}, light: {} }, tokens).find(r => r.theme === 'light' && r.fg === '--color-text' && r.bg === '--color-bg').bad, true, 'a shared edit applies to both themes');
     assert.ok(auditPairs(worse, tokens, [['--color-text', '--color-bg']], 21).every(r => r.bad === true || r.ratio >= 21), 'the minimum is a parameter');
 });
+
+test('export gate: a failing pair is listed worst first, a passing theme lists none, and every audit row declares forced colors as replaced', async () => {
+    const { gateFailures, FORCED_COLORS, FORCED_COLORS_NOTE } = await import('../js/theme-editor-logic.js');
+    assert.deepEqual(gateFailures(emptyOverrides(), tokens), []);
+    const bad = withEdit(emptyOverrides(), { theme: 'dark', scope: 'theme', name: '--color-text', value: '#222222', base: baseValue(tokens, 'dark', '--color-text') });
+    const lines = gateFailures(bad, tokens);
+    assert.ok(lines.length > 0 && lines.every(l => l.startsWith('dark: ') && /needs 4\.5:1/.test(l)), lines.join('\n'));
+    assert.ok(Number(lines[0].match(/is ([\d.]+):1/)[1]) <= Number(lines.at(-1).match(/is ([\d.]+):1/)[1]));
+    assert.ok(auditPairs(bad, tokens).every(r => r.forced === FORCED_COLORS) && /system colours/.test(FORCED_COLORS_NOTE));
+});

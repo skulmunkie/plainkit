@@ -193,7 +193,7 @@ The elements already respond at the named breakpoints ({{breakpoints}} px, deskt
 
 ### Ship a custom SDK
 
-A consumer's theme and breakpoint widths are two independent choices, both made in the theme editor's **Custom SDK** tab (`mountThemeEditor(el)`), never by hand-editing `dist`. Colours and styles alone export a small `plainkit-theme.css` to load after `plainkit.css`; different breakpoint widths export a whole rebuilt `dist/` zip. Steps, the zip contents and the Blazor equivalent (`PkThemeEditor`): `references/custom-sdk.md`.
+A consumer's theme and breakpoint widths are two independent choices, both made in the theme editor's **Custom SDK** tab (`mountThemeEditor(el)`), never by hand-editing `dist`. Colours and styles alone export a small `plainkit-theme.css` to load after `plainkit.css`; different breakpoint widths export a whole rebuilt `dist/` zip. Steps, the zip contents and the Blazor equivalent (`PkThemeEditor`): `references/custom-sdk.md`. Export, share and the Custom SDK first list text pairs below 4.5:1 and need an explicit "Export anyway" (`gate: false` for a host that does its own check).
 
 ### Upgrade this app to a newer Plainkit
 
