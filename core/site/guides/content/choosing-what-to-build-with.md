@@ -48,7 +48,49 @@ Only things that exist today are listed. A dash means there is no ready-made pie
 | Short list of small records with an add form | Layout `setup` | Page type `list` with a `record` route under it | `PkTable` with `PkField` |
 | Marketing or landing page | Template `landing` (hero, feature grid, pricing, FAQ); pattern `pricing-cards`; `pk-quote`, `pk-cta-band`, pattern `marketing-sections` (guide "Marketing sections"); composed from `pk-container`, `pk-stack`, `pk-grid`, `pk-card`, `pk-text` and `pk-button`, tokens only, no hero background images (imagery goes in `pk-media`). | None | same |
 | Rich text input | Pattern `markdown-editor`: `pk-textarea` holding Markdown plus a `pk-tabs` Write and Preview. | None | `PkTextarea` with `PkTabs` |
-| Panes: `pk-workspace` or `pk-dock` | `pk-workspace` for a content page with a fixed nav, main and aside; `pk-dock` for a tool whose user rearranges, resizes or tabs panels and expects the layout to persist. Keep both until dock's floating and rail steps land (issues 618, 608); then compare dock footprint (a fixed preset over about 2x workspace gzip means keep both), shared phone-strip code, real consumers and Blazor wrappers | Page type `tool`; `workspace` for a multi-pane tool | `PkWorkspace`, `PkDock` |
+| Panes: `pk-workspace` or `pk-dock` | Use `pk-workspace` unless the user needs to resize, tab, move or save the arrangement: `pk-workspace` for a content page with a fixed nav, main and aside (a router can own the pane); `pk-dock` for a tool whose user rearranges, resizes or tabs panels and expects the layout to persist. Never both on one page. See the section "Panes: pk-workspace or pk-dock" | Page type `tool`; `workspace` for a multi-pane tool | `PkWorkspace`, `PkDock` |
+
+## Panes: pk-workspace or pk-dock
+
+**Use `pk-workspace` unless the user needs to resize, tab, move or save the arrangement.** `pk-workspace` is three fixed panes (`nav`, main, `aside`) in core, about a ninth of the dock's size, with a phone tab strip a router can own (`pk-pane-change` is cancelable; the `workspace` page type and the `routed-list-detail` template use it). `pk-dock` (package `plainkit.dock`) is a workbench: a tree of resizable splits and tab groups the user moves panels between, floats and collapses, saved with `persist-key`. One page uses one of them, never both (a test fails when a page or template holds both). Both stay: they do different jobs.
+
+### A dock panel built on first show
+
+A dock panel is a child with `slot="<id>"`; the host creates it and the dock only slots it, so every panel's content exists from the start, hidden tabs included. For a heavy panel (an editor, a canvas, a big table) in a tab nobody may open, keep the panel node and build what is inside it the first time its tab is active. The dock tells you which tab is active: `pk-layout-change` (reasons `activate`, `move` and `panels`) carries the layout, whose tab groups each name their `active` panel, and `getLayout()` gives the same JSON for the first draw (the event is not raised for it).
+
+```js
+const activeIds = n => (n.type === 'tabs' ? [n.active] : [...activeIds(n.a), ...activeIds(n.b)]);
+const builders = { log: el => el.append(buildLogView()) };       // panel id -> fill it
+const built = new Set();
+const show = layout => activeIds(layout.root).forEach(id => {
+  if (!built.has(id) && builders[id]) { built.add(id); builders[id](dock.querySelector('[slot="' + id + '"]')); }
+});
+dock.addEventListener('pk-layout-change', e => show(e.detail.layout));
+show(JSON.parse(dock.getLayout()));                              // the panels showing at first draw
+```
+
+The panel node (`<div slot="log" data-heading="Log" data-group="bottom"></div>`) stays in your markup, so the layout, `persist-key` and the Panels menu see it from the start, and its state survives every move because the node is never moved. A panel node you append later joins an existing group as a tab (the layout is repaired and raises `pk-layout-change` with reason `panels`). A closed panel stays a child and keeps what it built.
+
+In Blazor the same idea is ordinary Razor: keep the panel element and render its content only once it has been active. Read the active panels from `PkLayoutChangeEventArgs.Layout` (a `JsonElement`) in `OnLayoutChange`:
+
+```razor
+<PkDock OnLayoutChange="OnLayout">
+    <div slot="log" data-heading="Log" data-group="bottom">
+        @if (_shown.Contains("log")) { <LogView /> }
+    </div>
+</PkDock>
+@code {
+    readonly HashSet<string> _shown = new() { "log" };   // the panels showing at first draw
+    void OnLayout(PkLayoutChangeEventArgs e) { if (e.Layout is { } l) Collect(l.GetProperty("root")); }
+    void Collect(JsonElement n)
+    {
+        if (n.GetProperty("type").GetString() == "tabs") _shown.Add(n.GetProperty("active").GetString()!);
+        else { Collect(n.GetProperty("a")); Collect(n.GetProperty("b")); }
+    }
+}
+```
+
+Measure before you optimise: this pattern costs a few lines in the host, and a lazy flag on the dock itself is only worth building when a real page shows a hidden panel costing noticeable time or memory.
 
 ## A heat map: area for a count, colour for a status
 
