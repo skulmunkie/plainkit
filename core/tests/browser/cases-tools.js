@@ -40,6 +40,53 @@ export const toolCases = [
         handle.destroy(); t.ok(!host.contains(el));
     }],
 
+    ['code explorer module: go to definition opens a single declaration, a Razor component by file name, and lists candidates when ambiguous (issue 121)', async t => {
+        const { mountCodeExplorer } = await dist('code-explorer');
+        const host = t.stage('');
+        const snap = { version: 1, files: [
+            { path: 'src/Use.razor', language: 'razor', content: `<Card />
+var a = Build();
+Dup();
+` },
+            { path: 'src/Card.razor', language: 'razor', content: `<p>card</p>
+` },
+            { path: 'src/A.cs', language: 'cs', content: `class A
+{
+    public void Build() { }
+    public void Dup() { }
+}
+`, symbols: [{ kind: 'method', name: 'Build', line: 3, depth: 1 }, { kind: 'method', name: 'Dup', line: 4, depth: 1 }] },
+            { path: 'src/B.cs', language: 'cs', content: `class B
+{
+    public void Dup() { }
+}
+`, symbols: [{ kind: 'method', name: 'Dup', line: 3, depth: 1 }] },
+        ] };
+        const handle = await mountCodeExplorer(host, { snapshot: snap, file: 'src/Use.razor', theme: 'light', height: '20rem' });
+        const el = handle.element;
+        const view = () => el.querySelector('[data-ce-pane] > pk-code-view');
+        await until(view, 'the viewer');
+        const pick = async (line, column) => {
+            view().dispatchEvent(new CustomEvent('pk-line-click', { detail: { line, column } }));
+            await until(() => el.querySelector('[data-ce-definition]'), 'the definition button');
+            el.querySelector('[data-ce-definition]').click(); await t.settle();
+        };
+        const titleOf = () => view().shadowRoot.querySelector('.title')?.textContent;
+        await pick(1, 2);
+        await until(() => titleOf() === 'src/Card.razor', 'the component file');
+        t.ok(true, 'a component tag opens Foo.razor');
+        await handle.openFile('src/Use.razor'); await t.settle();
+        await pick(2, 12);
+        await until(() => titleOf() === 'src/A.cs', 'the method declaration');
+        await handle.openFile('src/Use.razor'); await t.settle();
+        await pick(3, 2);
+        const rows = () => el.querySelectorAll('[data-ce-inspector-body] button[data-path]');
+        await until(() => rows().length === 2, 'two candidates');
+        t.eq(titleOf(), 'src/Use.razor', 'an ambiguous name opens nothing');
+        t.ok(/Definitions of Dup/.test(el.querySelector('[data-ce-inspector-title]').textContent));
+        handle.destroy();
+    }],
+
     ['code explorer module: the viewer is one pk-code-view with its own header (path, language, line count, copy, actions) that fills the pane (issue 1523, no hand-built header)', async t => {
         const { mountCodeExplorer } = await dist('code-explorer');
         const host = t.stage('');
