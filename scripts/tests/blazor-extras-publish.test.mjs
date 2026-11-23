@@ -6,7 +6,7 @@ import assert from 'node:assert/strict';
 import path from 'node:path';
 import fs from 'node:fs';
 import { fileURLToPath } from 'node:url';
-import { SETS, checkSet, checkPayload, filesOfExtra, publishJobs, pool } from '../blazor-extras-publish.mjs';
+import { SETS, checkSet, checkPayload, payloadAdvice, filesOfExtra, publishJobs, pool } from '../blazor-extras-publish.mjs';
 import { loadPackages } from '../packages.mjs';
 
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..', '..');
@@ -53,6 +53,11 @@ test('payload: over a ceiling, a missing ceiling and a core-only payload that is
     assert.match(checkPayload({ coreOnly: 11, full: 20 }, { coreOnly: 10, full: 20 }).join(), /core-only|coreOnly payload is 11/);
     assert.match(checkPayload({ coreOnly: 10, full: 20 }, undefined).join(), /blazorPayload\.coreOnly/);
     assert.match(checkPayload({ coreOnly: 20, full: 20 }, { coreOnly: 20, full: 20 }).join(), /not smaller/);
+    // full is advisory (#1985 step 4): over its ceiling is only advice, 2x the ceiling fails
+    assert.deepEqual(checkPayload({ coreOnly: 10, full: 30 }, { coreOnly: 10, full: 20 }), []);
+    assert.match(payloadAdvice({ coreOnly: 10, full: 30 }, { coreOnly: 10, full: 20 }).join(), /advisory/);
+    assert.deepEqual(payloadAdvice({ coreOnly: 10, full: 20 }, { coreOnly: 10, full: 20 }), []);
+    assert.match(checkPayload({ coreOnly: 10, full: 41 }, { coreOnly: 10, full: 20 }).join(), /backstop 40/);
 });
 
 test('packages.json records both payload ceilings as numbers once measured', () => {

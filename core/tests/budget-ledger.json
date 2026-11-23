@@ -1,5 +1,5 @@
 {
-  "_comment": "The budget ledger (#1985). A READ-ONLY mirror of the budgets, one entry per budget: id, class, limit and where it is enforced. Classes: hard = never exceeded, takes no exception; release = ceiling is the last release measured + 5 percent, set only by `node scripts/set-ceilings.mjs --release` (in force since #1985 step 3); ratchet = moves down, or up only through an exception (what the element, module, audit and Blazor analyzer budgets are until migration step 4 of docs/superpowers/specs/2026-11-19-budget-policy-rethink.md change them); advisory = reported, with only a backstop. The numbers are edited in their source (the file named in `source`); core/tests/budget-ledger.test.mjs fails when this file and the source disagree, so the ledger is never a second place to edit a number silently. `exceptions` holds approved BUDGET EXCEPTIONS: { budget, pr, approvedBy, reason }, added in the pull request that needs it and approved there by the owner or the orchestrating agent; no issue, plan or expiry. Hard gates take no exception, and neither does a release entry marked `noException: true` (page weight, the app entry, Blazor coreOnly). Release ceilings move only through scripts/set-ceilings.mjs --release. Entries with `movedBy` carry limit null: scripts/set-ceilings.mjs rewrites their source at the final gates, so the test reads the live value from the source instead of a copy that would go stale.",
+  "_comment": "The budget ledger (#1985). A READ-ONLY mirror of the budgets, one entry per budget: id, class, limit and where it is enforced. Classes: hard = never exceeded, takes no exception; release = ceiling is the last release measured + 5 percent, set only by `node scripts/set-ceilings.mjs --release` (in force since #1985 step 3); ratchet = moves down, or up only through an exception (what the audit zip and the Blazor analyzer budgets still are); advisory = reported, with only a backstop at 2x the old limit (8 KB per element), the figure that fails being the ledger limit, read from the `backstop` field of the budget (policy migration step 4, #1985). Blazor full is advisory too: its backstop is 2x the reference ceiling in packages.json, which set-ceilings --release still moves. The numbers are edited in their source (the file named in `source`); core/tests/budget-ledger.test.mjs fails when this file and the source disagree, so the ledger is never a second place to edit a number silently. `exceptions` holds approved BUDGET EXCEPTIONS: { budget, pr, approvedBy, reason }, added in the pull request that needs it and approved there by the owner or the orchestrating agent; no issue, plan or expiry. Hard gates take no exception, and neither does a release entry marked `noException: true` (page weight, the app entry, Blazor coreOnly). Release ceilings move only through scripts/set-ceilings.mjs --release. Entries with `movedBy` carry limit null: scripts/set-ceilings.mjs rewrites their source at the final gates, so the test reads the live value from the source instead of a copy that would go stale.",
   "budgets": [
     {
       "id": "page-layer-css-gz-kb",
@@ -138,81 +138,62 @@
       "movedBy": "scripts/set-ceilings.mjs --release"
     },
     {
-      "id": "element-gz-kb",
-      "class": "ratchet",
-      "limit": 4,
+      "id": "element-gz-kb-backstop",
+      "class": "advisory",
+      "limit": 8,
       "unit": "KB gzip",
       "source": {
         "file": "core/site/scorecard/scoring.data.js",
-        "budget": "elementGzKb"
+        "budget": "elementGzKb",
+        "field": "backstop"
       },
       "enforcedBy": "core/tests/budgets.test.mjs"
     },
     {
-      "id": "element-override-markdown-editor",
-      "class": "ratchet",
-      "limit": 4.12,
+      "id": "base-runtime-gz-kb-backstop",
+      "class": "advisory",
+      "limit": 5.6,
       "unit": "KB gzip",
       "source": {
         "file": "core/site/scorecard/scoring.data.js",
-        "budget": "elementGzKbOverrides",
-        "key": "markdown-editor.js"
+        "budget": "baseRuntimeGzKb",
+        "field": "backstop"
       },
       "enforcedBy": "core/tests/budgets.test.mjs"
     },
     {
-      "id": "element-override-dock",
-      "class": "ratchet",
-      "limit": 3.65,
+      "id": "js-module-gz-kb-backstop",
+      "class": "advisory",
+      "limit": 12,
       "unit": "KB gzip",
       "source": {
         "file": "core/site/scorecard/scoring.data.js",
-        "budget": "elementGzKbOverrides",
-        "key": "dock.js"
+        "budget": "jsModuleGzKb",
+        "field": "backstop"
       },
       "enforcedBy": "core/tests/budgets.test.mjs"
     },
     {
-      "id": "base-runtime-gz-kb",
-      "class": "ratchet",
-      "limit": 2.8,
+      "id": "base-js-gz-kb-backstop",
+      "class": "advisory",
+      "limit": 20,
       "unit": "KB gzip",
       "source": {
         "file": "core/site/scorecard/scoring.data.js",
-        "budget": "baseRuntimeGzKb"
+        "budget": "baseJsGzKb",
+        "field": "backstop"
       },
       "enforcedBy": "core/tests/budgets.test.mjs"
     },
     {
-      "id": "js-module-gz-kb",
-      "class": "ratchet",
+      "id": "app-page-type-gz-kb-backstop",
+      "class": "advisory",
       "limit": 6,
       "unit": "KB gzip",
       "source": {
         "file": "core/site/scorecard/scoring.data.js",
-        "budget": "jsModuleGzKb"
-      },
-      "enforcedBy": "core/tests/budgets.test.mjs"
-    },
-    {
-      "id": "base-js-gz-kb",
-      "class": "ratchet",
-      "limit": 10,
-      "unit": "KB gzip",
-      "source": {
-        "file": "core/site/scorecard/scoring.data.js",
-        "budget": "baseJsGzKb"
-      },
-      "enforcedBy": "core/tests/budgets.test.mjs"
-    },
-    {
-      "id": "app-page-type-gz-kb",
-      "class": "ratchet",
-      "limit": 3,
-      "unit": "KB gzip",
-      "source": {
-        "file": "core/site/scorecard/scoring.data.js",
-        "budget": "appPageTypeGzKb"
+        "budget": "appPageTypeGzKb",
+        "field": "backstop"
       },
       "enforcedBy": "core/tests/app-budgets.test.mjs"
     },
@@ -360,7 +341,7 @@
     },
     {
       "id": "blazor-payload-full",
-      "class": "release",
+      "class": "advisory",
       "limit": null,
       "unit": "bytes gzip",
       "source": {
@@ -370,8 +351,8 @@
           "full"
         ]
       },
-      "enforcedBy": "scripts/blazor-extras-publish.mjs",
-      "movedBy": "scripts/set-ceilings.mjs --release"
+      "enforcedBy": "scripts/blazor-extras-publish.mjs (reports over the reference ceiling; fails only over 2x it)",
+      "movedBy": "scripts/set-ceilings.mjs --release (the reference ceiling; the backstop is 2x it)"
     }
   ],
   "exceptions": []
