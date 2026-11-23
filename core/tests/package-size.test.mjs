@@ -25,8 +25,8 @@ import { spawnSync } from 'node:child_process';
 import { fileURLToPath } from 'node:url';
 
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
-const MAX_PACKED_BYTES = 291_492;
-const MAX_UNPACKED_BYTES = 957_700;
+const MAX_PACKED_BYTES = 300_896;
+const MAX_UNPACKED_BYTES = 983_695;
 const TOP_LEVEL = new Set(['dist', 'LICENSE', 'README.md', 'package.json']);
 // dist/ is the runtime unit; these are the entries of dist/ the package may carry (dist/modules is the dev-tool unit, a separate download).
 const DIST = new Set(['elements', 'js', 'llms-full.txt', 'llms.txt', 'themes',

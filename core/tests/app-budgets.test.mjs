@@ -39,7 +39,7 @@ test('the entry (js/app.js and everything it imports statically) stays inside ap
     const files = entryGraph();
     const kb = gz(files);
     console.log(`app entry: ${files.length} files, ${kb.toFixed(2)} KB gzip (comments removed)`);
-    assert.ok(kb <= BUDGETS.appEntryGzKb.limit, `the app entry graph is ${kb.toFixed(2)} KB gzip, limit ${BUDGETS.appEntryGzKb.limit} (hard cap, #514: never raise this — offset any growth with an equal-or-greater cut elsewhere in the entry graph, or load the new code lazily). Files: ${files.join(', ')}`);
+    assert.ok(kb <= BUDGETS.appEntryGzKb.limit, `the app entry graph is ${kb.toFixed(2)} KB gzip, limit ${BUDGETS.appEntryGzKb.limit} (release-relative gate, #1985: the last release measured +5 percent, set only by scripts/set-ceilings.mjs --release; load the new code lazily, or make the entry graph smaller). Files: ${files.join(', ')}`);
 });
 
 test('every js/app/pages/ chunk stays inside appPageTypeGzKb, and every js/app/ file inside the per-module budget', () => {

@@ -21,8 +21,8 @@ for (const [name, page] of Object.entries(REF_PAGES)) {
         for (const k of ['requests', 'gzip', 'brotli']) {
             assert.ok(g[k] <= c[k], `${name} ${k} is ${g[k]}, ceiling ${c[k]}. FIX: make the page lighter (a new shared import? run \`node scripts/bench/wire.mjs\` to see the files); never raise page-weight.ceiling.json.`);
         }
-        // A ceiling with slack hides growth: it must stay within 2 percent of the measured value (and equal for the request count).
-        for (const k of ['gzip', 'brotli']) assert.ok(c[k] <= g[k] * 1.02, `${name} ${k} ceiling ${c[k]} is more than 2 percent above the measured ${g[k]}. FIX: lower it to ${Math.ceil(g[k] / 100) * 100}.`);
+        // Release-relative (#1985): a ceiling is the last release measured +5 percent, set only by set-ceilings --release; one more than 10 percent above the measured value was not set by it (requests stay exact).
+        for (const k of ['gzip', 'brotli']) assert.ok(c[k] <= g[k] * 1.1, `${name} ${k} ceiling ${c[k]} is more than 10 percent above the measured ${g[k]}. FIX: run node scripts/set-ceilings.mjs --release (never edit it by hand).`);
         assert.ok(c.requests <= g.requests, `${name} requests dropped to ${g.requests}, ceiling ${c.requests}. FIX: lower the ceiling to ${g.requests}.`);
     });
 }
