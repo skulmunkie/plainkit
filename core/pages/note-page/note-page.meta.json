@@ -4,7 +4,8 @@
   "group": "Page types",
   "tier": "page",
   "pageType": "note",
-  "summary": "A static informational page: a heading and a block of prose in a card. No data, no callbacks - the page-type building block for a one-off About/Overview/Summary page.",
+  "preUpgrade": "visible",
+  "summary": "A static informational page: a heading and a block of prose in a card. No data, no callbacks - the page-type building block for a one-off About/Overview/Summary page. Static slotted mode (for server-rendered, JavaScript-optional sites): write your own markup as the page's children with no config and it renders in the default slot as written, never created, moved or changed by the element; without JavaScript the author's text is all there.",
   "props": [
     {
       "name": "config",
@@ -14,7 +15,9 @@
       "description": "{ heading, body, cardHeading }. heading is the page's h1 text, body is the card's prose, cardHeading is an optional card title (the card has no header without it)."
     }
   ],
-  "slots": [],
+  "slots": [
+    { "name": "", "description": "Static slotted mode only: your own markup (a heading, a pk-card, prose), shown as written. Decided at connect: child elements (other than slot=title) and an empty config." }
+  ],
   "events": [],
   "parts": [
     { "name": "body", "description": "Wraps the built pk-stack > pk-heading + pk-card content." }
@@ -26,6 +29,10 @@
     {
       "title": "About page (set config from script: an inline script cannot run under this site's CSP, so wire it the way pk-tool-page's run is wired)",
       "html": "<pk-note-page id=\"about\"></pk-note-page>"
+    },
+    {
+      "title": "Static slotted mode (plain markup, no script, nothing built)",
+      "html": "<pk-note-page><pk-card heading=\"About this site\"><p>Written as plain markup: with JavaScript blocked the text is still all there.</p></pk-card></pk-note-page>"
     }
   ],
   "methods": []

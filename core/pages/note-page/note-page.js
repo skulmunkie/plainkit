@@ -1,15 +1,18 @@
+import { decideStatic } from '../../js/page-base.js';
 import { loadElements } from '../../js/loader.js';
 
 // <pk-note-page>: a static informational page - a heading and a block of prose in a card, no data, no callbacks (#678). Formalizes the
 // pk-stack > h1/pk-heading + pk-card shape every hand-rolled "About"/"Overview"-style page reached for as page: 'custom'.
+// Static slotted mode (#1929, STANDARDS "Static slotted pages"): host child elements (other than slot=title) and an empty config render in the default slot as written; nothing is built. Decided at connect.
 export default Base => class extends Base {
     connected() {
         if (this.$w) return;
         this.$w = true;
         loadElements(this.shadowRoot);
+        if (decideStatic(this, () => this.querySelector?.(':scope > :not([slot])') && !Object.keys(this.config ?? {}).length)) return; // the template's own default slot (inside the body part) shows them; build() replaces it
         this.build();
     }
-    changed(name) { if (name === 'config') this.build(); }
+    changed(name) { if (name === 'config' && !this.$static) this.build(); }
 
     build() {
         // A title the host supplied (slot "title", appended by the factory, possibly after the config was set) leads the stack and replaces the built-in heading.

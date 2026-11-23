@@ -2,7 +2,11 @@
 // shadow-root child, so the SDK's on-demand loader can see it), the optional label action button, and the pk-action event. Stub base, no DOM.
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import behaviour from './not-found-page.js';
+import layer from './not-found-page.js';
+import states from '../states-page/states-page.js';
+
+// The build layers this preset over pk-states-page's behaviour (meta "extends"), with its "fixed" state.
+const behaviour = Base => class extends layer(states(Base)) { get state() { return 'empty'; } part() { return null; } };
 
 const fakeEl = tag => ({ localName: tag, attrs: {}, children: [], slot: '', ownerDocument: { createElement: fakeEl }, setAttribute(k, v) { this.attrs[k] = String(v); }, append(...k) { this.children.push(...k); }, replaceChildren(...k) { this.children = k; }, addEventListener(type, fn) { (this.on ??= {})[type] = fn; }, set textContent(v) { this._t = v; }, get textContent() { return this._t; }, get firstElementChild() { return this.children[0]; } });
 
@@ -69,4 +73,15 @@ test('updated is idempotent about the action button: calling it again does not p
     el.updated();
     el.updated();
     assert.equal(drawn().children.length, 1);
+});
+
+test('the build makes it a preset of pk-states-page: parent behaviour layered under, state fixed, imports written once', async () => {
+    const { loadElementSources, elementModule } = await import('../../tools/build.mjs');
+    const el = loadElementSources().find(e => e.meta.tag === 'pk-not-found-page');
+    assert.ok(el.parentBehaviour, 'the parent behaviour is resolved from meta.extends');
+    const code = elementModule(el, { coreImport: '../../js/element.js' });
+    assert.match(code, /const behaviour = Base => behaviour1\(behaviour0\(Base\)\);/);
+    assert.match(code, /export default define\(class extends behaviour\(PkElement\)/);
+    assert.match(code, /get state\(\) \{ return "empty"; \}/);
+    assert.equal(code.match(/^import \{ drawState \}/gm).length, 1);
 });
