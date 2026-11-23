@@ -94,7 +94,7 @@ export const BUDGETS = {
     // in the SAME pull request, with an equal-or-greater reduction elsewhere in that graph (move something to lazy-load on first use, the way
     // tasks/notify/dialogs already do, or cut it) so the total stays at or under this ceiling. If you hit this test failing, the fix is not
     // "shrink your new code" alone — it's "the entry graph as a whole must not have grown," which usually means removing something else too.
-    appEntryGzKb: { target: 6, limit: 22, note: 'js/app.js and its whole static import graph (tests/app-budgets.test.mjs; comments removed); the tracker #346 target is 6 but splitting alone cannot reach it (#514); the limit is a hard cap at today\'s measured size and must not grow again without an offsetting cut elsewhere in the graph (host, router, page, store, theme-core and nav are in the graph; tasks, notify and dialogs load on first use)' },
+    appEntryGzKb: { target: 6, limit: 23.1, note: 'js/app.js and its whole static import graph (tests/app-budgets.test.mjs; comments removed); the tracker #346 target is 6 but splitting alone cannot reach it (#514); the limit is release-relative since #1985 (the last release measured +5 percent, rewritten only by scripts/set-ceilings.mjs --release; no exception) (host, router, page, store, theme-core and nav are in the graph; tasks, notify and dialogs load on first use)' },
     appPageTypeGzKb: { target: 1, limit: 3, note: 'one js/app/pages/<type>.js chunk (found by folder, so a new one is budgeted at once)' },
     baseJsGzKb: { target: 0, limit: 10, note: 'the modules a plain page imports through plainkit.js: the invokers, log, element loader, theme, colour' },
 };

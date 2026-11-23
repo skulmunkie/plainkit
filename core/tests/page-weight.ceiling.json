@@ -1,6 +1,6 @@
 {
-  "_comment": "Page-weight ceilings: per reference page (scripts/bench/ref-pages.mjs), the most gzip and brotli bytes and requests its static request graph may have. Set to the measured value rounded up by less than 2 percent. THIS FILE ONLY EVER SHRINKS: lower a number when the page gets lighter; never raise one, never add a page to hide growth. If you are over, make the source smaller.",
-  "button": { "requests": 12, "gzip": 18100, "brotli": 15772 },
-  "form": { "requests": 16, "gzip": 28200, "brotli": 24659 },
-  "table": { "requests": 12, "gzip": 20100, "brotli": 17500 }
+  "_comment": "Page-weight ceilings: per reference page (scripts/bench/ref-pages.mjs), the most gzip and brotli bytes and requests its static request graph may have. Release-relative since #1985 step 3: each gzip and brotli number is the last release measured +5 percent and requests are exact, written only by node scripts/set-ceilings.mjs --release (--allow-page-weight button,form,table) in the release pull request; never edit by hand, never add a page to hide growth. If you are over inside a cycle, make the source smaller or load it lazily.",
+  "button": { "requests": 12, "gzip": 18955, "brotli": 16396 },
+  "form": { "requests": 16, "gzip": 29555, "brotli": 25635 },
+  "table": { "requests": 12, "gzip": 21047, "brotli": 18361 }
 }

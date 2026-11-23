@@ -1,6 +1,6 @@
 // The budget ledger (#1985): core/tests/budget-ledger.json mirrors every ratchet and hard-gate budget and holds the owner-approved exceptions.
 // It is read-only: a number is edited in its source, and this test fails when the ledger and the source disagree.
-// An exception is { budget, pr, approvedBy, reason }, added in the approving pull request; there is no expiry. Classes: hard (never exceeded, no exception), release (ceiling = last release measured + 5 percent, set by set-ceilings.mjs), ratchet (moves down; the class of today's element, module and package budgets until steps 3 and 4 of the policy migration), advisory (reported, backstop only).
+// An exception is { budget, pr, approvedBy, reason }, added in the approving pull request; there is no expiry. Classes: hard (never exceeded, no exception), release (ceiling = last release measured + 5 percent, set only by set-ceilings.mjs --release; in force since step 3), ratchet (moves down; the class of the element, module, audit and Blazor analyzer budgets until step 4 of the policy migration), advisory (reported, backstop only).
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import fs from 'node:fs';
@@ -39,7 +39,7 @@ export function checkSchema(l) {
     for (const e of l.exceptions ?? []) {
         const b = (l.budgets ?? []).find(x => x.id === e.budget);
         if (!b) errors.push(`exception for unknown budget ${e.budget}`);
-        else if (b.class === 'hard') errors.push(`${e.budget} is a hard gate: it takes no exception`);
+        else if (b.class === 'hard' || b.noException) errors.push(`${e.budget} is a hard gate: it takes no exception`);
         if (!Number.isInteger(e.pr) || e.pr <= 0) errors.push(`exception ${e.budget}: pr must be the pull request number`);
         if (typeof e.approvedBy !== 'string' || !e.approvedBy.trim()) errors.push(`exception ${e.budget}: approvedBy is required (the owner or the orchestrator)`);
         if (typeof e.reason !== 'string' || !e.reason.trim()) errors.push(`exception ${e.budget}: reason is required`);
@@ -56,6 +56,10 @@ test('the ledger agrees with the source of every budget (it is a mirror, never t
     for (const b of ledger.budgets.filter(x => x.limit !== null)) assert.equal(sourceValue(b), b.limit, `${b.id}: the ledger says ${b.limit} but ${b.source.file} says ${sourceValue(b)}. FIX: edit the number in its source under the budget rules (never raise one without an owner-approved exception), then mirror it here.`);
 });
 
+test('a ledger entry moved by set-ceilings carries limit null and its source holds a live number', () => {
+    for (const b of ledger.budgets.filter(x => x.movedBy)) assert.ok(Number.isFinite(sourceValue(b)) && sourceValue(b) > 0, `${b.id}: cannot read a number from ${b.source.file}. FIX: correct the entry's source.`);
+});
+
 test('the rules themselves: schema errors, classes and hard gates', () => {
     const ok = { id: 'x', class: 'ratchet', limit: 1, unit: 'b', source: { file: 'f' }, enforcedBy: 't' };
     const hard = { ...ok, id: 'h', class: 'hard' };
@@ -69,4 +73,7 @@ test('the rules themselves: schema errors, classes and hard gates', () => {
     assert.equal(checkSchema(l([{ ...ex, reason: '' }])).length, 1);
     assert.equal(checkSchema(l([{ ...ex, until: '2027-01-31' }])).length, 1);
     assert.equal(checkSchema(l([{ ...ex, budget: 'h' }])).length, 1);
+    const noEx = { ...ok, id: 'n', class: 'release', noException: true };
+    assert.equal(checkSchema({ budgets: [noEx], exceptions: [{ ...ex, budget: 'n' }] }).length, 1);
+    assert.deepEqual(checkSchema({ budgets: [{ ...noEx, noException: undefined }], exceptions: [{ ...ex, budget: 'n' }] }), []);
 });

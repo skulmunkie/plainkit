@@ -4,7 +4,7 @@ import assert from 'node:assert/strict';
 import fs from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
-import { OPTIONAL, ONE_WAY, applyPackages, applyPageWeight, parsePayload, planCeilings, plusOne } from '../set-ceilings.mjs';
+import { OPTIONAL, ONE_WAY, applyPackages, applyPageWeight, applyScalar, entryLimitKb, parsePayload, planCeilings, planRelease, plusOne, plusPct } from '../set-ceilings.mjs';
 
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..', '..');
 const packagesText = fs.readFileSync(path.join(root, 'packages.json'), 'utf8');
@@ -85,4 +85,51 @@ test('parsePayload reads the extras-publish lines', () => {
 test('plusOne rounds up', () => {
     assert.equal(plusOne(100), 101);
     assert.equal(plusOne(19905), 20105);
+});
+
+test('plusPct is exact integer arithmetic, rounded up', () => {
+    assert.equal(plusPct(100), 105);
+    assert.equal(plusPct(18039), 18941);
+    assert.equal(plusPct(100, 1), plusOne(100));
+    assert.equal(plusPct(19905, 1), plusOne(19905));
+});
+
+test('entryLimitKb is measured + 5 percent in KB, one decimal, rounded up', () => {
+    assert.equal(entryLimitKb(22520), 23.1);
+    assert.ok(entryLimitKb(22520) * 1024 >= 22520 * 1.05);
+});
+
+const rel = (over, allow, kb = 22) => planRelease({ packagesData: { ...data, packages: data.packages.map(p => p.id === 'plainkit' ? { ...p, maxPackedBytes: 1000, maxUnpackedBytes: 2000 } : p) }, pageCeilings: pages, appEntryKb: kb, measured: { ...within, core: { packed: 1000, unpacked: 2000 }, ...over }, allowPageWeight: allow });
+const pick = r => Object.fromEntries(r.changes.map(c => [c.path, c.to]));
+
+test('release: optional packages and core go to measured + 5 percent, up or down; audit and blazor stay untouched', () => {
+    const r = rel({ core: { packed: 2000, unpacked: 2000 }, packages: { ...within.packages, 'plainkit.canvas': { zip: 20000, unpacked: 80000 }, 'plainkit.audit': { zip: 9999, unpacked: 9999 } } });
+    assert.deepEqual(pick(r), { 'plainkit.canvas.maxZipBytes': 21000, 'plainkit.canvas.maxUnpackedBytes': 84000, 'plainkit.dock.maxZipBytes': 19950, 'plainkit.dock.maxUnpackedBytes': 52500, 'plainkit.maxPackedBytes': 2100, MAX_PACKED_BYTES: 2100, 'plainkit.maxUnpackedBytes': 2100, MAX_UNPACKED_BYTES: 2100 });
+    assert.ok(r.refused.every(x => x.path.startsWith('table.')), 'only the unnamed page is refused');
+    assert.equal(r.changes.filter(c => c.file === 'core/tests/package-size.test.mjs').length, 2);
+    assert.ok(!r.changes.some(c => c.path.startsWith('plainkit.audit')));
+});
+
+test('release: the app entry and both Blazor payload ceilings follow; no measurement leaves them alone', () => {
+    const r = rel({ appEntryGzBytes: 22520, blazorPayload: { coreOnly: 700000, full: 1000000 } });
+    assert.equal(pick(r).appEntryGzKb, 23.1);
+    assert.equal(pick(r)['blazorPayload.coreOnly'], 735000);
+    assert.equal(pick(r)['blazorPayload.full'], 1050000);
+    const none = rel({}), keys = Object.keys(pick(none));
+    assert.ok(!keys.includes('appEntryGzKb') && !keys.some(k => k.startsWith('blazorPayload')));
+});
+
+test('release: page weight moves only for named pages, requests exactly, gzip and brotli +5 percent', () => {
+    const over = { pageWeight: { table: { requests: 13, gzip: 19000, brotli: 17400 } } };
+    assert.deepEqual(rel(over).refused.map(x => x.path), ['table.requests', 'table.gzip', 'table.brotli']);
+    assert.deepEqual(pick(rel(over, ['table'])), { 'table.requests': 13, 'table.gzip': 19950, 'table.brotli': 18270, ...pick(rel({})) });
+    assert.throws(() => rel(over, ['nope']));
+});
+
+test('applyScalar replaces the grouped constant and the app entry limit, nothing else', () => {
+    const size = 'const A = 1;\nconst MAX_PACKED_BYTES = 291_492;\nconst MAX_UNPACKED_BYTES = 957_700;\n';
+    assert.equal(applyScalar(size, { file: 'core/tests/package-size.test.mjs', path: 'MAX_PACKED_BYTES', to: 300778 }), size.replace('291_492', '300_778'));
+    const score = 'appPageTypeGzKb: { target: 1, limit: 3, x }, appEntryGzKb: { target: 6, limit: 22, note: "n" },';
+    assert.equal(applyScalar(score, { file: 'core/site/scorecard/scoring.data.js', path: 'appEntryGzKb', to: 23.1 }), score.replace('limit: 22', 'limit: 23.1'));
+    assert.throws(() => applyScalar(score, { file: 'core/site/scorecard/scoring.data.js', path: 'nope', to: 1 }));
 });
