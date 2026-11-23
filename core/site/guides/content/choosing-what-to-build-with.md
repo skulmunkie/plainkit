@@ -52,11 +52,11 @@ Only things that exist today are listed. A dash means there is no ready-made pie
 
 ## Panes: pk-workspace or pk-dock
 
-**Use `pk-workspace` unless the user needs to resize, tab, move or save the arrangement.** `pk-workspace` is three fixed panes (`nav`, main, `aside`) in core, about a ninth of the dock's size, with a phone tab strip a router can own (`pk-pane-change` is cancelable; the `workspace` page type and the `routed-list-detail` template use it). `pk-dock` (package `plainkit.dock`) is a workbench: a tree of resizable splits and tab groups the user moves panels between, floats and collapses, saved with `persist-key`. One page uses one of them, never both (a test fails when a page or template holds both). Both stay: they do different jobs.
+**Use `pk-workspace` unless the user needs to resize, tab, move or save the arrangement.** `pk-workspace` is three fixed panes (`nav`, main, `aside`) in core, about a ninth of the dock's size, with a phone tab strip a router can own (its pane-change event is cancelable; the `workspace` page type and the `routed-list-detail` template use it). `pk-dock` (package `plainkit.dock`) is a workbench: a tree of resizable splits and tab groups the user moves panels between, floats and collapses, saved with `persist-key`. One page uses one of them, never both (a test fails when a page or template holds both). Both stay: they do different jobs.
 
 ### A dock panel built on first show
 
-A dock panel is a child with `slot="<id>"`; the host creates it and the dock only slots it, so every panel's content exists from the start, hidden tabs included. For a heavy panel (an editor, a canvas, a big table) in a tab nobody may open, keep the panel node and build what is inside it the first time its tab is active. The dock tells you which tab is active: `pk-layout-change` (reasons `activate`, `move` and `panels`) carries the layout, whose tab groups each name their `active` panel, and `getLayout()` gives the same JSON for the first draw (the event is not raised for it).
+A dock panel is a child with `slot="<id>"`; the host creates it and the dock only slots it, so every panel's content exists from the start, hidden tabs included. For a heavy panel (an editor, a canvas, a big table) in a tab nobody may open, keep the panel node and build what is inside it the first time its tab is active. The dock tells you which tab is active: the layout-change event (reasons `activate`, `move` and `panels`) carries the layout, whose tab groups each name their `active` panel, and `getLayout()` gives the same JSON for the first draw (the event is not raised for it).
 
 ```js
 const activeIds = n => (n.type === 'tabs' ? [n.active] : [...activeIds(n.a), ...activeIds(n.b)]);
@@ -69,7 +69,7 @@ dock.addEventListener('pk-layout-change', e => show(e.detail.layout));
 show(JSON.parse(dock.getLayout()));                              // the panels showing at first draw
 ```
 
-The panel node (`<div slot="log" data-heading="Log" data-group="bottom"></div>`) stays in your markup, so the layout, `persist-key` and the Panels menu see it from the start, and its state survives every move because the node is never moved. A panel node you append later joins an existing group as a tab (the layout is repaired and raises `pk-layout-change` with reason `panels`). A closed panel stays a child and keeps what it built.
+The panel node (`<div slot="log" data-heading="Log" data-group="bottom"></div>`) stays in your markup, so the layout, `persist-key` and the Panels menu see it from the start, and its state survives every move because the node is never moved. A panel node you append later joins an existing group as a tab (the layout is repaired and raises the layout-change event with reason `panels`). A closed panel stays a child and keeps what it built.
 
 In Blazor the same idea is ordinary Razor: keep the panel element and render its content only once it has been active. Read the active panels from `PkLayoutChangeEventArgs.Layout` (a `JsonElement`) in `OnLayoutChange`:
 
