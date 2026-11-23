@@ -212,6 +212,23 @@
       "maxPackedBytes": null,
       "maxUnpackedBytes": 965522,
       "maxZipBytes": 204861
+    },
+    {
+      "id": "plainkit.icons",
+      "title": "Icons",
+      "built": true,
+      "requires": [
+        "plainkit"
+      ],
+      "blazorOption": null,
+      "files": [
+        "icons.d.ts",
+        "icons.json",
+        "icons.svg"
+      ],
+      "maxPackedBytes": null,
+      "maxUnpackedBytes": null,
+      "maxZipBytes": null
     }
   ],
   "siteOnly": [
