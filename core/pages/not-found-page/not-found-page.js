@@ -1,16 +1,11 @@
-import { drawState } from '../../js/page-shell.js';
-
-// pk-not-found-page: a purely presentational "this route doesn't exist" / "you don't have access" screen - built on the SAME shared
-// js/page-states.js module pk-states-page already uses (the "an EmptyPageBase" idea from #351), never duplicating its markup. Always
-// draws the 'empty' state's own pk-empty-state markup with a sensible default heading/description, so a consumer can use it with zero
-// config; an optional `label` adds a real pk-button action (e.g. "Go home") into pk-empty-state's own actions slot, which raises
-// pk-action instead of calling location/navigate itself - the host decides what "Go home" means (STANDARDS.md: elements talk back
-// through events, never callback props).
+// pk-not-found-page: a preset of pk-states-page (#1929; meta "extends" pk-states-page, "fixed" state empty): the build layers this class over the states page's
+// behaviour, which draws the empty state through the shared js/page-states.js markup. This layer adds the default text (the states page reads `$fb` when a prop is
+// empty) and an optional `label` action: a real pk-button in pk-empty-state's own actions slot that raises pk-action instead of navigating itself - the host decides
+// what "Go home" means (STANDARDS.md: elements talk back through events, never callback props).
 export default Base => class extends Base {
-    connected() { if (!this.$s) { this.$s = this.ownerDocument.createElement('div'); this.$s.slot = 'drawn'; this.append(this.$s); } }
+    $fb = { heading: 'Page not found', description: "The page you're looking for doesn't exist or you don't have access to it." };
     updated() {
-        this.connected();
-        drawState(this, 'empty', { heading: this.heading || 'Page not found', description: this.description || "The page you're looking for doesn't exist or you don't have access to it." });
+        super.updated();
         const drawn = this.$s.firstElementChild;
         if (this.label && drawn) {
             const btn = this.ownerDocument.createElement('pk-button');

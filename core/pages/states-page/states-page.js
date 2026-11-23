@@ -9,7 +9,8 @@ export default Base => class extends Base {
     updated() {
         this.connected();
         const state = this.state || 'ready';
-        this.part('content').hidden = state !== 'ready';
-        drawState(this, state, { heading: this.heading, description: this.description, label: this.label, retry: () => this.emit('pk-retry', null, { cancelable: false }) });
+        const content = this.part('content'); // a preset that extends this element (pk-not-found-page) has no content part
+        if (content) content.hidden = state !== 'ready';
+        drawState(this, state, { heading: this.heading || this.$fb?.heading, description: this.description || this.$fb?.description, label: this.label, retry: () => this.emit('pk-retry', null, { cancelable: false }) });
     }
 };
