@@ -79,24 +79,16 @@ export const PRIMARY_CSS = ['tokens/tokens.css', 'base/base.css', 'base/utilitie
 export const BUDGETS = {
     // The page layer, each element and the scripts are budgeted separately. Limits only ever come down.
     pageCssGzKb: { target: 8, limit: 10, reference: 25, note: 'dist/plainkit.css: tokens, base, utilities, spacing and a11y for the light DOM (Bootstrap 5 CSS is about 25 KB gzip)' },
-    elementGzKb: { target: 2, limit: 4, note: 'one dist/elements/<name>.js: template, css and behaviour together, now real-minified (esbuild transformSync, issue #600); ratcheted down from 4.5 after minification, measured against the largest non-override element (pk-input at about 3.73 KB) with headroom for growth' },
-    // Per-element HARD CAPS (not part of the general ratchet above), for the rare element whose feature set genuinely cannot fit the blanket
-    // elementGzKb limit even after real minification. Each entry is a one-time, documented, owner-approved exception at today's measured size,
-    // not room to grow: adding to that element again without shrinking something else in it first fails this test. Do not add an entry here
-    // without the same owner sign-off #514 needed for appEntryGzKb; do not "fix" a failure by bumping the number in an entry that already exists.
-    elementGzKbOverrides: { 'markdown-editor.js': { limit: 4.12, note: 'pk-markdown-editor is in the optional plainkit.markdown package and grows with the rich-text phases; owner-approved override 2026-10-27' }, 'dock.js': { limit: 3.65, note: 'pk-dock measured 3.63 KB after dock-commit.js took persistence and confirmLayout out (#432 phase D0); every new dock capability goes into a dock-*.js module' } },
-    baseRuntimeGzKb: { target: 2, limit: 2.8, note: 'js/element.js + js/element-core.js (comments stripped); raised from 2.5 for the logging every element now does (issue #16)' },
-    jsModuleGzKb: { target: 3, limit: 6 },
-    // HARD CAP, not a ratchet (#514): every other limit in this table only ever comes down, but splitting the entry graph alone could not
-    // reach the 6 KB target (#346), so the owner made a one-time, documented exception and revised this limit UP to match today's actual
-    // measured size (21.84 KB on main as of #514, rounded up to 22). This is not license to raise it again: from here on the number must
-    // never simply go up. Any future addition to js/app.js's static import graph (host, router, page, store, theme-core, nav) must be paired,
-    // in the SAME pull request, with an equal-or-greater reduction elsewhere in that graph (move something to lazy-load on first use, the way
-    // tasks/notify/dialogs already do, or cut it) so the total stays at or under this ceiling. If you hit this test failing, the fix is not
-    // "shrink your new code" alone — it's "the entry graph as a whole must not have grown," which usually means removing something else too.
+    // ADVISORY since #1985 step 4 (policy of 2026-11-23): `limit` is the figure the scorecard and the trend report compare against; `backstop` is the only failing
+    // threshold (2x the limit; 8 KB for an element), so a mistake cannot ship. A file over `limit` is reported, never a failed test.
+    elementGzKb: { target: 2, limit: 4, backstop: 8, note: 'one dist/elements/<name>.js: template, css and behaviour together, real-minified (esbuild transformSync, issue #600); the 4 KB figure is advisory (the report lists the top 15 and any above it), the 8 KB backstop is the only gate' },
+    baseRuntimeGzKb: { target: 2, limit: 2.8, backstop: 5.6, note: 'js/element.js + js/element-core.js (comments stripped); advisory, backstop 2x (#1985)' },
+    jsModuleGzKb: { target: 3, limit: 6, backstop: 12, note: 'advisory, backstop 2x (#1985)' },
+    // RELEASE class (#1985, owner decision 2026-11-23): the ceiling is the last release measured +5 percent, rewritten only by scripts/set-ceilings.mjs --release; no exception.
+    // The #514 rule ("offset growth elsewhere in the same pull request") is replaced by "stay inside the release ceiling, load what is rare lazily".
     appEntryGzKb: { target: 6, limit: 23.1, note: 'js/app.js and its whole static import graph (tests/app-budgets.test.mjs; comments removed); the tracker #346 target is 6 but splitting alone cannot reach it (#514); the limit is release-relative since #1985 (the last release measured +5 percent, rewritten only by scripts/set-ceilings.mjs --release; no exception) (host, router, page, store, theme-core and nav are in the graph; tasks, notify and dialogs load on first use)' },
-    appPageTypeGzKb: { target: 1, limit: 3, note: 'one js/app/pages/<type>.js chunk (found by folder, so a new one is budgeted at once)' },
-    baseJsGzKb: { target: 0, limit: 10, note: 'the modules a plain page imports through plainkit.js: the invokers, log, element loader, theme, colour' },
+    appPageTypeGzKb: { target: 1, limit: 3, backstop: 6, note: 'one js/app/pages/<type>.js chunk (found by folder, so a new one is budgeted at once); advisory, backstop 2x (#1985)' },
+    baseJsGzKb: { target: 0, limit: 10, backstop: 20, note: 'the modules a plain page imports through plainkit.js: the invokers, log, element loader, theme, colour; advisory, backstop 2x (#1985)' },
 };
 
 // Text policy, two tiers (px at the 14px root). Reading text (body, cells, labels, inputs, buttons, nav items, help) is at least

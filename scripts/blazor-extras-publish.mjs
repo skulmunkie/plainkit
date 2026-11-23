@@ -73,12 +73,21 @@ export function checkSet(set, published, universe, packages) {
     return problems;
 }
 
-/** Problems with the measured payload against packages.json blazorPayload. Pure. */
+/** The full payload is advisory (#1985 step 4): over its reference ceiling is reported, only 2x the ceiling fails. */
+export const FULL_BACKSTOP_FACTOR = 2;
+
+/** Advisory lines for the measured payload (reported, never a failure). Pure. */
+export function payloadAdvice(measured, ceilings) {
+    return typeof ceilings?.full === 'number' && measured.full > ceilings.full ? [`the full payload is ${measured.full} gzip bytes, over its reference ceiling ${ceilings.full} (advisory; the backstop is ${ceilings.full * FULL_BACKSTOP_FACTOR})`] : [];
+}
+
+/** Problems with the measured payload against packages.json blazorPayload. Pure. coreOnly is a release-class gate; full fails only at 2x its ceiling. */
 export function checkPayload(measured, ceilings) {
     const problems = [];
     for (const k of ['coreOnly', 'full']) {
         if (!ceilings || typeof ceilings[k] !== 'number') problems.push(`packages.json has no blazorPayload.${k}: run node scripts/blazor-extras-publish.mjs --write (measured ${measured[k]} bytes)`);
-        else if (measured[k] > ceilings[k]) problems.push(`the ${k} payload is ${measured[k]} gzip bytes, over the ceiling ${ceilings[k]} (packages.json blazorPayload): make the source smaller; ceilings are never raised`);
+        else if (k === 'full') { if (measured.full > ceilings.full * FULL_BACKSTOP_FACTOR) problems.push(`the full payload is ${measured.full} gzip bytes, over the backstop ${ceilings.full * FULL_BACKSTOP_FACTOR} (2x blazorPayload.full in packages.json): something was published twice or an extra leaked into core`); }
+        else if (measured[k] > ceilings[k]) problems.push(`the ${k} payload is ${measured[k]} gzip bytes, over the ceiling ${ceilings[k]} (packages.json blazorPayload; release-relative, moved only by scripts/set-ceilings.mjs --release): load the new code lazily or make the source smaller`);
     }
     if (!(measured.coreOnly < measured.full)) problems.push(`the core-only payload (${measured.coreOnly}) is not smaller than the full payload (${measured.full}): the extras' files are not being dropped`);
     return problems;
@@ -160,7 +169,10 @@ export async function main(argv) {
             const out = JSON.stringify(data, null, 2) + '\n';
             fs.writeFileSync(file, crlf ? out.replace(/\n/g, '\r\n') : out);
             console.log(`packages.json blazorPayload: ${JSON.stringify(next)}`);
-        } else problems.push(...checkPayload(measured, data.blazorPayload));
+        } else {
+            problems.push(...checkPayload(measured, data.blazorPayload));
+            for (const a of payloadAdvice(measured, data.blazorPayload)) console.log(`ADVISORY: ${a}`);
+        }
         if (problems.length) { console.error(`FIX:\n- ${problems.join('\n- ')}`); return 1; }
         console.log(`blazor extras publish: ${SETS.length} option sets ok, payload core-only ${measured.coreOnly} / full ${measured.full} gzip bytes`);
         return 0;

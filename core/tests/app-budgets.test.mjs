@@ -1,5 +1,6 @@
 // App framework size budgets (#362, tracker #346 section 4.1). The files are found by folder, so a new file under js/app/ or js/app/pages/ is budgeted the day it exists.
-// Keys live in scorecard/scoring.data.js BUDGETS (new keys only; limits only ever come down). Comments are removed before measuring, like the other runtime budgets.
+// Keys live in scorecard/scoring.data.js BUDGETS. Comments are removed before measuring, like the other runtime budgets.
+// Since #1985 step 4 only the entry gate (appEntryGzKb, release class) is a ceiling; the page-type and per-module figures are advisory, failing only at their backstop (2x).
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import fs from 'node:fs';
@@ -27,14 +28,11 @@ function entryGraph() {
 
 test('the budget keys exist and each limit is above its target', () => {
     for (const k of ['appEntryGzKb', 'appPageTypeGzKb']) assert.ok(BUDGETS[k]?.limit > BUDGETS[k]?.target, `FIX: add ${k} { target, limit } to BUDGETS in core/site/scorecard/scoring.data.js`);
+    assert.ok(BUDGETS.appPageTypeGzKb.backstop >= 2 * BUDGETS.appPageTypeGzKb.limit && BUDGETS.jsModuleGzKb.backstop >= 2 * BUDGETS.jsModuleGzKb.limit, 'FIX: the advisory budgets carry a backstop at 2x their limit');
 });
 
-// appEntryGzKb is a HARD CAP, not the usual ratchet-down budget (#514). Splitting the entry graph alone could not reach the tracker #346
-// target of 6 KB, so the owner made a one-time, documented exception and revised the limit up to match the actual measured size on main
-// at the time (21.84 KB, rounded up to 22). That was a deliberate, one-off decision — it does NOT license raising this number again.
-// If this test fails, do not "just make your new code smaller": the entry graph as a whole must not have grown at all. Any PR that adds
-// to js/app.js's static import graph must, in the same PR, cut an equal-or-greater amount elsewhere in that graph (e.g. move something to
-// load lazily on first use, the way tasks/notify/dialogs already do) so the total stays at or under the limit. Never raise the number.
+// appEntryGzKb is a release-class gate (#1985, owner decision 2026-11-23): its ceiling is the last release measured +5 percent, rewritten only by
+// scripts/set-ceilings.mjs --release, and it takes no exception. Growth is answered by loading the rare part lazily (the way tasks/notify/dialogs already do).
 test('the entry (js/app.js and everything it imports statically) stays inside appEntryGzKb', () => {
     const files = entryGraph();
     const kb = gz(files);
@@ -42,17 +40,17 @@ test('the entry (js/app.js and everything it imports statically) stays inside ap
     assert.ok(kb <= BUDGETS.appEntryGzKb.limit, `the app entry graph is ${kb.toFixed(2)} KB gzip, limit ${BUDGETS.appEntryGzKb.limit} (release-relative gate, #1985: the last release measured +5 percent, set only by scripts/set-ceilings.mjs --release; load the new code lazily, or make the entry graph smaller). Files: ${files.join(', ')}`);
 });
 
-test('every js/app/pages/ chunk stays inside appPageTypeGzKb, and every js/app/ file inside the per-module budget', () => {
+test('every js/app/pages/ chunk stays inside the appPageTypeGzKb backstop, and every js/app/ file inside the per-module backstop (advisory limits reported)', () => {
     const pages = list('js/app/pages');
     assert.ok(pages.length >= 10);
     let worst = 0;
     for (const f of pages) {
         const kb = gz([f]);
         worst = Math.max(worst, kb);
-        assert.ok(kb <= BUDGETS.appPageTypeGzKb.limit, `${f} is ${kb.toFixed(2)} KB gzip, limit ${BUDGETS.appPageTypeGzKb.limit}. FIX: make the page type smaller; never raise the budget.`);
+        assert.ok(kb <= BUDGETS.appPageTypeGzKb.backstop, `${f} is ${kb.toFixed(2)} KB gzip, over the backstop ${BUDGETS.appPageTypeGzKb.backstop} (advisory ${BUDGETS.appPageTypeGzKb.limit}).`);
     }
-    console.log(`page types: ${pages.length} chunks, largest ${worst.toFixed(2)} KB gzip`);
-    for (const f of [...list('js/app'), 'js/app.js']) assert.ok(gz([f]) < BUDGETS.jsModuleGzKb.limit, `${f} is over the ${BUDGETS.jsModuleGzKb.limit} KB per-module gzip budget. FIX: split it or make it smaller.`);
+    console.log(`page types: ${pages.length} chunks, largest ${worst.toFixed(2)} KB gzip (advisory ${BUDGETS.appPageTypeGzKb.limit}, backstop ${BUDGETS.appPageTypeGzKb.backstop})`);
+    for (const f of [...list('js/app'), 'js/app.js']) assert.ok(gz([f]) < BUDGETS.jsModuleGzKb.backstop, `${f} is over the ${BUDGETS.jsModuleGzKb.backstop} KB per-module backstop (advisory ${BUDGETS.jsModuleGzKb.limit}).`);
 });
 
 // Per-module line targets (#362): a ratchet set EQUAL to today's size. A file may shrink (then lower its number here), never grow; a new file
