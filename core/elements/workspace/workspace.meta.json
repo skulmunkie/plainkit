@@ -1,7 +1,7 @@
 {
   "tag": "pk-workspace",
   "title": "Workspace",
-  "summary": "A tool page in panes: a nav pane, a main pane and an optional docked aside, each scrolling on its own. On a phone one pane shows at a time and a tab strip (Contents, Content, Details) switches it.",
+  "summary": "A tool page in panes: a nav pane, a main pane and an optional docked aside, each scrolling on its own. On a phone one pane shows at a time and a tab strip (Contents, Content, Details) switches it. The panes are fixed: use it unless the user needs to resize, tab, move or save the arrangement, which is pk-dock's job (never both on one page).",
   "group": "Layout & structure",
   "tier": "element",
   "props": [
