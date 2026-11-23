@@ -4,6 +4,36 @@ const MARKUP = state => `<pk-page-shell heading="PO 1042"${state}><pk-button slo
 const header = el => el.part('header');
 
 export const pageShellCases = [
+    ['page-shell retry (#1929 6b): Retry raises pk-retry, the one retry event name across page types, and still raises pk-page-shell-retry', async t => {
+        const host = t.stage(MARKUP(' state="error" state-heading="Could not load"')); await t.load(host); await customElements.whenDefined('pk-page-header'); await t.settle();
+        const el = host.firstElementChild, seen = []; el.addEventListener('pk-retry', () => seen.push('pk-retry')); el.addEventListener('pk-page-shell-retry', () => seen.push('pk-page-shell-retry'));
+        el.part('state').querySelector('pk-button').click();
+        t.eq(seen.includes('pk-retry'), true, 'the new name fires'); t.eq(seen.includes('pk-page-shell-retry'), true, 'the old name still fires');
+    }],
+
+    ['page-shell fill: the shell takes the height of its parent and its one child takes what the header leaves, with no wrapper (#1675)', async t => {
+        for (const flex of [true, false]) {
+            const host = t.stage(`<div id="box">${'<pk-page-shell fill heading="Orders"><div id="kid">Rows</div></pk-page-shell>'}</div>`); host.style.width = '600px';
+            const box = host.querySelector('#box'); box.style.blockSize = '420px'; if (flex) { box.style.display = 'flex'; box.style.flexDirection = 'column'; }
+            await t.load(host); await customElements.whenDefined('pk-page-header'); await t.settle();
+            const el = box.firstElementChild, kid = el.querySelector('#kid'), h = header(el), tag = flex ? 'flex parent' : 'block parent';
+            t.ok(Math.abs(rect(el).height - 420) <= 1, `${tag}: the shell is as tall as its parent (${rect(el).height})`);
+            t.ok(Math.abs(rect(kid).bottom - rect(el).bottom) <= 1, `${tag}: the child reaches the foot of the shell (${rect(kid).bottom} vs ${rect(el).bottom})`);
+            t.ok(rect(kid).top >= rect(h).bottom - 1 && rect(kid).height > 200, `${tag}: the child is under the header and tall (${rect(kid).height})`);
+            t.eq(kid.parentElement, el, `${tag}: no wrapper between the shell and the child`);
+        }
+    }],
+
+    ['page-shell fill: a tall child scrolls inside the shell instead of growing it, and without fill the shell keeps its content height', async t => {
+        const host = t.stage('<div id="box"><pk-page-shell fill heading="Orders"><div id="kid"><div id="tall">Rows</div></div></pk-page-shell></div><div id="b2"><pk-page-shell heading="Orders"><div id="k2">Rows</div></pk-page-shell></div>'); host.style.width = '600px';
+        const box = host.querySelector('#box'); box.style.blockSize = '300px'; host.querySelector('#tall').style.blockSize = '1500px'; host.querySelector('#kid').style.overflowY = 'auto';
+        host.querySelector('#b2').style.blockSize = '300px';
+        await t.load(host); await customElements.whenDefined('pk-page-header'); await t.settle();
+        const el = box.firstElementChild, kid = host.querySelector('#kid');
+        t.ok(rect(el).height <= 301, `the shell stays at its parent's height (${rect(el).height})`);
+        t.ok(kid.scrollHeight > kid.clientHeight + 100 && rect(kid).bottom <= rect(el).bottom + 1, 'the child scrolls its own rows');
+        t.ok(rect(host.querySelector('#b2').firstElementChild).height < 250, 'without fill the shell is its content height');
+    }],
     ['page-shell: header, tabs and content stack in one column at desktop and phone width, in that order, with no overlap', async t => {
         for (const width of [1000, 375]) {
             const host = t.stage(MARKUP('')); host.style.width = width + 'px'; await t.load(host); await customElements.whenDefined('pk-page-header'); await t.settle();

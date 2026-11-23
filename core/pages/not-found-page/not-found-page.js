@@ -1,4 +1,4 @@
-import { showState } from '../../js/page-shell.js';
+import { drawState } from '../../js/page-shell.js';
 
 // pk-not-found-page: a purely presentational "this route doesn't exist" / "you don't have access" screen - built on the SAME shared
 // js/page-states.js module pk-states-page already uses (the "an EmptyPageBase" idea from #351), never duplicating its markup. Always
@@ -9,11 +9,8 @@ import { showState } from '../../js/page-shell.js';
 export default Base => class extends Base {
     connected() { if (!this.$s) { this.$s = this.ownerDocument.createElement('div'); this.$s.slot = 'drawn'; this.append(this.$s); } }
     updated() {
-        this.$s ??= (() => { const d = this.ownerDocument.createElement('div'); d.slot = 'drawn'; this.append(d); return d; })();
-        showState(this.$s, 'empty', {
-            heading: [...(this.children ?? [])].some(c => c.getAttribute?.('slot') === 'title') ? null : this.heading || 'Page not found', // a factory-supplied title (slot "title") is the page's one heading
-            description: this.description || "The page you're looking for doesn't exist or you don't have access to it.",
-        });
+        this.connected();
+        drawState(this, 'empty', { heading: this.heading || 'Page not found', description: this.description || "The page you're looking for doesn't exist or you don't have access to it." });
         const drawn = this.$s.firstElementChild;
         if (this.label && drawn) {
             const btn = this.ownerDocument.createElement('pk-button');

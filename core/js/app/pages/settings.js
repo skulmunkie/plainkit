@@ -9,11 +9,10 @@ export const PAGE_TYPE = {
     states: [],
     useWhen: 'App or account configuration organised into sections, saved as a whole.',
 };
-import { mountTitled, titleBarKeys } from '../../page-shell.js';
-export default (host, config = {}, ctx) => {
-    const el = host.ownerDocument.createElement('pk-settings-page');
-    el.config = { heading: config.heading, breadcrumb: config.breadcrumb, ...titleBarKeys(config), actions: config.actions, sections: config.sections, nav: config.nav };
-    if (config.values !== undefined) el.values = config.values;
-    if (config.save) el.save = values => config.save(values, ctx);
-    return mountTitled(host, el, config.heading);
-};
+import { titleBarKeys } from '../../page-shell.js';
+import { definePage } from '../../page-define.js';
+export default definePage({
+    tag: 'pk-settings-page',
+    data: c => ({ heading: c.heading, breadcrumb: c.breadcrumb, ...titleBarKeys(c), actions: c.actions, sections: c.sections, nav: c.nav }),
+    wire: (el, c, ctx) => { if (c.values !== undefined) el.values = c.values; if (c.save) el.save = values => c.save(values, ctx); },
+});

@@ -26,8 +26,10 @@ export default {
     steps: [
         { wait: 1200 }, { shot: 'file' },
         { click: `${HOST} [data-ce-outline]` }, { shot: 'outline' },
-        { set: `${HOST} pk-workspace`, attr: 'active-pane', value: 'nav', on: ['phone'] }, 
+        { click: `${HOST} [data-ce-inspector-body] button[data-line="5"]` }, { wait: 400 }, { set: `${HOST} pk-workspace`, attr: 'active-pane', value: 'nav', on: ['phone'] }, { wait: 200 }, { shot: 'history' },
+                { set: `${HOST} pk-workspace`, attr: 'active-pane', value: 'nav', on: ['phone'] }, 
         { focus: `${HOST} pk-input[data-ce-query] >>> [part=control]` }, { type: 'return' }, { key: 'Enter' }, { wait: 800 }, { shot: 'results' },
+        { focus: `${HOST} pk-input[data-ce-folder] >>> [part=control]` }, { type: 'docs' }, { wait: 300 }, { shot: 'scoped' },
         { click: `${HOST} [data-ce-reports]`, on: ['desktop'] }, { wait: 800, on: ['desktop'] }, { shot: 'reports', on: ['desktop'] },
     ],
     expect(t) {

@@ -12,3 +12,5 @@ pk-page-shell { flex: 1 1 auto; min-block-size: 0; }
 [part="before"] { display: flex; flex-direction: column; flex: 0 1 auto; min-block-size: 0; overflow-y: auto; overscroll-behavior: contain; margin-block-end: var(--space-4); }
 [part="before"]:not([hidden]) + pk-data-table { flex-shrink: 1000; min-block-size: var(--pk-list-page-table-min, calc(var(--space-12) * 6)); }
 pk-page-shell::part(content) { display: flex; flex-direction: column; }
+/* toolbarInHeader: the toolbar row is the title bar, so it stays pinned under the page top (or under an app bar: --pk-list-page-sticky-top) like pk-page-header[sticky]. In a contained shell the table region scrolls inside the page and the row never leaves, so this only acts when the page itself scrolls. */
+pk-data-table[data-in-bar]::part(toolbar) { position: sticky; inset-block-start: var(--pk-list-page-sticky-top, 0); z-index: var(--z-sticky); background: var(--color-bg); box-shadow: 0 var(--space-3) 0 var(--color-bg); }

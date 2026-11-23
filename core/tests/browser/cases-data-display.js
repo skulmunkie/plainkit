@@ -2262,6 +2262,19 @@ export const dataDisplayCases = [
             const after = links(); t.ok(after.length > 0 && Number(after[0][0]) > 50 && after.every(([id, h]) => h === `/r/${id}`), 'after a scroll the newly drawn rows have their links too');
         } finally { document.removeEventListener('click', stop); }
     }],
+    ['table: a row with _href null or empty has no link, no pointer cursor and no focus stop, the other rows keep theirs (#2086)', async t => {
+        const rows = [{ id: 'a', po: 'PO a', _href: '/orders/a' }, { id: 'b', po: 'PO b', _href: null }, { id: 'c', po: 'PO c' }, { id: 'd', po: 'PO d', _href: '' }];
+        const el = await t.mount(`<pk-table label="Mixed" row-href-template="/orders/{id}" columns='[{"key":"po","label":"PO"}]'></pk-table>`);
+        el.rows = rows; await t.settle();
+        const tr = id => el.shadowRoot.querySelector(`tbody tr[data-pk-context="${id}"]`);
+        await until(() => tr('a')?.querySelector('a[data-row-link]'), 'the first row link');
+        t.eq(['a', 'b', 'c', 'd'].map(id => tr(id).querySelector('a[data-row-link]')?.getAttribute('href') ?? '-').join(), '/orders/a,-,/orders/c,-', '_href wins over the template, null and empty give no link, a row without _href keeps the template');
+        t.eq(['a', 'b', 'c', 'd'].map(id => getComputedStyle(tr(id)).cursor).join(), 'pointer,auto,pointer,auto', 'only the linked rows show a pointer');
+        const nav = []; el.addEventListener('pk-navigate', e => { nav.push(e.detail.to); e.preventDefault(); });
+        tr('b').children[0].click(); tr('d').children[0].click(); t.eq(nav.length, 0, 'a click on a row without a link navigates nowhere');
+        tr('a').children[0].click(); t.eq(nav.join(), '/orders/a', 'a click on a linked row still navigates');
+        t.ok(!tr('b').hasAttribute('data-clickable') && !tr('b').hasAttribute('tabindex') && !tr('b').hasAttribute('role'), 'a row without a link carries no clickable marker, tab stop or role');
+    }],
     ['table: navigate="host" raises pk-navigate as a non-cancelable notification and does not navigate, "none" raises nothing and leaves the link to the browser, the default stays a cancelable event (#1421)', async t => {
         const el = await t.mount(`<pk-table label="P" row-href-template="/orders/{id}" columns='[{"key":"po","label":"PO"}]' rows='[{"id":"7","po":"PO 7"}]'></pk-table>`);
         const link = () => el.shadowRoot.querySelector('a[data-row-link]');

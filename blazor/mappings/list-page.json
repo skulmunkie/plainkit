@@ -55,6 +55,12 @@
       "note": "Row links: an address like /orders/{id} (or #/orders/{id}); {id} is the row key and any {field} a camel-case row property, URL-encoded. The first cell of each row becomes a real link (new tab, middle click, copy address) and a plain click navigates through the app router without a reload. Use it for a routed list-to-record pair; OnRowClick stays for an imperative handler."
     },
     {
+      "name": "RowHrefOf",
+      "map": "cells",
+      "type": "Func<TItem, string?>?",
+      "doc": "The address of each row, from its item: a path like /orders/42 or a hash like #/orders/42. Null (or empty) means the row has no link: it is neither a link nor styled or focusable as clickable, and Enter does nothing. It wins over RowHrefTemplate for every row: a row it returns null for has no link even when a template is set (the template alone is only used when this is not set). Use it when only some rows have a detail page. Rows come from Load."
+    },
+    {
       "name": "RowActions",
       "map": "param",
       "configKey": "rowActions",
@@ -92,7 +98,45 @@
       "when": "ToolbarInHeader",
       "value": "true",
       "extra": true,
-      "doc": "Puts the breadcrumb and heading in the toolbar row with the search box, Filters and the actions, one row that wraps on a phone. The page-shell title bar is then not drawn (no pk-page-header: no sticky header, no back link)."
+      "doc": "Puts the breadcrumb and heading in the toolbar row with the search box, Filters and the actions, one row that wraps on a phone. The page-shell title bar is then not drawn, and the row itself stays pinned while the page scrolls; ActionsOverflow folds the actions into a menu."
+    },
+    {
+      "name": "NewAction",
+      "map": "param",
+      "configKey": "newAction",
+      "configJson": true,
+      "type": "PkAction?",
+      "doc": "The primary action, drawn first (the toolbar button; the title bar when the toolbar is hidden). Replaces AddLabel and pk-add. Its press raises OnAction with its Key."
+    },
+    {
+      "name": "ToolbarActions",
+      "map": "param",
+      "configKey": "toolbarActions",
+      "configJson": true,
+      "type": "IReadOnlyList<PkAction>?",
+      "doc": "Toolbar buttons after NewAction: one typed item (PkAction) each, a Group makes a menu. A press raises OnAction with the Key; an item with a Href is a link."
+    },
+    {
+      "name": "ActionsCollapse",
+      "map": "param",
+      "configKey": "actionsCollapse",
+      "type": "string?",
+      "doc": "One value for the whole bar: \"always\", \"phone\" (the default), \"tablet\" or \"none\". An item with an Icon folds to the icon alone (its Label stays its name)."
+    },
+    {
+      "name": "OnAction",
+      "event": "pk-action",
+      "type": "EventCallback<PkActionEventArgs>",
+      "custom": true,
+      "doc": "A toolbar action (NewAction or ToolbarActions, an item without a Href) was pressed: Key is its key. A row action raises OnRowAction instead."
+    },
+    {
+      "name": "ActionsOverflow",
+      "map": "param",
+      "configKey": "actionsOverflow",
+      "type": "string?",
+      "extra": true,
+      "doc": "With ToolbarInHeader: \"phone\", \"tablet\" or \"always\" folds the actions into one menu at that width and below (all widths for always), as on PkPageHeader. Null keeps them as buttons."
     },
     {
       "name": "InitialSearch",
@@ -240,7 +284,7 @@
       "type": "EventCallback<PkBulkEventArgs>"
     }
   ],
-  "notes": "PkListPage<TItem>: load(query) is a callback property, set from script, so the generated component hands the element a .NET reference (PkCallbackSlot) that calls the Load parameter with the page, sort, search and filters; a Load that throws rejects the JavaScript promise, which the element shows as its own error state with Retry. rowHref is synchronous in the element and cannot cross the interop boundary; use RowHrefTemplate (real row links to a route, a typed RowHref(TItem) is not generated: the generator has no function-to-template step) or OnRowClick (an imperative row click handler) or Config actions. Cells (column key to a RenderFragment<TItem>) with IdOf fill the cell-<id>-<key> slots of each loaded row (issue 1000); the page forwards them to its table. Columns (PkTableColumn<TItem>) replaces config.columns and its Cell templates fill the cell slots like Cells (issue 1000). Selection (issue 873): Config selectable/rowKey/bulkActions switch it on; OnSelect (pk-select) and OnBulk (pk-bulk, a bulkActions button) are EventCallbacks. For Selected, SelectedChanged, a BulkContent slot and the compacted large selection use PkDataTable.",
+  "notes": "PkListPage<TItem>: load(query) is a callback property, set from script, so the generated component hands the element a .NET reference (PkCallbackSlot) that calls the Load parameter with the page, sort, search and filters; a Load that throws rejects the JavaScript promise, which the element shows as its own error state with Retry. rowHref is synchronous in the element and cannot cross the interop boundary; use RowHrefTemplate (real row links to a route) or RowHrefOf (a Func from the item to its address, or null for a row with no link; it travels as the row's _href) or OnRowClick (an imperative row click handler) or Config actions. Cells (column key to a RenderFragment<TItem>) with IdOf fill the cell-<id>-<key> slots of each loaded row (issue 1000); the page forwards them to its table. Columns (PkTableColumn<TItem>) replaces config.columns and its Cell templates fill the cell slots like Cells (issue 1000). Selection (issue 873): Config selectable/rowKey/bulkActions switch it on; OnSelect (pk-select) and OnBulk (pk-bulk, a bulkActions button) are EventCallbacks. For Selected, SelectedChanged, a BulkContent slot and the compacted large selection use PkDataTable.",
   "methods": [
     {
       "name": "ReloadAsync",
@@ -248,6 +292,7 @@
       "doc": "Loads the current page again (page, sort, search and filters stay), for example after the host ran an action that changed the rows."
     }
   ],
+  "actionTypes": true,
   "typeparam": "TItem",
   "cells": { "load": "Load", "columns": true }
 }

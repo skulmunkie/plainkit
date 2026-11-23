@@ -15,7 +15,7 @@ const TEXTS = {
 export default {
     name: 'code-explorer-reports',
     issue: [682],
-    elements: ['workspace', 'tree', 'alert', 'button'],
+    elements: ['workspace', 'tree', 'alert', 'button', 'table'],
     html: '<pk-card heading="Code explorer reports"><div id="cer-host"></div></pk-card>',
     async setup(frame) {
         const reader = async url => {
@@ -28,13 +28,24 @@ export default {
     steps: [
         { wait: 1200 },
         { set: `${HOST} pk-workspace`, attr: 'active-pane', value: 'nav', on: ['phone'] }, 
-        { click: `${HOST} [data-ce-reports]` }, { wait: 900 }, { shot: 'largest' },
+        { click: `${HOST} [data-ce-reports]` }, { wait: 900 }, { shot: 'statistics' },
+        { scroll: `${HOST} pk-workspace >>> [part=main]`, to: 400 }, { shot: 'statistics-more' }, { scroll: `${HOST} pk-workspace >>> [part=main]`, to: 0 },
+        { set: `${HOST} pk-workspace`, attr: 'active-pane', value: 'nav', on: ['phone'] }, { click: `${HOST} [data-kind="files"]` }, { shot: 'largest' },
         { click: `${HOST} [data-kind="methods"]` }, { shot: 'methods' },
         { click: `${HOST} [data-kind="duplicates"]` }, { shot: 'duplicates' },
     ],
     expect(t) {
         t.ok(t.metric('html', 'scrollWidth') <= t.metric('html', 'clientWidth') + 1, 'the page scrolls sideways');
-        t.visible(`${HOST} pk-alert`, 'the warning naming the unreadable file');
+        // The statistics states only: the tables sit inside the main pane, not clipped on either side.
+        const paneSel = `${HOST} [data-ce-pane]`;
+        const pane = t.metric(paneSel, 'clientWidth', { optional: true }) ? t.rect(paneSel) : null;
+        for (const label of ['By folder', 'By language', 'Largest files']) {
+            const sel = `${HOST} pk-table[label="${label}"]`;
+            const tb = t.metric(sel, 'clientWidth', { optional: true }) ? t.rect(sel) : null;
+            if (tb && pane) t.ok(tb.x >= pane.x - 1 && tb.x + tb.width <= pane.x + pane.width + 1, `${label} is inside the main pane horizontally`);
+        }
+        // The warning sits in the nav pane, which a phone hides while the statistics show.
+        if (t.metric('html', 'clientWidth') > 640) t.visible(`${HOST} pk-alert`, 'the warning naming the unreadable file');
         t.inViewport(`${HOST} pk-workspace`);
     },
 };

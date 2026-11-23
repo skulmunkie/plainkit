@@ -22,6 +22,7 @@ const paths = {
     components: path.join(root, 'blazor', 'src', 'PlainKit.Blazor', 'Components'),
     module: path.join(root, 'blazor', 'src', 'PlainKit.Blazor', 'wwwroot', 'PlainKit.Blazor.lib.module.js'),
     schema: path.join(root, 'core', 'js', 'app', 'manifest.schema.json'),
+    icons: path.join(root, 'core', 'icons', 'icons.json'),
 };
 const GENERATOR = 'scripts/generate-blazor.mjs';
 
@@ -306,7 +307,6 @@ export function modelElement(el, mapping, reg) {
             if (p.modifier) { if (!['stopPropagation', 'preventDefault'].includes(p.modifier) || !p.of) throw new Error(`${comp}.${p.name}: modifier must be stopPropagation or preventDefault, with "of" naming the event`); out.modifiers.push({ name: p.name, event: p.of, modifier: p.modifier }); }
             // `configKey`: the parameter is also written into the config JSON under that key (an initial search, filter or page of a list page; needs a cells mapping with columns, which writes the config); `when` and `value` are C# expressions, by default 'is set' and the parameter itself.
             if (p.configKey) {
-                if (!mapping.cells?.columns) throw new Error(`${comp}.${p.name}: configKey needs a cells mapping with columns`);
                 out.configKeys.push({ name: p.name, key: p.configKey, when: p.when ?? `${p.name} is not null`, value: p.value ?? p.name, json: p.configJson === true });
             }
             if (p.prop !== undefined && p.attrExpr) out.attrs.push({ attr: kebab(p.prop), expr: p.attrExpr });
@@ -634,7 +634,7 @@ export function renderComponent(m, mappingName, ns = 'PlainKit.Blazor') {
     const listened = h => (m.listenedNative && h.native && !h.updates.length) || (h.listened && !h.native && !h.updates.length);
     const custom = live.filter(h => !h.native || listened(h));
     const attrs = [];
-    for (const a of m.attrs) if (a.bare) attrs.push(a.attr); else attrs.push(`${a.attr}="${m.cells?.columns && a.attr === 'config' ? '@ConfigWithColumns()' : m.recordModel && a.attr === 'config' ? '@ConfigWithFields()' : a.expr}"`);
+    for (const a of m.attrs) if (a.bare) attrs.push(a.attr); else attrs.push(`${a.attr}="${m.cells?.columns && a.attr === 'config' ? '@ConfigWithColumns()' : m.configKeys.length && !m.cells && !m.recordModel && a.attr === 'config' ? '@ConfigWithKeys()' : m.recordModel && a.attr === 'config' ? '@ConfigWithFields()' : a.attr === 'row-href-template' && m.params.some(d => d.name === 'RowHrefOf') ? '@(string.IsNullOrEmpty(RowHrefTemplate) && RowHrefOf is not null ? "/{id}" : RowHrefTemplate)' : a.expr}"`);
     // The element itself (PkElementBase.Element), for PkRuntime.ReadFormValuesAsync and any host that needs a JavaScript handle.
     attrs.push('@ref="Element"');
     // `location` (mapping): the parameter (location.param) wins; unset, the path tracked from NavigationManager is sent (see the code block).
@@ -718,7 +718,7 @@ export function renderComponent(m, mappingName, ns = 'PlainKit.Blazor') {
             '        if (e.Selected is null) return; // pk-select also bubbles from menus and trees in the cell slots', '        Selected = e.Selected;', '        SelectScope = e.Scope ?? "page";',
             '        await SelectedChanged.InvokeAsync(Selected);', '        await OnSelect.InvokeAsync(e);', '    }',
             '', '    private Task HandleRowClickAsync(PkRowClickEventArgs e) => _rows.Find(r => r.Id == e.Id) is { } row ? OnRowClick.InvokeAsync(row.Item) : Task.CompletedTask;',
-            '', ...rowActionHandler('_rows'), '', '    private async Task HandleRowExpandAsync(PkRowExpandEventArgs e)', '    {', '        if (e.Id is null) return;', '        Expanded = (Expanded ?? []).Where(x => x != e.Id).Concat(e.Expanded == true ? [e.Id] : []).ToList();', '        await ExpandedChanged.InvokeAsync(Expanded);',
+            '', ...rowActionHandler('_rows', m.params.some(d => d.name === 'OnAction')), '', '    private async Task HandleRowExpandAsync(PkRowExpandEventArgs e)', '    {', '        if (e.Id is null) return;', '        Expanded = (Expanded ?? []).Where(x => x != e.Id).Concat(e.Expanded == true ? [e.Id] : []).ToList();', '        await ExpandedChanged.InvokeAsync(Expanded);',
             '        if (_rows.Find(r => r.Id == e.Id) is { } row) await OnRowExpand.InvokeAsync(new PkTableRowExpandArgs<TItem>(e.Id, row.Item, e.Expanded == true));', '    }',
             '', '    /// <inheritdoc />', '    public void Dispose() => _load.Dispose();');
     }
@@ -779,17 +779,26 @@ export function renderComponent(m, mappingName, ns = 'PlainKit.Blazor') {
         '    private async Task<object?> ShowCellsAsync(IReadOnlyList<TItem> items)', '    {',
         `        if ((${m.cells.slotsOnly ? 'Columns is null' : `Cells is null${m.cells.columns ? ' && Columns is null' : ''}`}${m.params.some(d => d.name === 'DetailTemplate') ? ' && DetailTemplate is null && DetailPanels is null' : ''}${m.params.some(d => d.name === 'RowActions') ? ' && !(RowActions?.Count > 0)' : ''}) || IdOf is null) return null;`,
         '        await InvokeAsync(() => { _cellRows = items.Select(i => (IdOf!(i), i)).ToList(); StateHasChanged(); });',
-        '        return null;', '    }', ...(m.cells && !m.dataTable && m.params.some(d => d.name === 'OnRowAction') ? ['', ...rowActionHandler('_cellRows')] : []));
+        '        return null;', '    }', ...(m.cells && !m.dataTable && m.params.some(d => d.name === 'OnRowAction') ? ['', ...rowActionHandler('_cellRows', m.params.some(d => d.name === 'OnAction'))] : []));
     // Typed columns: a column's Text (and the property fallback, as PkDataTable) fills the row it names, so the rows the callback returns are built through the same PkTableRows as PkDataTable's.
-    if (m.cells?.columns && !m.cells.slotsOnly) L.push('', '    private object RowsOf(IReadOnlyList<TItem> items)', '    {', '        if (Columns is null) return items;', '        var rows = new System.Text.Json.Nodes.JsonArray();', '        foreach (var item in items) rows.Add(PkTableRows.Serialize(item, Columns));', '        return rows;', '    }');
+    if (m.cells?.columns && !m.cells.slotsOnly) L.push('', '    private object RowsOf(IReadOnlyList<TItem> items)', '    {', ...(m.params.some(d => d.name === 'RowHrefOf')
+        // RowHrefOf (#2086): the address of each row travels as its `_href` (null: no link); the element lets it win over RowHrefTemplate.
+        ? ['        if (Columns is null && RowHrefOf is null) return items;', '        var rows = new System.Text.Json.Nodes.JsonArray();', '        foreach (var item in items)', '        {', '            var row = PkTableRows.Serialize(item, (IEnumerable<PkTableColumn<TItem>>?)Columns ?? []);', '            if (RowHrefOf is not null) row["_href"] = RowHrefOf(item);', '            rows.Add(row);', '        }']
+        : ['        if (Columns is null) return items;', '        var rows = new System.Text.Json.Nodes.JsonArray();', '        foreach (var item in items) rows.Add(PkTableRows.Serialize(item, Columns));']), '        return rows;', '    }');
     if (m.cells?.columns && !m.cells.slotsOnly) L.push('', '    private string ConfigWithColumns()', '    {',
         `        if (Columns is null${m.configKeys.map(k => ` && !(${k.when})`).join('')}) return PkAttr.JsonText(Config) ?? "{}";`,
         '        var node = System.Text.Json.Nodes.JsonNode.Parse(PkAttr.JsonText(Config) ?? "{}") as System.Text.Json.Nodes.JsonObject ?? new System.Text.Json.Nodes.JsonObject();',
         '        if (Columns is not null) node["columns"] = System.Text.Json.Nodes.JsonNode.Parse(PkAttr.Json(Columns.Select(c => c.ToColumn()))!);',
         ...m.configKeys.map(k => k.json ? `        if (${k.when}) node[${lit(k.key)}] = System.Text.Json.Nodes.JsonNode.Parse(PkAttr.Json(${k.value})!);` : `        if (${k.when}) node[${lit(k.key)}] = System.Text.Json.JsonSerializer.SerializeToNode(${k.value});`),
         '        return node.ToJsonString();', '    }');
+    // Typed keys of a page without a cells mapping (#1943): the parameters are written into the config JSON, as for the list page.
+    if (m.configKeys.length && !m.cells && !m.recordModel) L.push('', '    private string ConfigWithKeys()', '    {',
+        `        if (${m.configKeys.map(k => `!(${k.when})`).join(' && ')}) return PkAttr.JsonText(Config) ?? "{}";`,
+        '        var node = System.Text.Json.Nodes.JsonNode.Parse(PkAttr.JsonText(Config) ?? "{}") as System.Text.Json.Nodes.JsonObject ?? new System.Text.Json.Nodes.JsonObject();',
+        ...m.configKeys.map(k => k.json ? `        if (${k.when}) node[${lit(k.key)}] = System.Text.Json.Nodes.JsonNode.Parse(PkAttr.Json(${k.value})!);` : `        if (${k.when}) node[${lit(k.key)}] = System.Text.Json.JsonSerializer.SerializeToNode(${k.value});`),
+        '        return node.ToJsonString();', '    }');
     if (m.recordModel) L.push('', '    private TItem? _loaded;', '    private TItem? _draft;', '    private bool _isNew;', '',
-        '    private string ConfigWithFields() => PkFieldSpecs.RecordConfig(PkAttr.JsonText(Config), Fields, _draft ?? _loaded ?? Model, out _isNew, Sections, Sidebar, TitleOf, _loaded ?? Model);', '',
+        ...(m.configKeys.length ? ['    private string ConfigWithFields()', '    {', `        var json = PkFieldSpecs.RecordConfig(PkAttr.JsonText(Config), Fields, _draft ?? _loaded ?? Model, out _isNew, Sections, Sidebar, TitleOf, _loaded ?? Model);`, '        var node = System.Text.Json.Nodes.JsonNode.Parse(json) as System.Text.Json.Nodes.JsonObject ?? new System.Text.Json.Nodes.JsonObject();', ...m.configKeys.map(k => k.json ? `        if (${k.when}) node[${lit(k.key)}] = System.Text.Json.Nodes.JsonNode.Parse(PkAttr.Json(${k.value})!);` : `        if (${k.when}) node[${lit(k.key)}] = System.Text.Json.JsonSerializer.SerializeToNode(${k.value});`), '        return node.ToJsonString();', '    }'] : [`    private string ConfigWithFields() => PkFieldSpecs.RecordConfig(PkAttr.JsonText(Config), Fields, _draft ?? _loaded ?? Model, out _isNew, Sections, Sidebar, TitleOf, _loaded ?? Model);`]), '',
         '    private object? KeepLoaded(TItem? item)', '    {', '        _loaded = item;', '        _draft = default;', '        _ = InvokeAsync(StateHasChanged);', '        return item is null ? null : PkFieldSpecs.Values(Fields ?? [], item);', '    }', '',
         '    private async Task<TItem> ApplySavedAsync(IReadOnlyDictionary<string, JsonElement> values)', '    {',
         '        var item = (_isNew ? Model : _loaded) ?? throw new InvalidOperationException("A new record needs the Model parameter (the instance to fill); a loaded one is what Load returned.");',
@@ -818,8 +827,8 @@ export function renderComponent(m, mappingName, ns = 'PlainKit.Blazor') {
 }
 
 /** The handler of a row action: the typed OnRowAction, from the pk-action a row's button raises (the title bar's pk-action has no id and is not a row action). `rows` is the list of the loaded (Id, Item) pairs. */
-function rowActionHandler(rows) {
-    return ['    private async Task HandleRowActionAsync(PkActionEventArgs e)', '    {', '        if (e.Key is null || e.Id is null) return;', `        var at = ${rows}.FindIndex(r => r.Id == e.Id);`,
+function rowActionHandler(rows, toolbar) {
+    return ['    private async Task HandleRowActionAsync(PkActionEventArgs e)', '    {', ...(toolbar ? ['        if (e.Key is null) return;', '        if (e.Id is null) { await OnAction.InvokeAsync(e); return; }'] : ['        if (e.Key is null || e.Id is null) return;']), `        var at = ${rows}.FindIndex(r => r.Id == e.Id);`,
         '        var item = at >= 0 ? ' + rows + '[at].Item : e.Row is { ValueKind: System.Text.Json.JsonValueKind.Object } row ? System.Text.Json.JsonSerializer.Deserialize<TItem>(row, new System.Text.Json.JsonSerializerOptions(System.Text.Json.JsonSerializerDefaults.Web)) : default;',
         '        if (item is null) return;', '        await OnRowAction.InvokeAsync(new PkRowActionArgs<TItem>(e.Key, e.Id, item));', '    }'];
 }
@@ -1108,6 +1117,15 @@ export function renderRowActionTypes() {
         'public sealed record PkRowActionArgs<TItem>(string Key, string Id, TItem Item);', ''].join('\n');
 }
 
+/** The page action item (#1943): a record of the `shape` entry on a `config` prop of an element's meta.json (core/pages/list-page), nothing hand-written. */
+export function renderActionTypes(shape) {
+    const ignore = '[property: JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)] ';
+    const cs = { string: 'string', boolean: 'bool' };
+    const fields = shape.fields.map(f => `${f.required ? '' : ignore}${cs[f.type] ?? 'string'}${f.required ? '' : '?'} ${pascal(f.name)}${f.required ? '' : ' = null'}`);
+    return ['// Generated by ' + GENERATOR + ' from the shape of the config prop in core/pages/list-page/list-page.meta.json. Do not edit.', 'using System.Text.Json.Serialization;', '', 'namespace PlainKit.Blazor;', '',
+        `/// <summary>${shape.doc}</summary>`, `public sealed record ${shape.name}(${fields.join(', ')});`, ''].join('\n');
+}
+
 // ---------------------------------------------------------------- the whole run
 
 /**
@@ -1119,6 +1137,9 @@ export function generate(api, mappings, handWritten = new Set(), types = new Set
     const byTag = new Map(api.map(e => [e.tag, e]));
     // The records of rowActionTypes are generated (renderRowActionTypes), so a JSON parameter may name them.
     if (mappings['data-table']?.rowActionTypes) types = new Set([...types, 'PkRowAction', 'PkRowActionConfirm']);
+    const actionShape = mappings['list-page']?.actionTypes ? byTag.get('pk-list-page')?.props.find(x => x.shape)?.shape : null;
+    if (mappings['list-page']?.actionTypes && !actionShape) throw new Error('list-page.json asks for actionTypes but no prop of pk-list-page has a shape in its meta.json');
+    if (actionShape) types = new Set([...types, actionShape.name]);
     const reg = { enums: new Map(), events: new Map(), eventNames: new Set(), types };
     const files = new Map();
     const moved = [], genericMoved = [], generated = [], skipped = [], todo = [], notGenerated = [];
@@ -1192,6 +1213,7 @@ export function generate(api, mappings, handWritten = new Set(), types = new Set
     if (mappings['field-group']?.fieldMembers) files.set('PkFieldGroupMembers.cs', renderFieldMembers(mappings['field-group'].fieldMembers, mappings['field-group'].specMembers, mappings['field-group'].fieldFactories));
     if (mappings.table?.columnMembers) files.set('PkTableColumn.cs', renderTableColumn(api, mappings.table));
     if (mappings['data-table']?.rowActionTypes) files.set('PkRowAction.cs', renderRowActionTypes());
+    if (actionShape) files.set('PkAction.cs', renderActionTypes(actionShape));
     if (schema) files.set('PkModuleManifest.cs', renderManifest(schema));
     files.set('PkGeneratedEnums.cs', renderEnums(reg.enums));
     files.set('PkGeneratedEvents.cs', renderEvents(reg.events, reg.eventNames));
@@ -1210,6 +1232,22 @@ export function generate(api, mappings, handWritten = new Set(), types = new Set
     return { files, moduleText: renderModule(reg.eventNames), report: { generated, skipped, todo, notGenerated, enums: reg.enums.size, events: reg.eventNames.size } };
 }
 
+/** "arrow-left" -> "ArrowLeft"; a leading digit is not a C# identifier start, so "3d-rotate" -> "V3dRotate". */
+export function iconMember(name) { const p = pascal(name); return /^[0-9]/.test(p) ? 'V' + p : p; }
+
+/** Generated/PkIconName.cs: one const string per symbol of the icon sprite (core/icons/icons.json), so a mistyped icon name is a compile error. */
+export function renderIconNames(names) {
+    const seen = new Map();
+    const lines = [];
+    for (const n of names) {
+        const m = iconMember(n);
+        if (!m || seen.has(m)) throw new Error('icon names "' + (seen.get(m) ?? n) + '" and "' + n + '" both become PkIconName.' + m + ': rename one icon');
+        seen.set(m, n);
+        lines.push('    /// <summary>The "' + n + '" icon.</summary>\n    public const string ' + m + ' = ' + lit(n) + ';');
+    }
+    return '// Generated by ' + GENERATOR + ' from core/icons/icons.json. Do not edit.\nnamespace PlainKit.Blazor;\n\n/// <summary>The names of the icons in the plainkit.icons sprite. Pass one to <c>Name</c>, <c>IconName</c> or any icon parameter; the parameters stay strings, so a custom icon name still works.</summary>\npublic static class PkIconName\n{\n' + lines.join('\n') + '\n}\n';
+}
+
 export const crlf = s => s.replace(/\r?\n/g, '\r\n');
 
 /** component name -> extra name, from the "extra" field of blazor/handwritten.json (a hand-written wrapper of an optional package, such as the tools). */
@@ -1226,7 +1264,10 @@ export function load() {
         const text = fs.readFileSync(path.join(paths.components, n + '.razor'), 'utf8');
         return [n, { namespace: /^@namespace\s+(\S+)/m.exec(text)?.[1] ?? 'PlainKit.Blazor', generic: /^@typeparam\s/m.test(text), typeparam: /^@typeparam\s+(\S+)/m.exec(text)?.[1] }];
     }));
-    return generate(api, mappings, handWritten, knownTypes(paths.package), handInfo, JSON.parse(fs.readFileSync(paths.schema, 'utf8')), loadPackages(root), handExtras());
+    const result = generate(api, mappings, handWritten, knownTypes(paths.package), handInfo, JSON.parse(fs.readFileSync(paths.schema, 'utf8')), loadPackages(root), handExtras());
+    if (!fs.existsSync(paths.icons)) throw new Error('core/icons/icons.json does not exist: run node scripts/bootstrap.mjs first');
+    result.files.set('PkIconName.cs', renderIconNames(JSON.parse(fs.readFileSync(paths.icons, 'utf8')).names));
+    return result;
 }
 
 /** The files as they belong on disk: absolute path -> CRLF text. */

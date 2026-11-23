@@ -42,7 +42,7 @@ const emptyTheme = () => ({ shared: {}, dark: {}, light: {} });
 export function settingsText({ version, include, breakpoints, theme }) {
     return JSON.stringify({
         format: 'plainkit-custom-sdk', formatVersion: 1, baseVersion: version,
-        include: { theme: Boolean(include.theme), breakpoints: Boolean(include.breakpoints) },
+        include: { theme: Boolean(include.theme), breakpoints: Boolean(include.breakpoints), ...(include.icons === false ? { icons: false } : {}) }, // icons appears only when left out: the default file is unchanged
         breakpoints: breakpoints ?? {}, theme: theme ?? emptyTheme(),
     }, null, 2) + '\n';
 }
@@ -53,7 +53,7 @@ export function readSettings(text, names) {
     try { raw = JSON.parse(String(text ?? '')); } catch { return { error: 'The settings are not valid JSON.' }; }
     if (raw === null || typeof raw !== 'object' || raw.format !== 'plainkit-custom-sdk') return { error: `Not a ${SETTINGS_NAME} file (format "plainkit-custom-sdk" expected).` };
     if (raw.formatVersion !== 1) return { error: `Unsupported settings version ${raw.formatVersion}.` };
-    const include = { theme: raw.include?.theme === true, breakpoints: raw.include?.breakpoints === true };
+    const include = { theme: raw.include?.theme === true, breakpoints: raw.include?.breakpoints === true, ...(raw.include?.icons === false ? { icons: false } : {}) };
     let breakpoints = null;
     if (include.breakpoints) {
         const v = validateBreakpoints(raw.breakpoints, names);
@@ -72,6 +72,7 @@ export function readmeText({ version, include, breakpoints, shipped, overrideCou
     lines.push(`Made in the browser by the Plainkit theme editor from release ${version}; nothing was sent anywhere. The settings that made it are in \`${SETTINGS_NAME}\`: paste that file into the editor's Custom SDK tab to change and export again.`, '');
     lines.push('## Settings', '');
     lines.push(`- Theme: ${include.theme ? `${overrideCount} token override${overrideCount === 1 ? '' : 's'}` : 'not included'}`);
+    if (include.icons === false) lines.push('- Icons: left out (`icons.svg`, `icons.json`, `icons.d.ts` are not in this bundle)');
     lines.push(`- Breakpoints: ${include.breakpoints ? `${list(breakpoints)} (the release ships ${list(shipped)})` : 'not included (the release widths)'}`, '');
     if (themeOnly) {
         lines.push('## Use it', '',

@@ -276,7 +276,7 @@ const SNAP = { files: [
 test('snapshot provider honours the contract and its own capabilities', async () => {
     const p = new SnapshotProvider(SNAP);
     assert.deepEqual(contractProblems(p), []);
-    assert.deepEqual(p.capabilities, { search: true, outline: true, references: true, live: false });
+    assert.deepEqual(p.capabilities, { search: true, outline: true, references: true, definitions: true, live: false });
     assert.deepEqual(await p.listFiles(), [{ path: 'a/one.js', lines: 3, language: undefined }, { path: 'a/two.css', lines: 1, language: undefined }]);
     assert.equal((await p.readFile('a/one.js')).lines[1], 'foo(Foo);');
     await assert.rejects(p.readFile('nope'));

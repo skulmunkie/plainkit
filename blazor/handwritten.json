@@ -106,6 +106,9 @@
     "DevTools/PkSnapshot.cs": {
       "category": "devtools"
     },
+    "DevTools/PkSnapshotOutline.cs": {
+      "category": "devtools"
+    },
     "DevTools/PkSnapshotReader.cs": {
       "category": "devtools"
     },

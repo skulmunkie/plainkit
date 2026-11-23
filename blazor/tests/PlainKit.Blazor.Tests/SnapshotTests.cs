@@ -52,6 +52,36 @@ public sealed class SnapshotTests : IDisposable
     }
 
     [Fact]
+    public void Outlines_csharp_members_and_razor_files_like_the_toolkit()
+    {
+        Write("B.cs", """
+            public sealed class A
+            {
+                public const int Max = 3;
+                public string Name { get; set; }
+                public async Task<int> Run(int x)
+                {
+                    return Foo(x);
+                }
+            }
+            """);
+        Write("c.razor", """
+            @page "/x"
+            @inject IFoo Foo
+            <PkButton />
+            <PkButton>
+            @code {
+                [Parameter] public int V { get; set; }
+                void Go() { }
+            }
+            """);
+        var byPath = PkSnapshot.FromDirectory(_root).Files.ToDictionary(f => f.Path, f => f.Symbols);
+
+        Assert.Equal(["class A@1/0", "const Max@3/1", "property Name@4/1", "method Run@5/1"], byPath["B.cs"].Select(s => $"{s.Kind} {s.Name}@{s.Line}/{s.Depth}"));
+        Assert.Equal(["page \"/x\"@1/0", "inject Foo@2/0", "component PkButton@3/0", "code @code@5/0", "property V@6/1", "method Go@7/1"], byPath["c.razor"].Select(s => $"{s.Kind} {s.Name}@{s.Line}/{s.Depth}"));
+    }
+
+    [Fact]
     public void Serializes_to_the_format_the_code_explorer_reads()
     {
         Write("a.js", "const x = 1;");

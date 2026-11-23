@@ -1,14 +1,15 @@
 import { showState, showTitleBar } from '../../js/page-shell.js';
 import { renderState } from '../../js/page-states.js';
 import { loadElements } from '../../js/loader.js';
+import { pageBase } from '../../js/page-base.js';
 import { actionItems, renderActions } from '../../js/page-actions.js';
 
 const CONTROL = { textarea: 'pk-textarea', select: 'pk-select' };
 const text = v => (v == null ? '' : String(v));
 
-export default Base => class extends Base {
+export default Base => class extends pageBase(Base) {
     connected() {
-        if (!this.$w) {
+        if (this.once(() => {
             this.$w = true;
             loadElements(this.shadowRoot);
             this.part('back').addEventListener('click', () => this.go(this.$i - 1));
@@ -24,16 +25,23 @@ export default Base => class extends Base {
                 this.emit('pk-wizard-change', { key, value: this.collect()[key], values: this.collect(), step: this.steps[this.$i]?.id });
                 if (this.config?.liveValidate) this.live(key);
             });
+            // A step drawn from field specs (step.specs, a pk-field-group): its commit is pk-field-change, not a native change on a named control.
+            panes.addEventListener('pk-field-change', e => {
+                const { key, value, values } = e.detail;
+                this.setDirty(true);
+                this.emit('pk-wizard-change', { key, value, values: { ...this.collect(), ...values }, step: this.steps[this.$i]?.id });
+                if (this.config?.liveValidate) this.live(key);
+            });
             this.part('submit').addEventListener('click', () => this.next(true));
             // A click on a reached step goes back (no validation); moving forward is Next's job, so the stepper's own move is always cancelled.
             this.part('stepper').addEventListener('pk-step-change', e => { e.preventDefault(); if (e.detail.index < this.$i) this.go(e.detail.index); });
-        }
+        })) { /* wired once */ }
         // The one subscription outside this element's tree: a reload or a closed tab with unsent answers asks first.
         this.$leave = e => { if (this.dirty) { e.preventDefault(); e.returnValue = ''; } };
         window.addEventListener('beforeunload', this.$leave);
         this.fetch();
     }
-    disconnected() { this.$gen = (this.$gen ?? 0) + 1; window.removeEventListener('beforeunload', this.$leave); }
+    disconnected() { this.$gen = (this.$gen ?? 0) + 1; window.removeEventListener('beforeunload', this.$leave); super.disconnected(); }
     // Run load() again and restart at the first step (the Blazor bridge sets load after the first draw).
     refresh() { if (this.$w && this.isConnected) this.fetch(); }
     changed(name) { if (name === 'config' && this.$w && this.isConnected) this.fetch(); }
@@ -47,12 +55,12 @@ export default Base => class extends Base {
     async fetch() {
         const gen = this.$gen = (this.$gen ?? 0) + 1, box = this.part('state');
         showTitleBar(this, this.part('header'));
-        this.$panes = new Map(); this.$i = 0; this.$far = 0; this.$draft = {};
+        this.$panes = new Map(); this.$groups = new Map(); this.$i = 0; this.$far = 0; this.$draft = {};
         this.part('panes').replaceChildren();
         this.part('card').hidden = this.part('stepper').hidden = true;
         if (typeof this.load === 'function') {
             showState(box, 'loading', { label: this.config?.label });
-            try { this.$draft = { ...(await this.load()) }; } catch (err) {
+            try { this.$draft = { ...(await this.startRun('draft', () => this.load())) }; } catch (err) {
                 if (gen !== this.$gen) return;
                 this.log.error('wizard load failed', err);
                 showState(box, 'error', { error: err, retry: () => this.fetch() });
@@ -93,13 +101,21 @@ export default Base => class extends Base {
     build(step) {
         const doc = this.ownerDocument, pane = doc.createElement('div'); pane.setAttribute('role', 'group'); pane.setAttribute('aria-label', step.label ?? step.id);
         if (step.review) { this.summarise(pane); return pane; }
-        if (!step.fields) { // a step without fields is the app's: mountStep draws it, else the light-DOM child slot="step-<id>" is projected (the Blazor wrapper's way)
+        if (!step.fields && !step.specs) { // a step without fields is the app's: mountStep draws it, else the light-DOM child slot="step-<id>" is projected (the Blazor wrapper's way)
             if (typeof this.mountStep === 'function') this.mountStep(pane, step);
             else { const slot = doc.createElement('slot'); slot.setAttribute('name', 'step-' + step.id); pane.append(slot); }
             return pane;
         }
         const pf = doc.createElement('pk-form'), form = doc.createElement('form');
         pf.setAttribute('summary', '');
+        if (step.specs) { // field specs (#2011): one pk-field-group draws them, so whenExpr, optionsBy and the kinds are the group's own
+            const group = doc.createElement('pk-field-group'), values = { ...this.$draft };
+            for (const f of step.specs) if (f.kind === 'select' && !f.optionsBy && !f.placeholder && values[f.key] == null && f.options?.length) values[f.key] = f.options[0].value ?? f.options[0];
+            group.fields = step.specs; group.values = values;
+            this.$groups.set(step.id, group);
+            form.append(group); pf.append(form); pane.append(pf);
+            return pane;
+        }
         for (const f of step.fields ?? []) {
             const field = doc.createElement('pk-field'), ctl = doc.createElement(CONTROL[f.type] ?? 'pk-input');
             field.setAttribute('label', f.label ?? f.name);
@@ -121,13 +137,17 @@ export default Base => class extends Base {
         pf.append(form); pane.append(pf);
         return pane;
     }
+    // The fields of a step as { name, label, type, options }: its own list, or the key, kind and options of its specs (a dependent select lists every option it can have).
+    fieldsOf(s) {
+        return s.fields ?? (s.specs ?? []).map(f => ({ name: f.key, label: f.label, type: f.kind, options: f.options ?? Object.values(f.optionsBy?.map ?? {}).flat() }));
+    }
     // The review step lists every answer, step by step, as field lists (text only).
     summarise(pane) {
         const doc = this.ownerDocument, values = this.collect();
-        pane.replaceChildren(...this.steps.filter(s => s.fields?.length).map(s => {
+        pane.replaceChildren(...this.steps.filter(s => this.fieldsOf(s).length).map(s => {
             const list = doc.createElement('pk-field-list');
             list.setAttribute('heading', s.label ?? s.id);
-            for (const f of s.fields) {
+            for (const f of this.fieldsOf(s)) {
                 const dt = doc.createElement('dt'), dd = doc.createElement('dd'), v = text(values[f.name]);
                 dt.textContent = f.label ?? f.name;
                 dd.textContent = (f.options?.find(o => text(o.value ?? o) === v)?.label ?? v) || '-';
@@ -150,6 +170,7 @@ export default Base => class extends Base {
         let r;
         try { r = await this.validate(step.id, this.collect(), { live: true, key }); } catch (err) { this.log.warn('live validate failed', err); return; }
         if (gen !== this.$gen || tok !== this.$lv) return;
+        for (const g of this.$groups.values()) for (const k of Object.keys(g.snapshot())) { const m = r?.errors?.[k]; if (k === key || m != null) g.setError(k, m == null ? '' : text(m)); }
         for (const c of this.controls()) {
             const n = c.getAttribute('name'), f = c.closest('pk-field'), m = r?.errors?.[n];
             if (!f || (n !== key && m == null)) continue;
@@ -157,7 +178,8 @@ export default Base => class extends Base {
         }
     }
     collect() {
-        const out = { ...this.$draft }, fields = this.steps.flatMap(s => s.fields ?? []);
+        const out = { ...this.$draft }, fields = this.steps.flatMap(s => this.fieldsOf(s));
+        for (const g of this.$groups?.values() ?? []) Object.assign(out, g.snapshot());
         for (const c of this.controls()) {
             const name = c.getAttribute('name');
             out[name] = fields.find(f => f.name === name)?.type === 'number' && c.value !== '' ? Number(c.value) : c.value;
@@ -180,6 +202,7 @@ export default Base => class extends Base {
         this.$busy = true; btn.busy = true;
         renderState(this.part('notice'), 'ready');
         for (const c of this.controls()) c.closest('pk-field')?.removeAttribute('error');
+        for (const g of this.$groups.values()) g.report(false);
         try {
             if (!step.review && typeof this.validate === 'function') { const r = await this.validate(step.id, values); if (r?.errors) throw r; }
             if (gen !== this.$gen) return;
@@ -197,9 +220,12 @@ export default Base => class extends Base {
     // { errors: { field: message } } marks fields inline (on the step that owns the field: a submit can name one from an earlier step); any other error is a notice.
     fail(err, step) {
         const errors = Object.entries(err?.errors ?? {});
-        const owner = (errors.length && this.steps.find(s => s.fields?.some(f => f.name === errors[0][0]))) || step;
+        const owner = (errors.length && this.steps.find(s => this.fieldsOf(s).some(f => f.name === errors[0][0]))) || step;
         if (errors.length) {
             if (owner !== step) this.show(this.steps.indexOf(owner), false);
+            const grp = this.$groups.get(owner.id), mine = grp ? errors.filter(([n]) => n in grp.snapshot()) : [];
+            for (const [n, m] of mine) grp.setError(n, text(m));
+            if (mine.length) { this.part('stepper').errors = String(this.steps.indexOf(owner)); grp.focusField(mine[0][0]); return; }
             const found = errors.map(([n, m]) => [this.controls().find(c => c.getAttribute('name') === n), m]).filter(([c]) => c);
             for (const [c, m] of found) c.closest('pk-field')?.setAttribute('error', text(m));
             if (found.length) { this.part('stepper').errors = String(this.steps.indexOf(owner)); found[0][0].focus(); return; }

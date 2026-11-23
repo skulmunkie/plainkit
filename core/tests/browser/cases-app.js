@@ -583,6 +583,37 @@ export const appCases = [
         page.destroy();
     }],
 
+    ['wizard page type (#2011): a step of field specs (pk-field-group) swaps the options of a dependent select when its parent changes, collects, validates inline and reviews them', async t => {
+        const { mountPage } = await dist('js/app.js');
+        const box = document.createElement('div'); t.stage('').append(box);
+        let sent; const changes = [];
+        const page = await mountPage(box, { type: 'wizard', config: { review: true, steps: [{ id: 'a', label: 'Where', specs: [
+            { key: 'country', label: 'Country', kind: 'select', options: [{ value: 'us', label: 'United States' }, { value: 'ca', label: 'Canada' }] },
+            { key: 'city', label: 'City', kind: 'select', optionsBy: { field: 'country', map: { us: [{ value: 'nyc', label: 'New York' }], ca: [{ value: 'yyz', label: 'Toronto' }, { value: 'yvr', label: 'Vancouver' }] } } },
+            { key: 'zip', label: 'Postal code', required: true, whenExpr: "country == 'ca'" }] }],
+            validate: async (id, v) => (v.zip === 'bad' ? { errors: { zip: 'Not a postal code' } } : null), submit: async v => { sent = v; } } });
+        const el = box.querySelector('pk-wizard-page');
+        await t.load(box);
+        await until(() => el.part('panes').querySelector('pk-field-group')?.part?.('group')?.querySelector('pk-select'), 'the group');
+        el.addEventListener('pk-wizard-change', e => changes.push(e.detail));
+        const g = el.part('panes').querySelector('pk-field-group'), row = k => g.$rows.get(k);
+        await until(() => row('city')?.control.options?.length === 1, 'the city of the first country');
+        row('country').control.value = 'ca'; row('country').control.dispatchEvent(new CustomEvent('pk-value-change', { detail: { value: 'ca' }, bubbles: true, composed: true }));
+        await until(() => row('city').control.options.length === 2 && row('zip'), 'the Canadian cities and the postal code');
+        t.eq(changes[0].key, 'country'); t.eq(changes[0].step, 'a');
+        row('zip').control.value = 'bad'; row('zip').control.dispatchEvent(new CustomEvent('pk-value-change', { detail: { value: 'bad' }, bubbles: true, composed: true }));
+        await t.settle();
+        el.part('next').click();
+        await until(() => g.$rows.get('zip').field.getAttribute('error') === 'Not a postal code', 'the inline error on a spec field');
+        row('zip').control.value = 'M5V'; row('zip').control.dispatchEvent(new CustomEvent('pk-value-change', { detail: { value: 'M5V' }, bubbles: true, composed: true }));
+        await t.settle();
+        el.part('next').click(); await until(() => el.part('heading').textContent === 'Review', 'the review step');
+        t.ok(/Canada/.test(el.part('panes').textContent) && /Toronto/.test(el.part('panes').textContent), 'the review shows the labels');
+        el.part('next').click(); await until(() => sent, 'the submit');
+        t.eq(sent.country, 'ca'); t.eq(sent.city, 'yyz'); t.eq(sent.zip, 'M5V');
+        page.destroy();
+    }],
+
     ['wizard page type (#1415): refresh() runs a load set after the first draw: the wizard starts again at step one with the draft answers in its fields', async t => {
         const { mountPage } = await dist('js/app.js');
         const box = document.createElement('div'); t.stage('').append(box);
@@ -886,6 +917,21 @@ export const appCases = [
         t.eq(after.observers, before.observers, 'live observers are back to the baseline');
         t.eq(after.timers, before.timers, 'timers are back to the baseline');
         t.eq(mounts, 101, 'every cycle mounted'); t.eq(destroys, 101, 'every record handle was destroyed exactly once');
+    }],
+
+    ['page types (#1929 6b): load callbacks also get an AbortSignal (query, ctx, signal); a loader that takes only the query still works, and a newer call aborts the older', async t => {
+        const { mountPage } = await dist('js/app.js');
+        await t.load(t.stage('<pk-master-detail-page></pk-master-detail-page>'));
+        const box = document.createElement('div'); t.stage('').append(box);
+        const seen = [];
+        const page = await mountPage(box, { type: 'master-detail', config: { list: { columns: [{ key: 'name', label: 'Name' }] }, load: (q, ctx, signal) => { seen.push(signal); return { rows: [{ id: '1', name: 'A' }] }; } } });
+        const el = box.querySelector('pk-master-detail-page'); await t.load(box); await until(() => seen.length >= 1, 'the first load', 200);
+        t.ok(seen[0] instanceof AbortSignal && !seen[0].aborted, 'the loader receives a live AbortSignal as its third argument');
+        const old = await mountPage(document.createElement('div'), { type: 'master-detail', config: { list: { columns: [{ key: 'name', label: 'Name' }] }, load: q => ({ rows: [{ id: '2', name: 'B' }] }) } });
+        t.ok(old, 'a query-only loader mounts as before'); old.destroy();
+        el.load('x'); el.load('x');
+        t.ok(seen.length >= 3 && seen[seen.length - 2].aborted && !seen[seen.length - 1].aborted, 'a newer call with the same query aborts the older signal');
+        page.destroy();
     }],
 
     ['master-detail page type (#353): a failing list shows its error state, a pending record shows loading, a rejected record shows the danger alert and Retry recovers it', async t => {

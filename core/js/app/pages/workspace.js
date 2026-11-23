@@ -8,12 +8,9 @@ export const PAGE_TYPE = {
     states: [],
     useWhen: 'A layout of multiple custom panes that does not fit list/record/dashboard but still deserves the workspace chrome.',
 };
-import { mountTitled } from '../../page-shell.js';
-export default (host, config = {}, ctx) => {
-    const el = host.ownerDocument.createElement('pk-workspace-page');
-    const { mount, fill, ...data } = config;
-    el.config = data;
-    if (fill) el.fill = true;
-    if (mount) el.mount = panes => mount(panes, ctx);
-    return mountTitled(host, el, config.heading);
-};
+import { definePage } from '../../page-define.js';
+export default definePage({
+    tag: 'pk-workspace-page',
+    data: ({ mount, fill, ...data }) => data,
+    wire: (el, { mount, fill }, ctx) => { if (fill) el.fill = true; if (mount) el.mount = panes => mount(panes, ctx); },
+});
