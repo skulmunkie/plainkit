@@ -92,13 +92,11 @@ Run it directly with `node core/icons/build.mjs`, or as part of the full build w
 the same way it always has). `core/icons.svg`, `core/icons/icons.json` and `core/icons/icons.d.ts` are
 generated output: not tracked by git, rebuilt every time (see `scripts/generated.mjs` and `.gitignore`).
 
-**TODO (follow-up issue, not phase 1):** a Blazor `PkIconName` constants class, generated from
-`core/icons/icons.json` the same way `scripts/generate-blazor.mjs` already turns each element's
-`blazor/mappings/<name>.json` into a typed `Pk<Name>` component — see that script's per-file generation loop for
-the pattern to reuse (a `static class PkIconName { public const string Search = "search"; ... }`, so an unknown
-name is a C# compile error, not just a runtime SDK-logger warning). Left out of this PR because it is a second,
-separate generator surface (a `.razor`/`.cs` emitter, a place in `Generated/`, and its own test), not a small
-addition to fold into this one; the name list it would read (`core/icons/icons.json`) already exists.
+The Blazor side: `scripts/generate-blazor.mjs` reads `core/icons/icons.json` and writes `Generated/PkIconName.cs`, a
+`static class PkIconName` with one constant per symbol (`PkIconName.Search` is `"search"`, `PkIconName.ArrowLeft` is
+`"arrow-left"`; a name that starts with a digit gets a `V`). It is part of `PlainKit.Blazor` itself, so it is present
+even without the icons package. The icon parameters (`Name`, `IconName`...) stay strings: a constant gives a compile-time
+check, a custom icon name still works.
 
 ## Size
 
