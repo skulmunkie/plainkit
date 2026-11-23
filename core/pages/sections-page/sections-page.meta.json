@@ -27,6 +27,15 @@
       "description": "Status chips beside the title."
     },
     {
+      "name": "meta",
+      "description": "A line under the title (an updated-at time, an owner, a short summary)."
+    },
+    {
+      "name": "badge-<id>",
+      "dynamic": true,
+      "description": "The body of the popover of the config.badges entry with that id (config.badges[].popover): the badge becomes a pk-badge-popover that opens it."
+    },
+    {
       "name": "section-<id>",
       "dynamic": true,
       "description": "The main column of the section with that id in config.sections (for example slot=\"section-details\")."
@@ -88,6 +97,10 @@
     {
       "title": "Every section at once on wide screens, tabs on a phone",
       "html": "<pk-sections-page config='{\"heading\":\"Blue mug\",\"tabsFrom\":\"tablet\",\"stickyFrom\":\"tablet\",\"sections\":[{\"id\":\"details\",\"label\":\"Details\"},{\"id\":\"orders\",\"label\":\"Orders\",\"count\":3},{\"id\":\"status\",\"label\":\"Status\",\"side\":true}]}'><pk-card slot=\"section-details\" heading=\"Details\"><p>Blue mug, 350 ml, ceramic.</p></pk-card><pk-card slot=\"section-orders\" heading=\"Orders\"><p>Three open orders.</p></pk-card><pk-card slot=\"section-status\" heading=\"Status\"><p>Active, 12 on hand.</p></pk-card></pk-sections-page>"
+    },
+    {
+      "title": "Reassign the primary action per state, a meta line and a badge popover",
+      "html": "<pk-sections-page config='{\"heading\":\"Order 1042\",\"badges\":[{\"id\":\"late\",\"label\":\"2 late\",\"variant\":\"warn\",\"popover\":{\"heading\":\"Late lines\"}}],\"newAction\":{\"key\":\"approve\",\"label\":\"Approve\",\"variant\":\"primary\"},\"sections\":[{\"id\":\"summary\",\"label\":\"Summary\"}]}'><span slot=\"meta\">Updated 12 November by Sam</span><p slot=\"badge-late\">Lines 2 and 4 are past their ship date.</p><pk-card slot=\"section-summary\" heading=\"Summary\"><p>Waiting for approval. Assign a new config.newAction (for example Ship) when the state changes: the title bar redraws.</p></pk-card></pk-sections-page>"
     }
   ],
   "methods": []

@@ -138,4 +138,22 @@ export const sectionsPageCases = [
         t.ok(win.scrollY >= 700, `the page scrolled (${win.scrollY})`);
         t.ok(Math.abs(rect(header).top) <= 2, `the title bar is pinned at the top (top ${rect(header).top})`);
     }],
+    // #2084 step B: the meta slot, a reassigned primary action, and a badge popover.
+    ['sections-page (1280px): the meta slot sits under the title, config.newAction and config.actions redraw when reassigned, and a badge with a popover opens its slot body (#2084)', async t => {
+        const { doc, page, header } = await frame(t, 1280, 700, { ...CONFIG, badges: [{ id: 'late', label: '2 late', variant: 'warn', popover: { heading: 'Late lines' } }], newAction: { key: 'approve', label: 'Approve', variant: 'primary' } });
+        const meta = doc.createElement('span'); meta.slot = 'meta'; meta.id = 'm'; meta.textContent = 'Updated today';
+        const body = doc.createElement('p'); body.slot = 'badge-late'; body.id = 'bp'; body.textContent = 'Lines 2 and 4 are late.';
+        page.append(meta, body); await t.settle(); await wait(200);
+        const title = header.shadowRoot.querySelector('[part=title]') ?? header;
+        t.ok(shown(meta) && rect(meta).top >= rect(title).bottom - 1, `the meta line (top ${rect(meta).top}) is under the title (bottom ${rect(title).bottom})`);
+        const labels = () => [...page.part('header').querySelectorAll('pk-button')].map(b => b.textContent.trim());
+        t.ok(labels().includes('Approve') && !labels().includes('Ship'), 'the primary action is Approve');
+        page.config = { ...page.config, newAction: { key: 'ship', label: 'Ship', variant: 'primary' }, actions: [{ key: 'edit', label: 'Edit' }] }; await wait(250);
+        t.ok(labels().includes('Ship') && !labels().includes('Approve') && !labels().includes('Archive'), `reassigning config redraws the actions (${labels().join(', ')})`);
+        const pill = page.part('header').querySelector('pk-badge-popover');
+        t.ok(pill, 'the badge with a popover is a pk-badge-popover');
+        t.ok(!shown(body), 'the popover body is closed at rest');
+        pill.open = true; await wait(300);
+        t.ok(shown(body), 'the popover body shows when opened');
+    }],
 ];
