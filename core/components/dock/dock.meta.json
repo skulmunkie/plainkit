@@ -199,6 +199,10 @@
     {
       "title": "Persisted layout",
       "html": "<pk-dock label=\"Workspace with a saved layout\" persist-key=\"gallery-demo\">\n  <div slot=\"tools\" data-heading=\"Toolbox\" data-group=\"left\" class=\"stack\"><span>Select</span><span>Rectangle</span></div>\n  <div slot=\"canvas\" data-heading=\"Canvas\" class=\"stack\"><span>Resize a separator or move a tab, then reload the page: the arrangement comes back.</span></div>\n  <div slot=\"props\" data-heading=\"Properties\" data-group=\"right\" class=\"stack\"><span>Width 120</span><span>Height 80</span></div>\n</pk-dock>"
+    },
+    {
+      "title": "Panels the host fills on first show",
+      "html": "<pk-dock label=\"Lazy workspace\">\n  <div slot=\"files\" data-heading=\"Files\" data-group=\"left\">Files</div>\n  <div slot=\"editor\" data-heading=\"Editor\">Editor</div>\n  <div slot=\"log\" data-heading=\"Log\" data-group=\"bottom\"></div>\n  <div slot=\"out\" data-heading=\"Output\" data-group=\"bottom\"></div>\n</pk-dock>"
     }
   ]
 }
