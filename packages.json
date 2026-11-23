@@ -220,7 +220,7 @@
       "requires": [
         "plainkit"
       ],
-      "blazorOption": null,
+      "blazorOption": "icons",
       "files": [
         "icons.d.ts",
         "icons.json",
