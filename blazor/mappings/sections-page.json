@@ -10,6 +10,22 @@
       "doc": "Status chips (PkBadge) beside the title, after any Config badges."
     },
     {
+      "name": "MetaContent",
+      "map": "slot",
+      "slot": "meta",
+      "type": "RenderFragment?",
+      "extra": true,
+      "doc": "A line under the title (an updated-at time, an owner)."
+    },
+    {
+      "name": "BadgePopoverContent",
+      "map": "slotMap",
+      "slotPrefix": "badge-",
+      "type": "IReadOnlyDictionary<string, RenderFragment>?",
+      "extra": true,
+      "doc": "The popover body of a Config badge by its id (a badge with a popover entry opens it)."
+    },
+    {
       "name": "Config",
       "type": "object",
       "jsonText": true,
