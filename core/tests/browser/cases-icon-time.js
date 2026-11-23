@@ -46,4 +46,24 @@ export const iconTimeCases = [
         const bare = await t.mount('<pk-field><pk-button slot="label-action" size="mini">Reset</pk-button><input></pk-field>'); await t.settle();
         t.ok(!bare.part('label').hidden, 'the label row shows for an action alone');
     }],
+    ['icon: a sprite that cannot be loaded warns once, draws nothing and leaves every icon box and icon button the size it had (#111)', async t => {
+        const html = '<pk-icon id="i" name="search"></pk-icon><pk-icon id="x" name="search" size="xl"></pk-icon><pk-button id="b" icon icon-name="plus" label="Add"></pk-button><pk-button id="c" icon-name="plus">Add</pk-button>';
+        const sizes = host => ['i', 'x', 'b', 'c'].map(id => { const r = host.querySelector('#' + id).getBoundingClientRect(); return `${id}:${r.width}x${r.height}`; });
+        const ok = t.stage(html); await t.load(ok); await t.settle();
+        const before = sizes(ok);
+        const meta = document.createElement('meta'); meta.name = 'pk-icons'; meta.content = '/no-such-icons.svg'; document.head.append(meta);
+        try {
+            const { addLogSink } = await import('../../js/log.js');
+            const m = await import('../../js/icon-sprite.js?pk-missing-sprite'); // a fresh module reads the missing sprite once
+            const seen = []; addLogSink(e => { if (e.scope === 'icon-sprite' && e.level === 'warn') seen.push(e.message); });
+            const use = document.createElementNS('http://www.w3.org/2000/svg', 'use');
+            m.drawIcon(use, 'plus', () => {}); m.drawIcon(use, 'search', () => {});
+            await new Promise(r => setTimeout(r, 400));
+            t.eq(seen.length, 1, 'one warning only: ' + seen.length);
+            t.ok(/plainkit.icons/.test(seen[0] || '') && /no-such-icons.svg/.test(seen[0] || ''), 'it names the address and the package');
+            const bad = t.stage(html); await t.load(bad); await t.settle();
+            t.ok(bad.querySelector('#i').part('use').getAttribute('href').includes('no-such-icons.svg#search'), 'the icons now point at the missing sprite');
+            t.eq(sizes(bad).join(), before.join(), 'every icon and icon button has the same size without the sprite');
+        } finally { meta.remove(); }
+    }],
 ];

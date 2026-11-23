@@ -55,6 +55,7 @@ const dec = new TextDecoder('utf-8');
 const isText = p => /\.(css|js|json|md|svg|html)$/.test(p);
 const pageCss = p => p === 'plainkit.css' || p === 'plainkit.min.css';
 const MODULES_DIR = 'modules/';
+export const ICON_FILES = ['icons.svg', 'icons.json', 'icons.d.ts']; // the plainkit.icons package's files in dist (#111)
 const MANIFESTS = [['manifest.json', ''], ['manifest.extras.json', ''], [`${MODULES_DIR}manifest.json`, MODULES_DIR]]; // [path, the folder its entries are relative to]
 const isManifest = p => MANIFESTS.some(([m]) => m === p);
 const hasMedia = p => /\.css$/.test(p) || /^elements\/[^/]+\.js$/.test(p);
@@ -68,6 +69,8 @@ const safePath = p => typeof p === 'string' && p !== '' && !p.startsWith('/') &&
  */
 export async function customizeDist(files, { include, breakpoints, theme }) {
     const out = new Map(files);
+    const removed = new Set();
+    if (include.icons === false) for (const p of ICON_FILES) if (out.delete(p)) removed.add(p); // the plainkit.icons files are left out on request (#111); default on
     const manifestBytes = files.get('manifest.json');
     if (!manifestBytes) throw new Error('the dist has no manifest.json');
     const manifest = JSON.parse(dec.decode(manifestBytes));
@@ -105,7 +108,7 @@ export async function customizeDist(files, { include, breakpoints, theme }) {
     }
     // One manifest per unit: the runtime's, the extras' (files the npm package leaves out, same folder) and, when the export carries them, the modules' (paths under modules/, listed relative to it).
     // A unit's files are the ones its shipped manifest lists.
-    const custom = changed || Boolean(themeCss);
+    const custom = changed || Boolean(themeCss) || removed.size > 0;
     let fileCount = 0;
     for (const [mpath, prefix] of MANIFESTS) {
         const old = files.get(mpath);
@@ -113,7 +116,7 @@ export async function customizeDist(files, { include, breakpoints, theme }) {
         const was = JSON.parse(dec.decode(old));
         const listed = new Set(was.files.map(f => prefix + f.path));
         const own = [...out].filter(([p]) => listed.has(p));
-        if (!touched.some(p => own.some(([q]) => q === p))) { fileCount += was.files.length + 1; continue; } // nothing of this unit changed: its manifest stays as shipped
+        if (!touched.some(p => own.some(([q]) => q === p)) && !was.files.some(f => removed.has(prefix + f.path))) { fileCount += was.files.length + 1; continue; } // nothing of this unit changed: its manifest stays as shipped
         const entries = [];
         for (const [path, bytes] of own) entries.push({ path: path.slice(prefix.length), bytes: bytes.length, integrity: await integrityOf(bytes) });
         const provenance = custom ? `Customised export of Plainkit ${manifest.version} (see ${SETTINGS_NAME}); every file listed here is exactly what this bundle holds.` : was.provenance;
