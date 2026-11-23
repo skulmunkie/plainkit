@@ -633,7 +633,7 @@ export function renderComponent(m, mappingName, ns = 'PlainKit.Blazor') {
     const listened = h => (m.listenedNative && h.native && !h.updates.length) || (h.listened && !h.native && !h.updates.length);
     const custom = live.filter(h => !h.native || listened(h));
     const attrs = [];
-    for (const a of m.attrs) if (a.bare) attrs.push(a.attr); else attrs.push(`${a.attr}="${m.cells?.columns && a.attr === 'config' ? '@ConfigWithColumns()' : m.configKeys.length && !m.cells && !m.recordModel && a.attr === 'config' ? '@ConfigWithKeys()' : m.recordModel && a.attr === 'config' ? '@ConfigWithFields()' : a.expr}"`);
+    for (const a of m.attrs) if (a.bare) attrs.push(a.attr); else attrs.push(`${a.attr}="${m.cells?.columns && a.attr === 'config' ? '@ConfigWithColumns()' : m.configKeys.length && !m.cells && !m.recordModel && a.attr === 'config' ? '@ConfigWithKeys()' : m.recordModel && a.attr === 'config' ? '@ConfigWithFields()' : a.attr === 'row-href-template' && m.params.some(d => d.name === 'RowHrefOf') ? '@(string.IsNullOrEmpty(RowHrefTemplate) && RowHrefOf is not null ? "/{id}" : RowHrefTemplate)' : a.expr}"`);
     // The element itself (PkElementBase.Element), for PkRuntime.ReadFormValuesAsync and any host that needs a JavaScript handle.
     attrs.push('@ref="Element"');
     // `location` (mapping): the parameter (location.param) wins; unset, the path tracked from NavigationManager is sent (see the code block).
@@ -780,7 +780,10 @@ export function renderComponent(m, mappingName, ns = 'PlainKit.Blazor') {
         '        await InvokeAsync(() => { _cellRows = items.Select(i => (IdOf!(i), i)).ToList(); StateHasChanged(); });',
         '        return null;', '    }', ...(m.cells && !m.dataTable && m.params.some(d => d.name === 'OnRowAction') ? ['', ...rowActionHandler('_cellRows', m.params.some(d => d.name === 'OnAction'))] : []));
     // Typed columns: a column's Text (and the property fallback, as PkDataTable) fills the row it names, so the rows the callback returns are built through the same PkTableRows as PkDataTable's.
-    if (m.cells?.columns && !m.cells.slotsOnly) L.push('', '    private object RowsOf(IReadOnlyList<TItem> items)', '    {', '        if (Columns is null) return items;', '        var rows = new System.Text.Json.Nodes.JsonArray();', '        foreach (var item in items) rows.Add(PkTableRows.Serialize(item, Columns));', '        return rows;', '    }');
+    if (m.cells?.columns && !m.cells.slotsOnly) L.push('', '    private object RowsOf(IReadOnlyList<TItem> items)', '    {', ...(m.params.some(d => d.name === 'RowHrefOf')
+        // RowHrefOf (#2086): the address of each row travels as its `_href` (null: no link); the element lets it win over RowHrefTemplate.
+        ? ['        if (Columns is null && RowHrefOf is null) return items;', '        var rows = new System.Text.Json.Nodes.JsonArray();', '        foreach (var item in items)', '        {', '            var row = PkTableRows.Serialize(item, (IEnumerable<PkTableColumn<TItem>>?)Columns ?? []);', '            if (RowHrefOf is not null) row["_href"] = RowHrefOf(item);', '            rows.Add(row);', '        }']
+        : ['        if (Columns is null) return items;', '        var rows = new System.Text.Json.Nodes.JsonArray();', '        foreach (var item in items) rows.Add(PkTableRows.Serialize(item, Columns));']), '        return rows;', '    }');
     if (m.cells?.columns && !m.cells.slotsOnly) L.push('', '    private string ConfigWithColumns()', '    {',
         `        if (Columns is null${m.configKeys.map(k => ` && !(${k.when})`).join('')}) return PkAttr.JsonText(Config) ?? "{}";`,
         '        var node = System.Text.Json.Nodes.JsonNode.Parse(PkAttr.JsonText(Config) ?? "{}") as System.Text.Json.Nodes.JsonObject ?? new System.Text.Json.Nodes.JsonObject();',

@@ -13,9 +13,9 @@ public static partial class PkPageTesting
     public static string? RowHref<TItem>(this Pages.PkListPage<TItem> page, TItem item)
     {
         ArgumentNullException.ThrowIfNull(page);
-        if (string.IsNullOrEmpty(page.RowHrefTemplate)) return null;
+        if (page.RowHrefOf is null && string.IsNullOrEmpty(page.RowHrefTemplate)) return null;
         var row = JsonSerializer.SerializeToNode(item, new JsonSerializerOptions(JsonSerializerDefaults.Web)) as JsonObject;
-        var url = Regex.Replace(page.RowHrefTemplate, @"\{(\w+)\}", m => Uri.EscapeDataString(m.Groups[1].Value == "id" ? page.IdOf?.Invoke(item) ?? row?["id"]?.ToString() ?? "" : row?[m.Groups[1].Value]?.ToString() ?? ""));
+        var url = page.RowHrefOf is not null ? page.RowHrefOf(item) ?? "" : Regex.Replace(page.RowHrefTemplate!, @"\{(\w+)\}", m => Uri.EscapeDataString(m.Groups[1].Value == "id" ? page.IdOf?.Invoke(item) ?? row?["id"]?.ToString() ?? "" : row?[m.Groups[1].Value]?.ToString() ?? ""));
         return Regex.IsMatch(url, @"^(/(?![/\\])|#)") && !Regex.IsMatch(url, @"[\x00-\x20\x7f]") ? url : null;
     }
 }
