@@ -626,9 +626,11 @@ y
         t.ok(/phone: 640px to 700px \(\d+ elements/.test(item.getAttribute('heading')) && item.hasAttribute('open'), item.getAttribute('heading'));
         t.ok(/Viewports 641 to 700px/.test(item.textContent) && item.querySelectorAll('tbody tr').length > 40 && /pk-grid|pk-tabs|pk-table/.test(item.textContent), 'the elements that change are listed');
         t.ok(!host.querySelector('.te-sdk [data-breakpoint="wide"]').hasAttribute('open'), 'an unchanged breakpoint stays closed');
+        t.ok((sdk('include-icons').checked ?? sdk('include-icons').hasAttribute('checked')) && !sdk('include-icons').hasAttribute('disabled'), 'the icon sprite is ticked by default (#111)');
         // theme only: untick Breakpoints; the button says so and the download is the small zip, with no SDK file in it
         tick(host.querySelector('.te-sdk [data-sdk="include-breakpoints"]'), false); await t.settle();
         t.eq(sdk('export').textContent.trim(), 'Export theme only');
+        t.ok(sdk('include-icons').hasAttribute('disabled'), 'a theme-only zip has no sprite to leave out, so the box is off');
         const got = [], realCreate = URL.createObjectURL, realClick = HTMLAnchorElement.prototype.click;
         URL.createObjectURL = b => { got.push({ blob: b }); return 'blob:test'; };
         HTMLAnchorElement.prototype.click = function () { got.at(-1).name = this.download; };
