@@ -24,7 +24,7 @@ export const MODULES = {
     'tool-dock': { files: ['tool-dock.js', 'tool-dock.css'] },
     quality: { files: ['quality.js'] },
     'layout-builder': { files: ['layout-builder.js', 'layout-builder.css'] },
-    'theme-editor': { files: ['theme-editor.js', 'sdk-tab.js', 'theme-editor.css'], tokens: true },
+    'theme-editor': { files: ['theme-editor.js', 'sdk-tab.js', 'audit-tab.js', 'sample-boot.js', 'theme-editor.css'], tokens: true },
 };
 
 /** The folder of the unit inside dist/. */
