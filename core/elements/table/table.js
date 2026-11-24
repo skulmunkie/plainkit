@@ -19,12 +19,12 @@ export default Base => class extends Base {
         for (const s of ['', 'toolbar', 'bulk', 'empty', 'footer', 'foot']) this.watchSlot(s, () => this.requestUpdate());
     }
     // columns / rows as arrays: json that parsed to something else (an object, a number) is a mistake, said once, and the table shows none.
-    list(n) { const v = this[n]; return Array.isArray(v) ? (n == 'columns' && this.$cx ? this.$cx.cols(this, v) : v) : (this.warnOnce(n, n + ' is not an array'), []); }
+    list(n) { const v = this[n]; return Array.isArray(v) ? (n === 'columns' && this.$cx ? this.$cx.cols(this, v) : v) : (this.warnOnce(n, n + ' is not an array'), []); }
     get view() { return this.manual ? this.list('rows') : sortRows(filterRows(this.list('rows'), this.filters), this.list('columns').find(c => c.key === this.sort), this.sortDir); }
     ids() { return rowIds(this.view, this.rowKey); }
     // Selection scope (#801): `selectScope` is 'all' once "Select all <total>" was chosen. The ids stay the loaded page (never 10k ids): the host expands
     // the scope itself. Any change of the ids, and a selection the host empties, leave it. A manual table keeps the ids of other pages (rows are replaced per page).
-    get wide() { return this.selectScope == 'all' && this.selected.length > 0; }
+    get wide() { return this.selectScope === 'all' && this.selected.length > 0; }
     chosen(ids = this.ids()) { return this.wide ? new Set(ids) : idSet(this.selected); }
     pick(ids) { this.selected = ids; this.selectScope = 'page'; this.emit('pk-select', { selected: ids }); }
     sortBy(key, direction) { if (this.emit('pk-sort', { key, direction })) { this.sort = key ?? ''; this.sortDir = direction ?? 'ascending'; } }
@@ -57,26 +57,26 @@ export default Base => class extends Base {
         this.part('toolbar').hidden = !this.slotted('toolbar').length; this.part('footer').toggleAttribute('data-bar', this.slotted('footer').length > 0);
         tb.hidden = own;
         if (own) { this.part('bulk').hidden = this.part('empty').hidden = true; return; }
-        if (!this.selected.length) this.selectScope = 'page';
-        const k = this.list('columns'), r = V.view(this), ids = rowIds(r, this.rowKey), s =this.chosen(ids), sel = boxState(ids.filter(i => s.has(i)), r.length);
+        if (this.selectScope === 'all' && !this.selected.length) this.selectScope = 'page';
+        const columns = this.list('columns'), rows = V.view(this), ids = rowIds(rows, this.rowKey), chosen = this.chosen(ids), box = boxState(ids.filter(i => chosen.has(i)), rows.length);
         if (this.expandable || this.clickable || this.rowHrefTemplate) this.lz('$m', () => import('../../js/table-expand.js'));
         if (this.total) this.lz('$s', () => import('../../js/table-scope.js'));
         if (this.editable) this.lz('$e', () => import('../../js/table-edit.js'));
         if (this.resizable || this.reorderable) this.lz('$cx', () => import('../../js/table-cols.js'));
-        if (k.some(c => c.type == 'media' || c.shed && ![1, 2, 3].includes(+c.shed) || c.pin)) this.lz('$sd', () => import('../../js/table-shed.js'));
-        const x = this.expandable && this.$m, hx = this.expander != 'none' && x, lead = +this.selectable + !!hx;
-        V.frame(this, tb, k.length + lead, r.length);
+        if (columns.some(c => c.type === 'media' || c.shed && ![1, 2, 3].includes(+c.shed) || c.pin)) this.lz('$sd', () => import('../../js/table-shed.js'));
+        const x = this.expandable && this.$m, hx = this.expander !== 'none' && x, lead = +this.selectable + !!hx;
+        V.frame(this, tb, columns.length + lead, rows.length);
 
-        this.part('head').replaceChildren(...V.head(this, k, hx, lead, sel, h));
+        this.part('head').replaceChildren(...V.head(this, columns, hx, lead, box, h));
 
         // Issue 131: at or above THRESHOLD rows, the body windows instead of drawing every row (table-vw.js). Never for an
         // expandable table (a detail row's height varies) or a host-supplied one (already returned above, at `if (own)`).
-        const body = this.loading ? [h('tr', { 'data-skeleton': true }, h('td', { colspan: k.length + lead }, h('span', { class: 'sr', role: 'status' }, 'Loading')))] : V.body(this, r, h) ?? r.flatMap((row, i) => {
-            const id = rowId(row, i, this.rowKey), tr = V.tr(this, row, id, s, h);
-            return x ? x.rows(this, tr, id, i, k.length + lead, h) : [tr];
+        const body = this.loading ? [h('tr', { 'data-skeleton': true }, h('td', { colspan: columns.length + lead }, h('span', { class: 'sr', role: 'status' }, 'Loading')))] : V.body(this, rows, h) ?? rows.flatMap((row, i) => {
+            const id = rowId(row, i, this.rowKey), tr = V.tr(this, row, id, chosen, h);
+            return x ? x.rows(this, tr, id, i, columns.length + lead, h) : [tr];
         });
         this.part('body').replaceChildren(...body);
         this.$m?.after(this); this.$e?.after(this); this.$cx?.after(this); this.$sd?.after(this);
-        this.$s?.after(this, r.length, sel.checked);
+        this.$s?.after(this, rows.length, box.checked);
     }
 };

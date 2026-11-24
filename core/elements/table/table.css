@@ -18,8 +18,8 @@ th { color: var(--color-muted-strong); font-size: var(--text-meta); font-weight:
 [data-align="end"] { text-align: end; font-variant-numeric: tabular-nums; }
 :host([hover]) tbody tr:hover { background: var(--color-surface-alt); }
 :host([bordered]) :is(th, td) { border: 1px solid var(--color-border); }
-:host([density=compact]) :is(th, td) { padding: var(--space-1) var(--space-2); }
-:host([density=comfortable]) :is(th, td) { padding: var(--space-3) var(--space-4); }
+:host([density="compact"]) :is(th, td) { padding: var(--space-1) var(--space-2); }
+:host([density="comfortable"]) :is(th, td) { padding: var(--space-3) var(--space-4); }
 :host([sticky-header]) thead th { position: sticky; inset-block-start: 0; z-index: var(--z-sticky); background: var(--color-panel); }
 :host([sticky-column]) :is(th, td):first-child { position: sticky; inset-inline-start: 0; z-index: 1; background: var(--color-panel); }
 :host([sticky-header][sticky-column]) thead th:first-child { z-index: calc(var(--z-sticky) + 1); }

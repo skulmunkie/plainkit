@@ -20,6 +20,16 @@ function view(el) {
     return c && v.every((x, i) => x === c.v[i]) ? c.result : (el.$vc = { v, result: el.view }).result;
 }
 
+// The first time a render windows: listens on the scroll frame (the table's own shadow node, built once in the constructor, never
+// replaced), re-rendering only while windowing stays active.
+function attach(el) {
+    el.part('scroll').addEventListener('scroll', () => {
+        if (!el.$virtual || el.$sq) return;
+        el.$sq = true;
+        requestAnimationFrame(() => { el.$sq = false; el.requestUpdate(); });
+    }, { passive: true });
+}
+
 // The rows to draw, or null when this render should not window (table.js then draws every row itself): never for an expandable table (a detail row
 // changes its row's height) or a host-supplied one. Sets el.$virtual for the scroll listener above. Otherwise only the rows near the viewport, plus a buffer,
 // flanked by spacers. el.$rowH (32 is a first guess) is refined from the previous render's real row height. h is table.js's element-builder, passed through
@@ -28,18 +38,11 @@ function body(el, rowsAll, h) {
     const prev = el.part('body').querySelector('tr[data-pk-context]');
     el.$rowH = prev?.getBoundingClientRect().height || el.$rowH;
     if (el.expandable || rowsAll.length <= THRESHOLD) return el.$virtual = false, null;
-    if (!el.$vs) { // the first windowed render: listen on the scroll frame (the table's own shadow node, never replaced), re-rendering only while windowing stays active
-        el.$vs = 1;
-        el.part('scroll').addEventListener('scroll', () => {
-            if (!el.$virtual || el.$sq) return;
-            el.$sq = true;
-            requestAnimationFrame(() => { el.$sq = false; el.requestUpdate(); });
-        }, { passive: true });
-    }
+    if (!el.$vs) { el.$vs = 1; attach(el); }
     el.$virtual = true;
     const sel = el.chosen?.() ?? idSet(el.selected);
     const s = el.part('scroll'), rowH = el.$rowH || 32, vh = s.clientHeight || 400, span = el.part('foot').colSpan; // frame() has just set it to the column count
-    const win = Math.ceil(vh / rowH) + 20, start = Math.max(0, Math.min((s.scrollTop / rowH | 0) - 10, rowsAll.length - win)); // never past the last window (the frame's own overhead lets scrollTop / rowH run past the rows); 10 extra rows above and below the viewport, so a fast scroll or a focus move does not flash empty rows
+    const win = Math.ceil(vh / rowH) + 20, start = Math.max(0, Math.min(Math.floor(s.scrollTop / rowH) - 10, rowsAll.length - win)); // never past the last window (the frame's own overhead lets scrollTop / rowH run past the rows); 10 extra rows above and below the viewport, so a fast scroll or a focus move does not flash empty rows
     const end = Math.min(rowsAll.length, start + win);
     const bump = (size, place) => { const td = h('td', { colspan: span }); td.style.cssText = `padding:0;border:0;block-size:${size}px`; return h('tr', { 'data-spacer': place }, td); };
     const drawn = rowsAll.slice(start, end).map((row, j) => tr(el, row, rowId(row, start + j, el.rowKey), sel, h));
@@ -69,7 +72,7 @@ function tr(el, row, id, sel, h) {
     const on = pick.checked = sel.has(id);
     return h('tr', { 'data-pk-context': id, 'data-selected': on, 'data-clickable': el.clickable, ...mark(row), 'aria-current': el.currentRow && el.currentRow === id ? 'true' : null },
         ...(el.selectable ? [h('td', { 'data-check': true }, pick)] : []),
-        ...el.list('columns').map(c => { if (c.type == 'media') return el.$mm?.cell(c, row, h) ?? h('td'); const name = 'cell-' + id + '-' + c.key, s = el.querySelector(`:scope > [slot="${CSS.escape(name)}"]`); return h('td', { 'data-key': c.key, 'data-label': c.title ? null : c.label ?? c.key, 'data-title': c.title, 'data-align': al(c), 'data-hide-phone': c.hidePhone, 'data-shed': c.shed, 'data-nowrap': c.noWrap, 'data-empty': s && (s.assignedElements?.({ flatten: true }) ?? [s]).every(x => !x.childElementCount && !x.textContent.trim()) }, s ? h('slot', { name }) : String(row[c.key] ?? '')); }));
+        ...el.list('columns').map(c => { if (c.type === 'media') return el.$mm?.cell(c, row, h) ?? h('td'); const name = 'cell-' + id + '-' + c.key, s = el.querySelector(`:scope > [slot="${CSS.escape(name)}"]`); return h('td', { 'data-key': c.key, 'data-label': c.title ? null : c.label ?? c.key, 'data-title': c.title, 'data-align': al(c), 'data-hide-phone': c.hidePhone, 'data-shed': c.shed, 'data-nowrap': c.noWrap, 'data-empty': s && (s.assignedElements?.({ flatten: true }) ?? [s]).every(x => !x.childElementCount && !x.textContent.trim()) }, s ? h('slot', { name }) : String(row[c.key] ?? '')); }));
 }
 
 // The header rows (the titles, and the filter row when filterable) for table.js, which has no room for them in its gzip budget.
