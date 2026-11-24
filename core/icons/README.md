@@ -6,7 +6,7 @@ already needs), not the full ~120-icon wishlist; the gallery browse page is defe
 
 ## Grid
 
-Confirmed by inspecting the icons already in the sprite (39 at the time, 86 now) (`search`, `settings`, `trash`,
+Confirmed by inspecting the icons already in the sprite (39 at the time; the count now is the number of files in `src/`) (`search`, `settings`, `trash`,
 `undo`, `edit`, ...): every one of them is drawn on a **24x24 viewBox**, stroke-only, in the Feather-style
 convention already established here. New icons keep that grid exactly — do not introduce a second size.
 

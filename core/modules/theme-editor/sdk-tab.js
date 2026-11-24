@@ -29,6 +29,7 @@ export function createSdkTab({ doc, win, theme, importTheme, confirmExport = asy
     const on = (el, type, fn) => { listeners.push(listen(el, type, fn)); };
     const chkTheme = h(doc, 'pk-checkbox', { label: 'Theme (the token edits)', checked: true, 'data-sdk': 'include-theme' });
     const chkBp = h(doc, 'pk-checkbox', { label: 'Breakpoints', checked: true, 'data-sdk': 'include-breakpoints' });
+    const chkIcons = h(doc, 'pk-checkbox', { label: 'Icon sprite (plainkit.icons)', checked: true, 'data-sdk': 'include-icons' });
     const inputsBox = h(doc, 'div', { class: 'te-palette-inputs' });
     const problems = h(doc, 'div');
     const deltaBox = h(doc, 'div', { class: 'te-delta' });
@@ -43,7 +44,7 @@ export function createSdkTab({ doc, win, theme, importTheme, confirmExport = asy
 
     const panel = h(doc, 'div', { class: 'te-sdk' },
         h(doc, 'p', { class: 'muted' }, 'Tick what to include. A theme alone is a small stylesheet that loads after plainkit.css. Breakpoints change the widths inside the elements, so the whole dist is rewritten and a zip of it is made here, in this page; nothing is sent anywhere.'),
-        h(doc, 'div', { class: 'te-palette-inputs' }, chkTheme, chkBp),
+        h(doc, 'div', { class: 'te-palette-inputs' }, chkTheme, chkBp, chkIcons),
         h(doc, 'h4', { class: 'te-caption' }, `Breakpoint widths (whole pixels, ${RANGE.min} to ${RANGE.max}, ascending, at least ${RANGE.gap} apart)`),
         inputsBox, problems, deltaBox,
         h(doc, 'h4', { class: 'te-caption' }, 'Export'), summary, h(doc, 'pk-cluster', {}, exportBtn, cssBtn), status,
@@ -51,7 +52,7 @@ export function createSdkTab({ doc, win, theme, importTheme, confirmExport = asy
 
     const msg = (box, kind, text) => box.replaceChildren(h(doc, 'pk-alert', { kind: kind === 'error' ? 'danger' : kind }, text));
     const flag = el => (typeof el.checked === 'boolean' ? el.checked : el.hasAttribute('checked'));
-    const include = () => ({ theme: flag(chkTheme), breakpoints: flag(chkBp) });
+    const include = () => ({ theme: flag(chkTheme), breakpoints: flag(chkBp), icons: flag(chkIcons) });
     const raw = () => Object.fromEntries(state.names.map(n => [n, fields.get(n)?.value ?? fields.get(n)?.getAttribute('value') ?? '']));
     const widths = () => { const v = validateBreakpoints(raw(), state.names); return { ...state.shipped, ...Object.fromEntries(Object.entries(v.widths).filter(([n]) => !v.problems.some(p => p.name === n))) }; };
     const themeCount = () => { const o = theme().overrides; return Object.keys(o.shared).length + Object.keys(o.dark).length + Object.keys(o.light).length; };
@@ -79,6 +80,7 @@ export function createSdkTab({ doc, win, theme, importTheme, confirmExport = asy
         for (const [n, el] of fields) { if (v.problems.some(p => p.name === n)) el.setAttribute('invalid', ''); else el.removeAttribute('invalid'); }
         if (v.ok || !inc.breakpoints) problems.replaceChildren(); else msg(problems, 'error', v.problems.map(p => p.message).join('. ') + '.');
         for (const el of fields.values()) el.toggleAttribute('disabled', !inc.breakpoints);
+        chkIcons.toggleAttribute('disabled', !inc.breakpoints); // a theme-only zip carries no SDK files, so there is no sprite to leave out
         const n = themeCount();
         const parts = [inc.theme ? `${n} token override${n === 1 ? '' : 's'}` : null, inc.breakpoints ? Object.entries(widths()).map(([k, w]) => `${k} ${w}px`).join(', ') : null].filter(Boolean);
         const kind = inc.theme && inc.breakpoints ? 'Export custom SDK' : inc.theme ? 'Export theme only' : inc.breakpoints ? 'Export breakpoints only' : 'Export';
@@ -122,7 +124,7 @@ export function createSdkTab({ doc, win, theme, importTheme, confirmExport = asy
 
     function setWidths(w) { for (const [n, el] of fields) if (n in w) { el.value = String(w[n]); el.setAttribute('value', String(w[n])); } paint(); }
 
-    on(chkTheme, 'change', paint); on(chkBp, 'change', paint);
+    on(chkTheme, 'change', paint); on(chkBp, 'change', paint); on(chkIcons, 'change', paint);
     on(inputsBox, 'input', paint); on(inputsBox, 'change', paint);
     on(exportBtn, 'click', () => { if (!exportBtn.hasAttribute('disabled')) run(); });
     on(cssBtn, 'click', async () => { if (!(await confirmExport('Download the theme CSS'))) return; const t = theme(); if (themeCount()) { const r = exportTheme({ version: PK_VERSION, theme: t, shipped: state.shipped }); download(r.css, 'plainkit-theme.css', 'text/css'); msg(status, 'success', 'Downloaded plainkit-theme.css: load it after plainkit.css.'); } });
@@ -130,7 +132,8 @@ export function createSdkTab({ doc, win, theme, importTheme, confirmExport = asy
         const r = readSettings(String(importBox.value ?? ''), state.names);
         if (r.error) { log.warn(`settings import refused: ${r.error}`); msg(importMsg, 'error', r.error); return; }
         const s = r.settings;
-        chkTheme.checked = s.include.theme; chkBp.checked = s.include.breakpoints;
+        chkTheme.checked = s.include.theme; chkBp.checked = s.include.breakpoints; chkIcons.checked = s.include.icons !== false;
+        if (chkIcons.checked) chkIcons.setAttribute('checked', ''); else chkIcons.removeAttribute('checked');
         for (const [el, on2] of [[chkTheme, s.include.theme], [chkBp, s.include.breakpoints]]) { if (on2) el.setAttribute('checked', ''); else el.removeAttribute('checked'); }
         if (s.breakpoints) setWidths(s.breakpoints);
         if (s.include.theme) importTheme(s.theme);
