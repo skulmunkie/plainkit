@@ -24,7 +24,7 @@ export const DIST = '../../dist/';
  * confirmExport(what) resolves true when the export may go on (the editor's contrast gate: failing pairs are listed and need "Export anyway").
  * theme() gives { overrides, css } (the editor's edits and the override block it writes); importTheme(overrides) replaces the edits; dist is the folder URL of the shipped files.
  */
-export function createSdkTab({ doc, win, theme, importTheme, confirmExport = async () => true, dist = runtimeUrl(DIST, import.meta.url) }) {
+export function createSdkTab({ doc, win, theme, importTheme, confirmExport = async () => true, onexport, dist = runtimeUrl(DIST, import.meta.url) }) {
     const state = { report: null, names: [], shipped: {}, busy: false, distPromise: null, extras: [] };
     const listeners = [];
     const on = (el, type, fn) => { listeners.push(listen(el, type, fn)); };
@@ -162,6 +162,7 @@ export function createSdkTab({ doc, win, theme, importTheme, confirmExport = asy
                 result = await exportSdk({ dist: d, include: inc, breakpoints: widths(), theme: t, extras: extras() });
             }
             download(result.zip, result.name, 'application/zip');
+            onexport?.({ name: result.name, zip: result.zip });
             msg(status, 'success', `Downloaded ${result.name} (${Math.round(result.zip.length / 1024)} KB).`);
         } catch (error) {
             state.distPromise = null;

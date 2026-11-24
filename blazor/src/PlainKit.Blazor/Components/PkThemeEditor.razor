@@ -32,21 +32,21 @@
     /// <summary>Presets of your own, listed after the built-in ones (default, high contrast, compact and roomy) in the Presets tab. A bad entry is logged and left out.</summary>
     [Parameter] public IReadOnlyList<PkThemePreset>? Presets { get; set; }
 
-    /// <summary>
-    /// Raised after every change (a moment after typing stops) with the override block CSS for the edits made so far: the text to save as the app's theme file
-    /// and load after the SDK stylesheets (see the package README, "Shipping an exported theme").
-    /// </summary>
+    /// <summary>Raised a moment after each change with the override block CSS for the edits so far: the text to save as the app's theme file (package README, "Shipping an exported theme").</summary>
     [Parameter] public EventCallback<string> OnThemeChanged { get; set; }
+
+    /// <summary>Raised when the Custom SDK tab exports a bundle, with the zip's name and bytes to save (guide "Using a custom dist in Blazor"). The browser still downloads it too.</summary>
+    [Parameter] public EventCallback<PkThemeBundle> OnBundleExported { get; set; }
 
     protected override async Task OnAfterRenderAsync(bool firstRender)
     {
         _bridge ??= await Runtime.BridgeAsync(Assets);
         var presetKey = Presets is null ? "" : string.Join("", Presets.Select(p => $"{p.Name}{p.Theme}{p.Description}"));
-        var key = $"{StorageKey}|{Preview}|{Theme}|{Height}|{InitialTheme}|{presetKey}|{OnThemeChanged.HasDelegate}";
+        var key = $"{StorageKey}|{Preview}|{Theme}|{Height}|{InitialTheme}|{presetKey}|{OnThemeChanged.HasDelegate}|{OnBundleExported.HasDelegate}";
         if (key == _mounted) return;
         _mounted = key;
         _callbacks?.Dispose();
-        _callbacks = OnThemeChanged.HasDelegate ? DotNetObjectReference.Create(new PkThemeEditorHost(css => InvokeAsync(() => OnThemeChanged.InvokeAsync(css)))) : null;
+        _callbacks = OnThemeChanged.HasDelegate || OnBundleExported.HasDelegate ? DotNetObjectReference.Create(new PkThemeEditorHost(css => InvokeAsync(() => OnThemeChanged.InvokeAsync(css)), b => InvokeAsync(() => OnBundleExported.InvokeAsync(b)))) : null;
         var presets = Presets?.Select(p => new { name = p.Name, description = p.Description, theme = p.Theme }).ToArray();
         await _bridge.InvokeVoidAsync("mountThemeEditor", _host, new { storageKey = StorageKey, preview = Preview, theme = Theme.Attr(), height = Height, initial = InitialTheme, presets }, _callbacks);
     }

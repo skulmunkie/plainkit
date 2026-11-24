@@ -12,6 +12,7 @@
 // default AA_PAIRS), storageKey (localStorage key that keeps the overrides; default none), height (a CSS length: the token list
 // scrolls inside it), preview (show a Preview tab with sample controls in a frame; default true), gate (default true: export, share and the Custom SDK list the pairs below 4.5:1 and ask for
 // "Export anyway" first; false leaves that to the host; the API methods export() and share() never ask).
+// onexport({ name, zip }) is called after the Custom SDK tab downloaded a bundle (zip: a Uint8Array), so a host can save the bytes itself (Blazor: PkThemeEditor.OnBundleExported).
 // Palette tab: a brand colour (and optionally a neutral tint and a warn colour) generates the accent, fill, hover, link and the surface and text ramps of
 // both themes with every pair in AA_PAIRS at 4.5:1 or better (js/brand-palette-logic.js); the swatches show each pair with its ratio, and Apply writes them
 // as ordinary edits. Presets tab: the built-in presets (default, high contrast, compact and roomy density; js/theme-presets-logic.js) replace the edits, and the
@@ -232,6 +233,7 @@ export async function mountThemeEditor(container, options = {}) {
             theme: () => ({ overrides: { shared: { ...state.overrides.shared }, dark: { ...state.overrides.dark }, light: { ...state.overrides.light } }, css: outputCss().css }),
             importTheme: next => replaceOverrides(next, null),
             confirmExport: what => confirmExport(what),
+            onexport: options.onexport,
         });
         sdkHost.replaceChildren(sdk.panel);
         loadElements(sdkHost);

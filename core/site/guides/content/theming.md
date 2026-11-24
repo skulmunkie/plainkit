@@ -155,6 +155,18 @@ The editor's **Custom SDK** tab makes a download from your theme and your breakp
 
 Everything happens in the page. The only requests are same-origin reads of the shipped files, and each is checked against its hash in the release manifest before it is used. The zip has the release layout (`dist/`, so it drops in where `dist` is used), the settings and a README naming the version and the settings; paste `plainkit.custom.json` into the tab's Import box to change and export again. Turn the tab off in your own page with `mountThemeEditor(el, { sdk: false })`, or point it at another copy of the files with `dist: '/assets/plainkit/'` (a folder on the same origin).
 
+**Breakpoints of your own at run time.** The export's `plainkit-breakpoints.css` is a file; a page that would rather read the breakpoints from `plainkit.custom.json` (or change a width without a rebuild) calls `applyBreakpointClasses(list)` from `js/breakpoint-classes.js`. It writes the same two rules per breakpoint, `data-show-above` and `data-hide-above`, into one adopted stylesheet (no `style` element, so a strict `style-src` is fine); `update(list)` swaps the widths and `remove()` takes the rules away. The SDK's own elements keep their compiled widths: only a custom build changes those.
+
+```js
+import { applyBreakpointClasses } from './plainkit/js/breakpoint-classes.js';
+const settings = await (await fetch('/plainkit.custom.json')).json();
+const hook = applyBreakpointClasses(settings);   // { ownBreakpoints: [{ name, width }] }, or a plain list
+```
+
+### Use a custom dist in Blazor
+
+`<PkThemeEditor />` raises `OnBundleExported` with the zip's name and bytes (`PkThemeBundle`) when its Custom SDK tab exports; the browser still downloads the file, and the event lets the app save it too. There is no option for a custom `dist`: the package's files are static web assets under `_content/PlainKit.Blazor/plainkit/`, and a file in your app's `wwwroot` at the same path wins over the package's. So unzip the export's `dist/` into `wwwroot/_content/PlainKit.Blazor/plainkit/` (replacing what is there) and rebuild; `PkStyles` and the scripts then serve your copy, with the recomputed `manifest.json`. Remove the folder to go back to the package's own files. Update the folder when you update PlainKit.Blazor: the settings file in the zip names the release it was made from.
+
 The [Scorecard](../../app.html#/scorecard) audits pages and elements at both themes and at a phone width and a wider one, which is a good check after a large change.
 
 ## Optional themes
