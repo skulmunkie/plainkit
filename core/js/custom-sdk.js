@@ -6,6 +6,7 @@
 //   const only = await exportTheme({ version, theme: { overrides, css } });   // theme only: no dist is fetched
 import { buildBundle, themeBundle, integrityOf } from './custom-sdk-logic.js';
 import { zipStore } from './zip-store.js';
+import { buildOverrides } from './theme.js';
 import { createLogger } from './log.js';
 const log = createLogger('custom-sdk');
 const dec = new TextDecoder();
@@ -65,4 +66,19 @@ export async function exportSdk({ dist, include, breakpoints, theme, extras = []
 export function exportTheme({ version, theme, shipped }) {
     const files = themeBundle({ version, theme, shipped });
     return { zip: toZip(files), name: `plainkit-theme-${version}.zip`, css: dec.decode(files.get('plainkit-theme.css')) };
+}
+
+/**
+ * The one decision both the Custom SDK tab and scripts/custom-build.mjs make (#124): theme only (no SDK file read) or the rewritten dist, the shipped widths merged under the edited ones,
+ * the theme block written from the overrides when no css is given, your own breakpoints only when breakpoints are included. Pure: no fetch, no write; returns the zip bytes.
+ * `dist` is { version, files?, shipped? } (files are needed unless the export is theme only); `widths` are the edited widths (merged over `shipped`); `theme` is { overrides, css? }.
+ * Returns { zip, name, summary, css } ({ css } is the stylesheet of a theme-only export).
+ */
+export async function makeExport({ dist, shipped = dist.shipped ?? {}, include, widths = {}, extras = [], theme }) {
+    const t = { overrides: theme.overrides, css: theme.css ?? buildOverrides(theme.overrides).css };
+    if (include.theme && !include.breakpoints) {
+        const r = exportTheme({ version: dist.version, theme: t, shipped });
+        return { zip: r.zip, name: r.name, css: r.css, summary: { version: dist.version, themeOnly: true } };
+    }
+    return exportSdk({ dist, include, breakpoints: { ...shipped, ...widths }, theme: t, extras: include.breakpoints ? extras : [] });
 }
