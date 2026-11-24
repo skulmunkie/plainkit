@@ -29,6 +29,22 @@ async function frame(t, width, height, config = { sections: SECTIONS }) {
 const currentItems = items => items.filter(i => i.hasAttribute('current') && i.row.getAttribute('aria-current') === 'page');
 
 export const settingsNavCases = [
+    ['settings-page config.variant (#2137): record reaches the inner header and the crumbs, the title and an action sit on one row; without it nothing is forwarded and a heading stays under the crumbs', async t => {
+        const base = { breadcrumb: [{ label: 'Home', href: '/' }, { label: 'Jobs' }], actions: [{ key: 'new', label: 'New job' }], sections: SECTIONS };
+        const draw = async cfg => {
+            const { page } = await frame(t, 1280, 500, cfg);
+            const crumbs = page.shadowRoot.querySelector('pk-breadcrumb'), act = page.shadowRoot.querySelector('[slot=actions]'), title = page.shadowRoot.querySelector('pk-heading[slot=title]');
+            await until(() => rect(crumbs).width > 0 && rect(act).width > 0, 'the crumbs and the action to be laid out');
+            const shell = page.part('header'), header = shell.shadowRoot.querySelector('pk-page-header');
+            return { c: rect(crumbs), a: rect(act), h: title && rect(title), shell: shell.getAttribute('variant'), inner: header?.getAttribute('variant') };
+        };
+        const rec = await draw({ ...base, variant: 'record' }), plain = await draw(base), headed = await draw({ ...base, heading: 'Jobs' });
+        t.eq(rec.shell, 'record', 'the variant reaches the shell'); t.eq(rec.inner, 'record', 'and the pk-page-header inside it');
+        t.eq(plain.shell, null, 'no variant attribute without config.variant');
+        t.ok(rec.a.top < rec.c.bottom && rec.a.bottom > rec.c.top, `record: the action (${rec.a.top}-${rec.a.bottom}) shares the crumbs row (${rec.c.top}-${rec.c.bottom}), one row`);
+        t.ok(Math.abs(rec.c.top - plain.c.top) <= 1 && Math.abs(rec.c.bottom - plain.c.bottom) <= 1, 'the default header is unchanged by the new key');
+        t.ok(headed.h && headed.h.top >= headed.c.bottom - 1, `a heading stays under the crumbs (title top ${headed.h?.top}, crumbs bottom ${headed.c.bottom})`);
+    }],
     ['settings-page nav (1280px): the nav sits left of the first card, level with its top, and stays in view after scrolling 800px', async t => {
         const { win, page, cards, items, scroller } = await frame(t, 1280, 500);
         t.eq(items.length, 4, 'one item per section');

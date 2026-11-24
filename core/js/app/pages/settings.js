@@ -5,7 +5,7 @@
 export const PAGE_TYPE = {
     id: 'settings',
     summary: 'Sectioned fields with a sticky Save/Discard bar and a section nav from three sections.',
-    configKeys: ['heading', 'breadcrumb', 'actions', 'badges', 'newAction', 'actionsCollapse', 'actionsOverflow', 'overflowLabel', 'homeHref', 'homeLabel', 'homeIcon', 'sections', 'nav', 'values', 'save'],
+    configKeys: ['heading', 'breadcrumb', 'actions', 'badges', 'newAction', 'actionsCollapse', 'actionsOverflow', 'overflowLabel', 'homeHref', 'homeLabel', 'homeIcon', 'variant', 'wrapTitle', 'sections', 'nav', 'values', 'save'],
     states: [],
     useWhen: 'App or account configuration organised into sections, saved as a whole.',
 };
