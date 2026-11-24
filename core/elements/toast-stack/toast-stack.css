@@ -1,4 +1,4 @@
-/* pk-toast-stack: a fixed column at one screen position. It lets clicks through except on the toasts themselves. */
+/* pk-toast-stack: a fixed column at one screen position; --pk-toast-stack-offset-block-end lifts a bottom stack above a persistent bar. It lets clicks through except on the toasts themselves. */
 :host {
     position: fixed;
     z-index: var(--z-toast);
@@ -11,7 +11,7 @@
     padding: var(--space-4);
     pointer-events: none;
     inset-inline-end: 0;
-    inset-block-end: 0;
+    inset-block-end: var(--pk-toast-stack-offset-block-end, 0);
     padding-bottom: max(var(--space-4), env(safe-area-inset-bottom));
     padding-inline-end: max(var(--space-4), env(safe-area-inset-right));
 }
