@@ -5,6 +5,36 @@ The format follows [Keep a Changelog](https://keepachangelog.com/) and the proje
 
 ## [Unreleased]
 
+## [0.39.0] - 2026-11-24
+
+### Added
+
+- The theme editor lists the text pairs below 4.5:1 on the Export tab and asks for "Export anyway" before it copies, downloads or shares a theme or exports the Custom SDK (`gate: false` leaves that to the host), and the Contrast tab says the ratios are not claimed in forced colors. (#107)
+- The theme editor's Contrast tab has an "Audit gallery pages" button: on demand, it renders the host's pages in both themes with your edits, measures the text each draws against its real background, and lists every colour pair below AA with the tokens behind it and a jump to each (option `auditPages`; the default is the Preview sample). (#107)
+- The theme editor Custom SDK tab has an "Icon sprite" box, ticked by default: untick it to leave `icons.svg`, `icons.json` and `icons.d.ts` out of a custom export when the page draws no icons (the settings file records `include.icons: false` and imports it back). (#111)
+- The theme editor's Custom SDK tab has a breakpoint ruler: add breakpoints of your own from device presets or by hand, rename and remove them, and the export carries `plainkit-breakpoints.css` with `data-show-above="name"` and `data-hide-above="name"` for each, beside the SDK's three. Every rewrite of the shipped source now has to find its target exactly the expected number of times, or the export fails with a message instead of producing a wrong build. (#124)
+- `node scripts/custom-build.mjs --config plainkit.custom.json` builds the custom SDK zip from the command line, byte for byte what the theme editor exports (same settings file, same functions); `--dist`, `--out` and `--check` are the other flags, and a bad config fails with one line and exit code 1. (#124)
+- `applyBreakpointClasses` (js/breakpoint-classes.js) applies the `data-show-above` and `data-hide-above` classes of breakpoints of your own at run time, from the list or from `plainkit.custom.json`, and `PkThemeEditor` raises `OnBundleExported` with the Custom SDK zip so a Blazor app can save it; the guide shows serving a custom `dist` through the static web assets override. (#124)
+- `pk-note-page` has a static slotted mode for server-rendered, JavaScript-optional sites: write your own markup as its children with no config and it renders in the default slot as written (nothing built, moved or changed), and the text is all there with JavaScript blocked. Same rule as `pk-doc-page` and `pk-master-detail-page`. (#1929)
+- `pk-sections-page` has a `meta` slot for a line under the title (Blazor: `MetaContent`). A `config.badges` entry with an `id` and `popover: true` (or `{ heading }`) becomes a `pk-badge-popover` whose panel is the child with `slot="badge-<id>"` (Blazor: `BadgePopoverContent`). Reassigning `config.newAction` or `config.actions` redraws the primary action and the actions per page state. (#2084)
+- `pk-sections-page` shows every section together above `config.tabsFrom` (`phone` or `tablet`, the vocabulary of `pk-detail-layout`), with a section marked `side: true` in the sidebar column, and keeps the tab strip below it; `config.sticky` and `config.stickyFrom` pin the title bar. Without them the page is unchanged. Blazor: `TabsFrom`, `Sticky`, `StickyFrom`. (#2084)
+- The list, master-detail, record, sections, settings, tool, dashboard, wizard and workspace pages take `config.variant` (and `wrapTitle`), forwarded to the title bar, so `variant: "record"` draws the compact single-row header that `pk-record-page` uses. Blazor: `HeaderVariant` on `PkListPage`, `PkMasterDetailPage`, `PkRecordPage`, `PkSectionsPage`, `PkSettingsPage` and `PkToolPage`. (#2137)
+
+### Changed
+
+- The theme editor reads and writes one versioned theme document (`{ version, shared, dark, light }`) for pasted JSON, share links, saved themes and the `plainkit.custom.json` settings file; older JSON, CSS blocks and settings files still import, and a document from a newer version is refused with a message. (#107)
+- The theme editor mounts with less code: the Custom SDK tab (with the export and zip code behind it) and the contrast-gate dialogs load when first needed instead of with the editor, and nothing else changes. (#107)
+- `pk-not-found-page` is now built as a preset of `pk-states-page` (state `empty`) through a small generic build feature: an element meta can `extends` another element and `fixed` some of its props. Tag, props, `pk-action`, slots, markup and look are unchanged. (#1929)
+
+### Fixed
+
+- A table with row links no longer skips later attribute updates once its link module has loaded. (#1980)
+- `pk-toast-stack` has an offset hook, `--pk-toast-stack-offset-block-end` (default 0), that lifts a bottom stack above a persistent bottom bar; for a `pk-app-shell` footer set it to `var(--app-footer-h)`. (#2136)
+
+### Notes
+
+- The choosing guide now says when to use pk-workspace (fixed panes, unless the user needs to resize, tab, move or save the arrangement) and when pk-dock, and documents building a heavy dock panel's content the first time its tab is shown (JavaScript and Blazor); both element summaries and the agent skills carry the rule. (#590)
+
 ## [0.38.0] - 2026-11-23
 
 ### Added
