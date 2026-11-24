@@ -893,9 +893,10 @@ y
         const tags = () => [...host.querySelectorAll('.lb-palette pk-button[data-tag]')].map(b => b.dataset.tag);
         t.eq(new Set(tags()).size, tags().length, 'each element appears once');
         t.ok(tags().length >= api.length, 'every element of the API is offered (plus the native content tags)');
+        const offered = tags().length;
         const search = host.querySelector('pk-input[type=search]');
         search.value = 'tabs'; search.dispatchEvent(new Event('input', { bubbles: true, composed: true })); await t.settle();
-        t.ok(tags().includes('pk-tabs') && tags().length < 8, 'search narrows the palette');
+        t.ok(tags().includes('pk-tabs') && tags().length < offered / 5, 'search narrows the palette (the text also matches summaries, so the count grows with the API)');
         builder.select(builder.getModel().nodes[0].id); await t.load(host);
         const control = attr => host.querySelector('.lb-form [data-attr="' + attr + '"]');
         const fire = (el, type) => el.dispatchEvent(new Event(type, { bubbles: true, composed: true }));
