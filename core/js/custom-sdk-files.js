@@ -2,6 +2,7 @@
 // manifestText too. custom-sdk-logic.js re-exports all of it.
 import { readDocument } from './theme-document-logic.js';
 import { validateBreakpoints } from './custom-sdk-breakpoints.js';
+import { validateExtras } from './custom-sdk-ruler.js';
 
 // ---- the manifests (the build writes dist/manifest.json, the runtime unit, and dist/modules/manifest.json, the dev-tool modules unit, with this too)
 
@@ -39,11 +40,11 @@ export const SETTINGS_NAME = 'plainkit.custom.json';
 const emptyTheme = () => ({ shared: {}, dark: {}, light: {} });
 
 /** plainkit.custom.json: what was chosen, so the export can be imported again. Deterministic (no dates). */
-export function settingsText({ version, include, breakpoints, theme }) {
+export function settingsText({ version, include, breakpoints, theme, extras = [] }) {
     return JSON.stringify({
         format: 'plainkit-custom-sdk', formatVersion: 1, baseVersion: version,
         include: { theme: Boolean(include.theme), breakpoints: Boolean(include.breakpoints), ...(include.icons === false ? { icons: false } : {}) }, // icons appears only when left out: the default file is unchanged
-        breakpoints: breakpoints ?? {}, theme: theme ?? emptyTheme(),
+        breakpoints: breakpoints ?? {}, ...(extras.length ? { ownBreakpoints: extras } : {}), theme: theme ?? emptyTheme(), // ownBreakpoints appears only when there are some: the default file is unchanged
     }, null, 2) + '\n';
 }
 
@@ -54,28 +55,34 @@ export function readSettings(text, names) {
     if (raw === null || typeof raw !== 'object' || raw.format !== 'plainkit-custom-sdk') return { error: `Not a ${SETTINGS_NAME} file (format "plainkit-custom-sdk" expected).` };
     if (raw.formatVersion !== 1) return { error: `Unsupported settings version ${raw.formatVersion}.` };
     const include = { theme: raw.include?.theme === true, breakpoints: raw.include?.breakpoints === true, ...(raw.include?.icons === false ? { icons: false } : {}) };
-    let breakpoints = null;
+    let breakpoints = null; let extras = [];
     if (include.breakpoints) {
         const v = validateBreakpoints(raw.breakpoints, names);
         if (!v.ok) return { error: `The breakpoints in the file are not valid: ${v.problems.map(p => p.message).join('; ')}.` };
         breakpoints = v.widths;
+        if (raw.ownBreakpoints !== undefined) {
+            const e = validateExtras(raw.ownBreakpoints, breakpoints);
+            if (!e.ok) return { error: `The breakpoints of your own in the file are not valid: ${e.problems.map(p => p.message).join('; ')}.` };
+            extras = e.extras;
+        }
     }
     const read = readDocument(raw.theme ?? {});   // the theme is a document body: one reader, one set of rules
     if (read.error) return { error: `The theme in the file is not valid: ${read.error}` };
     const theme = read.doc.overrides;
-    return { settings: { baseVersion: String(raw.baseVersion ?? ''), include, breakpoints, theme } };
+    return { settings: { baseVersion: String(raw.baseVersion ?? ''), include, breakpoints, theme, ...(extras.length ? { extras } : {}) } };
 }
 
 const list = widths => Object.entries(widths).map(([n, w]) => `${n} ${w}px`).join(', ');
 
 /** README.md of an export. */
-export function readmeText({ version, include, breakpoints, shipped, overrideCount, themeOnly }) {
+export function readmeText({ version, include, breakpoints, shipped, overrideCount, themeOnly, extras = [] }) {
     const lines = [`# Custom Plainkit ${themeOnly ? 'theme' : 'SDK'} (based on ${version})`, ''];
     lines.push(`Made in the browser by the Plainkit theme editor from release ${version}; nothing was sent anywhere. The settings that made it are in \`${SETTINGS_NAME}\`: paste that file into the editor's Custom SDK tab to change and export again.`, '');
     lines.push('## Settings', '');
     lines.push(`- Theme: ${include.theme ? `${overrideCount} token override${overrideCount === 1 ? '' : 's'}` : 'not included'}`);
     if (include.icons === false) lines.push('- Icons: left out (`icons.svg`, `icons.json`, `icons.d.ts` are not in this bundle)');
     lines.push(`- Breakpoints: ${include.breakpoints ? `${list(breakpoints)} (the release ships ${list(shipped)})` : 'not included (the release widths)'}`, '');
+    if (extras.length) lines.push(`- Breakpoints of your own: ${list(Object.fromEntries(extras.map(e => [e.name, e.width])))}. \`plainkit-breakpoints.css\` (after plainkit.css) has \`data-show-above="<name>"\` (hidden at and below the width) and \`data-hide-above="<name>"\` (hidden above it) for each.`, '');
     if (themeOnly) {
         lines.push('## Use it', '',
             'Load `plainkit-theme.css` after the SDK stylesheet:', '',

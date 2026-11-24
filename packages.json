@@ -40,6 +40,7 @@
         "custom-sdk-breakpoints.js",
         "custom-sdk-files.js",
         "custom-sdk-logic.js",
+        "custom-sdk-ruler.js",
         "custom-sdk.js",
         "element-inspector-logic.js",
         "element-inspector.js",

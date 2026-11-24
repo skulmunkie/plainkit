@@ -7,6 +7,7 @@
 //   Import      a plainkit.custom.json from an earlier export puts the theme and the widths back.
 // The logic is js/custom-sdk-logic.js, js/custom-sdk.js and js/zip-store.js; this file is the interface only. Built from SDK components.
 import { validateBreakpoints, deltaRows, RANGE } from '../../js/custom-sdk-breakpoints.js';
+import { DEVICE_PRESETS, validateExtras, addExtra, renameExtra, removeExtra, rulerMarks } from '../../js/custom-sdk-ruler.js';
 import { readSettings } from '../../js/custom-sdk-files.js';
 import { fetchDist, exportSdk, exportTheme } from '../../js/custom-sdk.js';
 import { PK_VERSION } from '../../js/version.js';
@@ -24,7 +25,7 @@ export const DIST = '../../dist/';
  * theme() gives { overrides, css } (the editor's edits and the override block it writes); importTheme(overrides) replaces the edits; dist is the folder URL of the shipped files.
  */
 export function createSdkTab({ doc, win, theme, importTheme, confirmExport = async () => true, dist = runtimeUrl(DIST, import.meta.url) }) {
-    const state = { report: null, names: [], shipped: {}, busy: false, distPromise: null };
+    const state = { report: null, names: [], shipped: {}, busy: false, distPromise: null, extras: [] };
     const listeners = [];
     const on = (el, type, fn) => { listeners.push(listen(el, type, fn)); };
     const chkTheme = h(doc, 'pk-checkbox', { label: 'Theme (the token edits)', checked: true, 'data-sdk': 'include-theme' });
@@ -41,12 +42,20 @@ export function createSdkTab({ doc, win, theme, importTheme, confirmExport = asy
     const importBtn = h(doc, 'pk-button', { variant: 'primary', 'data-sdk': 'import' }, 'Import settings');
     const importMsg = h(doc, 'div');
     const fields = new Map();
+    const rulerList = h(doc, 'ul', { class: 'te-ruler-list', 'aria-label': 'Breakpoints, narrowest first', 'data-sdk': 'ruler' });
+    const presetBox = h(doc, 'pk-cluster', { 'data-sdk': 'presets' });
+    const extrasBox = h(doc, 'div', { class: 'te-extras' });
+    const extraProblems = h(doc, 'div');
+    const rows = new Map(); // name -> { name, width } fields: the rows are rebuilt on add, rename and remove, never while typing
 
     const panel = h(doc, 'div', { class: 'te-sdk' },
         h(doc, 'p', { class: 'muted' }, 'Tick what to include. A theme alone is a small stylesheet that loads after plainkit.css. Breakpoints change the widths inside the elements, so the whole dist is rewritten and a zip of it is made here, in this page; nothing is sent anywhere.'),
         h(doc, 'div', { class: 'te-palette-inputs' }, chkTheme, chkBp, chkIcons),
         h(doc, 'h4', { class: 'te-caption' }, `Breakpoint widths (whole pixels, ${RANGE.min} to ${RANGE.max}, ascending, at least ${RANGE.gap} apart)`),
-        inputsBox, problems, deltaBox,
+        inputsBox, problems,
+        h(doc, 'h4', { class: 'te-caption' }, 'Breakpoint ruler: your own breakpoints'),
+        h(doc, 'p', { class: 'muted' }, 'Add breakpoints of your own from a device preset or by hand, rename or remove them. The three above stay. Yours become page-level classes in plainkit-breakpoints.css: data-show-above="name" hides at and below the width, data-hide-above="name" hides above it.'),
+        rulerList, presetBox, extrasBox, extraProblems, deltaBox,
         h(doc, 'h4', { class: 'te-caption' }, 'Export'), summary, h(doc, 'pk-cluster', {}, exportBtn, cssBtn), status,
         h(doc, 'h4', { class: 'te-caption' }, 'Import settings'), importBox, h(doc, 'pk-cluster', { class: 'u-mt-3' }, importBtn), importMsg);
 
@@ -54,6 +63,9 @@ export function createSdkTab({ doc, win, theme, importTheme, confirmExport = asy
     const flag = el => (typeof el.checked === 'boolean' ? el.checked : el.hasAttribute('checked'));
     const include = () => ({ theme: flag(chkTheme), breakpoints: flag(chkBp), icons: flag(chkIcons) });
     const raw = () => Object.fromEntries(state.names.map(n => [n, fields.get(n)?.value ?? fields.get(n)?.getAttribute('value') ?? '']));
+    const rawExtras = () => state.extras.map(e => { const r = rows.get(e.name); return { name: r?.name.value ?? e.name, width: r?.width.value ?? e.width }; });
+    const extrasCheck = () => validateExtras(rawExtras(), widths());
+    const extras = () => (include().breakpoints ? extrasCheck().extras : []);
     const widths = () => { const v = validateBreakpoints(raw(), state.names); return { ...state.shipped, ...Object.fromEntries(Object.entries(v.widths).filter(([n]) => !v.problems.some(p => p.name === n))) }; };
     const themeCount = () => { const o = theme().overrides; return Object.keys(o.shared).length + Object.keys(o.dark).length + Object.keys(o.light).length; };
 
@@ -75,6 +87,42 @@ export function createSdkTab({ doc, win, theme, importTheme, confirmExport = asy
         loadElements(deltaBox); // pk-accordion and pk-table are built here, after the editor's own load pass, so nothing else may have defined them
     }
 
+    // The ruler: every breakpoint narrowest first, each with a meter on the scale from 0 to the widest allowed width (a native meter, so no inline style), the rows that edit yours, the presets.
+    function paintRuler() {
+        const check = extrasCheck();
+        const marks = rulerMarks(widths(), check.extras);
+        rulerList.replaceChildren(...marks.map(m => h(doc, 'li', { 'data-ruler-mark': m.name, class: m.own ? 'te-own' : '' }, h(doc, 'pk-badge', { variant: m.own ? 'ok' : 'muted' }, m.own ? 'yours' : 'SDK'), h(doc, 'span', {}, `${m.name} ${m.width}px`), h(doc, 'meter', { min: 0, max: RANGE.max, value: m.width, 'aria-hidden': 'true' }))));
+        for (const b of presetBox.querySelectorAll('[data-preset]')) b.toggleAttribute('disabled', state.extras.some(e => e.name === b.dataset.preset));
+        for (const [n, r] of rows) { const bad = check.problems.some(p => p.name === n || p.name === (String(r.name.value ?? '').trim() || '(unnamed)')); r.name.toggleAttribute('invalid', bad); r.width.toggleAttribute('invalid', bad); }
+        if (check.ok || !include().breakpoints) extraProblems.replaceChildren(); else msg(extraProblems, 'error', check.problems.map(p => p.message).join('. ') + '.');
+    }
+    function buildRows() {
+        rows.clear();
+        extrasBox.replaceChildren(...state.extras.map(e => {
+            const name = h(doc, 'pk-input', { label: 'Name', 'show-label': true, value: e.name, 'data-extra-name': e.name });
+            const width = h(doc, 'pk-input', { type: 'number', label: 'Width (px)', 'show-label': true, value: e.width, min: RANGE.min, max: RANGE.max, step: 1, 'data-extra-width': e.name });
+            const del = h(doc, 'pk-button', { variant: 'ghost', 'aria-label': `Remove ${e.name}`, 'data-extra-remove': e.name }, 'Remove');
+            rows.set(e.name, { name, width });
+            for (const [el, type, fn] of [[name, 'change', () => edit(l => renameExtra(l, e.name, String(name.value ?? '').trim()))], [width, 'input', paint], [width, 'change', paint], [del, 'click', () => edit(l => removeExtra(l, e.name))]]) listeners.push(listen(el, type, fn));
+            return h(doc, 'div', { class: 'te-palette-inputs', 'data-extra': e.name }, name, width, del);
+        }));
+        loadElements(extrasBox);
+    }
+    // One edit of the list (add, rename, remove): the typed widths are kept, an operation that is refused says why and changes nothing.
+    function edit(op) {
+        const r = op(state.extras.map(e => ({ name: e.name, width: rows.get(e.name)?.width.value ?? e.width })));
+        if (r.error) { log.warn(`breakpoint edit refused: ${r.error}`); buildRows(); paint(); msg(extraProblems, 'error', r.error); return; } // the rows go back to the list, so a refused name does not stay in its field
+        state.extras = r.list; buildRows(); paint();
+    }
+    for (const p of DEVICE_PRESETS) {
+        const b = h(doc, 'pk-button', { variant: 'ghost', 'data-preset': p.name }, `${p.label} ${p.width}px`);
+        listeners.push(listen(b, 'click', () => edit(l => addExtra(l, p))));
+        presetBox.append(b);
+    }
+    const addBtn = h(doc, 'pk-button', { variant: 'ghost', 'data-sdk': 'add-extra' }, 'Add your own');
+    listeners.push(listen(addBtn, 'click', () => edit(l => { let i = l.length + 1; while (l.some(e => e.name === `custom${i}`)) i++; return addExtra(l, { name: `custom${i}`, width: '' }); })));
+    presetBox.append(addBtn);
+
     function paint() {
         const inc = include(); const v = validateBreakpoints(raw(), state.names);
         for (const [n, el] of fields) { if (v.problems.some(p => p.name === n)) el.setAttribute('invalid', ''); else el.removeAttribute('invalid'); }
@@ -85,12 +133,12 @@ export function createSdkTab({ doc, win, theme, importTheme, confirmExport = asy
         const parts = [inc.theme ? `${n} token override${n === 1 ? '' : 's'}` : null, inc.breakpoints ? Object.entries(widths()).map(([k, w]) => `${k} ${w}px`).join(', ') : null].filter(Boolean);
         const kind = inc.theme && inc.breakpoints ? 'Export custom SDK' : inc.theme ? 'Export theme only' : inc.breakpoints ? 'Export breakpoints only' : 'Export';
         exportBtn.textContent = kind;
-        const blocked = state.busy || (!inc.theme && !inc.breakpoints) || (inc.breakpoints && !v.ok) || (inc.breakpoints && !state.report) || (inc.theme && !inc.breakpoints && n === 0);
+        const blocked = state.busy || (inc.breakpoints && !extrasCheck().ok) || (!inc.theme && !inc.breakpoints) || (inc.breakpoints && !v.ok) || (inc.breakpoints && !state.report) || (inc.theme && !inc.breakpoints && n === 0);
         exportBtn.toggleAttribute('disabled', blocked);
         cssBtn.toggleAttribute('disabled', n === 0);
         summary.textContent = !inc.theme && !inc.breakpoints ? 'Nothing is ticked.' : inc.theme && !inc.breakpoints && n === 0 ? 'No token edits yet: edit a token, apply a palette or a preset first.'
             : `${inc.breakpoints ? 'A zip of the rewritten dist (dist/, manifest with new hashes)' : 'A small zip: plainkit-theme.css'} plus plainkit.custom.json and a README. Includes ${parts.join(' and ')}.`;
-        paintDelta();
+        paintRuler(); paintDelta();
     }
 
     function download(bytes, name, type) {
@@ -111,7 +159,7 @@ export function createSdkTab({ doc, win, theme, importTheme, confirmExport = asy
             else {
                 state.distPromise ??= fetchDist(dist, { onprogress: (done, total) => { status.textContent = `Reading the release files: ${done} of ${total}`; } });
                 const d = await state.distPromise;
-                result = await exportSdk({ dist: d, include: inc, breakpoints: widths(), theme: t });
+                result = await exportSdk({ dist: d, include: inc, breakpoints: widths(), theme: t, extras: extras() });
             }
             download(result.zip, result.name, 'application/zip');
             msg(status, 'success', `Downloaded ${result.name} (${Math.round(result.zip.length / 1024)} KB).`);
@@ -122,6 +170,7 @@ export function createSdkTab({ doc, win, theme, importTheme, confirmExport = asy
         } finally { state.busy = false; paint(); }
     }
 
+    function setExtras(list) { state.extras = list.map(e => ({ name: e.name, width: e.width })); buildRows(); paint(); }
     function setWidths(w) { for (const [n, el] of fields) if (n in w) { el.value = String(w[n]); el.setAttribute('value', String(w[n])); } paint(); }
 
     on(chkTheme, 'change', paint); on(chkBp, 'change', paint); on(chkIcons, 'change', paint);
@@ -136,6 +185,7 @@ export function createSdkTab({ doc, win, theme, importTheme, confirmExport = asy
         if (chkIcons.checked) chkIcons.setAttribute('checked', ''); else chkIcons.removeAttribute('checked');
         for (const [el, on2] of [[chkTheme, s.include.theme], [chkBp, s.include.breakpoints]]) { if (on2) el.setAttribute('checked', ''); else el.removeAttribute('checked'); }
         if (s.breakpoints) setWidths(s.breakpoints);
+        setExtras(s.extras ?? []);
         if (s.include.theme) importTheme(s.theme);
         paint();
         msg(importMsg, 'success', `Imported settings made with Plainkit ${s.baseVersion || 'an unknown release'}.`);
@@ -162,7 +212,7 @@ export function createSdkTab({ doc, win, theme, importTheme, confirmExport = asy
     paint();
 
     return {
-        panel, refresh: paint, widths, include, setWidths,
+        panel, refresh: paint, widths, include, setWidths, extras, setExtras,
         destroy() { for (const off of listeners) off(); },
     };
 }
