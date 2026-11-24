@@ -7,7 +7,7 @@
 export const PAGE_TYPE = {
     id: 'list',
     summary: 'A filterable, sortable, paginated table with row actions.',
-    configKeys: ['heading', 'breadcrumb', 'badges', 'actionsOverflow', 'overflowLabel', 'homeHref', 'homeLabel', 'homeIcon', 'columns', 'filters', 'actions', 'toolbarActions', 'empty', 'pageSize', 'load', 'rowHref', 'rowHrefTemplate', 'selectable', 'rowKey', 'bulkActions', 'onSelect', 'onBulk', 'toasts'],
+    configKeys: ['heading', 'breadcrumb', 'badges', 'actionsOverflow', 'overflowLabel', 'homeHref', 'homeLabel', 'homeIcon', 'variant', 'wrapTitle', 'columns', 'filters', 'actions', 'toolbarActions', 'empty', 'pageSize', 'load', 'rowHref', 'rowHrefTemplate', 'selectable', 'rowKey', 'bulkActions', 'onSelect', 'onBulk', 'toasts'],
     states: ['empty'],
     useWhen: 'A collection the user filters, sorts and opens: table plus toolbar plus row actions.',
 };

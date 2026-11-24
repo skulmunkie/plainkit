@@ -49,6 +49,14 @@
       "doc": "Title bar actions: one typed item (PkAction) each; a Group makes a menu. A press raises OnAction with the Key; an item with a Href is a link."
     },
     {
+      "name": "HeaderVariant",
+      "map": "param",
+      "configKey": "variant",
+      "type": "string?",
+      "extra": true,
+      "doc": "The title bar look, as PkPageHeader Variant: \"record\" draws the compact single row (crumbs, title, badges and actions together); \"section\" and the default \"page\" are the taller bar."
+    },
+    {
       "name": "ActionsCollapse",
       "map": "param",
       "configKey": "actionsCollapse",

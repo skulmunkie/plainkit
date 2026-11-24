@@ -9,7 +9,7 @@
 export const PAGE_TYPE = {
     id: 'record',
     summary: 'A single record form: fields, sidebar, save.',
-    configKeys: ['fields', 'sidebar', 'heading', 'newAction', 'actionsCollapse', 'saveLabel', 'editable', 'mode', 'idParam', 'load', 'save', 'beforeSave', 'delete', 'toasts'],
+    configKeys: ['fields', 'sidebar', 'heading', 'newAction', 'actionsCollapse', 'variant', 'wrapTitle', 'saveLabel', 'editable', 'mode', 'idParam', 'load', 'save', 'beforeSave', 'delete', 'toasts'],
     states: [],
     useWhen: 'Viewing or editing one record identified by a route param, new or existing.',
 };

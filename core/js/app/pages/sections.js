@@ -5,7 +5,7 @@
 export const PAGE_TYPE = {
     id: 'sections',
     summary: 'A read-mostly record page: title bar, docked section tabs, a two-column layout of your panels. No load or save.',
-    configKeys: ['heading', 'breadcrumb', 'actions', 'badges', 'newAction', 'actionsCollapse', 'actionsOverflow', 'overflowLabel', 'homeHref', 'homeLabel', 'homeIcon', 'sections', 'section', 'tabParam', 'sidebarFirst', 'sidebarTwoUp', 'tabsFrom', 'sticky', 'stickyFrom', 'render'],
+    configKeys: ['heading', 'breadcrumb', 'actions', 'badges', 'newAction', 'actionsCollapse', 'actionsOverflow', 'overflowLabel', 'homeHref', 'homeLabel', 'homeIcon', 'variant', 'wrapTitle', 'sections', 'section', 'tabParam', 'sidebarFirst', 'sidebarTwoUp', 'tabsFrom', 'sticky', 'stickyFrom', 'render'],
     states: [],
     useWhen: 'Showing one record (or any subject) in tabbed sections with a primary action and a menu, where nothing is loaded or saved by the page itself.',
 };
