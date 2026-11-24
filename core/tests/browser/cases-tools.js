@@ -355,6 +355,40 @@ y
         t.ok(!off.host.querySelector('pk-dialog'), 'gate:false asks nothing');
         off.editor.destroy();
     }],
+    ['theme editor module: "Audit gallery pages" measures the rendered text on demand only, lists a known failing edit with the tokens behind it, and the jump shows the token', async t => {
+        await t.load(t.stage('<pk-unit-input></pk-unit-input><pk-colour-input></pk-colour-input><pk-input></pk-input><pk-select></pk-select><pk-button></pk-button><pk-tabs></pk-tabs><pk-table></pk-table><pk-stat></pk-stat><pk-card></pk-card><pk-alert></pk-alert><pk-badge></pk-badge><pk-tab></pk-tab><pk-tab-panel></pk-tab-panel>'));
+        const { mountThemeEditor } = await dist('theme-editor');
+        const host = t.stage('');
+        // body text #101010 on the dark surface is a known failing edit (about 1.1:1)
+        const editor = await mountThemeEditor(host, { preview: false, savedKey: false, gate: false, target: host, auditSettleMs: 300, initial: { shared: {}, dark: { '--color-text': '#101010' }, light: {} } });
+        await customElements.whenDefined('pk-tab');
+        host.querySelector('pk-tab[value=contrast]').click();
+        const button = await until(() => host.querySelector('[data-audit=run]'), 'the audit button');
+        await new Promise(r => setTimeout(r, 400));
+        const results = host.querySelector('[data-audit=results]');
+        t.eq(results.children.length, 0, 'nothing is measured until the button is pressed');
+        t.eq(document.querySelectorAll('iframe.te-audit-frame').length, 0, 'no audit frame is open while idle');
+        button.click();
+        const row = await until(() => host.querySelector('[data-audit-row*="dark"][data-audit-row*="rgb(16, 16, 16)"]'), 'a failing dark row').catch(error => { throw new Error(`${error.message} (the results say: ${results.textContent})`); });
+        const ratio = parseFloat(row.querySelector('pk-badge').textContent);
+        t.ok(ratio > 0 && ratio < 4.5, 'the row carries a ratio below 4.5');
+        const jump = row.querySelector('[data-audit-jump="--color-text"]');
+        t.ok(jump, 'the colour is traced to the token behind it');
+        t.eq(host.querySelector('[data-audit-row*="light"][data-audit-row*="rgb(16, 16, 16)"]'), null, 'the light theme is untouched by a dark-only edit');
+        t.eq(document.querySelectorAll('iframe.te-audit-frame').length, 0, 'the audit frames are removed when it is done');
+        t.ok(!button.hasAttribute('disabled'), 'the button is usable again');
+        jump.click();
+        await until(() => host.querySelector('.te-row[data-token="--color-text"]'), 'the token row after the jump');
+        t.eq(host.querySelector('pk-tabs').getAttribute('value'), 'tokens', 'the jump opens the Tokens tab');
+        editor.destroy();
+        // a real gallery page by address: the layout page the Theme page audits, measured under the same edit
+        const ghost = t.stage('');
+        const gallery = await mountThemeEditor(ghost, { preview: false, savedKey: false, gate: false, target: ghost, auditSettleMs: 1500, initial: { shared: {}, dark: { '--color-text': '#101010' }, light: {} }, auditPages: [{ name: 'Layout list', url: new URL('../../site/gallery/preview.html?kind=layouts&id=list', import.meta.url).href }] });
+        ghost.querySelector('pk-tab[value=contrast]').click();
+        (await until(() => ghost.querySelector('[data-audit=run]'), 'the audit button for a gallery page')).click();
+        await until(() => ghost.querySelector('[data-audit-row^="Layout list dark"]'), 'a failing row on the gallery layout page');
+        gallery.destroy();
+    }],
     ['theme editor module: contrast swatches render the chosen colours from an adopted stylesheet (no style attribute with a colour), and destroy removes the sheet', async t => {
         await t.load(t.stage('<pk-unit-input></pk-unit-input><pk-colour-input></pk-colour-input><pk-input></pk-input><pk-select></pk-select><pk-button></pk-button><pk-tabs></pk-tabs><pk-table></pk-table><pk-stat></pk-stat><pk-card></pk-card><pk-toolbar></pk-toolbar><pk-textarea></pk-textarea><pk-badge></pk-badge><pk-alert></pk-alert>'));
         const { mountThemeEditor } = await dist('theme-editor');
@@ -626,9 +660,11 @@ y
         t.ok(/phone: 640px to 700px \(\d+ elements/.test(item.getAttribute('heading')) && item.hasAttribute('open'), item.getAttribute('heading'));
         t.ok(/Viewports 641 to 700px/.test(item.textContent) && item.querySelectorAll('tbody tr').length > 40 && /pk-grid|pk-tabs|pk-table/.test(item.textContent), 'the elements that change are listed');
         t.ok(!host.querySelector('.te-sdk [data-breakpoint="wide"]').hasAttribute('open'), 'an unchanged breakpoint stays closed');
+        t.ok((sdk('include-icons').checked ?? sdk('include-icons').hasAttribute('checked')) && !sdk('include-icons').hasAttribute('disabled'), 'the icon sprite is ticked by default (#111)');
         // theme only: untick Breakpoints; the button says so and the download is the small zip, with no SDK file in it
         tick(host.querySelector('.te-sdk [data-sdk="include-breakpoints"]'), false); await t.settle();
         t.eq(sdk('export').textContent.trim(), 'Export theme only');
+        t.ok(sdk('include-icons').hasAttribute('disabled'), 'a theme-only zip has no sprite to leave out, so the box is off');
         const got = [], realCreate = URL.createObjectURL, realClick = HTMLAnchorElement.prototype.click;
         URL.createObjectURL = b => { got.push({ blob: b }); return 'blob:test'; };
         HTMLAnchorElement.prototype.click = function () { got.at(-1).name = this.download; };

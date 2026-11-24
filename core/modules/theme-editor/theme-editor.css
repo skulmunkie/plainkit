@@ -12,6 +12,8 @@
     --_te-saved-name-min: 10rem;
     --_te-changed-bar-w: 3px;
     --_te-preview-h: 34rem;
+    --_te-audit-w: 80rem;
+    --_te-audit-h: 50rem;
 }
 
 .te { display: flex; flex-direction: column; gap: var(--space-3); min-width: 0; }
@@ -68,6 +70,8 @@
 
 .te [data-changed] { box-shadow: inset var(--_te-changed-bar-w) 0 0 var(--color-accent); }
 
+.te-audit-frame { position: fixed; inset-block-start: 0; inset-inline-start: calc(-1 * var(--_te-audit-w) - var(--space-4)); inline-size: var(--_te-audit-w); block-size: var(--_te-audit-h); border: 0; }
+.te-audit-row { grid-template-columns: auto minmax(0, 1fr); }
 .te-preview { width: 100%; height: var(--_te-preview-h); border: var(--_te-border-w) solid var(--color-border); background: var(--color-bg); }
 
 [data-te-preview] body { padding: var(--space-4); }

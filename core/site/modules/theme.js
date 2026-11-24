@@ -4,12 +4,12 @@
 import { defineModule } from '../../js/app.js';
 import { observeElements } from '../../js/loader.js';
 import { mountThemeEditor } from '../../modules/theme-editor/theme-editor.js';
-import { TEXT_PAIRS } from '../scorecard/scoring.data.js';
+import { TEXT_PAIRS, AUDIT_PAGES } from '../scorecard/scoring.data.js';
 
 const mount = async host => {
     // the editor draws tables and accordions after the app scanned the page: load their elements as they are added
     const watch = observeElements(host);
-    const editor = await mountThemeEditor(host, { pairs: TEXT_PAIRS, storageKey: 'pk-theme-overrides', readHash: true });
+    const editor = await mountThemeEditor(host, { pairs: TEXT_PAIRS, storageKey: 'pk-theme-overrides', readHash: true, auditPages: AUDIT_PAGES });
     return () => { watch?.disconnect(); editor.destroy?.(); };
 };
 
