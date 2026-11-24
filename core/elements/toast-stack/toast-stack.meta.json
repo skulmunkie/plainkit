@@ -37,7 +37,13 @@
   ],
   "events": [],
   "parts": [],
-  "cssProperties": [],
+  "cssProperties": [
+    {
+      "name": "--pk-toast-stack-offset-block-end",
+      "description": "Lifts a bottom stack by this much so it sits above a persistent bottom bar; for a pk-app-shell footer set it to var(--app-footer-h). Default 0.",
+      "default": "0"
+    }
+  ],
   "methods": [
     {
       "name": "push(toast)",
