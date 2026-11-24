@@ -3,18 +3,18 @@ import '../../core/tests/needs-bootstrap.mjs';
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import fs from 'node:fs';
-import os from 'node:os';
 import path from 'node:path';
 import { spawnSync } from 'node:child_process';
 import { fileURLToPath, pathToFileURL } from 'node:url';
-import { fetchDist, exportSdk } from '../../core/js/custom-sdk.js';
+import { fetchDist, makeExport } from '../../core/js/custom-sdk.js';
 import { settingsText } from '../../core/js/custom-sdk-files.js';
 import { buildOverrides } from '../../core/js/theme.js';
+import { makeTempDir, removeTree } from '../../core/tools/tempdir.mjs';
 import { buildFromSettings, parseArgs, DEFAULT_DIST } from '../custom-build.mjs';
 
 const cli = fileURLToPath(new URL('../custom-build.mjs', import.meta.url));
-const tmp = fs.mkdtempSync(path.join(os.tmpdir(), 'pk-custom-build-'));
-test.after(() => fs.rmSync(tmp, { recursive: true, force: true }));
+const tmp = makeTempDir('pk-custom-build-');
+test.after(() => removeTree(tmp));
 
 const overrides = { shared: { '--radius-md': '2px' }, dark: { '--color-accent': '#123456' }, light: { '--color-accent': '#654321' } };
 const theme = { overrides, css: buildOverrides(overrides).css };
@@ -26,9 +26,9 @@ test('the CLI zip equals the browser export byte for byte (own breakpoints, icon
     const include = { theme: true, breakpoints: true, icons: false };
     const widths = { phone: 700, tablet: 1100, wide: 1400 };
     const config = write('a.json', settingsText({ version: '0', include, breakpoints: widths, theme: overrides, extras }));
-    // The browser path: fetchDist over the same folder through a fetch of its own, then exportSdk, as the Custom SDK tab calls them.
+    // The browser path: fetchDist over the same folder through a fetch of its own, then makeExport, the one function the Custom SDK tab and the CLI both call.
     const dist = await fetchDist(pathToFileURL(path.resolve(DEFAULT_DIST) + path.sep), { fetchImpl: async u => { const f = fileURLToPath(u); if (!fs.existsSync(f)) return { ok: false, status: 404 }; const b = fs.readFileSync(f); return { ok: true, arrayBuffer: async () => b.buffer.slice(b.byteOffset, b.byteOffset + b.byteLength) }; } });
-    const browser = await exportSdk({ dist, include, breakpoints: widths, theme, extras });
+    const browser = await makeExport({ dist, shipped: Object.fromEntries(dist.report.breakpoints.map(b => [b.name, b.width])), include, widths, theme: { overrides }, extras });
     const out = path.join(tmp, 'a.zip');
     const r = run('--config', config, '--out', out);
     assert.equal(r.status, 0, r.stderr);

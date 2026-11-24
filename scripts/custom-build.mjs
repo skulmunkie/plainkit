@@ -4,14 +4,14 @@
 //   node scripts/custom-build.mjs --config plainkit.custom.json [--dist core/dist] [--out plainkit-custom-<version>.zip] [--check]
 //
 // There is no second implementation: the settings are read by readSettings (js/custom-sdk-files.js), the dist is read and hash-checked by fetchDist, the bundle is made by
-// exportSdk / exportTheme (js/custom-sdk.js, custom-sdk-logic.js, custom-sdk-ruler.js) and zipped by zipStore, all the very functions the browser runs. The test
+// makeExport (js/custom-sdk.js, custom-sdk-logic.js, custom-sdk-ruler.js) and zipped by zipStore, all the very functions the browser runs. The test
 // scripts/tests/custom-build.test.mjs holds the zip equal to the browser's byte for byte. --check validates and builds in memory and writes nothing.
 // Exit 0 on success; exit 1 with one "custom-build: ..." line on a bad flag, config, dist or build.
 import fs from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath, pathToFileURL } from 'node:url';
 import { readSettings } from '../core/js/custom-sdk-files.js';
-import { fetchDist, exportSdk, exportTheme } from '../core/js/custom-sdk.js';
+import { fetchDist, makeExport } from '../core/js/custom-sdk.js';
 import { buildOverrides } from '../core/js/theme.js';
 
 const here = path.dirname(fileURLToPath(import.meta.url));
@@ -57,13 +57,8 @@ export async function buildFromSettings(settingsText, distDir) {
     const s = read.settings;
     if (!s.include.theme && !s.include.breakpoints) throw new Error('nothing is included: include.theme or include.breakpoints must be true');
     const theme = { overrides: s.theme, css: buildOverrides(s.theme).css }; // the tab's theme(): the sanitised overrides and the block written from them
-    if (s.include.theme && !s.include.breakpoints) {
-        const n = Object.values(s.theme).reduce((c, d) => c + Object.keys(d).length, 0);
-        if (n === 0) throw new Error('a theme-only export needs at least one token override');
-        const r = exportTheme({ version: dist.version, theme, shipped });
-        return { zip: r.zip, name: r.name, summary: { version: dist.version, themeOnly: true } };
-    }
-    return exportSdk({ dist, include: s.include, breakpoints: { ...shipped, ...s.breakpoints }, theme, extras: s.extras ?? [] });
+    if (s.include.theme && !s.include.breakpoints && Object.values(s.theme).reduce((c, d) => c + Object.keys(d).length, 0) === 0) throw new Error('a theme-only export needs at least one token override');
+    return makeExport({ dist, shipped, include: s.include, widths: s.breakpoints, theme, extras: s.extras ?? [] }); // the same function the Custom SDK tab calls
 }
 
 export async function main(argv) {

@@ -9,7 +9,7 @@
 import { validateBreakpoints, deltaRows, RANGE } from '../../js/custom-sdk-breakpoints.js';
 import { DEVICE_PRESETS, validateExtras, addExtra, renameExtra, removeExtra, rulerMarks } from '../../js/custom-sdk-ruler.js';
 import { readSettings } from '../../js/custom-sdk-files.js';
-import { fetchDist, exportSdk, exportTheme } from '../../js/custom-sdk.js';
+import { fetchDist, makeExport, exportTheme } from '../../js/custom-sdk.js';
 import { PK_VERSION } from '../../js/version.js';
 import { createLogger } from '../../js/log.js';
 import { runtimeUrl, h, loadJson, on as listen } from '../../js/mount-support.js';
@@ -154,13 +154,10 @@ export function createSdkTab({ doc, win, theme, importTheme, confirmExport = asy
         const inc = include(); const t = theme();
         state.busy = true; paint();
         try {
-            let result;
-            if (inc.theme && !inc.breakpoints) result = exportTheme({ version: PK_VERSION, theme: t, shipped: state.shipped });
-            else {
-                state.distPromise ??= fetchDist(dist, { onprogress: (done, total) => { status.textContent = `Reading the release files: ${done} of ${total}`; } });
-                const d = await state.distPromise;
-                result = await exportSdk({ dist: d, include: inc, breakpoints: widths(), theme: t, extras: extras() });
-            }
+            const themeOnly = inc.theme && !inc.breakpoints;
+            if (!themeOnly) state.distPromise ??= fetchDist(dist, { onprogress: (done, total) => { status.textContent = `Reading the release files: ${done} of ${total}`; } });
+            const d = themeOnly ? { version: PK_VERSION } : await state.distPromise;
+            const result = await makeExport({ dist: d, shipped: state.shipped, include: inc, widths: widths(), theme: t, extras: extras() });
             download(result.zip, result.name, 'application/zip');
             msg(status, 'success', `Downloaded ${result.name} (${Math.round(result.zip.length / 1024)} KB).`);
         } catch (error) {
