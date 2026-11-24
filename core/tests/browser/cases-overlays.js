@@ -367,6 +367,22 @@ export const overlaysCases = [
         t.ok(made.isConnected); t.eq(made.parentElement.getAttribute('position'), 'bottom'); made.parentElement.remove();
     }],
 
+    ['toast stack: --pk-toast-stack-offset-block-end lifts a bottom stack above a 40px bar, and without it nothing moves (#2136)', async t => {
+        const host = await t.mount('<div><div data-bar>Status</div><pk-toast-stack position="bottom-end"><pk-toast duration="0">Saved</pk-toast></pk-toast-stack></div>');
+        const bar = host.querySelector('[data-bar]'), st = host.querySelector('pk-toast-stack');
+        for (const [k, v] of [['position', 'fixed'], ['inset-inline', '0'], ['inset-block-end', '0'], ['height', '40px']]) bar.style.setProperty(k, v);
+        await t.load(st); await t.settle();
+        const toast = st.querySelector('pk-toast'), bottom = () => toast.getBoundingClientRect().bottom;
+        const plain = bottom(); t.ok(plain > bar.getBoundingClientRect().top, `without the hook the toast (bottom ${plain}) sits over the bar`);
+        st.style.setProperty('--pk-toast-stack-offset-block-end', '40px'); await t.settle();
+        const lifted = bottom(), top = bar.getBoundingClientRect().top;
+        t.ok(lifted <= top, `with the hook the toast bottom (${lifted}) is above the bar top (${top})`);
+        t.ok(Math.abs((plain - lifted) - 40) <= 1, `the stack moved by the offset: ${plain - lifted}px`);
+        const topStack = await t.mount('<pk-toast-stack position="top"><pk-toast duration="0">Hi</pk-toast></pk-toast-stack>'); await t.load(topStack); await t.settle();
+        const y = topStack.getBoundingClientRect().top; topStack.style.setProperty('--pk-toast-stack-offset-block-end', '40px'); await t.settle();
+        t.eq(topStack.getBoundingClientRect().top, y, 'a top stack ignores the bottom offset'); topStack.remove();
+    }],
+
     ['alert: role follows the kind and dismiss hides it unless vetoed', async t => {
         const el = await t.mount('<pk-alert kind="warning" heading="Low" dismissible>Three left.</pk-alert>');
         t.eq(el.internals.role, 'alert');
