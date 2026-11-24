@@ -30,6 +30,8 @@
 // is a small zip (plainkit-theme.css, plainkit.custom.json, README.md) that loads after plainkit.css; with breakpoints it is the shipped dist re-resolved with a recomputed SRI manifest
 // (js/custom-sdk-logic.js), as a zip written in the page (js/zip-store.js). The settings file imports back. Only same-origin reads of the shipped files.
 // Option readHash: true applies the theme in the page's own #pk-theme= fragment at mount, as edits (Undo takes it back).
+// Audit gallery pages (Contrast tab, audit-tab.js; option auditPages: [{ name, url }] of same-origin pages, default the sample of the Preview tab): a button, never while typing, measures the text each page draws
+// in both themes with the current edits (js/rendered-contrast.js) and lists every colour pair below AA with the tokens behind it and a jump to each.
 // Returns { export(), overrides(), setTheme(name), reset(), undo(), redo(), share(), importShare(text), applyBrand(colour, { neutral, warn }), presets(), saved(), applyPreset(idOrSavedName), destroy() }.
 // The pure logic is js/theme-editor-logic.js and js/theme.js.
 // Built only from SDK components (pk-tabs, pk-input, pk-select, pk-colour-input, pk-unit-input, pk-textarea, pk-button, pk-cluster, pk-alert, pk-badge, pk-stat, pk-table).
@@ -235,6 +237,21 @@ export async function mountThemeEditor(container, options = {}) {
         loadElements(sdkHost);
         sdk.refresh();
     }).catch(error => { sdkLoad = null; log.warn('the Custom SDK tab could not be loaded', error); });
+    // The "Audit gallery pages" part of the Contrast tab (audit-tab.js): loads when that tab is first opened; the pages are the option auditPages ([{ name, url }], same origin), default the sample of the Preview tab.
+    const auditHost = h(doc, 'div', { 'data-audit-host': true });
+    let audit = null;
+    let auditLoad = null;
+    const loadAudit = () => auditLoad ??= import('./audit-tab.js').then(({ createAuditTab }) => {
+        if (gone) return;
+        audit = createAuditTab({
+            doc, win, css: () => outputCss().css, settleMs: options.auditSettleMs,
+            pages: options.auditPages?.length ? options.auditPages : [{ name: 'Sample page', links: [...styleUrls(STYLES, import.meta.url), ...styleUrls(OWN_STYLES, import.meta.url)], body: PREVIEW, script: new URL('./sample-boot.js', import.meta.url).href }],
+            names: allTokenNames(tokens).filter(n => tokenKind(n, baseValue(tokens, 'dark', n)) === 'colour'),
+            jump: (name, forTheme) => jumpTo(name, forTheme),
+        });
+        auditHost.replaceChildren(audit.panel);
+        loadElements(auditHost);
+    }).catch(error => { auditLoad = null; log.warn('the page audit could not be loaded', error); });
     const tabs = h(doc, 'pk-tabs', { value: 'tokens', label: 'Theme editor' },
         h(doc, 'pk-tab', { value: 'tokens' }, 'Tokens'), h(doc, 'pk-tab-panel', { value: 'tokens' }, list),
         changesTab, h(doc, 'pk-tab-panel', { value: 'changes' }, changesBox),
@@ -248,7 +265,7 @@ export async function mountThemeEditor(container, options = {}) {
             h(doc, 'div', { class: 'te-palette-inputs' }, presetSelect, h(doc, 'pk-cluster', {}, applyPreset)), presetHint,
             h(doc, 'h4', { class: 'te-caption' }, 'Saved themes'),
             h(doc, 'div', { class: 'te-palette-inputs' }, nameInput, h(doc, 'pk-cluster', {}, saveBtn)), presetMsg, savedBox),
-        contrastTab, h(doc, 'pk-tab-panel', { value: 'contrast' }, warn, h(doc, 'p', { class: 'te-caption', 'data-forced-colors': FORCED_COLORS_NOTE }, FORCED_COLORS_NOTE), auditBox),
+        contrastTab, h(doc, 'pk-tab-panel', { value: 'contrast' }, warn, h(doc, 'p', { class: 'te-caption', 'data-forced-colors': FORCED_COLORS_NOTE }, FORCED_COLORS_NOTE), h(doc, 'h4', { class: 'te-caption' }, 'Gallery pages'), auditHost, h(doc, 'h4', { class: 'te-caption' }, 'Token pairs'), auditBox),
         ...(showPreview ? [h(doc, 'pk-tab', { value: 'preview' }, 'Preview'), h(doc, 'pk-tab-panel', { value: 'preview' }, (ui.previewHost = h(doc, 'div', { class: 'te-preview-host' })))] : []),
         h(doc, 'pk-tab', { value: 'export' }, 'Export / import'),
         h(doc, 'pk-tab-panel', { value: 'export' },
@@ -484,7 +501,7 @@ export async function mountThemeEditor(container, options = {}) {
     on(resetAll, 'click', () => api.reset());
     on(auditBox, 'click', e => { const b = e.target.closest?.('[data-jump]'); if (b) jumpTo(b.dataset.jump, b.dataset.jumpTheme); });
     if (sdkHost) {
-        on(tabs, 'pk-tab-change', e => { if (e.detail?.value === 'sdk') loadSdk(); });
+        on(tabs, 'pk-tab-change', e => { if (e.detail?.value === 'sdk') loadSdk(); else if (e.detail?.value === 'contrast') loadAudit(); });
         const soon = () => { if (!gone) loadSdk(); };
         if (win.requestIdleCallback) idleHandle = win.requestIdleCallback(soon, { timeout: 1000 }); else Promise.resolve().then(soon);
     }
@@ -646,6 +663,7 @@ export async function mountThemeEditor(container, options = {}) {
             gone = true;
             if (idleHandle !== null) win.cancelIdleCallback?.(idleHandle);
             sdk?.destroy();
+            audit?.destroy();
             dialogs?.destroy();
             for (const off of listeners) off();
             if (sheet) targetDoc.adoptedStyleSheets = targetDoc.adoptedStyleSheets.filter(s => s !== sheet);

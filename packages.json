@@ -59,6 +59,7 @@
         "mount-support.js",
         "perf-logic.js",
         "quality.js",
+        "rendered-contrast.js",
         "scoring.js",
         "share-link.js",
         "theme-document-logic.js",

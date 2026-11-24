@@ -58,6 +58,9 @@ export const SCORING = {
     },
 };
 
+// The gallery pages the theme editor's "Audit gallery pages" measures: the page layouts, rendered as whole pages by the gallery's own preview host (same origin).
+export const AUDIT_PAGES = ['list', 'record', 'record-detail', 'setup', 'wizard', 'tool'].map(id => ({ name: `Layout ${id}`, url: new URL(`../gallery/preview.html?kind=layouts&id=${id}`, import.meta.url).href }));
+
 export const TEXT_PAIRS = [
     ['--color-text', '--color-bg'], ['--color-text', '--color-panel'], ['--color-muted', '--color-bg'],
     ['--color-muted', '--color-panel'], ['--color-link', '--color-panel'], ['--color-accent', '--color-panel'],
