@@ -682,6 +682,61 @@ y
         } finally { URL.createObjectURL = realCreate; HTMLAnchorElement.prototype.click = realClick; }
         editor.destroy();
     }],
+    ['theme editor Custom SDK tab: the breakpoint ruler adds a preset, renames and removes it, refuses a bad set, and the export carries a stylesheet that really hides at the width (#124)', async t => {
+        await t.load(t.stage('<pk-unit-input></pk-unit-input><pk-colour-input></pk-colour-input><pk-input></pk-input><pk-select></pk-select><pk-button></pk-button><pk-tabs></pk-tabs><pk-table></pk-table><pk-stat></pk-stat><pk-card></pk-card><pk-toolbar></pk-toolbar><pk-textarea></pk-textarea><pk-badge></pk-badge><pk-alert></pk-alert><pk-cluster></pk-cluster>'));
+        const { mountThemeEditor } = await dist('theme-editor');
+        const host = t.stage('');
+        const editor = await mountThemeEditor(host, { gate: false, target: t.stage('<div data-theme="dark"></div>').firstElementChild, preview: false, savedKey: false, initial: ':root, [data-theme="dark"] { --color-accent: #123456; }' });
+        await until(() => host.querySelectorAll('.te-sdk [data-breakpoint-input]').length === 3, 'the breakpoint inputs');
+        await t.load(host); await t.settle();
+        const sdk = s => host.querySelector(`.te-sdk [data-sdk="${s}"]`);
+        const marks = () => [...host.querySelectorAll('.te-sdk [data-ruler-mark]')].map(li => li.dataset.rulerMark).join();
+        const type = (el, v) => { el.value = String(v); el.dispatchEvent(new Event('input', { bubbles: true, composed: true })); };
+        t.eq(marks(), 'phone,tablet,wide', 'the ruler starts with the three of the SDK');
+        host.querySelector('.te-sdk [data-preset="laptop"]').click(); await t.settle();
+        host.querySelector('.te-sdk [data-preset="slate"]').click(); await t.settle();
+        t.eq(marks(), 'phone,slate,tablet,wide,laptop', 'a preset lands by its width');
+        t.ok(host.querySelector('.te-sdk [data-preset="laptop"]').hasAttribute('disabled'), 'a preset in use cannot be added twice');
+        { const m = host.querySelector('.te-sdk [data-ruler-mark="laptop"] meter'); t.ok(m.value === 1366 && m.max === 2560, 'each row marks its place on the scale'); }
+        // rename: the row and the ruler follow; a name that is taken is refused and says so
+        const nameBox = () => host.querySelector('.te-sdk [data-extra-name="slate"]');
+        nameBox().value = 'portrait'; nameBox().dispatchEvent(new Event('change', { bubbles: true, composed: true })); await t.settle();
+        t.eq(marks(), 'phone,portrait,tablet,wide,laptop', 'renamed');
+        host.querySelector('.te-sdk [data-extra-name="laptop"]').value = 'portrait';
+        host.querySelector('.te-sdk [data-extra-name="laptop"]').dispatchEvent(new Event('change', { bubbles: true, composed: true })); await t.settle();
+        t.ok(/already in the list/.test(host.querySelector('.te-sdk pk-alert')?.textContent ?? ''), 'a taken name is refused');
+        // a width too close to another breakpoint blocks the export and flags the row
+        type(host.querySelector('.te-sdk [data-extra-width="laptop"]'), 1300); await t.settle();
+        t.ok(sdk('export').hasAttribute('disabled') && host.querySelector('.te-sdk [data-extra-width="laptop"]').hasAttribute('invalid') && /at least 64 px/.test(host.querySelector('.te-sdk').textContent), 'a width next to the wide breakpoint is refused');
+        type(host.querySelector('.te-sdk [data-extra-width="laptop"]'), 1400); await t.settle();
+        t.ok(!sdk('export').hasAttribute('disabled'), 'a valid set exports again');
+        const got = [], realCreate = URL.createObjectURL, realClick = HTMLAnchorElement.prototype.click;
+        URL.createObjectURL = b => { got.push({ blob: b }); return 'blob:test'; };
+        HTMLAnchorElement.prototype.click = function () { got.at(-1).name = this.download; };
+        let files;
+        try {
+            sdk('export').click(); await until(() => got.length, 'the export');
+            files = unzip(new Uint8Array(await got[0].blob.arrayBuffer()), true);
+        } finally { URL.createObjectURL = realCreate; HTMLAnchorElement.prototype.click = realClick; }
+        const text = p => new TextDecoder().decode(files.get(p));
+        const css = text('plainkit-breakpoints.css');
+        t.ok(/data-show-above="portrait"/.test(css) && /data-hide-above="laptop"/.test(css) && /min-width: 1401px/.test(css), 'the stylesheet names both of the breakpoints of your own');
+        t.eq(JSON.parse(text('plainkit.custom.json')).ownBreakpoints.map(e => `${e.name}${e.width}`).join(), 'portrait768,laptop1400');
+        // the stylesheet works in a real document: data-show-above hides at and below the width, data-hide-above hides above it
+        const frame = document.createElement('iframe'); frame.style.width = '800px'; document.body.append(frame);
+        try {
+            frame.contentDocument.body.innerHTML = '<p id="a" data-show-above="portrait">a</p><p id="b" data-hide-above="portrait">b</p>';
+            const style = frame.contentDocument.createElement('style'); style.textContent = css; frame.contentDocument.head.append(style);
+            const shown = id => frame.contentWindow.getComputedStyle(frame.contentDocument.getElementById(id)).display !== 'none';
+            t.ok(shown('a') && !shown('b'), 'at 800px, wider than portrait: data-show-above shows and data-hide-above hides');
+            frame.style.width = '700px'; await t.settle();
+            t.ok(!shown('a') && shown('b'), 'at 700px: the other way round');
+        } finally { frame.remove(); }
+        // remove takes a row out
+        host.querySelector('.te-sdk [data-extra-remove="laptop"]').click(); await t.settle();
+        t.eq(marks(), 'phone,portrait,tablet,wide', 'removed');
+        editor.destroy();
+    }],
     ['theme editor Custom SDK tab: with plainkit.css absent from the dist manifest the export still rewrites the widths and the theme in plainkit.min.css (#1985)', async t => {
         await t.load(t.stage('<pk-unit-input></pk-unit-input><pk-colour-input></pk-colour-input><pk-input></pk-input><pk-select></pk-select><pk-button></pk-button><pk-tabs></pk-tabs><pk-table></pk-table><pk-stat></pk-stat><pk-card></pk-card><pk-toolbar></pk-toolbar><pk-textarea></pk-textarea><pk-badge></pk-badge><pk-alert></pk-alert>'));
         const { mountThemeEditor } = await dist('theme-editor');

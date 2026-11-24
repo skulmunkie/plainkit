@@ -14,10 +14,12 @@
 import { nameProblem, valueProblem, sanitizeOverrides } from './theme.js';
 import { readShippedBreakpoints, sameWidths, rewriteMedia, rewriteProperties, reportWithWidths } from './custom-sdk-breakpoints.js';
 import { SETTINGS_NAME, settingsText, readmeText, manifestText, integrityOf } from './custom-sdk-files.js';
+import { responsiveCss, validateExtras, expectCount, queryCount, propertyCount } from './custom-sdk-ruler.js';
 
 // The pieces moved out to keep every module under the gzip budget (#1108); the old entry point still exports all of them.
 export * from './custom-sdk-breakpoints.js';
 export * from './custom-sdk-files.js';
+export * from './custom-sdk-ruler.js';
 
 // ---- the theme
 
@@ -42,6 +44,14 @@ export function themeCssProblem(css) {
         rest = rest.slice(m[0].length);
     }
     return null;
+}
+
+export const RESPONSIVE_NAME = 'plainkit-breakpoints.css';
+/** The breakpoints of your own, re-validated against the widths the export uses: an invalid set throws, so it can never reach a file. */
+function checkedExtras(extras, widths) {
+    const v = validateExtras(extras, widths ?? {});
+    if (!v.ok) throw new Error(`the breakpoints of your own are not valid: ${v.problems.map(p => p.message).join('; ')}`);
+    return v.extras;
 }
 
 const oneLine = css => css.replace(/\s*([{};,:])\s*/g, '$1').trim();
@@ -90,12 +100,19 @@ export async function customizeDist(files, { include, breakpoints, theme }) {
             if (isManifest(path) || !isText(path)) continue;
             let text = dec.decode(bytes); const before = text;
             if (changed && hasMedia(path)) {
+                const expected = Object.fromEntries(Object.keys(shipped).filter(n => to[n] !== shipped[n]).map(n => [n, queryCount(text, shipped[n])]));
                 const r = rewriteMedia(text, shipped, to, { comments: /\.css$/.test(path) });
                 if (r.unhandled.length) throw new Error(`${path}: cannot rewrite ${r.unhandled.length} media condition(s) that use a changed width: ${r.unhandled[0]}`);
+                for (const [n, want] of Object.entries(expected)) expectCount(`${path}: the ${n} breakpoint (${shipped[n]}px) in media conditions`, r.counts[n], want);
                 text = r.text;
                 for (const n of Object.keys(counts)) counts[n] += r.counts[n];
             }
-            if (changed && pageCss(path)) text = rewriteProperties(text, to).text;
+            if (changed && pageCss(path)) {
+                for (const n of Object.keys(shipped)) if (to[n] !== shipped[n]) expectCount(`${path}: the --pk-bp-${n} property`, propertyCount(text, n), 1);
+                const r = rewriteProperties(text, to);
+                expectCount(`${path}: the --pk-bp-* properties`, r.count, Object.keys(to).reduce((n, k) => n + propertyCount(text, k), 0));
+                text = r.text;
+            }
             if (path === 'breakpoints.report.json' && changed) text = eol(JSON.stringify(reportWithWidths(JSON.parse(text.replace(/\r\n/g, '\n')), to)) + '\n', text);
             if (themeCss && pageCss(path)) {
                 const compact = path === 'plainkit.min.css';
@@ -141,13 +158,15 @@ export function themeBundle({ version, theme, shipped = {} }) {
 }
 
 /** The files of a bundle that carries the dist (breakpoints only, or theme and breakpoints): dist/..., plainkit.custom.json and README.md. */
-export async function buildBundle(distFiles, { include, breakpoints, theme }) {
+export async function buildBundle(distFiles, { include, breakpoints, theme, extras = [] }) {
     const { files, summary } = await customizeDist(distFiles, { include, breakpoints, theme });
+    const own = include.breakpoints ? checkedExtras(extras, summary.breakpoints) : [];
     const overrides = sanitizeOverrides(theme?.overrides);
     const n = Object.keys(overrides.shared).length + Object.keys(overrides.dark).length + Object.keys(overrides.light).length;
     const bundle = new Map();
     for (const [p, bytes] of [...files].sort(([a], [b]) => (a < b ? -1 : a > b ? 1 : 0))) { if (!safePath(p)) throw new Error(`unsafe path in the dist: ${p}`); bundle.set(`dist/${p}`, bytes); }
-    bundle.set(SETTINGS_NAME, enc.encode(settingsText({ version: summary.version, include, breakpoints: include.breakpoints ? summary.breakpoints : null, theme: include.theme ? overrides : null })));
-    bundle.set('README.md', enc.encode(readmeText({ version: summary.version, include, breakpoints: summary.breakpoints, shipped: summary.shipped, overrideCount: include.theme ? n : 0 })));
+    if (own.length) bundle.set(RESPONSIVE_NAME, enc.encode(responsiveCss(own)));
+    bundle.set(SETTINGS_NAME, enc.encode(settingsText({ version: summary.version, include, breakpoints: include.breakpoints ? summary.breakpoints : null, theme: include.theme ? overrides : null, extras: own })));
+    bundle.set('README.md', enc.encode(readmeText({ version: summary.version, include, breakpoints: summary.breakpoints, shipped: summary.shipped, overrideCount: include.theme ? n : 0, extras: own })));
     return { files: bundle, summary };
 }

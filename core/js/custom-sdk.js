@@ -56,8 +56,8 @@ export async function fetchDist(base, { fetchImpl = globalThis.fetch.bind(global
 const toZip = files => zipStore([...files].map(([path, data]) => ({ path, data })));
 
 /** The zip of a bundle that carries the dist: { zip, name, summary }. `include` is { theme, breakpoints }; each is used only when included. */
-export async function exportSdk({ dist, include, breakpoints, theme }) {
-    const { files, summary } = await buildBundle(dist.files, { include, breakpoints, theme });
+export async function exportSdk({ dist, include, breakpoints, theme, extras = [] }) {
+    const { files, summary } = await buildBundle(dist.files, { include, breakpoints, theme, extras });
     return { zip: toZip(files), name: `plainkit-custom-${dist.version}.zip`, summary };
 }
 
