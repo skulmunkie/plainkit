@@ -9,7 +9,7 @@ export function sortKey(value, type = 'text') {
 
 // The sort after a header is activated: a new column sorts ascending, the same column goes descending, and a third activation clears the sort
 // (key and direction null), so a list can return to its natural order.
-export const nextSort = (sort, dir, key) => key !== sort ? [key, 'ascending'] : dir == 'ascending' ? [key, 'descending'] : [null, null];
+export const nextSort = (sort, dir, key) => key !== sort ? [key, 'ascending'] : dir === 'ascending' ? [key, 'descending'] : [null, null];
 
 // Rows sorted by a column ({ key, type }), stable, text with numeric collation; a new array.
 export function sortRows(rows, column, direction = 'ascending') {
