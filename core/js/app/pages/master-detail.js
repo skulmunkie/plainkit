@@ -5,7 +5,7 @@
 export const PAGE_TYPE = {
     id: 'master-detail',
     summary: 'A list pane plus a detail pane for the selected record, on one route.',
-    configKeys: ['heading', 'breadcrumb', 'actions', 'badges', 'newAction', 'actionsCollapse', 'actionsOverflow', 'overflowLabel', 'homeHref', 'homeLabel', 'homeIcon', 'list', 'backLabel', 'none', 'label', 'param', 'fill', 'rowHref', 'listHref', 'load', 'mountDetail'],
+    configKeys: ['heading', 'breadcrumb', 'actions', 'badges', 'newAction', 'actionsCollapse', 'actionsOverflow', 'overflowLabel', 'homeHref', 'homeLabel', 'homeIcon', 'variant', 'wrapTitle', 'list', 'backLabel', 'none', 'label', 'param', 'fill', 'rowHref', 'listHref', 'load', 'mountDetail'],
     states: ['none'],
     useWhen: 'A record opened beside its list on one route, such as an inbox. Not the default: a list and its record are usually two routes (the list and record page types).',
 };
