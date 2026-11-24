@@ -1,5 +1,3 @@
-using Microsoft.JSInterop;
-
 namespace PlainKit.Blazor;
 
 /// <summary>A theme of your own for <see cref="PkThemeEditor.Presets"/>: a name, and the theme as the editor's override block CSS or its JSON.</summary>
@@ -8,10 +6,12 @@ namespace PlainKit.Blazor;
 /// <param name="Description">One line shown under the preset picker.</param>
 public sealed record PkThemePreset(string Name, string Theme, string? Description = null);
 
-/// <summary>What the theme editor calls back into: one per <see cref="PkThemeEditor"/> that has an <see cref="PkThemeEditor.OnThemeChanged"/> handler.</summary>
-internal sealed class PkThemeEditorHost(Func<string, Task> onChange)
+/// <summary>A custom SDK the theme editor exported (Custom SDK tab): the zip's file name and its bytes, to save wherever the app keeps files.</summary>
+public sealed record PkThemeBundle(string Name, byte[] Zip);
+
+/// <summary>What the theme editor calls back into: one per <see cref="PkThemeEditor"/> that has a handler. OnChange gets the CSS, OnBundle the zip.</summary>
+internal sealed class PkThemeEditorHost(Func<string, Task> onChange, Func<PkThemeBundle, Task> onBundle)
 {
-    /// <summary>The exported CSS after a change.</summary>
-    [JSInvokable]
-    public Task OnChange(string css) => onChange(css);
+    [Microsoft.JSInterop.JSInvokable] public Task OnChange(string css) => onChange(css);
+    [Microsoft.JSInterop.JSInvokable] public Task OnBundle(string name, byte[] zip) => onBundle(new PkThemeBundle(name, zip));
 }

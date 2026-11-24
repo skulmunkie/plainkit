@@ -737,6 +737,23 @@ y
         t.eq(marks(), 'phone,portrait,tablet,wide', 'removed');
         editor.destroy();
     }],
+    ['breakpoint classes of your own at run time: applyBreakpointClasses hides at and below the width, update swaps it, remove undoes it, and the editor reports an export (#124)', async t => {
+        const { applyBreakpointClasses } = await import(new URL('../../dist/js/breakpoint-classes.js', import.meta.url).href);
+        const frame = document.createElement('iframe'); frame.style.width = '800px'; document.body.append(frame);
+        try {
+            const fd = frame.contentDocument;
+            fd.body.innerHTML = '<p id="a" data-show-above="laptop">a</p><p id="b" data-hide-above="laptop">b</p>';
+            const shown = id => frame.contentWindow.getComputedStyle(fd.getElementById(id)).display !== 'none';
+            t.ok(shown('a') && shown('b'), 'without the hook the classes of an unknown breakpoint do nothing');
+            const hook = applyBreakpointClasses({ ownBreakpoints: [{ name: 'laptop', width: 900 }] }, fd);
+            t.ok(!shown('a') && shown('b'), 'at 800px, at or below 900: show-above hides, hide-above shows');
+            hook.update([{ name: 'laptop', width: 700 }]); await t.settle();
+            t.ok(shown('a') && !shown('b'), 'update to 700: wider than the breakpoint, the other way round');
+            hook.remove(); await t.settle();
+            t.ok(shown('a') && shown('b'), 'remove takes the rules away');
+            t.eq(fd.querySelectorAll('style').length, 0, 'no style element was added (a strict style-src is fine)');
+        } finally { frame.remove(); }
+    }],
     ['theme editor Custom SDK tab: with plainkit.css absent from the dist manifest the export still rewrites the widths and the theme in plainkit.min.css (#1985)', async t => {
         await t.load(t.stage('<pk-unit-input></pk-unit-input><pk-colour-input></pk-colour-input><pk-input></pk-input><pk-select></pk-select><pk-button></pk-button><pk-tabs></pk-tabs><pk-table></pk-table><pk-stat></pk-stat><pk-card></pk-card><pk-toolbar></pk-toolbar><pk-textarea></pk-textarea><pk-badge></pk-badge><pk-alert></pk-alert>'));
         const { mountThemeEditor } = await dist('theme-editor');

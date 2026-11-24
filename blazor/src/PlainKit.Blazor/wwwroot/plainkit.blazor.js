@@ -85,7 +85,7 @@ export async function mountQuality(container, options) {
     mounted.set(container, await mountQuality(container, options));
 }
 
-// host (optional) is a DotNetObjectReference of PkThemeEditorHost: each change of the theme is reported to it with the exported CSS, a moment after typing stops.
+// host (optional) is a DotNetObjectReference of PkThemeEditorHost: each change of the theme is reported to it with the exported CSS, a moment after typing stops, and each Custom SDK bundle with its file name and zip bytes.
 // A null option means "not set" (.NET sends null for it): it is left out so the module's own default applies.
 export async function mountThemeEditor(container, options, host) {
     const { mountThemeEditor } = await import('./plainkit/modules/theme-editor/theme-editor.js');
@@ -93,7 +93,8 @@ export async function mountThemeEditor(container, options, host) {
     let timer = 0;
     let armed = false;   // the editor reports its starting state while it mounts: only later changes are the user's
     const send = host ? ({ css }) => { if (!armed) return; clearTimeout(timer); timer = setTimeout(() => host.invokeMethodAsync('OnChange', css), 250); } : undefined;
-    const editor = await mountThemeEditor(container, { ...Object.fromEntries(Object.entries(options).filter(([, v]) => v !== null)), onchange: send });
+    const onexport = host ? ({ name, zip }) => host.invokeMethodAsync('OnBundle', name, zip) : undefined;
+    const editor = await mountThemeEditor(container, { ...Object.fromEntries(Object.entries(options).filter(([, v]) => v !== null)), onchange: send, onexport });
     armed = true;
     mounted.set(container, { ...editor, destroy() { clearTimeout(timer); editor.destroy(); } });
 }

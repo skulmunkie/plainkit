@@ -153,6 +153,20 @@ public sealed class ToolComponentTests : BunitContext, IAsyncLifetime
     }
 
     [Fact]
+    public async Task Theme_editor_raises_OnBundleExported_with_the_zip_name_and_bytes()
+    {
+        var received = new List<PkThemeBundle>();
+        var cut = Render<PkThemeEditor>(p => p.Add(x => x.OnBundleExported, EventCallback.Factory.Create<PkThemeBundle>(this, b => received.Add(b))));
+
+        var host = Assert.IsType<DotNetObjectReference<PkThemeEditorHost>>(Assert.Single(_bridge.Invocations["mountThemeEditor"]).Arguments[2]);
+        await cut.InvokeAsync(() => host.Value.OnBundle("plainkit-custom.zip", new byte[] { 80, 75 }));
+
+        var bundle = Assert.Single(received);
+        Assert.Equal("plainkit-custom.zip", bundle.Name);
+        Assert.Equal(new byte[] { 80, 75 }, bundle.Zip);
+    }
+
+    [Fact]
     public void Theme_editor_mounts_again_when_the_initial_theme_or_presets_change()
     {
         var cut = Render<PkThemeEditor>(p => p.Add(x => x.InitialTheme, "{\"shared\":{}}"));
