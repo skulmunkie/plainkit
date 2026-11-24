@@ -594,7 +594,7 @@ export const appCases = [
             validate: async (id, v) => (v.zip === 'bad' ? { errors: { zip: 'Not a postal code' } } : null), submit: async v => { sent = v; } } });
         const el = box.querySelector('pk-wizard-page');
         await t.load(box);
-        await until(() => el.part('panes').querySelector('pk-field-group')?.part?.('group')?.querySelector('pk-select'), 'the group');
+        await until(() => el.part('panes').querySelector('pk-field-group')?.shadowRoot?.querySelector('pk-select'), 'the group');
         el.addEventListener('pk-wizard-change', e => changes.push(e.detail));
         const g = el.part('panes').querySelector('pk-field-group'), row = k => g.$rows.get(k);
         await until(() => row('city')?.control.options?.length === 1, 'the city of the first country');
