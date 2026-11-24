@@ -205,6 +205,18 @@
           "app-bar-search.js",
           3520
         ]
+      ],
+      "acknowledged": [
+        {
+          "metric": "pkg.plainkit.markdown.zip",
+          "approvedBy": "owner (2026-11-24)",
+          "reason": "new markdown features since 0.30.0; optional package, not loaded by default"
+        },
+        {
+          "metric": "pkg.plainkit.markdown.unpacked",
+          "approvedBy": "owner (2026-11-24)",
+          "reason": "new markdown features since 0.30.0; optional package, not loaded by default"
+        }
       ]
     }
   ]
