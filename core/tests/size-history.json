@@ -1,0 +1,223 @@
+{
+  "_comment": "The size trend history (#1985 step 6): one entry per release, appended by the release pull request with node scripts/size-trend.mjs --append (a release artefact like core/VERSION; never hand-edit a measured number). 0.30.0 is the fixed baseline, measured retrospectively from the tag v0.30.0 with the current measuring code (no Blazor payload: it needs the .NET publish; blazor.* rows start at the first entry that measures them with --payload). A metric more than 15 percent above the baseline needs an owner acknowledgement line in its entry: acknowledged: [{ metric, approvedBy, reason }]. Report only: sizes never fail a check, a missing acknowledgement does.",
+  "entries": [
+    {
+      "version": "0.30.0",
+      "date": "2026-10-10",
+      "tree": "1395a766347bea1deda8c702c9db66d2df2f8a63",
+      "exceptions": 0,
+      "metrics": {
+        "page.button.requests": 12,
+        "page.button.gzip": 18035,
+        "page.button.brotli": 15597,
+        "page.form.requests": 16,
+        "page.form.gzip": 28130,
+        "page.form.brotli": 24396,
+        "page.table.requests": 12,
+        "page.table.gzip": 20056,
+        "page.table.brotli": 17493,
+        "app.entryGz": 22520,
+        "core.packed": 286737,
+        "core.unpacked": 957382,
+        "pkg.plainkit.zip": 1902449,
+        "pkg.plainkit.unpacked": 6117777,
+        "pkg.plainkit.tools.zip": 271893,
+        "pkg.plainkit.tools.unpacked": 840428,
+        "pkg.plainkit.audit.zip": 52504,
+        "pkg.plainkit.audit.unpacked": 132205,
+        "pkg.plainkit.markdown.zip": 13044,
+        "pkg.plainkit.markdown.unpacked": 33286,
+        "pkg.plainkit.dock.zip": 22809,
+        "pkg.plainkit.dock.unpacked": 59458,
+        "pkg.plainkit.canvas.zip": 46041,
+        "pkg.plainkit.canvas.unpacked": 114736,
+        "pkg.plainkit.blazor.zip": 1925,
+        "pkg.plainkit.blazor.unpacked": 3307,
+        "pkg.plainkit.ide.zip": 200321,
+        "pkg.plainkit.ide.unpacked": 949676,
+        "elements.totalGz": 255468,
+        "elements.count": 139,
+        "elements.above3_5kb": 13,
+        "elements.above4kb": 0
+      },
+      "topElements": [
+        [
+          "data-table.js",
+          4096
+        ],
+        [
+          "markdown-editor.js",
+          4094
+        ],
+        [
+          "page-header.js",
+          4093
+        ],
+        [
+          "input.js",
+          4088
+        ],
+        [
+          "table.js",
+          4057
+        ],
+        [
+          "heat-map.js",
+          3962
+        ],
+        [
+          "field-group.js",
+          3945
+        ],
+        [
+          "combobox.js",
+          3912
+        ],
+        [
+          "canvas.js",
+          3830
+        ],
+        [
+          "record-page.js",
+          3802
+        ],
+        [
+          "doc-page.js",
+          3800
+        ],
+        [
+          "lookup-picker.js",
+          3748
+        ],
+        [
+          "dock.js",
+          3660
+        ],
+        [
+          "app-bar-search.js",
+          3520
+        ],
+        [
+          "calendar.js",
+          3394
+        ]
+      ]
+    },
+    {
+      "version": "0.38.0",
+      "date": "2026-11-24",
+      "tree": "a9e80fe3dfaf7f5a12ac72b0b854c5350bdbe198",
+      "exceptions": 0,
+      "metrics": {
+        "page.button.requests": 12,
+        "page.button.gzip": 18052,
+        "page.button.brotli": 15615,
+        "page.form.requests": 16,
+        "page.form.gzip": 28147,
+        "page.form.brotli": 24414,
+        "page.table.requests": 12,
+        "page.table.gzip": 20044,
+        "page.table.brotli": 17486,
+        "app.entryGz": 22520,
+        "core.packed": 286567,
+        "core.unpacked": 936852,
+        "pkg.plainkit.zip": 1963126,
+        "pkg.plainkit.unpacked": 6307513,
+        "pkg.plainkit.tools.zip": 284934,
+        "pkg.plainkit.tools.unpacked": 876107,
+        "pkg.plainkit.audit.zip": 52804,
+        "pkg.plainkit.audit.unpacked": 133645,
+        "pkg.plainkit.markdown.zip": 16250,
+        "pkg.plainkit.markdown.unpacked": 40581,
+        "pkg.plainkit.dock.zip": 22882,
+        "pkg.plainkit.dock.unpacked": 59963,
+        "pkg.plainkit.canvas.zip": 46041,
+        "pkg.plainkit.canvas.unpacked": 114736,
+        "pkg.plainkit.blazor.zip": 1925,
+        "pkg.plainkit.blazor.unpacked": 3307,
+        "pkg.plainkit.ide.zip": 203345,
+        "pkg.plainkit.ide.unpacked": 962128,
+        "pkg.plainkit.icons.zip": 5877,
+        "pkg.plainkit.icons.unpacked": 23064,
+        "elements.totalGz": 259902,
+        "elements.count": 140,
+        "elements.above3_5kb": 14,
+        "elements.above4kb": 0
+      },
+      "topElements": [
+        [
+          "markdown-editor.js",
+          4094
+        ],
+        [
+          "page-header.js",
+          4093
+        ],
+        [
+          "input.js",
+          4088
+        ],
+        [
+          "table.js",
+          4088
+        ],
+        [
+          "field-group.js",
+          4016
+        ],
+        [
+          "data-table.js",
+          4013
+        ],
+        [
+          "heat-map.js",
+          3962
+        ],
+        [
+          "combobox.js",
+          3912
+        ],
+        [
+          "doc-page.js",
+          3873
+        ],
+        [
+          "record-page.js",
+          3836
+        ],
+        [
+          "canvas.js",
+          3830
+        ],
+        [
+          "lookup-picker.js",
+          3748
+        ],
+        [
+          "wizard-page.js",
+          3716
+        ],
+        [
+          "dock.js",
+          3660
+        ],
+        [
+          "app-bar-search.js",
+          3520
+        ]
+      ],
+      "acknowledged": [
+        {
+          "metric": "pkg.plainkit.markdown.zip",
+          "approvedBy": "owner (2026-11-24)",
+          "reason": "new markdown features since 0.30.0; optional package, not loaded by default"
+        },
+        {
+          "metric": "pkg.plainkit.markdown.unpacked",
+          "approvedBy": "owner (2026-11-24)",
+          "reason": "new markdown features since 0.30.0; optional package, not loaded by default"
+        }
+      ]
+    }
+  ]
+}

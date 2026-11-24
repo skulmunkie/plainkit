@@ -50,7 +50,7 @@ test('which checks run: default, --fast, --no-dotnet, --browser, --pack, --only'
     assert.deepEqual(sel('--only', 'lint'), ['changelog', 'changelog-pr', 'release-fragments'], 'the lint job needs no bootstrap');
     assert.deepEqual(sel('--only', 'dotnet'), ['bootstrap', 'dotnet'], 'a group pulls in what it needs');
     assert.deepEqual(sel('--only', 'node-tests'), ['bootstrap', 'node-tests']);
-    assert.deepEqual(sel('--only', 'node'), ['bootstrap', 'version', 'release-pr', 'generated-tree', 'node-tests', 'audit', 'audit-modules']);
+    assert.deepEqual(sel('--only', 'node'), ['bootstrap', 'version', 'size-trend', 'release-pr', 'generated-tree', 'node-tests', 'audit', 'audit-modules']);
 });
 
 test('the checks are ordered cheap first', () => {
