@@ -218,6 +218,122 @@
           "reason": "new markdown features since 0.30.0; optional package, not loaded by default"
         }
       ]
+    },
+    {
+      "version": "0.39.0",
+      "date": "2026-11-24",
+      "tree": "298d8dd8f72de973f49742333406e0d05d268fca+dirty-070e74d7a381",
+      "exceptions": 0,
+      "metrics": {
+        "page.button.requests": 12,
+        "page.button.gzip": 18052,
+        "page.button.brotli": 15615,
+        "page.form.requests": 16,
+        "page.form.gzip": 28147,
+        "page.form.brotli": 24414,
+        "page.table.requests": 12,
+        "page.table.gzip": 20059,
+        "page.table.brotli": 17521,
+        "app.entryGz": 22520,
+        "core.packed": 287564,
+        "core.unpacked": 939244,
+        "pkg.plainkit.zip": 1970464,
+        "pkg.plainkit.unpacked": 6334026,
+        "pkg.plainkit.tools.zip": 293365,
+        "pkg.plainkit.tools.unpacked": 894872,
+        "pkg.plainkit.audit.zip": 52824,
+        "pkg.plainkit.audit.unpacked": 133883,
+        "pkg.plainkit.markdown.zip": 16250,
+        "pkg.plainkit.markdown.unpacked": 40581,
+        "pkg.plainkit.dock.zip": 22883,
+        "pkg.plainkit.dock.unpacked": 59963,
+        "pkg.plainkit.canvas.zip": 46041,
+        "pkg.plainkit.canvas.unpacked": 114736,
+        "pkg.plainkit.blazor.zip": 1926,
+        "pkg.plainkit.blazor.unpacked": 3307,
+        "pkg.plainkit.ide.zip": 203408,
+        "pkg.plainkit.ide.unpacked": 962300,
+        "pkg.plainkit.icons.zip": 5877,
+        "pkg.plainkit.icons.unpacked": 23064,
+        "elements.totalGz": 259901,
+        "elements.count": 140,
+        "elements.above3_5kb": 14,
+        "elements.above4kb": 0
+      },
+      "topElements": [
+        [
+          "markdown-editor.js",
+          4094
+        ],
+        [
+          "page-header.js",
+          4093
+        ],
+        [
+          "input.js",
+          4088
+        ],
+        [
+          "table.js",
+          4087
+        ],
+        [
+          "field-group.js",
+          4016
+        ],
+        [
+          "data-table.js",
+          4013
+        ],
+        [
+          "heat-map.js",
+          3962
+        ],
+        [
+          "combobox.js",
+          3912
+        ],
+        [
+          "doc-page.js",
+          3873
+        ],
+        [
+          "canvas.js",
+          3830
+        ],
+        [
+          "record-page.js",
+          3826
+        ],
+        [
+          "lookup-picker.js",
+          3748
+        ],
+        [
+          "wizard-page.js",
+          3716
+        ],
+        [
+          "dock.js",
+          3660
+        ],
+        [
+          "app-bar-search.js",
+          3520
+        ]
+      ],
+      "acknowledged": [
+        {
+          "metric": "pkg.plainkit.markdown.zip",
+          "approvedBy": "owner (2026-11-24)",
+          "reason": "new markdown features since 0.30.0; optional package, not loaded by default"
+        },
+        {
+          "metric": "pkg.plainkit.markdown.unpacked",
+          "approvedBy": "owner (2026-11-24)",
+          "reason": "new markdown features since 0.30.0; optional package, not loaded by default"
+        }
+      ]
     }
   ]
 }
